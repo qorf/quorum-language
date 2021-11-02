@@ -1,233 +1,124 @@
 package Libraries.Interface.Controls.Charts
-use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Game.Graphics.Color
-use Libraries.Containers.Array
-use Libraries.Interface.Controls.Icon
-use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.ControlLabel
-use Libraries.Compute.Math
+
 use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Item
-use Libraries.Interface.Controls.Control
-use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Interface.Layouts.ManualLayout
+
+/*
+    The TwoVariableChart class is Chart object that inherits from Control and like other
+    UI elements it is added to the Game class. TwoVariableChart is a parent to the LineChart 
+    and the ScatterPlot class and is not directly used itself.
+
+    Attribute: Authors: Gabriel Contreras, Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts
+    use Libraries.Interface.Controls.Charts.LineChart
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            LineChart chart
+            Add(chart)
+        end
+    end
+*/
 
 class TwoVariableChart is Chart
-
-    // The root ChartItem.
-    ChartItem summary
-    Array<Series> seriesList
-    Array<ChartLine> lines
-    Array<ChartPoint> points
-    private boolean showPoints = true
-    Color defaultColor
-    Math math
+    ChartItem summary // Root of the info tree
+    Array<ChartLine> lines      // Used with Line Charts
+    Array<ChartPoint> points    // Used with Scatter Plots
     ChartOptions options
+    Math math
 
-    private integer PointRadius = 2
-    private integer LineDensity = 1
+    private integer PointDensity = 0
+    private integer LineDensity = 0
+    private boolean showPoints = true
 
-    // The minimum radius of a single chart point.
-    private integer minimumPointRadius = 2
-
-    // A value used to scale the size of points as a percentage of chart size.
-    private number pointScaleFactor = 0.008
-    private integer pointThreshold = 21
-    private integer maxChunks = 16
-
-    private integer tickLength = 10
-    private integer tickWidth = 3
-    ChartPointComparison comparison
-
+    
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
 
     // If there are fewer than this many points in a quadrant, we don't subdivide the quadrant further.
-    integer quadrantThreshold = 10
+    private integer quadrantThreshold = 10
+    private integer pointThreshold = 21
 
     // The maximum number of times that regions can be subdivided into quadrants.
-    integer maxSubdivisions = 4
+    private integer maxSubdivisions = 4
+    private integer maxChunks = 16
+    
+    ChartPointComparison comparison
 
-    // The default color of each point.
-    Color pointColor
-    Color pointSelectionColor
-
-    // How many ticks are set along the x and y axes.
-    integer xTicks = 0
-    integer yTicks = 0
-
-    action LostSelection(ChartItem ci)
-        if ci = undefined
-            return now
-        end
-        Item target = ci:GetFocusTarget()
-
-        if target not= undefined
-            if target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:LostSelection()
-            elseif target is Series
-                Series temp = cast(Series, target)
-                if points:GetSize() > 0
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        Drawable item = temp:GetItemAt(i)
-                        item:SetColor(previousColor)
-                        item:SetZ(0)
-                        i = i + 1
-                    end
-                else
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
-                        line:SetColor(previousColor)
-                        line:BringForward(false)
-                        i = i + 1
-                    end
-                end
-                temp:GetLabel():LostSelection()
-            elseif target is ChartPoint
-                if GetPointsFlag()
-                    ChartPoint temp = cast(ChartPoint, target)
-                    temp:SetColor(previousColor)
-                    temp:SetZ(0)
-                end
-            elseif target is LineSegment
-                LineSegment temp = cast(LineSegment, target)
-                if GetPointsFlag()
-                    temp:GetPoint1():SetColor(previousColor)
-                    temp:GetPoint2():SetColor(previousColor)
-                    temp:GetPoint1():SetZ(0)
-                    temp:GetPoint2():SetZ(0)
-                end
-                temp:SetColor(previousColor)
-                temp:SetZ(0)
-            elseif target is ChartLine
-                ChartLine temp = cast(ChartLine, target)
-                temp:SetColor(previousColor)
-                temp:BringForward(false)
-            elseif target is Icon
-                target:Hide()
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                    view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
-                    temp:SetView2D(view)
-                end
-            end
-        end
-    end
-
-    action GainedSelection(ChartItem ci)
-        if ci = undefined
-            return now
-        end
-        Item target = ci:GetFocusTarget()
-
-        if target not= undefined
-            target:Focus()
-            if target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:GainedSelection()
-            elseif target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
-                if points:GetSize() > 0
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        Drawable item = temp:GetItemAt(i)
-                        item:SetColor(GetHighlightColor())
-                        item:SetZ(-1)
-                        i = i + 1
-                    end
-                else
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
-                        line:SetColor(GetHighlightColor())
-                        line:BringForward(true)
-                        i = i + 1
-                    end
-                end
-                temp:GetLabel():GainedSelection()
-            elseif target is ChartPoint
-                if GetPointsFlag()
-                    ChartPoint temp = cast(ChartPoint, target)
-                    previousColor = temp:GetColor()
-                    temp:SetColor(GetHighlightColor())
-                    temp:SetZ(-1)
-                end
-            elseif target is LineSegment
-                LineSegment temp = cast(LineSegment, target)
-                if GetPointsFlag()
-                    temp:GetPoint1():SetColor(GetHighlightColor())
-                    temp:GetPoint2():SetColor(GetHighlightColor())
-                    temp:GetPoint1():SetZ(-1)
-                    temp:GetPoint2():SetZ(-1)
-                end
-                previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
-                temp:SetZ(-1)
-            elseif target is ChartLine
-                ChartLine temp = cast(ChartLine, target)
-                previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
-                temp:BringForward(true)
-            elseif target is Icon
-                target:Show()
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    previousColorGroup = properties:GetBorderColor()
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
-                    temp:SetView2D(view)
-                end
-            end            
-        end
-    end
-    action DisposeDrawables()
-        parent:Chart:DisposeDrawables()
-
-        GetChartArea():Empty()
-    end
     /*
-    This action is used to load the graphical components of the Control. This is
-    handled automatically by the Game engine as needed, and most users shouldn't
-    need to use this action directly.
+        LoadGraphics
+        This action is used to load the graphical components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
-        parent:Chart:LoadGraphics(properties)
         if properties = undefined
             return now
         end
-
-        Control chartArea = GetChartArea()
-
+        parent:Chart:LoadGraphics(properties)
+ 
+        // Default highlight color is selection color (currently blue)
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
         end
-        if GetDefaultOrientation() = undefined
-            SetDefaultOrientation("horizontal")
-        end
-      
+
         // Check for orientation change
         if OrientationChanged()
             flipValues()
-        end        
-        
+        end
+
+        LoadChartAreaItems()     
+    end
+
+    action LoadChartAreaItems()
         // Line Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
+                Control chartArea
+                if GetNumberOfChartAreas() > 1 and i < GetNumberOfChartAreas()
+                    chartArea = GetSubChartAreas():Get(i)
+                    ManualLayout manualLayout
+                    chartArea:SetLayout(manualLayout)
+
+                    Color color
+                    LayoutProperties properties = chartArea:GetDefaultLayoutProperties()
+                    properties:SetBackgroundColor(color:White())
+                    properties:SetBorderColor(color:Black())
+                    properties:SetBorderThickness(4)
+                    if chartArea:GetDefaultLayoutProperties():GetView2D() = undefined
+                        LabelBoxView view 
+                        view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                        view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+                        chartArea:SetView2D(view)
+                    else
+                        chartArea:SetView2D(chartArea:GetDefaultLayoutProperties():GetView2D())
+                    end
+                    GetChartArea():Add(chartArea)
+                else
+                    chartArea = GetChartArea()
+                end
+
+
                 lines:Get(i):SetFocusable(true)
                 lines:Get(i):SetAccessibilityCode(parent:Item:ITEM)
                 lines:Get(i):SetNextFocus(GetNextFocus())
@@ -269,7 +160,7 @@ class TwoVariableChart is Chart
                 point:SetAccessibilityCode(parent:Item:ITEM)
                 point:SetNextFocus(GetNextFocus())
                 point:SetPreviousFocus(GetPreviousFocus())
-                chartArea:Add(point)
+                GetChartArea():Add(point)
                 i = i + 1
             end
         end
@@ -305,6 +196,183 @@ class TwoVariableChart is Chart
         end
     end
 
+    /*
+        DisposeDrawables
+        
+        Empties drawables from the chart area.
+    */
+    action DisposeDrawables()
+        parent:Chart:DisposeDrawables()
+
+        GetChartArea():Empty()
+    end
+
+    /*
+        LostSelection
+        This an inherited action from a blueprint in parent Chart class
+
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
+    action LostSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:LostSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                if points:GetSize() > 0
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        Drawable item = temp:GetItemAt(i)
+                        item:SetColor(previousColor)
+                        item:SetZ(0)
+                        i = i + 1
+                    end
+                else
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
+                        line:SetColor(previousColor)
+                        line:BringForward(false)
+                        i = i + 1
+                    end
+                end
+                temp:GetLabel():LostSelection()
+                temp:GetIcon():SetColor(previousColor)
+            elseif target is ChartPoint
+                if GetPointsFlag()
+                    ChartPoint temp = cast(ChartPoint, target)
+                    temp:SetColor(previousColor)
+                    temp:SetZ(0)
+                end
+            elseif target is LineSegment
+                LineSegment temp = cast(LineSegment, target)
+                if GetPointsFlag()
+                    temp:GetPoint1():SetColor(previousColor)
+                    temp:GetPoint2():SetColor(previousColor)
+                    temp:GetPoint1():SetZ(0)
+                    temp:GetPoint2():SetZ(0)
+                end
+                temp:SetColor(previousColor)
+                temp:SetZ(0)
+            elseif target is ChartLine
+                ChartLine temp = cast(ChartLine, target)
+                temp:SetColor(previousColor)
+                temp:BringForward(false)
+            elseif target is Icon
+                target:Hide()
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
+                    temp:SetView2D(view)
+                end
+            end
+        end
+    end
+
+    /* 
+        GainedSelection
+        This an inherited action from a blueprint in parent Chart class
+
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+    */
+    action GainedSelection(ChartItem ci)
+        if ci = undefined
+            return now
+        end
+        Item target = ci:GetFocusTarget()
+
+        if target not= undefined
+            target:Focus()
+            if target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            elseif target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                if points:GetSize() > 0
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        Drawable item = temp:GetItemAt(i)
+                        item:SetColor(GetHighlightColor())
+                        item:SetZ(-1)
+                        i = i + 1
+                    end
+                else
+                    integer i = 0
+                    repeat while i < temp:GetSize()
+                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
+                        line:SetColor(GetHighlightColor())
+                        line:BringForward(true)
+                        i = i + 1
+                    end
+                end
+                temp:GetLabel():GainedSelection()
+                temp:GetIcon():SetColor(GetHighlightColor())
+            elseif target is ChartPoint
+                if GetPointsFlag()
+                    ChartPoint temp = cast(ChartPoint, target)
+                    previousColor = temp:GetColor()
+                    temp:SetColor(GetHighlightColor())
+                    temp:SetZ(-1)
+                end
+            elseif target is LineSegment
+                LineSegment temp = cast(LineSegment, target)
+                if GetPointsFlag()
+                    temp:GetPoint1():SetColor(GetHighlightColor())
+                    temp:GetPoint2():SetColor(GetHighlightColor())
+                    temp:GetPoint1():SetZ(-1)
+                    temp:GetPoint2():SetZ(-1)
+                end
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
+                temp:SetZ(-1)
+            elseif target is ChartLine
+                ChartLine temp = cast(ChartLine, target)
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
+                temp:BringForward(true)
+            elseif target is Icon
+                target:Show()
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    previousColorGroup = properties:GetBorderColor()
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
+                    view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
+                    temp:SetView2D(view)
+                end
+            end            
+        end
+    end
+
+    /*
+        This action is called whenever the window is resized.
+    */
+    action Resize()
+        parent:Chart:Resize()
+    end
 
     /*
         Gets the default selection color (highlighting)
@@ -321,21 +389,7 @@ class TwoVariableChart is Chart
     end
 
     /*
-        Gets the previous color
-    */
-    action GetPreviousColor returns Color
-        return previousColor
-    end
-
-    /*
-        Sets the previous color 
-    */
-    action SetPreviousColor(Color color)
-        me:previousColor = color
-    end
-
-    /*
-    Used to create a new ChartLine object for the chart and add it to the lines array.
+        Used to create a new ChartLine object for the chart and add it to the lines array.
     */
     action AddChartLine(ChartLine newLine)
         lines:Add(newLine)
@@ -350,7 +404,7 @@ class TwoVariableChart is Chart
     end
 
     /*
-    Return a specific line from the chart.
+        Return a specific line from the chart.
     */
     action GetLine(integer i) returns ChartLine
         if lines:Get(i) = undefined
@@ -361,76 +415,84 @@ class TwoVariableChart is Chart
     end
 
     /*
-    Returns the entire list of lines from the chart.
+        Returns the entire list of lines from the chart.
     */
     action GetAllLines() returns Array<ChartLine>
         return lines
     end
 
     /*
-    Returns the number of full lines from the chart.
+        Returns the number of full chart lines from the chart.
     */
     action GetNumberOfLines() returns integer
         return lines:GetSize()
     end
 
     /*
-    Returns the number of points from the chart. (scatter)
+        Returns the number of points from the chart. (scatter)
     */
     action GetNumberOfPoints() returns integer
         return points:GetSize()
     end
 
     /*
-    Returns the default color for the chart.
+        Set and get the point radius.
     */
-    action GetDefaultColor() returns Color
-        return defaultColor
+    action SetPointDensity(integer radius)
+        PointDensity = radius
+    end
+
+    action GetPointDensity() returns integer
+        return PointDensity
     end
 
     /*
-    Set and get the point radius.
-    */
-    action SetPointRadius(integer radius)
-        PointRadius = radius
-    end
-    action GetPointRadius() returns integer
-        return PointRadius
-    end
-
-    /*
-    Set and get the line density.
+        Set and get the line density.
     */
     action SetLineDensity(integer density)
         LineDensity = density
     end
+
     action GetLineDensity() returns integer
         return LineDensity
     end
 
     /*
-        Returns an array of all the series sets 
-    */
-    action GetSeriesList returns Array<Series>
-        return seriesList
-    end
-
-    action AddSeries(Series series)
-        seriesList:Add(series)
-    end
-
-    /*
-    Returns the value of the showPoints flag.
+        Returns the value of the showPoints flag.
     */
     action GetPointsFlag() returns boolean
         return showPoints
     end
 
-    //blueprint action GenerateChartAreaInfo(ChartItem chartArea, Chart chart)
+    /*
+    Flag used to display the points of all lines.
+    */
+    action ShowAllPoints()
+        showPoints = true
+        integer i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):ShowPoints()
+            i = i + 1
+        end
+    end
 
     /*
+    Flag used to hide all the points of all lines.
+    */
+    action HideAllPoints()
+        showPoints = false
+        integer i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):HidePoints()
+            i = i + 1
+        end
+    end
+
+    /*
+        GenerateInfoTree
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
+        GenerateSummary is done in the child class: LineChart or ScatterPlot
     */
     action GenerateInfoTree 
         if GetDefaultLayoutProperties():NeedsRendering()
@@ -560,13 +622,11 @@ class TwoVariableChart is Chart
             Icon newIcon = NewRegionIcon(0,0,1,1)
             SubdivideQuadrant(chartArea, newIcon, points, 0)
         end
-
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
-
-    /*
-    Create a new region on the chart for accessbility.
+/*
+        Create a new region on the chart for accessbility.
     */
     private action NewRegionIcon (number percentX, number percentY, number percentWidth, number percentHeight) returns Icon
         Icon region
@@ -584,7 +644,7 @@ class TwoVariableChart is Chart
         return region
     end
     /*
-    Split the chart area into regions until a minimum number of points is contained in a region or until a maximum number of division.
+        Split the chart area into regions until a minimum number of points is contained in a region or until a maximum number of division.
     */
     private action CreateChunks(ChartItem item, Icon region, Array<ChartPoint> ps,Array<LineSegment> ls, integer currentLevel)
 
@@ -926,35 +986,5 @@ class TwoVariableChart is Chart
 
     action GetMaximumSubdivisions returns integer
         return maxSubdivisions
-    end
-
-    /*
-        This action is called whenever the window is resized.
-    */
-    action Resize()
-        parent:Chart:Resize()
-    end
-    /*
-    Flag used to display the points of all lines.
-    */
-    action ShowAllPoints()
-        showPoints = true
-        integer i = 0
-        repeat while i < lines:GetSize()
-            lines:Get(i):ShowPoints()
-            i = i + 1
-        end
-    end
-
-    /*
-    Flag used to hide all the points of all lines.
-    */
-    action HideAllPoints()
-        showPoints = false
-        integer i = 0
-        repeat while i < lines:GetSize()
-            lines:Get(i):HidePoints()
-            i = i + 1
-        end
     end
 end

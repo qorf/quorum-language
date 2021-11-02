@@ -55,6 +55,8 @@ use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Transforms.DataTupleComparison
 use Libraries.Compute.Statistics.Charts.BoxPlotCreator
 use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Compute.Statistics.Charts.PieChartCreator
+use Libraries.Interface.Controls.Charts.PieChart
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2644,6 +2646,32 @@ class DataFrame
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a PieChart from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:PieChart()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action PieChart returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(PieChart, CreateChart(creator))
     end
 
     /*

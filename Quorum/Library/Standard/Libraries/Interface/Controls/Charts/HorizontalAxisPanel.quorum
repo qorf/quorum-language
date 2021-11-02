@@ -35,16 +35,21 @@ class HorizontalAxisPanel is Control
     Array <ControlLabel> labels
     Array <text> overrideLabels = undefined
     Array <Drawable> ticks
+    Array <Drawable> brackets
     Array <Drawable> majorlines
     Array <Drawable> minorlines
+    ControlLabel longestLabel
 
     boolean tickCountOverride = false
     boolean labelOverridesAreNumbers = false
+    boolean showGroupBrackets = false
 
+    integer numberOfSections = 1
     integer minorlinecount = 5
     integer tickCount = 0
-    integer tickLength = 15
+    integer tickHeight = 15
     integer tickWidth = 3
+    integer labelCount = 0
     integer titleFontSize = 0
     integer labelFontSize = 0
     number tickinterval = -1.0 //This is used for the numerical label spacing
@@ -53,7 +58,11 @@ class HorizontalAxisPanel is Control
     number max = 0.0
     number sumOfLabelHeights = 0
     number sumOfLabelWidths = 0
-    number widestLabel = 0
+    number labelMinimum = 0
+    integer labelRotation = 0
+
+    boolean overrideDefaultMin = false
+    boolean overrideDefaultMax = false
 
     text titleText = ""
     text numberformat = "integer"
@@ -209,120 +218,154 @@ class HorizontalAxisPanel is Control
         end
 
         InitLabels(chart)
-
-        number scaleNum = min
-        number scaleWidth = CalculateScaleWidth(chart)
-
-        if ticks:GetSize() not= tickCount
-            
-            if ticks:GetSize() < tickCount
-                integer i = 0
-                repeat while i < tickCount
-                    ticks:Get(i):LoadFilledRectangle(tickWidth, tickLength)
-
-                    if chart:IsShowingMajorXGridLines()
-                        Drawable gridline
-                        majorlines:Add(gridline)
-                        chart:GetChartArea():Add(gridline)
-                    end
-                    if chart:IsShowingMinorXGridLines()
-                        integer j = 0
-                        repeat while j < minorlinecount
-                            Drawable gridline
-                            minorlines:Add(gridline)
-                            chart:GetChartArea():Add(gridline)
-                            j = j + 1
-                        end
-                    end
-
-                    i = i + 1
-                end
-            else
-                repeat until ticks:GetSize() = tickCount - 1
-                    Drawable tick = ticks:RemoveFromEnd()
-                    Remove(tick)
-
-                    ControlLabel label = labels:RemoveFromEnd()
-                    Remove(label)
-                end
-            end
-
-            if tickCount > 0
-                i = 0
-                repeat while i < tickCount
-                    Drawable tick = ticks:Get(i)
-                    tick:SetName("X Tick " + (i + 1))
-                    i = i + 1
-                end
-            end
-        end
     end
 
     action InitLabels(Chart chart)
-        number scaleNum = min
         number scaleWidth = CalculateScaleWidth(chart)
+        labelCount = 0
+        
+        integer k = 0
+        repeat while k < numberOfSections
+            HorizontalAxisPanel subPanel = undefined
+            if chart:GetNumberOfChartAreas() > 1 and k < numberOfSections
+                subPanel = chart:GetSubHorizontalPanels():Get(k)
+                ManualLayout manualLayout
+                subPanel:SetLayout(manualLayout)
 
-        if ticks:GetSize() not= tickCount
+                Color color
+                color:SetColor(0,0,0,0)
+                LayoutProperties properties = subPanel:GetDefaultLayoutProperties()
+                properties:SetBackgroundColor(color)
+                properties:SetBorderColor(color)
+                properties:SetBorderThickness(4)
+                Add(subPanel)
+            end
+            number scaleNum = min
+
+            Array<Drawable> theTicks
+            Array<Drawable> theBrackets
+            Array<ControlLabel> theLabels
+            Array<Drawable> theMajorLines
+            Array<Drawable> theMinorLines
+
+            integer i = 0
+            repeat while i < tickCount
+                Drawable tick
+                theTicks:Add(tick)
+                tick:SetName("Y Tick " + (i + 1))
+    
+                Drawable left
+                theBrackets:Add(left)
+
+                Drawable floor
+                theBrackets:Add(floor)
+
+                Drawable right
+                theBrackets:Add(right)
+
+                Item2D labelAnchor
+                ControlLabel label
+                label:SetFontSize(GetFontSize() - 5)
+                label:SetFocusable(true)
+                label:SetAccessibilityCode(parent:Item:ITEM)
+                theLabels:Add(label)
+                labelAnchor:Add(label)
+                labelCount = labelCount + 1
+
+                if i = 0
+                    longestLabel = label
+                end
             
-            if ticks:GetSize() < tickCount
-                integer i = 0
-                repeat while i < tickCount
-                    Drawable tick
+                //make the labels for each scale tick (auto based on max)
+                text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
+                if UseIntegers() and not tickCountOverride
+                    scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
+                end    
+                if overrideLabels = undefined
+                    label:SetText(scaleText)
+                else
+                    scaleText = overrideLabels:Get((cast(integer, i*intervaloverride) mod overrideLabels:GetSize()))
+                    label:SetText(scaleText)
+                end
+                number labelHeight = label:GetHeight()
+                number labelWidth = label:GetWidth()
+                if labelWidth > longestLabel:GetWidth()
+                    longestLabel = label
+                end
+                sumOfLabelHeights = sumOfLabelHeights + labelHeight
+                sumOfLabelWidths = sumOfLabelWidths + labelWidth
+                scaleNum = scaleNum + scaleWidth
+
+                if subPanel = undefined
                     Add(tick)
-                    ticks:Add(tick)
-
-                    Item2D labelAnchor
-                    ControlLabel label
-                    label:SetFontSize(GetFontSize() - 5)
-                    label:SetFocusable(true)
-                    label:SetAccessibilityCode(parent:Item:ITEM)
-                    labels:Add(label)
-                    labelAnchor:Add(label)
+                    Add(left)
+                    Add(floor)
+                    Add(right)
                     Add(labelAnchor)
-                    i = i + intervaloverride
+                else
+                    subPanel:Add(tick)
+                    subPanel:Add(left)
+                    subPanel:Add(floor)
+                    subPanel:Add(right)
+                    subPanel:Add(labelAnchor)
                 end
-            else
-                repeat until ticks:GetSize() = tickCount - 1
-                    Drawable tick = ticks:RemoveFromEnd()
-                    Remove(tick)
 
-                    ControlLabel label = labels:RemoveFromEnd()
-                    Remove(label)
-                end
-            end
-
-            number sumOfLabelWidths = 0
-            number sumOfLabelHeights = 0
-            number widestLabel = 0.0
-            if tickCount > 0
-                i = 0
-                repeat while i < ticks:GetSize() 
-                    Drawable tick = ticks:Get(i)
-                    tick:SetName("X Tick " + (i + 1))
-
-                    //make the labels for each scale tick (auto based on max)
-                    text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
-                    if UseIntegers() and not tickCountOverride
-                        scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
-                    end
-                    ControlLabel label = labels:Get(i)
-                    if overrideLabels = undefined
-                        label:SetText(scaleText)
+                if chart:IsShowingMajorXGridLines()
+                    if subPanel = undefined
+                        Drawable gridline
+                        theMajorLines:Add(gridline)
+                        chart:GetChartArea():Add(gridline)
                     else
-                        scaleText = overrideLabels:Get(cast(integer, i*intervaloverride))
-                        label:SetText(scaleText)
+                        integer verticalSections = chart:GetVerticalPanel():GetNumberOfSections()
+                        integer m = 0
+                        repeat while m < verticalSections
+                            Drawable gridline
+                            theMajorLines:Add(gridline)
+                            chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                            m = m + 1
+                        end
                     end
-                    number labelHeight = label:GetHeight()
-                    number labelWidth = label:GetWidth()
-                    if labelWidth > widestLabel
-                        widestLabel = labelWidth
-                    end
-                    sumOfLabelHeights = sumOfLabelHeights + labelHeight
-                    sumOfLabelWidths = sumOfLabelWidths + labelWidth
-                    scaleNum = scaleNum + (scaleWidth * intervaloverride)
-                    i = i + 1
                 end
+                if chart:IsShowingMinorXGridLines()
+                    if subPanel = undefined
+                        integer j = 0
+                        repeat while j < minorlinecount
+                            Drawable gridline
+                            theMinorLines:Add(gridline)
+                            chart:GetChartArea():Add(gridline)
+                            j = j + 1
+                        end
+                    else
+                        integer verticalSections = chart:GetVerticalPanel():GetNumberOfSections()
+                        integer m = 0
+                        repeat while m < verticalSections
+                            integer j = 0
+                            repeat while j < minorlinecount
+                                Drawable gridline
+                                theMinorLines:Add(gridline)
+                                chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                                j = j + 1
+                            end
+                            m = m + 1
+                        end
+                    end
+                end
+                i = i + intervaloverride
             end
+            if subPanel = undefined
+                ticks = theTicks:CopyToArray()
+                brackets = theBrackets:CopyToArray()
+                labels = theLabels:CopyToArray()
+                majorlines = theMajorLines:CopyToArray()
+                minorlines = theMinorLines:CopyToArray()
+            else
+                subPanel:SetTicks(theTicks:CopyToArray())
+                subPanel:SetBrackets(theBrackets:CopyToArray())
+                subPanel:SetLabels(theLabels:CopyToArray())
+                subPanel:SetMajorGridlines(theMajorLines:CopyToArray())
+                subPanel:SetMinorGridlines(theMinorLines:CopyToArray())
+            end
+            k = k + 1
         end
     end
 
@@ -357,7 +400,16 @@ class HorizontalAxisPanel is Control
             else
                 tickCount = (cast(integer, range) + 1)
                 scaleWidth = range / (tickCount - 1)
-            end 
+            end
+            if min < 0 and not overrideDefaultMin
+                integer lowerTicks = math:AbsoluteValue(cast(integer, min / cast(integer, scaleWidth)))
+                if lowerTicks not= 0
+                    min = 0 - scaleWidth*(lowerTicks+1)
+                else
+                    min = cast(integer, min) - cast(integer, scaleWidth+(cast(integer, min) mod cast(integer, scaleWidth)))
+                end
+                tickCount = tickCount + 1
+            end
 
         // Text scale (integer intervals only)
         else
@@ -401,6 +453,21 @@ class HorizontalAxisPanel is Control
                 i = i + 1
             end
             ticks:Empty()
+        end
+
+        if not brackets:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < brackets:GetSize()
+                temp = brackets:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            brackets:Empty()
         end
 
         if not majorlines:IsEmpty()
@@ -509,12 +576,12 @@ class HorizontalAxisPanel is Control
     /*
     These actions get and set the tick length.
     */
-    action GetTickLength returns integer
-        return tickLength
+    action GetTickHeight returns integer
+        return tickHeight
     end
 
-    action SetTickLength(integer tickLength)
-        me:tickLength = tickLength
+    action SetTickHeight(integer tickHeight)
+        me:tickHeight = tickHeight
     end
 
     /*
@@ -532,14 +599,30 @@ class HorizontalAxisPanel is Control
         minorlinecount = count
     end
 
+    action SetMinorGridlines(Array<Drawable> minorlines)
+        me:minorlines = minorlines
+    end
+
     action GetMinorGridlines returns Array<Drawable>
         return minorlines
+    end
+
+    action SetMajorGridlines(Array<Drawable> majorlines)
+        me:majorlines = majorlines
     end
 
     action GetMajorGridlines returns Array<Drawable>
         return majorlines
     end
 
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action SetTicks(Array<Drawable> ticks)
+        me:ticks = ticks
+    end
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -596,20 +679,28 @@ class HorizontalAxisPanel is Control
         labels = newLabels
     end
 
+    action GetLabelCount returns integer
+        return labelCount
+    end
+
+    action GetLongestLabel returns ControlLabel
+        return longestLabel
+    end
+
+    action SetLabelMinimum(number labelMin)
+        me:labelMinimum = labelMin
+    end
+
+    action GetLabelMinimum returns number
+        return labelMinimum
+    end
+
     action GetLabelFontSize returns integer
         return labelFontSize
     end
 
     action SetLabelFontSize(integer size)
         labelFontSize = size
-    end
-
-    action GetWidestLabel returns number
-        return widestLabel
-    end
-
-    action SetWidestLabel(number width)
-        widestLabel = width
     end
 
     action GetSumOfLabelWidths returns number
@@ -751,4 +842,46 @@ class HorizontalAxisPanel is Control
     action SetAxis(Drawable line)
         axis = line
     end
+
+    action SetBrackets(Array <Drawable> brackets)
+        me:brackets = brackets
+    end
+
+    action GetBrackets returns Array <Drawable>
+        return brackets
+    end
+
+    action ShowGroupBrackets returns boolean
+        return showGroupBrackets
+    end
+
+    action ShowGroupBrackets(boolean show)
+        if overrideLabels not= undefined
+            me:showGroupBrackets = show
+        end
+    end
+
+    action OverrideDefaultMin()
+        me:overrideDefaultMin = true
+    end
+
+    action OverrideDefaultMax()
+        me:overrideDefaultMax = true
+    end
+
+    action GetNumberOfSections returns integer
+        return numberOfSections
+    end
+
+    action SplitIntoSections(integer numberOfSections)
+        me:numberOfSections = numberOfSections
+    end
+    action SetLabelRotation(integer labelRotation)
+        me:labelRotation = labelRotation
+    end
+
+    action GetLabelRotation returns integer
+        return labelRotation
+    end
+
 end

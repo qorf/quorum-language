@@ -249,11 +249,10 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
     end
 
     private action SetScale(Histogram chart, number ymin, number ymax, number xmin, number xmax)
-        chart:SetDefaultOrientation("vertical")
-        chart:SetYAxisMinimum(ymin)
-        chart:SetYAxisMaximum(ymax)
-        chart:SetXAxisMinimum(xmin)
-        chart:SetXAxisMaximum(xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
     /* Obtains what the bin width was. */

@@ -16,7 +16,6 @@ use Libraries.Interface.Controls.Charts.Bar
 use Libraries.Interface.Item2D
 
 class SharedBarChartLayout is ChartLayout
-    integer request = 0
     integer outerEdgePadding = 0
     integer betweenGroupPadding = 0
     integer betweenBarPadding = 0
@@ -31,16 +30,13 @@ class SharedBarChartLayout is ChartLayout
         if not (control is SharedBarChartParent)
             return now
         end
-        request = request + 1
+
         SharedBarChartParent chart = cast(SharedBarChartParent, control)
-        Control chartArea = chart:GetChartArea()
-        originPointX = 0
-        originPointY = 0
 
         Array<BarGroup> barGroups = chart:GetBarGroups()
         
-        number height = chartArea:GetHeight()
-        number width = chartArea:GetWidth()
+        number height = 0
+        number width = 0
 
         integer currentXPosition = 0
         integer currentYPosition = 0
@@ -48,8 +44,8 @@ class SharedBarChartLayout is ChartLayout
         number yMin = chart:GetYAxisMinimum()
         number xMax = chart:GetXAxisMaximum()
         number xMin = chart:GetXAxisMinimum()
-        number rangeMax = yMax
-        number rangeMin = yMin
+        number rangeMax = 0
+        number rangeMin = 0
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
         boolean stacked = chart:GetStackedFlag()
@@ -62,41 +58,54 @@ class SharedBarChartLayout is ChartLayout
                 numberOfBars = numberOfGroups
             end
             if horizontal
-                width = chartArea:GetHeight()
-                height = chartArea:GetWidth()
+                currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
+                width = chartAreaContainer:GetHeight()
+                height = chartAreaContainer:GetWidth() - currentYPosition
                 rangeMax = xMax
                 rangeMin = xMin
+            else
+                if chart:GetHorizontalPanel():GetAxis() not= undefined
+                    currentYPosition = cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
+                end
+                width = chartAreaContainer:GetWidth()
+                height = chartAreaContainer:GetHeight() - currentYPosition
+                rangeMax = yMax
+                rangeMin = yMin
             end
-            currentYPosition = 0
+            resetYPosition = currentYPosition
 
             // Space on each side of the inner chart (5%)
             outerEdgePadding = cast(integer, ((width * 0.05) / 2))
 
-            betweenGroupPadding = 0
             if barGroups:GetSize() > 1
-                // Space spread evenly between each bar group (10%)
-                betweenGroupPadding = cast(integer, ((width * 0.1) / (numberOfGroups-1)))
+                // Space spread evenly between each bar group (20%)
+                betweenGroupPadding = cast(integer, math:Round((width * 0.20) / (numberOfGroups-1),true))
             end
 
-            chart:SetPaddedChartOffset(outerEdgePadding - cast(integer, betweenGroupPadding/2))
-
-            // Space spread evenly between each bar with the bar groups (5%)
-            betweenBarPadding = cast(integer, ((width * 0.05) / (numberOfBars - numberOfGroups+1)))
-            if stacked 
-                betweenBarPadding = 0
+            if numberOfBars not= numberOfGroups
+                // Space spread evenly between each bar with the bar groups (5%)
+                betweenBarPadding = cast(integer, ((width * 0.05) / (numberOfBars - numberOfGroups)))
             end
+            
+
             if chart:RemoveGaps() //Histograms do not have gaps in order to portray continuous ranges
                 betweenGroupPadding = 1
                 betweenBarPadding = 0
             end
 
             // Total white space alloted for inner chart area
-            totalPadding = cast(integer, (outerEdgePadding*2 + betweenGroupPadding*(numberOfGroups-1)))
-            totalPadding = totalPadding + cast(integer, betweenBarPadding*(numberOfBars - numberOfGroups))
+            integer totalOuterPadding = cast(integer, outerEdgePadding*2)
+            integer totalBetweenGroupPadding = cast(integer, betweenGroupPadding*(numberOfGroups-1))
+            integer totalBetweenBarPadding = cast(integer, betweenBarPadding*(numberOfBars - numberOfGroups))
             
-            // Remaining non-white space to be evenly divided amongst all bars (80%)
-            remainingArea = cast(integer, (width - totalPadding))
-            barWidth = cast(integer, remainingArea / numberOfBars)
+            // Remaining non-white space to be evenly divided amongst all bars
+            number remainingArea = width - totalOuterPadding - totalBetweenGroupPadding - totalBetweenBarPadding
+            barWidth = cast(integer, math:Round(remainingArea / numberOfBars, true))
+
+            // Recalculate the outer padding since we rounded several times.
+            outerEdgePadding = cast(integer, (width - totalBetweenGroupPadding - totalBetweenBarPadding - (barWidth*numberOfBars))/2)
+
+            chart:SetPaddedChartOffset(outerEdgePadding - cast(integer, betweenGroupPadding/2))
 
             Color transparent
             transparent:SetColor(0, 0, 0, 0)
@@ -106,7 +115,7 @@ class SharedBarChartLayout is ChartLayout
 
             // Tracking area of each bar group for group icon
             integer groupX = currentXPosition    // x-axis coordinate
-            integer groupY = 0                   // y-axis coordinate
+            integer groupY = currentYPosition    // y-axis coordinate
             integer barHeight = 0
             integer groupWidth = 0               // width of entire group
             integer groupHeight = 0              // height of entire group
@@ -169,10 +178,10 @@ class SharedBarChartLayout is ChartLayout
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
                 if stacked
                     if horizontal 
-                        newIcon:LoadRectangle(currentYPosition+3, barWidth+betweenGroupPadding, transparent)
+                        newIcon:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
                         newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
                     else
-                        newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition+3, transparent)
+                        newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition, transparent)
                         newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
                     end
                     currentXPosition = currentXPosition + barWidth + betweenGroupPadding
@@ -180,14 +189,14 @@ class SharedBarChartLayout is ChartLayout
                     groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
                     currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                     if horizontal
-                        newIcon:LoadRectangle(cast(integer, groupHeight)+3, cast(integer, groupWidth), transparent)
+                        newIcon:LoadRectangle(cast(integer, groupHeight), cast(integer, groupWidth), transparent)
                         newIcon:SetPosition(groupY, groupX-cast(integer, betweenGroupPadding/2))
                     else
-                        newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight)+3, transparent)
+                        newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight), transparent)
                         newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
                     end
                 end
-                currentYPosition = 0
+                currentYPosition = resetYPosition
                 groupHeight = 0
                 groupX = currentXPosition
                 i = i + 1

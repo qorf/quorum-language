@@ -1,0 +1,173 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Charts.ColumnToTextArray
+use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Support.Comparison
+
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Drawable
+
+/*
+    This class is used to create a Pie Chart from columns of data in a DataFrame.
+    It will accept any number of numerical columns and a single factor or a single factor/column only.
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.PieChartCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    //Create a Pie Chart and set some properties
+    PieChartCreator creator
+    creator:AddColumn(4)
+    creator:AddFactor(0)
+
+    Chart chart = frame:CreateChart(creator)
+    chart:Display(2000,1000)
+*/
+
+class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
+    Comparison comparison = undefined
+    integer countMax = 0
+    integer countMin = 0
+
+    action Create(DataFrame frame) returns Chart
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        if columns = 0 and factors = 1 
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            return CreateChartByCount(factor) 
+        elseif columns = 1 and factors = 0
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            return CreateChartByCount(column)
+        elseif columns >= 1 and factors = 1 // Add all the values per factor. Columns must be numerical.
+            return CreateChart(frame)
+        else
+            alert("PieChartCreator does not support the number of column/factors that were selected")
+        end
+        return undefined
+    end
+
+    private action CreateChartByCount(DataFrameColumn column) returns PieChart
+        PieChart chart
+
+        HashTable<text, integer> hash = CalculateItemCounts(column)
+        DataFrameColumn labels = column:Copy(true,true)
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        boolean numerical = false
+
+        CalculateCountMinMax(hash)
+        integer max = countMax
+        integer min = 0
+        integer stepCounter = 0
+
+        Array <Series> seriesList
+
+        if labels:IsNumberColumn()
+            numerical = true
+        end
+        Array <Drawable> slices
+        Array <Number> sliceValues
+        //make chart
+        i = 0
+        repeat while i < labels:GetSize()
+            if not labels:IsUndefined(i)
+                number valueForName = hash:GetValue(labels:GetAsText(i))
+
+                Drawable wedge
+                wedge:SetName(labels:GetAsText(i))
+                slices:Add(wedge)
+                sliceValues:Add(valueForName)
+                
+                Series series
+                series:SetName(labels:GetAsText(i))
+                series:AddItem(wedge)
+                seriesList:Add(series)
+            end
+            i = i + 1
+        end
+
+        chart:SetSlices(slices)
+        chart:SetSliceValues(sliceValues)
+        chart:SetSeriesList(seriesList)
+
+        SetScale(chart, min, countMax, min, min)
+        return chart
+    end
+
+    private action SetScale(PieChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
+    end
+
+    action CreateChart(DataFrame frame) returns PieChart
+        PieChart chart
+        return chart
+    end
+
+    private action CalculateItemCounts(DataFrameColumn column) returns HashTable<text, integer>
+        HashTable<text, integer> result
+        integer groupCount = 0
+        integer size = column:GetSize()
+        integer undefinedCount = 0
+        i = 0
+        repeat while i < size
+            //just keep track of the fact that we have undefined values
+            if column:IsUndefined(i)
+                undefinedCount = undefinedCount + 1
+            else
+                text name = column:GetAsText(i)
+                if not result:HasKey(name)
+                    result:Add(name, 1)
+                else
+                    result:Add(name, result:GetValue(name) + 1)
+                end
+            end
+            
+            i = i + 1
+        end
+        result:Add(undefined, undefinedCount)
+        return result
+    end
+
+    private action CalculateCountMinMax(HashTable<text, integer> hash)
+        Iterator<integer> iterator = hash:GetValueIterator()
+        //adjust values to percentage
+        integer max = 0
+        integer min = 0
+        max = max:GetMinimumValue()
+        min = min:GetMaximumValue()
+        integer i = 1
+        repeat while iterator:HasNext()
+            integer value = iterator:Next()
+            if value > max
+                max = value
+            end
+
+            if value < min
+                min = value
+            end
+        i = i + 1
+        end
+        countMax = max
+        countMin = min
+    end
+end
+
