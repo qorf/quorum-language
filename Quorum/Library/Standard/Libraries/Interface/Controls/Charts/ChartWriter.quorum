@@ -523,7 +523,7 @@ class ChartWriter
         number scaleDivWidth = 0         
         number tickStroke = horizontalContainer:GetTickWidth()
         number tickStrokePercent = PixelToPercentWidth(tickStroke)
-        number tickLength = PixelToPercentHeight(horizontalContainer:GetTickHeight())
+        number tickHeight = PixelToPercentHeight(horizontalContainer:GetTickHeight())
         number axisShift = PixelToPercentHeight(5)
         integer fontSize = 12
         number groupWidth = 0
@@ -556,7 +556,7 @@ class ChartWriter
                 Line tick
 
                 tick:SetFirstPoint(tickX, axisPointY + (axisShift/2), "%")
-                tick:SetSecondPoint(tickX, axisPointY + tickLength, "%")
+                tick:SetSecondPoint(tickX, axisPointY + tickHeight, "%")
                 tick:SetStroke("black")
                 tick:SetStrokeWidth(tickStroke)
                 tick:SetTabIndex(-1)
@@ -641,7 +641,7 @@ class ChartWriter
             Item2D labelAnchor = currentLabel:GetParent()
 
             number xCurrentLabel = originPointX
-            number yCurrentLabel = cast(number, axisPointY + labelHeight + axisShift + tickLength)
+            number yCurrentLabel = cast(number, axisPointY + labelHeight + axisShift + tickHeight)
             integer i = 0
             repeat while i < horizontalLabels:GetSize()
                 currentLabel = horizontalLabels:Get(i)
@@ -765,7 +765,7 @@ class ChartWriter
         number scaleDivWidth = 0      
         number tickStroke = verticalContainer:GetTickHeight()
         number tickStrokePercent = PixelToPercentHeight(tickStroke)
-        number tickLength = PixelToPercentWidth(verticalContainer:GetTickWidth())
+        number tickHeight = PixelToPercentWidth(verticalContainer:GetTickWidth())
         number axisShift = PixelToPercentHeight(5)
         integer fontSize = 12
         
@@ -796,7 +796,7 @@ class ChartWriter
             repeat while i < chart:GetVerticalPanel():GetTickCount()
                 Line scaleTick
                 scaleTick:SetFirstPoint(tickX - (axisShift/2), tickY, "%")
-                scaleTick:SetSecondPoint(tickX - tickLength, tickY, "%")
+                scaleTick:SetSecondPoint(tickX - tickHeight, tickY, "%")
                 scaleTick:SetStroke("black")
                 scaleTick:SetStrokeWidth(tickStroke)
                 scaleTick:SetTabIndex(-1)
@@ -860,7 +860,7 @@ class ChartWriter
             groupOffset = scaleDivWidth/2.0
         end
         number labelHeight = PixelToPercentHeight(fontSize)
-        number xCurrentLabel = axisPointX - (axisShift/2) - tickLength - 0.2
+        number xCurrentLabel = axisPointX - (axisShift/2) - tickHeight - 0.2
         number yCurrentLabel = originPointY + labelHeight / 2
         number maxYLabelOffset = 0
         Array<ControlLabel> scaleLabels = verticalContainer:GetLabels()
@@ -1051,6 +1051,7 @@ class ChartWriter
         end
         chart:GetVerticalPanel():InitLabels(chart)
         chart:GetHorizontalPanel():InitLabels(chart)
+        chart:Resize()
     end
 
     action PixelToPercentWidth(number pixel) returns number
