@@ -3,6 +3,7 @@ package Libraries.Game.Graphics
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
 use Libraries.Game.Disposable
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 
 class VertexData is Disposable
     
@@ -25,6 +26,11 @@ class VertexData is Disposable
     blueprint action GetMaxSize returns integer
 
     /*
+    This returns a single element from within the VertexData at the given index.
+    */
+    blueprint action Get(integer index) returns number
+
+    /*
     This action will return the VertexAttributes that describe this VertexData.
     */
     blueprint action GetAttributes returns VertexAttributes
@@ -36,8 +42,15 @@ class VertexData is Disposable
     // Used to invalidate the data when applicable, e.g. due to context loss.
     blueprint action Reload
 
-    // Used to load an Array<number> into the VertexData's buffer.
-    blueprint action FillVertexBuffer(Number32BitArray vertices)
+    blueprint action Bind(ShaderProgram program)
+
+    blueprint action Bind(ShaderProgram program, Array<integer> locations)
+
+    blueprint action Unbind(ShaderProgram program)
+
+    blueprint action Unbind(ShaderProgram program, Array<integer> locations)
+
+    blueprint action GetBuffer returns Number32BitBuffer
 
     /*
     This action is never called or used. It exists only as a hack to force the

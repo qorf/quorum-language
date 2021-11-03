@@ -21,6 +21,8 @@ class Attribute
 
     private integer typeBit = 0
 
+    AttributeManager manager
+
     /*
     GetAttributeType will take a text alias for a particular type of Attribute
     and return an integer code representing that type. Each class that inherits
@@ -52,7 +54,9 @@ class Attribute
         end
     end
     */
-    system action GetAttributeType(text alias) returns integer//long?
+    action GetAttributeType(text alias) returns integer
+        return manager:GetType(alias)
+    end
 
 
     /*
@@ -86,7 +90,9 @@ class Attribute
         end
     end
     */
-    system action GetAttributeAlias(integer /*long?*/ type) returns text
+    action GetAttributeAlias(integer type) returns text
+        return manager:GetAlias(type)
+    end
 
     /*
     SetAttribute will set data used by this Attribute. Note that most classes
@@ -97,7 +103,7 @@ class Attribute
 
     Attribute: Parameter setType The type to set this Attribute to.
     */
-    action SetAttribute(integer /*long?*/ setType)
+    action SetAttribute(integer setType)
         type = setType
         typeBit = setType:TrailingZeros()
     end
@@ -226,4 +232,15 @@ class Attribute
         return Equals(temp)
     end
     
+    /*
+    This action returns an integer code representing what type is stored in this Attribute.
+    This can be compared against results from the GetAttributeType(text) action to more precisely
+    determine what the meaning behind the code is.
+
+    Attribute: Returns An integer code representing this Attribute's type.
+    */
+    action GetType returns integer
+        return type
+    end
+
 end

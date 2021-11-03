@@ -43,17 +43,20 @@ public class Texture
 
     public void Bind() 
     {
+//        System.out.println("Binding to target = " + glTarget + ", handle = " + glHandle);
         gl20.glBindTexture(glTarget, glHandle);
     }
     
     public void Bind(int unit)
     {
+//        System.out.println("Bind Unit to target = " + glTarget + ", handle = " + glHandle + ", unit = " + unit);
         gl20.glActiveTexture(gl20.GL_TEXTURE0 + unit);
         gl20.glBindTexture(glTarget, glHandle);
     }
     
     public void BindToDefault()
     {
+//        System.out.println("BindToDefault");
         gl20.glBindTexture(glTarget, 0);
     }
 
@@ -62,7 +65,7 @@ public class Texture
       return gl20.glGenTexture();
     }
 
-    public void SetGL20Info(int target, int handle)
+    public void SetGraphicsInfo(int target, int handle)
     {
         glTarget = target;
         glHandle = handle;
@@ -92,6 +95,7 @@ public class Texture
     {
         if (glHandle != 0)
         {
+//            System.out.println("Disposed handle = " + glHandle);
             GameStateManager.nativeGraphics.glDeleteTexture(glHandle);
             glHandle = 0;
             RemoveReloadableTexture();

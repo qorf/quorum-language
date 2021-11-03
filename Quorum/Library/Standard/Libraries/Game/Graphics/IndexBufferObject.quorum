@@ -3,53 +3,127 @@ package Libraries.Game.Graphics
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.IndexData
 use Libraries.Containers.Integer32BitArray
+use Libraries.Game.GameStateManager
 
 class IndexBufferObject is IndexData
 
+    Integer32BitBuffer buffer
+    integer bufferHandle = 0
     boolean isDirect = true
     boolean isDirty = true
     boolean isBound = false
     integer usage = 0
-    private boolean empty = true
-
-    system action Dispose
+    boolean empty = true
+    GameStateManager manager
+    OpenGLConstants constants
 
     action Load(integer maxIndices)
         Load(true, maxIndices)
     end
 
-    system action Load(boolean isStatic, integer maxIndices)
+    action Load(boolean isStatic, integer maxIndices)
+        empty = (maxIndices = 0)
+        if empty
+            maxIndices = 1 // Avoid allocating a zero-sized buffer due to a bug in Android's ART < Android 5.0
+        end
 
-    system action GetSize returns integer
+        buffer:SetSize(maxIndices)
 
-    system action GetMaxSize returns integer
+        GraphicsManager graphics = manager:GetGameGraphics()
+        bufferHandle = graphics:CreateBuffer()
+        if isStatic
+            usage = constants:GL_STATIC_DRAW
+        else
+            usage = constants:GL_DYNAMIC_DRAW
+        end
+    end
+
+    action GetSize returns integer
+        if empty
+            return 0
+        else
+            return buffer:GetSize()
+        end
+    end
+
+    action GetMaxSize returns integer
+        if empty
+            return 0
+        else
+            return buffer:GetMaxSize()
+        end
+    end
+
+    action SetIndices(Integer32BitArray indices)
+        SetIndices(indices, 0, indices:GetSize())
+    end
 
     action SetIndices(Integer32BitArray indices, integer offset, integer count)
-        SendToBridgeArray(indices)
-        SetIndices(offset, count)
+        isDirty = true
+        buffer:Set(offset, indices, 0, count)
+        BufferChanged()
     end
 
-    private system action SetIndices(integer offset, integer count)
+    private action BufferChanged
+        if isBound
+            GraphicsManager graphics = manager:GetGameGraphics()
+            graphics:SetBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, buffer, usage)   
+            isDirty = false
+        end
+    end
 
-    system action Bind
+    action GetBuffer returns Integer32BitBuffer
+        isDirty = true
+        return buffer
+    end
 
-    system action Unbind
+    action Clear
+        buffer:ResetWritePosition()
+    end
+
+    action Bind
+        if bufferHandle = 0
+            alert("I cannot bind the index buffer object because it hasn't been loaded yet.")
+        end
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
+        isBound = true
+
+//        if isDirty
+            BufferChanged()
+//        end
+    end
+
+    action Unbind
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
+        isBound = false
+    end
+
+    action Dispose
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
+        graphics:DeleteBuffer(bufferHandle)
+        bufferHandle = 0
+
+        buffer:Dispose()
+    end
 
     // Used to force OpenGL to create a new buffer handle. Used for context loss.
-    system action Reload
-
-    system action Clear
-
-    action Put(Integer32BitArray values)
-        //PrepareBridgeArray(values:GetSize())
-        SendToBridgeArray(values)
-        PutBridgeArray()
+    action Reload
+        GraphicsManager graphics = manager:GetGameGraphics()
+        bufferHandle = graphics:CreateBuffer()
+        isDirty = true
     end
 
-    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
-    private system action SendToBridgeArray(Integer32BitArray array)
+    action Put(Integer32BitArray values)
+        buffer:Write(values)
+        isDirty = true
+    end
 
-    private system action PutBridgeArray
+    action SetPosition(integer position)
+        buffer:SetWritePosition(position)
+    end
 
-    system action SetPosition(integer position)
 end

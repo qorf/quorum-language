@@ -155,7 +155,7 @@ public class DesktopDisplay {
     String extensions = null;
     private boolean initialized = false;
     
-    static int major = 2;
+    static int major = 4;
     static int minor = 1;
     quorum.Libraries.Game.Graphics.GraphicsManager_ gl20;
     
@@ -219,7 +219,8 @@ public class DesktopDisplay {
         // This may change to a more modern release in the future.
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_ANY_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1);
         
         if (GameStateManager.operatingSystem.contains("Windows 10") && config.Get_Libraries_Game_DesktopConfiguration__enableAccessibility_())
         {

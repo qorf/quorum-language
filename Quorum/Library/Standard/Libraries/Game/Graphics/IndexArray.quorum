@@ -6,6 +6,10 @@ use Libraries.Containers.Integer32BitArray
 
 class IndexArray is IndexData
 
+    on create
+        alert("Created the FORBIDDEN CLASS")
+    end
+
     /*
     This action will initialize the IndexArray to allow for the given number of
     indices.
@@ -72,5 +76,14 @@ class IndexArray is IndexData
     private system action PutBridgeArray
 
     system action SetPosition(integer position)
+
+    action GetBuffer returns Integer32BitBuffer
+        alert("NYI")
+    end
+
+    /*
+    Sets the beginning (inclusive) and ending (exclusive) indices of this IndexData.
+    */
+//    system action SetIndexRange(integer startIndex, integer endIndex)
 
 end

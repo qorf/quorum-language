@@ -2,10 +2,15 @@ package Libraries.Game.Graphics
 
 class NumberAttribute is Attribute
     
-    public number value = 0
-
     public constant text SHININESS_ALIAS = "shininess"
     public constant text ALPHA_TEST_ALIAS = "alphaTest"
+
+    AttributeManager manager
+
+    public constant integer SHININESS = manager:Register(SHININESS_ALIAS)
+    public constant integer ALPHA_TEST = manager:Register(ALPHA_TEST_ALIAS)
+
+    public number value = 0
 
     action CreateShininess(number setValue) returns NumberAttribute
         NumberAttribute temp
@@ -33,11 +38,15 @@ class NumberAttribute is Attribute
     /*
     Returns the integer value representing a Shininess NumberAttribute.
     */
-    system action GetShininessValue returns integer
+    action GetShininessValue returns integer
+        return SHININESS
+    end
 
     /*
     Returns the integer value representing an Alpha Test NumberAttribute.
     */
-    system action GetAlphaTestValue returns integer
+    action GetAlphaTestValue returns integer
+        return ALPHA_TEST
+    end
 
 end

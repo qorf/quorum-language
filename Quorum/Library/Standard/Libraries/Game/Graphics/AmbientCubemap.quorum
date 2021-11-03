@@ -1,11 +1,11 @@
 package Libraries.Game.Graphics
 
-use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 use Libraries.Compute.Vector3
 
 class AmbientCubemap 
 
-    public Array<number> data
+    public Number32BitArray data
     
     on create
         data:SetSize(18)
@@ -26,7 +26,7 @@ class AmbientCubemap
         SetData(cube:data)
     end
 
-    action SetData(Array<number> copy)
+    action SetData(Number32BitArray copy)
         integer index = 0
         repeat copy:GetSize() times
             data:Set(index, copy:Get(index))
@@ -34,7 +34,7 @@ class AmbientCubemap
         end
     end
 
-    action GetData returns Array<number>
+    action GetData returns Number32BitArray
         return data
     end
 
