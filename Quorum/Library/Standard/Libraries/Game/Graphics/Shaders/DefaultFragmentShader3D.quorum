@@ -9,7 +9,7 @@ class DefaultFragmentShader3D is Shader
 
         DefaultAttributeNames attributes
         SetCode(
-"#version 330
+"#version 410
 // Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
 
 #ifdef GL_ES 
@@ -50,7 +50,7 @@ layout (location = 0) out vec4 outputColor;
 void main() {
     vec4 diffuse;
     if (enableDiffuseTexture)
-        diffuse = texture2D(u_diffuseTexture, v_diffuseUV) * u_diffuseColor * v_color;
+        diffuse = texture(u_diffuseTexture, v_diffuseUV) * u_diffuseColor * v_color;
     else
         diffuse = u_diffuseColor * v_color;
 
@@ -64,7 +64,7 @@ void main() {
         {
             vec3 specular;
             if (enableSpecularTexture)
-                specular = texture2D(u_specularTexture, v_specularUV).rgb * u_specularColor.rgb * v_lightSpecular;
+                specular = texture(u_specularTexture, v_specularUV).rgb * u_specularColor.rgb * v_lightSpecular;
             else
                 specular = u_specularColor.rgb * v_lightSpecular;
                 

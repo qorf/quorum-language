@@ -22,36 +22,39 @@ import quorum.Libraries.Game.Graphics.Skybox_;
 public class SkyboxShader 
 {
     public Object me_;
-    
-    public static final String vertexShader = 
-        "in vec3 position;\n" +
-        "out vec3 textureCoordinates;\n" +
-        "\n" +
-        "uniform mat4 projection;\n" +
-        "uniform mat4 view;\n" +
-        "uniform mat4 rotation;\n" +
-        "\n" +
-        "void main()\n" +
-        "{\n" +
-        "    vec4 pos = projection * view * rotation * vec4(position, 1.0);\n" +
-        "    gl_Position = pos.xyww;\n" +
-        "    textureCoordinates = position;\n" +
-        "}";
-    
-    public static final String fragmentShader = 
-        "#ifdef GL_ES\n" +
-        "precision mediump float;\n" +
-        "#endif\n" +
-        "in vec3 textureCoordinates;\n" +
-        "uniform samplerCube skybox;\n" +
-        "uniform float inverter;\n" +
-        "\n" +
-        "void main()\n" +
-        "{\n" +
-        "    vec3 texCoords = textureCoordinates;\n" +
-        "    texCoords.x = inverter * textureCoordinates.x;\n" +
-        "    gl_FragColor = textureCube(skybox, texCoords);\n" +
-        "}";
+
+    public static final String vertexShader =
+            "#version 410\n" +
+            "in vec3 position;\n" +
+            "out vec3 textureCoordinates;\n" +
+            "\n" +
+            "uniform mat4 projection;\n" +
+            "uniform mat4 view;\n" +
+            "uniform mat4 rotation;\n" +
+            "\n" +
+            "void main()\n" +
+            "{\n" +
+            "    vec4 pos = projection * view * rotation * vec4(position, 1.0);\n" +
+            "    gl_Position = pos.xyww;\n" +
+            "    textureCoordinates = position;\n" +
+            "}";
+
+    public static final String fragmentShader =
+            "#version 410\n" +
+            "#ifdef GL_ES\n" +
+            "precision mediump float;\n" +
+            "#endif\n" +
+            "in vec3 textureCoordinates;\n" +
+            "layout(location = 0) out vec4 outputColor;\n" +
+            "uniform samplerCube skybox;\n" +
+            "uniform float inverter;\n" +
+            "\n" +
+            "void main()\n" +
+            "{\n" +
+            "    vec3 texCoords = textureCoordinates;\n" +
+            "    texCoords.x = inverter * textureCoordinates.x;\n" +
+            "    outputColor = texture(skybox, texCoords);\n" +
+            "}";
     
     private FloatBuffer skyboxBuffer;
     private ByteBuffer byteBuffer;
