@@ -22,16 +22,20 @@ class ScatterPlotLayout is TwoVariableChartLayout
         number width = chartAreaContainer:GetWidth()
         number height = chartAreaContainer:GetHeight()
 
-        // Give 2% of chart area space to the point
-        number pointDensity = (width * 0.02) 
-        integer radius = cast(integer, pointDensity/2)
-        chart:SetPointRadius(radius)
+        // Set default point density
+        integer pointRadius = chart:GetPointDensity()
+        if pointRadius = 0
+            pointRadius = cast(integer, width * 0.010 / 2) 
+            if pointRadius < 4
+                pointRadius = 4
+            end
+        end
 
         i = 0
         repeat while i < points:GetSize()
             ChartPoint point = points:Get(i)
             
-            point:LoadFilledCircle(radius, points:Get(i):GetColor())
+            point:LoadFilledCircle(pointRadius, points:Get(i):GetColor())
 
             point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
             point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))

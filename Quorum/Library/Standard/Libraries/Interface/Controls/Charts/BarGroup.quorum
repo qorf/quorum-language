@@ -70,6 +70,10 @@ class BarGroup
         return bars:Get(i)
     end
 
+    action Set(integer i, Bar bar)
+        bars:Set(i, bar)
+    end
+
     action GetValue() returns number
         return totalValueOfGroup
     end

@@ -101,18 +101,23 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         HashTable<text, integer> hash = CalculateItemCounts(column)
         DataFrameColumn labels = column:Copy(true,true)
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(column:GetHeader())
-        chart:SetYAxisTitle("Count")
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(column:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle("COUNT")
+        boolean numerical = false
 
         CalculateCountMinMax(hash)
         integer max = countMax
         integer min = 0
         integer stepCounter = 0
 
+        Array <Series> seriesList
         Series series
         series:SetName(column:GetHeader())
 
+        if labels:IsNumberColumn()
+            numerical = true
+        end
         Array <text> barNames
         //make chart
         i = 0
@@ -128,19 +133,18 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetValue(valueForName)
                 group:AddBar(bar)
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 chart:AddBarGroup(group)
             end
             i = i + 1
         end
         
-        chart:AddSeries(series)
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
+        seriesList:Add(series)
+        
         SetScale(chart, min, max, 0, barNames:GetSize())
         chart:OverrideXLabelsWithText(barNames)
-        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -148,11 +152,13 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         BarChart chart
         integer columns = GetColumnSize()
 
-        chart:SetYAxisTitle("Total")
-        chart:SetXAxisTitle("Group")
+        chart:SetYAxisTitle("TOTAL")
+        chart:SetXAxisTitle("GROUP")
 
         HashTable<text, Series> seriesFactor
         HashTable<text, BarGroup> groupFactor
+        boolean numericalGroupName = false
+
         number yMax = 0
         number yMin = 0
 
@@ -176,10 +182,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             Bar bar
             bar:SetValue(sum)
+            bar:SetName(column:GetHeader())
             if not seriesFactor:HasKey(column:GetHeader())
                 Series series
                 series:SetName(column:GetHeader())
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 seriesFactor:Add(column:GetHeader(), series)
             end
             if not groupFactor:HasKey(column:GetHeader())
@@ -205,6 +213,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         // Add Series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -213,16 +222,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
         SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
-        chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
@@ -240,8 +247,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         boolean numerical = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
-        chart:SetYAxisTitle("Total")
-        chart:SetXAxisTitle(factor:GetHeader())
+        chart:SetYAxisTitle("TOTAL")
+        chart:SetXAxisTitle(factor:GetHeader():ToUpperCase())
 
         if factor:IsNumberColumn()
             numerical = true
@@ -250,7 +257,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer i = 0
         repeat while i < factor:GetSize()
             if not factor:IsUndefined(i)
-                if not groupFactor:HasKey(factor:GetAsText(i))
+                if not (factor:GetAsText(i) = "") and not groupFactor:HasKey(factor:GetAsText(i))
                     BarGroup group
                     group:SetName(factor:GetAsText(i))
                     groupFactor:Add(factor:GetAsText(i), group)
@@ -293,6 +300,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         end
                         if(seriesFactor:HasKey(column:GetHeader()))
                             seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                            bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
                         end
                     else
                         valueForName = valueForName + barFactor:GetValue(barKey):GetValue()
@@ -307,6 +315,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
         // Sort and add the series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -315,7 +324,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
@@ -366,11 +375,10 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end  
         end  
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
         SetScale(chart, min, max, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -381,12 +389,18 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             return undefined
         end
 
-        Series series
-        series:SetName(" ")
+        boolean numerical = false
+        if factor:IsNumberColumn()
+            numerical = true
+        end
 
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(factor:GetHeader())
-        chart:SetYAxisTitle(column:GetHeader())
+        Array <Series> seriesList
+        Series series
+        series:SetName(factor:GetHeader())
+
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(factor:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle(column:GetHeader():ToUpperCase())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -424,20 +438,19 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetName(uniqueFactor:GetAsText(i))
                 bar:SetValue(value)
                 group:AddBar(bar)
-                series:SetName(uniqueFactor:GetAsText(i))
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 chart:AddBarGroup(group)
             end
             i = i + 1
         end
 
-        Legend legend
-        chart:AddSeries(series)
-        legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName(factor:GetHeader())
-        chart:SetLegend(legend)
+        seriesList:Add(series)
+
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -448,9 +461,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             return undefined
         end
 
-        chart:SetTitle(column:GetHeader())
-        chart:SetXAxisTitle(factor1:GetHeader())
-        chart:SetYAxisTitle(column:GetHeader())
+        boolean numerical = false
+        if factor1:IsNumberColumn()
+            numerical = true
+        end
+
+        chart:SetTitle(column:GetHeader():ToUpperCase())
+        chart:SetXAxisTitle(factor1:GetHeader():ToUpperCase())
+        chart:SetYAxisTitle(column:GetHeader():ToUpperCase())
         Summarize summary
         column:Calculate(summary)
         number max = summary:GetMaximum()
@@ -501,6 +519,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if(seriesFactor:HasKey(uniqueFactor2:GetAsText(j)))
                         seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):SetName(uniqueFactor2:GetAsText(j))
                         seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):AddItem(innerBar:GetIcon())
+                        innerBar:SetSeries(seriesFactor:GetValue(uniqueFactor2:GetAsText(j)))
                     end
                 end
                 j = j + 1
@@ -512,21 +531,20 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        Array <Series> seriesList
+        Array <text> seriesKeyArray = seriesFactor:CopyToKeyArray()
 
         Legend legend
         i = 0
         repeat while i < uniqueFactor2:GetSize()
-
-            chart:AddSeries(seriesFactor:GetValue(uniqueFactor2:GetAsText(i)))
+            seriesList:Add(seriesFactor:GetValue(uniqueFactor2:GetAsText(i)))
             i = i + 1
         end
 
-        legend:SetSeriesList(chart:GetSeriesList())
-        legend:SetName(factor2:GetHeader())
-        chart:SetLegend(legend)
         SetScale(chart, 0, sumMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
     end
 
@@ -636,11 +654,10 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
 
     private action SetScale(BarChart chart, number ymin, number ymax, number xmin, number xmax)
-        chart:SetDefaultOrientation("vertical")
-        chart:SetYAxisMinimum(ymin)
-        chart:SetYAxisMaximum(ymax)
-        chart:SetXAxisMinimum(xmin)
-        chart:SetXAxisMaximum(xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
     

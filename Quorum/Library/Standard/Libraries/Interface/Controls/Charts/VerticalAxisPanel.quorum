@@ -35,26 +35,36 @@ class VerticalAxisPanel is Control
     Array <ControlLabel> labels
     Array <text> overrideLabels = undefined
     Array <Drawable> ticks
+    Array <Drawable> brackets
     Array <Drawable> majorlines
     Array <Drawable> minorlines
+    ControlLabel longestLabel
 
     boolean tickCountOverride = false
+    boolean labelOverridesAreNumbers = false
+    boolean showGroupBrackets = false
 
+    integer numberOfSections = 1
     integer minorlinecount = 5
     integer tickCount = 0
-    integer tickLength = 3
+    integer tickHeight = 3
     integer tickWidth = 15
+    integer labelCount = 0
     integer titleFontSize = 0
     integer labelFontSize = 0
-    number tickinterval = -1.0
+    number tickinterval = -1.0 //This is used for the numerical label spacing
+    integer intervaloverride = 1 //This is used to skip the text labels
     number min = 0.0
     number max = 0.0
     number sumOfLabelHeights = 0
     number sumOfLabelWidths = 0
-    number widestLabel = 0
+    number labelMinimum = 0
+
+    boolean overrideDefaultMin = false
+    boolean overrideDefaultMax = false
 
     text titleText = ""
-    text numberformat = "number"
+    text numberformat = "integer"
 
     on create
         ManualLayout layout
@@ -74,10 +84,9 @@ class VerticalAxisPanel is Control
         gradient:Set(gray, gray, lightGray, lightGray)
 
         properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:Black())
+        properties:SetBorderColor(color:White())
         SetName("y axis")
 
-        SetDescription("y axis")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
     end
@@ -87,16 +96,46 @@ class VerticalAxisPanel is Control
     end
 
     /*
+    This is called by GenerateInfoTree to generate the summary that is heard when
+    you first focus on the x-axis. Also the highest level of the information tree
+    of  the chart.
+    */
+    private action GenerateSummary returns text
+        if labels:GetSize() > 0
+            if titleText not= ""
+                SetName(titleText + " axis")
+            end 
+            if overrideLabels not= undefined
+                if labels:GetSize() = 1
+                    text list = "The label is " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there is, " + overrideLabels:GetSize() + " label. " + list)
+                else
+                    text list = "The labels are "
+                    integer i = 0
+                    repeat while i < labels:GetSize()-1
+                        list = list + labels:Get(i):GetText() + ", "
+                        i = i + 1
+                    end
+                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText()
+                    SetDescription(" uses text labels, there are, " + overrideLabels:GetSize() + " labels. " + list)
+                end
+            else
+                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ".")
+            end
+        end
+        return GetDescription()
+    end
+
+    /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         summary:SetChild(yAxis)
         summary:SetNext(yAxis)
+        yAxis:SetFocusTarget(me)
         yAxis:SetParent(summary)
-        yAxis:SetDisplayName("Vertical Axis")
-        yAxis:SetFocusTarget(me) //yAxis:SetFocusTarget(<yAxisTitle>)
-        me:SetDescription(", ticks")
+        yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
 
         chartArea:SetPrevious(yAxis)
@@ -109,7 +148,6 @@ class VerticalAxisPanel is Control
         firstLabel:SetContainer(chart)
         if labels:GetSize() > 0
             yAxis:SetChild(firstLabel)
-            firstLabel:SetDisplayName(labels:Get(0):GetText())
             firstLabel:SetParent(yAxis)
             firstLabel:SetFocusTarget(labels:Get(0))
         end
@@ -119,7 +157,6 @@ class VerticalAxisPanel is Control
         repeat while i < labels:GetSize()
             ChartItem labelNode
             labelNode:SetContainer(chart)
-            labelNode:SetDisplayName(labels:Get(i):GetText())
             labelNode:SetParent(yAxis)
             labelNode:SetFocusTarget(labels:Get(i))
             previousLabel:SetNext(labelNode)
@@ -150,8 +187,6 @@ class VerticalAxisPanel is Control
             Item2D labelAnchor
             ControlLabel newLabel
             SetTitleLabel(newLabel)
-            newLabel:SetFont(properties:GetFont())
-            newLabel:SetSize(cast(integer, cast(integer, chart:GetWidth()*0.075)*chart:GetVerticalPanelHeightPercent()))
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetDescription("Vertical axis")
@@ -164,93 +199,169 @@ class VerticalAxisPanel is Control
         if GetAxis() = undefined
             Drawable line
             SetAxis(line)
-            Add(line)
+            chart:GetChartArea():Add(line)
+        end
+
+        if UseIntegers()
+            if overrideLabels not= undefined and labelOverridesAreNumbers
+                ChangeOverrideLabelsToIntegers()
+            end
         end
 
         if overrideLabels not= undefined
-            max = 0
+            min = 0
             max = overrideLabels:GetSize()-1
         end
 
-        number scaleNum = min
+        InitLabels(chart)
+    end
+
+    action InitLabels(Chart chart)
         number scaleWidth = CalculateScaleWidth(chart)
+        labelCount = 0
+        
+        integer k = 0
+        repeat while k < numberOfSections
+            VerticalAxisPanel subPanel = undefined
+            if chart:GetNumberOfChartAreas() > 1 and k < numberOfSections
+                subPanel = chart:GetSubVerticalPanels():Get(k)
+                ManualLayout manualLayout
+                subPanel:SetLayout(manualLayout)
 
-        if ticks:GetSize() not= tickCount
+                Color color
+                color:SetColor(0,0,0,0)
+                LayoutProperties properties = subPanel:GetDefaultLayoutProperties()
+                properties:SetBackgroundColor(color)
+                properties:SetBorderColor(color)
+                properties:SetBorderThickness(4)
+                Add(subPanel)
+            end
+            number scaleNum = min
+
+            Array<Drawable> theTicks
+            Array<Drawable> theBrackets
+            Array<ControlLabel> theLabels
+            Array<Drawable> theMajorLines
+            Array<Drawable> theMinorLines
+
+            integer i = 0
+            repeat while i < tickCount
+                Drawable tick
+                theTicks:Add(tick)
+                tick:SetName("Y Tick " + (i + 1))
+    
+                Drawable bottom
+                theBrackets:Add(bottom)
+
+                Drawable side
+                theBrackets:Add(side)
+
+                Drawable top
+                theBrackets:Add(top)
+
+                Item2D labelAnchor
+                ControlLabel label
+                label:SetFontSize(GetFontSize() - 5)
+                label:SetFocusable(true)
+                label:SetAccessibilityCode(parent:Item:ITEM)
+                theLabels:Add(label)
+                labelAnchor:Add(label)
+                labelCount = labelCount + 1
+
+                if i = 0
+                    longestLabel = label
+                end
             
-            if ticks:GetSize() < tickCount
-                integer i = 0
-                repeat while i < tickCount
-                    Drawable tick
-                    tick:LoadFilledRectangle(tickWidth, tickLength)
-                    Add(tick)
-                    ticks:Add(tick)
+                //make the labels for each scale tick (auto based on max)
+                text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
+                if UseIntegers() and not tickCountOverride
+                    scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
+                end    
+                if overrideLabels = undefined
+                    label:SetText(scaleText)
+                else
+                    scaleText = overrideLabels:Get((cast(integer, i*intervaloverride) mod overrideLabels:GetSize()))
+                    label:SetText(scaleText)
+                end
+                number labelHeight = label:GetHeight()
+                number labelWidth = label:GetWidth()
+                if labelWidth > longestLabel:GetWidth()
+                    longestLabel = label
+                end
+                sumOfLabelHeights = sumOfLabelHeights + labelHeight
+                sumOfLabelWidths = sumOfLabelWidths + labelWidth
+                scaleNum = scaleNum + scaleWidth
 
-                    if chart:IsShowingMajorYGridLines()
+                if subPanel = undefined
+                    Add(tick)
+                    Add(bottom)
+                    Add(side)
+                    Add(top)
+                    Add(labelAnchor)
+                else
+                    subPanel:Add(tick)
+                    subPanel:Add(bottom)
+                    subPanel:Add(side)
+                    subPanel:Add(top)
+                    subPanel:Add(labelAnchor)
+                end
+
+                if chart:IsShowingMajorYGridLines()
+                    if subPanel = undefined
                         Drawable gridline
-                        majorlines:Add(gridline)
+                        theMajorLines:Add(gridline)
                         chart:GetChartArea():Add(gridline)
+                    else
+                        integer horizontalSections = chart:GetHorizontalPanel():GetNumberOfSections()
+                        integer m = 0
+                        repeat while m < horizontalSections
+                            Drawable gridline
+                            theMajorLines:Add(gridline)
+                            chart:GetSubChartAreas():Get(m + k*horizontalSections):Add(gridline)
+                            m = m + 1
+                        end
                     end
-                    if chart:IsShowingMinorYGridLines()
+                end
+                if chart:IsShowingMinorYGridLines()
+                    if subPanel = undefined
                         integer j = 0
                         repeat while j < minorlinecount
                             Drawable gridline
-                            minorlines:Add(gridline)
+                            theMinorLines:Add(gridline)
                             chart:GetChartArea():Add(gridline)
                             j = j + 1
                         end
-                    end
-
-                    Item2D labelAnchor
-                    ControlLabel label
-                    label:SetFontSize(GetFontSize() - 5)
-                    label:SetFocusable(true)
-                    label:SetAccessibilityCode(parent:Item:ITEM)
-                    labels:Add(label)
-                    labelAnchor:Add(label)
-                    Add(labelAnchor)
-                    i = i + 1
-                end
-            else
-                repeat until ticks:GetSize() = tickCount - 1
-                    Drawable tick = ticks:RemoveFromEnd()
-                    Remove(tick)
-
-                    ControlLabel label = labels:RemoveFromEnd()
-                    Remove(label)
-                end
-            end
-
-            if tickCount > 0
-                i = 0
-                repeat while i < tickCount
-                    Drawable tick = ticks:Get(i)
-                    tick:SetName("Y Tick " + (i + 1))
-    
-                    //make the labels for each scale tick (auto based on max)
-                    text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
-                    if UseIntegers() and not tickCountOverride
-                        scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
-                    end
-                    ControlLabel label = labels:Get(i)
-                    if overrideLabels = undefined
-                        label:SetText(scaleText)
                     else
-                        number percent = (i * 1.0) / (tickCount * 1.0)
-                        integer index = cast(integer, math:Round(percent * overrideLabels:GetSize()))
-                        label:SetText(overrideLabels:Get(index))
+                        integer horizontalSections = chart:GetHorizontalPanel():GetNumberOfSections()
+                        integer m = 0
+                        repeat while m < horizontalSections
+                            integer j = 0
+                            repeat while j < minorlinecount
+                                Drawable gridline
+                                theMinorLines:Add(gridline)
+                                chart:GetSubChartAreas():Get(m + k*horizontalSections):Add(gridline)
+                                j = j + 1
+                            end
+                            m = m + 1
+                        end
                     end
-                    label:SetName(scaleText + " " + (i + 1) + " of " + tickCount)
-                    number labelHeight = label:GetHeight()
-                    number labelWidth = label:GetWidth()
-                    if labelWidth > widestLabel
-                        widestLabel = labelWidth
-                    end
-                    sumOfLabelHeights = sumOfLabelHeights + labelHeight
-                    sumOfLabelWidths = sumOfLabelWidths + labelWidth
-                    scaleNum = scaleNum + scaleWidth
-                    i = i + 1
                 end
+                i = i + intervaloverride
             end
+            if subPanel = undefined
+                ticks = theTicks:CopyToArray()
+                brackets = theBrackets:CopyToArray()
+                labels = theLabels:CopyToArray()
+                majorlines = theMajorLines:CopyToArray()
+                minorlines = theMinorLines:CopyToArray()
+            else
+                subPanel:SetTicks(theTicks:CopyToArray())
+                subPanel:SetBrackets(theBrackets:CopyToArray())
+                subPanel:SetLabels(theLabels:CopyToArray())
+                subPanel:SetMajorGridlines(theMajorLines:CopyToArray())
+                subPanel:SetMinorGridlines(theMinorLines:CopyToArray())
+            end
+            k = k + 1
         end
     end
 
@@ -286,15 +397,27 @@ class VerticalAxisPanel is Control
                 tickCount = (cast(integer, range) + 1)
                 scaleWidth = range / (tickCount - 1)
             end 
+            if min < 0 and not overrideDefaultMin
+                integer lowerTicks = math:AbsoluteValue(cast(integer, min / cast(integer, scaleWidth)))
+                if lowerTicks not= 0
+                    min = 0 - scaleWidth*(lowerTicks+1)
+                else
+                    min = cast(integer, min) - cast(integer, scaleWidth+(cast(integer, min) mod cast(integer, scaleWidth)))
+                end
+                tickCount = tickCount + 1
+            end
 
         // Text scale (integer intervals only)
         else
             tickCount = overrideLabels:GetSize()
             if tickCount > 1
-                scaleWidth = range / (tickCount - 1)
+                scaleWidth = cast(integer, range / (tickCount - 1))
             else
-                scaleWidth = range / 1
+                scaleWidth = cast(integer, range / 1)
             end
+        end
+        if not CheckIfInteger(scaleWidth)
+            numberFormat = "number"
         end
         return scaleWidth
     end
@@ -326,6 +449,21 @@ class VerticalAxisPanel is Control
                 i = i + 1
             end
             ticks:Empty()
+        end
+
+        if not brackets:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < brackets:GetSize()
+                temp = brackets:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            brackets:Empty()
         end
 
         if not majorlines:IsEmpty()
@@ -420,6 +558,28 @@ class VerticalAxisPanel is Control
     end
 
     /*
+    These actions get and set the tick width.
+    */
+    action GetTickWidth returns integer
+        return tickWidth
+    end
+
+    action SetTickWidth(integer tickWidth)
+        me:tickWidth = tickWidth
+    end
+
+    /*
+    These actions get and set the tick height.
+    */
+    action GetTickHeight returns integer
+        return tickHeight
+    end
+
+    action SetTickHeight(integer tickHeight)
+        me:tickHeight = tickHeight
+    end
+
+    /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
@@ -434,14 +594,30 @@ class VerticalAxisPanel is Control
         minorlinecount = count
     end
 
+    action SetMinorGridlines(Array<Drawable> minorlines)
+        me:minorlines = minorlines
+    end
+
     action GetMinorGridlines returns Array<Drawable>
         return minorlines
+    end
+
+    action SetMajorGridlines(Array<Drawable> majorlines)
+        me:majorlines = majorlines
     end
 
     action GetMajorGridlines returns Array<Drawable>
         return majorlines
     end
 
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action SetTicks(Array<Drawable> ticks)
+        me:ticks = ticks
+    end
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -468,16 +644,21 @@ class VerticalAxisPanel is Control
         return tickCount
     end
 
-    // This cannot change an interval on a text-scale.
     action SetTickInterval(number set)
-        if overrideLabels = undefined
-            tickinterval = set
+        tickinterval = set
+        if overrideLabels not= undefined and set >= 1
+            intervaloverride = cast(integer, set)
         end
     end
 
     action GetTickInterval() returns number
         return tickinterval
     end
+
+    action GetIntervalOverride() returns integer
+        return intervaloverride
+    end
+
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -494,20 +675,28 @@ class VerticalAxisPanel is Control
         labels = newLabels
     end
 
+    action GetLabelCount returns integer
+        return labelCount
+    end
+
+    action GetLongestLabel returns ControlLabel
+        return longestLabel
+    end
+
+    action SetLabelMinimum(number labelMin)
+        me:labelMinimum = labelMin
+    end
+
+    action GetLabelMinimum returns number
+        return labelMinimum
+    end
+
     action GetLabelFontSize returns integer
         return labelFontSize
     end
 
     action SetLabelFontSize(integer size)
         labelFontSize = size
-    end
-
-    action GetWidestLabel returns number
-        return widestLabel
-    end
-
-    action SetWidestLabel(number width)
-        widestLabel = width
     end
 
     action GetSumOfLabelWidths returns number
@@ -525,7 +714,7 @@ class VerticalAxisPanel is Control
     action SetSumOfLabelHeights(number newSum)
         sumOfLabelHeights = newSum
     end
-
+     
     action SetOverrideLabels(Array <text> textLabels)
         if labels not= undefined
             overrideLabels = textLabels
@@ -544,6 +733,35 @@ class VerticalAxisPanel is Control
         end
     end  
 
+    action ChangeOverrideLabelsToIntegers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            if CheckIfInteger(value)
+                integer val = cast(integer, value)
+                overrideLabels:Set(i, cast(text, val))
+            end
+            i = i + 1
+        end
+    end
+
+    action ChangeOverrideLabelsToNumbers()
+        integer i = 0
+        repeat while i < overrideLabels:GetSize()
+            number value = cast(number, overrideLabels:Get(i))
+            overrideLabels:Set(i, cast(text, value))
+            i = i + 1
+        end
+    end
+
+    action NumericalOverrideLabels(boolean flag)
+        labelOverridesAreNumbers = flag
+    end
+
+    action NumericalOverrideLabels() returns boolean
+        return labelOverridesAreNumbers
+    end
+
     /*
     These actions control whether decimal numbers or integers are shown
     along the x-axis (if the axis is numerical not text)
@@ -554,12 +772,22 @@ class VerticalAxisPanel is Control
     */
     action SetNumberFormat(text format)
         numberformat = format
+
+        if overrideLabels not= undefined and labelOverridesAreNumbers 
+            if numberformat = "number"            
+                ChangeOverrideLabelsToNumbers()
+            end
+            if numberformat = "integer"
+                ChangeOverrideLabelsToIntegers()
+            end
+        end
     end
 
     action GetNumberFormat() returns text
         return numberformat
     end
 
+    // This action is used for a number scale axis not a text axis.
     action UseIntegers() returns boolean
         if numberformat = "integer"
             return true
@@ -568,6 +796,15 @@ class VerticalAxisPanel is Control
         end
     end
     
+    action CheckIfInteger(number value) returns boolean
+        integer val = cast(integer, value)
+        if val not= value
+            return false
+        else
+            return true
+        end
+    end
+
     /*
     These actions control the minimum and maximum horizontal scale.
     These values are used in all charts regardless if axis is showing 
@@ -600,5 +837,39 @@ class VerticalAxisPanel is Control
 
     action SetAxis(Drawable line)
         axis = line
+    end
+
+    action SetBrackets(Array <Drawable> brackets)
+        me:brackets = brackets
+    end
+
+    action GetBrackets returns Array <Drawable>
+        return brackets
+    end
+
+    action ShowGroupBrackets returns boolean
+        return showGroupBrackets
+    end
+
+    action ShowGroupBrackets(boolean show)
+        if overrideLabels not= undefined
+            me:showGroupBrackets = show
+        end
+    end
+
+    action OverrideDefaultMin()
+        me:overrideDefaultMin = true
+    end
+
+    action OverrideDefaultMax()
+        me:overrideDefaultMax = true
+    end
+
+    action GetNumberOfSections returns integer
+        return numberOfSections
+    end
+
+    action SplitIntoSections(integer numberOfSections)
+        me:numberOfSections = numberOfSections
     end
 end

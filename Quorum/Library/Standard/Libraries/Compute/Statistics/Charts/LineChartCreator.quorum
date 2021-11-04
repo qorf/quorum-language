@@ -156,6 +156,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 Series series
                 series:SetName(column:GetHeader())
                 series:AddItem(newline)
+                newline:SetSeries(series)
                 seriesFactor:Add(column:GetHeader(), series)           
             end
     
@@ -255,6 +256,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end  
 
         // Series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
@@ -263,22 +265,21 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
             chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
-
-        chart:SetDefaultOrientation("horizontal")
-        chart:SetYAxisMaximum(yAxisMaximum)
-        chart:SetYAxisMinimum(yAxisMinimum)
-        chart:SetXAxisMaximum(xAxisMaximum)
-        chart:SetXAxisMinimum(xAxisMinimum)
-        chart:Populate()
+        chart:SetSeriesList(seriesList)
+        SetScale(chart, yAxisMinimum, yAxisMaximum, xAxisMinimum, xAxisMaximum)
         return chart
+    end
+
+    private action SetScale(LineChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 end

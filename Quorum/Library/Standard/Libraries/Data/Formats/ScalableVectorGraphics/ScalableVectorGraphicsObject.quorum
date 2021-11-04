@@ -44,6 +44,8 @@ class ScalableVectorGraphicsObject
     private text ariaLabel = ""
     private text ariaDescription = ""
     private text ariaRoleDescription = ""
+    private text ariaLabelledBy = ""
+    private text ariaDescribedBy = ""
     
 
     //helper attributes
@@ -98,6 +100,12 @@ class ScalableVectorGraphicsObject
         end
         if ariaRoleDescription not= ""
             result = result + " aria-roledescription="+dq+ariaRoleDescription+dq
+        end
+        if ariaLabelledBy not= ""
+            result = result + " aria-labelledby="+dq+ariaLabelledBy+dq
+        end
+        if ariaDescribedBy not= ""
+            result = result + " aria-describedby="+dq+ariaDescribedBy+dq
         end
         return result
     end
@@ -619,6 +627,48 @@ class ScalableVectorGraphicsObject
 
     action GetAriaDescription returns text
         return ariaDescription
+    end
+
+    /*
+        This action will give a aria-labelledby attribute to the SVG element. This aria-labelledby can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaLabelledBy The aria-labelledby name for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaLabelledBy("id")
+    */
+    action SetAriaLabelledBy(text ariaLabelledBy)
+        me:ariaLabelledBy = ariaLabelledBy
+    end
+
+    action GetAriaLabelledBy returns text
+        return ariaLabelledBy
+    end
+
+    /*
+        This action will give a aria-describedby attribute to the SVG element. This aria-describedby can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaDescribedBy The aria-describedby for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaDescribedBy("This is a blue circle with a radius of 5.0")
+    */
+    action SetAriaDescribedBy(text ariaDescribedBy)
+        me:ariaDescribedBy = ariaDescribedBy
+    end
+
+    action GetAriaDescribedBy returns text
+        return ariaDescribedBy
     end
 
     /*

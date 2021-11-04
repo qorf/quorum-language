@@ -189,10 +189,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if useFactor
                             if(seriesFactor:HasKey(factor:GetAsText(j)))
                                 seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
                             end
                         else
                             if(seriesFactor:HasKey(dfy:GetHeader()))
                                 seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
                             end
                         end
                         chart:Add(point)
@@ -270,10 +272,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if useFactor
                             if(seriesFactor:HasKey(factor:GetAsText(j)))
                                 seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
                             end
                         else
                             if(seriesFactor:HasKey(dfy:GetHeader()))
                                 seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
                             end
                         end
                         chart:Add(point)
@@ -371,10 +375,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if useFactor
                             if(seriesFactor:HasKey(factor:GetAsText(j)))
                                 seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
                             end
                         else
                             if(seriesFactor:HasKey(dfy:GetHeader()))
                                 seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
                             end
                         end
                         chart:Add(point)
@@ -453,10 +459,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if useFactor
                             if(seriesFactor:HasKey(factor:GetAsText(j)))
                                 seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
                             end
                         else
                             if(seriesFactor:HasKey(dfy:GetHeader()))
                                 seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
                             end
                         end
                         chart:Add(point)
@@ -470,6 +478,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         // Sort and add the series
+        Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
         if numericalFactor
             Array<number> numberKeyArray = numberForText:CopyToKeyArray()
@@ -480,7 +489,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = 0
             repeat while i < numberKeyArray:GetSize()
-                chart:AddSeries(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
+                seriesList:Add(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
                 i = i + 1
             end
         else
@@ -491,24 +500,24 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = 0
             repeat while i < seriesKeyArray:GetSize()
-                chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+                seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
                 i = i + 1
             end
         end 
 
-        Legend legend
-        legend:SetSeriesList(chart:GetSeriesList())
         if useFactor
-            legend:SetName(factor:GetHeader())
+            chart:SetLegendTitle(factor:GetHeader())
         end
-        chart:SetLegend(legend)
 
-        chart:SetDefaultOrientation("horizontal")
-        chart:SetYAxisMaximum(yAxisMaximum)
-        chart:SetYAxisMinimum(yAxisMinimum)
-        chart:SetXAxisMaximum(xAxisMaximum)
-        chart:SetXAxisMinimum(xAxisMinimum)
-        chart:Populate()
+        chart:SetSeriesList(seriesList)
+        SetScale(chart, yAxisMinimum, yAxisMaximum, xAxisMinimum, xAxisMaximum)
         return chart
+    end
+
+    private action SetScale(ScatterPlot chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 end

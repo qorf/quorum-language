@@ -1,0 +1,1065 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Web.Page.Script
+use Libraries.Containers.Array
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.ListItem
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Item2D
+use Libraries.System.File
+
+class ChartWriter
+    private number axisPointX = 15
+    private number axisPointY = 85
+    private number axisLengthX = 75
+    private number axisLengthY = 75
+    private integer svgHeight = 600
+    private integer svgWidth = 700
+    private boolean hasAccessibility = true
+    private number paddedChartOffset = 0
+    private number fontSize = 12
+
+    Label chartTitle
+    Label xAxisLabel
+    Label yAxisLabel
+    Line xAxis
+    Line yAxis
+    Rectangle background
+    Rectangle chartArea
+    Array<Label> yLabels
+    Array<Label> xLabels
+    Array<Rectangle> groupPanels
+
+    
+    
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, integer svgWidth, integer svgHeight) returns text
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        return WriteOutChart(chart)
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        File f
+        f:SetPath("aFile.svg")
+        chartWriter:WriteOutChart(chart, f, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, File file, integer svgWidth, integer svgHeight)
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        WriteOutChart(chart, file)
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart)
+    */
+    action WriteOutChart(Chart chart) returns text
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(svgWidth,svgHeight)
+        chartCanvas:SetTabIndex(-1)
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetRole("img")
+
+        //Initalize a few settings that change during Chart:LoadGraphics()
+        InitWriter(chart)
+        LayoutChartContent(chartCanvas, chart)
+
+        //Generate SVG elements for each piece of the chart
+        AddBackground(chartCanvas, chart)
+        AddChartArea(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+        AddAxes(chartCanvas, chart)
+        AddChartTitle(chartCanvas, chart)
+        AddChartContent(chartCanvas, chart)
+
+        //Generate a list tree to give navigation structure
+        if HasAccessibility()
+            AddAccessibility(chartCanvas, chart)
+        end
+
+        return chartCanvas:ToText()
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        File f
+        f:SetPath("aFile.svg")
+        chartWriter:WriteOutChart(chart, f)
+    */
+    action WriteOutChart(Chart chart, File file)
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(svgWidth,svgHeight)
+        chartCanvas:SetTabIndex(-1)
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetRole("img")
+
+        //Initalize a few settings that change during Chart:LoadGraphics()
+        InitWriter(chart)
+        LayoutChartContent(chartCanvas, chart)
+
+        //Generate SVG elements for each piece of the chart
+        AddBackground(chartCanvas, chart)
+        AddChartArea(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+        AddAxes(chartCanvas, chart)
+        AddChartTitle(chartCanvas, chart)
+        AddChartContent(chartCanvas, chart)
+
+        //Generate a list tree to give navigation structure
+        if HasAccessibility()
+            AddAccessibility(chartCanvas, chart)
+        end
+
+        chartCanvas:Write(file)
+    end
+
+    /*
+        This action sets a flag to know if all of the accessibility
+        information should be included. This may be used to reduce
+        the size of the image in cases where it will be used
+        as a flat image such as in a PDF.
+    */
+    action SetAccessibilityFlag(boolean hasAccessibility)
+        me:hasAccessibility = hasAccessibility
+    end
+
+    action HasAccessibility() returns boolean
+        return hasAccessibility
+    end
+
+    /*
+        These actions are used to offset the start of the tick placement
+        if the chart has added white space on either side of the chart area.
+    */
+    action SetPaddedChartOffset(number paddedChartOffset)
+        me:paddedChartOffset = paddedChartOffset
+    end
+
+    action GetPaddedChartOffset() returns number
+        return paddedChartOffset
+    end
+
+    /*
+        This action sets the position (percentage) of the chart area.
+    */
+    action SetChartAreaPosition(number x, number y)
+        axisPointX = x
+        axisPointY = y
+    end
+
+    action SetChartAreaPositionX(number x)
+        axisPointX = x
+    end
+
+    action GetChartAreaPositionX() returns number
+        return axisPointX
+    end
+
+    action SetChartAreaPositionY(number y)
+        axisPointY = y
+    end
+
+    action GetChartAreaPositionY() returns number
+        return axisPointY
+    end
+
+    /*
+        This action sets the width (percentage) of the chart area.
+    */
+    action SetChartAreaWidth(number width)
+        axisLengthX = width
+    end
+
+    action GetChartAreaWidth() returns number
+        return axisLengthX
+    end
+
+    /*
+        This action sets the height (percentage) of the chart area.
+    */
+    action SetChartAreaHeight(number height)
+        axisLengthY = height
+    end
+
+    action GetChartAreaHeight() returns number
+        return axisLengthY
+    end
+
+    /*
+        This action sets the height (pixel) of the chart.
+    */
+    action SetChartHeight(integer svgHeight)
+        me:svgHeight = svgHeight
+    end
+
+    action GetChartHeight() returns integer
+        return svgHeight
+    end
+
+    /*
+        This action sets the width (pixel) of the chart.
+    */
+    action SetChartWidth(integer svgWidth)
+        me:svgWidth = svgWidth
+    end
+
+    action GetChartWidth() returns integer
+        return svgWidth
+    end
+
+    /*
+        This action sets the chart title.
+    */
+    action SetChartTitle(Label chartTitle)
+        me:chartTitle = chartTitle
+    end
+
+    action GetChartTitle() returns Label
+        return chartTitle
+    end
+
+    /*
+        This action sets the x axis label.
+    */
+    action SetXAxisLabel(Label xAxisLabel)
+        me:xAxisLabel = xAxisLabel
+    end
+
+    action GetXAxisLabel() returns Label
+        return xAxisLabel
+    end
+
+    /*
+        This action sets the y axis label.
+    */
+    action SetYAxisLabel(Label yAxisLabel)
+        me:yAxisLabel = yAxisLabel
+    end
+
+    action GetYAxisLabel() returns Label
+        return yAxisLabel
+    end
+
+    /*
+        This action sets the x axis line.
+    */
+    action SetXAxis(Line xAxis)
+        me:xAxis = xAxis
+    end
+
+    action GetXAxis() returns Line
+        return xAxis
+    end
+
+    /*
+        This action sets the y axis line.
+    */
+    action SetYAxis(Line yAxis)
+        me:yAxis = yAxis
+    end
+
+    action GetYAxis() returns Line
+        return yAxis
+    end
+
+    /*
+        This action sets the background.
+    */
+    action SetBackground(Rectangle background)
+        me:background = background
+    end
+
+    action GetBackground() returns Rectangle
+        return background
+    end
+
+    /*
+        This action sets the chart area.
+    */
+    action SetChartArea(Rectangle chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea() returns Rectangle
+        return chartArea
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetXLabels(Array<Label> xLabels)
+        me:xLabels = xLabels
+    end
+
+    action GetXLabels() returns Array<Label>
+        return xLabels
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetYLabels(Array<Label> yLabels)
+        me:yLabels = yLabels
+    end
+
+    action GetYLabels() returns Array<Label>
+        return yLabels
+    end
+
+    /*
+        This action sets the group panels.
+    */
+    action GetGroupPanels() returns Array<Rectangle>
+        return groupPanels
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        background:SetPosition(0, 0, "%")
+        background:SetID(canvas:GetID() + "-" + background:GetHashCode())
+        background:SetTabIndex(-1)
+        if HasAccessibility()
+            background:SetAriaLabel(chart:GetTitle() + ", " + chart:GenerateSummary())
+        end
+        canvas:Add(background)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        chartArea:SetFill("white")
+        chartArea:SetSize(axisLengthX,axisLengthY, "%")
+        chartArea:SetPosition(axisPointX, axisPointY - axisLengthY, "%")
+        chartArea:SetID(canvas:GetID() + "-" + chartArea:GetHashCode())
+        chartArea:SetTabIndex(-1)
+        if HasAccessibility()
+            
+        end
+        canvas:Add(chartArea)
+    end
+
+    /*
+        This action adds the two lines for the x and y axis
+    */
+    private action AddAxes(ScalableVectorGraphics canvas, Chart chart)
+        number strokeWidth = PixelToPercentHeight(5)
+        xAxis:SetPoints(axisPointX, axisPointY + strokeWidth, axisPointX + axisLengthX, axisPointY + strokeWidth, "%")
+        xAxis:SetStroke("black")
+        xAxis:SetTabIndex(-1)
+        xAxis:SetStrokeWidth(5)
+        xAxis:SetID(canvas:GetID() + "-" + xAxis:GetHashCode())
+
+        xAxisLabel:SetText(chart:GetXAxisTitle())
+        xAxisLabel:SetTextAnchor("middle")
+        xAxisLabel:SetPosition(50, 95, "%")
+        xAxisLabel:SetFontSize("18pt")
+        xAxisLabel:SetID(canvas:GetID() + "-" + xAxisLabel:GetHashCode())
+        xAxisLabel:SetTabIndex(-1)
+
+        strokeWidth = PixelToPercentWidth(5)
+        yAxis:SetPoints(axisPointX - strokeWidth, axisPointY, axisPointX - strokeWidth, axisPointY - axisLengthY, "%")
+        yAxis:SetStroke("black")
+        yAxis:SetTabIndex(-1)
+        yAxis:SetStrokeWidth(5)
+        yAxis:SetID(canvas:GetID() + "-" + yAxis:GetHashCode())
+
+        yAxisLabel:SetText(chart:GetYAxisTitle())
+        yAxisLabel:SetTextAnchor("middle")
+        yAxisLabel:SetPosition(5, 50, "%")
+        text rotation = "rotate(270, " + svgWidth*0.05 + ", " + svgHeight*0.5 + ")"
+        yAxisLabel:SetTransform(rotation)
+        yAxisLabel:SetFontSize("18pt")
+        yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
+        yAxisLabel:SetTabIndex(-1)
+        
+        if HasAccessibility()
+            //xAxisLabel:SetAriaLabel()
+            //xAxisLabel:SetAriaDescription()
+            //yAxisLabel:SetAriaLabel()
+            //yAxisLabel:SetAriaDescription("Scale with " + chart:GetYTickSteps() + " ticks, from 0.0 to " + yAxisMaximum)
+        end
+        
+        canvas:Add(xAxis)
+        canvas:Add(xAxisLabel)
+        canvas:Add(yAxis)
+        canvas:Add(yAxisLabel)
+    end
+
+    /*
+        This action adds a chart title to the canvas
+    */
+    private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("middle")
+        chartTitle:SetPosition(50, 5, "%")
+        chartTitle:SetFontSize("18pt")
+        chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
+        chartTitle:SetTabIndex(-1)
+        if HasAccessibility()
+            
+        end
+        canvas:Add(chartTitle)
+    end
+
+    /*
+        This action adds the elements used within the chart area (bars, lines, datapoints, etc). 
+
+        Attribute: Parameter The chart that will be used to create an SVG
+        Attribute: Parameter chart
+    */
+    blueprint action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        This action generates the elements used within the chart area (bars, lines, datapoints, etc). 
+
+        Attribute: Parameter The chart that will be used to create an SVG
+        Attribute: Parameter chart
+    */
+    blueprint action LayoutChartContent(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        This action adds the labels on the x axis
+    */
+    action AddXLabels(ScalableVectorGraphics canvas, Chart chart)
+        HorizontalAxisPanel horizontalContainer
+        horizontalContainer = chart:GetHorizontalPanel()
+        boolean usingGrouping = (GetGroupPanels():GetSize() > 0) and horizontalContainer:UseTextLabelOverride()
+        Color color
+
+        // This is the ticks on the X axis
+        number groupOffset = 0
+        number scaleDivWidth = 0         
+        number tickStroke = horizontalContainer:GetTickWidth()
+        number tickStrokePercent = PixelToPercentWidth(tickStroke)
+        number tickHeight = PixelToPercentHeight(horizontalContainer:GetTickHeight())
+        number axisShift = PixelToPercentHeight(5)
+        integer fontSize = 12
+        number groupWidth = 0
+        number axisLengthX = GetChartAreaWidth()
+        number axisPointX = GetChartAreaPositionX()
+        number axisLengthY = GetChartAreaHeight()
+        number axisPointY = GetChartAreaPositionY()
+
+        number originPointX = axisPointX
+        number originPointY = horizontalContainer:GetHeight()
+
+        if horizontalContainer:GetTickCount() > 0  
+            if usingGrouping
+                groupWidth = cast(number, groupPanels:Get(0):GetWidth():Replace("%",""))
+                groupOffset = groupWidth/2.0
+                originPointX = axisPointX + cast(number, groupOffset) + GetPaddedChartOffset()
+                scaleDivWidth = groupWidth
+                chart:HideAllXGridLines()
+            else
+                scaleDivWidth = (axisLengthX - tickStrokePercent/2) / (horizontalContainer:GetTickCount() - 1)
+            end
+            number minorScaleDivWidth = scaleDivWidth/horizontalContainer:GetMinorGridlineCount()
+
+            number tickX = originPointX
+            number tickY = axisPointY
+
+            integer i = 0
+            integer j = 0
+            repeat while i < chart:GetHorizontalPanel():GetTickCount()
+                Line tick
+
+                tick:SetFirstPoint(tickX, axisPointY + (axisShift/2), "%")
+                tick:SetSecondPoint(tickX, axisPointY + tickHeight, "%")
+                tick:SetStroke("black")
+                tick:SetStrokeWidth(tickStroke)
+                tick:SetTabIndex(-1)
+                tick:SetID(canvas:GetID() + "-" + tick:GetHashCode())
+
+                canvas:Add(tick)
+
+                number thin = tickStroke*0.75
+                number majorX = tickX
+                if chart:IsShowingMajorXGridLines()
+                    Line majorLine
+                    majorLine:SetTabIndex(-1)
+                    majorLine:SetFirstPoint(majorX, axisPointY, "%")
+                    majorLine:SetSecondPoint(majorX, axisPointY - axisLengthY, "%")
+                    majorLine:SetStroke("lightgray")
+                    majorLine:SetStrokeWidth(thin)
+                    canvas:Add(majorLine)
+                end 
+                if chart:IsShowingMinorXGridLines()
+                    number thinner = thin/2
+                    number minorX = majorX + minorScaleDivWidth
+                    
+                    j = 0
+                    repeat while j < horizontalContainer:GetMinorGridlineCount() and minorX < (axisPointX + axisLengthX)
+                        // Split five ways (4 minor lines)
+                        Line minorLine
+                        minorLine:SetTabIndex(-1)
+                        minorLine:SetFirstPoint(minorX, axisPointY, "%")
+                        minorLine:SetSecondPoint(minorX, axisPointY - axisLengthY, "%")
+                        minorLine:SetStroke("lightgray")
+                        minorLine:SetStrokeWidth(thinner)
+                        canvas:Add(minorLine)
+                        j = j + 1
+                        minorX = minorX + minorScaleDivWidth
+                    end
+                end
+                
+                if usingGrouping
+                    tickX = tickX + groupOffset
+                    scaleDivWidth = cast(number, groupPanels:Get(i):GetWidth():Replace("%",""))
+                    groupOffset = scaleDivWidth/2.0
+                    tickX = tickX + groupOffset
+                else
+                    tickX = tickX + scaleDivWidth
+                end
+                i = i + 1
+            end
+        end
+
+        // This code represents the labels on the X axis 
+        //if usingGrouping
+        //    originPointX = axisPointX + cast(number, groupOffset) + GetPaddedChartOffset()
+        //end
+
+        number labelWidth = 0
+        number labelHeight = PixelToPercentHeight(fontSize)
+        number labelMinimumY = originPointY
+        
+        integer degrees = 0
+        /*
+        integer degrees = chart:GetXLabelsRotation() mod 360
+        number xLabelSpace = horizontalContainer:GetSumOfLabelWidths() + horizontalContainer:GetLabels():GetSize()*5 + groupOffset
+        if xLabelSpace > cast(number, chart:GetChartArea():GetWidth()) and not chart:GetRotationOverride()
+            degrees = 315 //If labels overlap, the default will tilt them 45 degrees.
+        end
+        number cos = math:Cosine(math:DegreesToRadians(degrees))
+        number sin = math:Sine(math:DegreesToRadians(degrees))
+        */
+
+        integer maxXLabelOffset = 0
+        Array<ControlLabel> horizontalLabels = horizontalContainer:GetLabels()
+        if not horizontalLabels:IsEmpty()
+            ControlLabel currentLabel
+            
+            if usingGrouping
+                currentLabel = horizontalLabels:Get(0)
+                scaleDivWidth = cast(number, groupPanels:Get(0):GetWidth():Replace("%",""))
+                groupOffset = scaleDivWidth/2.0
+            else
+                currentLabel = horizontalLabels:Get(0)
+            end
+            Item2D labelAnchor = currentLabel:GetParent()
+
+            number xCurrentLabel = originPointX
+            number yCurrentLabel = cast(number, axisPointY + labelHeight + axisShift + tickHeight)
+            integer i = 0
+            repeat while i < horizontalLabels:GetSize()
+                currentLabel = horizontalLabels:Get(i)
+                labelAnchor = currentLabel:GetParent()
+                labelWidth = PixelToPercentWidth(currentLabel:GetText():GetSize() * fontSize)
+
+                Label tempLabel
+    
+                tempLabel:SetTextAnchor("middle")
+                tempLabel:SetText(currentLabel:GetText())
+                tempLabel:SetFontSize(fontSize + "pt")
+                tempLabel:SetPosition(xCurrentLabel, yCurrentLabel, "%")
+                tempLabel:SetTabIndex(-1)
+                tempLabel:SetID(canvas:GetID() + "-" + tempLabel:GetHashCode())
+
+                xLabels:Add(tempLabel)
+
+                if HasAccessibility()
+                    tempLabel:SetAriaLabel(chart:GetXLabels():Get(i):GetName() + " " + chart:GetXLabels():Get(i):GetText())
+                end
+
+                canvas:Add(tempLabel)
+
+                /*
+                if degrees not= 0
+                    number percent = cast(number, degrees mod 90)/90.0 
+                    integer startx = cast(integer, xCurrentLabel + (labelWidth/2))
+                    integer starty = yCurrentLabel
+                    integer deltaX = 0
+                    integer deltaY = 0                
+
+                    if degrees > 0 and degrees < 90
+                        deltaY = cast(integer, percent*labelHeight)
+                        if (starty - (labelWidth)*sin)  < labelMinimumY
+                            labelMinimumY = (starty - (labelWidth)*sin)
+                        end
+                    elseif degrees = 90
+                        deltaX = cast(integer, -(labelHeight/2))
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - labelWidth) < labelMinimumY
+                            labelMinimumY = (starty - labelWidth)
+                        end
+                    elseif degrees > 90 and degrees < 180
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - (labelWidth)*sin - (labelHeight)*sin)  < labelMinimumY
+                            labelMinimumY = (starty - (labelWidth)*sin - (labelHeight)*sin)
+                        end
+                    elseif degrees = 180
+                        deltaX = cast(integer, (labelWidth/2))
+                        deltaY = cast(integer, labelHeight)
+                        if (starty - labelHeight)  < labelMinimumY
+                            labelMinimumY = (starty - labelHeight)
+                        end
+                    elseif degrees > 180 and degrees < 270
+                        deltaX = cast(integer, -(labelWidth*cos))
+                        deltaY = cast(integer, labelWidth*sin + labelHeight*sin + labelHeight)
+                        if (starty + deltaY + labelHeight*sin)  < labelMinimumY
+                            labelMinimumY = (starty + deltaY + labelHeight*sin) - labelHeight/2
+                        end
+                    elseif degrees = 270
+                        deltaX = cast(integer, (labelHeight/2))
+                        deltaY = cast(integer, -labelWidth + labelHeight)
+                    elseif degrees > 270 and degrees < 360
+                        deltaX = cast(integer, -(labelWidth*cos))
+                        deltaY = cast(integer, labelWidth*sin + labelHeight*sin + labelHeight)
+                        if (starty + deltaY) < labelMinimumY
+                            labelMinimumY = (starty + deltaY - labelHeight/2)
+                        end
+                    end
+
+                    xCurrentLabel = cast(integer, startx + deltaX)
+                    yCurrentLabel = cast(integer, starty + deltaY)
+                end
+                labelAnchor:SetPosition(xCurrentLabel, yCurrentLabel)
+                labelAnchor:SetRotation(degrees)
+                if labelAnchor:GetY() < labelMinimumY
+                    labelMinimumY = labelAnchor:GetY()
+                end
+                */
+                
+                if usingGrouping
+                    xCurrentLabel = xCurrentLabel + groupOffset
+                    scaleDivWidth = cast(number, groupPanels:Get(i):GetWidth():Replace("%",""))
+                    groupOffset = scaleDivWidth/2.0
+                    xCurrentLabel = xCurrentLabel + groupOffset
+                else
+                    xCurrentLabel = xCurrentLabel + scaleDivWidth
+                end
+                i = i + 1
+            end
+        end
+
+        //This is the label itself on the X axis
+        /*
+        originPointX = 0
+        originPointY = cast(integer, horizontalContainer:GetHeight())
+        if horizontalContainer:GetTitleLabel() not= undefined
+            ControlLabel axisLabel = horizontalContainer:GetTitleLabel()
+            Item2D labelAnchor = axisLabel:GetParent()
+
+            axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+            number axisLabelWidth = axisLabel:GetWidth()
+            number axisLabelHeight = axisLabel:GetHeight()
+            integer axisY = cast(integer, (labelMinimumY/2) - (axisLabelHeight/2))
+            labelAnchor:SetPosition((horizontalContainer:GetWidth() - axisLabelWidth) / 2.0, axisY)
+        end
+        */
+    end
+
+    /*
+        This action adds the labels on the y axis
+    */
+    action AddYLabels(ScalableVectorGraphics canvas, Chart chart)
+        VerticalAxisPanel verticalContainer
+        verticalContainer = chart:GetVerticalPanel()
+        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
+        Color color
+
+        //This is the ticks on the Y axis
+        number groupOffset = 0
+        number scaleDivWidth = 0      
+        number tickStroke = verticalContainer:GetTickHeight()
+        number tickStrokePercent = PixelToPercentHeight(tickStroke)
+        number tickHeight = PixelToPercentWidth(verticalContainer:GetTickWidth())
+        number axisShift = PixelToPercentHeight(5)
+        integer fontSize = 12
+        
+        number axisLengthX = GetChartAreaWidth()
+        number axisPointX = GetChartAreaPositionX()
+        number axisLengthY = GetChartAreaHeight()
+        number axisPointY = GetChartAreaPositionY()
+        number originPointY = axisPointY
+        Array<Label> yLabels = GetYLabels()
+
+        if chart:GetVerticalPanel():GetTickCount() > 0
+            if usingGrouping
+                scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1):GetHeight():Replace("%",""))
+                groupOffset = scaleDivWidth/2.0
+                originPointY = axisPointY - cast(number, groupOffset) - GetPaddedChartOffset()
+                chart:HideAllYGridLines()
+            else
+                scaleDivWidth = (axisLengthY - tickStrokePercent/2) / (chart:GetVerticalPanel():GetTickCount() - 1)
+            end
+            
+            number minorScaleDivWidth = scaleDivWidth/verticalContainer:GetMinorGridlineCount()
+            
+            number tickX = axisPointX
+            number tickY = originPointY 
+   
+            integer i = 0
+            integer j = 0
+            repeat while i < chart:GetVerticalPanel():GetTickCount()
+                Line scaleTick
+                scaleTick:SetFirstPoint(tickX - (axisShift/2), tickY, "%")
+                scaleTick:SetSecondPoint(tickX - tickHeight, tickY, "%")
+                scaleTick:SetStroke("black")
+                scaleTick:SetStrokeWidth(tickStroke)
+                scaleTick:SetTabIndex(-1)
+                scaleTick:SetID(canvas:GetID() + "-" + scaleTick:GetHashCode())
+
+                canvas:Add(scaleTick)
+                //Drawable majorLine
+                Line majorLine
+                number thin = tickStroke*0.75
+                number majorY = tickY
+                if chart:IsShowingMajorYGridLines()
+                    majorLine:SetTabIndex(-1)
+                    majorLine:SetFirstPoint(tickX, majorY, "%")
+                    majorLine:SetSecondPoint(tickX + axisLengthX, majorY, "%")
+                    majorLine:SetStroke("lightgray")
+                    majorLine:SetStrokeWidth(thin)
+                    canvas:Add(majorLine)
+                end 
+                if chart:IsShowingMinorYGridLines()
+                    number thinner = cast(number, thin/2)
+                    number minorY = majorY - minorScaleDivWidth
+                    
+                    j = 0
+                    repeat while j < verticalContainer:GetMinorGridlineCount() and minorY > (axisPointY - axisLengthY)
+                        // Split five ways
+                        Line minorLine
+
+                        minorLine:SetTabIndex(-1)
+                        minorLine:SetFirstPoint(tickX, minorY, "%")
+                        minorLine:SetSecondPoint(tickX + axisLengthX, minorY, "%")
+                        minorLine:SetStroke("lightgray")
+                        minorLine:SetStrokeWidth(thinner)
+                        canvas:Add(minorLine)
+
+                        j = j + 1
+                        minorY = minorY - minorScaleDivWidth
+                    end
+                end
+
+                if usingGrouping
+                    tickY = tickY - groupOffset
+                    scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1 - i):GetHeight():Replace("%",""))
+                    groupOffset = scaleDivWidth/2.0
+                    tickY = tickY - groupOffset
+                else
+                    tickY = tickY - scaleDivWidth
+                end
+                i = i + 1
+            end
+        end
+
+        //This code represents the labels on the Y axis 
+        //originPointX = cast(number, verticalContainer:GetWidth())
+        //originPointY = 0
+        //if usingGrouping
+            //originPointY = cast(number, groupOffset) + chart:GetPaddedChartOffset()
+        //end
+        number labelMinimumX = axisPointX
+        if usingGrouping
+            scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1):GetHeight():Replace("%",""))
+            groupOffset = scaleDivWidth/2.0
+        end
+        number labelHeight = PixelToPercentHeight(fontSize)
+        number xCurrentLabel = axisPointX - (axisShift/2) - tickHeight - 0.2
+        number yCurrentLabel = originPointY + labelHeight / 2
+        number maxYLabelOffset = 0
+        Array<ControlLabel> scaleLabels = verticalContainer:GetLabels()
+        if not scaleLabels:IsEmpty()
+            ControlLabel currentLabel
+            if usingGrouping
+                currentLabel = scaleLabels:Get(scaleLabels:GetSize() - 1)
+            else
+                currentLabel = scaleLabels:Get(0)
+            end
+
+            maxYLabelOffset = PixelToPercentWidth(currentLabel:GetText():GetSize() * fontSize)
+            integer i = 0
+            repeat while i < scaleLabels:GetSize()
+                if usingGrouping
+                    currentLabel = scaleLabels:Get(scaleLabels:GetSize() -1 - i) 
+                else
+                    currentLabel = scaleLabels:Get(i) 
+                end
+                
+                Label scaleLabel
+    
+                scaleLabel:SetTextAnchor("end")
+                scaleLabel:SetText(currentLabel:GetText())
+                scaleLabel:SetFontSize(fontSize + "pt")
+                scaleLabel:SetPosition(xCurrentLabel, yCurrentLabel, "%")
+                scaleLabel:SetTabIndex(-1)
+                scaleLabel:SetID(canvas:GetID() + "-" + scaleLabel:GetHashCode())
+
+                yLabels:Add(scaleLabel)
+
+                if HasAccessibility()
+                    if usingGrouping
+                        scaleLabel:SetAriaLabel(chart:GetYLabels():Get(chart:GetYLabels():GetSize() - 1 - i):GetName() + " " + chart:GetYLabels():Get(chart:GetYLabels():GetSize() -1 - i):GetText())
+                    else
+                        scaleLabel:SetAriaLabel(chart:GetYLabels():Get(i):GetName() + " " + chart:GetYLabels():Get(i):GetText())
+                    end
+                end
+
+                canvas:Add(scaleLabel)
+                //if currentLabel:GetX() < labelMinimumX
+                //    labelMinimumX = currentLabel:GetX()
+                //end
+                if PixelToPercentWidth(scaleLabel:GetText():GetSize() * fontSize) > maxYLabelOffset
+                    maxYLabelOffset = PixelToPercentWidth(scaleLabel:GetText():GetSize() * fontSize)
+                end 
+                
+                if usingGrouping
+                    yCurrentLabel = yCurrentLabel - groupOffset
+                    scaleDivWidth = cast(number, groupPanels:Get(groupPanels:GetSize() - 1 - i):GetHeight():Replace("%",""))
+                    groupOffset = scaleDivWidth/2.0
+                    yCurrentLabel = yCurrentLabel - groupOffset
+                else
+                    yCurrentLabel = yCurrentLabel - scaleDivWidth
+                end
+                i = i + 1
+            end
+        end
+
+        //This is the actual rotated label on the Y axis.
+        /*
+        originPointX = cast(integer, verticalContainer:GetWidth())
+        originPointY = 0
+        if verticalContainer:GetTitleLabel() not= undefined
+            ControlLabel axisLabel = verticalContainer:GetTitleLabel()
+            Item2D labelAnchor = axisLabel:GetParent()       
+            axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
+            number axisLabelWidth = axisLabel:GetWidth()
+            number axisLabelHeight = axisLabel:GetHeight()
+            integer axisX = cast(integer, (labelMinimumX + axisLabelHeight) / 2.0)
+            labelAnchor:SetPosition(axisX, (verticalContainer:GetHeight() - axisLabelWidth) / 2.0)
+            labelAnchor:SetRotation(270)
+        end
+        */
+    end
+
+    /*
+        Generates the treeview of treeitems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    private action AddAccessibility(ScalableVectorGraphics canvas, Chart chart)
+        //Navigation Wrapper
+        Division div
+        div:SetIdentifier(canvas:GetID() + "-nav")
+        div:SetClassAttribute("svgNavigation")
+        div:AddAttribute("role","application")
+        
+        UnorderedList tree
+        tree:AddAttribute("role","tree")
+        div:AddNestedTag(tree)
+
+        //Level 1
+        ListItem chartItem
+        chartItem:SetIdentifier(background:GetID() + "-nav")
+        chartItem:AddAttribute("role","treeitem")
+        chartItem:AddAttribute("aria-labelledby",background:GetID())
+        //chartItem:AddAttribute("aria-describedby",background:GetID())
+        chartItem:SetTabIndex("-1")
+        tree:Add(chartItem)
+
+        ListItem yAxisLabelItem
+        yAxisLabelItem:SetIdentifier(yAxisLabel:GetID() + "-nav")
+        yAxisLabelItem:AddAttribute("role","treeitem")
+        yAxisLabelItem:AddAttribute("aria-labelledby",yAxisLabel:GetID())
+        yAxisLabelItem:AddAttribute("aria-expanded","false")
+        //yAxisLabelItem:AddAttribute("aria-describedby",yAxisLabel:GetID())
+        yAxisLabelItem:SetTabIndex("-1")
+        AddYAxisAccessibility(chart, yAxisLabelItem)
+        tree:Add(yAxisLabelItem)
+
+        ListItem chartAreaItem
+        chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
+        chartAreaItem:AddAttribute("role","treeitem")
+        chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
+        chartAreaItem:AddAttribute("aria-expanded","false")
+        //chartAreaItem:AddAttribute("aria-describedby",chartArea:GetID())
+        chartAreaItem:SetTabIndex("-1")
+        AddChartContentAccessibility(canvas, chart, chartAreaItem)
+        tree:Add(chartAreaItem)
+
+        ListItem xAxisLabelItem
+        xAxisLabelItem:SetIdentifier(xAxisLabel:GetID() + "-nav")
+        xAxisLabelItem:AddAttribute("role","none")
+        xAxisLabelItem:AddAttribute("aria-labelledby",xAxisLabel:GetID())
+        xAxisLabelItem:AddAttribute("aria-expanded","false")
+        //xAxisLabelItem:AddAttribute("aria-describedby",xAxisLabel:GetID())
+        xAxisLabelItem:SetTabIndex("-1")
+        AddXAxisAccessibility(xAxisLabelItem)
+        tree:Add(xAxisLabelItem)
+
+        if chart:IsShowingLegend()
+            
+        end
+
+        canvas:Add(div)
+    end
+
+    action AddYAxisAccessibility(Chart chart, ListItem yAxisLabelItem)
+        VerticalAxisPanel verticalContainer
+        verticalContainer = chart:GetVerticalPanel()
+        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
+        UnorderedList yAxisGroup
+        yAxisGroup:AddAttribute("role","group")
+        yAxisLabelItem:AddNestedTag(yAxisGroup)
+
+        i = 0
+        repeat while i < yLabels:GetSize()
+            Label currentLabel
+            if usingGrouping
+                currentLabel = yLabels:Get(yLabels:GetSize() - 1 - i)
+            else
+                currentLabel = yLabels:Get(i)
+            end
+            ListItem labelNav
+            labelNav:SetIdentifier(currentLabel:GetID() + "-nav")
+            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("aria-labelledby",currentLabel:GetID())
+            labelNav:SetTabIndex("-1")
+            yAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem chartAreaItem)
+
+    action AddXAxisAccessibility(ListItem xAxisLabelItem)
+        UnorderedList xAxisGroup
+        xAxisGroup:AddAttribute("role","group")
+        xAxisLabelItem:AddNestedTag(xAxisGroup)
+
+        i = 0
+        repeat while i < xLabels:GetSize()
+            ListItem labelNav 
+            labelNav:SetIdentifier(xLabels:Get(i):GetID() + "-nav")
+            labelNav:AddAttribute("role","none")
+            labelNav:AddAttribute("aria-labelledby",xLabels:Get(i):GetID())
+            labelNav:SetTabIndex("-1")
+            xAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+    action InitWriter(Chart chart)
+        if chart:OrientationChanged()
+            chart:FlipAxisInfo()
+        end
+        chart:GetVerticalPanel():InitLabels(chart)
+        chart:GetHorizontalPanel():InitLabels(chart)
+        chart:Resize()
+    end
+
+    action PixelToPercentWidth(number pixel) returns number
+        return ( pixel / cast(number, svgWidth) ) * 100
+    end
+
+    action PixelToPercentHeight(number pixel) returns number
+        return ( pixel / cast(number, svgHeight) ) * 100
+    end
+
+end
