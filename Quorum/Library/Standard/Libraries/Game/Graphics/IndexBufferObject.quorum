@@ -90,9 +90,9 @@ class IndexBufferObject is IndexData
         graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
         isBound = true
 
-//        if isDirty
+        if isDirty
             BufferChanged()
-//        end
+        end
     end
 
     action Unbind
