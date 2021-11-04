@@ -49,6 +49,7 @@ class SharedBarChartLayout is ChartLayout
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
         boolean stacked = chart:GetStackedFlag()
+        boolean separateByFactor = chart:IsSeparatedByFactor()
 
         if barGroups:GetSize() > 0
             integer numberOfGroups = barGroups:GetSize()
@@ -57,6 +58,11 @@ class SharedBarChartLayout is ChartLayout
             if stacked
                 numberOfBars = numberOfGroups
             end
+            if separateByFactor
+                numberOfBars = numberOfGroups
+                stacked = false
+            end
+
             if horizontal
                 currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
                 width = chartAreaContainer:GetHeight()
@@ -77,7 +83,7 @@ class SharedBarChartLayout is ChartLayout
             // Space on each side of the inner chart (5%)
             outerEdgePadding = cast(integer, ((width * 0.05) / 2))
 
-            if barGroups:GetSize() > 1
+            if numberOfGroups > 1
                 // Space spread evenly between each bar group (20%)
                 betweenGroupPadding = cast(integer, math:Round((width * 0.20) / (numberOfGroups-1),true))
             end
@@ -160,13 +166,16 @@ class SharedBarChartLayout is ChartLayout
                             currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
                             currentBar:SetPosition(currentXPosition, currentYPosition)
                         end
-                        if stacked
-                            currentYPosition = currentYPosition + barHeight
-                        else
-                            currentXPosition = currentXPosition + barWidth + betweenBarPadding
+
+                        if not separateByFactor
+                            if stacked
+                                currentYPosition = currentYPosition + barHeight
+                            else
+                                currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                            end
                         end
                     else
-                        if not stacked
+                        if not stacked and not separateByFactor
                             currentXPosition = currentXPosition + barWidth + betweenBarPadding
                         end
                     end
@@ -176,7 +185,7 @@ class SharedBarChartLayout is ChartLayout
                 // Creating Bar Group Icon
                 Icon newIcon = currentGroup:GetIcon()
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
-                if stacked
+                if stacked or separateByFactor
                     if horizontal 
                         newIcon:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
                         newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))

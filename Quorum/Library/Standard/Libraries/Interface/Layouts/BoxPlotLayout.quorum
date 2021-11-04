@@ -72,6 +72,7 @@ class BoxPlotLayout is ChartLayout
         number xMin = chart:GetXAxisMinimum()
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
+        boolean separateByFactor = chart:IsSeparatedByFactor()
 
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
@@ -102,11 +103,19 @@ class BoxPlotLayout is ChartLayout
                 end
 
                 if group:GetSize() > 0
-                    integer width = cast(integer, panelwidth/group:GetSize())
+                    integer groups = plotGroups:GetSize()
+                    integer plots = group:GetSize()
+
+                    integer plotsPerPanel = plots
+                    if separateByFactor
+                        plotsPerPanel = 1
+                    end 
+
+                    integer width = cast(integer, panelwidth/plotsPerPanel)
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
 
-                    number linePercent = (0.0025)*group:GetSize()*plotGroups:GetSize()
+                    number linePercent = (0.0025)*plotsPerPanel*groups
                     if linePercent > 0.05
                         linePercent = 0.05
                     end
@@ -119,7 +128,7 @@ class BoxPlotLayout is ChartLayout
                     line = halfline*2
 
                     integer k = 0
-                    repeat while k < group:GetSize()
+                    repeat while k < plots
                         Plot plot = group:Get(k)
                         number median = plot:GetInfoAt(0)
                         number lowerQuartile = plot:GetInfoAt(1)
@@ -129,6 +138,9 @@ class BoxPlotLayout is ChartLayout
             
                         //Give each chart an alloted section  
                         integer startw = width*k + startpanelw
+                        if separateByFactor
+                            startw = startpanelw
+                        end
     
                         /* Indices for items of individual box plot
                             0: PLOT AREA (ENTIRE REGION)

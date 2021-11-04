@@ -205,6 +205,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 // If bar is part of a series
                 if(seriesFactor:HasKey(column:GetHeader()))
                     seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                    bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
                 end
                 i = i + 1
             end

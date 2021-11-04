@@ -21,6 +21,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.HorizontalAxisPanel
 use Libraries.Interface.Controls.Charts.VerticalAxisPanel
 use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
 
 
 class ChartLayout is Layout
@@ -65,7 +66,7 @@ class ChartLayout is Layout
                 HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()
                 VerticalAxisPanel verticalContainer = chart:GetVerticalPanel()
                 Legend legendContainer = chart:GetLegend()
-                Control chartAreaContainer = chart:GetChartArea()
+                ChartAreaPanel chartAreaContainer = chart:GetChartArea()
 
                 originPointX = 0
                 originPointY = 0
@@ -110,10 +111,10 @@ class ChartLayout is Layout
                 end
                 
 
-                if chart:GetNumberOfChartAreas() > 1 
+                if chart:IsSeparatedByFactor()
                     integer verticalSections = verticalContainer:GetNumberOfSections()
                     integer horizontalSections = horizontalContainer:GetNumberOfSections()
-                    integer tilePadding = 20
+                    integer tilePadding = 25
                     integer height = cast(integer, (chartAreaContainer:GetHeight()-tilePadding*(verticalSections-1))/verticalSections)
                     integer width = cast(integer, (chartAreaContainer:GetWidth()-tilePadding*(horizontalSections-1))/horizontalSections)
                     integer x = 0
@@ -122,13 +123,14 @@ class ChartLayout is Layout
                     integer j = 0
                     integer k = 0
                     repeat while i < chart:GetSubChartAreas():GetSize()
-                        Control subContainer = chart:GetSubChartAreas():Get(i)
+                        ChartAreaPanel subContainer = chart:GetSubChartAreas():Get(i)
                         if x + width > chartAreaContainer:GetWidth()
                             x = 0
                             y = y + height + tilePadding
                         end
                         subContainer:SetPosition(x, y)
                         subContainer:SetSize(width, height)
+                        subContainer:OutlineChartArea()
                         LayoutChartContent(chart, subContainer)
                         if y = 0 and k < horizontalContainer:GetNumberOfSections()
                             HorizontalAxisPanel subAxis = chart:GetSubHorizontalPanels():Get(k)

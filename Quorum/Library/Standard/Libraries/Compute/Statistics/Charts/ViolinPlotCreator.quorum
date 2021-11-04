@@ -122,6 +122,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 series:SetName(columnFrame:GetHeader())
                 series:AddItem(plot:GetIcon())
                 series:AddItem(plot)
+                plot:SetSeries(series)
                 seriesFactor:Add(columnFrame:GetHeader(), series)
 
                 PlotGroup group
@@ -292,6 +293,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                     if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
                         seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
                         seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
+                        plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
                     end
                     if groupFactor:HasKey(groupKeyArray:Get(i))
                         groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)

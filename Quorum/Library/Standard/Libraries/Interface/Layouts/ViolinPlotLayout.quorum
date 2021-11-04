@@ -43,6 +43,10 @@ class ViolinPlotLayout is ChartLayout
     private Math math
 
     action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is ViolinPlot)
+            return now
+        end
+
         ViolinPlot chart = cast(ViolinPlot, control)
         boolean split = chart:GetSplitFlag()
         Array <PlotGroup> plotGroups = chart:GetPlotGroups()
@@ -59,6 +63,7 @@ class ViolinPlotLayout is ChartLayout
         number xMin = chart:GetXAxisMinimum()
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
+        boolean separateByFactor = chart:IsSeparatedByFactor()
 
         // These calculate the necessary dimensions of the violinplots
         if plotGroups:GetSize() > 0
@@ -93,8 +98,8 @@ class ViolinPlotLayout is ChartLayout
                 if group:GetSize() > 0
                     integer groups = plotGroups:GetSize()
                     integer plots = group:GetSize()
-
-                    if split
+                    
+                    if split and not separateByFactor
                         if plots = 2
                             plots = 1 // changing the width and line percent for this plot to use 1 section instead of two
                         else
@@ -103,11 +108,17 @@ class ViolinPlotLayout is ChartLayout
                         end
                     end
 
-                    integer width = cast(integer, panelwidth/plots)
+                    integer plotsPerPanel = plots
+                    if separateByFactor
+                        plotsPerPanel = 1
+                        split = false
+                    end     
+
+                    integer width = cast(integer, panelwidth/plotsPerPanel)
                     integer center = cast(integer, width/2) 
                     integer centerOffset = center
                     integer size = cast(integer, width/4)
-                    number linePercent = (0.005)*plots*groups
+                    number linePercent = (0.005)*plotsPerPanel*groups
                     if linePercent > 0.05
                         linePercent = 0.05
                     end
@@ -130,10 +141,13 @@ class ViolinPlotLayout is ChartLayout
                         number upperQuartile = plot:GetInfoAt(2)
                         number minimum = plot:GetInfoAt(3)
                         number maximum = plot:GetInfoAt(4)
-            
+                                      
                         //Give each chart an alloted section  
-                        integer startw = (center*2)*k + startpanelw
-    
+                        integer startw = (center*2)*k + startpanelw    
+                        if separateByFactor
+                            startw = startpanelw
+                        end
+
                         /* Indices for items of individual violin plot
                             0: PLOT AREA (ENTIRE REGION)
                             1: MINIMUM LINE

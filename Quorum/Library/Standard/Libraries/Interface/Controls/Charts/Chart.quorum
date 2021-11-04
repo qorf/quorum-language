@@ -70,6 +70,9 @@ class Chart is Control
     text currentOrientation = undefined
     text defaultOrientation = undefined
     boolean orientationFlag = false
+    boolean separateByFactor = false
+    boolean defaultSeparation = false
+    boolean overrideDefaultSeparation = false
 
     // Chart Area Components
     ControlLabel title = undefined
@@ -77,8 +80,8 @@ class Chart is Control
     boolean titleFontSizeOverride = false
     number titleAreaHeightPercent = 0.10
     number titleAreaWidthPercent = 0.75
-    Control chartArea
-    Array <Control> subChartAreas
+    ChartAreaPanel chartArea
+    Array <ChartAreaPanel> subChartAreas
     Drawable backgroundD = undefined
     Array<Icon> groupPanels
     integer paddedChartOffset = 0
@@ -124,22 +127,7 @@ class Chart is Control
     number legendPanelHeightPercent = 0.05
 
     on create
-        ManualLayout manualLayout
-        chartArea:SetLayout(manualLayout)
-
         chartArea:SetName("Chart Area")
-
-        LayoutProperties properties = chartArea:GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:White())
-        properties:SetBorderThickness(4)
-        Font font = GetDefaultFont()
-        properties:SetFont(font)
-        properties:SetFontSize(GetDefaultFontSize())
-
-        chartArea:SetFocusable(true)
-        chartArea:SetAccessibilityCode(parent:Item:CUSTOM)
-
         Add(chartArea)
     end
 
@@ -208,10 +196,20 @@ class Chart is Control
             Add(newLabel)
         end
 
+        if defaultSeparation and not overrideDefaultSeparation
+            SeparateByFactor()
+        end
+
         if numberOfChartAreas > 1
             integer i = 0
             repeat while i < numberOfChartAreas
-                Control subArea
+                ChartAreaPanel subArea
+                integer index = GetSeriesList():GetSize()-(i+1)
+                if separateByFactor and (index >= 0)
+                    subArea:SetSeries(GetSeriesList():Get(index))
+                    subArea:SetIsShowing(true)
+                    chartArea:Add(subArea)
+                end
                 subChartAreas:Add(subArea)
                 if i < verticalPanel:GetNumberOfSections()
                     VerticalAxisPanel subYAxis
@@ -394,7 +392,7 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetChartArea returns Control
+    action GetChartArea returns ChartAreaPanel
         return chartArea
     end
 
@@ -403,7 +401,7 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetSubChartAreas returns Array<Control>
+    action GetSubChartAreas returns Array<ChartAreaPanel>
         return subChartAreas
     end
 
@@ -683,7 +681,28 @@ class Chart is Control
             end
         end
         numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+        if numberOfChartAreas > 1
+            separateByFactor = true
+        end
+        overrideDefaultSeparation = true
     end
+
+    action IsSeparatedByFactor returns boolean
+        return separateByFactor
+    end
+
+    action SeparateByFactor(boolean flag)
+        if flag = true
+            defaultSeparation = true
+        else
+            defaultSeparation = false
+        end
+    end
+
+    private action SetDefaultSeparation(boolean flag)
+        defaultSeparation = true
+    end
+
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -1299,7 +1318,7 @@ class Chart is Control
         if IsShowingLegend()
             legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
             integer minimumSpace = 0
-            integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/3))
+            integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2.5))
 
             if legend:DisplayOnLeft() or legend:DisplayOnRight()
                 number newWidestLabel = 0.0
@@ -1312,9 +1331,9 @@ class Chart is Control
                             fontsize = cast(integer, GetFontSize()*GetYAxisFontSizeOffset())
                         end
                         legend:GetTitleLabel():SetFontSize(fontsize)
-                        if legend:GetTitleLabel():GetWidth() > newWidestLabel
-                            newWidestLabel = legend:GetTitleLabel():GetWidth()
-                        end
+                    end
+                    if legend:GetTitleLabel():GetWidth() > newWidestLabel
+                        newWidestLabel = legend:GetTitleLabel():GetWidth()
                     end
                 end
     
@@ -1374,10 +1393,10 @@ class Chart is Control
                             fontsize = cast(integer, GetFontSize()*GetYAxisFontSizeOffset())
                         end
                         legend:GetTitleLabel():SetFontSize(fontsize)
-                        newWidthSum = newWidthSum + legend:GetTitleLabel():GetWidth()
-
-                        minimumSpace = minimumSpace + cast(integer, legend:GetTitleLabel():GetHeight())
                     end
+                    newWidthSum = newWidthSum + legend:GetTitleLabel():GetWidth()
+
+                    minimumSpace = minimumSpace + cast(integer, legend:GetTitleLabel():GetHeight())
                 end
     
                 number labelHeight = 0.0

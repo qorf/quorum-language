@@ -133,6 +133,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetValue(valueForName)
                 group:AddBar(bar)
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 chart:AddBarGroup(group)
             end
             i = i + 1
@@ -186,6 +187,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 Series series
                 series:SetName(column:GetHeader())
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 seriesFactor:Add(column:GetHeader(), series)
             end
             if not groupFactor:HasKey(column:GetHeader())
@@ -298,6 +300,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         end
                         if(seriesFactor:HasKey(column:GetHeader()))
                             seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                            bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
                         end
                     else
                         valueForName = valueForName + barFactor:GetValue(barKey):GetValue()
@@ -436,6 +439,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 bar:SetValue(value)
                 group:AddBar(bar)
                 series:AddItem(bar:GetIcon())
+                bar:SetSeries(series)
                 chart:AddBarGroup(group)
             end
             i = i + 1
@@ -515,6 +519,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if(seriesFactor:HasKey(uniqueFactor2:GetAsText(j)))
                         seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):SetName(uniqueFactor2:GetAsText(j))
                         seriesFactor:GetValue(uniqueFactor2:GetAsText(j)):AddItem(innerBar:GetIcon())
+                        innerBar:SetSeries(seriesFactor:GetValue(uniqueFactor2:GetAsText(j)))
                     end
                 end
                 j = j + 1

@@ -24,6 +24,7 @@ class ChartLine is Drawable
     ChartPoint lineMin
     ChartPoint lineStart
     ChartPoint lineEnd
+    Series series = undefined
 
     action GetName returns text
         return name
@@ -147,7 +148,7 @@ class ChartLine is Drawable
     
     /*
     Sorts all the chart points within the line by lowest x value first
-    Very basic bubble sort, can be improved. Used in numerical factor line charts
+    This is used in numerical factor line charts
     */
     action SortPoints()
         ChartLinePointComparison comparison
@@ -172,4 +173,13 @@ class ChartLine is Drawable
             i = i + 1
         end
     end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
 end

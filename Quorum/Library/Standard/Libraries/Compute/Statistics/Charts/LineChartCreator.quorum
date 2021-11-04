@@ -156,6 +156,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 Series series
                 series:SetName(column:GetHeader())
                 series:AddItem(newline)
+                newline:SetSeries(series)
                 seriesFactor:Add(column:GetHeader(), series)           
             end
     

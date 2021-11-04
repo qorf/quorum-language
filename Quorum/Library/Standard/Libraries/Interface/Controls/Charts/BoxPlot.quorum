@@ -53,11 +53,10 @@ use Libraries.Interface.Controls.Support.FirstLetterNavigator
     end
 */
 
-class BoxPlot is Chart, FirstLetterNavigator
+class BoxPlot is Chart
     private ChartItem summary // Root of the info tree
 
     Array<PlotGroup> plotGroups
-    Array<ChartItem> chartItems
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -130,7 +129,7 @@ class BoxPlot is Chart, FirstLetterNavigator
     end
 
     action LoadChartAreaItems()
-        Control chartArea = GetChartArea()
+        ChartAreaPanel chartArea
         // Adding drawables for each boxplot to the chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
@@ -195,11 +194,24 @@ class BoxPlot is Chart, FirstLetterNavigator
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
     
+                if IsSeparatedByFactor()
+                    integer j = 0
+                    repeat while j < GetNumberOfChartAreas()
+                        if plot:GetSeries() = GetSubChartAreas():Get(j):GetSeries()
+                            chartArea = GetSubChartAreas():Get(j)
+                            chartArea:AddChartAreaItem(plot)
+                        end
+                        j = j + 1
+                    end
+                else
+                    chartArea = GetChartArea()
+                end
+
+                // Add to chart
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
                 chartArea:Add(upperWhisker)
-
                 chartArea:Add(minimumLine)
                 chartArea:Add(firstQuartileLine)
                 chartArea:Add(medianLine)
@@ -534,26 +546,31 @@ class BoxPlot is Chart, FirstLetterNavigator
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         
-        if hasGroups
-            //Plot Groups
-            ChartItem firstGroup
-            firstGroup:SetContainer(me)
-            if plotGroups:GetSize() > 0
-                chartArea:SetChild(firstGroup)
-                firstGroup:SetParent(chartArea)
-                firstGroup:SetFocusTarget(plotGroups:Get(0):GetItem())
-                firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
-                chartItems:Add(firstGroup)
-    
-                //Plots within Plot Groups
-                if plotGroups:Get(0):GetSize() > 0 
+        if IsSeparatedByFactor()
+            //Chart Areas
+            ChartItem firstArea
+            firstArea:SetContainer(me)
+            if GetNumberOfChartAreas() > 0
+                chartArea:SetChild(firstArea)
+                firstArea:SetParent(chartArea)
+                firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
+                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
+                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots")
+
+                //Plots within Chart Areas
+                if chartAreaItems:GetSize() > 0 
                     ChartItem prev_target
                     integer k = 0
-                    repeat while k < plotGroups:Get(0):GetSize()
+                    repeat while k < chartAreaItems:GetSize()
                         ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
+                        if not (chartAreaItems:Get(k) is Plot)
+                            return now
+                        end
+                        Plot plot = cast(Plot, chartAreaItems:Get(k))
+                        Array<Drawable> items = plot:GetPlotItems() //First plot
                         if k = 0
-                            firstGroup:SetChild(next_target)
+                            firstArea:SetChild(next_target)
                         else
                             next_target:SetPrevious(prev_target)
                             prev_target:SetNext(next_target)
@@ -562,7 +579,7 @@ class BoxPlot is Chart, FirstLetterNavigator
                         next_target:SetContainer(me)
                         next_target:SetDisplayName(items:Get(0):GetName()) 
                         next_target:SetFocusTarget(items:Get(0))  
-                        next_target:SetParent(firstGroup)
+                        next_target:SetParent(firstArea)
                         prev_target = next_target    
                         ChartItem previous
                         integer target_index = 0
@@ -571,7 +588,7 @@ class BoxPlot is Chart, FirstLetterNavigator
                             Drawable item = items:Get(index)
                             Drawable lastItem = items:Get(items:GetSize() - 1)
                             text Description = item:GetDescription()
-                  
+                    
                             if Description not= ""
             
                                 ChartItem next
@@ -595,117 +612,251 @@ class BoxPlot is Chart, FirstLetterNavigator
                     end
                 end
             end
-    
+
             i = 1
-            ChartItem previousGroup = firstGroup
-            repeat while i < plotGroups:GetSize()
-                ChartItem group
-                group:SetContainer(me)
-                group:SetParent(chartArea)
-                group:SetFocusTarget(plotGroups:Get(i):GetItem())
-                group:SetDisplayName(plotGroups:Get(i):GetName())
-                chartItems:Add(group)
-                previousGroup:SetNext(group)
-                group:SetPrevious(previousGroup)
-                previousGroup = group
+            ChartItem previousArea = firstArea
+            repeat while i < GetNumberOfChartAreas()
+                ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
+                if chartSubArea:GetIsShowing()
+                    ChartItem nextArea
+                    nextArea:SetContainer(me)
+                    nextArea:SetParent(chartArea)
+                    nextArea:SetFocusTarget(chartSubArea)
+                    previousArea:SetNext(nextArea)
+                    nextArea:SetPrevious(previousArea)
+                    previousArea = nextArea
+                    nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                    Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
+                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots")
 
-                //Plots within Plot Groups
-                if plotGroups:Get(i):GetSize() > 0 
-                    ChartItem prev_target
-                    integer k = 0
-                    repeat while k < plotGroups:Get(i):GetSize()
-                        ChartItem next_target
-                        Array<Drawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
-                        if k = 0
-                            group:SetChild(next_target)
-                        else
-                            next_target:SetPrevious(prev_target)
-                            prev_target:SetNext(next_target)
-                        end
-
-                        next_target:SetContainer(me)
-                        next_target:SetDisplayName(items:Get(0):GetName()) 
-                        next_target:SetFocusTarget(items:Get(0))  
-                        next_target:SetParent(group)
-                        prev_target = next_target      
-                        ChartItem previous
-                        integer target_index = 0
-                        integer index = 0
-                        repeat while index < items:GetSize()
-                            Drawable item = items:Get(index)
-                            Drawable lastItem = items:Get(items:GetSize() - 1)
-                            text Description = item:GetDescription()
-                  
-                            if Description not= ""
-            
-                                ChartItem next
-                                if target_index = 0
-                                    next_target:SetChild(next)
-                                else
-                                    next:SetPrevious(previous)
-                                    previous:SetNext(next)
-                                end
-                                next:SetContainer(me)
-                                next:SetDisplayName(item:GetName()) 
-                                next:SetFocusTarget(item)
-                                next:SetParent(next_target)
-                                
-                                previous = next
-                                target_index = target_index+1 
+                    //Plots within Plot Groups
+                    if chartAreaItems:GetSize() > 0 
+                        ChartItem prev_target
+                        integer k = 0
+                        repeat while k < chartAreaItems:GetSize()
+                            ChartItem next_target
+                            if not (chartAreaItems:Get(k) is Plot)
+                                return now
                             end
-                            index = index + 1
+                            Plot plot = cast(Plot, chartAreaItems:Get(k))
+                            Array<Drawable> items = plot:GetPlotItems() //First plot
+                            if k = 0
+                                nextArea:SetChild(next_target)
+                            else
+                                next_target:SetPrevious(prev_target)
+                                prev_target:SetNext(next_target)
+                            end
+    
+                            next_target:SetContainer(me)
+                            next_target:SetDisplayName(items:Get(0):GetName()) 
+                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetParent(nextArea)
+                            prev_target = next_target      
+                            ChartItem previous
+                            integer target_index = 0
+                            integer index = 0
+                            repeat while index < items:GetSize()
+                                Drawable item = items:Get(index)
+                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                text Description = item:GetDescription()
+                        
+                                if Description not= ""
+                
+                                    ChartItem next
+                                    if target_index = 0
+                                        next_target:SetChild(next)
+                                    else
+                                        next:SetPrevious(previous)
+                                        previous:SetNext(next)
+                                    end
+                                    next:SetContainer(me)
+                                    next:SetDisplayName(item:GetName()) 
+                                    next:SetFocusTarget(item)
+                                    next:SetParent(next_target)
+                                    
+                                    previous = next
+                                    target_index = target_index+1 
+                                end
+                                index = index + 1
+                            end
+                            k = k + 1
                         end
-                        k = k + 1
                     end
                 end
                 i = i + 1
             end
         else
-            ChartItem prev_target
-            integer k = 0
-            repeat while k < plotGroups:GetSize()
-                ChartItem next_target
-                Array<Drawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
-                if k = 0
-                    chartArea:SetChild(next_target)
-                else
-                    next_target:SetPrevious(prev_target)
-                    prev_target:SetNext(next_target)
-                end
-
-                next_target:SetContainer(me)
-                next_target:SetDisplayName(items:Get(0):GetName()) 
-                next_target:SetFocusTarget(items:Get(0))  
-                next_target:SetParent(chartArea)
-                prev_target = next_target      
-                ChartItem previous
-                integer target_index = 0
-                integer index = 0
-                repeat while index < items:GetSize()
-                    Drawable item = items:Get(index)
-                    Drawable lastItem = items:Get(items:GetSize() - 1)
-                    text Description = item:GetDescription()
-            
-                    if Description not= ""
-    
-                        ChartItem next
-                        if target_index = 0
-                            next_target:SetChild(next)
-                        else
-                            next:SetPrevious(previous)
-                            previous:SetNext(next)
+            if hasGroups
+                //Plot Groups
+                ChartItem firstGroup
+                firstGroup:SetContainer(me)
+                if plotGroups:GetSize() > 0
+                    chartArea:SetChild(firstGroup)
+                    firstGroup:SetParent(chartArea)
+                    firstGroup:SetFocusTarget(plotGroups:Get(0):GetItem())
+                    firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
+        
+                    //Plots within Plot Groups
+                    if plotGroups:Get(0):GetSize() > 0 
+                        ChartItem prev_target
+                        integer k = 0
+                        repeat while k < plotGroups:Get(0):GetSize()
+                            ChartItem next_target
+                            Array<Drawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
+                            if k = 0
+                                firstGroup:SetChild(next_target)
+                            else
+                                next_target:SetPrevious(prev_target)
+                                prev_target:SetNext(next_target)
+                            end
+                            
+                            next_target:SetContainer(me)
+                            next_target:SetDisplayName(items:Get(0):GetName()) 
+                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetParent(firstGroup)
+                            prev_target = next_target    
+                            ChartItem previous
+                            integer target_index = 0
+                            integer index = 0
+                            repeat while index < items:GetSize()
+                                Drawable item = items:Get(index)
+                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                text Description = item:GetDescription()
+                      
+                                if Description not= ""
+                
+                                    ChartItem next
+                                    if target_index = 0
+                                        next_target:SetChild(next)
+                                    else
+                                        next:SetPrevious(previous)
+                                        previous:SetNext(next)
+                                    end
+                                    next:SetContainer(me)
+                                    next:SetDisplayName(item:GetName()) 
+                                    next:SetFocusTarget(item)
+                                    next:SetParent(next_target)
+                                    
+                                    previous = next
+                                    target_index = target_index+1 
+                                end
+                                index = index + 1
+                            end
+                            k = k + 1
                         end
-                        next:SetContainer(me)
-                        next:SetDisplayName(item:GetName()) 
-                        next:SetFocusTarget(item)
-                        next:SetParent(next_target)
-                        
-                        previous = next
-                        target_index = target_index+1 
                     end
-                    index = index + 1
                 end
-                k = k + 1
+        
+                i = 1
+                ChartItem previousGroup = firstGroup
+                repeat while i < plotGroups:GetSize()
+                    ChartItem group
+                    group:SetContainer(me)
+                    group:SetParent(chartArea)
+                    group:SetFocusTarget(plotGroups:Get(i):GetItem())
+                    group:SetDisplayName(plotGroups:Get(i):GetName())
+                    previousGroup:SetNext(group)
+                    group:SetPrevious(previousGroup)
+                    previousGroup = group
+    
+                    //Plots within Plot Groups
+                    if plotGroups:Get(i):GetSize() > 0 
+                        ChartItem prev_target
+                        integer k = 0
+                        repeat while k < plotGroups:Get(i):GetSize()
+                            ChartItem next_target
+                            Array<Drawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
+                            if k = 0
+                                group:SetChild(next_target)
+                            else
+                                next_target:SetPrevious(prev_target)
+                                prev_target:SetNext(next_target)
+                            end
+    
+                            next_target:SetContainer(me)
+                            next_target:SetDisplayName(items:Get(0):GetName()) 
+                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetParent(group)
+                            prev_target = next_target      
+                            ChartItem previous
+                            integer target_index = 0
+                            integer index = 0
+                            repeat while index < items:GetSize()
+                                Drawable item = items:Get(index)
+                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                text Description = item:GetDescription()
+                      
+                                if Description not= ""
+                
+                                    ChartItem next
+                                    if target_index = 0
+                                        next_target:SetChild(next)
+                                    else
+                                        next:SetPrevious(previous)
+                                        previous:SetNext(next)
+                                    end
+                                    next:SetContainer(me)
+                                    next:SetDisplayName(item:GetName()) 
+                                    next:SetFocusTarget(item)
+                                    next:SetParent(next_target)
+                                    
+                                    previous = next
+                                    target_index = target_index+1 
+                                end
+                                index = index + 1
+                            end
+                            k = k + 1
+                        end
+                    end
+                    i = i + 1
+                end
+            else
+                ChartItem prev_target
+                integer k = 0
+                repeat while k < plotGroups:GetSize()
+                    ChartItem next_target
+                    Array<Drawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
+                    if k = 0
+                        chartArea:SetChild(next_target)
+                    else
+                        next_target:SetPrevious(prev_target)
+                        prev_target:SetNext(next_target)
+                    end
+    
+                    next_target:SetContainer(me)
+                    next_target:SetDisplayName(items:Get(0):GetName()) 
+                    next_target:SetFocusTarget(items:Get(0))  
+                    next_target:SetParent(chartArea)
+                    prev_target = next_target      
+                    ChartItem previous
+                    integer target_index = 0
+                    integer index = 0
+                    repeat while index < items:GetSize()
+                        Drawable item = items:Get(index)
+                        Drawable lastItem = items:Get(items:GetSize() - 1)
+                        text Description = item:GetDescription()
+                
+                        if Description not= ""
+        
+                            ChartItem next
+                            if target_index = 0
+                                next_target:SetChild(next)
+                            else
+                                next:SetPrevious(previous)
+                                previous:SetNext(next)
+                            end
+                            next:SetContainer(me)
+                            next:SetDisplayName(item:GetName()) 
+                            next:SetFocusTarget(item)
+                            next:SetParent(next_target)
+                            
+                            previous = next
+                            target_index = target_index+1 
+                        end
+                        index = index + 1
+                    end
+                    k = k + 1
+                end
             end
         end
         
@@ -725,59 +876,4 @@ class BoxPlot is Chart, FirstLetterNavigator
         BoxPlotWriter writer
         return writer:WriteOutChart(me)
     end
-
-    /*
-    This action selects an item using first letter navigation. The incoming letters
-    should be lower case only.
-    */
-    action SelectByFirstLetters(text firstLetters)
-        /* 
-            We prioritize returning the original selection or the next item
-            after it over items found before the original selection.
-            We use a Boolean object so that we can pass it as a parameter and
-            see if the value has changed via side effects (essentially, it's an
-            extra return value).
-        */
-        boolean foundOriginalSelection = false
-
-        ChartItem firstCandidate = undefined
-
-        ChartSelection selection = GetSelection()
-        ChartItem originalSelection = selection:GetChartItem()
-
-        if originalSelection = undefined
-            // If there's no current selection, we want to return the first result we find that matches.
-            foundOriginalSelection = true
-        end
-
-        integer counter = 0
-        repeat while counter < chartItems:GetSize()
-            ChartItem result = chartItems:Get(counter)
-            if result = originalSelection
-                foundOriginalSelection = true
-            end
-
-            if result:GetDisplayName():ToLowerCase():StartsWith(firstLetters)
-                // If we've found a valid result and we've already found the original selection,
-                // we've found our desired item. Select it and return.
-                if foundOriginalSelection = true
-                    selection:Set(result)
-//                    result:GainedSelection()
-                    return now
-                elseif firstCandidate = undefined
-                    firstCandidate = result
-                end
-            end
-            
-            counter = counter + 1
-        end
-
-        // If we've reached this point, we didn't find a valid candidate without looping around to the beginning.
-        if firstCandidate not= undefined
-            selection:Set(firstCandidate)
-//            firstCandidate:GainedSelection()
-        end
-        SetNeedsUpdate(true)
-    end
-
 end

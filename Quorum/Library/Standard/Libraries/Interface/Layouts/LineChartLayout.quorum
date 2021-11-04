@@ -36,16 +36,22 @@ class LineChartLayout is TwoVariableChartLayout
         number yMin = chart:GetYAxisMinimum()
         number yMax = chart:GetYAxisMaximum()
 
-        // Give 1.5% of chart area space to each point
+        // Set default point density
         integer pointRadius = chart:GetPointDensity()
         if pointRadius <= 0
-            pointRadius = cast(integer, width * 0.015 / 2) 
+            pointRadius = cast(integer, width * 0.010 / 2) 
+            if pointRadius < 4
+                pointRadius = 4
+            end
         end
 
-        // Set default line density to 0.75% of chart area
+        // Set default line density
         integer lineDensity = chart:GetLineDensity()
         if lineDensity <= 0
-            lineDensity = cast(integer, width * 0.0075)
+            lineDensity = cast(integer, width * 0.0025)
+            if lineDensity < 2
+                lineDensity = 2
+            end
         end
 
         integer i = 0

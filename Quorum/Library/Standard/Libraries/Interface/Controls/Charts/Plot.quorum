@@ -132,4 +132,13 @@ class Plot is Drawable
     action GetPlotItems() returns Array<Drawable> 
         return items
     end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
 end

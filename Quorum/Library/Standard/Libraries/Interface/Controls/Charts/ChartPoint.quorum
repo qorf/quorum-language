@@ -9,6 +9,7 @@ class ChartPoint is Drawable
     number valueX = 0
     number valueY = 0
     text name = ""
+    Series series = undefined
     
     Icon parentRegion = undefined
     Icon icon
@@ -68,4 +69,12 @@ class ChartPoint is Drawable
     action GetIcon returns Icon
         return icon
     end
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
 end
