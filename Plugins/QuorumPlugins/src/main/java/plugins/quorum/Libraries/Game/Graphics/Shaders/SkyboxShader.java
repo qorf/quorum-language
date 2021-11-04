@@ -24,8 +24,8 @@ public class SkyboxShader
     public Object me_;
     
     public static final String vertexShader = 
-        "attribute vec3 position;\n" +
-        "varying vec3 textureCoordinates;\n" +
+        "in vec3 position;\n" +
+        "out vec3 textureCoordinates;\n" +
         "\n" +
         "uniform mat4 projection;\n" +
         "uniform mat4 view;\n" +
@@ -42,7 +42,7 @@ public class SkyboxShader
         "#ifdef GL_ES\n" +
         "precision mediump float;\n" +
         "#endif\n" +
-        "varying vec3 textureCoordinates;\n" +
+        "in vec3 textureCoordinates;\n" +
         "uniform samplerCube skybox;\n" +
         "uniform float inverter;\n" +
         "\n" +

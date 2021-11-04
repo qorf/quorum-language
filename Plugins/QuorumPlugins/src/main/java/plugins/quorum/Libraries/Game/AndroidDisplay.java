@@ -18,8 +18,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import plugins.quorum.Libraries.Game.Graphics.Mesh;
-import plugins.quorum.Libraries.Game.Graphics.ShaderProgram;
 import plugins.quorum.Libraries.Game.Graphics.Texture;
 import plugins.quorum.Libraries.Game.libGDX.GdxEglConfigChooser;
 
@@ -262,9 +260,9 @@ public class AndroidDisplay implements Renderer
         //logConfig(config);
         UpdatePPI();
 
-        Mesh.ReloadMeshes();
+        quorum.Libraries.Game.AndroidDisplay quorumDisplay = (quorum.Libraries.Game.AndroidDisplay)me_;
+        quorumDisplay.ReloadResources();
         Texture.ReloadTextures();
-        ShaderProgram.ReloadShaders();
         
         /*
         Mesh.invalidateAllMeshes(app);

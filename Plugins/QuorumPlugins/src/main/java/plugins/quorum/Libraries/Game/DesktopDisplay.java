@@ -21,7 +21,6 @@ import org.lwjgl.glfw.GLFWCharCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.opengl.GLCapabilities;
-import plugins.quorum.Libraries.Game.Graphics.Mesh;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
 import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
