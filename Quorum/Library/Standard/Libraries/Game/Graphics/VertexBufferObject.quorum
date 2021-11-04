@@ -129,10 +129,10 @@ class VertexBufferObject is VertexData
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:BindBuffer(constants:GL_ARRAY_BUFFER, bufferHandle)
         
-//        if isDirty
+        if isDirty
             graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)
             isDirty = false
-//        end
+        end
 
         integer attributeCount = attributes:GetSize()
     
