@@ -52,11 +52,4 @@ class VertexData is Disposable
 
     blueprint action GetBuffer returns Number32BitBuffer
 
-    /*
-    This action is never called or used. It exists only as a hack to force the
-    Quorum plugin system to acknowledge a plugin for this class. This allows for
-    a Java version of this interface to exist under the hood.
-    */
-    private system action ForcePluginCreation
-
 end
