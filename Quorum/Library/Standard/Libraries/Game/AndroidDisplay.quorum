@@ -1,4 +1,5 @@
 package Libraries.Game
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 class AndroidDisplay is GameDisplay
 
@@ -31,6 +32,16 @@ class AndroidDisplay is GameDisplay
     */
     action SetDisplayMode(integer width, integer height, boolean fullscreen) returns boolean
         return false
+    end
+
+    /*
+    This action reloads resources that were lost due to context loss (most commonly due to an app being minimized).
+    This is called automatically by the engine when needed.
+    */
+    action ReloadResources
+        ShaderManager manager
+        manager:ReloadMeshes()
+        manager:ReloadShaders()
     end
 
     /*
