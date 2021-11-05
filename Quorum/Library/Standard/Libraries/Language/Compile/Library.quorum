@@ -459,7 +459,7 @@ class Library is ProcessListener
 
         File gradle
         gradle:SetWorkingDirectory(pluginsFolder:GetAbsolutePath())
-        gradle:SetPath("gradlew")
+        gradle:SetPath(GetGradleName())
         process:SetName(gradle:GetAbsolutePath())
 
         process:SetDirectory(pluginsFolder)
@@ -492,9 +492,9 @@ class Library is ProcessListener
 
         Properties prop
         if prop:IsWindows()
-            return "gradlew"
+            return "gradlew.bat"
         else
-            return "./gradlew"
+            return "gradlew"
         end
         return result
     end
