@@ -33,7 +33,7 @@ class ChartDisplay is Game
     end
 
     action Update(number seconds)
-        if frame >= 1
+        if frame >= 1 and exitOnStart
             Exit()
         end
 
