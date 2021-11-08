@@ -1,13 +1,10 @@
 package plugins.quorum.Libraries.Interface.Vibration;
 
-import org.robovm.apple.foundation.Foundation;
-import org.robovm.apple.foundation.NSString;
 import quorum.Libraries.Interface.Vibration.VibrationArray_;
 
 public class NullVibrationStrategy implements VibrationStrategy {
     @Override
     public void QuickPulse(double seconds) {
-        Foundation.log("%@", new NSString("Quick Pulse (Seconds) called"));
     }
 
     @Override
