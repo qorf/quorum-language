@@ -1719,4 +1719,30 @@ class Chart is Control
         game:SetChart(me)
         game:StartGame()
     end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+    action Display(boolean exit)
+        ChartDisplay game
+        game:SetExitOnStart(exit)
+        game:SetScreenSize(2000,1000) //Default size.
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+    action Display(integer width, integer height, boolean exit)
+        ChartDisplay game
+        game:SetExitOnStart(exit)
+        game:SetScreenSize(width,height)
+        game:SetChart(me)
+        game:StartGame()
+    end
 end
