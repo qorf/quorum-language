@@ -506,15 +506,35 @@ class CodeCompletionHandler
         else  //if it's something else, just parse it
 
             text value = request:left
+            CodeCompletionListener listener
+            listener:SetRequest(request)
+
+            //first check if it is a plain old variable. If it is, get its type and move on. Otherwise, try to parse
+            if request:block not= undefined
+                Variable var = request:block:GetVariable(value)
+                if var not= undefined
+                    Type type = var:GetType()
+                    listener:SetCanCodeComplete(true)
+                    AddFromType(request, result, listener, type)
+                    return now
+                end
+            elseif request:method not= undefined
+                Variable var = request:method:GetParameter(value)
+                if var not= undefined
+                    Type type = var:GetType()
+                    listener:SetCanCodeComplete(true)
+                    AddFromType(request, result, listener, type)
+                    return now
+                end
+            end
+
+            //this wasn't a simple case, so enlist the full parser and see if it can make sense of what the user typed
             QuorumLexer luthor
             luthor:Read(value)
             QuorumParser parser
             parser:SetLexer(luthor)
 
             ParseContext expression = parser:Expression()
-            CodeCompletionListener listener
-            listener:SetRequest(request)
-
             //if we can parse it, do so. If not, we bail with nothing returned
             if expression not= undefined
                 expression:Traverse(listener)
@@ -525,34 +545,42 @@ class CodeCompletionHandler
                 else //otherwise get the type of the top and call it a day
                     QuorumOpcode op = opcodes:Pop() //pop it off
                     Type type = op:GetType()
-                    if type = undefined
-                        return now
-                    end
 
-                    if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
-                        return now
-                    end
-
-                    Class cl = undefined
-                    if type:IsPrimitive()
-                        cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
-                    else
-                        cl = request:table:GetClass(type:GetStaticKey())
-                    end
-
-                    if cl = undefined and request:clazz not= undefined
-                        return now
-                    else
-                        if cl:GetStaticKey() not= request:clazz:GetStaticKey() 
-                            request:variableClass = cl
-                        end
-                        AddClassVariables(request, result)
-                        AddParentVariables(request, result)
-            
-                        AddActions(request, result)
-                    end
+                    AddFromType(request, result, listener, type)
                 end
             end
+        end
+    end
+
+    private action AddFromType(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener, Type type)
+        if type = undefined
+            return now
+        end
+
+        if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
+            return now
+        end
+        if type not= undefined
+            Class cl = undefined
+            if type:IsPrimitive()
+                cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+            else
+                cl = request:table:GetClass(type:GetStaticKey())
+            end
+
+            if cl = undefined and request:clazz not= undefined
+                return now
+            else
+                if cl:GetStaticKey() not= request:clazz:GetStaticKey() 
+                    request:variableClass = cl
+                end
+                AddClassVariables(request, result)
+                AddParentVariables(request, result)
+    
+                AddActions(request, result)
+            end
+            return now
         end
     end
 
@@ -655,7 +683,7 @@ class CodeCompletionHandler
 
     private action AddActions(CodeCompletionRequest request, CodeCompletionResult result)
         Class clazzToProcess = request:clazz
-        if request:variable not= undefined
+        if request:variableClass not= undefined
             clazzToProcess = request:variableClass
             if clazzToProcess not= undefined and request:clazz not= undefined
                and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()

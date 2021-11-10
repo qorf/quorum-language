@@ -63,4 +63,8 @@ class CodeCompletionListener is QuorumSourceListener
     action CanCodeComplete returns boolean
         return canCodeComplete
     end
+
+    action SetCanCodeComplete(boolean canCodeComplete)
+        me:canCodeComplete = canCodeComplete
+    end
 end
