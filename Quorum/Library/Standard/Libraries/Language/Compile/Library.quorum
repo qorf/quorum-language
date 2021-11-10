@@ -54,7 +54,8 @@ class Library is ProcessListener
     HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
     Array<CompilerListener> listeners
-    boolean outputJavaScript = false
+    //This flag says whether or not to output the standard library as JavaScript
+    boolean outputJavaScript = true
     boolean scanningFromPrecompute = false
     text javascriptOutput = ""
     text javascriptPlugins = ""
