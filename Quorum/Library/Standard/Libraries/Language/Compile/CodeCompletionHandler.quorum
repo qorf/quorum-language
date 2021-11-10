@@ -506,6 +506,9 @@ class CodeCompletionHandler
         else  //if it's something else, just parse it
 
             text value = request:left
+            if value = undefined
+                return now
+            end
             CodeCompletionListener listener
             listener:SetRequest(request)
 
@@ -528,26 +531,107 @@ class CodeCompletionHandler
                 end
             end
 
-            //this wasn't a simple case, so enlist the full parser and see if it can make sense of what the user typed
-            QuorumLexer luthor
-            luthor:Read(value)
-            QuorumParser parser
-            parser:SetLexer(luthor)
+            //it's not a simple case. Perhaps it is a colon delimited set of interactions?
+            //for this we need the entire line, not just the previously parsed left value
+            Array<text> values = request:line:Split(":", true)
+            if values = undefined
+                return now
+            end
 
-            ParseContext expression = parser:Expression()
-            //if we can parse it, do so. If not, we bail with nothing returned
-            if expression not= undefined
-                expression:Traverse(listener)
-
-                Stack<QuorumOpcode> opcodes = listener:GetOpcodeStack()
-                if opcodes:IsEmpty()
-                    return now //empty
-                else //otherwise get the type of the top and call it a day
-                    QuorumOpcode op = opcodes:Pop() //pop it off
-                    Type type = op:GetType()
-
-                    AddFromType(request, result, listener, type)
+            
+            if values:GetSize() <= 1 //this just isn't anything valid of which I am aware. We can try the parser, but it is probably a lost cause.
+                ParseExpression(request, result, listener)
+                return now
+            end
+            Type current = undefined
+            Class currentClass = undefined
+            //this wasn't a simple case
+            i = 0
+            repeat while i < values:GetSize()
+                text next = values:Get(i)
+                if next = undefined
+                    return now
                 end
+                
+                if current = undefined
+                    //first check if it's a variable in a block
+                    Variable var = request:block:GetVariable(next)
+                    if var not= undefined
+                        current = var:GetType()
+                    end
+                    //it's not a variable in a block. Is it is an action call?
+
+                    currentClass = GetClassFromType(request, current)
+                    if currentClass = undefined //there's a type, but some kind of mismatch in the type system
+                        return now
+                    end
+
+                else //there's a type in the list, which means we're in the middle of processing
+                    //first check if it's the last one, because then it's a filter
+                    if i = values:GetSize() - 1 //it's the previous type + a filter
+                        result:filter = next
+                        listener:SetCanCodeComplete(true)
+                        AddFromType(request, result, listener, current)
+                        return now
+                    end
+
+                    //this isn't the last one, so try to determine the type from the last type and the value
+
+                    //is it a field in the class?
+                    Variable field = currentClass:GetVariable(next)
+                    if field not= undefined
+                        current = field:GetType()
+                    end
+                    //it's not a variable in a block. Is it is an action call?
+
+                    currentClass = GetClassFromType(request, current)
+                    if currentClass = undefined //there's a type, but some kind of mismatch in the type system
+                        return now
+                    end
+                end
+
+                
+                
+                i = i + 1
+            end
+        end
+    end
+
+    private action GetClassFromType(CodeCompletionRequest request, Type type) returns Class
+        if type = undefined
+            return undefined
+        end
+        Class cl = undefined
+        if type:IsPrimitive()
+            cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+        else
+            cl = request:table:GetClass(type:GetStaticKey())
+        end
+
+        return cl
+    end
+
+    private action ParseExpression(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener)
+        text value = request:left
+        QuorumLexer luthor
+        luthor:Read(value)
+        QuorumParser parser
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+        //if we can parse it, do so. If not, we bail with nothing returned
+        if expression not= undefined
+            expression:Traverse(listener)
+
+            Stack<QuorumOpcode> opcodes = listener:GetOpcodeStack()
+            if opcodes:IsEmpty()
+                return now //empty
+            else //otherwise get the type of the top and call it a day
+                QuorumOpcode op = opcodes:Pop() //pop it off
+                Type type = op:GetType()
+
+                AddFromType(request, result, listener, type)
             end
         end
     end
