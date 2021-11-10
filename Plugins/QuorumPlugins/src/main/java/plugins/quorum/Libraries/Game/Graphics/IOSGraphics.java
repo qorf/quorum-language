@@ -146,20 +146,11 @@ public class IOSGraphics implements GraphicsManager
         return buffer.get(0);
     }
     
-    public int CreateVertexArray()
-    {
-        throw new Error("CreateVertexArray NYI -- Requires a new native function");
-    }
+    public native int CreateVertexArray();
     
-    public void DeleteVertexArray(int vao)
-    {
-        throw new Error("DeleteVertexArray NYI -- Requires a new native function");
-    }
+    public native void DeleteVertexArray(int vao);
     
-    public void BindVertexArray(int array)
-    {
-        throw new Error("BindVertexArray NYI -- Requires a new native function");
-    }
+    public native void BindVertexArray(int array);
     
     public int CreateBuffer()
     {
