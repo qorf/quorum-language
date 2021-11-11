@@ -323,9 +323,9 @@ class Action is Symbol
     private action GetTypeName(Type type) returns text
         text result = ""
         boolean mapped = type:IsMappedToGeneric()
-        if mapped
+        //if mapped
             result = type:GetName()
-        end
+        //end
 
         if type:GetNumberGenerics() > 0
             Iterator<Type> generics = type:GetGenerics()
