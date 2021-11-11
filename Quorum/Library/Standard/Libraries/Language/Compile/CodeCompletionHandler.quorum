@@ -19,6 +19,7 @@ use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.CodeCompletionListener
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
 
 class CodeCompletionHandler 
     constant text USE = "use"
@@ -532,8 +533,8 @@ class CodeCompletionHandler
             end
 
             //it's not a simple case. Perhaps it is a colon delimited set of interactions?
-            //for this we need the entire line, not just the previously parsed left value
-            Array<text> values = request:line:Split(":", true)
+            text newLine = value + ":"
+            Array<text> values = newLine:Split(":", true)
             if values = undefined
                 return now
             end
@@ -558,6 +559,8 @@ class CodeCompletionHandler
                     Variable var = request:block:GetVariable(next)
                     if var not= undefined
                         current = var:GetType()
+                    else 
+                        current = ParseExpressionFromText(request, result, listener, request:clazz, next)
                     end
                     //it's not a variable in a block. Is it is an action call?
 
@@ -576,11 +579,12 @@ class CodeCompletionHandler
                     end
 
                     //this isn't the last one, so try to determine the type from the last type and the value
-
                     //is it a field in the class?
                     Variable field = currentClass:GetVariable(next)
                     if field not= undefined
                         current = field:GetType()
+                    else 
+                        current = ParseExpressionFromText(request, result, listener, currentClass, next)
                     end
                     //it's not a variable in a block. Is it is an action call?
 
@@ -589,12 +593,34 @@ class CodeCompletionHandler
                         return now
                     end
                 end
-
-                
-                
                 i = i + 1
             end
         end
+    end
+
+    private action ParseExpressionFromText(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener, Class from, text value) returns Type
+        CompilerErrorManager manager
+        QuorumLexer luthor
+        luthor:SetCompilerErrorManager(manager)
+        luthor:Read(value)
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(luthor)
+
+        VariableFunctionCallContext expression = parser:VariableSoloActionCall()
+        //if we can parse it, do so. If not, we bail with nothing returned
+        if expression not= undefined
+            listener:SetRequest(request)
+            listener:SetCurrentClass(from)
+            expression:Traverse(listener)
+
+            Type returnType = listener:PeekTypeStack()
+            if returnType not= undefined
+                return returnType
+            end
+        end
+        return undefined
     end
 
     private action GetClassFromType(CodeCompletionRequest request, Type type) returns Class

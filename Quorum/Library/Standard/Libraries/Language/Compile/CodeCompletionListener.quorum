@@ -8,6 +8,7 @@ use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Language.Compile.Symbol.Block
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
 
 /*
     The codeCompletionListener is a QuorumSourceListener designed to read
@@ -20,8 +21,14 @@ use Libraries.Language.Compile.Symbol.Block
 */
 class CodeCompletionListener is QuorumSourceListener
     Stack<QuorumOpcode> opcodeStack
+    Stack<Type> typeStack
     CodeCompletionRequest request = undefined
     boolean canCodeComplete = false
+    Class clazz = undefined
+    Action method = undefined
+    Block block = undefined
+    text currentActionName = ""
+    Class currentClass = undefined
 
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
@@ -30,9 +37,6 @@ class CodeCompletionListener is QuorumSourceListener
 
             //get the name of the variable
             text name = context:name
-            Class clazz = request:clazz
-            Action method = request:method
-            Block block = request:block
 
             if block not= undefined
                 Variable variable = block:GetVariable(name)
@@ -43,6 +47,23 @@ class CodeCompletionListener is QuorumSourceListener
                     actionCall:SetIsActionCall(false)
                     canCodeComplete = true
                     opcodeStack:Push(actionCall)
+                end
+            end
+        else
+            text name = context:name
+            if currentClass not= undefined
+
+                //for now, only do this for items with no parameters. 
+                text key = name
+                if context:expressionList = undefined or context:expressionList:IsEmpty()
+                    //attempt to construct the static key from any parameters
+                    Action act = currentClass:GetAction(name)
+                    if act not= undefined
+                        Type type = act:GetReturnType()
+                        if type not= undefined
+                            typeStack:Push(type)
+                        end
+                    end
                 end
             end
         end
@@ -58,6 +79,9 @@ class CodeCompletionListener is QuorumSourceListener
 
     action SetRequest(CodeCompletionRequest request)
         me:request = request
+        clazz = request:clazz
+        method = request:method
+        block = request:block
     end
 
     action CanCodeComplete returns boolean
@@ -66,5 +90,19 @@ class CodeCompletionListener is QuorumSourceListener
 
     action SetCanCodeComplete(boolean canCodeComplete)
         me:canCodeComplete = canCodeComplete
+    end
+    action GetCurrentClass returns Class
+        return currentClass
+    end
+
+    action SetCurrentClass(Class currentClass)
+        me:currentClass = currentClass
+    end
+
+    action PeekTypeStack returns Type
+        if not typeStack:IsEmpty()
+            return typeStack:Peek()
+        end
+        return undefined
     end
 end
