@@ -20,6 +20,7 @@ use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.CodeCompletionListener
 use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Language.Compile.Context.VariableFunctionCallContext
+use Libraries.Language.Compile.Symbol.TypeChecker
 
 class CodeCompletionHandler 
     constant text USE = "use"
@@ -379,6 +380,18 @@ class CodeCompletionHandler
         return undefined
     end
 
+    private action GetBestChoiceTypeChecker(CompilerResult last, CompilerResult compiled) returns TypeChecker
+        if compiled not= undefined and compiled:typeChecker not= undefined
+            return compiled:typeChecker
+        end
+
+        if last not= undefined and last:typeChecker not= undefined
+            return last:typeChecker
+        end
+
+        return undefined
+    end
+
     /*
         This checks if the request is within bounds and that the class is valid
     */
@@ -611,6 +624,10 @@ class CodeCompletionHandler
         VariableFunctionCallContext expression = parser:VariableSoloActionCall()
         //if we can parse it, do so. If not, we bail with nothing returned
         if expression not= undefined
+            //see if we can get a valid type checker from the system
+            TypeChecker checker = GetBestChoiceTypeChecker(request:result, request:lastCompiledResult)
+            listener:SetTypeChecker(checker)
+
             listener:SetRequest(request)
             listener:SetCurrentClass(from)
             expression:Traverse(listener)
