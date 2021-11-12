@@ -47,6 +47,7 @@ class Library is ProcessListener
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
     constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
+    boolean regeneratePlugins = true
 
     boolean hasScannedStandardLibrary = false
     SymbolTable librarySymbolTable
@@ -443,6 +444,7 @@ class Library is ProcessListener
         to generate all the compilation info and 
     */
     action WriteStandardPlugins
+        if not regeneratePlugins return now end
         Process process
 
         //this needs to be different on mac and windows
@@ -767,6 +769,14 @@ class Library is ProcessListener
 
     action SetScanningFromPrecompute(boolean scanningFromPrecompute)
         me:scanningFromPrecompute = scanningFromPrecompute
+    end
+
+    action GetRegeneratePlugins returns boolean
+        return regeneratePlugins
+    end
+
+    action SetRegeneratePlugins(boolean regeneratePlugins)
+        me:regeneratePlugins = regeneratePlugins
     end
 
 end
