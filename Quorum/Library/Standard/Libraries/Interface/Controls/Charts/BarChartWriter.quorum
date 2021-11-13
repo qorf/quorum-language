@@ -173,10 +173,6 @@ class BarChartWriter is ChartWriter
             if stacked 
                 betweenBarPadding = 0
             end
-            if chart:RemoveGaps() //Histograms do not have gaps in order to portray continuous ranges
-                betweenGroupPadding = 1
-                betweenBarPadding = 0
-            end
 
             // Total white space alloted for inner chart area
             number totalPadding = outerEdgePadding*2 + betweenGroupPadding*(numberOfGroups-1)

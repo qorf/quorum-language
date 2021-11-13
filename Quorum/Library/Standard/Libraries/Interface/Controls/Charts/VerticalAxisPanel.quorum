@@ -857,12 +857,20 @@ class VerticalAxisPanel is Control
         end
     end
 
-    action OverrideDefaultMin()
-        me:overrideDefaultMin = true
+    action OverrideDefaultMin returns boolean
+        return overrideDefaultMin
     end
 
-    action OverrideDefaultMax()
-        me:overrideDefaultMax = true
+    action OverrideDefaultMax returns boolean
+        return overrideDefaultMax
+    end
+
+    action OverrideDefaultMin(boolean flag)
+        me:overrideDefaultMin = flag
+    end
+
+    action OverrideDefaultMax(boolean flag)
+        me:overrideDefaultMax = flag
     end
 
     action GetNumberOfSections returns integer
