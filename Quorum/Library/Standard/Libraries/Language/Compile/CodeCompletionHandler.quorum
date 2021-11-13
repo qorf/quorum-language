@@ -545,8 +545,18 @@ class CodeCompletionHandler
                 end
             end
 
+            boolean emptyFilter = false
             //it's not a simple case. Perhaps it is a colon delimited set of interactions?
-            text newLine = value + ":"
+            //we need to detect the case where there is an empty filter, which is if the line
+            //has a colon at the end
+            if request:line not= undefined and not request:line:IsEmpty()
+                text char = request:line:GetCharacter(request:line:GetSize() - 1)
+                if char = ":"
+                    emptyFilter = true
+                end
+            end
+
+            text newLine = value
             Array<text> values = newLine:Split(":", true)
             if values = undefined
                 return now
@@ -560,8 +570,13 @@ class CodeCompletionHandler
             Type current = undefined
             Class currentClass = undefined
             //this wasn't a simple case
+
+            integer size = values:GetSize() - 1
+            if emptyFilter
+                size = size + 1
+            end
             i = 0
-            repeat while i < values:GetSize()
+            repeat while i < size
                 text next = values:Get(i)
                 if next = undefined
                     return now
@@ -583,13 +598,7 @@ class CodeCompletionHandler
                     end
 
                 else //there's a type in the list, which means we're in the middle of processing
-                    //first check if it's the last one, because then it's a filter
-                    if i = values:GetSize() - 1 //it's the previous type + a filter
-                        result:filter = next
-                        listener:SetCanCodeComplete(true)
-                        AddFromType(request, result, listener, current)
-                        return now
-                    end
+                    
 
                     //this isn't the last one, so try to determine the type from the last type and the value
                     //is it a field in the class?
@@ -607,6 +616,16 @@ class CodeCompletionHandler
                     end
                 end
                 i = i + 1
+            end
+
+            //if it's the last one, this is actually the filter
+            if i = values:GetSize() - 1 and not emptyFilter
+                result:filter = values:Get(i)
+                listener:SetCanCodeComplete(true)
+                AddFromType(request, result, listener, current)
+            else 
+                listener:SetCanCodeComplete(true)
+                AddFromType(request, result, listener, current)
             end
         end
     end
@@ -633,6 +652,7 @@ class CodeCompletionHandler
             expression:Traverse(listener)
 
             Type returnType = listener:PeekTypeStack()
+            listener:Empty()
             if returnType not= undefined
                 return returnType
             end

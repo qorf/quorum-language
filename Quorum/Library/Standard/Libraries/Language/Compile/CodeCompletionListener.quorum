@@ -25,6 +25,11 @@ use Libraries.Containers.Array
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.Symbol.ActionCall
 use Libraries.Language.Compile.Symbol.ActionCallResolution
+use Libraries.Language.Compile.Context.EqualsContext
+use Libraries.Language.Compile.Context.InequalityContext
+use Libraries.Language.Compile.Context.AdditionContext
+use Libraries.Language.Compile.Context.UnaryMinusContext
+use Libraries.Language.Compile.Context.NotContext
 
 /*
     The codeCompletionListener is a QuorumSourceListener designed to read
@@ -46,7 +51,7 @@ class CodeCompletionListener is QuorumSourceListener
     text currentActionName = ""
     Class currentClass = undefined
     boolean hasError = false
-    boolean doTypeChecking = false
+    boolean doTypeChecking = true
 
     action ExitActionCall(ActionCallContext context)
         if not context:isActionCall
@@ -87,6 +92,7 @@ class CodeCompletionListener is QuorumSourceListener
                     Array<ParseContext> contexts = context:expressionList:contexts
                     if contexts = undefined or contexts:IsEmpty() //should not happen because of the above, but maybe there's a crazy case I'm not thinking of
                         typeStack:Empty()
+                        return now
                     end
 
                     //do the types match the expression list? If not, there's a semantic analysis issue at runtime
@@ -94,6 +100,7 @@ class CodeCompletionListener is QuorumSourceListener
                     //it into this implementation (e.g., casting, some operator)
                     if typeStack:GetSize() not=contexts:GetSize() 
                         typeStack:Empty()
+                        return now
                     end
 
                     Array<Type> params
@@ -110,9 +117,23 @@ class CodeCompletionListener is QuorumSourceListener
                     ActionCall call
                     call:name = name
                     call:actualParameters = params
+                    call:checker = GetTypeChecker()
                     
                     ActionCallResolution resolve = currentClass:ResolveAction(call)
 
+                    if resolve not= undefined and resolve:isResolved
+                        Action act = resolve:resolvedAction
+                        if act not= undefined
+                            Type type = act:GetReturnType()
+                            if type not= undefined
+                                typeStack:Push(type)
+                            end
+                        else
+                            typeStack:Empty()
+                        end
+                    else //could not resolve an action
+                        typeStack:Empty()
+                    end
                     integer a = 5
                 else 
                     typeStack:Empty()
@@ -126,7 +147,7 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitNumber(NumberContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
         Type type
         type:SetIsConstant(true)
         type:SetNumberConstant(context:value)
@@ -134,7 +155,7 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitInteger(IntegerContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
         Type type
         type:SetIsConstant(true)
         type:SetIntegerConstant(context:value)
@@ -142,17 +163,17 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitOr(AndOrContext context)
-        if IsChaining() return now end
+        if not IsChaining() return now end
         DoAndOr(context)
     end
 
     action ExitAnd(AndOrContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
         DoAndOr(context)
     end
 
     action DoAndOr(AndOrContext context)
-        if IsChaining() return now end
+        if not IsChaining() return now end
         TypeChecker checker = GetTypeChecker()
         Type right = typeStack:Pop()
         Type left = typeStack:Pop()
@@ -179,7 +200,7 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitMultiplication(MultiplicationContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
         TypeChecker checker = GetTypeChecker()
         Type right = typeStack:Pop()
         Type left = typeStack:Pop()
@@ -207,7 +228,139 @@ class CodeCompletionListener is QuorumSourceListener
         typeStack:Push(type)
     end
 
+    action ExitInequality(InequalityContext context) 
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        Type right = typeStack:Pop()
+        Type left = typeStack:Pop()
+        Operation add
+        if context:isGreater
+            add:SetOperation(add:GREATER)
+        elseif context:isGreaterEquals
+            add:SetOperation(add:GREATER_EQUALS)
+        elseif context:isLess
+            add:SetOperation(add:LESS)
+        elseif context:isLessEquals
+            add:SetOperation(add:LESS_EQUALS)
+        end
+
+        if left = undefined or right = undefined
+            return now
+        end
+        
+        TypeCheckResult result = checker:Check(left, right, add)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
+    end
+
+    action ExitEquals (EqualsContext context)
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        Type right = typeStack:Pop()
+        Type left = typeStack:Pop()
+        Operation add
+        if context:equalsTo
+            add:SetOperation(add:EQUALS)
+        else
+            add:SetOperation(add:NOT_EQUALS)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+        
+        TypeCheckResult result = checker:Check(left, right, add)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
+    end
+
+    action ExitAddition(AdditionContext addition) 
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        Type right = typeStack:Pop()
+        Type left = typeStack:Pop()
+        Operation add
+        if addition:isPlus
+            add:SetOperation(add:PLUS)
+        else
+            add:SetOperation(add:MINUS)
+        end
+
+        if left = undefined or right = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left, right, add)
+        CompilerError error = result:GetCompilerError(addition:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
+    end
+
+    action ExitMinus(UnaryMinusContext context) 
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        Type left = typeStack:Pop()
+
+        Operation notOp
+        notOp:SetOperation(notOp:MINUS)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left, notOp) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
+    end
+
+    action ExitNot(NotContext context) 
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        Type left = typeStack:Pop()
+
+        Operation notOp
+        notOp:SetOperation(notOp:NOT)
+
+        if left = undefined
+            return now //An error has already been issued.
+        end
+
+        TypeCheckResult result = checker:Check(left, notOp) 
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
+    end
+
     action ExitBoolean(BooleanContext context) 
+        if not IsChaining() return now end
         Type type
         type:SetIsConstant(true)
         type:SetBooleanConstant(context:value)
@@ -215,6 +368,7 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitText(TextContext context) 
+        if not IsChaining() return now end
         Type type
         type:SetIsConstant(true)
         type:SetTextConstant(context:value)
@@ -222,15 +376,43 @@ class CodeCompletionListener is QuorumSourceListener
     end
 
     action ExitUndefined(UndefinedContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
     end
 
     action ExitCast(CastContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
+        TypeChecker checker = GetTypeChecker()
+        QuorumOpcode right = opcodeStack:Peek()
+        Operation op
+        op:SetOperation(op:CAST)
+
+        Type left = context:type //this has to be resolved
+        if left = undefined
+            return now //An error has already been issued.
+        end
+        if right = undefined
+            return now
+        end
+
+        TypeCheckResult result = checker:Check(left, right:GetType(), op)
+        CompilerError error = result:GetCompilerError(context:GetLocation())
+        if error not= undefined
+            hasError = true
+            return now
+        end
+
+        Type type = result:result
+        typeStack:Push(type)
     end
 
     action ExitMe(MeContext context) 
-        if IsChaining() return now end
+        if not IsChaining() return now end
+        if currentClass not= undefined
+            text value = currentClass:GetStaticKey()
+            Type type
+            type:SetToObject(currentClass)
+            typeStack:Push(type)
+        end
     end
 
     action GetOpcodeStack returns Stack<QuorumOpcode>
@@ -268,5 +450,9 @@ class CodeCompletionListener is QuorumSourceListener
             return typeStack:Peek()
         end
         return undefined
+    end
+
+    action Empty 
+        typeStack:Empty()
     end
 end
