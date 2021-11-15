@@ -19,6 +19,8 @@ use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.CodeCompletionListener
 use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
+use Libraries.Language.Compile.Symbol.TypeChecker
 
 class CodeCompletionHandler 
     constant text USE = "use"
@@ -378,6 +380,18 @@ class CodeCompletionHandler
         return undefined
     end
 
+    private action GetBestChoiceTypeChecker(CompilerResult last, CompilerResult compiled) returns TypeChecker
+        if compiled not= undefined and compiled:typeChecker not= undefined
+            return compiled:typeChecker
+        end
+
+        if last not= undefined and last:typeChecker not= undefined
+            return last:typeChecker
+        end
+
+        return undefined
+    end
+
     /*
         This checks if the request is within bounds and that the class is valid
     */
@@ -506,53 +520,229 @@ class CodeCompletionHandler
         else  //if it's something else, just parse it
 
             text value = request:left
-            QuorumLexer luthor
-            luthor:Read(value)
-            QuorumParser parser
-            parser:SetLexer(luthor)
-
-            ParseContext expression = parser:Expression()
+            if value = undefined
+                return now
+            end
             CodeCompletionListener listener
             listener:SetRequest(request)
 
-            //if we can parse it, do so. If not, we bail with nothing returned
-            if expression not= undefined
-                expression:Traverse(listener)
-
-                Stack<QuorumOpcode> opcodes = listener:GetOpcodeStack()
-                if opcodes:IsEmpty()
-                    return now //empty
-                else //otherwise get the type of the top and call it a day
-                    QuorumOpcode op = opcodes:Pop() //pop it off
-                    Type type = op:GetType()
-                    if type = undefined
-                        return now
-                    end
-
-                    if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
-                        return now
-                    end
-
-                    Class cl = undefined
-                    if type:IsPrimitive()
-                        cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
-                    else
-                        cl = request:table:GetClass(type:GetStaticKey())
-                    end
-
-                    if cl = undefined and request:clazz not= undefined
-                        return now
-                    else
-                        if cl:GetStaticKey() not= request:clazz:GetStaticKey() 
-                            request:variableClass = cl
-                        end
-                        AddClassVariables(request, result)
-                        AddParentVariables(request, result)
-            
-                        AddActions(request, result)
-                    end
+            //first check if it is a plain old variable. If it is, get its type and move on. Otherwise, try to parse
+            if request:block not= undefined
+                Variable var = request:block:GetVariable(value)
+                if var not= undefined
+                    Type type = var:GetType()
+                    listener:SetCanCodeComplete(true)
+                    AddFromType(request, result, listener, type)
+                    return now
+                end
+            elseif request:method not= undefined
+                Variable var = request:method:GetParameter(value)
+                if var not= undefined
+                    Type type = var:GetType()
+                    listener:SetCanCodeComplete(true)
+                    AddFromType(request, result, listener, type)
+                    return now
                 end
             end
+
+            boolean emptyFilter = false
+            //it's not a simple case. Perhaps it is a colon delimited set of interactions?
+            //we need to detect the case where there is an empty filter, which is if the line
+            //has a colon at the end
+            if request:line not= undefined and not request:line:IsEmpty()
+                text char = request:line:GetCharacter(request:line:GetSize() - 1)
+                if char = ":"
+                    emptyFilter = true
+                end
+            end
+
+            text newLine = value
+            Array<text> values = newLine:Split(":", true)
+            if values = undefined
+                return now
+            end
+
+            
+//            if values:GetSize() <= 1 //this just isn't anything valid of which I am aware. We can try the parser, but it is probably a lost cause.
+//                ParseExpression(request, result, listener)
+//                return now
+//            end
+            Type current = undefined
+            Class currentClass = undefined
+            //this wasn't a simple case
+
+            integer size = values:GetSize() - 1
+            if emptyFilter
+                size = size + 1
+            end
+            i = 0
+            repeat while i < size
+                text next = values:Get(i)
+                if next = undefined
+                    return now
+                end
+                
+                if current = undefined
+                    //first check if it's a variable in a block
+                    Variable var = request:block:GetVariable(next)
+                    if var not= undefined
+                        current = var:GetType()
+                    else 
+                        current = ParseExpressionFromText(request, result, listener, request:clazz, next)
+                    end
+                    //it's not a variable in a block. Is it is an action call?
+
+                    currentClass = GetClassFromType(request, current)
+                    if currentClass = undefined //there's a type, but some kind of mismatch in the type system
+                        return now
+                    end
+
+                else //there's a type in the list, which means we're in the middle of processing
+                    
+
+                    //this isn't the last one, so try to determine the type from the last type and the value
+                    //is it a field in the class?
+                    Variable field = currentClass:GetVariable(next)
+                    if field not= undefined
+                        current = field:GetType()
+                    else 
+                        current = ParseExpressionFromText(request, result, listener, currentClass, next)
+                    end
+                    //it's not a variable in a block. Is it is an action call?
+
+                    currentClass = GetClassFromType(request, current)
+                    if currentClass = undefined //there's a type, but some kind of mismatch in the type system
+                        return now
+                    end
+                end
+                i = i + 1
+            end
+
+            //if it's the last one, this is actually the filter
+            if i = values:GetSize() - 1 and not emptyFilter
+                result:filter = values:Get(i)
+                listener:SetCanCodeComplete(true)
+                if current not= undefined
+                    AddFromType(request, result, listener, current)
+                else 
+                    //this is the case where there is 1 value, it doesn't match a variable, 
+                    //and we cannot find anything by this name, so assume it is a filter
+                    //on top of a blank line
+                    AddClassVariables(request, result)
+                    AddParentVariables(request, result)
+        
+                    AddActions(request, result)
+                    AddBlockVariables(request, result)
+                    AddPrimitives(request, result)
+                    AddControlStructures(request, result)
+                    AddAvailableClasses(request, result)
+                end
+            
+            else 
+                listener:SetCanCodeComplete(true)
+                AddFromType(request, result, listener, current)
+            end
+        end
+    end
+
+    private action ParseExpressionFromText(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener, Class from, text value) returns Type
+        CompilerErrorManager manager
+        QuorumLexer luthor
+        luthor:SetCompilerErrorManager(manager)
+        luthor:Read(value)
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(luthor)
+
+        VariableFunctionCallContext expression = parser:VariableSoloActionCall()
+        //if we can parse it, do so. If not, we bail with nothing returned
+        if expression not= undefined
+            //see if we can get a valid type checker from the system
+            TypeChecker checker = GetBestChoiceTypeChecker(request:result, request:lastCompiledResult)
+            listener:SetTypeChecker(checker)
+
+            listener:SetRequest(request)
+            listener:SetCurrentClass(from)
+            expression:Traverse(listener)
+
+            Type returnType = listener:PeekTypeStack()
+            listener:Empty()
+            if returnType not= undefined
+                return returnType
+            end
+        end
+        return undefined
+    end
+
+    private action GetClassFromType(CodeCompletionRequest request, Type type) returns Class
+        if type = undefined
+            return undefined
+        end
+        Class cl = undefined
+        if type:IsPrimitive()
+            cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+        else
+            cl = request:table:GetClass(type:GetStaticKey())
+        end
+
+        return cl
+    end
+
+    private action ParseExpression(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener)
+        text value = request:left
+        QuorumLexer luthor
+        luthor:Read(value)
+        QuorumParser parser
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+        //if we can parse it, do so. If not, we bail with nothing returned
+        if expression not= undefined
+            expression:Traverse(listener)
+
+            Stack<QuorumOpcode> opcodes = listener:GetOpcodeStack()
+            if opcodes:IsEmpty()
+                return now //empty
+            else //otherwise get the type of the top and call it a day
+                QuorumOpcode op = opcodes:Pop() //pop it off
+                Type type = op:GetType()
+
+                AddFromType(request, result, listener, type)
+            end
+        end
+    end
+
+    private action AddFromType(CodeCompletionRequest request, CodeCompletionResult result, 
+        CodeCompletionListener listener, Type type)
+        if type = undefined
+            return now
+        end
+
+        if not listener:CanCodeComplete() //if it's not a valid code completion, return nothing
+            return now
+        end
+        if type not= undefined
+            Class cl = undefined
+            if type:IsPrimitive()
+                cl = request:table:GetClass(type:ConvertToNonPrimitiveStaticKey())
+            else
+                cl = request:table:GetClass(type:GetStaticKey())
+            end
+
+            if cl = undefined and request:clazz not= undefined
+                return now
+            else
+                if cl:GetStaticKey() not= request:clazz:GetStaticKey() 
+                    request:variableClass = cl
+                end
+                AddClassVariables(request, result)
+                AddParentVariables(request, result)
+    
+                AddActions(request, result)
+            end
+            return now
         end
     end
 
@@ -655,7 +845,7 @@ class CodeCompletionHandler
 
     private action AddActions(CodeCompletionRequest request, CodeCompletionResult result)
         Class clazzToProcess = request:clazz
-        if request:variable not= undefined
+        if request:variableClass not= undefined
             clazzToProcess = request:variableClass
             if clazzToProcess not= undefined and request:clazz not= undefined
                and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()

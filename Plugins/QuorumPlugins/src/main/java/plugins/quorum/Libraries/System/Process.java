@@ -63,9 +63,19 @@ public class Process {
             cancelled = true;
             watch.GetThread().join();
         } catch (IOException ex) {
-            watch.sendExceptionToStandardError(ex);
+            sendExceptionToStandardError(ex);
         } catch (InterruptedException ex) {
-            watch.sendExceptionToStandardError(ex);
+            sendExceptionToStandardError(ex);
+        }
+    }
+
+    public void sendExceptionToStandardError(Exception exception) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        exception.printStackTrace(pw);
+        String line = sw.toString();
+        if(myProcess != null) {
+            myProcess.FireProcessErrorEvent(line);
         }
     }
     
@@ -166,15 +176,7 @@ public class Process {
             }
         }
 
-        public void sendExceptionToStandardError(Exception exception) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            exception.printStackTrace(pw);
-            String line = sw.toString();
-            if(myProcess != null) {
-                myProcess.FireProcessErrorEvent(line);
-            }
-        }
+
         
         @Override
         public void run() {

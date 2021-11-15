@@ -47,6 +47,7 @@ class Library is ProcessListener
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
     constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
+    boolean regeneratePlugins = true
 
     boolean hasScannedStandardLibrary = false
     SymbolTable librarySymbolTable
@@ -54,7 +55,8 @@ class Library is ProcessListener
     HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
     Array<CompilerListener> listeners
-    boolean outputJavaScript = false
+    //This flag says whether or not to output the standard library as JavaScript
+    boolean outputJavaScript = true
     boolean scanningFromPrecompute = false
     text javascriptOutput = ""
     text javascriptPlugins = ""
@@ -442,6 +444,7 @@ class Library is ProcessListener
         to generate all the compilation info and 
     */
     action WriteStandardPlugins
+        if not regeneratePlugins return now end
         Process process
 
         //this needs to be different on mac and windows
@@ -459,7 +462,7 @@ class Library is ProcessListener
 
         File gradle
         gradle:SetWorkingDirectory(pluginsFolder:GetAbsolutePath())
-        gradle:SetPath("gradlew")
+        gradle:SetPath(GetGradleName())
         process:SetName(gradle:GetAbsolutePath())
 
         process:SetDirectory(pluginsFolder)
@@ -492,9 +495,9 @@ class Library is ProcessListener
 
         Properties prop
         if prop:IsWindows()
-            return "gradlew"
+            return "gradlew.bat"
         else
-            return "./gradlew"
+            return "gradlew"
         end
         return result
     end
@@ -766,6 +769,14 @@ class Library is ProcessListener
 
     action SetScanningFromPrecompute(boolean scanningFromPrecompute)
         me:scanningFromPrecompute = scanningFromPrecompute
+    end
+
+    action GetRegeneratePlugins returns boolean
+        return regeneratePlugins
+    end
+
+    action SetRegeneratePlugins(boolean regeneratePlugins)
+        me:regeneratePlugins = regeneratePlugins
     end
 
 end
