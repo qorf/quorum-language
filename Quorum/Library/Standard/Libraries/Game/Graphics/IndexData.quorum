@@ -15,6 +15,11 @@ class IndexData is Disposable
     blueprint action SetIndices(Integer32BitArray indices, integer offset, integer count)
 
     /*
+    This returns a single element from within the VertexData at the given index.
+    */
+    blueprint action Get(integer index) returns integer
+
+    /*
     Sets the beginning (inclusive) and ending (exclusive) indices of this IndexData.
     */
 //    blueprint action SetIndexRange(integer startIndex, integer endIndex)

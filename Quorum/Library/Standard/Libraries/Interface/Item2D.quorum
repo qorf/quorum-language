@@ -36,6 +36,7 @@ use Libraries.Game.FocusManager
 use Libraries.Language.Errors.UndefinedObjectError
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Layer
+use Libraries.Game.Graphics.DrawableShape
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -103,10 +104,8 @@ class Item2D is Item
     */
     Layer2D layer = undefined
 
-    private boolean verticesChanged = true
     private Rectangle bounds
 
-    Number32BitArray vertices
 
     //the shape of that bounds this 2D object
     CollisionShape2D shape = undefined
@@ -218,40 +217,40 @@ class Item2D is Item
     // These constants represent certain aspects of each vertex. For example,
     // X1 and Y2 represent the x value of the first vertex and the y value of
     // the second vertex, respectively.
-    constant integer X1 = 0
-    constant integer Y1 = 1
-    constant integer Z1 = 2
-    constant integer C1 = 3
-    constant integer U1 = 4
-    constant integer V1 = 5
-    constant integer X2 = 6
-    constant integer Y2 = 7
-    constant integer Z2 = 8
-    constant integer C2 = 9
-    constant integer U2 = 10
-    constant integer V2 = 11
-    constant integer X3 = 12
-    constant integer Y3 = 13
-    constant integer Z3 = 14
-    constant integer C3 = 15
-    constant integer U3 = 16
-    constant integer V3 = 17
-    constant integer X4 = 18
-    constant integer Y4 = 19
-    constant integer Z4 = 20
-    constant integer C4 = 21
-    constant integer U4 = 22
-    constant integer V4 = 23
-
-    constant integer VERTEX_SIZE = 6
-    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
+//    constant integer X1 = 0
+//    constant integer Y1 = 1
+//    constant integer Z1 = 2
+//    constant integer C1 = 3
+//    constant integer U1 = 4
+//    constant integer V1 = 5
+//    constant integer X2 = 6
+//    constant integer Y2 = 7
+//    constant integer Z2 = 8
+//    constant integer C2 = 9
+//    constant integer U2 = 10
+//    constant integer V2 = 11
+//    constant integer X3 = 12
+//    constant integer Y3 = 13
+//    constant integer Z3 = 14
+//    constant integer C3 = 15
+//    constant integer U3 = 16
+//    constant integer V3 = 17
+//    constant integer X4 = 18
+//    constant integer Y4 = 19
+//    constant integer Z4 = 20
+//    constant integer C4 = 21
+//    constant integer U4 = 22
+//    constant integer V4 = 23
+//
+//    constant integer VERTEX_SIZE = 6
+//    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
 
     PhysicsPosition2D synchronizeNodesTempPosition = undefined
 
     GameStateManager manager
 
     on create
-        vertices:SetSize(DRAWABLE_SIZE)
+//        vertices:SetSize(DRAWABLE_SIZE)
         scale:Set(1, 1)
     end
 
@@ -265,7 +264,10 @@ class Item2D is Item
         myItem:SetX(35.0)
     */
     action SetX(number setX)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
         hasMoved = true
         position:SetX(setX)
         SetOffsetX(offset:GetX())
@@ -289,7 +291,10 @@ class Item2D is Item
         myItem:SetY(210.0)
     */
     action SetY(number setY)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
         hasMoved = true
         position:SetY(setY)
         SetOffsetY(offset:GetY())
@@ -315,7 +320,10 @@ class Item2D is Item
         myItem:SetZ(3)
     */
     action SetZ(number setZ)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
         z = setZ
         SetOffsetZ(offset:GetZ())
 
@@ -374,9 +382,11 @@ class Item2D is Item
         myItem:SetPosition(30, 70)
     */
     action SetPosition(number setX, number setY)
-//        Move(setX - GetX(), setY - GetY())
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
 
-        verticesChanged = true
         hasMoved = true
         position:SetX(setX)
         position:SetY(setY)
@@ -438,18 +448,9 @@ class Item2D is Item
 
         SetOriginCenter()
 
-        if verticesChanged = false
-            if rotation not= 0 or scale:GetX() not= 1
-                verticesChanged = true
-            else
-                number parentX = GetGlobalX()
-                number x2 = parentX + dimensions:GetX()
-
-                vertices:Set(X1, cast(integer, parentX))
-                vertices:Set(X2, cast(integer, parentX))
-                vertices:Set(X3, cast(integer, x2))
-                vertices:Set(X4, cast(integer, x2))
-            end
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:SetWidth(newWidth)
         end
 
         Resize()
@@ -482,18 +483,9 @@ class Item2D is Item
 
         SetOriginCenter()
 
-        if verticesChanged = false
-            if rotation not= 0 or scale:GetY() not= 1
-                verticesChanged = true
-            else
-                number parentY = GetGlobalY()
-                number y2 = parentY + dimensions:GetY()
-
-                vertices:Set(Y1, cast(integer, parentY))
-                vertices:Set(Y2, cast(integer, y2))
-                vertices:Set(Y3, cast(integer, y2))
-                vertices:Set(Y4, cast(integer, parentY))
-            end
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:SetHeight(newHeight)
         end
         
         Resize()
@@ -625,7 +617,10 @@ class Item2D is Item
     */
     action SetOffsetX(number xAmount)
         if xAmount not= offset:GetX()
-            verticesChanged = true
+            DrawableShape drawShape = GetDrawableShape()
+            if drawShape not= undefined
+                drawShape:RequestUpdate()
+            end
         end
 
         offset:SetX(xAmount)
@@ -659,7 +654,10 @@ class Item2D is Item
     */
     action SetOffsetY(number yAmount)
         if yAmount not= offset:GetY()
-            verticesChanged = true
+            DrawableShape shape = GetDrawableShape()
+            if shape not= undefined
+                shape:RequestUpdate()
+            end
         end
 
         offset:SetY(yAmount)
@@ -692,13 +690,11 @@ class Item2D is Item
         myItem:SetOffsetZ(75)
     */
     action SetOffsetZ(number zAmount)
-        if zAmount not= offset:GetZ() and verticesChanged = false
-            number adjust = zAmount - offset:GetZ()
-        
-            vertices:Set(Z1, -(vertices:Get(Z1) + adjust))
-            vertices:Set(Z2, -(vertices:Get(Z2) + adjust))
-            vertices:Set(Z3, -(vertices:Get(Z3) + adjust))
-            vertices:Set(Z4, -(vertices:Get(Z4) + adjust))
+        if zAmount not= offset:GetZ()
+            DrawableShape drawShape = GetDrawableShape()
+            if drawShape not= undefined
+                drawShape:RequestUpdate()
+            end
         end
 
         offset:SetZ(zAmount)
@@ -775,8 +771,11 @@ class Item2D is Item
         myItem:SetOffset(100, 75)
     */
     action SetOffset(number xAmount, number yAmount)
-        if (xAmount not= offset:GetX() or yAmount not= offset:GetY())
-            verticesChanged = true
+        if xAmount not= offset:GetX() or yAmount not= offset:GetY()
+            DrawableShape drawShape = GetDrawableShape()
+            if drawShape not= undefined
+                drawShape:RequestUpdate()
+            end
         end
 
         offset:SetX(xAmount)
@@ -808,18 +807,10 @@ class Item2D is Item
         myItem:SetOffset(100, 75, 2)
     */
     action SetOffset(number xAmount, number yAmount, number zAmount)
-        if verticesChanged = false
-            if xAmount not= offset:GetX() or yAmount not= offset:GetY()
-                verticesChanged = true
-            end
-
-            if zAmount not= offset:GetZ()
-                number adjustZ = zAmount - GetOffsetZ()
-
-                vertices:Set(Z1, -(vertices:Get(Z1) + adjustZ))
-                vertices:Set(Z2, -(vertices:Get(Z2) + adjustZ))
-                vertices:Set(Z3, -(vertices:Get(Z3) + adjustZ))
-                vertices:Set(Z4, -(vertices:Get(Z4) + adjustZ))
+        if xAmount not= offset:GetX() or yAmount not= offset:GetY() or zAmount not= offset:GetZ()
+            DrawableShape drawShape = GetDrawableShape()
+            if drawShape not= undefined
+                drawShape:RequestUpdate()
             end
         end
 
@@ -911,27 +902,9 @@ class Item2D is Item
 
         SetOriginCenter()
 
-        if verticesChanged = false
-            if rotation not= 0 or scale:GetX() not= 1 or scale:GetY() not= 1
-                verticesChanged = true
-            else
-                number parentX = GetGlobalX()
-                number parentY = GetGlobalY()
-                number x2 = parentX + dimensions:GetX()
-                number y2 = parentY + dimensions:GetY()
-
-                vertices:Set(X1, cast(integer, parentX))
-                vertices:Set(Y1, cast(integer, parentY))
-
-                vertices:Set(X2, cast(integer, parentX))
-                vertices:Set(Y2, cast(integer, y2))
-
-                vertices:Set(X3, cast(integer, x2))
-                vertices:Set(Y3, cast(integer, y2))
-
-                vertices:Set(X4, cast(integer, x2))
-                vertices:Set(Y4, cast(integer, parentY))
-            end
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:SetSize(newWidth, newHeight)
         end
 
         Resize()
@@ -949,7 +922,11 @@ class Item2D is Item
         myItem:MoveX(25)
     */
     action MoveX(number xAmount)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
+
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         SetOffsetX(offset:GetX())
@@ -975,7 +952,11 @@ class Item2D is Item
         myItem:MoveY(25)
     */
     action MoveY(number yAmount)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
+
         hasMoved = true
         position:SetY(position:GetY() + yAmount)
         SetOffsetY(offset:GetY())
@@ -1001,11 +982,9 @@ class Item2D is Item
         myItem:MoveZ(2)
     */
     action MoveZ(number zAmount)
-        if verticesChanged = false
-            vertices:Set(Z1, vertices:Get(Z1) + zAmount)
-            vertices:Set(Z2, vertices:Get(Z2) + zAmount)
-            vertices:Set(Z3, vertices:Get(Z3) + zAmount)
-            vertices:Set(Z4, vertices:Get(Z4) + zAmount)
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
         end
 
         z = z + zAmount
@@ -1050,7 +1029,10 @@ class Item2D is Item
         myItem:Move(25, -20)
     */
     action Move(number xAmount, number yAmount)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
         hasMoved = true
         position:SetX(position:GetX() + xAmount)
         position:SetY(position:GetY() + yAmount)
@@ -1484,87 +1466,9 @@ class Item2D is Item
     use this action directly.
     */
     action PrepareVertices
-        Math math
-        if verticesChanged
-            verticesChanged = false
-
-            number localX = 0 - origin:GetX()
-            number localY = 0 - origin:GetY()
-            number localX2 = localX + GetWidth()
-            number localY2 = localY + GetHeight()
-            number worldOriginX = GetX() - localX + GetOffsetX() + scaleOffset:GetX()
-            number worldOriginY = GetY() - localY + GetOffsetY() + scaleOffset:GetY()
-
-            if (scale:GetX() not= 1 or scale:GetY() not= 1)
-                // Code used to scale about the center.
-                localX = localX * scale:GetX()
-                localY = localY * scale:GetY()
-                localX2 = localX2 * scale:GetX()
-                localY2 = localY2 * scale:GetY()
-
-                // Code used to scale to the bottom-left corner.
-                //localX2 = localX2 * (2 * (scaleX - 1) + 1)
-                //localY2 = localY2 * (2 * (scaleY - 1) + 1)
-            end
-
-            if rotation not= 0
-                number radians = math:DegreesToRadians(-1 * rotation)
-                number cos = math:Cosine(radians)
-                number sin = math:Sine(radians)
-                number localXCos = localX * cos
-                number localXSin = localX * sin
-                number localYCos = localY * cos
-                number localYSin = localY * sin
-                number localX2Cos = localX2 * cos
-                number localX2Sin = localX2 * sin
-                number localY2Cos = localY2 * cos
-                number localY2Sin = localY2 * sin
-                
-                number x1 = localXCos - localYSin + worldOriginX
-                number y1 = localYCos + localXSin + worldOriginY
-                
-                vertices:Set(X1, x1)
-                vertices:Set(Y1, y1)
-
-                number x2 = localXCos - localY2Sin + worldOriginX
-                number y2 = localY2Cos + localXSin + worldOriginY
-
-                vertices:Set(X2, x2)
-                vertices:Set(Y2, y2)
-
-                number x3 = localX2Cos - localY2Sin + worldOriginX
-                number y3 = localY2Cos + localX2Sin + worldOriginY
-
-                vertices:Set(X3, x3)
-                vertices:Set(Y3, y3)
-
-                vertices:Set(X4, x1 + x3 - x2)
-                vertices:Set(Y4, y3 - (y2 - y1))
-            else
-                number x1 = cast(integer, localX + worldOriginX)
-                number y1 = cast(integer, localY + worldOriginY)
-                number x2 = cast(integer, localX2 + worldOriginX)
-                number y2 = cast(integer, localY2 + worldOriginY)
-
-                vertices:Set(X1, x1)
-                vertices:Set(Y1, y1)
-
-                vertices:Set(X2, x1)
-                vertices:Set(Y2, y2)
-
-                vertices:Set(X3, x2)
-                vertices:Set(Y3, y2)
-
-                vertices:Set(X4, x2)
-                vertices:Set(Y4, y1)
-            end
-
-            // Vertices are set to negative Z to reverse draw order.
-            number negatedZ = -GetGlobalZ()
-            vertices:Set(Z1, negatedZ)
-            vertices:Set(Z2, negatedZ)
-            vertices:Set(Z3, negatedZ)
-            vertices:Set(Z4, negatedZ)
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:UpdateVertices()
         end
     end
 
@@ -1573,27 +1477,29 @@ class Item2D is Item
     This action is primarily for internal use, and most users will never need to
     use this action directly.
     */
-    action GetVertex(integer index) returns number
-        return vertices:Get(index)
-    end
-
-    /*
-    This action sets a value of one of the internal vertices of this Item2D.
-    This action is primarily for internal use, and most users will never need to
-    use this action directly.
-    */
-    action SetVertex(integer index, number value)
-        vertices:Set(index, value)
-    end
-
-    /*
-    This action returns the internal vertices array of this Item2D.
-    This action is primarily for internal use, and most users will never need to
-    use this action directly.
-    */
-    action GetVertices returns Number32BitArray
-        return vertices
-    end
+//    action GetVertex(integer index) returns number
+//        return vertices:Get(index)
+//    end
+//
+// TO-DO: Remove these if they aren't needed
+//
+//    /*
+//    This action sets a value of one of the internal vertices of this Item2D.
+//    This action is primarily for internal use, and most users will never need to
+//    use this action directly.
+//    */
+//    action SetVertex(integer index, number value)
+//        vertices:Set(index, value)
+//    end
+//
+//    /*
+//    This action returns the internal vertices array of this Item2D.
+//    This action is primarily for internal use, and most users will never need to
+//    use this action directly.
+//    */
+//    action GetVertices returns Number32BitArray
+//        return vertices
+//    end
 
     /*  
     This action tests if a point in global x,y coordinates is contained
@@ -1912,7 +1818,11 @@ class Item2D is Item
     action SetOrigin(number setX, number setY)
         origin:SetX(setX)
         origin:SetY(setY)
-        verticesChanged = true
+        
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
     end
 
     /*
@@ -1930,7 +1840,11 @@ class Item2D is Item
     action SetOriginCenter
         origin:SetX(GetWidth() / 2.0)
         origin:SetY(GetHeight() / 2.0)
-        verticesChanged = true
+        
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
     end
 
     /*
@@ -1947,7 +1861,12 @@ class Item2D is Item
     action SetRotation(number degrees)
         Math math
         rotation = degrees
-        verticesChanged = true
+
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
+
         if updateTransform
             UpdateTransformAngle()
             UpdateTransformX()
@@ -2039,7 +1958,10 @@ class Item2D is Item
         Math math
         rotation = rotation + degrees
         if degrees not= 0
-            verticesChanged = true
+            DrawableShape drawShape = GetDrawableShape()
+            if drawShape not= undefined
+                drawShape:RequestUpdate()
+            end
         end
 
         if updateTransform
@@ -2103,7 +2025,10 @@ class Item2D is Item
     action SetScale(number scale)
         me:scale:SetX(scale)
         me:scale:SetY(scale)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
 
         scaleOffset:SetX((me:scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((me:scale:GetY() * GetHeight() - GetHeight())/2)
@@ -2165,7 +2090,10 @@ class Item2D is Item
     action SetScale(number newX, number newY)
         scale:SetX(newX)
         scale:SetY(newY)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
@@ -2265,7 +2193,11 @@ class Item2D is Item
 
         scale:SetX(scale:GetX() * amount)
         scale:SetY(scale:GetY() * amount)
-        verticesChanged = true
+        
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
@@ -2348,7 +2280,10 @@ class Item2D is Item
 
         scale:SetX(scale:GetX() * xAmount)
         scale:SetY(scale:GetY() * yAmount)
-        verticesChanged = true
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            drawShape:RequestUpdate()
+        end
 
         scaleOffset:SetX((scale:GetX() * GetWidth() - GetWidth())/2)
         scaleOffset:SetY((scale:GetY() * GetHeight() - GetHeight())/2)
@@ -2586,50 +2521,10 @@ class Item2D is Item
         Rectangle box = myItem:GetBoundingRectangle()
     */
     action GetBoundingRectangle returns Rectangle
-        
-        number minX = vertices:Get(X1)
-        number minY = vertices:Get(Y1)
-        number maxX = vertices:Get(X1)
-        number maxY = vertices:Get(Y1)
 
-        if minX > vertices:Get(X2)
-            minX  = vertices:Get(X2)
-        end
-        if minX > vertices:Get(X3)
-            minX  = vertices:Get(X3)
-        end
-        if minX > vertices:Get(X4)
-            minX  = vertices:Get(X4)
-        end
-
-        if maxX < vertices:Get(X2)
-            maxX  = vertices:Get(X2)
-        end
-        if maxX < vertices:Get(X3)
-            maxX  = vertices:Get(X3)
-        end
-        if maxX < vertices:Get(X4)
-            maxX  = vertices:Get(X4)
-        end
-
-        if minY > vertices:Get(Y2)
-            minY  = vertices:Get(Y2)
-        end
-        if minY > vertices:Get(Y3)
-            minY  = vertices:Get(Y3)
-        end
-        if minY > vertices:Get(Y4)
-            minY  = vertices:Get(Y4)
-        end
-
-        if maxY < vertices:Get(Y2)
-            maxY  = vertices:Get(Y2)
-        end
-        if maxY < vertices:Get(Y3)
-            maxY  = vertices:Get(Y3)
-        end
-        if maxY < vertices:Get(Y4)
-            maxY  = vertices:Get(Y4)
+        DrawableShape drawShape = GetDrawableShape()
+        if drawShape not= undefined
+            return drawShape:GetBoundingRectangle()
         end
 
         if bounds = undefined
@@ -2637,10 +2532,10 @@ class Item2D is Item
             bounds = newRectangle
         end
         
-        bounds:SetX(minX)
-        bounds:SetY(minY)
-        bounds:SetWidth(maxX - minX)
-        bounds:SetHeight(maxY - minY)
+        bounds:SetX(GetGlobalX())
+        bounds:SetY(GetGlobalY())
+        bounds:SetWidth(GetWidth())
+        bounds:SetHeight(GetHeight())
         return bounds
     end
 
@@ -4834,5 +4729,15 @@ class Item2D is Item
     */
     action IsOnLayer returns boolean
         return layer not= undefined
+    end
+
+    /*
+
+    */
+    action GetDrawableShape returns DrawableShape
+        // TO-DO: Add comment for this action.
+        // The base Item2D can never have a DrawableShape,
+        // but classes that inherit from it (especially Drawable) can.
+        return undefined
     end
 end

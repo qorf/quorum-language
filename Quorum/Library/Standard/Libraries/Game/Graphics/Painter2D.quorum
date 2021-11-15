@@ -391,10 +391,6 @@ class Painter2D
         projectionMatrix:SetToOrthographic2D(0, 0, display:GetWidth(), display:GetHeight())
 
         defaultProgram = GetDefaultShaders()
-        /*
-        fontShader = CreateFontShader();
-        ownsShader = true;
-        */
     end
 
     private action GetDefaultShaders returns ShaderProgram
@@ -491,9 +487,7 @@ class Painter2D
             counter = counter + 1
         end
 
-        if drawIndex > 0
-            Flush()
-        end
+        Flush()
 
         lastTexture = undefined
         drawing = false
@@ -601,19 +595,21 @@ class Painter2D
         // occurs).
         drawable:PrepareVertices()
 
+        DrawableShape shape = drawable:GetDrawableShape()
+
         if drawable:UsingCustomTint() = false
-            integer i = drawable:C1
-            repeat while i < drawable:DRAWABLE_SIZE
-                drawable:SetVertex(i, colorValue)
-                i = i + drawable:VERTEX_SIZE
-            end
+            shape:SetColor(colorValue)
         end
 
-        integer counter = 0
-        repeat while counter < drawable:DRAWABLE_SIZE
-            SetVertex(drawIndex, drawable:GetVertex(counter))
-            drawIndex = drawIndex + 1
-            counter = counter + 1
+        if shape:GetMesh() = undefined
+            integer counter = 0
+            repeat while counter < shape:GetDataCount()
+                SetVertex(drawIndex, shape:GetVertexData(counter))
+                drawIndex = drawIndex + 1
+                counter = counter + 1
+            end
+        else
+            batchDrawables = false
         end
 
         if batchDrawables = false
@@ -672,7 +668,7 @@ class Painter2D
     inside of it that are awaiting processing.
     */
     action Flush
-        if drawIndex = 0
+        if drawIndex = 0 and queuedDrawables:IsEmpty()
             return now
         end
 
@@ -698,10 +694,19 @@ class Painter2D
             currentProgram:Draw(mesh, camera, 0, count)
         else
             integer i = 0
+            integer currentIndex = 0
             repeat until queuedDrawables:IsEmpty()
                 Drawable current = queuedDrawables:RemoveFromFront()
-                current:SetMesh(mesh)
-                currentProgram:Draw(current, i * 6, (i + 1) * 6)
+                DrawableShape shape = current:GetDrawableShape()
+                if shape:GetMesh() not= undefined
+                    current:SetMesh(shape:GetMesh())
+                    currentProgram:Draw(current)
+                else
+                    current:SetMesh(mesh)
+                    currentProgram:Draw(current, currentIndex, currentIndex + 6)
+                    currentIndex = currentIndex + 6
+                end
+
                 i = i + 1
             end
         end

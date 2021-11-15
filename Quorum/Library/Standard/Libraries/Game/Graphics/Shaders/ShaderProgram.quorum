@@ -17,6 +17,9 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.VertexData
+use Libraries.Game.Graphics.IndexData
 
 class ShaderProgram
 
@@ -683,9 +686,13 @@ class ShaderProgram
     end
 
     action Draw(Drawable drawable)
-        // TO-DO: Modify this to draw a correct value for totalIndices from the Drawable itself.
-        // 6 works for the default (2 triangles of 3 indices each for the default quad) but will be wrong for arbitrary polygons.
-        Draw(drawable, 0, 6)
+        // If the Drawable doesn't have an associated shape, it's assumed that it's a default quad (i.e. two triangles, so 6 indices)
+        if drawable:GetDrawableShape() = undefined
+            Draw(drawable, 0, 6)
+        else
+            DrawableShape shape = drawable:GetDrawableShape()
+            Draw(drawable, 0, shape:GetIndexCount())
+        end
     end
 
     action Draw(Drawable drawable, integer startIndex, integer totalIndices)

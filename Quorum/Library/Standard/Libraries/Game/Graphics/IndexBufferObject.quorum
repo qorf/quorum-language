@@ -38,6 +38,10 @@ class IndexBufferObject is IndexData
         end
     end
 
+    action Get(integer index) returns integer
+        return buffer:Get(index)
+    end
+
     action GetSize returns integer
         if empty
             return 0
