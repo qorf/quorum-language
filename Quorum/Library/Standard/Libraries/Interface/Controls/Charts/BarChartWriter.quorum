@@ -95,248 +95,55 @@ class BarChartWriter is ChartWriter
     */
 
     private action AddBars(ScalableVectorGraphics canvas, BarChart chart)
-        integer i = 0
-        repeat while i < GetGroupPanels():GetSize()
-            canvas:Add(GetGroupPanels():Get(i))
-            i = i + 1
-        end
-        
-        i = 0
-        repeat while i < bars:GetSize()
-            canvas:Add(bars:Get(i))
-            i = i + 1
-        end
-    end
-
-    /*
-        This action adds the content of the BarChart
-    */
-    private action LayoutChartContent(ScalableVectorGraphics canvas, Chart chart)
-        BarChart barChart
-        barChart = cast(BarChart, chart)
-        LayoutBars(canvas, barChart)
-    end
-
-    /*
-        This action creates the Rectangles and sizes them for the content of the BarChart
-    */
-    private action LayoutBars(ScalableVectorGraphics canvas, BarChart chart)
-        
-        number axisLengthX = GetChartAreaWidth()
-        number axisPointX = GetChartAreaPositionX()
-        number axisLengthY = GetChartAreaHeight()
-        number axisPointY = GetChartAreaPositionY()
-
-        Array<BarGroup> chartBarGroups = chart:GetBarGroups()
-
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
-        if chartBarGroups:GetSize() > 0
-            number numberOfGroups = chartBarGroups:GetSize()
-            number numberOfBars = chart:GetNumberOfBars()
+        integer i = 0
+        integer j = 0
+        repeat while i < chart:GetBarGroups():GetSize()
+            BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
+            number width = currentBarGroup:GetIcon():GetWidth()
+            number height = currentBarGroup:GetIcon():GetHeight()
+            number x = currentBarGroup:GetIcon():GetGlobalX()
+            number y = currentBarGroup:GetIcon():GetGlobalY()
 
-            number height = GetChartAreaHeight()
-            number width = GetChartAreaWidth()
-            number yMax = chart:GetYAxisMaximum()
-            number yMin = chart:GetYAxisMinimum()
-            number xMax = chart:GetXAxisMaximum()
-            number xMin = chart:GetXAxisMinimum()
-            number rangeMax = yMax
-            number rangeMin = yMin
-    
-            boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
-            boolean stacked = chart:GetStackedFlag()
-
-            if stacked
-                numberOfBars = numberOfGroups
-            end
-            if horizontal
-                width = GetChartAreaHeight()
-                height = GetChartAreaWidth()
-                rangeMax = xMax
-                rangeMin = xMin
-            end
-
-            // Space on each side of the inner chart (5%)
-            outerEdgePadding = (width * 0.05) / 2
-
-            if chartBarGroups:GetSize() > 1
-                // Space spread evenly between each bar group (10%)
-                betweenGroupPadding = ((width * 0.1) / (numberOfGroups-1))
-            end
-
-            SetPaddedChartOffset(outerEdgePadding - betweenGroupPadding/2)
-
-            // Space spread evenly between each bar with the bar groups (5%)
-            betweenBarPadding = ((width * 0.05) / (numberOfBars - numberOfGroups+1))
-            if stacked 
-                betweenBarPadding = 0
-            end
-            if chart:RemoveGaps() //Histograms do not have gaps in order to portray continuous ranges
-                betweenGroupPadding = 1
-                betweenBarPadding = 0
-            end
-
-            // Total white space alloted for inner chart area
-            number totalPadding = outerEdgePadding*2 + betweenGroupPadding*(numberOfGroups-1)
-            totalPadding = totalPadding + betweenBarPadding*(numberOfBars - numberOfGroups)
-            
-            // Remaining non-white space to be evenly divided amongst all bars (80%)
-            remainingArea = width - totalPadding
-            barWidthPercent = remainingArea / numberOfBars
-        
-            number currentXPosition = axisPointX + outerEdgePadding
-            number currentYPosition = axisPointY
-            
-            if horizontal
-                currentXPosition = axisPointY - axisLengthY + outerEdgePadding
-                currentYPosition = axisPointX
-            end
-            // Tracking area of each bar group for group icon
-
-            number groupX = currentXPosition    // x-axis coordinate
-            number groupY = 0                   // y-axis coordinate
-            number groupWidth = 0               // width of entire group
-            number groupHeight = 0              // height of entire group
-
-            number dataScale = chart:GetYAxisMaximum()/axisLengthY
-
-            integer i = 0
-            repeat while i < chartBarGroups:GetSize()
-                BarGroup currentGroup = chartBarGroups:Get(i)
-                integer j = 0
-                repeat while j < currentGroup:GetSize()
-                    Bar bar
-                    integer barIter = j
-                     // We want to stack/display so it keeps the same order as the legend
-                    /*
-                    if stacked
-                        if horizontal
-                            bar = currentGroup:Get(j)
-                        else
-                            barIter = currentGroup:GetSize()-1-j
-                            bar = currentGroup:Get(currentGroup:GetSize()-1-j)
-                        end
-                    else
-                        if horizontal
-                            barIter = currentGroup:GetSize()-1-j
-                            bar = currentGroup:Get(chartBarGroups:Get(i):GetSize()-1-j)
-                        else
-                            bar = currentGroup:Get(j)
-                        end
-                    end
-                    */
-                    bar = currentGroup:Get(j)
-
-                    barHeightPercent = ((bar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height
-                    
-                    Rectangle tempBar
-                    if barHeightPercent >= 0 
-
-                        //Find max height for barGroup Icon
-                        if(barHeightPercent > groupHeight) and not stacked
-                            groupHeight = barHeightPercent
-                        elseif stacked
-                            groupHeight = groupHeight + barHeightPercent
-                        end
-    
-                        if horizontal
-                            tempBar:SetWidth(barHeightPercent, "%")
-                            tempBar:SetHeight(barWidthPercent, "%")
-                            tempBar:SetPosition(currentYPosition,currentXPosition, "%")
-                            
-                            if stacked
-                                currentYPosition = currentYPosition + barHeightPercent
-                            else
-                                currentXPosition = currentXPosition + barWidthPercent + betweenBarPadding
-                            end
-                        else
-                            tempBar:SetWidth(barWidthPercent, "%")
-                            tempBar:SetHeight(barHeightPercent, "%")
-                            tempBar:SetPosition(currentXPosition,currentYPosition-barHeightPercent, "%")
-
-                            if stacked
-                                currentYPosition = currentYPosition - barHeightPercent
-                            else
-                                currentXPosition = currentXPosition + barWidthPercent + betweenBarPadding
-                            end
-                        end
-                    else
-                        if not stacked
-                            currentXPosition = currentXPosition + barWidthPercent + betweenBarPadding
-                        end
-                    end
-
-                    tempBar:SetFill(bar:GetIcon():GetColor())
-                    tempBar:SetID(canvas:GetID() + "-" + bar:GetHashCode())
-                    tempBar:SetTabIndex(-1)
-                    if HasAccessibility()
-                        Math math
-                        
-                        if(chart:HasBarGroups())
-                            tempBar:SetAriaLabel(bar:GetIcon():GetName() + ", " + math:Round(bar:GetValue(),2) +  ", " + (j + 1) + " of " + currentGroup:GetSize() + " bars inside Bar Group " + (i + 1) + ", " + currentGroup:GetName())
-                        else
-                            tempBar:SetAriaLabel(bar:GetIcon():GetName() + ", " + math:Round(bar:GetValue(),2) +  ", " + (i + 1) + " of " + currentGroup:GetSize() + " bars")
-                        end
-                    end
-                    bars:Add(tempBar)
-
-                    j = j + 1
+            if chart:HasBarGroups()
+                Rectangle barGroup
+                barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
+                barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
+                barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
+                barGroup:SetFill(transparent)
+                barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
+                barGroup:SetTabIndex(-1)
+                if HasAccessibility()
+                    barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
                 end
-            
-                if(chart:HasBarGroups())
-                    Rectangle tempGroup
-                    number padding = betweenGroupPadding/2
-                    if stacked
-                        if horizontal
-                            tempGroup:SetWidth(groupHeight + padding, "%")
-                            tempGroup:SetHeight(barWidthPercent + betweenGroupPadding, "%")
-                            tempGroup:SetPosition(axisPointX, groupX - barWidthPercent - betweenGroupPadding/2, "%") 
-                            currentXPosition = currentXPosition + barWidthPercent + betweenGroupPadding
-                        else
-                            tempGroup:SetWidth(barWidthPercent + betweenGroupPadding, "%")
-                            tempGroup:SetHeight(groupHeight + padding, "%")
-                            tempGroup:SetPosition(groupX - betweenGroupPadding/2, axisPointY - groupHeight - padding, "%")
-                            currentXPosition = currentXPosition + barWidthPercent + betweenGroupPadding  
-                        end
-                    else
-                        if horizontal
-                            groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
-                            currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
-                            tempGroup:SetWidth(groupHeight + padding, "%")
-                            tempGroup:SetHeight(groupWidth, "%")
-                            tempGroup:SetPosition(axisPointX, groupX - betweenGroupPadding/2, "%") 
-                        else
-                            groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
-                            currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
-                            tempGroup:SetWidth(groupWidth, "%")
-                            tempGroup:SetHeight(groupHeight + padding, "%")
-                            tempGroup:SetPosition(groupX - betweenGroupPadding/2, axisPointY - groupHeight - padding, "%")  
-                        end
-                    end
-                    
-                    tempGroup:SetFill(transparent)
-                    tempGroup:SetID(canvas:GetID() + "-" + currentGroup:GetHashCode())
-                    tempGroup:SetTabIndex(-1)
-                    if HasAccessibility()
-                        //Should move all of the Name/Description initialization out of GenerateInfoTree calls in Chart library
-                        //tempGroup:SetAriaLabel(currentGroup:GetIcon():GetName() + " " + currentGroup:GetIcon():GetDescription())
-                        tempGroup:SetAriaLabel(currentGroup:GetIcon():GetName() + ", " + (i + 1) + " of " + chartBarGroups:GetSize() + " groups, " + currentGroup:GetName())
-                    end
-                    GetGroupPanels():Add(tempGroup)
-                    
-                    if horizontal
-                        currentYPosition = axisPointX
-                    else
-                        currentYPosition = axisPointY
-                    end
-                    groupHeight = 0
-                    groupX = currentXPosition
-                end
+                GetGroupPanels():Add(barGroup)
+                canvas:Add(barGroup)
 
-                i = i + 1
             end
+            
+            j = 0
+            repeat while j < currentBarGroup:GetSize()
+                Bar currentBar = currentBarGroup:Get(j)
+
+                Rectangle bar
+                bar:SetWidth(currentBar:GetIcon():GetWidth())
+                bar:SetHeight(currentBar:GetIcon():GetHeight())
+                bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
+                bar:SetFill(currentBar:GetIcon():GetColor())
+                bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                bar:SetTabIndex(-1)
+                if HasAccessibility()
+                    bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
+                end
+                bars:Add(bar)
+                canvas:Add(bar)
+
+                j = j + 1
+            end
+
+            i = i + 1
         end
     end
 
@@ -359,7 +166,6 @@ class BarChartWriter is ChartWriter
                 barGroupNav:AddAttribute("role","treeitem")
                 barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
                 barGroupNav:AddAttribute("aria-expanded","false")
-                //barGroupNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
                 barGroupNav:SetTabIndex("-1")
                 barGroupsUL:Add(barGroupNav)
     
@@ -374,9 +180,8 @@ class BarChartWriter is ChartWriter
             repeat while j < barGroups:Get(i):GetSize()
                 ListItem barNav 
                 barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
-                barNav:AddAttribute("role","none")
+                barNav:AddAttribute("role","treeitem")
                 barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
-                //barNav:AddAttribute("aria-describedby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
                 barNav:SetTabIndex("-1")
                 currentGrouping:Add(barNav)
 
@@ -384,17 +189,5 @@ class BarChartWriter is ChartWriter
             end
             i = i + 1
         end
-    end
-
-    action InitWriter(Chart chart)
-        BarChart barChart
-        barChart = cast(BarChart, chart)
-        // If stacked, we need to adjust the maximum value to the full stack
-        if barChart:GetStackedFlag()
-            barChart:AdjustStacked()
-        end
-        parent:ChartWriter:InitWriter(chart)
-        barChart:GetLegend():ApplySeriesColor()
-        barChart:LoadChartAreaItems()
     end
 end

@@ -30,6 +30,7 @@ class Label is ScalableVectorGraphicsObject
     private integer rotate = 0
     private text textLength = ""
     private text fontSize = ""
+    private text fontFamily = ""
     private text textAnchor = ""
     private text transform = ""
 
@@ -70,6 +71,9 @@ class Label is ScalableVectorGraphicsObject
         end
         if fontSize not= ""
             result = result + " font-size=" +dq+ fontSize +dq
+        end
+        if fontFamily not= ""
+            result = result + " font-family=" +dq+ fontFamily +dq
         end
         if textAnchor not= ""
             result = result + " text-anchor=" +dq+ textAnchor +dq
@@ -413,6 +417,20 @@ class Label is ScalableVectorGraphicsObject
         return textLength
     end
 
+    /*
+        This action sets the current font size with the unit appended. 
+
+        Attribute: Paramemter The value for the current font size
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Label myLabel
+        myLabel:SetFontSize("12pt")
+
+        output myLabel:GetFontSize()
+    */
     action SetFontSize(text fontSize)
         me:fontSize = fontSize
     end
@@ -433,6 +451,46 @@ class Label is ScalableVectorGraphicsObject
     */
     action GetFontSize returns text
         return fontSize
+    end
+
+    
+    /*
+        This action sets the current font-family to the list of fonts give (can list multiple with comma-delimited list). 
+
+        Attribute: Paramemter The value for the current font family
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Label myLabel
+        myLabel:SetFontFamily("Arial")
+        myLabel:SetFontFamily("Arial, Halvetica, sans-serif")
+
+        output myLabel:GetFontSize()
+    */
+    action SetFontFamily(text fontFamily)
+        me:fontFamily = fontFamily
+    end
+
+    
+    /*
+        This action returns the current font-family to the list of fonts give (can list multiple with comma-delimited list). 
+
+        Attribute: Returns the value for the current font family
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Label myLabel
+        myLabel:SetFontFamily("Arial")
+        myLabel:SetFontFamily("Arial, Halvetica, sans-serif")
+
+        output myLabel:GetFontSize()
+    */
+    action GetFontFamily returns text
+        return fontFamily
     end
 
     /*
