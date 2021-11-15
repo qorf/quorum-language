@@ -563,10 +563,10 @@ class CodeCompletionHandler
             end
 
             
-            if values:GetSize() <= 1 //this just isn't anything valid of which I am aware. We can try the parser, but it is probably a lost cause.
-                ParseExpression(request, result, listener)
-                return now
-            end
+//            if values:GetSize() <= 1 //this just isn't anything valid of which I am aware. We can try the parser, but it is probably a lost cause.
+//                ParseExpression(request, result, listener)
+//                return now
+//            end
             Type current = undefined
             Class currentClass = undefined
             //this wasn't a simple case
@@ -622,7 +622,22 @@ class CodeCompletionHandler
             if i = values:GetSize() - 1 and not emptyFilter
                 result:filter = values:Get(i)
                 listener:SetCanCodeComplete(true)
-                AddFromType(request, result, listener, current)
+                if current not= undefined
+                    AddFromType(request, result, listener, current)
+                else 
+                    //this is the case where there is 1 value, it doesn't match a variable, 
+                    //and we cannot find anything by this name, so assume it is a filter
+                    //on top of a blank line
+                    AddClassVariables(request, result)
+                    AddParentVariables(request, result)
+        
+                    AddActions(request, result)
+                    AddBlockVariables(request, result)
+                    AddPrimitives(request, result)
+                    AddControlStructures(request, result)
+                    AddAvailableClasses(request, result)
+                end
+            
             else 
                 listener:SetCanCodeComplete(true)
                 AddFromType(request, result, listener, current)
