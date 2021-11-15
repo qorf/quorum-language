@@ -227,14 +227,15 @@ class Chart is Control
             FlipAxisInfo()
         end
 
+        horizontalPanel:LoadAxis(me, properties)
         if IsShowingXAxis()
             horizontalPanelHeightPercent = 0.15
-            horizontalPanel:LoadAxis(me, properties)
             Add(horizontalPanel)
         end
+
+        verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
             verticalPanelWidthPercent = 0.15
-            verticalPanel:LoadAxis(me, properties)
             Add(verticalPanel)
         end
 
@@ -258,17 +259,21 @@ class Chart is Control
         accessibility navigation.
     */
     action FlipAxisInfo()
-        number temp = GetXAxisMaximum()
-        SetXAxisMaximum(GetYAxisMaximum())
-        SetYAxisMaximum(temp)
+        number temp = horizontalPanel:GetMaximum()
+        horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
+        verticalPanel:SetMaximum(temp)
 
-        temp = GetXAxisMinimum()
-        SetXAxisMinimum(GetYAxisMinimum())
-        SetYAxisMinimum(temp)
+        temp = horizontalPanel:GetMinimum()
+        horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
+        verticalPanel:SetMinimum(temp)
 
         Array <text> templabels = horizontalPanel:GetOverrideLabels()
         horizontalPanel:SetOverrideLabels(verticalPanel:GetOverrideLabels())
         verticalPanel:SetOverrideLabels(templabels)
+
+        temp = horizontalPanel:GetTickInterval()
+        horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
+        verticalPanel:SetTickInterval(temp)
 
         boolean tempflag = horizontalPanel:NumericalOverrideLabels()
         horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
@@ -277,6 +282,14 @@ class Chart is Control
         tempflag = horizontalPanel:ShowGroupBrackets()
         horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
         verticalPanel:ShowGroupBrackets(tempflag)
+
+        tempflag = horizontalPanel:OverrideDefaultMin()
+        horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
+        verticalPanel:OverrideDefaultMin(tempflag)
+
+        tempflag = horizontalPanel:OverrideDefaultMax()
+        horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
+        verticalPanel:OverrideDefaultMax(tempflag)
 
         text tempTitle = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
@@ -534,7 +547,7 @@ class Chart is Control
 
     action SetXAxisMinimum(number min)
         horizontalPanel:SetMinimum(min)
-        horizontalPanel:OverrideDefaultMin()
+        horizontalPanel:OverrideDefaultMin(true)
     end
 
     action GetXAxisMaximum returns number
@@ -543,7 +556,7 @@ class Chart is Control
 
     action SetXAxisMaximum(number max)
         horizontalPanel:SetMaximum(max)
-        horizontalPanel:OverrideDefaultMax()
+        horizontalPanel:OverrideDefaultMax(true)
     end
 
     action GetYAxisMinimum returns number
@@ -552,7 +565,7 @@ class Chart is Control
 
     action SetYAxisMinimum(number min)
         verticalPanel:SetMinimum(min)
-        verticalPanel:OverrideDefaultMin()
+        verticalPanel:OverrideDefaultMin(true)
     end
 
     action GetYAxisMaximum returns number
@@ -561,7 +574,7 @@ class Chart is Control
 
     action SetYAxisMaximum(number max)
         verticalPanel:SetMaximum(max)
-        verticalPanel:OverrideDefaultMax()
+        verticalPanel:OverrideDefaultMax(true)
     end
 
     action SetXAxisNumberFormat(text format)

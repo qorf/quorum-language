@@ -5,6 +5,13 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
+use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
     The Histogram class is Chart object that inherits from SharedBarChartParent and like other
@@ -34,18 +41,17 @@ use Libraries.Game.Graphics.Gradient
     end
 */
 class Histogram is SharedBarChartParent
-    integer binWidth = 0
-
-    action SetBinWidth(integer width) 
-        binWidth = width
-    end
-    action GetBinWidth() returns integer
-        return binWidth
-    end
+    Math math
+    Array <DataFrameColumn> columns 
+    Array<number> binFloor
+    Comparison comparison = undefined
+    number binWidth = -1
+    boolean decimalScale = false
 
     on create
         HistogramLayout layout
         SetLayout(layout)
+
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
@@ -108,5 +114,240 @@ class Histogram is SharedBarChartParent
 //        HistogramWriter writer
 //        return writer:WriteOutChart(me)
 //    end
+
+
+    action SetBinWidth(integer width) 
+        if width > 0 and binWidth not= width
+            binWidth = cast(number, width)
+            decimalScale = false
+            SetXAxisNumberFormat("integer")
+            MakeBins()
+        end
+    end
+
+    action SetBinWidth(number width) 
+        if width > 0 and binWidth not= width
+            binWidth = width
+            decimalScale = true
+            SetXAxisNumberFormat("number")
+            MakeBins()
+        end
+    end
+
+    action GetBinWidth() returns number
+        return binWidth
+    end
+
+    action GetColumns() returns Array<DataFrameColumn>
+        return columns
+    end
+
+    action MakeBins()
+        if binWidth < 0
+            return now
+        end
+
+        integer numberOfColumns = columns:GetSize()
+        if numberOfColumns < 1
+            alert("Cannot create a Histogram without any columns.")
+        end
+
+        if numberOfColumns = 1
+            HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+        end
+
+        GetBarGroups():Empty()
+        HashTable <text, Series> seriesFactor
+        HashTable <text, BarGroup> groupFactor
+        number maxFrequency = 0.0
+        number min = 0
+        number max = 0
+
+        if GetHorizontalFlag() // Default is vertical
+            SetYTickInterval(binWidth)
+            min = GetVerticalPanel():GetMinimum()
+            max = GetVerticalPanel():GetMaximum()
+        else
+            SetXTickInterval(binWidth)
+            min = GetHorizontalPanel():GetMinimum()
+            max = GetHorizontalPanel():GetMaximum()
+        end
+
+        // Take range and divide it amongst bins and round up to get the default bin width
+        integer numberOfBins = cast(integer, math:Ceiling((max-min)/binWidth))
+        if numberOfBins > 100
+            alert("This results in over 100 bins, please change bin width.")
+        end
+
+        Array<integer> count
+        binFloor:Empty()
+
+        n = 0
+        number floor = min // Starts at minimum value
+        repeat while n < numberOfBins
+            count:Add(0)
+            binFloor:Add(floor)
+            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
+            if(decimalScale)
+                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+            end
+            if(not groupFactor:HasKey(valueDisplay))
+                BarGroup group
+                group:SetName(valueDisplay)
+                groupFactor:Add(valueDisplay, group)
+            end
+            floor = floor + binWidth
+            n = n + 1
+        end  
+
+        n = 0
+        repeat while n < numberOfColumns 
+            DataFrameColumn column = columns:Get(n)   
+
+            // Reset counts to zero for each series
+            i = 0
+            repeat while i < numberOfBins
+                count:Set(i, 0)
+                i = i + 1
+            end     
+
+            i = 0
+            repeat while i < column:GetSize()
+                if not column:IsUndefined(i)
+                    number value = column:GetAsNumber(i)
+                    integer bin = cast(integer, math:Floor((value - min) / binWidth))
+                    number binRoof = binFloor:Get(bin) + binWidth
+                    if value < binRoof and value >= binFloor:Get(bin)
+                        count:Set(bin, count:Get(bin) + 1)
+                    elseif value >= binRoof
+                        count:Set(bin+1, count:Get(bin+1) + 1)
+                    end
+                end
+                i = i + 1
+            end
+    
+            // Find max frequency of all counts across all series
+            i = 0
+            repeat while i < count:GetSize()
+                integer amount = count:Get(i)
+                if amount > maxFrequency
+                    maxFrequency = amount
+                end
+                i = i + 1
+            end
+
+            // If a new series (ie new column)
+            if(not seriesFactor:HasKey(column:GetHeader()))
+                Series series
+                series:SetName(column:GetHeader())
+                seriesFactor:Add(column:GetHeader(), series)
+            end
+    
+            i = 0
+            floor = 0.0
+            repeat while i < count:GetSize() and floor < max
+                integer amount = count:Get(i)
+                floor = binFloor:Get(i)
+                text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+                if(decimalScale)
+                    valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                end
+                Bar bar
+                bar:SetValue(amount)
+                bar:SetName(column:GetHeader() + " " + valueDisplay)
+                // If bar is part of a group
+                if(groupFactor:HasKey(valueDisplay))
+                    groupFactor:GetValue(valueDisplay):AddBar(bar)
+                end
+                // If bar is part of a series
+                if(seriesFactor:HasKey(column:GetHeader()))
+                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                    bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
+                end
+                i = i + 1
+            end
+            n = n + 1
+        end
+
+        Array <text> groupNames
+        // Bar Groups
+        i = 0
+        repeat while i < groupFactor:GetSize()
+            floor = binFloor:Get(i)
+            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+            if(decimalScale)
+                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                maxValue = (math:Round(floor+binWidth, 2))
+                interval = maxValue - (math:Round(floor, 2))
+            end
+            if(groupFactor:HasKey(valueDisplay) and floor < max) 
+                AddBarGroup(groupFactor:GetValue(valueDisplay))
+                groupNames:Add(valueDisplay)
+            end
+            i = i + 1
+        end    
+        
+        // Series
+        Array <Series> seriesList
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
+
+        if GetHorizontalFlag() // Default is vertical
+            SetScale(min, max, 0, maxFrequency)
+            SetYTickInterval(binWidth)
+            parent:Chart:SetYAxisMinimum(math:Floor(min))
+            parent:Chart:SetYAxisMaximum(math:Ceiling(max))
+        else
+            SetScale(0, maxFrequency, min, max)
+            SetXTickInterval(binWidth)
+            parent:Chart:SetXAxisMinimum(math:Floor(min))
+            parent:Chart:SetXAxisMaximum(math:Ceiling(max))
+        end
+        SetSeriesList(seriesList)
+    end
+
+    private action SetScale(number ymin, number ymax, number xmin, number xmax)
+        GetVerticalPanel():SetMinimum(ymin)
+        GetVerticalPanel():SetMaximum(ymax)
+        GetHorizontalPanel():SetMinimum(xmin)
+        GetHorizontalPanel():SetMaximum(xmax)
+    end
+
+    action SetXAxisMaximum(number max)
+        parent:Chart:SetXAxisMaximum(max)
+        if not GetHorizontalFlag()
+            MakeBins()
+        end
+    end
+
+    action SetXAxisMinimum(number min)
+        parent:Chart:SetXAxisMinimum(min)
+        if not GetHorizontalFlag()
+            MakeBins()
+        end
+    end
+
+    action SetXTickInterval(number set)
+        parent:Chart:SetXTickInterval(set)
+        if not GetHorizontalFlag()
+            SetBinWidth(set)
+        end
+    end
+
+    action SetXTickInterval(integer set)
+        parent:Chart:SetXTickInterval(set)
+        if not GetHorizontalFlag()
+            SetBinWidth(set)
+        end
+    end
 end
 
