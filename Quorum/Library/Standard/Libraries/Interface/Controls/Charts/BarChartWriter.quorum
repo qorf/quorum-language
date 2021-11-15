@@ -102,10 +102,6 @@ class BarChartWriter is ChartWriter
         integer j = 0
         repeat while i < chart:GetBarGroups():GetSize()
             BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
-            number width = currentBarGroup:GetIcon():GetWidth()
-            number height = currentBarGroup:GetIcon():GetHeight()
-            number x = currentBarGroup:GetIcon():GetGlobalX()
-            number y = currentBarGroup:GetIcon():GetGlobalY()
 
             if chart:HasBarGroups()
                 Rectangle barGroup
