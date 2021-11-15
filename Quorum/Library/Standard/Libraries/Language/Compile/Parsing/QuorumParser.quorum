@@ -1562,7 +1562,7 @@ class QuorumParser
         if next:category = constants:ME
             context:hasMe = true
             next = tokenIterator:Next()
-            if next:category = constants:COLON
+            if next not= undefined and next:category = constants:COLON
                 next = tokenIterator:Next()
             else //this is an error
                 SendDefaultError("Expected colon after me. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_COLON)
