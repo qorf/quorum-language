@@ -391,6 +391,11 @@ class DrawableShape
     end
 
     action SetWidth(number width)
+        // Don't allow a width of zero -- it'll blow away all of our base position information
+        if width = 0
+            width = 1
+        end
+
         number xModifier = width / baseWidth
 
         integer i = 0
@@ -404,6 +409,11 @@ class DrawableShape
     end
 
     action SetHeight(number height)
+        // Don't allow a height of zero -- it'll blow away all of our base position information
+        if height = 0
+            height = 1
+        end
+
         number yModifier = height / baseHeight
 
         integer i = 1
@@ -417,6 +427,14 @@ class DrawableShape
     end
 
     action SetSize(number width, number height)
+        // Don't allow a width or height of zero -- it'll blow away all of our base position information
+        if width = 0
+            width = 1
+        end
+        if height = 0
+            height = 1
+        end
+
         number xModifier = width / baseWidth
         number yModifier = height / baseHeight
 
@@ -469,6 +487,7 @@ class DrawableShape
         if UsesScaleOrRotation() = false
             integer i = 0
             integer baseIndex = 0
+
             repeat while i < vertices:GetSize()
                 vertices:Set(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX))
                 vertices:Set(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY))

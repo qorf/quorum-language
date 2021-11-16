@@ -236,6 +236,7 @@ class TabBar is Control
         if view = undefined
             if GetView2D() = undefined
                 LabelBoxView content
+                content:SetName("TabBar View")
                 Color color
                 ColorGroup background = properties:GetBackgroundColor()
                 ColorGroup border = properties:GetBorderColor()
