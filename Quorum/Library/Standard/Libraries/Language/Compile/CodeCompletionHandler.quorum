@@ -545,6 +545,7 @@ class CodeCompletionHandler
                 end
             end
 
+            //if wasn't a raw variable. Next check 
             boolean emptyFilter = false
             //it's not a simple case. Perhaps it is a colon delimited set of interactions?
             //we need to detect the case where there is an empty filter, which is if the line
@@ -556,17 +557,12 @@ class CodeCompletionHandler
                 end
             end
 
-            text newLine = value
+            text newLine = StripAndTrimRightHandSide(value)
             Array<text> values = newLine:Split(":", true)
             if values = undefined
                 return now
             end
 
-            
-//            if values:GetSize() <= 1 //this just isn't anything valid of which I am aware. We can try the parser, but it is probably a lost cause.
-//                ParseExpression(request, result, listener)
-//                return now
-//            end
             Type current = undefined
             Class currentClass = undefined
             //this wasn't a simple case
@@ -643,6 +639,50 @@ class CodeCompletionHandler
                 AddFromType(request, result, listener, current)
             end
         end
+    end
+
+    private action StripAndTrimRightHandSide(text value) returns text
+        if value = undefined or value:IsEmpty()
+            return value
+        end
+
+        QuorumLexer lexer
+        QuorumLexerConstants constants
+        lexer:Read(value)
+
+        //this is a bit overkill, but there might be other cases lurking
+        TokenIterator<Libraries.Language.Compile.Parsing.Token> iterator = lexer:GetIterator()
+        repeat while iterator:HasNext()
+            Libraries.Language.Compile.Parsing.Token token = iterator:Next()
+            if token = undefined
+                return value
+            else 
+                //token:category
+                if token:category = constants:IF //remove the if and move forward
+                    return value:GetSubtext(token:endIndex + 1):Trim()
+                elseif token:category = constants:REPEAT
+                    //if the next is while or until, skip that too, otherwise send it back
+                    Libraries.Language.Compile.Parsing.Token next = iterator:Next()
+                    if next not= undefined and 
+                        (next:category = constants:WHILE or 
+                         next:category = constants:UNTIL)
+                        return value:GetSubtext(next:endIndex + 1):Trim()
+                    else 
+                        return value:GetSubtext(token:endIndex + 1):Trim()
+                    end
+                //if it's an ID, 
+                elseif token:category = constants:ID
+                    Libraries.Language.Compile.Parsing.Token next = iterator:Next()
+                    if next not= undefined and 
+                        (next:category = constants:EQUALITY)
+                        return value:GetSubtext(next:endIndex + 1):Trim()
+                    else //any other case, just return the value if it's an ID at the front.
+                        return value
+                    end
+                end
+            end
+        end
+        return value
     end
 
     private action ParseExpressionFromText(CodeCompletionRequest request, CodeCompletionResult result, 
