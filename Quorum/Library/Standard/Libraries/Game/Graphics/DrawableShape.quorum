@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Triangulation.Triangulation
 
 class DrawableShape
 
@@ -170,14 +171,14 @@ class DrawableShape
     /*
     This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
     */
-    action Load(Array<number> points, Integer32BitArray indices)
-        Load(points, indices, undefined)
+    action Load(Array<number> points)
+        Load(points, undefined)
     end
 
     /*
     This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
     */
-    action Load(Array<number> points, Integer32BitArray indices, TextureRegion region)
+    action Load(Array<number> points, TextureRegion region)
         // TO-DO: Modify this call to remove the indices offered. Generate them automatically.
         vertices:SetSize((points:GetSize() / 2) * VERTEX_SIZE)
 
@@ -197,6 +198,17 @@ class DrawableShape
             SetTextureRegion(0, 1, 0, 1)
         else
             SetTextureRegion(region)
+        end
+
+        Triangulation triangulation
+        Array<integer> indexArray = triangulation:Triangulate(basePositions)
+        
+        Integer32BitArray indices
+        indices:SetSize(indexArray:GetSize())
+        i = 0
+        repeat while i < indexArray:GetSize()
+            indices:Set(i, indexArray:Get(i))
+            i = i + 1
         end
 
         mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())

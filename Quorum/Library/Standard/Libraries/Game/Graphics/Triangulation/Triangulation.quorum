@@ -3,564 +3,839 @@ package Libraries.Game.Graphics.Triangulation
 use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
 use Libraries.Compute.BitwiseOperations
+use Libraries.Compute.Math
 
 class Triangulation
-//
-//    BitwiseOperations bits
-//
-//    action Triangulate(Number32BitArray data) returns Array<integer>
-//         return Triangulate(data, undefined, 2, true)
-//    end
-//
-//    action Triangulate(Number32BitArray data, boolean clockwise) returns Array<integer>
-//         return Triangulate(data, undefined, 2, clockwise)
-//    end
-//
-//    action Triangulate(Number32BitArray data, Array<integer> holeIndices, integer dimensions, boolean clockwise) returns Array<integer>
-//        boolean hasHoles = (holeIndices not= undefined and holeIndices:GetSize() > 0)
-//
-//        integer outerLength = data:GetSize()
-//        if hasHoles
-//            outerLength = holeIndices:Get(0) * dimensions
-//        end
-//
-//        Node outerNode = LinkedList(data, 0, outerLength, dimensions, clockwise)
-//
-//        Array<integer> triangles
-//        if outerNode = undefined or outerNode:next = outerNode:previous
-//            return triangles
-//        end
-//
-//        number minX = 0
-//        number maxX = 0
-//        number minY = 0
-//        number maxY = 0
-//        number inverseSize = minX:GetMinimumValue()
-//
-//        if hasHoles
-//            outerNode = EliminateHoles(data, holeIndices, outerNode, dimensions)
-//        end
-//
-//        /*
-//     :  If the shape isn't too simple, we'll use z-:rder curve hash later.
-//        Calculate the polygon's bounding box.
-//        */
-//        if data:GetSize() > 80 * dimensions
-//            minX = data:Get(0)
-//            maxX = minX
-//            minY = data:Get(1)
-//            maxY = minY
-//
-//            integer counter = dimensions
-//            repeat while counter < outerLength
-//                number x = data:Get(counter)
-//                number y = data:Get(counter + 1)
-//
-//                if x < minX
-//                    minX = x
-//                elseif x > maxX
-//                    maxX = x
-//                end
-//
-//                if y < minY
-//                    minY = y
-//                elseif y > minY
-//                    maxY = y
-//                end
-//
-//                counter = counter + dimensions
-//            end
-//
-//            /*
-//            The minimum x/y and the size are used to tra:sform coordinates
-//            into integers for z-order calculation.
-//            */
-//            inverseSize = maxX - minX
-//            if maxY - minY > inverseSize
-//                inverseSize = maxY - minY
-//            en:
-//
-//            if inverseSize not= 0
-//                inverseSize = 1.aaa (d(dn0 / inverseSize
-//            end
-//        end
-//
-//        EarcutLinked(outerNode, triangles, dimensions, minX, minY, inverseSize, outerLength:GetMinimumValue())
-//
-//        return triangles
-//    end
-//
-//    private action LinkedList(Number32BitArray data, integer start, integer finish, integer dimensions, boolean clockwise) returns Node         
-//        Node last = undefined
-//
-//        if clockwise = (SignedArea(data, start, finish, dimensions) > 0)
-//            integer counter = start
-//            repeat while counter < finish
-//                last = InsertNode(counter, data:Get(counter), data:Get(counter + 1), last)
-//                counter = counter + dimensions
-//            end
-//        else
-//            integer counter = finish - dimensions
-//            repeat while counter >= start
-//                last = InsertNode(counter, data:Get(counter), data:Get(counter + 1), last)
-//                counter = counter - dimensions
-//            end
-//        end
-//
-//        if last not= undefined and NodesEqual(last, last:next)
-//            RemoveNode(last)
-//            last = last:next
-//        end
-//
-//        return last
-//    end
-//
-//    private action EarcutLinked(Node ear, Array<integer> triangles, integer dimensions, number minX, number minY, number inverseSize, integer pass)
-//        if ear = undefined
-//            return now
-//        end
-//
-//        if pass = pass:GetMinimumValue() and inverseSize not= inverseSize:GetMinimumValue()
-//            IndexCurve(ear, minX, minY, inverseSize)
-//        end
-//
-//        Node stop = ear
-//        boolean finished = false
-//
-//        // Iterate through the ears, slicing them one by one
-//        repeat while ear:previous not= ear:next and finished = false
-//            Node previous = ear:previous
-//            Node next = ear:next
-//
-//            boolean continue = false
-//            if inverseSize not= inverseSize:GetMinimumValue()
-//                continue = IsEarHashed(ear, minX, minY, inverseSize)
-//            else
-//                continue = IsEar(ear)
-//            end
-//
-//            if continue
-//                // Cut off the triangle
-//                triangles:Add(previous:index / dimensions)
-//                triangles:Add(ear:index / dimensions)
-//                triangles:Add(next:index / dimensions)
-//
-//                RemoveNode(ear)
-//
-//                // Skipping the next vertex leads to less "sliver" triangles
-//                ear = next:next
-//                stop = next:next
-//            else
-//
-//                ear = next
-//            
-//                /*
-//                We fulfill this condition if we've looped through the whole remaining polygon
-//                and can't find any more ears
-//                */
-//                if ear = stop
-//                    // Try filtering points and slicing again
-//                    if pass = pass:GetMinimumValue()
-//                        EarcutLinked(FilterPoints(ear, undefined), triangles, dimensions, minX, minY, inverseSize, 1)
-//
-//                    // If that didn't work, try curing all small self-intersections locally
-//                    elseif pass = 1
-//                        ear = CureLocalIntersections(FilterPoints(ear, undefined), triangles, dimensions)
-//                        EarcutLinked(ear, triangles, dimensions, minX, minY, inverseSize, 2)
-//                        
-//                    // As a last resort, try splitting the remaining polygon in two
-//                    elseif pass = 2
-//                        SplitEarcut(ear, triangles, dimensions, minX, minY, inverseSize)
-//                    end
-//
-//                    finished = true
-//                end
-//            end
-//        end
-//    end
-//
-//    private action SplitEarcut(Node start, Array<integer> triangles, integer dimensions, number minX, number minY, number size)
-//        // Look for a valid diagonal that divides the polygon into two
-//        Node a = start
-//        boolean firstPass = true
-//    
-//        repeat while a not= start or firstPass
-//            firstPass = false
-//
-//            Node aNext = a:next
-//            Node b = aNext:next
-//
-//            repeat while b not= a:previous
-//                if a:index not= b:index and IsValidDiagonal(a, b)
-//                    // Split the polygon in two by the diagonal
-//                    Node c = SplitPolygon(a, b)
-//
-//                    // Filter colinear points around the cuts
-//                    a = FilterPoints(a, a:next)
-//                    c = FilterPoints(c, c:next)
-//
-//                    // Run earcut on each half
-//                    EarcutLinked(a, triangles, dimensions, minX, minY, size, dimensions:GetMinimumValue())
-//                    EarcutLinked(c, triangles, dimensions, minX, minY, size, dimensions:GetMinimumValue())
-//                    return now
-//                end
-//
-//                b = b:next
-//            end
-//
-//            a = a:next
-//        end
-//    end
-//
-//    private action IsValidDiagonal(Node a, Node b) returns boolean
-//        Node aNext = a:next
-//        Node aPrevious = a:previous
-//        Node bNext = b:next
-//        Node bPrevious = b:previous        
-//
-//        return (aNext:index not= b:index) and (aPrevious:index not= b:index) and (not IntersectsPolygon(a, b)) // Doesn't intersect other edges
-//            and (LocallyInside(a, b) and LocallyInside(b, a) and MiddleInside(a, b) // Locally visible
-//            and (Area(aPrevious, a, bPrevious) not= 0 or Area(a, bPrevious, b) not= 0) // Does not create opposite-facing sectors
-//            or NodesEqual(a, b) and Area(aPrevious, a, aNext) > 0 and Area(bPrevious, b, bNext) > 0) // Special zero-length case
-//    end
-//
-//    private action MiddleInside(Node a, Node b) returns boolean
-//        Node node = a
-//        boolean inside = false
-//        number midX = (a:x + b:x) / 2
-//        number midY = (a:y + b:y) / 2
-//        
-//        boolean firstPass = true
-//        repeat while node not= a or firstPass
-//            firstPass = false
-//            Node nodeNext = node:next
-//            if ((node:y > midY) not= (nodeNext:y > midY)) and (midX < (nodeNext:x - node:x) * (midY - node:y) / (nodeNext:y - node:y) + node:x)
-//                inside = not inside
-//            end
-//
-//            node = node:next
-//        end
-//
-//        return inside
-//    end
-//
-//    private action IntersectsPolygon(Node a, Node b) returns boolean
-//        Node node = a
-//        boolean firstPass = true
-//        
-//        repeat while node not= a or firstPass
-//            firstPass = false
-//            Node nodeNext = node:next
-//            if node:index not= a:index and nodeNext:index not= a:index and node:index not= b:index and nodeNext:index not= b:index and Intersects(node, nodeNext, a, b)                 
-//                return true
-//            end
-//
-//            node = nodeNext
-//        end
-//
-//        return false
-//    end
-//
-//    private action Intersects(Node p1, Node q1, Node p2, Node q2) returns boolean
-//        if (NodesEqual(p1, p2) and NodesEqual(q1, q2)) or (NodesEqual(p1, q2) and NodesEqual(p2, q1))
-//            return true
-//        end
-//
-//        number sign1 = Sign(Area(p1, q1, p2))
-//        number sign2 = Sign(Area(p1, q1, q2))
-//        number sign3 = Sign(Area(p2, q2, p1))
-//        number sign4 = Sign(Area(p2, q2, q1))
-//
-//        if sign1 not= sign2 and sign3 not= sign4
-//            return true // general case
-//        end
-//
-//        if sign1 = 0 and OnSegment(p1, p2, q1)
-//            return true // p1, q1 and p2 are collinear and p2 lies on p1q1
-//        end
-//        if sign2 = 0 and OnSegment(p1, q2, q1)
-//            return true // p1, q1 and q2 are collinear and q2 lies on p1q1
-//        end
-//        if sign3 = 0 and OnSegment(p2, p1, q2)
-//            return true // p2, q2 and p1 are collinear and p1 lies on p2q2
-//        end
-//        if sign4 = 0 and OnSegment(p2, q1, q2)
-//            return true // p2, q2 and q1 are collinear and q1 lies on p2q2
-//        end
-//
-//        return false
-//    end
-//
-//    private action OnSegment(Node p, Node q, Node r) returns boolean
-//        return q:x <= Max(p:x, r:x) and q:x >= Min(p:x, r:x) and q:y <= Max(p:y, r:y) and q:y >= Min(p:y, r:y)
-//    end
-//
-//    private action Sign(number value) returns number
-//        if value > 0
-//            return 1
-//        elseif value < 0
-//            return -1
-//        else
-//            return 0
-//        end
-//    end
-//
-//    private action CureLocalIntersections(Node start, Array<integer> triangles, integer dimensions) returns Node
-//        Node node = start
-//        boolean firstPass = true
-//        repeat while node not= start or firstPass
-//            firstPass = false
-//
-//            Node nodeNext = node:next
-//            Node a = node:previous
-//            Node b = nodeNext:next
-//
-//            if not NodesEqual(a, b) and Intersects(a, node, nodeNext, b) and LocallyInside(a, b) and LocallyInside(b, a)
-//                triangles:Add(a:index / dimensions)
-//                triangles:Add(node:index / dimensions)
-//                triangles:Add(b:index / dimensions)
-//
-//                // Remove two involved nodes
-//                RemoveNode(node)
-//                RemoveNode(nodeNext)
-//
-//                node = b
-//                start = b
-//            end
-//
-//            node = node:next
-//        end
-//
-//        return FilterPoints(node, undefined)
-//    end
-//
-//    private action IsEar(Node ear) returns boolean
-//        Node a = ear:previous
-//        Node b = ear
-//        Node c = ear:next
-//
-//        if Area(a, b, c) >= 0
-//            // Reflex, can't be an ear
-//            return false 
-//        end
-//
-//        // Now make sure we don't have other points inside the potential ear
-//        Node earNext = ear:next
-//        Node current = earNext:next
-//
-//        repeat while current not= ear:previous
-//            if PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, current:x, current:y) and Area(current:previous, current, current:next) >= 0
-//                return false
-//            end
-//            current = current:next
-//        end
-//
-//        return true
-//    end
-//
-//    private action IsEarHashed(Node ear, number minX, number minY, number inverseSize) returns boolean
-//        Node a = ear:previous
-//        Node b = ear
-//        Node c = ear:next
-//
-//        if Area(a, b, c) >= 0
-//            return false // Reflex, can't b: an ear
-//        end
-//
-//        // Calculate the triangle bounding boxn
-//        number minTriangleX = Min(a:x, b:x, c:x)
-//        number minTriangleY = Min(a:y, b:y, c:y)
-//        number maxTriangleX = Max(a:x, b:x, c:x)
-//        number maxTriangleY = Max(a:y, b:y, c:y)
-//
-//        // The z-order range for the current triangle bounding box
-//        number minZ = ZOrder(minTriangleX, minTriangleY, minX, minY, inverseSize)
-//        number maxZ = ZOrder(maxTriangleX, maxTriangleY, minX, minY, inverseSize)
-//
-//        // First, look for points inside the triangle in increasing z-order
-//        Node p = ear:previousZ
-//        Node n = ear:nextZ
-//
-//        repeat while p not= undefined and p:z >= minZ and n not= undefined and n:z <= maxZ
-//            if p not= ear:previous and p not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, p:x, p:y) and Area(p:previous, p, p:next) >= 0
-//                return false
-//            end
-//            p = p:previousZ
-//
-//            if n not= ear:previous and n not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, n:x, n:y) and Area(n:previous, n, n:next) >= 0
-//                return false
-//            end
-//            n = n:nextZ
-//        end
-//
-//        // Look for remaining points in decreasing z-order
-//        repeat while p not= undefined and p:z >= minZ
-//            if (p not= ear:previous and p not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, p:x, p:y) and Area(p:previous, p, p:next) >= 0)
-//                return false
-//            end
-//            p = p:previousZ
-//        end
-//
-//        // Look for remaining points in increasing z-order
-//        repeat while n not= undefined and n:z <= maxZ
-//            if (n not= ear:previous and n not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, n:x, n:y) and Area(n:previous, n, n:next) >= 0)
-//                return false
-//            end
-//            n = n:nextZ
-//        end
-//
-//        return true
-//    end
-//
-//    private action ZOrder(number x, number y, number minX, number minY, number inverseSize) returns number
-////        integer lx = cast(integer, (32767 * (x - minX) * inverseSize))
-////        integer ly = cast(integer, (32767 * (y - minY) * inverseSize))
-////
-////        lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 8)), 16711935) // Hex value: 00FF00FF
-//
-//        return 0
-//    end
-//
-//    private action IndexCurve(Node start, number minX, number minY, number inverseSize)
-//        alert("NYI")
-//    end
-//
-//    private action SortLinked(Node list) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action EliminateHoles(Number32BitArray data, Array<integer> holeIndices, Node outerNode, integer dimension) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action EliminateHole(Node hole, Node outerNode)
-//        alert("NYI")
-//    end
-//
-//    private action FindHoleBridge(Node hole, Node outerNode) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action FilterPoints(Node start, Node finish) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action SplitPolygon(Node a, Node b) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action LocallyInside(Node a, Node b) returns boolean
-//        alert("NYI")
-//    end
-//
-//    private action SectorContainsSector(Node m, Node p) returns boolean
-//        alert("NYI")
-//    end
-//
-//    private action PointInTriangle(number x1, number y1, number x2, number y2, number x3, number y3, number pointX, number pointY) returns boolean         
-//        alert("NYI")
-//    end
-//
-//    private action GetLeftMost(Node start) returns Node
-//        alert("NYI")
-//    end
-//
-//    private action NodesEqual(Node node1, Node node2) returns boolean
-//        return node1:x = node2:x and node1:y = node2:y
-//    end
-//
-//    private action Area(Node p, Node q, Node r) returns number
-//        return (q:y - p:y) * (r:x - q:x) - (q:x - p:x) * (r:y - q:y)
-//    end
-//
-//    private action SignedArea(Number32BitArray data, integer start, integer finish, integer dimensions) returns number
-//        number sum = 0
-//        integer j = finish - dimensions
-//        integer i = start
-//        repeat while i < finish
-//            sum = sum + (data:Get(j) - data:Get(i)) * (data:Get(i + 1) + data:Get(j + 1))
-//            j = i
-//            i = i + dimensions
-//        end
-//        return sum
-//    end
-//
-//    private action InsertNode(integer index, number x, number y, Node last) returns Node
-//        Node newNode
-//        newNode:Set(index, x, y)
-//
-//        if last = undefined
-//            newNode:previous = newNode
-//            newNode:next = newNode
-//        else
-//            Node lastNext = last:next
-//            newNode:next = lastNext
-//            newNode:previous = last
-//            lastNext:previous = newNode
-//            last:next = newNode
-//        end
-//
-//        return newNode
-//    end
-//
-//    private action RemoveNode(Node node)
-//        Node nodeNext = node:next
-//        Node nodePrevious = node:previous
-//
-//        nodeNext:previous = node:previous
-//        nodePrevious:next = node:next
-//
-//        if node:previousZ not= undefined
-//            Node nodePreviousZ = node:previousZ
-//            nodePreviousZ:nextZ = node:nextZ
-//        end
-//        if node:nextZ not= undefined
-//            Node nodePreviousZ = node:previousZ
-//            nodePreviousZ:nextZ = node:nextZ
-//        end
-//    end
-//
-//    private action Max(number v1, number v2) returns number
-//        if v1 < v2
-//            return v2
-//        else
-//            return v1
-//        end
-//    end
-//
-//    private action Min(number v1, number v2) returns number
-//        if v1 < v2
-//            return v1
-//        else
-//            return v2
-//        end
-//    end
-//
-//    private action Max(number v1, number v2, number v3) returns number
-//        if v1 > v2
-//            if v1 > v3
-//                return v1
-//            else
-//                return v3
-//            end
-//        elseif v2 > v3
-//            return v2
-//        else
-//            return v3
-//        end
-//    end
-//
-//    private action Min(number v1, number v2, number v3) returns number
-//        if v1 < v2
-//            if v1 < v3
-//                return v1
-//            else
-//                return v3
-//            end
-//        elseif v2 < v3
-//            return v2
-//        else
-//            return v3
-//        end
-//    end
+
+    Math math
+    BitwiseOperations bits
+
+    action Triangulate(Number32BitArray data) returns Array<integer>
+         return Triangulate(data, undefined, 2)
+    end
+
+    action Triangulate(Number32BitArray data, Array<integer> holeIndices, integer dimensions) returns Array<integer>
+        boolean hasHoles = (holeIndices not= undefined and holeIndices:GetSize() > 0)
+
+        integer outerLength = data:GetSize()
+        if hasHoles
+            outerLength = holeIndices:Get(0) * dimensions
+        end
+
+        Node outerNode = LinkedList(data, 0, outerLength, dimensions, true)
+
+        Array<integer> triangles
+        if outerNode = undefined or outerNode:next = outerNode:previous
+            return triangles
+        end
+
+        number minX = 0
+        number maxX = 0
+        number minY = 0
+        number maxY = 0
+        number inverseSize = minX:GetMinimumValue()
+
+        if hasHoles
+            outerNode = EliminateHoles(data, holeIndices, outerNode, dimensions)
+        end
+
+        /*
+        If the shape isn't too simple, we'll use z-order curve hash later.
+        Calculate the polygon's bounding box.
+        */
+        if data:GetSize() > 80 * dimensions
+            minX = data:Get(0)
+            maxX = minX
+            minY = data:Get(1)
+            maxY = minY
+
+            integer counter = dimensions
+            repeat while counter < outerLength
+                number x = data:Get(counter)
+                number y = data:Get(counter + 1)
+
+                if x < minX
+                    minX = x
+                elseif x > maxX
+                    maxX = x
+                end
+
+                if y < minY
+                    minY = y
+                elseif y > minY
+                    maxY = y
+                end
+
+                counter = counter + dimensions
+            end
+
+            /*
+            The minimum x/y and the size are used to tra:sform coordinates
+            into integers for z-order calculation.
+            */
+            inverseSize = maxX - minX
+            if maxY - minY > inverseSize
+                inverseSize = maxY - minY
+            end
+
+            if inverseSize not= 0
+                inverseSize = 1.0 / inverseSize
+            end
+        end
+
+        EarcutLinked(outerNode, triangles, dimensions, minX, minY, inverseSize, outerLength:GetMinimumValue())
+
+        return triangles
+    end
+
+    private action LinkedList(Number32BitArray data, integer start, integer finish, integer dimensions, boolean clockwise) returns Node         
+        Node last = undefined
+
+        if clockwise = (SignedArea(data, start, finish, dimensions) > 0)
+            integer counter = start
+            repeat while counter < finish
+                last = InsertNode(counter, data:Get(counter), data:Get(counter + 1), last)
+                counter = counter + dimensions
+            end
+        else
+            integer counter = finish - dimensions
+            repeat while counter >= start
+                last = InsertNode(counter, data:Get(counter), data:Get(counter + 1), last)
+                counter = counter - dimensions
+            end
+        end
+
+        if last not= undefined and NodesEqual(last, last:next)
+            RemoveNode(last)
+            last = last:next
+        end
+
+        return last
+    end
+
+    private action EarcutLinked(Node ear, Array<integer> triangles, integer dimensions, number minX, number minY, number inverseSize, integer pass)
+        if ear = undefined
+            return now
+        end
+
+        if pass = pass:GetMinimumValue() and inverseSize not= inverseSize:GetMinimumValue()
+            IndexCurve(ear, minX, minY, inverseSize)
+        end
+
+        Node stop = ear
+        boolean finished = false
+
+        // Iterate through the ears, slicing them one by one
+        repeat while ear:previous not= ear:next and finished = false
+            Node previous = ear:previous
+            Node next = ear:next
+
+            boolean continue = false
+            if inverseSize not= inverseSize:GetMinimumValue()
+                continue = IsEarHashed(ear, minX, minY, inverseSize)
+            else
+                continue = IsEar(ear)
+            end
+
+            if continue
+                // Cut off the triangle
+                triangles:Add(previous:index / dimensions)
+                triangles:Add(ear:index / dimensions)
+                triangles:Add(next:index / dimensions)
+
+                RemoveNode(ear)
+
+                // Skipping the next vertex leads to less "sliver" triangles
+                ear = next:next
+                stop = next:next
+            else
+
+                ear = next
+            
+                /*
+                We fulfill this condition if we've looped through the whole remaining polygon
+                and can't find any more ears
+                */
+                if ear = stop
+                    // Try filtering points and slicing again
+                    if pass = pass:GetMinimumValue()
+                        EarcutLinked(FilterPoints(ear, undefined), triangles, dimensions, minX, minY, inverseSize, 1)
+
+                    // If that didn't work, try curing all small self-intersections locally
+                    elseif pass = 1
+                        ear = CureLocalIntersections(FilterPoints(ear, undefined), triangles, dimensions)
+                        EarcutLinked(ear, triangles, dimensions, minX, minY, inverseSize, 2)
+                        
+                    // As a last resort, try splitting the remaining polygon in two
+                    elseif pass = 2
+                        SplitEarcut(ear, triangles, dimensions, minX, minY, inverseSize)
+                    end
+
+                    finished = true
+                end
+            end
+        end
+    end
+
+    private action SplitEarcut(Node start, Array<integer> triangles, integer dimensions, number minX, number minY, number size)
+        // Look for a valid diagonal that divides the polygon into two
+        Node a = start
+        boolean firstPass = true
+    
+        repeat while a not= start or firstPass
+            firstPass = false
+
+            Node aNext = a:next
+            Node b = aNext:next
+
+            repeat while b not= a:previous
+                if a:index not= b:index and IsValidDiagonal(a, b)
+                    // Split the polygon in two by the diagonal
+                    Node c = SplitPolygon(a, b)
+
+                    // Filter colinear points around the cuts
+                    a = FilterPoints(a, a:next)
+                    c = FilterPoints(c, c:next)
+
+                    // Run earcut on each half
+                    EarcutLinked(a, triangles, dimensions, minX, minY, size, dimensions:GetMinimumValue())
+                    EarcutLinked(c, triangles, dimensions, minX, minY, size, dimensions:GetMinimumValue())
+                    return now
+                end
+
+                b = b:next
+            end
+
+            a = a:next
+        end
+    end
+
+    private action IsValidDiagonal(Node a, Node b) returns boolean
+        Node aNext = a:next
+        Node aPrevious = a:previous
+        Node bNext = b:next
+        Node bPrevious = b:previous        
+
+        return (aNext:index not= b:index) and (aPrevious:index not= b:index) and (not IntersectsPolygon(a, b)) // Doesn't intersect other edges
+            and (LocallyInside(a, b) and LocallyInside(b, a) and MiddleInside(a, b) // Locally visible
+            and (Area(aPrevious, a, bPrevious) not= 0 or Area(a, bPrevious, b) not= 0) // Does not create opposite-facing sectors
+            or NodesEqual(a, b) and Area(aPrevious, a, aNext) > 0 and Area(bPrevious, b, bNext) > 0) // Special zero-length case
+    end
+
+    private action MiddleInside(Node a, Node b) returns boolean
+        Node node = a
+        boolean inside = false
+        number midX = (a:x + b:x) / 2
+        number midY = (a:y + b:y) / 2
+        
+        boolean firstPass = true
+        repeat while node not= a or firstPass
+            firstPass = false
+            Node nodeNext = node:next
+            if ((node:y > midY) not= (nodeNext:y > midY)) and (midX < (nodeNext:x - node:x) * (midY - node:y) / (nodeNext:y - node:y) + node:x)
+                inside = not inside
+            end
+
+            node = node:next
+        end
+
+        return inside
+    end
+
+    private action IntersectsPolygon(Node a, Node b) returns boolean
+        Node node = a
+        boolean firstPass = true
+        
+        repeat while node not= a or firstPass
+            firstPass = false
+            Node nodeNext = node:next
+            if node:index not= a:index and nodeNext:index not= a:index and node:index not= b:index and nodeNext:index not= b:index and Intersects(node, nodeNext, a, b)                 
+                return true
+            end
+
+            node = nodeNext
+        end
+
+        return false
+    end
+
+    private action Intersects(Node p1, Node q1, Node p2, Node q2) returns boolean
+        if (NodesEqual(p1, p2) and NodesEqual(q1, q2)) or (NodesEqual(p1, q2) and NodesEqual(p2, q1))
+            return true
+        end
+
+        number sign1 = Sign(Area(p1, q1, p2))
+        number sign2 = Sign(Area(p1, q1, q2))
+        number sign3 = Sign(Area(p2, q2, p1))
+        number sign4 = Sign(Area(p2, q2, q1))
+
+        if sign1 not= sign2 and sign3 not= sign4
+            return true // general case
+        end
+
+        if sign1 = 0 and OnSegment(p1, p2, q1)
+            return true // p1, q1 and p2 are collinear and p2 lies on p1q1
+        end
+        if sign2 = 0 and OnSegment(p1, q2, q1)
+            return true // p1, q1 and q2 are collinear and q2 lies on p1q1
+        end
+        if sign3 = 0 and OnSegment(p2, p1, q2)
+            return true // p2, q2 and p1 are collinear and p1 lies on p2q2
+        end
+        if sign4 = 0 and OnSegment(p2, q1, q2)
+            return true // p2, q2 and q1 are collinear and q1 lies on p2q2
+        end
+
+        return false
+    end
+
+    private action OnSegment(Node p, Node q, Node r) returns boolean
+        return q:x <= Max(p:x, r:x) and q:x >= Min(p:x, r:x) and q:y <= Max(p:y, r:y) and q:y >= Min(p:y, r:y)
+    end
+
+    private action Sign(number value) returns number
+        if value > 0
+            return 1
+        elseif value < 0
+            return -1
+        else
+            return 0
+        end
+    end
+
+    private action CureLocalIntersections(Node start, Array<integer> triangles, integer dimensions) returns Node
+        Node node = start
+        boolean firstPass = true
+        repeat while node not= start or firstPass
+            firstPass = false
+
+            Node nodeNext = node:next
+            Node a = node:previous
+            Node b = nodeNext:next
+
+            if not NodesEqual(a, b) and Intersects(a, node, nodeNext, b) and LocallyInside(a, b) and LocallyInside(b, a)
+                triangles:Add(a:index / dimensions)
+                triangles:Add(node:index / dimensions)
+                triangles:Add(b:index / dimensions)
+
+                // Remove two involved nodes
+                RemoveNode(node)
+                RemoveNode(nodeNext)
+
+                node = b
+                start = b
+            end
+
+            node = node:next
+        end
+
+        return FilterPoints(node, undefined)
+    end
+
+    private action IsEar(Node ear) returns boolean
+        Node a = ear:previous
+        Node b = ear
+        Node c = ear:next
+
+        if Area(a, b, c) >= 0
+            // Reflex, can't be an ear
+            return false 
+        end
+
+        // Now make sure we don't have other points inside the potential ear
+        Node earNext = ear:next
+        Node current = earNext:next
+
+        repeat while current not= ear:previous
+            if PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, current:x, current:y) and Area(current:previous, current, current:next) >= 0
+                return false
+            end
+            current = current:next
+        end
+
+        return true
+    end
+
+    private action IsEarHashed(Node ear, number minX, number minY, number inverseSize) returns boolean
+        Node a = ear:previous
+        Node b = ear
+        Node c = ear:next
+
+        if Area(a, b, c) >= 0
+            return false // Reflex, can't b: an ear
+        end
+
+        // Calculate the triangle bounding boxn
+        number minTriangleX = Min(a:x, b:x, c:x)
+        number minTriangleY = Min(a:y, b:y, c:y)
+        number maxTriangleX = Max(a:x, b:x, c:x)
+        number maxTriangleY = Max(a:y, b:y, c:y)
+
+        // The z-order range for the current triangle bounding box
+        number minZ = ZOrder(minTriangleX, minTriangleY, minX, minY, inverseSize)
+        number maxZ = ZOrder(maxTriangleX, maxTriangleY, minX, minY, inverseSize)
+
+        // First, look for points inside the triangle in increasing z-order
+        Node p = ear:previousZ
+        Node n = ear:nextZ
+
+        repeat while p not= undefined and p:z >= minZ and n not= undefined and n:z <= maxZ
+            if p not= ear:previous and p not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, p:x, p:y) and Area(p:previous, p, p:next) >= 0
+                return false
+            end
+            p = p:previousZ
+
+            if n not= ear:previous and n not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, n:x, n:y) and Area(n:previous, n, n:next) >= 0
+                return false
+            end
+            n = n:nextZ
+        end
+
+        // Look for remaining points in decreasing z-order
+        repeat while p not= undefined and p:z >= minZ
+            if (p not= ear:previous and p not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, p:x, p:y) and Area(p:previous, p, p:next) >= 0)
+                return false
+            end
+            p = p:previousZ
+        end
+
+        // Look for remaining points in increasing z-order
+        repeat while n not= undefined and n:z <= maxZ
+            if (n not= ear:previous and n not= ear:next and PointInTriangle(a:x, a:y, b:x, b:y, c:x, c:y, n:x, n:y) and Area(n:previous, n, n:next) >= 0)
+                return false
+            end
+            n = n:nextZ
+        end
+
+        return true
+    end
+
+    private action ZOrder(number x, number y, number minX, number minY, number inverseSize) returns number
+        // Coordinates are transformed into non-negative 15-bit integer range
+        integer lx = cast(integer, (32767 * (x - minX) * inverseSize))
+        integer ly = cast(integer, (32767 * (y - minY) * inverseSize))
+
+        lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 8)), 16711935) // Hex value: 00FF00FF
+        lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 4)), 252645135) // Hex value: 0F0F0F0F
+        lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 2)), 858993459) // Hex value: 33333333
+        lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 1)), 1431655765) // Hex value: 55555555
+
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 8)), 16711935) // Hex value: 00FF00FF
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 4)), 252645135) // Hex value: 0F0F0F0F
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 2)), 858993459) // Hex value: 33333333
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 1)), 1431655765) // Hex value: 55555555
+
+        return bits:Or(lx, bits:ShiftLeft(ly, 1))
+    end
+
+    private action IndexCurve(Node start, number minX, number minY, number inverseSize)
+        Node current = start
+        boolean firstPass = true
+        
+        repeat while current not= start or firstPass
+            if current:z = minX:GetMinimumValue()
+                current:z = ZOrder(current:x, current:y, minX, minY, inverseSize)
+            end
+
+            current:previousZ = current:previous
+            current:nextZ = current:next
+            current = current:next
+        end
+
+        Node currentPreviousZ = current:previousZ
+        currentPreviousZ:nextZ = undefined
+        current:previousZ = undefined
+    
+        SortLinked(current)
+    end
+
+    private action SortLinked(Node list) returns Node
+        integer inSize = 1
+        // Default value guarantees we enter the loop at least once.
+        // Actual value of 2 is irrelevant, this gets blown away as soon as we enter the loop.
+        integer mergeCount = 2
+
+        repeat while mergeCount > 1
+            Node current = list
+            list = undefined
+            Node tail = undefined
+            mergeCount = 0
+
+            repeat while current not= undefined
+                mergeCount = mergeCount + 1
+                Node node1 = current
+                integer currentSize = 0
+                integer i = 0
+                repeat while i < inSize
+                    currentSize = currentSize + 1
+                    node1 = node1:nextZ
+
+                    // Exit immediately if there was no nextZ value to go to.
+                    if node1 = undefined
+                        i = inSize
+                    end
+
+                    i = i + 1
+                end
+
+                integer node1Size = inSize
+
+                repeat while currentSize > 0 or (node1Size > 0 and node1 not= undefined)
+                    Node node2
+                    if currentSize = 0
+                        node2 = node1
+                        node1 = node1:nextZ
+                        node1Size = node1Size - 1
+                    elseif node1Size = 0 or node1 = undefined
+                        node2 = current
+                        current = current:nextZ
+                        currentSize = currentSize - 1
+                    elseif current:z <= node1:z
+                        node2 = current
+                        node1 = current:nextZ
+                        currentSize = currentSize - 1
+                    else
+                        node2 = node1
+                        node1 = node1:nextZ
+                        node1Size = node1Size - 1
+                    end
+
+                    if tail not= undefined
+                        tail:nextZ = node2
+                    else
+                        list = node2
+                    end
+
+                    node2:previousZ = tail
+                    tail = node2
+                end
+
+                current = node1
+            end
+
+            tail:nextZ = undefined
+            inSize = inSize * 2
+        end
+
+        return list
+    end
+
+    private action EliminateHoles(Number32BitArray data, Array<integer> holeIndices, Node outerNode, integer dimensions) returns Node
+        Array<Node> queue
+
+        integer length = holeIndices:GetSize()
+        integer i = 0
+        repeat while i < length
+            integer start = holeIndices:Get(i) * dimensions
+            integer finish = data:GetSize()
+            if i < length - 1
+                finish = holeIndices:Get(i + 1) * dimensions
+            end
+
+            Node list = LinkedList(data, start, finish, dimensions, false)
+            if list = list:next
+                list:steinerPoint = true
+            end
+
+            queue:Add(GetLeftMost(list))
+
+            i = i + 1
+        end
+
+        queue:Sort()
+
+        i = 0
+        repeat while i < queue:GetSize()
+            EliminateHole(queue:Get(i), outerNode)
+            outerNode = FilterPoints(outerNode, outerNode:next)
+            i = i + 1
+        end
+
+        return outerNode
+    end
+
+    private action EliminateHole(Node hole, Node outerNode)
+        outerNode = FindHoleBridge(hole, outerNode)
+        if outerNode not= undefined
+            Node node = SplitPolygon(outerNode, hole)
+
+            // Filter collinear points around the cuts
+            FilterPoints(outerNode, outerNode:next)
+            FilterPoints(node, node:next)
+        end
+    end
+
+    // David Eberly's algorithm for finding a bridge between hole and outer polygon
+    private action FindHoleBridge(Node hole, Node outerNode) returns Node
+        Node current = outerNode
+        number holeX = hole:x
+        number holeY = hole:y
+        number qx = -holeX:GetMaximumValue()
+        Node result = undefined
+
+        boolean firstPass = true
+
+        /*
+        Find a segment intersected by a ray from the hole's leftmost point to the left.
+        The segment's endpoint with the lesser x will be the potential connection point.
+        */
+        repeat while current not= outerNode or firstPass
+            firstPass = false
+            Node currentNext = current:next
+            if holeY <= current:y and holeY >= currentNext:y
+                number x = current:x + (holeY - current:y) * (currentNext:x - current:x) / (currentNext:y - current:y)
+                if x <= holeX and x > qx
+                    qx = x
+                    if x = holeX
+                        if holeY = current:y
+                            return current
+                        end
+                        if (holeY = currentNext:y)
+                            return current:next
+                        end
+                    end
+                    if current:x < currentNext:x
+                        result = current
+                    else
+                        result = currentNext
+                    end
+                end
+            end
+
+            current = current:next
+        end
+
+        if result = undefined
+            return undefined
+        end
+
+        if holeX = qx
+            // If the hole touches an outer segment, pick the leftmost endpoint
+            return result
+        end
+
+        /*
+        Look for points inside the triangle of hole point, segment intersection, and endpoint.
+        If there are no points found, we have a valid connection.
+        Otherwise, choose the point of the minimum angle with the ray as the connection point.
+        */
+
+        Node stop = result
+        number resultX = result:x
+        number resultY = result:y
+        number tangentMin = resultX:GetMaximumValue()
+        number tangent = 0
+
+        current = result
+
+        repeat while current not= stop
+            boolean valid = false
+            if holeY < resultY
+                valid = PointInTriangle(holeX, holeY, resultX, resultY, qx, holeY, current:x, current:y)
+            else
+                valid = PointInTriangle(qx, holeY, resultX, resultY, holeX, holeY, current:x, current:y)
+            end
+
+            if holeX >= current:x and current:x >= resultX and valid
+
+                tangent = math:AbsoluteValue(holeY - current:y) / (holeX - current:x) // tangential
+
+                if LocallyInside(current, hole) and (tangent < tangentMin or (tangent = tangentMin and (current:x > result:x or (current:x = result:x and SectorContainsSector(result, current)))))            
+                    result = current
+                    tangentMin = tangent
+                end
+            end
+
+            current = current:next
+        end
+
+        return result
+    end
+
+    private action FilterPoints(Node start, Node finish) returns Node
+        if (start = undefined)
+            return start
+        end
+        if (finish = undefined)
+            finish = start
+        end
+
+        Node current = start
+        boolean again = true
+
+        repeat while again or current not= finish
+            again = false
+
+            if (current:steinerPoint = false and NodesEqual(current, current:next)) or Area(current:previous, current, current:next) = 0
+                RemoveNode(current)
+                current = current:previous
+                finish = current:previous
+                if (current = current:next)
+                    again = false and current = finish
+                else
+                    again = true
+                end
+            else
+                current = current:next
+            end
+        end
+
+        return finish
+    end
+
+    private action SplitPolygon(Node a, Node b) returns Node
+        Node a2
+        a2:Set(a:index, a:x, a:y)
+        Node b2
+        b2:Set(b:index, b:x, b:y)
+        Node aNext = a:next
+        Node bPrevious = b:previous
+
+        a:next = b
+        b:previous = a
+
+        a2:next = aNext
+        aNext:previous = a2
+
+        b2:next = a2
+        a2:previous = b2
+
+        bPrevious:next = b2
+        b2:previous = bPrevious
+
+        return b2
+    end
+
+    private action LocallyInside(Node a, Node b) returns boolean
+        if Area(a:previous, a, a:next) < 0
+            return Area(a, b, a:next) >= 0 and Area(a, a:previous, b) >= 0
+        else
+            return Area(a, b, a:previous) < 0 or Area(a, a:next, b) < 0
+        end
+    end
+
+    // whether sector in vertex m contains sector in vertex p in the same coordinates
+    private action SectorContainsSector(Node m, Node p) returns boolean
+        return Area(m:previous, m, p:previous) < 0 and Area(p:next, m, m:next) < 0
+    end
+
+    private action PointInTriangle(number ax, number ay, number bx, number by, number cx, number cy, number px, number py) returns boolean         
+        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 and (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0
+                and (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0
+    end
+
+    private action GetLeftMost(Node start) returns Node
+        Node current = start
+        Node leftmost = start
+
+        boolean firstPass = true
+        repeat while current not= start or firstPass
+            firstPass = false
+            if current:x < leftmost:x or (current:x = leftmost:x and current:y < leftmost:y)
+                leftmost = current
+            end
+            current = current:next
+        end
+
+        return leftmost
+    end
+
+    private action NodesEqual(Node node1, Node node2) returns boolean
+        return node1:x = node2:x and node1:y = node2:y
+    end
+
+    private action Area(Node p, Node q, Node r) returns number
+        return (q:y - p:y) * (r:x - q:x) - (q:x - p:x) * (r:y - q:y)
+    end
+
+    private action SignedArea(Number32BitArray data, integer start, integer finish, integer dimensions) returns number
+        number sum = 0
+        integer j = finish - dimensions
+        integer i = start
+        repeat while i < finish
+            sum = sum + (data:Get(j) - data:Get(i)) * (data:Get(i + 1) + data:Get(j + 1))
+            j = i
+            i = i + dimensions
+        end
+        return sum
+    end
+
+    private action InsertNode(integer index, number x, number y, Node last) returns Node
+        Node newNode
+        newNode:Set(index, x, y)
+
+        if last = undefined
+            newNode:previous = newNode
+            newNode:next = newNode
+        else
+            Node lastNext = last:next
+            newNode:next = lastNext
+            newNode:previous = last
+            lastNext:previous = newNode
+            last:next = newNode
+        end
+
+        return newNode
+    end
+
+    private action RemoveNode(Node node)
+        Node nodeNext = node:next
+        Node nodePrevious = node:previous
+
+        nodeNext:previous = node:previous
+        nodePrevious:next = node:next
+
+        if node:previousZ not= undefined
+            Node nodePreviousZ = node:previousZ
+            nodePreviousZ:nextZ = node:nextZ
+        end
+        if node:nextZ not= undefined
+            Node nodePreviousZ = node:previousZ
+            nodePreviousZ:nextZ = node:nextZ
+        end
+    end
+
+    private action Max(number v1, number v2) returns number
+        if v1 < v2
+            return v2
+        else
+            return v1
+        end
+    end
+
+    private action Min(number v1, number v2) returns number
+        if v1 < v2
+            return v1
+        else
+            return v2
+        end
+    end
+
+    private action Max(number v1, number v2, number v3) returns number
+        if v1 > v2
+            if v1 > v3
+                return v1
+            else
+                return v3
+            end
+        elseif v2 > v3
+            return v2
+        else
+            return v3
+        end
+    end
+
+    private action Min(number v1, number v2, number v3) returns number
+        if v1 < v2
+            if v1 < v3
+                return v1
+            else
+                return v3
+            end
+        elseif v2 < v3
+            return v2
+        else
+            return v3
+        end
+    end
 end

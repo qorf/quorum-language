@@ -13,7 +13,7 @@ class Node
     public number z = x:GetMinimumValue()
 
     // Set to true if this node represents a steiner point.
-    boolean steinerPoint = false
+    public boolean steinerPoint = false
 
     // The next and previous vertex nodes in a polygon ring.
     public Node previous = undefined
@@ -29,4 +29,13 @@ class Node
         me:y = y
     end
 
+    action Compare(Node other) returns integer
+        if x - other:x > 0
+            return 1
+        elseif x - other:x < 0
+            return -2
+        else
+            return 0
+        end
+    end
 end

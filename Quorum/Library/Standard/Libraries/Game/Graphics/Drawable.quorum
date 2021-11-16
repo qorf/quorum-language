@@ -1671,16 +1671,16 @@ class Drawable is TextureRegion, Item2D
     /*
     
     */
-    action LoadShape(Array<number> points, Integer32BitArray indices)
+    action LoadShape(Array<number> points)
         Color color
         color:SetColor(0, 0, 0, 1)
-        LoadShape(points, indices, color)
+        LoadShape(points, color)
     end
 
     /*
     
     */
-    action LoadShape(Array<number> points, Integer32BitArray indices, ColorGroup color)
+    action LoadShape(Array<number> points, ColorGroup color)
         Texture temp
         temp:LoadFilledRectangle(4, 4)
         Load(temp)
@@ -1730,8 +1730,70 @@ class Drawable is TextureRegion, Item2D
 
         DrawableShape shape
         SetDrawableShape(shape)
-        shape:Load(points, indices, me)
+        shape:Load(points, me)
         shape:SetColor(color)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM_SHAPE
+
+        SetProperty(properties:POINTS, jsonPoints)
+    end
+
+    /*
+    
+    */
+    action LoadShape(Array<number> points, Array<Color> colors)
+        Texture temp
+        temp:LoadFilledRectangle(4, 4)
+        Load(temp)
+        SetColor(colors:Get(0))
+
+        JavaScriptObjectNotation jsonPoints
+        jsonPoints:SetArray()
+
+        number minX = points:Get(0)
+        number maxX = minX
+        number minY = points:Get(1)
+        number maxY = minY
+
+        integer counter = 0
+        Array<Vector2> vertices
+        repeat while counter < points:GetSize()
+            number x = points:Get(counter)
+            number y = points:Get(counter + 1)
+
+            if x < minX
+                minX = x
+            elseif x > maxX
+                maxX = x
+            end
+
+            if y < minY
+                minY = y
+            elseif y > maxY
+                maxY = y
+            end
+
+            Vector2 vertex
+            vertex:Set(x, y)
+            vertices:Add(vertex)
+
+            jsonPoints:Add(x)
+            jsonPoints:Add(y)
+
+            counter = counter + 2
+        end
+
+        SetOrigin((maxX - minX) / 2, (maxY - minY) / 2)
+
+        Polygon polygon
+        polygon:Set(vertices, 3)
+        SetShape(polygon)
+
+        DrawableShape shape
+        SetDrawableShape(shape)
+        shape:Load(points, me)
+        shape:SetColor(colors)
 
         SceneProperties properties
         drawableType = properties:CUSTOM_SHAPE
