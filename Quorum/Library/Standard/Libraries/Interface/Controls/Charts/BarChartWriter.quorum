@@ -175,9 +175,9 @@ class BarChartWriter is ChartWriter
             j = 0
             repeat while j < barGroups:Get(i):GetSize()
                 ListItem barNav 
-                barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
+                barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
                 barNav:AddAttribute("role","treeitem")
-                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
                 barNav:SetTabIndex("-1")
                 currentGrouping:Add(barNav)
 
