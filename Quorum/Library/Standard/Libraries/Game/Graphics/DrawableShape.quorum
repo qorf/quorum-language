@@ -50,6 +50,15 @@ class DrawableShape
     number baseWidth = 0
     number baseHeight = 0
 
+    /*
+    The last valid baseWidth or baseHeight used for size calculations.
+    We need to store this in case we receive a new width/height of 0.
+    If we don't store the old value, it becomes impossible to calculate
+    the correct size in the future if we get new sizing requests.
+    */
+    number lastValidWidth = 0
+    number lastValidHeight = 0
+
     // The Drawable this shape belongs to.
     Drawable drawable = undefined
 
@@ -179,7 +188,6 @@ class DrawableShape
     This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
     */
     action Load(Array<number> points, TextureRegion region)
-        // TO-DO: Modify this call to remove the indices offered. Generate them automatically.
         vertices:SetSize((points:GetSize() / 2) * VERTEX_SIZE)
 
         Number32BitArray array
@@ -391,12 +399,26 @@ class DrawableShape
     end
 
     action SetWidth(number width)
-        // Don't allow a width of zero -- it'll blow away all of our base position information
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
         if width = 0
-            width = 1
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+            baseWidth = width
         end
 
-        number xModifier = width / baseWidth
+        number oldWidth = baseWidth
+
+        if width = 0
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldWidth = 0
+                oldWidth = lastValidWidth
+            end
+        end
+
+        number xModifier = width / oldWidth
 
         integer i = 0
         repeat while i < basePositions:GetSize()
@@ -409,12 +431,26 @@ class DrawableShape
     end
 
     action SetHeight(number height)
-        // Don't allow a height of zero -- it'll blow away all of our base position information
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
         if height = 0
-            height = 1
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+            baseHeight = height
         end
 
-        number yModifier = height / baseHeight
+        number oldHeight = baseHeight
+
+        if height = 0
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldHeight = 0
+                oldHeight = lastValidHeight
+            end
+        end
+
+        number yModifier = height / oldHeight
 
         integer i = 1
         repeat while i < basePositions:GetSize()
@@ -427,16 +463,44 @@ class DrawableShape
     end
 
     action SetSize(number width, number height)
-        // Don't allow a width or height of zero -- it'll blow away all of our base position information
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
         if width = 0
-            width = 1
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+            baseWidth = width
         end
         if height = 0
-            height = 1
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+            baseHeight = height
         end
 
-        number xModifier = width / baseWidth
-        number yModifier = height / baseHeight
+        number oldWidth = baseWidth
+        number oldHeight = baseHeight
+
+        if width = 0 and height = 0
+            return now
+        elseif width = 0
+            SetHeight(height)
+            return now
+        elseif height = 0
+            SetWidth(width)
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldWidth = 0
+                oldWidth = lastValidWidth
+            end
+
+            if oldHeight = 0
+                oldHeight = lastValidHeight
+            end
+        end
+
+        number xModifier = width / oldWidth
+        number yModifier = height / oldHeight
 
         integer i = 0
         repeat while i < basePositions:GetSize()
@@ -476,8 +540,32 @@ class DrawableShape
             return now
         end
 
-        baseWidth = drawable:GetWidth()
-        baseHeight = drawable:GetHeight()
+        /*
+        If the base width/height ever need to become 0, we want to try to store a copy of the last valid
+        value we had. This will make it possible to resize the base vertices in the future if we receive
+        new sizing information.
+        */
+        number drawableWidth = drawable:GetWidth()
+        if drawableWidth = 0
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+        end
+
+        number drawableHeight = drawable:GetHeight()
+        if drawableHeight = 0
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+        end
+
+        baseWidth = drawableWidth
+        baseHeight = drawableHeight
+
+        if IsRenderable() = false
+            needsUpdate = false
+            return now
+        end
 
         // Vertices are set to negative Z to reverse draw order.
         number negatedZ = -drawable:GetGlobalZ()
@@ -640,8 +728,13 @@ class DrawableShape
     action GetVertexData(integer index) returns number
         return vertices:Get(index)
     end
+
     action GetMesh returns Mesh
         return mesh
+    end
+
+    action IsRenderable returns boolean
+        return baseWidth not= 0 and baseHeight not= 0
     end
 
 end

@@ -84,6 +84,7 @@ class ProgressBar is Control
         LayoutProperties iconProperties = backgroundBar:GetDefaultLayoutProperties()
         iconProperties:SetPercentageHeight(1.0)
         iconProperties:SetPercentageWidth(1.0)
+        backgroundBar:SetName("Bar Background")
         Add(backgroundBar)
 
         bar:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), barColor)
@@ -94,6 +95,7 @@ class ProgressBar is Control
         iconProperties:SetRightPadding(borderThickness)
         iconProperties:SetTopPadding(borderThickness)
         iconProperties:SetBottomPadding(borderThickness)
+        bar:SetName("Bar Fill")
         backgroundBar:Add(bar)
 
         parent:Control:LoadGraphics(properties)

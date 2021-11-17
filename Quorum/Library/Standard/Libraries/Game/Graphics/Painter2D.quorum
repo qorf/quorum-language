@@ -553,6 +553,10 @@ class Painter2D
     (see Item2D's SetCustomDrawing and Draw actions).
     */
     action Draw(Drawable drawable)
+        if not IsDrawing()
+            alert("Painter2D:Begin() must be called before Draw.")
+        end
+
         drawable:SetClipCoordinates(me)
 
         // If the clip width or height is negative, then the drawing region is
@@ -561,9 +565,18 @@ class Painter2D
             return now
         end
 
-        if not IsDrawing()
-            alert("Painter2D:Begin() must be called before Draw.")
+        // This will update the vertices stored in the Drawable. These vertices
+        // will be used when Flush() is called (which is when the actual drawing
+        // occurs).
+        drawable:PrepareVertices()
+
+        DrawableShape shape = drawable:GetDrawableShape()
+
+        // If the Drawable's shape can't be rendered, then skip it entirely.
+        if shape:IsRenderable() = false
+            return now
         end
+
 
         ShaderProgram candidate = drawable:GetShaderProgram()
         if candidate = undefined
@@ -586,17 +599,13 @@ class Painter2D
         integer verticesLength = GetVertices():GetSize()
         if drawable:GetTexture() not= lastTexture
             SwitchTexture(drawable:GetTexture())
-        elseif verticesLength - drawIndex < drawable:DRAWABLE_SIZE
+
+        // Default quads use 24 vertices to render. We need at least that much space.
+        elseif verticesLength - drawIndex < 24
             Flush()
         end
 
-        // This will update the vertices stored in the Drawable. These vertices
-        // will be used when Flush() is called (which is when the actual drawing
-        // occurs).
-        drawable:PrepareVertices()
-
-        DrawableShape shape = drawable:GetDrawableShape()
-
+        
         if drawable:UsingCustomTint() = false
             shape:SetColor(colorValue)
         end

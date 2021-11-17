@@ -59,37 +59,6 @@ use Libraries.Game.Graphics.Shaders.ShaderMapping
 */
 class Drawable is TextureRegion, Item2D
 
-    // These constants represent certain aspects of each vertex. For example,
-    // X1 and Y2 represent the x value of the first vertex and the y value of
-    // the second vertex, respectively.
-    public constant integer X1 = 0
-    public constant integer Y1 = 1
-    public constant integer Z1 = 2
-    public constant integer C1 = 3
-    public constant integer U1 = 4
-    public constant integer V1 = 5
-    public constant integer X2 = 6
-    public constant integer Y2 = 7
-    public constant integer Z2 = 8
-    public constant integer C2 = 9
-    public constant integer U2 = 10
-    public constant integer V2 = 11
-    public constant integer X3 = 12
-    public constant integer Y3 = 13
-    public constant integer Z3 = 14
-    public constant integer C3 = 15
-    public constant integer U3 = 16
-    public constant integer V3 = 17
-    public constant integer X4 = 18
-    public constant integer Y4 = 19
-    public constant integer Z4 = 20
-    public constant integer C4 = 21
-    public constant integer U4 = 22
-    public constant integer V4 = 23
-
-    public constant integer VERTEX_SIZE = 6
-    public constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
-
     private ColorGroup colorGroup = undefined
     private boolean useCustomColor = false
     private boolean useCustomGradient = false
