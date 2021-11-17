@@ -1693,9 +1693,17 @@ class Drawable is TextureRegion, Item2D
 
         SetOrigin((maxX - minX) / 2, (maxY - minY) / 2)
 
-        Polygon polygon
-        polygon:Set(vertices, 3)
-        SetShape(polygon)
+        check
+            Polygon polygon
+            polygon:Set(vertices, vertices:GetSize())
+            SetShape(polygon)
+        detect error
+            /*
+            The polygon set action can fail if we received vertices that are very close together.
+            If this happens, just ignore it. Allow default collision handling to do its work.
+            In this case, the item is most likely incredibly small anyway, so high precision collision is less important.
+            */
+        end
 
         DrawableShape shape
         SetDrawableShape(shape)
@@ -1755,9 +1763,17 @@ class Drawable is TextureRegion, Item2D
 
         SetOrigin((maxX - minX) / 2, (maxY - minY) / 2)
 
-        Polygon polygon
-        polygon:Set(vertices, 3)
-        SetShape(polygon)
+        check
+            Polygon polygon
+            polygon:Set(vertices, vertices:GetSize())
+            SetShape(polygon)
+        detect error
+            /*
+            The polygon set action can fail if we received vertices that are very close together.
+            If this happens, just ignore it. Allow default collision handling to do its work.
+            In this case, the item is most likely incredibly small anyway, so high precision collision is less important.
+            */
+        end
 
         DrawableShape shape
         SetDrawableShape(shape)

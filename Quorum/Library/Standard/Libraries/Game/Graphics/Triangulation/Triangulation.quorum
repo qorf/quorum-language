@@ -433,6 +433,7 @@ class Triangulation
         boolean firstPass = true
         
         repeat while current not= start or firstPass
+            firstPass = false
             if current:z = minX:GetMinimumValue()
                 current:z = ZOrder(current:x, current:y, minX, minY, inverseSize)
             end
@@ -450,6 +451,8 @@ class Triangulation
     end
 
     private action SortLinked(Node list) returns Node
+        // Merge sort the linked list with regards to their z-value.
+
         integer inSize = 1
         // Default value guarantees we enter the loop at least once.
         // Actual value of 2 is irrelevant, this gets blown away as soon as we enter the loop.
@@ -481,7 +484,7 @@ class Triangulation
                 integer node1Size = inSize
 
                 repeat while currentSize > 0 or (node1Size > 0 and node1 not= undefined)
-                    Node node2
+                    Node node2 = undefined
                     if currentSize = 0
                         node2 = node1
                         node1 = node1:nextZ
@@ -492,7 +495,7 @@ class Triangulation
                         currentSize = currentSize - 1
                     elseif current:z <= node1:z
                         node2 = current
-                        node1 = current:nextZ
+                        current = current:nextZ
                         currentSize = currentSize - 1
                     else
                         node2 = node1
@@ -790,8 +793,8 @@ class Triangulation
             nodePreviousZ:nextZ = node:nextZ
         end
         if node:nextZ not= undefined
-            Node nodePreviousZ = node:previousZ
-            nodePreviousZ:nextZ = node:nextZ
+            Node nodeNextZ = node:nextZ
+            nodeNextZ:previousZ = node:previousZ
         end
     end
 

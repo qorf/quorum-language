@@ -80,7 +80,7 @@ class Polygon is CollisionShape2D
     action Set(Array<Vector2> passedVertices, integer count)
         if count < 3
             SetAsBox(1, 1)
-            alert("Not enough vertices for polygon shape")
+            alert("Not enough vertices for polygon shape. I was given " + count + ", but I need at least 3.")
             return now
         end
 
@@ -122,7 +122,7 @@ class Polygon is CollisionShape2D
         n = tempCount
         if n < 3
             SetAsBox(1, 1)
-            alert("Not enough unique vertices for polygon shape")
+            alert("Not enough unique vertices for polygon shape. Out of " + count + " vertices, only " + n + " were unique. I need at least 3 unique vertices.")
             return now
         end
 
