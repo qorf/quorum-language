@@ -7,12 +7,16 @@ class DefaultFragmentShader3D is Shader
         ShaderManager manager
         SetName(manager:DEFAULT_3D_FRAGMENT_SHADER)
 
-        DefaultAttributeNames attributes
-        SetCode(
-"#version 410
-// Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
+/* 
+    The default value of the input diffuse colors is a vector 4 that is white.
 
-#ifdef GL_ES 
+    Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
+*/
+        DefaultAttributeNames attributes
+        SetCode( GetOpenGLVersion() +
+"
+" +
+"#ifdef GL_ES 
     #define LOWP lowp
     #define MED mediump
     #define HIGH highp

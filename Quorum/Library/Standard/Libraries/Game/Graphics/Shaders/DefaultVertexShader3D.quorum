@@ -8,9 +8,10 @@ class DefaultVertexShader3D is Shader
         SetName(manager:DEFAULT_3D_VERTEX_SHADER)
         
         DefaultAttributeNames attributes
-        SetCode(
-"#version 410
-// True if item has a diffuse texture, false otherwise
+        SetCode(GetOpenGLVersion() +
+"
+" +
+"// True if item has a diffuse texture, false otherwise
 uniform bool enableDiffuseTexture; 
 
 // Used if enableDiffuseTexture

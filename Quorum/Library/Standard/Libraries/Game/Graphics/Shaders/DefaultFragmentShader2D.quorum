@@ -9,13 +9,14 @@ class DefaultFragmentShader2D is Shader
 
         // TO-DO: Possibly adjust variable names to use constants instead?
         DefaultAttributeNames attributes
-        SetCode(
-"#version 410
-#ifdef GL_ES
-#define LOWP lowp
-precision mediump float;
+        SetCode(GetOpenGLVersion() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
 #else
-#define LOWP 
+    #define LOWP 
 #endif
 in LOWP vec4 v_color;
 in vec2 v_texCoords;

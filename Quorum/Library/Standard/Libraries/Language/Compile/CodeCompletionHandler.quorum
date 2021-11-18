@@ -658,7 +658,7 @@ class CodeCompletionHandler
                 return value
             else 
                 //token:category
-                if token:category = constants:IF //remove the if and move forward
+                if token:category = constants:IF or token:category = constants:ELSE_IF//remove the if and move forward
                     return value:GetSubtext(token:endIndex + 1):Trim()
                 elseif token:category = constants:REPEAT
                     //if the next is while or until, skip that too, otherwise send it back

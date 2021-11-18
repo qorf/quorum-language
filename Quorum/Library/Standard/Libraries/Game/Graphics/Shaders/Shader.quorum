@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Shaders
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.System.Properties
 
 class Shader
 
@@ -67,6 +68,24 @@ class Shader
         shaderID = graphics:CreateShader(type, code)
 
         compiled = true
+    end
+
+    /*
+        This action takes platform into account and returns a default version of OpenGL's number to be placed at the top of a shader. For shaders
+        not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
+    */
+    action GetOpenGLVersion returns text
+        Properties prop
+        if prop:IsWindows()
+            return "#version 410"
+        elseif prop:IsMac()
+            return "#version 410"
+        elseif prop:IsAndroid()
+            return "#version 300"
+        else
+            return "#version 300"
+        end
+        return ""
     end
 
     action Reload

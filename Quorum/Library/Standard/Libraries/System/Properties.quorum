@@ -173,6 +173,44 @@ shared class Properties
     end
 
     /*
+    This property returns whether or not the program is running on Android.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    boolean value = properties:IsAndroid()
+    output value
+    */
+    action IsAndroid returns boolean
+        text os = GetOperatingSystemName()
+        if os:Contains("Android Runtime")
+            return true
+        end
+
+        return false
+    end
+
+    /*
+    This property returns whether or not the program is running on a web browser.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    boolean value = properties:IsWebBrowser()
+    output value
+    */
+    action IsWebBrowser returns boolean
+        text os = GetOperatingSystemName()
+        if os:Contains("Web Browser")
+            return true
+        end
+
+        return false
+    end
+
+    /*
     This helper method returns the requested web address if the project
     was a web project.
 

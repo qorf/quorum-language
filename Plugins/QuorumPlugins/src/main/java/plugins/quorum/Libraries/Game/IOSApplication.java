@@ -63,6 +63,7 @@ public class IOSApplication
     public static void SetOperatingSystem()
     {
         quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
+        Foundation.log("%@", new NSString("Version is " + System.getProperty("os.name")));
         /*
         Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
         Foundation.log("%@", new NSString("Version is " + System.getProperty("os.version")));
