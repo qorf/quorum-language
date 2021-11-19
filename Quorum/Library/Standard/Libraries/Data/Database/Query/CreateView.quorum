@@ -1,0 +1,71 @@
+package Libraries.Data.Database
+
+/*
+    The DropTable class is a query to either remove a table from a database or to remove all data from it. 
+    DropTable contains only two attributes of importance, the name of the table to manipulate and whether 
+    or not we are deleting all of the data or the data and the table itself. 
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Data.Database
+
+    DropTable table
+    table:SetTable("Users")
+    
+*/
+class CreateView is Query
+    private constant text TABLE_ERROR = ""
+    private constant text NO_STATEMENT_ERROR = ""
+    private constant text NAME_CONFLICT = ""
+
+
+    private text name = undefined
+    private Find query = undefined
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetQuery(Find query)
+        me:query = query
+    end
+
+    action GetQuery returns Find
+        return query
+    end
+
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        if name = undefined or name = ""
+            alert(TABLE_ERROR)
+        end
+        if query = undefined
+            alert(NO_STATEMENT_ERROR)
+        end
+        // by default we'll allow updating views with create
+        text result = "CREATE OR REPLACE VIEW "
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        DatabaseTable table = meta:GetTable(name)
+        if table not= undefined
+            // if it's a table the name can't be used if it's a view then it will be replaced
+            if table:GetType() = "TABLE"
+                alert(NAME_CONFLICT)
+            end
+        end
+        result = result + name + " AS "
+        query:SetDatabaseMetaData(meta)
+        text queryToText = query:ConvertToStructuredQueryLanguage()
+        // query conversion failed it would have happened already
+        result = result + queryToText
+
+        return result
+    end
+
+
+end

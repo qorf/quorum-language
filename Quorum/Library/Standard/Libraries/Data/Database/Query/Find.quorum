@@ -1,0 +1,854 @@
+package Libraries.Data.Database
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Data.Database.Support.Join
+use Libraries.Data.Database.Support.ColumnTarget
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Data.Database.Support.TableTarget
+
+
+/*
+    The Find query represents the SELECT command of the SQL (Structured Query Language) language. 
+    This query allows for accessing data in the database. This query also allows operatations to be
+    performed on the data before returning it, such as Sum, Maximum, or Count.
+ 
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Find
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Find query
+query:SetTable("employees")
+query:AddColumn("lastName")
+query:AddColumn("firstName")
+
+QueryResult results = database:Find(query)
+
+*/
+class Find is Query
+    Array<ColumnTarget> columns //used to keep order
+    HashTable<text, ColumnTarget> columnTable //used for lookup
+
+    boolean distinct = false
+    private boolean usingDerivedTable = false
+
+    Array<ColumnTarget> sorts
+    Array<Join> joins
+    Array<ColumnTarget> groups
+    integer limit = -1
+
+
+
+    /*
+        This actions sets whether or not the column targets are distinct. If set
+        to true the rows returned from each column target will be unique.
+
+        Attribute: Parameter distinct If true the column targets will be set to only return unique values
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:SetDistinct(true)
+    */
+    action SetDistinct(boolean distinct)
+        me:distinct = distinct
+    end
+
+
+    /*
+        Returns true if the column targets will only return distinct values 
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+        query:SetDistinct(true)
+
+        boolean uniqueFind = query:IsDistinct()
+    */
+    action IsDistinct returns boolean
+        return distinct
+    end
+
+    action AddColumnNameRemap(text table, text column, text newName)
+        ColumnTarget nameRemap
+        nameRemap:SetName(column)
+        nameRemap:SetTable(table)
+        nameRemap:SetRemappedName(newName)
+        AddNameRemap(newName, nameRemap)
+    end
+
+    action AddColumnNameRemap(text column, text newName)
+        AddColumnNameRemap(undefined, column, newName)
+    end
+
+    action SetTableToSubquery(Find derivedTable, text newName)
+        usingDerivedTable = true
+        SetTable(newName)
+        TableTarget tableRemap
+        tableRemap:SetRemappedName(newName)
+        tableRemap:SetSubquery(derivedTable)
+        AddNameRemap(newName, tableRemap)
+    end
+
+    /*
+        This action adds a column target. The column targets will be the columns in a database table to fetch data from.
+
+        Attribute: Parameter name The name of the column that will be targeted
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+     
+    */
+
+    action AddColumn(text name)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name, target)
+    end
+
+    action AddColumnWithNameRemap(text table, text column, text newName)
+        AddColumnNameRemap(table, column, newName)
+        AddColumn(newName)
+    end
+
+    action AddColumnWithNameRemap(text column, text newName)
+        ColumnTarget nameRemap
+        nameRemap:SetName(column)
+        nameRemap:SetPrintTable(false)
+        nameRemap:SetRemappedName(newName)
+        AddNameRemap(newName, nameRemap)
+        AddColumn(newName)
+    end
+
+    action AddColumnFromTable(text name, text table)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetTable(table)
+        target:SetPrintTable(true)
+        columns:Add(target)
+        columnTable:Add(name, target)
+    end
+
+    /*
+        This action checks if a column is in the list of targets.
+
+        Attribute: Parameter name The name of the column to search for
+
+        Attribute: Returns Returns true if the column was found, false otherwise.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        boolean hasCity = query:HasColumn("city")
+     
+    */
+    action HasColumn(text name) returns boolean
+        return columnTable:HasKey(name)
+    end
+
+    action GetColumnListSize() returns integer
+        return columns:GetSize()
+    end
+
+    /*
+        This action removes a specific column from the list of targets.
+
+        Attribute: Parameter name The name of the column that will be removed from the target list
+        Attribute: Returns Returns true if the column was removed, false otherwise
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:RemoveColumn("city")
+     
+    */
+    action RemoveColumn(text name) returns boolean  
+        ColumnTarget value = columnTable:RemoveKey(name)
+        return columns:Remove(value)
+    end
+
+    /*
+        This action removes all column targets.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:EmptyColumns()
+     
+    */
+    action EmptyColumns
+        columns:Empty()
+        columnTable:Empty()
+    end
+
+    /* 
+        Adds a sort command, which is ascending by default.
+
+        Attribute: Parameter name The name of the column used to sort
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:AddSort("city")
+
+    */
+    action AddSort(text name)
+        AddSortFromTable(name, undefined, true)
+    end
+
+
+    /* 
+        Adds a sort command, which is ascending by default, but can be set to descending.
+
+        Attribute: Parameter name The name of the column used to sort
+        Attribute: Parameter ascending If true the sort will be ascending, if false it will be descending
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:AddSort("city", false)
+
+    */
+    action AddSort(text name, boolean ascending)
+        AddSortFromTable(name, undefined, ascending)
+    end
+
+    action AddSort(text name, text table)
+        AddSortFromTable(name, table, true)
+    end
+
+    action AddSortFromTable(text name, text table, boolean ascending)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetTable(table)
+        target:SetDistinct(ascending)
+    end
+    /*
+        This action removes all sorts.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddSort("city")
+
+        query:EmptySorts()
+     
+    */
+    action EmptySorts
+        sorts:Empty()
+    end
+
+    action AddGroup(text name)
+        AddGroupFromTable(name, undefined)
+    end
+
+    action AddGroup(text name, text table)
+        AddGroupFromTable(name ,table)
+    end
+
+    action AddGroupFromTable(text name, text table)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetTable(table)
+        groups:Add(target)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we count the number of rows that match with the specified criteria.
+
+        Attribute: Parameter name The name of the column used to count
+        Attribute: Parameter distinct If true the count will only count unique values
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddCount("city", true)
+    */
+    action AddCount(text name, boolean distinct)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetFunction("COUNT")
+        target:SetDistinct(distinct)
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name+target:GetFunction(), target)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we count the number of rows that match with the specified criteria.
+
+        Attribute: Parameter name The name of the column used to count
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddCount("city")
+
+    */
+    action AddCount(text name)
+        AddCount(name, false)
+    end
+
+
+    /*
+        Add a column where, instead of displaying it, we average its values.
+
+        Attribute: Parameter name The name of the column to average
+        Attribute: Parameter distinct If true the mean will only be of unique values
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddMean("MSRP", true)
+
+    */
+    action AddMean(text name, boolean distinct)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetFunction("AVG")
+        target:SetDistinct(distinct)
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name+target:GetFunction(), target)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we average its values.
+        Attribute: Parameter name The name of the column to average
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddMean("MSRP")
+
+    */
+    action AddMean(text name)
+        AddMean(name, false)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we sum its values.
+
+        Attribute: Parameter name The name of the column to sum
+        Attribute: Parameter distinct If true the sum will only be of unique values
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddSum("quantityInStock", true)
+
+    */
+    action AddSum(text name, boolean distinct)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetFunction("SUM")
+        target:SetDistinct(distinct)
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name+target:GetFunction(), target)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we sum its values.
+
+        Attribute: Parameter name The name of the column to sum
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddSum("quantityInStock", true)
+
+    */
+    action AddSum(text name)
+        AddSum(name, false)
+    end
+
+
+    /*
+        Add a column where, instead of displaying it, we find the minimum value.
+
+        Attribute: Parameter name The name of the column to find the minimum of
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddMinimum("MSRP")
+
+    */
+    action AddMinimum(text name)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetFunction("MIN")
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name+target:GetFunction(), target)
+    end
+
+    /*
+        Add a column where, instead of displaying it, we find the maximum value.
+
+        Attribute: Parameter name The name of the column to find the maximum of
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddMaximum("MSRP")
+
+    */
+    action AddMaximum(text name)
+        ColumnTarget target
+        target:SetName(name)
+        target:SetFunction("MAX")
+        target:SetPrintTable(false)
+        columns:Add(target)
+        columnTable:Add(name+target:GetFunction(), target)
+    end
+
+
+    action AddInnerJoin(text table, text condition)
+        Join inner
+        inner:SetToInnerJoin()
+        inner:SetTable(table)
+        AddTableReference(table)
+        inner:SetJoinCondition(condition)
+        joins:Add(inner)
+    end
+
+    action AddLeftJoin(text table, text condition)
+        Join left
+        left:SetToLeftJoin()
+        left:SetTable(table)
+        AddTableReference(table)
+        left:SetJoinCondition(condition)
+        joins:Add(left)
+    end
+
+    action AddRightJoin(text table, text condition)
+        Join right
+        right:SetToRightJoin()
+        right:SetTable(table)
+        AddTableReference(table)
+        right:SetJoinCondition(condition)
+        joins:Add(right)
+    end
+
+    action AddCrossJoin(text table)
+        Join right
+        right:SetToRightJoin()
+        right:SetTable(table)
+        AddTableReference(table)
+        right:SetJoinCondition(undefined)
+        joins:Add(right)
+    end
+
+    action GetColumnType(integer position) returns Type
+        if position < columns:GetSize()
+            return columns:Get(position):GetType()
+        end
+        return undefined
+    end
+
+
+    /*
+        INTERNAL USE
+    */
+    action GetColumnType(text column) returns Type
+        ColumnTarget search = columnTable:GetValue(column)
+        if search not= undefined
+            return search:GetType()
+        end
+        // this is in the event of a select all 
+        if columnTable:IsEmpty() and GetDatabaseMetaData() not= undefined // need metadata to be defined
+            table = GetTable()
+            // not very many checks could crash
+            if usingDerivedTable
+                RemappableName subquery = GetNameRemaps():GetValue(table)
+                TableTarget subQ = cast(TableTarget, subquery)
+                return subQ:GetSubquery():GetColumnType(column)
+            else
+                DatabaseMetaData meta = GetDatabaseMetaData()
+                DatabaseTable dataTable = meta:GetTable(table)
+                if dataTable not= undefined
+                    DatabaseColumn col = dataTable:GetColumn(column)
+                    if col not= undefined
+                        return col:GetType()
+                    end
+                end
+            end
+        end
+        return undefined
+    end
+
+    private action IsValidTarget(ColumnTarget target) returns boolean
+        // this function will also try to resolve the type of the target
+        text name = target:GetName()
+        text originalName = name
+        DatabaseMetaData meta = GetDatabaseMetaData()
+
+        //check if this name is a remap
+        boolean remap = false
+        text original = name
+        HashTable<text, RemappableName> remapTable = GetNameRemaps()
+        // if it's a remapped name you already know the table and column
+        if remapTable:HasKey(name)
+            remap = true
+            RemappableName remappedName = remapTable:GetValue(name)
+            if remappedName is ColumnTarget
+                ColumnTarget col = cast(ColumnTarget, remappedName)
+                text tableName = col:GetTable()
+                if tableName not= undefined and tableName not= ""
+                    if remapTable:GetValue(tableName) not= undefined and remapTable:GetValue(tableName) is TableTarget
+                        TableTarget remappedTable = cast(TableTarget, remapTable:GetValue(tableName))
+                        tableName = remappedTable:GetTable()
+                    end
+                    DatabaseTable table = meta:GetTable(tableName)
+                    if table = undefined
+                        alert("The table '"+ col:GetTable() +"' was referenced but could not be found in the database")
+                    end
+                    DatabaseColumn column = table:GetColumn(col:GetName())
+                    if column = undefined
+                        alert("The column name '"+col:GetName()+"' could not be found in table '"+ col:GetTable() +"'")
+                    end
+                    //if needed for checking set a type
+                    col:SetRawType(column:GetRawType())
+                    columnTable:Set(originalName, col) // replace column target we had                      
+                    return true
+                else
+                    target = col
+                    name = col:GetName()
+                end
+            else
+                alert("Name remap must remap a column if it is to be used as a column target")
+            end
+        end
+        // iterate through every table that's referenced
+        text table = ""
+
+        if target:GetTable() not= undefined and target:GetTable() not= ""
+            table = target:GetTable()
+            if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+                TableTarget remappedTable = cast(TableTarget, GetNameRemaps():GetValue(table))
+                if remappedTable:IsSubquery()
+                    return true
+                else
+                    table = remappedTable:GetTable()
+                end
+            end
+
+            DatabaseTable dbTable = meta:GetTable(table)
+            if dbTable = undefined
+                alert("The table '"+ table +"' was referenced but could not be found in the database")
+            end
+
+            DatabaseColumn column = dbTable:GetColumn(name)
+            if column not= undefined
+                    target:SetRawType(column:GetRawType())
+            end
+            return true
+        end
+        if not GetTableReferences():IsEmpty()
+            Iterator<text> iterator = GetTableReferences():GetKeyIterator()
+            boolean found = false
+            repeat while iterator:HasNext()
+                // the table references will not contain the aliases
+                table = iterator:Next()
+                if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+                    TableTarget remappedTable = cast(TableTarget, GetNameRemaps():GetValue(table))
+                    if remappedTable:IsSubquery()
+                        return true
+                    else
+                        table = remappedTable:GetTable()
+                    end
+                end
+                
+                DatabaseTable dbTable = meta:GetTable(table)
+                if dbTable = undefined
+                    alert("The table '"+ table +"' was referenced but could not be found in the database")
+                end
+
+                DatabaseColumn column = dbTable:GetColumn(name)
+                if column not= undefined
+                    if found
+                        alert("The column name '"+name+"' was found in multiple tables you must specify which table to target")
+                    end
+                    //ColumnTarget target = columnTable:GetValue(name)
+                    if target not= undefined
+                        target:SetTable(table)
+                        target:SetRawType(column:GetRawType())
+                        columnTable:Set(originalName, target) // replace column target we had    
+                    end
+                    found = true
+                end
+            end
+            return found
+        end
+        return false
+    end
+
+    private action GetTargets returns text
+        text query = ""
+        if not columns:IsEmpty()
+            Iterator<ColumnTarget> iterator = columns:GetIterator()
+            repeat while iterator:HasNext()
+                ColumnTarget target = iterator:Next()
+                text columnName = target:GetName()
+                boolean valid = IsValidTarget(target)
+                if not valid
+                    alert("Could not find column " + columnName + " in table " + GetTable())
+                end
+                if GetNameRemaps():HasKey(columnName)
+                    target = columnTable:GetValue(columnName)
+                end
+                query = query + target:ToText()
+
+                //if there's more, put in a comma
+                if iterator:HasNext()
+                    query = query + ", "
+                end
+            end
+        end
+        return query
+    end
+    
+    private action GetSorts returns text
+        text query = "ORDER BY"
+        if not sorts:IsEmpty()
+        Iterator<ColumnTarget> iterator = sorts:GetIterator()
+            repeat while iterator:HasNext()
+                //first check it
+                ColumnTarget target = iterator:Next()
+                boolean valid = IsValidTarget(target)
+                if not valid
+                    alert("Could not find column " + target:GetName() + " in table " + GetTable())
+                end
+
+                boolean ascending = target:IsDistinct()
+                key = target:ToText()
+                constant text DESCENDING = "DESC"
+                if ascending
+                    query = query + " " + key
+                else
+                    query = query + " " + key + " " + DESCENDING
+                end
+
+                //if there's more, put in a comma
+                if iterator:HasNext()
+                    query = query + ", "
+                end
+            end
+            query = query
+        end
+        return query
+    end
+
+    private action GetGroups returns text
+        text query = "GROUP BY"
+        Iterator<ColumnTarget> iterator = groups:GetIterator()
+        repeat while iterator:HasNext()
+            ColumnTarget target = iterator:Next()
+            text name = target:GetName()
+            //first check it
+            boolean valid = IsValidTarget(target)
+            if not valid
+                alert("Could not find column " + name + " in table " + GetTable())
+            end
+            //only ascending for now
+            //boolean ascending = sorts:GetValue(name)
+            name = target:ToText()
+            query = query + " " + name
+
+            //if there's more, put in a comma
+            if iterator:HasNext()
+                query = query + ", "
+            end
+        end
+        return query
+    end
+
+    private action GetJoins returns text
+        text query = ""
+        if not joins:IsEmpty()
+            Iterator<Join> iterator = joins:GetIterator()
+            repeat while iterator:HasNext()
+                Join join = iterator:Next()
+                query = query +  " " + join:GetJoinType() + " "
+                text table = join:GetTable()
+                text alias = undefined
+                if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+                    TableTarget remap = cast(TableTarget, GetNameRemaps():GetValue(table))
+                    table = remap:GetTable()
+                    alias = remap:GetRemappedName()
+                end
+                query = query + table
+                if alias not= undefined and alias not= ""
+                    query = query + " AS " + alias
+                end
+                if join:GetJoinType() not= "CROSS JOIN"
+                    query = query + " ON "
+                    //query = query + join:GetJoinCondition()
+    
+                    // convert the conditon
+                    QueryFilterConverter converter
+                    converter:SetDatabaseMetaData(GetDatabaseMetaData())
+                    converter:SetQuery(me)
+                    converter:Convert(join:GetJoinCondition())
+                    //if the conversion went poorly, an error would have been thrown already.
+                    if converter:HasConversion()
+                        text condition = converter:GetConversion()
+                        query = query + condition
+                    end
+                end
+            end
+        end
+
+        return query
+    end
+
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        text query = "SELECT "
+
+        boolean atLeastOne = false
+        if distinct
+            query = query + "DISTINCT "
+        end
+        if not columns:IsEmpty()
+            query = query + GetTargets()
+            atLeastOne = true
+        end
+
+
+        if not atLeastOne
+            query = query + "*"
+        end
+
+        // table references section
+        text table = GetTable()
+        boolean derivedTable = false
+        text resolvedTableName = table
+        //check if table exists, also if there's a name remap resolve the name
+        if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+            TableTarget remappedTable = cast(TableTarget, GetNameRemaps():GetValue(table))
+            if remappedTable:IsSubquery()
+                Find subquery = remappedTable:GetSubquery()
+                subquery:SetDatabaseMetaData(meta)
+                resolvedTableName = "( "+subquery:ToText()+" ) AS " + table
+                derivedTable = true
+            else
+                resolvedTableName = remappedTable:GetTable() + " AS " + table
+                table = remappedTable:GetTable()
+            end
+        end
+        DatabaseTable tableCheck = meta:GetTable(table)
+        if not derivedTable and tableCheck = undefined
+            alert("The table '"+ table +"' was referenced but could not be found in the database")
+        end
+        query = query + " FROM " + resolvedTableName
+        //joins
+        if not joins:IsEmpty()
+            text res = GetJoins()
+            query = query + res
+        end
+
+        //if there is no raw filter, there is nothing to convert
+        //so just return it
+        text raw = GetRawFilter()
+        if raw not= undefined
+            //if there is a filter, get the meta data from the database, 
+            //convert the query and type check it, then add it to the current value
+            QueryFilterConverter converter
+            converter:SetDatabaseMetaData(meta)
+            converter:SetQuery(me)
+            converter:Convert(raw)
+            //if the conversion went poorly, an error would have been thrown already.
+            if converter:HasConversion()
+                text where = converter:GetConversion()
+                query = query + " WHERE " + where
+            end
+        end
+
+        if not groups:IsEmpty()
+            query = query + " " + GetGroups()
+        end
+
+        if not sorts:IsEmpty()
+            query = query + " " + GetSorts()
+        end
+
+        return query
+    end
+end

@@ -1,0 +1,50 @@
+package Libraries.Data.Database.Support
+
+class Join
+    //join types
+    constant text INNER_JOIN = "INNER JOIN"
+    constant text LEFT_JOIN = "LEFT JOIN"
+    constant text RIGHT_JOIN = "RIGHT JOIN"
+    constant text CROSS_JOIN = "CROSS JOIN"
+
+    text joinType = ""
+    text joinCondition = ""
+    text joinedTable = ""
+
+    action GetJoinType returns text
+        return joinType
+    end
+
+    action SetJoinCondition(text condition)
+        joinCondition = condition
+    end
+
+    action GetJoinCondition returns text
+        return joinCondition
+    end
+
+    action SetTable(text table)
+        joinedTable = table
+    end
+
+    action GetTable returns text
+        return joinedTable
+    end
+
+    action SetToInnerJoin()
+        joinType = INNER_JOIN
+    end
+
+    action SetToLeftJoin()
+        joinType = LEFT_JOIN
+    end
+
+    action SetToRightJoin()
+        joinType = RIGHT_JOIN
+    end
+
+    action SetToCrossJoin
+        joinType = CROSS_JOIN
+    end
+
+end

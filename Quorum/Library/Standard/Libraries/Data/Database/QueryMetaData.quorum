@@ -1,0 +1,12 @@
+package Libraries.Data.Database
+
+/*
+    This class represents meta data for a particular query back from a database.
+*/
+class QueryMetaData
+
+    /* Returns the number of columns in the query. */
+    system action GetSize returns integer
+    system action GetName(integer column) returns text
+    system action GetType(integer column) returns integer
+end

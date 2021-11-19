@@ -1,0 +1,23 @@
+package Libraries.Data.Database
+
+class DatabaseStrategy
+
+    
+
+    blueprint action Connect(Connection connection)
+    blueprint action Close
+    blueprint action SetAutoCommit(boolean commit)
+    blueprint action GetAutoCommit returns boolean
+    blueprint action Commit
+    blueprint action Rollback
+
+    blueprint action Find(Find query) returns QueryResult
+    blueprint action CreateTable(CreateTable creation)
+    blueprint action DropTable(DropTable drop)
+    blueprint action EditTable(EditTable edit)
+    blueprint action CreateView(CreateView query)
+    blueprint action Insert(Insert query) returns integer
+    blueprint action Update(Update query) returns integer
+    blueprint action Delete(Delete query) returns integer
+    blueprint action GetDatabaseMetaData returns DatabaseMetaData
+end

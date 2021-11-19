@@ -1,0 +1,132 @@
+package Libraries.Data.Database
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Data.Database.Support.Parameter
+use Libraries.Data.Database.Support.RemappableName
+use Libraries.Data.Database.Support.TableTarget
+
+class Query is RemappableName
+    text table = ""
+    text filter = ""
+    text rawFilter = undefined
+    HashTable<text, integer> tableReferences
+    HashTable<text, RemappableName> nameRemaps
+    HashTable<text, Find> subqueries
+    DatabaseMetaData meta = undefined
+    Array<Parameter> preparedParameters
+
+    action ConvertToStructuredQueryLanguage returns text
+        return ""
+    end
+
+    /* By default convert to structured query language. */
+    action ToText returns text
+        return ConvertToStructuredQueryLanguage()
+    end
+
+
+    action GetTable returns text
+        return table
+    end
+
+    action SetTable(text table)
+        RemoveTableReference(me:table)
+        me:table = table
+        tableReferences:Add(table, 0)
+    end
+
+    action SetTable(text table, text newName)
+        RemoveTableReference(me:table)
+        me:table = newName
+        // still referencing the original table it just has a new Name
+        tableReferences:Add(table, 0)
+        TableTarget tableRemap
+        tableRemap:SetRemappedName(newName)
+        tableRemap:SetTable(table)
+        AddNameRemap(newName, tableRemap)
+    end
+
+    action SetTableWithName(text table, text newName)
+        SetTable(table, newName)
+    end
+
+    action AddTableNameRemap(text table, text newName)
+        TableTarget tableRemap
+        tableRemap:SetRemappedName(newName)
+        tableRemap:SetTable(table)
+        AddNameRemap(newName, tableRemap)
+    end
+
+    action Filter(text value)
+        rawFilter = value
+    end
+
+    action GetRawFilter returns text
+        return rawFilter
+    end
+
+    action GetTranslatedFilter returns text
+        return filter
+    end
+
+    action GetDatabaseMetaData returns DatabaseMetaData
+        return meta
+    end
+
+    action SetDatabaseMetaData(DatabaseMetaData meta)
+        me:meta = meta
+    end
+
+    action AddTableReference(text table)
+        tableReferences:Add(table, 1)
+    end
+
+    private action RemoveTableReference(text table)
+        if table not= undefined and table not= "" and tableReferences:GetValue(me:table) = 0
+            tableReferences:RemoveKey(table)
+        end
+    end
+
+    action GetTableReferences returns HashTable<text, integer>
+        return tableReferences
+    end
+
+    action EmptyTableReferences
+        tableReferences:Empty()
+    end
+
+    action AddNameRemap(text newName, RemappableName original)
+        if newName = undefined or newName = ""
+           alert("Name remap can not be empty")
+        end
+        if newName:Contains(" ")
+           alert("Name remap can not have any spaces in it")
+        end
+        nameRemaps:Add(newName, original)
+    end
+
+    action GetNameRemaps returns HashTable<text, RemappableName>
+        return nameRemaps
+    end
+
+    action AddSubquery(text name, Find subquery)
+        Query test = cast(Query, subquery)
+        if test = me
+            alert("Cannot be a subquery of yourself")
+        end
+        subqueries:Add(name, subquery)
+        nameRemaps:Add(name, subquery)
+    end
+
+    action AddPreparedParameter(Parameter param)
+        preparedParameters:Add(param)
+    end
+
+    action GetPreparedParameters returns Array<Parameter>
+        return preparedParameters
+    end
+
+    action EmptyPreparedParameters
+        preparedParameters:Empty()
+    end
+end
