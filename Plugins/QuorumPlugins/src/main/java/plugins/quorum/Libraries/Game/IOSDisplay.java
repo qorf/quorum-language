@@ -126,24 +126,14 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         }
         
         @Override
-        public void viewDidLayoutSubviews () 
-        {
+        public void viewDidLayoutSubviews () {
             super.viewDidLayoutSubviews();
             // get the view size and update graphics
             CGRect bounds = app.GetBounds();
-            display.width = (int)bounds.getWidth();
-            display.height = (int)bounds.getHeight();
+            display.width = (int) bounds.getWidth();
+            display.height = (int) bounds.getHeight();
             display.MakeCurrent();
-            //app.listener.resize(graphics.width, graphics.height);
         }
-        
-//        @Callback
-//        @BindSelector("shouldAutorotateToInterfaceOrientation:")
-//        private static boolean shouldAutorotateToInterfaceOrientation(IOSUIViewController self, Selector sel,
-//                UIInterfaceOrientation orientation)
-//        {
-//            return self.shouldAutorotateToInterfaceOrientation(orientation);
-//        }
     }
     
     static class IOSUIView extends GLKView
@@ -197,7 +187,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         
         this.graphics = graphics;
         
-        context = new EAGLContext(EAGLRenderingAPI.OpenGLES2);
+        context = new EAGLContext(EAGLRenderingAPI.OpenGLES3);
         
         /*
         Creation of an anonymous inner class using GLKView which will call to
@@ -380,16 +370,6 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         if (!appPaused)
             return;
         appPaused = false;
-        
-        /*
-        Array<LifecycleListener> listeners = app.lifecycleListeners;
-		synchronized (listeners) {
-			for (LifecycleListener listener : listeners) {
-				listener.resume();
-			}
-		}
-		app.listener.resume();
-        */
     }
     
     public void Pause()
@@ -397,16 +377,6 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         if (appPaused)
             return;
         appPaused = true;
-        
-        /*
-        Array<LifecycleListener> listeners = app.lifecycleListeners;
-		synchronized (listeners) {
-			for (LifecycleListener listener : listeners) {
-				listener.pause();
-			}
-		}
-		app.listener.pause();
-        */
     }
     
     @Override
@@ -424,7 +394,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         {
             graphics.glViewport(0, 0, width, height);
             // Create the game's Painter2D.
-            Painter2D painter = new Painter2D();
+            //Painter2D painter = new Painter2D();
             ((quorum.Libraries.Game.IOSApplication)GameStateManager.application).plugin_.game.InitializeLayers();
             
             app.game.CreateGame();

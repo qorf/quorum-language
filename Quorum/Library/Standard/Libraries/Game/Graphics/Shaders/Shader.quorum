@@ -77,20 +77,15 @@ class Shader
     action GetOpenGLVersion returns text
         Properties prop
         if prop:IsWindows()
-            output "Windows"
             return "#version 410"
         elseif prop:IsMac()
-            output "Mac"
             return "#version 410"
         elseif prop:IsAndroid()
-            output "Android"
             return "#version 300 es"
         elseif prop:IsWebBrowser()
-            output "Web Browser"
             return "#version 300 es"
         else
-            output "IOS or other"
-            return ""//"#version 300 es"
+            return "#version 300 es"
         end
         return ""
     end
