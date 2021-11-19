@@ -191,6 +191,27 @@ shared class Properties
         return false
     end
 
+//iOS Simulator
+
+    /*
+    This property returns whether or not the program is running on Apple's ios simulator.
+
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    boolean value = properties:IsIosSimulator()
+    output value
+    */
+    action IsIosSimulator returns boolean
+        text os = GetOperatingSystemName()
+        if os:Contains("iOS Simulator")
+            return true
+        end
+
+        return false
+    end
+
     /*
     This property returns whether or not the program is running on a web browser.
 
