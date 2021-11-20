@@ -5,6 +5,13 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Math
 
+/*
+This class can take a 2D shape represented by clockwise vertex points and return a set of triangle
+indices. These are needed by the graphics engine to render complex polygons as triangles.
+
+This implementation is based off of the earcut4j project on Github. It's used under the ISC License.
+https://github.com/earcut4j/earcut4j
+*/
 class Triangulation
 
     Math math

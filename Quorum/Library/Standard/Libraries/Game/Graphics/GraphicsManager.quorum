@@ -490,6 +490,10 @@ class GraphicsManager
 
     blueprint action GetGraphicsErrorCode returns integer
 
+    blueprint action GetGraphicsText(integer code) returns text
+
+    blueprint action GetGraphicsInteger(integer code) returns integer
+
     action GetGraphicsErrorMessages returns text
         OpenGLConstants constants
         integer code = GetGraphicsErrorCode()

@@ -5,11 +5,11 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Gets the gl context to be drawn on. Returns true if successful, false if not.
     this.InitializeWebGL = function(canvas)
     {
-        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        gl = canvas.getContext("webgl2")
         
         if (!gl)
         {
-            alert("WebGL couldn't be initialized. Your browser may not support it.");
+            alert("WebGL 2 couldn't be initialized. Your browser may not support it.");
             return false;
         }
         
@@ -209,10 +209,10 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     
     this.GetShaderInputCount$quorum_integer = function(programID)
     {
-        return glGetProgramiv(programID, gl.ACTIVE_UNIFORMS);
+        return this.glGetProgramiv(programID, gl.ACTIVE_UNIFORMS);
     };
 
-    this.GetShaderInputInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer = function(programID, index, location, size, type)
+    this.GetShaderInputInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Types_Integer$quorum_Libraries_Language_Types_Integer$quorum_Libraries_Language_Types_Integer = function(programID, index, location, size, type)
     {
         var info = this.glGetActiveUniform(programID, index);
         location.SetValue$quorum_integer(this.glGetUniformLocation(programID, info.name));
@@ -223,10 +223,10 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     
     this.GetVertexInputCount$quorum_integer = function(programID)
     {
-        return glGetProgramiv(programID, gl.ACTIVE_ATTRIBUTES);
+        return this.glGetProgramiv(programID, gl.ACTIVE_ATTRIBUTES);
     };
 
-    this.GetVertexInputInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer$quorum_Libraries_Language_Integer = function(programID, index, location, size, type)
+    this.GetVertexInputInformation$quorum_integer$quorum_integer$quorum_Libraries_Language_Types_Integer$quorum_Libraries_Language_Types_Integer$quorum_Libraries_Language_Types_Integer = function(programID, index, location, size, type)
     {
         var info = this.glGetActiveAttrib(programID, index);
         location.SetValue$quorum_integer(this.glGetAttribLocation(programID, info.name));
@@ -277,37 +277,42 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     
     this.SetShaderInputArray$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
     {
-        this.glUniform1fv(uniformID, array.array_, length, startIndex);
+        this.glUniform1fv(uniformID, array.plugin_.array_, length, startIndex);
     };
 
     this.SetShaderInputVector2Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
     {
-        this.glUniform2fv(uniformID, array.array_, length, startIndex);
+        this.glUniform2fv(uniformID, array.plugin_.array_, length, startIndex);
     };
 
     this.SetShaderInputVector3Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
     {
-        this.glUniform3fv(uniformID, array.array_, length, startIndex);
+        this.glUniform3fv(uniformID, array.plugin_.array_, length, startIndex);
     };
 
     this.SetShaderInputVector4Array$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(uniformID, array, startIndex, length)
     {
-        this.glUniform4fv(uniformID, array.array_, length, startIndex);
+        this.glUniform4fv(uniformID, array.plugin_.array_, length, startIndex);
     };
 
     this.SetShaderInputMatrix4Array$quorum_integer$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_boolean = function(uniformID, matrixCount, array, startIndex, transpose)
     {
-        this.glUniformMatrix4fv(uniformID, transpose, array.array_);
+        this.glUniformMatrix4fv(uniformID, transpose, array.plugin_.array_);
     };
 
     this.SetShaderInputMatrix3Array$quorum_integer$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_boolean = function(uniformID, matrixCount, array, startIndex, transpose)
     {
-        this.glUniformMatrix3fv(uniformID, transpose, array.array_);
+        this.glUniformMatrix3fv(uniformID, transpose, array.plugin_.array_);
     };
     
     this.SetVertexInputInformation$quorum_integer$quorum_integer$quorum_integer$quorum_boolean$quorum_integer$quorum_integer = function(inputID, size, type, normalize, stride, offset)
     {
         this.glVertexAttribPointer(inputID, size, type, normalize, stride, offset);
+    };
+    
+    this.SetVertexInputID$quorum_integer$quorum_integer$quorum_text = function(program, index, name)
+    {
+        gl.bindAttribLocation(program, index, name);
     };
     
     this.SetDefaultVertexValue$quorum_integer$quorum_number = function(location, x)
@@ -340,9 +345,38 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         return gl.getError();
     };
     
+    this.CreateVertexArray = function()
+    {
+        return gl.createVertexArray();
+    };
+    
+    this.DeleteVertexArray$quorum_integer = function(vao)
+    {
+        gl.deleteVertexArray(vao);
+    };
+    
+    this.BindVertexArray$quorum_integer = function(array)
+    {
+        if (array === 0)
+            array = null;
+        gl.bindVertexArray(array);
+    };
+    
+    this.GetGraphicsText$quorum_integer = function(code)
+    {
+        return this.glGetString(code);
+    };
+
+    this.GetGraphicsInteger$quorum_integer = function(code)
+    {
+        return this.glGetIntegerv(code);
+    };
+    
     // Expected parameters: integer, integer
     this.glBindTexture = function(target, texture)
     {
+        if (texture === 0)
+            texture = null;
         gl.bindTexture(target, texture);
     };
 
@@ -377,6 +411,8 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameters: integer, integer
     this.glBindBuffer = function(target, buffer)
     {
+        if (buffer === 0)
+            buffer = null;
         gl.bindBuffer(target, buffer);
     };
     
@@ -664,6 +700,8 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Expected parameter: integer
     this.glUseProgram = function(program)
     {
+        if (program === 0)
+            program = null;
         gl.useProgram(program);
     };
     
