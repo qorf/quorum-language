@@ -1,0 +1,69 @@
+package Libraries.System
+
+/*
+The Serial class is used to connect to and communicate over a serial connection.
+Communication includes reading and writing to a specified serial port. Connections
+using Serial can only be made over serial connections (e.g. Standard Serial over
+Bluetooth Link with paired Bluetooth devices or USB Serial Device).
+
+A Serial object is initialized with no assigned serial port when instantiated.
+Assigning a serial port to a Serial object can be done with the action Connect.
+Reading and writing to the serial connection can be handled by the actions Read
+and Send, respectively. Connections should be closed with the action Close when
+no longer in use.
+
+Attribute: Author Alex Chavez
+
+Attribute: Example
+use Libraries.System.Serial
+
+//This was tested using virtual serial ports with pseudo terminals on Linux:
+//  socat -d -d pty,raw,echo=0 pty,raw,echo=0
+//Then, using the two ports returned by that command (e.g /dev/pts/1 and /dev/pts/2)
+//as the ports for Connect with two separate instances of this program, both instances
+//sent and received the hello message.
+
+class Main
+    action Main
+        //Open a serial connection on a specific port
+        //On Windows, the port name can be found in:
+        //  Control Panel > Searching "bluetooth" in the search bar > Change Bluetooth Settings > COM Ports
+        //On MacOS:
+        //  Settings > Bluetooth > Devices > Edit Serial Ports
+        //On Linux:
+        //  Typically, serial ports are "/dev/ttySx", where x is a number for a specific port
+        //  Details can be found using dmesg | grep ttyS
+        Serial mySerial
+        text port = input("Port: ")
+        mySerial.Connect(port)
+
+        mySerial.Send("Hello, World!")
+
+        text inMsg = mySerial.Read()
+        output inMsg
+        
+        mySerial.Close()
+    end
+*/
+class Serial
+    /*
+        Sends a text string as bytes over the connection
+    */
+    system action Send(text msg)
+
+    /*
+        Returns a decoded text string read from the serial connection.
+    */
+    system action Read() returns text
+
+    /*
+        Establishes a connection with a given port name, returns true if the
+        port was successfully opened, or returns false if port is still closed.
+    */
+    system action Connect(text port) returns boolean
+
+    /*
+        Closes a connection
+    */
+    system action Close()
+end
