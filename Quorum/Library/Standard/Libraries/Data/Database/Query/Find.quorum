@@ -83,6 +83,27 @@ class Find is Query
         return distinct
     end
 
+
+    /*
+        This action allows you to give a different name to database column. Using this action does
+        not mean that the column will be the column in the QueryResult. To use this as a column for 
+        the result you can use the name given here in AddColumn. Adding a name remap will also allow
+        you to use the name in an expression such as the expression for Filter.
+
+        Attribute: Parameter table The table the column is from
+        Attribute: Parameter column The name of the column you wish to remap
+        Attribute: Parameter newName The new name that can be used elsewhere in the query in the place of the actual name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumnNameRemap("offices", "city", "c")
+        query:AddColumn("c")
+
+    */
     action AddColumnNameRemap(text table, text column, text newName)
         ColumnTarget nameRemap
         nameRemap:SetName(column)
@@ -91,10 +112,103 @@ class Find is Query
         AddNameRemap(newName, nameRemap)
     end
 
+    /*
+        This action allows you to give a different name to database column. Using this action does
+        not mean that the column will be the column in the QueryResult. To use this as a column for 
+        the result you can use the name given here in AddColumn. Adding a name remap will also allow
+        you to use the name in an expression such as the expression for Filter. If the table is not specifed
+        the column is assumed to come from the table set in SetTable.
+
+        Attribute: Parameter column The name of the column you wish to remap
+        Attribute: Parameter newName The new name that can be used elsewhere in the query in the place of the actual name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumnNameRemap("city", "c")
+        query:AddColumn("c")
+
+    */
+
     action AddColumnNameRemap(text column, text newName)
         AddColumnNameRemap(undefined, column, newName)
     end
 
+    /*
+        This action allows you to give a different name to database column. This action differs from AddColumnNameRemap
+        in that it will both add the remap and add the column to the column list for the result. Adding a name remap will also allow
+        you to use the name in an expression such as the expression for Filter. If the table is not specifed
+        the column is assumed to come from the table set in SetTable.
+
+        Attribute: Parameter table The table the column is from
+        Attribute: Parameter column The name of the column you wish to remap
+        Attribute: Parameter newName The new name that can be used elsewhere in the query in the place of the actual name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumnWithNameRemap("offices", "city", "c")
+
+    */
+    action AddColumnWithNameRemap(text table, text column, text newName)
+        AddColumnNameRemap(table, column, newName)
+        AddColumn(newName)
+    end
+
+    /*
+        This action allows you to give a different name to database column. This action differs from AddColumnNameRemap
+        in that it will both add the remap and add the column to the column list for the result. Adding a name remap will also allow
+        you to use the name in an expression such as the expression for Filter. If the table is not specifed
+        the column is assumed to come from the table set in SetTable.
+
+        Attribute: Parameter column The name of the column you wish to remap
+        Attribute: Parameter newName The new name that can be used elsewhere in the query in the place of the actual name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumnWithNameRemap("offices", "city", "c")
+
+    */
+    action AddColumnWithNameRemap(text column, text newName)
+        ColumnTarget nameRemap
+        nameRemap:SetName(column)
+        nameRemap:SetPrintTable(false)
+        nameRemap:SetRemappedName(newName)
+        AddNameRemap(newName, nameRemap)
+        AddColumn(newName)
+    end
+
+    /* This action sets the table of a Find query to the result of another Find query.
+       A name must be given to the Subquery and that name can be used in an expression to refer
+       to a column from the result of the subquery.
+
+        Attribute: Parameter derivedTable The Find query that will be used in place of a database table
+        Attribute: Parameter newName The new name given to the subquery so the subquery can be referred to as if it were a regular table
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find derived
+        derived:SetTable("payments")
+
+        Find super
+        super:AddColumn("customerNumber")
+        super:AddColumn("checkNumber")
+        super:AddColumn("amount")
+        super:SetTableToSubquery(derived, "pay")
+        super:Filter("amount > 10")
+    */
     action SetTableToSubquery(Find derivedTable, text newName)
         usingDerivedTable = true
         SetTable(newName)
@@ -127,20 +241,22 @@ class Find is Query
         columnTable:Add(name, target)
     end
 
-    action AddColumnWithNameRemap(text table, text column, text newName)
-        AddColumnNameRemap(table, column, newName)
-        AddColumn(newName)
-    end
+    /*
+        This action adds a column target. The column targets will be the columns in a database table to fetch data from.
+        The exact table the column is from can be added in the case the name might be ambiguous when using joins. 
 
-    action AddColumnWithNameRemap(text column, text newName)
-        ColumnTarget nameRemap
-        nameRemap:SetName(column)
-        nameRemap:SetPrintTable(false)
-        nameRemap:SetRemappedName(newName)
-        AddNameRemap(newName, nameRemap)
-        AddColumn(newName)
-    end
+        Attribute: Parameter name The name of the column that will be targeted
+        Attribute: Parameter table The name of the table the column is from
 
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumnFromTable("city", "offices")
+     
+    */
     action AddColumnFromTable(text name, text table)
         ColumnTarget target
         target:SetName(name)
@@ -172,6 +288,21 @@ class Find is Query
         return columnTable:HasKey(name)
     end
 
+    /*
+        This action returns how many columns have been added to this Query
+
+        Attribute: Returns Returns the numbers of columns that have been added
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        integer columns = query:GetColumnListSize()
+    */
     action GetColumnListSize() returns integer
         return columns:GetSize()
     end
@@ -259,10 +390,48 @@ class Find is Query
         AddSortFromTable(name, undefined, ascending)
     end
 
+
+    /* 
+        Adds a sort command, which is ascending by default, but can be set to descending. If the table that contains the columns should
+        be specified it can be added. If a table is not specified the table set in SetTable will be used.
+
+        Attribute: Parameter name The name of the column used to sort
+        Attribute: Parameter table The table that contains the given column name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:AddSort("city", "offices")
+
+    */
     action AddSort(text name, text table)
         AddSortFromTable(name, table, true)
     end
 
+    /* 
+        Adds a sort command, which is ascending by default, but can be set to descending. If the table that contains the columns should
+        be specified it can be added. If a table is not specified the table set in SetTable will be used.
+
+        Attribute: Parameter name The name of the column used to sort
+        Attribute: Parameter table The table that contains the given column name
+        Attribute: Parameter ascending If true the sort will be ascending, if false it will be descending
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("offices")
+        query:AddColumn("city")
+
+        query:AddSortFromTable("city", "offices", false)
+
+    */
     action AddSortFromTable(text name, text table, boolean ascending)
         ColumnTarget target
         target:SetName(name)
@@ -287,14 +456,73 @@ class Find is Query
         sorts:Empty()
     end
 
+
+    /*
+        This action adds a column to group rows by. Normally a Find will return every row that passes the given
+        filter but if there is a group by column then the rows will be put into summary rows by the value of the
+        column given here. This is useful for aggregate functions since the function will run on each group.
+
+        Attribute: Parameter name The name of the column used to group the rows
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddColumn("productLine")
+        query:AddCount("quantityInStock")
+        query:AddGroup("productLine")
+     
+    */
     action AddGroup(text name)
         AddGroupFromTable(name, undefined)
     end
 
+    /*
+        This action adds a column to group rows by. Normally a Find will return every row that passes the given
+        filter but if there is a group by column then the rows will be put into summary rows by the value of the
+        column given here. This is useful for aggregate functions since the function will run on each group.
+        The table the group comes from can also be added.
+
+        Attribute: Parameter name The name of the column used to group the rows
+        Attribute: Parameter table The table that contains the given column name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddColumn("productLine")
+        query:AddCount("quantityInStock")
+        query:AddGroup("productLine", "products")
+     
+    */
     action AddGroup(text name, text table)
         AddGroupFromTable(name ,table)
     end
 
+    /*
+        This action adds a column to group rows by. Normally a Find will return every row that passes the given
+        filter but if there is a group by column then the rows will be put into summary rows by the value of the
+        column given here. This is useful for aggregate functions since the function will run on each group.
+        The table the group comes from can also be added.
+
+        Attribute: Parameter name The name of the column used to group the rows
+        Attribute: Parameter table The table that contains the given column name
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("products")
+        query:AddColumn("productLine")
+        query:AddCount("quantityInStock")
+        query:AddGroupFromTable("productLine", "products")
+     
+    */
     action AddGroupFromTable(text name, text table)
         ColumnTarget target
         target:SetName(name)
@@ -315,6 +543,7 @@ class Find is Query
         Find query
         query:SetTable("offices")
         query:AddCount("city", true)
+
     */
     action AddCount(text name, boolean distinct)
         ColumnTarget target
@@ -478,6 +707,27 @@ class Find is Query
     end
 
 
+    /*
+        This action will add an Inner Join to the query. If this is the first or only join added
+        then the join will be between the table specified in SetTable and the table given here on
+        the given condition. The table in SetTable or the result from a previous join is considered
+        the first table.
+        An Inner Join compares every row from the first table to every row on the second table. If
+        the values from the rows satisfy the condition then a new row is added containing the combined
+        columns from both tables.
+
+        Attribute: Parameter table The name of the table to join
+        Attribute: Parameter condition The given condition to join the tables on
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members")
+        query:AddInnerJoin("committees", "members:name = committees:name")
+
+    */
     action AddInnerJoin(text table, text condition)
         Join inner
         inner:SetToInnerJoin()
@@ -487,6 +737,29 @@ class Find is Query
         joins:Add(inner)
     end
 
+
+    /*
+        This action will add an Left Join to the query. If this is the first or only join added
+        then the join will be between the table specified in SetTable and the table given here on
+        the given condition. The table in SetTable or the result from a previous join is considered
+        the first table.
+        A Left Join compares every row from the first table to every row on the second table. If
+        the values from the rows satisfy the condition then a new row is added containing the combined
+        columns from both tables. But if the condition fails then a new row is still added containing
+        all the rows from the first table.
+
+        Attribute: Parameter table The name of the table to join
+        Attribute: Parameter condition The given condition to join the tables on
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members")
+        query:AddLeftJoin("committees", "members:name = committees:name")
+
+    */
     action AddLeftJoin(text table, text condition)
         Join left
         left:SetToLeftJoin()
@@ -496,6 +769,28 @@ class Find is Query
         joins:Add(left)
     end
 
+    /*
+        This action will add an Right Join to the query. If this is the first or only join added
+        then the join will be between the table specified in SetTable and the table given here on
+        the given condition. The table in SetTable or the result from a previous join is considered
+        the first table.
+        A Right Join compares every row from the first table to every row on the second table. If
+        the values from the rows satisfy the condition then a new row is added containing the combined
+        columns from both tables. But if the condition fails then a new row is still added containing
+        all the rows from the second table.
+
+        Attribute: Parameter table The name of the table to join
+        Attribute: Parameter condition The given condition to join the tables on
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members")
+        query:AddRightJoin("committees", "members:name = committees:name")
+
+    */
     action AddRightJoin(text table, text condition)
         Join right
         right:SetToRightJoin()
@@ -505,6 +800,26 @@ class Find is Query
         joins:Add(right)
     end
 
+    /*
+        This action will add an Cross Join to the query. If this is the first or only join added
+        then the join will be between the table specified in SetTable and the table given here on
+        the given condition. The table in SetTable or the result from a previous join is considered
+        the first table.
+        A Cross Join is different from the other joins in that there is no join condition. A Cross Join
+        will return the Cartesian product of rows from the two tables. In other words, every row from the
+        first table will be combined with every row from the second table and that will be returned. 
+
+        Attribute: Parameter table The name of the table to join
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members")
+        query:AddCrossJoin("committees")
+
+    */
     action AddCrossJoin(text table)
         Join right
         right:SetToRightJoin()
@@ -514,6 +829,11 @@ class Find is Query
         joins:Add(right)
     end
 
+
+    /*
+        INTENDED FOR INTERNAL USE ONLY
+        only works if the query has already been built since it needs metadata
+    */
     action GetColumnType(integer position) returns Type
         if position < columns:GetSize()
             return columns:Get(position):GetType()
@@ -523,7 +843,8 @@ class Find is Query
 
 
     /*
-        INTERNAL USE
+        INTENDED FOR INTERNAL USE ONLY
+        only works if the query has already been built since it needs metadata
     */
     action GetColumnType(text column) returns Type
         ColumnTarget search = columnTable:GetValue(column)
@@ -552,6 +873,13 @@ class Find is Query
         return undefined
     end
 
+
+    /*
+        INTERNAL USE
+        Checks if the column target is valid target based on the meta data
+        if it is valid the target is updated to contain useful data such as the table 
+        it belongs to or the actual column it points to so it can be converted to SQL correctly
+    */
     private action IsValidTarget(ColumnTarget target) returns boolean
         // this function will also try to resolve the type of the target
         text name = target:GetName()
@@ -658,6 +986,11 @@ class Find is Query
         return false
     end
 
+
+    /*
+        INTERNAL
+        builds select list
+    */
     private action GetTargets returns text
         text query = ""
         if not columns:IsEmpty()
@@ -682,7 +1015,11 @@ class Find is Query
         end
         return query
     end
-    
+
+    /*
+        INTERNAL
+        builds sort list
+    */
     private action GetSorts returns text
         text query = "ORDER BY"
         if not sorts:IsEmpty()
@@ -714,6 +1051,10 @@ class Find is Query
         return query
     end
 
+    /*
+        INTERNAL
+        builds group by list
+    */
     private action GetGroups returns text
         text query = "GROUP BY"
         Iterator<ColumnTarget> iterator = groups:GetIterator()
@@ -738,6 +1079,10 @@ class Find is Query
         return query
     end
 
+    /*
+        INTERNAL
+        builds all joins and adds and parses their conditions
+    */
     private action GetJoins returns text
         text query = ""
         if not joins:IsEmpty()
@@ -777,6 +1122,12 @@ class Find is Query
         return query
     end
 
+
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
     action ConvertToStructuredQueryLanguage returns text
         EmptyPreparedParameters()
         DatabaseMetaData meta = GetDatabaseMetaData()

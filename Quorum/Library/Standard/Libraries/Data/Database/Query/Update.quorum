@@ -23,8 +23,8 @@ database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
 
 Update query
 query:SetTable("orders")
-query:Set("status", "Shipped")
-query:Set("comments", "Express shipping")
+query:Add("status", "Shipped")
+query:Add("comments", "Express shipping")
 
 database:Update(query)
 
@@ -54,7 +54,7 @@ class Update is Query
         
         Update query
         query:SetTable("tasks")
-        query:Set("status", "Delayed")
+        query:Add("status", "Delayed")
         
         query:SetIsFiltering(true)
 
@@ -75,7 +75,7 @@ class Update is Query
 
         Delete query
         query:SetTable("tasks")
-        query:Set("status", "Delayed")
+        query:Add("status", "Delayed")
         query:SetIsFiltering(false)
 
         boolean filtering = query:UsingFilter()
@@ -113,8 +113,8 @@ class Update is Query
 
         Update query
         query:SetTable("orders")
-        query:Set("status", "Shipped")
-        query:Set("comments", "Express shipping")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
         
         boolean statusChange = query:HasColumn("status")
      
@@ -135,8 +135,8 @@ class Update is Query
 
         Update query
         query:SetTable("orders")
-        query:Set("status", "Shipped")
-        query:Set("comments", "Express shipping")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
 
         query:RemoveColumn("comments")
      
@@ -160,8 +160,8 @@ class Update is Query
 
         Update query
         query:SetTable("orders")
-        query:Set("status", "Shipped")
-        query:Set("comments", "Express shipping")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
 
         query:Empty()
     */
@@ -182,7 +182,7 @@ class Update is Query
 
         Update query
         query:SetTable("orders")
-        query:Set("customerNumber", 42)
+        query:Add("customerNumber", 42)
 
     */
     action Add(text column, integer value)
@@ -203,7 +203,7 @@ class Update is Query
 
         Update query
         query:SetTable("products")
-        query:Set("MSRP", 9.99)
+        query:Add("MSRP", 9.99)
 
     */
     action Add(text column, number value)
@@ -224,7 +224,7 @@ class Update is Query
 
         Update query
         query:SetTable("products")
-        query:Set("productName", "The Moon")
+        query:Add("productName", "The Moon")
 
     */
     action Add(text column, text value)
@@ -234,32 +234,47 @@ class Update is Query
     end
 
     /*
-        This action is used to add which column will be modified and set to the default value.
+        This action is used to add which column will be modified and what value it will be set to.
 
-        Attribute: Parameter column The name of the column that will be updated to the default
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
 
         Attribute: Example
 
         use Libraries.Data.Database.Update
+        use Libraries.Compute.BigInteger
+        
+        text value = "2147483648"
+        BigInteger largeNumber
+        largeNumber:SetValue(value)
 
         Update query
-        query:SetTable("orders")
-        query:SetToDefault("status")
+        query:SetTable("distances")
+        query:Add("distance_in_mm", largeNumber)
 
     */
-    /* BROKEN
-    action SetToDefault(text column)
-        columnTargets:Add(column)
-        values:Add("DEFAULT")
-        assignmentList:Add(column,"DEFAULT")
-    end*/
-
     action Add(text column, BigInteger value)
         Parameter param
         param:SetToBigInteger(value)
         AddValue(column, param)
     end
 
+    /*
+        This action is used to add which column will be modified and what value it will be set to using an expression.
+        Since the value is an expression it will be parsed and can use column names within it.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The expression the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("products")
+        query:AddExpression("MSRP", "MSRP + 0.10")
+
+    */
     action AddExpression(text column, text value)
         Parameter param
         param:SetToExpression(value)
@@ -297,6 +312,11 @@ class Update is Query
         return false
     end
 
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
     action ConvertToStructuredQueryLanguage returns text
         EmptyPreparedParameters()
         DatabaseMetaData meta = GetDatabaseMetaData()

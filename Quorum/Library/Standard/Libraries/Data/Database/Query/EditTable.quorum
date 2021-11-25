@@ -12,11 +12,11 @@ use Libraries.Data.Database.EditTable
 Database database
 database:Connect("localhost", "mydatabase", "user", "SuperSecret456")
 
-AlterTable query
+EditTable query
 query:SetTable("tasks")
 query:AddColumn("dueDate", "date")
 
-database:AlterTable(query)
+database:EditTable(query)
 
     */
 class EditTable is Query
@@ -45,9 +45,9 @@ class EditTable is Query
 
         Attribute: Example
 
-        use Libraries.Data.Database.AlterTable
+        use Libraries.Data.Database.EditTable
         
-        AlterTable query
+        EditTable query
         query:SetTable("tasks")
         query:AddColumn("dueDate", "date")
 
@@ -65,9 +65,9 @@ class EditTable is Query
 
         Attribute: Example
 
-        use Libraries.Data.Database.AlterTable
+        use Libraries.Data.Database.EditTable
         
-        AlterTable query
+        EditTable query
         query:SetTable("tasks")
         query:DropColumn("dueDate")
     */
@@ -85,9 +85,9 @@ class EditTable is Query
 
         Attribute: Example
 
-        use Libraries.Data.Database.AlterTable
+        use Libraries.Data.Database.EditTable
         
-        AlterTable query
+        EditTable query
         query:SetTable("tasks")
         query:ModifyColumn("startDate", "datetime")
     */
@@ -97,6 +97,19 @@ class EditTable is Query
         me:modifier = MODIFY
     end
 
+    /*
+        This action renames a table in the database
+
+        Attribute: Parameter newName The new name to give to a table
+
+        Attribute: Example
+
+        use Libraries.Data.Database.EditTable
+        
+        EditTable query
+        query:SetTable("tasks")
+        query:RenameTable("unfinished_tasks")
+    */
     action RenameTable(text newName)
         me:name = newName
         me:modifier = RENAME
@@ -111,9 +124,9 @@ class EditTable is Query
 
         Attribute: Example
 
-        use Libraries.Data.Database.AlterTable
+        use Libraries.Data.Database.EditTable
         
-        AlterTable query
+        EditTable query
         query:SetTable("tasks")
         query:AlterAutoIncrement(1000)
     */
@@ -136,6 +149,11 @@ class EditTable is Query
         return column
     end
 
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
     action ConvertToStructuredQueryLanguage returns text
         text query = "ALTER TABLE "
         text table = GetTable()

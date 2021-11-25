@@ -48,6 +48,11 @@ class Delete is Query
         return filtering
     end
 
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
     action ConvertToStructuredQueryLanguage returns text
         EmptyPreparedParameters()
         DatabaseMetaData meta = GetDatabaseMetaData()
