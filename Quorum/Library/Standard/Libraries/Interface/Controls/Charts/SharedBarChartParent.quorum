@@ -39,14 +39,13 @@ use Libraries.Interface.Layouts.ManualLayout
 
 class SharedBarChartParent is Chart
     private ChartItem summary // Root of the info tree
-    integer numberOfBars = 0
+    private integer numberOfBars = 0
+    private number maxBarValue = 0
 
     Array<BarGroup> barGroups
-    boolean hasBarGroups = false
     boolean isStacked = false
 
     Color barColor = undefined
-    Color highlightColor = undefined
 
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
@@ -74,15 +73,6 @@ class SharedBarChartParent is Chart
         end
 
         parent:Chart:LoadGraphics(properties)
- 
-        // Default highlight color is selection color (currently blue)
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
-        end
-
-        if hasBarGroups and not GetShowBracketOverride()
-            ShowGroupBrackets()
-        end
 
         if GetHorizontalFlag()
             HideMajorYGridLines()
@@ -98,7 +88,7 @@ class SharedBarChartParent is Chart
         repeat while i < barGroups:GetSize()
             text groupname = barGroups:Get(i):GetName()
             integer j = 0                 
-            if hasBarGroups and not IsSeparatedByFactor()
+            if HasGroups() and not IsSeparatedByFactor()
                 Icon barGroupIcon = barGroups:Get(i):GetIcon() 
                 barGroupIcon:SetName(groupname + " group, ")
                 barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, this group has " + barGroups:Get(i):GetSize() + " bars.")
@@ -117,7 +107,7 @@ class SharedBarChartParent is Chart
                 text barname = bar:GetName()
                 number value = math:Round(bar:GetValue(), 2)
                 text placement = (j + 1) + " of " + barGroups:Get(i):GetSize() + " bars inside " + groupname + "group."
-                if hasBarGroups
+                if HasGroups()
                     temp:SetName(barname + " bar. ")
                     temp:SetDescription(" value of " + value + " " + placement)
                 else
@@ -155,8 +145,17 @@ class SharedBarChartParent is Chart
                 sum = sum + barGroups:Get(i):Get(j):GetValue()
                 j = j + 1
             end
-            if sum > GetYAxisMaximum()
-                GetVerticalPanel():SetMaximum(sum)
+            if sum > maxBarValue
+                maxBarValue = sum
+            end
+            if GetHorizontalFlag()
+                if sum > GetXAxisMaximum()
+                    GetHorizontalPanel():SetMaximum(sum)
+                end
+            else
+                if sum > GetYAxisMaximum()
+                    GetVerticalPanel():SetMaximum(sum)
+                end
             end
             i = i + 1
         end
@@ -288,7 +287,7 @@ class SharedBarChartParent is Chart
         Updates the axis labels to the correct position after sorting.
     */
     action SortByBarSize()
-        if not hasBarGroups
+        if not HasGroups()
             BarGroupComparison comparison
             barGroups:Sort(comparison)
             Array <text> labels = GetUpdatedLabels()
@@ -314,10 +313,13 @@ class SharedBarChartParent is Chart
         The number of bars in the group are added to the total number of bars.
     */
     action AddBarGroup(BarGroup group)
+        if maxBarValue < group:GetMaxBarValue()
+            maxBarValue = group:GetMaxBarValue()
+        end
         barGroups:Add(group)
         numberOfBars = numberOfBars + group:GetSize()
         if group:GetSize() > 1
-            hasBarGroups = true
+            HasGroups(true)
         end
     end
 
@@ -336,19 +338,6 @@ class SharedBarChartParent is Chart
     end
 
     /*
-        Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
-    */
-    action HasBarGroups(boolean flag)
-        hasBarGroups = flag
-    end
-     /*
-        Gets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through bar groups
-    */
-    action HasBarGroups returns boolean
-        return hasBarGroups
-    end
-
-    /*
         Sets a flag that will stack bars inside each group if set to true.
     */
     action IsStacked(boolean flag)
@@ -362,20 +351,6 @@ class SharedBarChartParent is Chart
     */
     action GetStackedFlag() returns boolean
         return isStacked
-    end
-
-    /*
-        Gets the default selection color (highlighting) for the bars
-    */
-    action GetHighlightColor() returns Color
-        return highlightColor
-    end
-
-    /*
-        Sets the default selection color (highlighting) for the bars
-    */
-    action SetHighlightColor(Color color)
-        me:highlightColor = color
     end
 
     /*
@@ -498,7 +473,7 @@ class SharedBarChartParent is Chart
                 i = i + 1
             end
         else
-            if hasBarGroups
+            if HasGroups()
                 //Bar Groups
                 ChartItem firstGroup
                 firstGroup:SetContainer(me)
@@ -588,5 +563,33 @@ class SharedBarChartParent is Chart
         end
         ChartSelection selection = GetSelection()
         selection:Set(summary)
+    end
+
+    /* 
+        Max bar value will track the largest bar and limit the axis controls to not drop below that value.
+    */ 
+
+    action SetXAxisMaximum(number max)
+        if GetVerticalFlag()
+            parent:Chart:SetXAxisMaximum(max)
+        else
+            if max >= maxBarValue
+                parent:Chart:SetXAxisMaximum(max)
+            else
+                output "X-axis maximum cannot be below highest bar value: " + maxBarValue
+            end
+        end
+    end
+
+    action SetYAxisMaximum(number max)
+        if GetHorizontalFlag()
+            parent:Chart:SetYAxisMaximum(max)
+        else
+            if max >= maxBarValue
+                parent:Chart:SetYAxisMaximum(max)
+            else
+                output "Y-axis maximum cannot be below highest bar value: " + maxBarValue
+            end
+        end
     end
 end

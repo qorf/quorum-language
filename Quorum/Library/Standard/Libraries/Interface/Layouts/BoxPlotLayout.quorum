@@ -77,12 +77,12 @@ class BoxPlotLayout is ChartLayout
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
             integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/plotGroups:GetSize()
-            integer height = cast(integer, chartAreaContainer:GetHeight())
+            integer height = cast(integer, chartAreaContainer:GetHeight()) - cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
             number range = (yMax-yMin)
             number rangeMin = yMin
             if horizontal
                 panelwidth = cast(integer, chartAreaContainer:GetHeight())/plotGroups:GetSize()
-                height = cast(integer, chartAreaContainer:GetWidth())
+                height = cast(integer, chartAreaContainer:GetWidth()) - cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
                 range = (xMax-xMin)
                 rangeMin = xMin
             end

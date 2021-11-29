@@ -61,7 +61,10 @@ class BarChart is SharedBarChartParent
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
-        SetDefaultOrientation("vertical")
+        SetDefaultShowBrackets(true)
+        SetDefaultOrientationToVertical()
+        GetVerticalPanel():BlockPaddingOffset(true)
+        GetHorizontalPanel():BlockPaddingOffset(true)
     end
 
     /*
@@ -71,7 +74,7 @@ class BarChart is SharedBarChartParent
     */
     private action GenerateSummary returns text
         text grouptext = ""
-        if HasBarGroups()
+        if HasGroups()
             text groups = " groups and "
             if GetBarGroups():GetSize() = 1
                 groups = " group and "

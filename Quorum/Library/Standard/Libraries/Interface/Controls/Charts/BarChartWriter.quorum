@@ -103,7 +103,7 @@ class BarChartWriter is ChartWriter
         repeat while i < chart:GetBarGroups():GetSize()
             BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
 
-            if chart:HasBarGroups()
+            if chart:HasGroups()
                 Rectangle barGroup
                 barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
                 barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
@@ -156,7 +156,7 @@ class BarChartWriter is ChartWriter
         UnorderedList currentGrouping = barGroupsUL
         i = 0
         repeat while i < barGroups:GetSize()
-            if barChart:HasBarGroups()
+            if barChart:HasGroups()
                 ListItem barGroupNav 
                 barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
                 barGroupNav:AddAttribute("role","treeitem")
