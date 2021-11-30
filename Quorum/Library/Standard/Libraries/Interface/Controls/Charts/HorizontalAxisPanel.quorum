@@ -221,8 +221,8 @@ class HorizontalAxisPanel is Control
                 currentSubPanel:SetPrevious(previousSubPanel)
                 previousSubPanel = currentSubPanel
                 
-                
-                labels = chart:GetSubVerticalPanels():Get(i):GetLabels()
+
+                labels = chart:GetSubHorizontalPanels():Get(i):GetLabels()
                 if labels:GetSize() > 0
                     ChartItem firstLabel
                     firstLabel:SetContainer(chart)
