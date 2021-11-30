@@ -432,6 +432,7 @@ class SharedBarChartParent is Chart
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
+                GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                 GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars")
 
                 //Bars within SubChartArea
@@ -471,6 +472,7 @@ class SharedBarChartParent is Chart
                     previousArea = nextArea
                     nextArea:SetDisplayName(chartSubArea:GetTitleName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
+                    chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                     chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars")
 
                     //Bars within SubChartArea
