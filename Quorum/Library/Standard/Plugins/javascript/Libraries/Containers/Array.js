@@ -54,8 +54,13 @@ function plugins_quorum_Libraries_Containers_Array_() {
         if(this.size >= this.capacity && this.resizable) {
             this.capacity = this.capacity * this.DEFAULT_RESIZE;
         }
+        
+        if (this.array_.length <= this.size)
+            this.array_.push(value);
+        else
+            this.array_[this.size] = value;
+        
         this.size = this.size + 1;
-        this.array_.push(value);
     };
 
     this.RemoveAtNative$quorum_integer = function (index) {

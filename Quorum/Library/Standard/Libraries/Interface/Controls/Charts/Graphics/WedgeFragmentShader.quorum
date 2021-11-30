@@ -1,0 +1,50 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+class WedgeFragmentShader is Shader
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName("Wedge Fragment Shader")      
+
+        SetCode(GetOpenGLVersion() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+in LOWP vec4 v_color;
+in vec2 v_texCoords;
+uniform sampler2D u_texture;
+uniform vec2 u_originPoint;
+uniform float u_minAngle;
+uniform float u_maxAngle;
+uniform float u_outerRadius;
+uniform float u_innerRadius;
+layout (location = 0) out vec4 outputColor;
+
+float PI = 3.1415926538;
+
+void main()
+{
+    float x = gl_FragCoord.x - u_originPoint.x;
+    float y = gl_FragCoord.y - u_originPoint.y;
+    vec2 point = vec2(x, y);
+    float length = length(point);
+    float angle = atan(x, y);
+    if (angle < 0.0)
+        angle = PI + (PI + angle);
+    angle = angle / (2 * PI);
+
+    if (angle < u_minAngle || angle > u_maxAngle || length < u_innerRadius || length > u_outerRadius)
+        outputColor = vec4(0.0);
+    else
+        outputColor = v_color * texture(u_texture, v_texCoords);
+}")
+    end
+
+end
