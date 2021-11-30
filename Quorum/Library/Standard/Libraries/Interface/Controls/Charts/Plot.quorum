@@ -35,6 +35,8 @@ class Plot is Drawable
     Icon icon
     Color plotcolor
     text name = ""
+    private number minOutlierValue = 0
+    private number maxOutlierValue = 0
 
     /* Indices info of individual plot values (info)
         0: MEDIAN
@@ -68,7 +70,6 @@ class Plot is Drawable
     end
 
     action SetColor(Color color)
-//        icon:SetColor(color)
         plotcolor = color
     end
 
@@ -86,6 +87,10 @@ class Plot is Drawable
 
     action SetData(Vector vector)
         data = vector:Copy()
+        if data:GetSize() > 0
+            minOutlierValue = data:Get(0)
+            maxOutlierValue = data:Get(data:GetSize()-1)
+        end
     end
     
     action GetData() returns Vector
@@ -141,4 +146,11 @@ class Plot is Drawable
         me:series = series
     end
 
+    action GetMinOutlierValue returns number
+        return minOutlierValue
+    end
+
+    action GetMaxOutlierValue returns number
+        return maxOutlierValue
+    end
 end

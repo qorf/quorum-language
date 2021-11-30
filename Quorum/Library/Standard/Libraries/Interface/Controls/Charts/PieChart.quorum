@@ -83,6 +83,7 @@ class PieChart is Chart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        SetDefaultOrientationToVertical()
         ShowXAxis(false)
         ShowYAxis(false)
     end
@@ -102,10 +103,6 @@ class PieChart is Chart
 
         if GetHighlightColor() = undefined
             SetHighlightColor(options:GetSelectionColor())
-        end
-
-        if GetDefaultOrientation() = undefined
-            SetDefaultOrientation("vertical")
         end
 
         LoadChartAreaItems()
