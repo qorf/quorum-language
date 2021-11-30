@@ -1,4 +1,5 @@
 package Libraries.System
+use Libraries.Containers.Array
 
 /*
 The Serial class is used to connect to and communicate over a serial connection.
@@ -37,7 +38,7 @@ class Main
         text port = input("Port: ")
         mySerial.Connect(port)
 
-        mySerial.Send("Hello, World!")
+        mySerial.Write("Hello, World!")
 
         text inMsg = mySerial.Read()
         output inMsg
@@ -46,10 +47,12 @@ class Main
     end
 */
 class Serial
+
+    system action GetPorts returns Array<SerialPort>
     /*
         Sends a text string as bytes over the connection
     */
-    system action Send(text msg)
+    system action Write(text message)
 
     /*
         Returns a decoded text string read from the serial connection.
