@@ -1,0 +1,156 @@
+package Libraries.Data.Database
+
+/*
+    The CreateView class is a query that allows creating a table that lives on the database composed of the
+    results of a Find query. Once the view is created it can be accessed as if it was another database table.
+    Although you can not insert, update, or delete from a view.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.CreateView
+use Libraries.Data.Database.Find
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+CreateView view
+
+Find oneColumn
+oneColumn:AddColumn("employeeNumber")
+oneColumn:SetTable("employees")
+
+CreateView view
+view:SetName("employNum")
+view:SetQuery(oneColumn)
+database:CreateView(view)
+    
+*/
+class CreateView is Query
+    private constant text TABLE_ERROR = ""
+    private constant text NO_STATEMENT_ERROR = ""
+    private constant text NAME_CONFLICT = ""
+
+
+    private text name = undefined
+    private Find query = undefined
+
+    /*
+        This action is used to set the name of the view. This name will appear in the database.
+
+        Attribute: Parameter name The name to give to the view
+
+        Attribute: Example
+
+        use Libraries.Data.Database.CreateView
+
+        CreateView query
+        query:SetName("my_view")
+
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+        This action is used to return the name of the view set for this query.
+
+        Attribute: Returns The name that will be given to the view
+
+        Attribute: Example
+
+        use Libraries.Data.Database.CreateView
+
+        CreateView query
+        query:SetName("my_view")
+
+
+        text name = query:GetName()
+
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+        This action is used to set the Find query of the view. The result that would be returned by the find query will make up
+        the rows of the view.
+
+        Attribute: Parameter query The Find query where the result of the query will make up the rows of the view
+
+        Attribute: Example
+
+        use Libraries.Data.Database.CreateView
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("employees")
+        
+        CreateView view
+        view:SetName("employ_view")
+        view:SetQuery(query)
+
+    */
+    action SetQuery(Find query)
+        me:query = query
+    end
+
+    /*
+        This action returns the Find query the view will use.
+
+        Attribute: Returns The Find query that will be used to make up the view
+
+        Attribute: Example
+
+        use Libraries.Data.Database.CreateView
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("employees")
+        
+        CreateView view
+        view:SetName("employ_view")
+        view:SetQuery(query)
+
+
+        Find viewQuery = view:GetQuery()
+
+    */
+    action GetQuery returns Find
+        return query
+    end
+
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        if name = undefined or name = ""
+            alert(TABLE_ERROR)
+        end
+        if query = undefined
+            alert(NO_STATEMENT_ERROR)
+        end
+        // by default we'll allow updating views with create
+        text result = "CREATE OR REPLACE VIEW "
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        DatabaseTable table = meta:GetTable(name)
+        if table not= undefined
+            // if it's a table the name can't be used if it's a view then it will be replaced
+            if table:GetType() = "TABLE"
+                alert(NAME_CONFLICT)
+            end
+        end
+        result = result + name + " AS "
+        query:SetDatabaseMetaData(meta)
+        text queryToText = query:ConvertToStructuredQueryLanguage()
+        // query conversion failed it would have happened already
+        result = result + queryToText
+
+        return result
+    end
+
+
+end

@@ -1,0 +1,13 @@
+package Libraries.Data.Database.Support
+
+class RemappableName
+text alias = undefined
+
+    action GetRemappedName returns text
+        return me:alias
+    end
+
+    action SetRemappedName(text remappedName)
+        me:alias = remappedName
+    end
+end

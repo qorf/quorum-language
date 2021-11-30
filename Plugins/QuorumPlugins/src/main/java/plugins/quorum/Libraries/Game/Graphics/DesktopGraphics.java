@@ -381,7 +381,19 @@ public class DesktopGraphics implements GraphicsManager {
             bytes.position(oldPosition);
         }
     }
-    
+
+    public String GetGraphicsText(int code)
+    {
+        return glGetString(code);
+    }
+
+    public int GetGraphicsInteger(int code)
+    {
+        IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
+        glGetIntegerv(code, buffer);
+        return buffer.get(0);
+    }
+
     public void SetPixelClipping(int x, int y, int width, int height)
     {
         glScissor(x, y, width, height);

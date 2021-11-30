@@ -1,0 +1,14 @@
+package Libraries.Data.Database
+
+/*
+    This class represents meta data for a particular query back from a database.
+*/
+class QueryMetaData
+
+    /* Returns the number of columns in the query. */
+    system action GetSize returns integer
+    /* Returns the name of the column. If the column was aliased this will return the alias */
+    system action GetName(integer column) returns text
+    /* Returns the raw type of a column. Using DatabaseTypeConstants can help determine what the associated Quorum Type is.*/
+    system action GetType(integer column) returns integer
+end

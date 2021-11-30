@@ -1,0 +1,413 @@
+package Libraries.Data.Database
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Data.Database.Support.Parameter
+use Libraries.Data.Database.Support.ColumnTarget
+use Libraries.Compute.BigInteger
+use Libraries.Data.Database.Support.TableTarget
+
+
+/*
+    The Update query represents the Update command of the SQL (Structured Query Language) language. 
+    This query allows for the modification of a record that already exists in the database.
+
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Update
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Update query
+query:SetTable("orders")
+query:Add("status", "Shipped")
+query:Add("comments", "Express shipping")
+
+database:Update(query)
+
+*/
+class Update is Query
+    private constant text NO_TABLE_ERROR = "Must specify table for update"
+    private constant text EMPTY_QUERY = "Columns must be specified for udpate"
+    private constant text SIZE_MISMATCH = "Size mismatch for column targets and values"
+    private constant text FILTER_WARNING = "You have an update with no filter. This will update the whole table. If this is what you wish to do then use NoFilter(true)."
+    private constant text TABLE_ALIAS_ERROR = "Cannot remap the name of a table in an update"
+    private constant text TABLE_NOT_FOUND = "The table '?table?' was referenced but could not be found in the database"
+
+
+    HashTable<text, Parameter> assignmentList
+    HashTable<text, ColumnTarget> columnList
+
+    boolean filtering = true
+
+    /*
+        If this flag is set to false then the query will be allowed to run with no filter which updates all rows in the table.
+    
+        Attribute: Parameter filtering If true this query will not use a filter for updating rows
+    
+        Attribute: Example
+    
+        use Libraries.Data.Database.Update
+        
+        Update query
+        query:SetTable("tasks")
+        query:Add("status", "Delayed")
+        
+        query:SetIsFiltering(true)
+
+    */
+    action SetIsFiltering(boolean filtering)
+        me:filtering = filtering
+    end
+
+
+    /*
+        This action returns whether or not this Update query will use a filter.
+
+        Attribute: Returns Returns true if not using a filter and false if it will
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Delete query
+        query:SetTable("tasks")
+        query:Add("status", "Delayed")
+        query:SetIsFiltering(false)
+
+        boolean filtering = query:UsingFilter()
+    */
+    action UsingFilter returns boolean
+        return filtering
+    end
+
+    /*
+        Add a column
+    */
+    private action AddColumn(ColumnTarget target)
+        columnList:Add(target:GetName(), target)
+    end
+
+    /*
+        Add a value
+    */
+    private action AddValue(text columnName, Parameter value)
+        ColumnTarget target
+        target:SetName(columnName)
+        AddColumn(target)
+        assignmentList:Add(columnName, value)
+    end
+
+    /*
+        This action checks if the update query has a specific column in the set list.
+
+        Attribute: Parameter name The name of the column to search for
+        Attribute: Returns Returns true if the column was found, false otherwise
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("orders")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
+        
+        boolean statusChange = query:HasColumn("status")
+     
+    */
+    action HasColumn(text name) returns boolean
+        return columnList:HasKey(name)
+    end
+
+   /*
+        This action removes a specific column.
+
+        Attribute: Parameter name The name of the column that will be removed
+        Attribute: Returns Returns true if the column was removed, false otherwise
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("orders")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
+
+        query:RemoveColumn("comments")
+     
+    */
+    action RemoveColumn(text name) returns boolean
+        if columnList:RemoveKey(name) not= undefined
+            assignmentList:RemoveKey(name)
+            return true
+        end
+        return false
+    end
+
+
+
+    /*
+        Removes all columns and values associated with them from the query.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("orders")
+        query:Add("status", "Shipped")
+        query:Add("comments", "Express shipping")
+
+        query:Empty()
+    */
+    action Empty
+        columnList:Empty()
+        assignmentList:Empty()
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("orders")
+        query:Add("customerNumber", 42)
+
+    */
+    action Add(text column, integer value)
+        Parameter param
+        param:SetToInteger(value)
+        AddValue(column, param)
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("products")
+        query:Add("MSRP", 9.99)
+
+    */
+    action Add(text column, number value)
+        Parameter param
+        param:SetToNumber(value)
+        AddValue(column, param)
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("products")
+        query:Add("productName", "The Moon")
+
+    */
+    action Add(text column, text value)
+        Parameter param
+        param:SetToText(value)
+        AddValue(column, param)
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+        use Libraries.Compute.BigInteger
+        
+        text value = "2147483648"
+        BigInteger largeNumber
+        largeNumber:SetValue(value)
+
+        Update query
+        query:SetTable("distances")
+        query:Add("distance_in_mm", largeNumber)
+
+    */
+    action Add(text column, BigInteger value)
+        Parameter param
+        param:SetToBigInteger(value)
+        AddValue(column, param)
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to using an expression.
+        Since the value is an expression it will be parsed and can use column names within it.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The expression the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("products")
+        query:AddExpression("MSRP", "MSRP + 0.10")
+
+    */
+    action AddExpression(text column, text value)
+        Parameter param
+        param:SetToExpression(value)
+        AddValue(column, param)
+    end
+
+    private action IsValidTarget(ColumnTarget target) returns boolean
+        text name = target:GetName()
+        text table = ""
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        if not GetTableReferences():IsEmpty()
+            Iterator<text> iterator = GetTableReferences():GetKeyIterator()
+            boolean found = false
+            repeat while iterator:HasNext()
+               table = iterator:Next()
+                
+                DatabaseTable dbTable = meta:GetTable(table)
+                if dbTable = undefined
+                    alert("The table '"+ table +"' was referenced but could not be found in the database")
+                end
+
+                DatabaseColumn column = dbTable:GetColumn(name)
+                if column not= undefined
+                    if found
+                        alert("The column name '"+name+"' was found in multiple tables you must specify which table to target")
+                    end
+                    // set the type and table we found in the target
+                    target:SetRawType(column:GetRawType())
+                    target:SetTable(table)
+                    found = true
+                end
+            end
+            return found
+        end
+        return false
+    end
+
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        text query = "UPDATE "
+
+        // check if table is valid
+        text table = GetTable()
+        if table = "" or table = undefined
+            alert(NO_TABLE_ERROR)
+        end
+
+        //check if table exists, also if there's a name remap resolve the name
+        if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+            alert(TABLE_ALIAS_ERROR)
+        end
+        DatabaseTable tableCheck = meta:GetTable(table)
+        if tableCheck = undefined
+            alert(TABLE_NOT_FOUND:Replace("?table?",table))
+        end
+        query = query + table
+
+        if assignmentList:IsEmpty()
+            alert(EMPTY_QUERY)
+        end
+
+
+        query = query + " SET "
+        Iterator<text> columns = columnList:GetKeyIterator()
+        repeat while columns:HasNext()
+            text columnName = columns:Next()
+            ColumnTarget target = columnList:GetValue(columnName)
+            boolean valid = IsValidTarget(target) // this will grab the type of the column too
+            if not valid
+                alert("Could not find column '" + columnName + "' in table '" + GetTable()+"'")
+            end
+            Parameter value = assignmentList:GetValue(columnName)
+
+
+            text resolvedValue = value:GetValueAsText()
+            //if value was an expression then convert it
+            if value:IsExpression()
+                QueryFilterConverter converter
+                converter:SetDatabaseMetaData(GetDatabaseMetaData())
+                converter:SetQuery(me)
+                converter:Convert(value:GetValueAsText())
+                //if the conversion went poorly, an error would have been thrown already.
+                if converter:HasConversion()
+                    resolvedValue = converter:GetConversion()
+                    if converter:GetFinalType() not= undefined
+                        value:SetExpressionType(converter:GetFinalType())
+                    end
+                end
+            elseif value:IsText()
+            //if the value was text then strip it out and make a prepared parameter
+                resolvedValue = "?"
+                AddPreparedParameter(value)
+            end
+
+            // quick type check
+            // if it was an expression we didnt know the type until we convertered it so we're doing this after resolving the text
+            if not value:IsTypeCompatible(target:GetRawType())
+                alert("Cannot assign a value of type '" + value:GetType() + "' to column '" + columnName + "'")//ERROR MESSAGE NOT FINAL
+            end
+            
+            query = query + columnName + " = " + resolvedValue
+            if columns:HasNext()
+                query = query + ", "
+            end
+        end
+
+        //if there is no raw filter, there is nothing to convert
+        //so just return it
+        text raw = GetRawFilter()
+        if raw = undefined and filtering
+            alert(FILTER_WARNING)
+        end
+        if raw not= undefined and filtering
+            //if there is a filter, get the meta data from the database, 
+            //convert the query and type check it, then add it to the current value
+            QueryFilterConverter converter
+            converter:SetDatabaseMetaData(GetDatabaseMetaData())
+            converter:SetQuery(me)
+            converter:Convert(raw)
+            //if the conversion went poorly, an error would have been thrown already.
+            if converter:HasConversion()
+                text where = converter:GetConversion()
+                query = query + " WHERE " + where
+            end
+        end
+
+        return query
+    end
+
+end

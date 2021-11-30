@@ -1,0 +1,49 @@
+package Libraries.Data.Database
+
+class Connection
+    text username = ""
+    text password = ""
+    text location = ""
+    text database = ""
+    integer port = 3306    
+
+    action GetUsername returns text
+        return username
+    end
+
+    action SetUsername(text username)
+        me:username = username
+    end
+
+    action GetPassword returns text
+        return password
+    end
+
+    action SetPassword(text password)
+        me:password = password
+    end
+
+    action GetLocation returns text
+        return location
+    end
+
+    action SetLocation(text location)
+        me:location = location
+    end
+
+    action GetPort returns integer
+        return port
+    end
+    action SetPort(integer port)
+        me:port = port
+    end
+
+    action GetDatabase returns text
+        return database
+    end
+
+    action SetDatabase(text database)
+        me:database = database
+    end
+
+end

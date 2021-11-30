@@ -1,0 +1,44 @@
+package Libraries.Data.Database.Support
+use Libraries.Data.Database.Find
+
+
+class TableTarget is RemappableName
+
+    text table = ""
+    boolean isSubquery = false
+    Find subquery = undefined
+
+    action SetTable(text table)
+        me:table = table
+    end
+
+    action GetTable returns text
+        return table
+    end
+
+    action SetSubquery(Find subquery)
+        me:subquery = subquery
+        SetIsSubquery(true)
+    end
+
+    action GetSubquery returns Find
+        return subquery
+    end
+
+    action SetIsSubquery(boolean isSubquery)
+        me:isSubquery = isSubquery
+    end
+
+    action IsSubquery returns boolean
+        return isSubquery
+    end
+
+    /* FOR USE WHEN A SUBQUERY */
+    action HasColumn(text column) returns boolean
+        if isSubquery and subquery not= undefined
+            return subquery:HasColumn(column)
+        end
+        return false
+    end
+
+end

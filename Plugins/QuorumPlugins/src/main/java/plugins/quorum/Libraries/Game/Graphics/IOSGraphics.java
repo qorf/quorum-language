@@ -375,6 +375,18 @@ public class IOSGraphics implements GraphicsManager
     {
         glVertexAttrib4f(location, (float)x, (float)y, (float)z, (float)w);
     }
+
+    public String GetGraphicsText(int code)
+    {
+        return glGetString(code);
+    }
+
+    public int GetGraphicsInteger(int code)
+    {
+        IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
+        glGetIntegerv(code, buffer);
+        return buffer.get(0);
+    }
     
     public int GetGraphicsErrorCode()    
     {

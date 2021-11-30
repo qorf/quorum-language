@@ -1,0 +1,508 @@
+package Libraries.Data.Database
+use Libraries.Language.Compile.Parsing.UnifiedSourceListener
+use Libraries.Language.Compile.Translate.ActionCallOpcode
+use Libraries.Language.Compile.Context.ActionCallContext
+use Libraries.Language.Compile.Parsing.DefaultExpressionListener
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Translate.QuorumOpcode
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.ActionCall
+use Libraries.Containers.HashTable
+use Libraries.Data.Database.Support.RemappableName
+use Libraries.Data.Database.Support.ColumnTarget
+use Libraries.Data.Database.Support.Parameter
+use Libraries.Containers.Array
+use Libraries.Data.Database.Support.TableTarget
+
+class QueryExpressionListener is DefaultExpressionListener
+    Stack<text> stack
+    DatabaseMetaData meta = undefined
+    Query query = undefined
+    boolean hasConversion = false
+    text conversion = ""
+    text originalQuery = ""
+    text DQ = originalQuery:GetDoubleQuote()
+
+    action Finish
+        if HasError()
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            hasConversion = false
+            alert ("Incorrect Query '" + originalQuery + "' with error '" + manager:GetFirstMessageAsText() + ".'")
+        elseif stack:IsEmpty()
+            hasConversion = false
+        else
+            hasConversion = true
+            conversion = stack:Pop()
+        end
+    end
+
+    action GetConversion returns text
+        return conversion
+    end
+
+    action HasError returns boolean
+        CompilerErrorManager manager = GetCompilerErrorManager()
+        return not manager:IsCompilationErrorFree()
+    end
+
+    action HasConversion returns boolean
+        return hasConversion
+    end
+
+    action ExitInteger(IntegerContext context) 
+        parent:DefaultExpressionListener:ExitInteger(context)
+        if HasError() return now end
+        stack:Add("" + context:value)
+    end
+
+    action ExitNumber(NumberContext context) 
+        parent:DefaultExpressionListener:ExitNumber(context)
+        if HasError() return now end
+        stack:Add("" + context:value)
+    end
+
+    action ExitText(TextContext context) 
+        parent:DefaultExpressionListener:ExitText(context)
+        if HasError() return now end
+        Parameter param
+        param:SetToText(context:value)
+        query:AddPreparedParameter(param)
+        stack:Add("?")
+    end
+
+    action ExitBoolean(BooleanContext context) 
+        parent:DefaultExpressionListener:ExitBoolean(context)
+        if HasError() return now end
+        stack:Add("" + context:value)
+    end
+
+    action ExitUndefined(UndefinedContext context) 
+        parent:DefaultExpressionListener:ExitUndefined(context)
+        if HasError() return now end
+        stack:Add("NULL")
+    end
+
+    action ExitMultiplication(MultiplicationContext context) 
+        parent:DefaultExpressionListener:ExitMultiplication(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text left = stack:Pop()
+
+        
+        text result = ""
+        if context:isMultiply
+            result = left + " * " + right
+        elseif context:isDivide
+            result = left + " / " + right
+        elseif context:isModulus
+            result = left + " MOD " + right
+        end
+
+        stack:Add(result)
+    end
+
+    action ExitAddition(AdditionContext context) 
+        parent:DefaultExpressionListener:ExitAddition(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text left = stack:Pop()
+
+        
+        text result = ""
+        if context:isPlus
+            result = left + " + " + right
+        else
+            result = left + " - " + right
+        end
+
+        stack:Add(result)
+    end
+
+    action DoAndOr(AndOrContext context)
+        parent:DefaultExpressionListener:DoAndOr(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text left = stack:Pop()
+
+        
+        text result = ""
+        if context:isAnd
+            result = left + " AND " + right
+        else
+            result = left + " OR " + right
+        end
+
+        stack:Add(result)
+    end
+
+    action ExitMinus(UnaryMinusContext context) 
+        parent:DefaultExpressionListener:ExitMinus(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text result = "- " + right
+
+        stack:Add(result)
+    end
+
+    action ExitNot(NotContext context) 
+        parent:DefaultExpressionListener:ExitNot(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text result = "NOT " + right
+
+        stack:Add(result)
+    end
+
+    ActionCallContext tableRef = undefined
+
+    action EnterVariableFunctionCall(VariableFunctionCallContext context)
+        if context:calls:GetSize() = 2
+            tableRef = context:calls:Get(0)
+        elseif context:calls:GetSize() = 1
+            tableRef = undefined
+        else
+            SendDefaultError(context, "references to column can not be larger than a chain of 2")
+        end
+        Enter(context)
+    end
+
+    action ExitVariableFunctionCall(VariableFunctionCallContext context)
+        tableRef = undefined
+        Exit(context)
+    end
+
+    action ExitActionCall(ActionCallContext context)
+        if not context:isActionCall
+            //get the name of the variable
+            text name = context:name
+            if meta = undefined
+                SendDefaultError(context, "Could not find database information. Did you request DatabaseMetaData
+                    from the database Connection?")
+                return now
+            end
+
+            if query = undefined
+                SendDefaultError(context, "Could not find query object. What table are we requesting from?")
+                return now
+            end
+
+            HashTable<text, RemappableName> nameRemaps = query:GetNameRemaps()
+            boolean isAlias = false
+            boolean isSubquery = false
+            Type subqueryType = undefined
+            text resolvedName = undefined
+            //this could be an alias, table name, or column name 
+            if context not= tableRef
+                text table = ""
+                if tableRef not= undefined
+                    table = tableRef:name
+                else
+                    // could be column name or alias
+                    if nameRemaps:HasKey(name)
+                        // it's an alias
+                        isAlias = true
+                        RemappableName remapped = nameRemaps:GetValue(name)
+                        // it could be a column or query (for now only support Find queries)
+                        if remapped is ColumnTarget
+                            ColumnTarget column = cast(ColumnTarget, remapped)
+                            table = column:GetTable()
+                            name = column:GetName()
+                            if table not= undefined and table not= ""
+                                resolvedName = column:GetTable()+"."+column:GetName()
+                            end
+                        elseif remapped is Find
+                            isSubquery = true
+                            Find subquery = cast(Find, remapped)
+                            subquery:SetDatabaseMetaData(meta)
+                            resolvedName = "(" + subquery:ToText() + ")"
+
+                            // for now the subquery must only have 1 column
+                            if subquery:GetColumnListSize() not= 1
+                                alert("Subquery must return one item")//error not final and maybe not even correct
+                            end
+                            // after converted to text the type of the column should be known
+                            subqueryType = subquery:GetColumnType(0)
+                            // if it needs prepared parameters then need to be added to the parent query
+                            Array<Parameter> params = subquery:GetPreparedParameters()
+                            integer i = 0
+                            repeat params:GetSize() times
+                                query:AddPreparedParameter(params:Get(i))
+                                i = i + 1
+                            end
+                        elseif remapped is TableTarget
+                            alert("Can not have a standalone table name in an expression")
+                        else
+                            alert("Could not resolve alias")
+                        end
+                    end
+                    if resolvedName = undefined
+                        // not an alias so take as standalone column name
+                        Iterator<text> iterator = query:GetTableReferences():GetKeyIterator()
+                        found = false
+                        repeat while iterator:HasNext()
+                            search = iterator:Next()
+                            DatabaseTable dbTable = meta:GetTable(search)
+                            if dbTable not= undefined and dbTable:HasColumn(name)
+                                if found and table not= search
+                                    SendDefaultError(context, "Found column '" + name + "' in multiple tables. Try specifiying which table you want the column from using table:column.")
+                                end
+                                found = true
+                                table = search
+                            end
+                            if nameRemaps:HasKey(search) and nameRemaps:GetValue(search) is TableTarget
+                                // table refs should only store real table names unless it's a subquery
+                                TableTarget remappedTable = cast(TableTarget, nameRemaps:GetValue(search))
+                                if remappedTable:IsSubquery()
+                                    found = true
+                                    isSubquery = true
+                                    subqueryType = remappedTable:GetSubquery():GetColumnType(name)
+                                    table = search
+                                else
+                                    // aliased table
+                                    search = remappedTable:GetTable()
+                                    dbTable = meta:GetTable(search)
+                                    if dbTable not= undefined and dbTable:HasColumn(name)
+                                        if found and table not= search
+                                            SendDefaultError(context, "Found column '" + name + "' in multiple tables. Try specifiying which table you want the column from using table:column.")
+                                        end
+                                    found = true
+                                    table = search
+                                    end
+                                end
+                            end
+                        end
+                        if not found
+                             SendDefaultError(context, "The column '" +name + "' could not be found in any table referenced by the query")
+                        end
+                        resolvedName = table + "." + name
+                    end
+                     
+                end
+                //table has been found
+                Type type
+                if isSubquery
+                    type = subqueryType
+                else
+                    text tablename = table
+                    if nameRemaps:HasKey(tablename)
+                        // it's an alias
+                        RemappableName remapped = nameRemaps:GetValue(tablename)
+                        if remapped is TableTarget
+                            TableTarget remappedTable = cast(TableTarget, remapped)
+                            if remappedTable:IsSubquery()
+                                derivedTable = true
+                            end
+                            tablename = remappedTable:GetTable()
+                        else
+                            alert("Found name '"+tablename+"' where a table name should be but the name does not reference a table")
+                        end
+                    end
+                    DatabaseTable dbTable = meta:GetTable(tablename)
+                    if dbTable = undefined
+                        SendDefaultError(context, "Could not find database table '" + tablename + 
+                            "' are you sure it exists in the live database? ")
+                        return now
+                    end
+                    
+                    //now if the table exists, get the type and type check it.
+                    DatabaseColumn column = dbTable:GetColumn(name)
+                    if column = undefined
+                        SendDefaultError(context, "Found the database table '" + table + 
+                            "' but the column '" + name + "' does not appear in it.")
+                        return now
+                    end
+        
+                    type = column:GetType()
+                    if type = undefined
+                        SendDefaultError(context, "Found the database table '" + name + 
+                            "' and the column '" + name + "' but the type could not be determined")
+                        return now
+                    end
+                end
+                ActionCallOpcode actionCall
+                actionCall:SetLocation(context:GetLocation())
+                actionCall:SetType(type)
+                actionCall:SetIsActionCall(false)
+    
+                Variable variable
+                variable:SetType(type)
+                variable:SetName(name)
+                actionCall:SetField(variable)
+                GetOpcodeStack():Push(actionCall)
+                
+                if isAlias
+                    stack:Add(resolvedName)
+                else
+                    if tableRef = undefined
+                        stack:Add(name)
+                    else
+                        text tableName = stack:Pop()
+                        stack:Add(tableName + "." + name)
+                    end
+                end
+            else
+            // only referencing a table
+                text tablename = name
+                //check if using a table alias
+                if nameRemaps:HasKey(name)
+                    // it's an alias
+                    RemappableName remapped = nameRemaps:GetValue(name)
+                    if remapped is TableTarget
+                        TableTarget remappedTable = cast(TableTarget, remapped)
+                        tablename = remappedTable:GetTable()
+                    else
+                        alert("Found name '"+name+"' where a table name should be but the name does not reference a table")
+                    end
+                end
+                DatabaseTable dbTable = meta:GetTable(tablename)
+                if dbTable = undefined
+                    SendDefaultError(context, "1. Could not find database table '" + tablename + 
+                        "' are you sure it exists in the live database? ")
+                    return now
+                end
+
+                stack:Add(name)
+            end
+
+
+        else
+            CompilerError error
+            error:SetLocation(context:GetLocation())
+            error:SetErrorMessage("Cannot call actions from a query filter.")
+            CompilerErrorType t
+            t:SetCurrentType(t:MISSING_METHOD)
+            error:SetCompilerErrorType(t)
+            CompilerErrorManager manager = GetCompilerErrorManager()
+            manager:Add(error)
+            return now
+        end
+    end
+
+    action ExitEquals(EqualsContext context) 
+        //get copies of what is on the stack before the parent
+        //processes this in order to manage the strange case of NULL in SQL
+        QuorumOpcode rop = GetOpcodeStack():Pop()
+        QuorumOpcode lop = GetOpcodeStack():Pop()
+
+        GetOpcodeStack():Push(lop)
+        GetOpcodeStack():Push(rop)
+        parent:DefaultExpressionListener:ExitEquals(context)
+        if HasError() return now end
+
+        text result = ""
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text left = stack:Pop()
+
+        //If both sides are null, just push on true
+        if rop:GetType():IsUndefined() and lop:GetType():IsUndefined()
+            result = "TRUE"
+        elseif rop:GetType():IsUndefined() and not lop:GetType():IsUndefined()
+            //in SQL, if the left hand side is not a variable, this isn't allowed, so error out
+            if lop is ActionCallOpcode
+                ActionCallOpcode aco = cast(ActionCallOpcode, lop)
+                if aco:IsActionCall()
+                    SendDefaultError(context, "Action calls are not allowed in a filter.")
+                    return now
+                else 
+                    if context:equalsTo
+                        result = left + " IS NULL"
+                    else
+                        result = left + " IS NOT NULL"
+                    end
+                end
+            else 
+                SendDefaultError(context, "The left hand side of the expression must be a variable to check if it is undefined.")
+                return now
+            end
+        elseif not rop:GetType():IsUndefined() and lop:GetType():IsUndefined()
+            //in SQL, if the left hand side is not a variable, this isn't allowed, so error out
+            if rop is ActionCallOpcode
+                ActionCallOpcode aco = cast(ActionCallOpcode, rop)
+                if aco:IsActionCall()
+                    SendDefaultError(context, "Action calls are not allowed in a filter.")
+                    return now
+                else 
+                    //we need to flip the ordering here because otherwise SQL will reject it.
+                    if context:equalsTo
+                        result = right + " IS NULL"
+                    else
+                        result = right + " IS NOT NULL"
+                    end
+                end
+            else 
+                SendDefaultError(context, "The left hand side of the expression must be a variable to check if it is undefined.")
+                return now
+            end
+        else
+            if context:equalsTo
+                result = left + " = " + right
+            else
+                result = left + " != " + right
+            end
+        end
+        stack:Add(result)
+    end
+
+    action ExitInequality(InequalityContext context) 
+        parent:DefaultExpressionListener:ExitInequality(context)
+        if HasError() return now end
+
+        //pop the text of the right and the left
+        text right = stack:Pop()
+        text left = stack:Pop()
+
+        text result = ""
+        if context:isGreater
+            result = left + " > " + right
+        elseif context:isGreaterEquals
+            result = left + " >= " + right
+        elseif context:isLess
+            result = left + " < " + right
+        elseif context:isLessEquals
+            result = left + " <= " + right
+        end
+
+        stack:Add(result)
+    end
+
+    action GetDatabaseMetaData returns DatabaseMetaData
+        return meta
+    end
+
+    action SetDatabaseMetaData(DatabaseMetaData meta)
+        me:meta = meta
+    end
+
+    action GetQuery returns Query
+        return query
+    end
+
+    action SetQuery(Query query)
+        me:query = query
+    end
+
+    action GetOriginalQuery returns text
+        return originalQuery
+    end
+
+    action SetOriginalQuery(text originalQuery)
+        me:originalQuery = originalQuery
+    end
+end

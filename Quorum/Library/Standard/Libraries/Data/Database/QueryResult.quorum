@@ -1,0 +1,11 @@
+package Libraries.Data.Database
+
+class QueryResult
+    system action HasNext returns boolean
+    system action Next
+    system action GetText(text column) returns text
+    system action GetText(integer column) returns text
+    system action GetInteger(text column) returns integer
+    system action GetInteger(integer column) returns integer
+    system action GetQueryMetaData returns QueryMetaData
+end

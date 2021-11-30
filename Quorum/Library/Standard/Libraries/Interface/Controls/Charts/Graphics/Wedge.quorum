@@ -1,0 +1,197 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.DefaultVertexShader2D
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Math
+use Libraries.Compute.Vector2
+
+class Wedge is Drawable
+
+    public constant text WEDGE_SHADER_PROGRAM_NAME = "Wedge Shader Program"
+
+    Math math
+
+    number outerRadius = 100
+    number innerRadius = 0
+    number startPercentage = 0
+    number endPercentage = 0.1
+
+    // A vector2 used for testing coordinates in the Contains action. Vital for mouse input.
+    Vector2 point
+
+    on create
+        ShaderManager manager
+        if manager:HasShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
+            SetShaderProgram(manager:GetShaderProgram(WEDGE_SHADER_PROGRAM_NAME))
+        else
+            DefaultVertexShader2D vertex
+            WedgeFragmentShader fragment
+            ShaderProgram program
+            program:Add(vertex)
+            program:Add(fragment)
+            program:SetName(WEDGE_SHADER_PROGRAM_NAME)
+
+            WedgeShaderMapping mapping
+            program:SetShaderMapping(mapping)
+
+            program:Compile()
+
+            SetShaderProgram(program)
+        end
+    end
+
+    /*
+    This action loads the wedge so it can be rendered. It will be loaded with the provided color,
+    but like other Drawables, its color can be changed later using the SetColor action.
+
+    Attribute: Parameter color The initial color of the wedge.
+    */
+    action Load(Color color)
+        // We want a basic rectangle texture. The size is irrelevant -- the shader handles the actual shape and size.
+        LoadFilledRectangle(1, 1, color)
+    end
+
+    /*
+    This action returns the distance between the wedge's origin point and the inner edge, in pixels.
+    In other words, this represents how many empty pixels should appear between the origin and
+    the start of this wedge. If this value is 0, the wedge will begin directly from the origin
+    point with no gap.
+
+    Attribute: Returns The radius from the origin point to the inner edge of the wedge.
+    */
+    action GetInnerRadius returns number
+        return innerRadius
+    end
+
+    /*
+    This action sets the distance between the wedge's origin point and the inner edge, in pixels.
+    In other words, this represents how many empty pixels should appear between the origin and
+    the start of this wedge. If this value is 0, the wedge will begin directly from the origin
+    point with no gap.
+
+    Attribute: Parameter innerRadius The new radius from the origin point to the inner edge of the wedge.
+    */
+    action SetInnerRadius(number innerRadius)
+        me:innerRadius = innerRadius
+    end
+
+    /*
+    This action returns the distance (in pixels) from the origin point of the wedge to the outer edge.
+    The origin is determined to be the midpoint of the parent item, if there is one. If the wedge
+    doesn't have a parent item, the origin point will be the midpoint of the wedge item.
+
+    Attribute: Returns The radius from the origin point to the outer edge of the wedge.
+    */
+    action GetOuterRadius returns number
+        return outerRadius
+    end
+
+    /*
+    This action sets the distance (in pixels) from the origin point of the wedge to the outer edge.
+    The origin is determined to be the midpoint of the parent item, if there is one. If the wedge
+    doesn't have a parent item, the origin point will be the midpoint of the wedge item.
+
+    Attribute: Parameter outerRadius The new radius from the origin point to the outer edge of the wedge.
+    */
+    action SetOuterRadius(number outerRadius)
+        me:outerRadius = outerRadius
+    end
+
+    /*
+    This action determines where the wedge begins along a circle, as a percentage represented between 0 and 1.
+    A value of 0 is placed at the top of the circle, moving clockwise as the value increases. For example, a
+    wedge with a start percentage of 0.25 and an end percentage of 0.5 will start on the right side and end at
+    the bottom, filling the bottom-right quadrant of a circle.
+
+    Attribute: Returns A value between 0 and 1 indicating where the wedge begins on the circle.
+    */
+    action GetStartPercentage returns number
+        return startPercentage
+    end
+
+    /*
+    This action determines where the wedge begins along a circle, as a percentage represented between 0 and 1.
+    A value of 0 is placed at the top of the circle, moving clockwise as the value increases. For example, a
+    wedge with a start percentage of 0.25 and an end percentage of 0.5 will start on the right side and end at
+    the bottom, filling the bottom-right quadrant of a circle.
+
+    Attribute: Parameter startPercentage A value between 0 and 1 indicating where the wedge begins on the circle.
+    */
+    action SetStartPercentage(number startPercentage)
+        me:startPercentage = startPercentage
+    end
+
+    /*
+    This action determines where the wedge ends along a circle, as a percentage represented between 0 and 1.
+    A value of 0 is placed at the top of the circle, moving clockwise as the value increases. For example, a
+    wedge with a start percentage of 0.25 and an end percentage of 0.5 will start on the right side and end at
+    the bottom, filling the bottom-right quadrant of a circle.
+
+    Attribute: Returns A value between 0 and 1 indicating where the wedge ends on the circle.
+    */
+    action GetEndPercentage returns number
+        return endPercentage
+    end
+
+    /*
+    This action determines where the wedge ends along a circle, as a percentage represented between 0 and 1.
+    A value of 0 is placed at the top of the circle, moving clockwise as the value increases. For example, a
+    wedge with a start percentage of 0.25 and an end percentage of 0.5 will start on the right side and end at
+    the bottom, filling the bottom-right quadrant of a circle.
+
+    Attribute: Parameter endPercentage A value between 0 and 1 indicating where the wedge ends on the circle.
+    */
+    action SetEndPercentage(number endPercentage)
+        me:endPercentage = endPercentage
+    end
+
+    /*  
+    This action tests if a point in global x,y coordinates is contained
+    inside this Item2D. The global coordinates are considered to be the x and y
+    coordinates of this Item plus its offsetX and offsetY values.
+
+    Attribute: Returns Whether or not the point is contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D item
+        item:SetPosition(50, 50)
+        item:SetWidth(100)
+        item:SetHeight(50)
+        boolean value = item:Contains(125, 70)
+    */
+    action Contains(number containsX, number containsY) returns boolean
+        // To check the point, we compare it against the origin point.
+        // The origin point is the midpoint of the parent item, or the midpoint of this item if there is no parent.
+        number originX = GetWidth() / 2
+        number originY = GetHeight() / 2
+        if GetParent() not= undefined
+            Item2D parentItem = GetParent()
+            originX = parentItem:GetWidth() / 2
+            originY = parentItem:GetHeight() / 2
+        end
+
+        number x = (containsX - GetGlobalX()) - originX
+        number y = (containsY - GetGlobalY()) - originY
+        
+        point:Set(x, y)
+        number length = point:Length()
+        if length < innerRadius or length > outerRadius
+            return false
+        end
+
+        number angle = math:InverseTangent(y, x)
+        if angle < 0
+            angle = math:pi + (math:pi + angle)
+        end
+        angle = angle / (2 * math:pi)
+
+        return angle >= startPercentage and angle <= endPercentage
+    end
+
+end
