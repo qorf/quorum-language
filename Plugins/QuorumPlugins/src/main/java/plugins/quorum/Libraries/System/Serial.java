@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.System;
 
 import com.fazecast.jSerialComm.*;
+import com.fazecast.jSerialComm.SerialPort;
 import quorum.Libraries.Containers.Array_;
 
 import java.io.InputStream;
@@ -24,6 +25,17 @@ public class Serial{
         }
         return array;
     }
+
+    public quorum.Libraries.System.SerialPort GetPort(String name) {
+        com.fazecast.jSerialComm.SerialPort port = SerialPort.getCommPort(name);
+        if(port == null) {
+            return null;
+        }
+        quorum.Libraries.System.SerialPort sp = new quorum.Libraries.System.SerialPort();
+        sp.plugin_.setPort(port);
+        return sp;
+    }
+
     public void Write(String msg){
         try{
             byte[] outBytes = msg.getBytes("UTF8");
