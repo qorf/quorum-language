@@ -59,7 +59,9 @@ class ScatterPlot is TwoVariableChart
         SetAccessibilityCode(parent:Item:ITEM)
 
         ShowAllTicks()
-        SetDefaultOrientation("horizontal")
+        SetDefaultOrientationToHorizontal()
+        GetHorizontalPanel():SetPaddingOffset(25)
+        GetVerticalPanel():SetPaddingOffset(25)
     end
 
     /*

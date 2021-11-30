@@ -128,7 +128,7 @@ class HistogramLayout is SharedBarChartLayout
                         end
     
                         if horizontal
-                            if chart:HasBarGroups() and not (stacked or separateByFactor)
+                            if chart:HasGroups() and not (stacked or separateByFactor)
                                 currentBar:GetColor():SetAlpha(0.75)
                                 currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
                             else
@@ -136,7 +136,7 @@ class HistogramLayout is SharedBarChartLayout
                             end
                             currentBar:SetPosition(currentYPosition, cast(integer, currentXPosition + betweenGroupPadding))
                         else
-                            if chart:HasBarGroups() and not (stacked or separateByFactor)
+                            if chart:HasGroups() and not (stacked or separateByFactor)
                                 currentBar:GetColor():SetAlpha(0.75)
                                 currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
                             else

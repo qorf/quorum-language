@@ -40,9 +40,9 @@ class VerticalAxisPanel is Control
     Array <Drawable> minorlines
     ControlLabel longestLabel
 
-    boolean tickCountOverride = false
     boolean labelOverridesAreNumbers = false
     boolean showGroupBrackets = false
+    boolean showTicks = false
 
     integer numberOfSections = 1
     integer minorlinecount = 5
@@ -52,16 +52,21 @@ class VerticalAxisPanel is Control
     integer labelCount = 0
     integer titleFontSize = 0
     integer labelFontSize = 0
-    number tickinterval = -1.0 //This is used for the numerical label spacing
+    number tickInterval = -1.0 //This is used for the numerical label spacing
     integer intervaloverride = 1 //This is used to skip the text labels
     number min = 0.0
     number max = 0.0
     number sumOfLabelHeights = 0
     number sumOfLabelWidths = 0
     number labelMinimum = 0
-
+    integer paddingOffset = 0
+    
+    boolean blockPaddingOffset = false
     boolean overrideDefaultMin = false
     boolean overrideDefaultMax = false
+    boolean overrideDefaultTickCount = false
+    boolean overrideDefaultTickInterval = false
+    boolean overrideDefaultNumberFormat = false
 
     text titleText = ""
     text numberformat = "integer"
@@ -137,32 +142,101 @@ class VerticalAxisPanel is Control
         yAxis:SetParent(summary)
         yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
-
+        
         chartArea:SetPrevious(yAxis)
         chartArea:SetNext(yAxis)
         yAxis:SetNext(chartArea)
         yAxis:SetPrevious(chartArea)     
-
-        // Labels
-        ChartItem firstLabel
-        firstLabel:SetContainer(chart)
-        if labels:GetSize() > 0
-            yAxis:SetChild(firstLabel)
-            firstLabel:SetParent(yAxis)
-            firstLabel:SetFocusTarget(labels:Get(0))
-        end
-
-        i = 1
-        ChartItem previousLabel = firstLabel
-        repeat while i < labels:GetSize()
-            ChartItem labelNode
-            labelNode:SetContainer(chart)
-            labelNode:SetParent(yAxis)
-            labelNode:SetFocusTarget(labels:Get(i))
-            previousLabel:SetNext(labelNode)
-            labelNode:SetPrevious(previousLabel)
-            previousLabel = labelNode
-            i = i + 1
+        
+        if not chart:IsSeparatedByFactor()
+            // Labels
+            ChartItem firstLabel
+            firstLabel:SetContainer(chart)
+            if labels:GetSize() > 0
+                yAxis:SetChild(firstLabel)
+                firstLabel:SetParent(yAxis)
+                firstLabel:SetFocusTarget(labels:Get(0))
+            end
+    
+            i = 1
+            ChartItem previousLabel = firstLabel
+            repeat while i < labels:GetSize()
+                ChartItem labelNode
+                labelNode:SetContainer(chart)
+                labelNode:SetParent(yAxis)
+                labelNode:SetFocusTarget(labels:Get(i))
+                previousLabel:SetNext(labelNode)
+                labelNode:SetPrevious(previousLabel)
+                previousLabel = labelNode
+                i = i + 1
+            end
+        elseif chart:GetSubVerticalPanels():GetSize() > 0
+            //SubPanel axis
+            
+            ChartItem firstSubPanel
+            firstSubPanel:SetContainer(chart)
+            yAxis:SetChild(firstSubPanel)
+            firstSubPanel:SetParent(yAxis)
+            firstSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(0))
+            
+            Array<ControlLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
+            if labels:GetSize() > 0
+                ChartItem firstLabel
+                firstLabel:SetContainer(chart)
+                firstSubPanel:SetChild(firstLabel)
+                firstLabel:SetParent(firstSubPanel)
+                firstLabel:SetFocusTarget(labels:Get(0))
+        
+                j = 1
+                ChartItem previousLabel = firstLabel
+                repeat while j < labels:GetSize()
+                    ChartItem labelNode
+                    labelNode:SetContainer(chart)
+                    labelNode:SetParent(firstSubPanel)
+                    labelNode:SetFocusTarget(labels:Get(j))
+                    previousLabel:SetNext(labelNode)
+                    labelNode:SetPrevious(previousLabel)
+                    previousLabel = labelNode
+                    j = j + 1
+                end
+            end
+    
+            i = 1
+            ChartItem previousSubPanel = firstSubPanel
+            repeat while i < chart:GetSubVerticalPanels():GetSize()
+                ChartItem currentSubPanel
+                currentSubPanel:SetContainer(chart)
+                currentSubPanel:SetParent(yAxis)
+                currentSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(i))
+                previousSubPanel:SetNext(currentSubPanel)
+                currentSubPanel:SetPrevious(previousSubPanel)
+                previousSubPanel = currentSubPanel
+                
+                
+                labels = chart:GetSubVerticalPanels():Get(i):GetLabels()
+                if labels:GetSize() > 0
+                    ChartItem firstLabel
+                    firstLabel:SetContainer(chart)
+                    currentSubPanel:SetChild(firstLabel)
+                    firstLabel:SetParent(currentSubPanel)
+                    firstLabel:SetFocusTarget(labels:Get(0))
+        
+                    j = 1
+                    ChartItem previousLabel = firstLabel
+                    repeat while j < labels:GetSize()
+                        ChartItem labelNode
+                        labelNode:SetContainer(chart)
+                        labelNode:SetParent(currentSubPanel)
+                        labelNode:SetFocusTarget(labels:Get(j))
+                        previousLabel:SetNext(labelNode)
+                        labelNode:SetPrevious(previousLabel)
+                        previousLabel = labelNode
+                        j = j + 1
+                    end
+                end
+    
+                i = i + 1
+            end
         end
     end
 
@@ -274,7 +348,7 @@ class VerticalAxisPanel is Control
             
                 //make the labels for each scale tick (auto based on max)
                 text scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
-                if UseIntegers() and not tickCountOverride
+                if UseIntegers()
                     scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
                 end    
                 if overrideLabels = undefined
@@ -368,45 +442,84 @@ class VerticalAxisPanel is Control
     action CalculateScaleWidth(Chart chart) returns number
         number range = max-min
         number scaleWidth = 0.0
-        // Calculating intervals and/or number of ticks
-        if tickCountOverride
-            if tickCount > 1
-                tickinterval = (math:Round(range / cast(number, tickCount-1), 2))
-                max = cast(number, tickCount-1) * tickinterval + min
-                range = max-min
-            end
-            scaleWidth = tickinterval
-        end
 
         // Numerical scale (number intervals)
         if overrideLabels = undefined
-            number tickSkips = tickinterval
-            if tickSkips = -1
-                tickSkips = chart:CalculateBestIntervalForRange(range)
-            end
-            if tickSkips not= 1.0
-                number i = min
-                repeat while i < max
-                    i = i + tickSkips
+            if overrideDefaultTickCount
+                //Override only the tick count.
+                if tickCount < 2
+                    tickCount = 5
                 end
-                max = math:Round(i, 2)
-                range = max-min
-                tickCount = (cast(integer, range / tickSkips) + 1)
-                scaleWidth = tickSkips
-            else
-                tickCount = (cast(integer, range) + 1)
-                scaleWidth = range / (tickCount - 1)
-            end 
-            if min < 0 and not overrideDefaultMin
-                integer lowerTicks = math:AbsoluteValue(cast(integer, min / cast(integer, scaleWidth)))
-                if lowerTicks not= 0
-                    min = 0 - scaleWidth*(lowerTicks+1)
+                scaleWidth = math:Round(range / cast(number, tickCount-1),2)
+            elseif overrideDefaultMin and overrideDefaultMax
+                if overrideDefaultTickInterval
+                    scaleWidth = tickInterval
+                    tickCount = cast(integer, math:Ceiling(range / scaleWidth)) + 1
                 else
-                    min = cast(integer, min) - cast(integer, scaleWidth+(cast(integer, min) mod cast(integer, scaleWidth)))
+                    if tickCount < 2
+                        tickCount = 5
+                    end
+                    scaleWidth = math:Round(range / cast(number, tickCount-1),2)
                 end
-                tickCount = tickCount + 1
+            elseif overrideDefaultMin
+                //Override the min or the min and interval
+                if overrideDefaultTickInterval
+                    scaleWidth = tickInterval
+                else
+                    scaleWidth = CalculateBestIntervalForRange(range)
+                end
+                if scaleWidth not= 1.0
+                    number minValue = min
+                    number maxValue = math:Ceiling(max)
+                    number modResult = (maxValue - minValue) mod scaleWidth
+                    if modResult not= 0 
+                        if modResult > 0
+                            maxValue = maxValue + (scaleWidth - modResult)
+                        else
+                            maxValue = maxValue - modResult
+                        end
+                    end
+                    max = maxValue
+                    range = max - min
+                    tickCount = cast(integer, range / scaleWidth) + 1
+                else
+                    range = max - min
+                    tickCount = cast(integer, range) + 1
+                end
+            elseif overrideDefaultMax
+                //Override the max or the max and interval
+                if overrideDefaultTickInterval
+                    scaleWidth = tickInterval
+                else
+                    scaleWidth = CalculateBestIntervalForRange(range)
+                end
+                if scaleWidth not= 1.0
+                    number minValue = math:Floor(min)
+                    number maxValue = max
+                    number modResult = (maxValue - minValue) mod scaleWidth
+                    if modResult not= 0 
+                        if modResult > 0
+                            minValue = minValue - (scaleWidth - modResult)
+                        else
+                            minValue = minValue - modResult
+                        end
+                    end
+                    min = minValue
+                    range = max - min
+                    tickCount = cast(integer, range / scaleWidth) + 1
+                else
+                    range = max - min
+                    tickCount = cast(integer, range) + 1
+                end
+            else
+                if overrideDefaultTickInterval
+                    scaleWidth = tickInterval
+                else
+                    scaleWidth = CalculateBestIntervalForRange(range)
+                end
+                RunDefault(scaleWidth)
             end
-
+            
         // Text scale (integer intervals only)
         else
             tickCount = overrideLabels:GetSize()
@@ -416,10 +529,101 @@ class VerticalAxisPanel is Control
                 scaleWidth = cast(integer, range / 1)
             end
         end
-        if not CheckIfInteger(scaleWidth)
-            numberFormat = "number"
+
+        if not overrideDefaultNumberFormat
+            if CheckIfInteger(scaleWidth) and CheckIfInteger(min) and CheckIfInteger(max) 
+                numberformat = "integer"
+            else
+                numberformat = "number"
+            end
         end
         return scaleWidth
+    end
+
+    action RunDefault(number scaleWidth)
+        if scaleWidth not= 1
+            number minValue = math:Floor(min)
+            number modResult = minValue mod scaleWidth
+            if modResult not= 0
+                if modResult > 0
+                    minValue = minValue - modResult
+                else
+                    minValue = minValue - (scaleWidth + modResult)
+                end
+            else
+                paddingOffset = 10 //If the min value lands directly on the axis set the offset
+            end
+            min = minValue
+
+            number maxValue = math:Ceiling(max)
+            modResult = maxValue mod scaleWidth
+            if modResult not= 0
+                if modResult > 0
+                    maxValue = maxValue + (scaleWidth - modResult)
+                else
+                    maxValue = maxValue - modResult
+                end
+            else
+                maxValue = maxValue + scaleWidth //If the max value lands directly on the top add another interval
+            end
+            max = maxValue
+            
+            range = max - min
+            tickCount = cast(integer, math:Round(range / scaleWidth)) + 1
+        else
+            range = max - min
+            tickCount = cast(integer, range) + 1
+        end
+    end
+
+    /*
+        This action takes a range of data and returns a decent interval, this is only the default.
+        The user can choose any interval they wish and set it manually. 
+
+        Attribute: Returns a the best interval 
+    */
+    action CalculateBestIntervalForRange(number range) returns number
+        number tickSkips = 0
+        if range <= 2.5
+            if range > 1.5
+                tickSkips = 0.5
+            else
+                tickSkips = 0.1
+            end
+        else //I'm sure a better way to set the default intervals can be produced.
+            if range > 1000000
+                tickSkips = 500000
+            elseif range > 250000
+                tickSkips = 50000
+            elseif range > 50000
+                tickSkips = 10000
+            elseif range > 25000
+                tickSkips = 10000
+            elseif range > 10000
+                tickSkips = 5000
+            elseif range > 5000
+                tickSkips = 1000
+            elseif range > 2500
+                tickSkips = 500
+            elseif range > 1000
+                tickSkips = 250
+            elseif range > 500
+                tickSkips = 100
+            elseif range > 200
+                tickSkips = 50
+            elseif range > 100
+                tickSkips = 20
+            elseif range > 50
+                tickSkips = 10
+            elseif range > 20
+                tickSkips = 5
+            elseif range > 10
+                tickSkips = 2
+            else
+                tickSkips = 1
+            end
+        end
+        return tickSkips
     end
 
 
@@ -629,15 +833,16 @@ class VerticalAxisPanel is Control
     end
 
     // This is used when the user manually sets the number of ticks.
-    action SetTickCountOverride(integer ticks)
+    action SetTickCount(integer ticks)
         if overrideLabels = undefined
-            tickCount = ticks
-            tickCountOverride = true
+            if ticks > 1
+                tickCount = ticks
+            end
         end
     end
 
-    action SetTickCount(integer ticks)
-        tickCount = ticks
+    action OverrideDefaultTickCount(boolean flag)
+        overrideDefaultTickCount = flag
     end
 
     action GetTickCount() returns integer
@@ -645,20 +850,25 @@ class VerticalAxisPanel is Control
     end
 
     action SetTickInterval(number set)
-        tickinterval = set
-        if overrideLabels not= undefined and set >= 1
-            intervaloverride = cast(integer, set)
+        if set > 0
+            tickInterval = set
+            if overrideLabels not= undefined and set >= 1
+                intervaloverride = cast(integer, set)
+            end
         end
     end
 
+    action OverrideDefaultInterval(boolean flag)
+        overrideDefaultTickInterval = flag
+    end
+
     action GetTickInterval() returns number
-        return tickinterval
+        return tickInterval
     end
 
     action GetIntervalOverride() returns integer
         return intervaloverride
     end
-
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -857,6 +1067,14 @@ class VerticalAxisPanel is Control
         end
     end
 
+    action ShowTicks returns boolean
+        return showTicks
+    end
+
+    action ShowTicks(boolean show)
+        showTicks = show
+    end
+
     action OverrideDefaultMin returns boolean
         return overrideDefaultMin
     end
@@ -866,11 +1084,11 @@ class VerticalAxisPanel is Control
     end
 
     action OverrideDefaultMin(boolean flag)
-        me:overrideDefaultMin = flag
+        overrideDefaultMin = flag
     end
 
     action OverrideDefaultMax(boolean flag)
-        me:overrideDefaultMax = flag
+        overrideDefaultMax = flag
     end
 
     action GetNumberOfSections returns integer
@@ -879,5 +1097,27 @@ class VerticalAxisPanel is Control
 
     action SplitIntoSections(integer numberOfSections)
         me:numberOfSections = numberOfSections
+    end
+
+    action SetPaddingOffset(integer paddingOffset)
+        if paddingOffset > 0
+            me:paddingOffset = paddingOffset
+        end
+    end
+
+    action GetPaddingOffset returns integer
+        if not blockPaddingOffset
+            return paddingOffset
+        else
+            return 0
+        end
+    end
+
+    action BlockPaddingOffset(boolean flag)
+        blockPaddingOffset = flag
+    end
+    
+    action SetTickDigits(integer digits)
+        options:SetTickDigits(digits)
     end
 end

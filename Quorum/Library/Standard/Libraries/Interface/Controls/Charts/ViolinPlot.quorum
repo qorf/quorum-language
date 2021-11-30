@@ -51,15 +51,16 @@ class ViolinPlot is Chart
 
     Array<PlotGroup> plotGroups
 
-    Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
     
     ChartOptions options
     Math math
 
-    boolean hasGroups = false
-    boolean splitPlot = false
+    private boolean splitPlot = false
+
+    private number maxValue = 0
+    private number minValue = 0
 
     on create
         ViolinPlotLayout layout
@@ -90,7 +91,10 @@ class ViolinPlot is Chart
         NormalDistributionAction window
         windowingAction = window
 
-        SetDefaultOrientation("vertical")
+        SetDefaultShowBrackets(true)
+        SetDefaultOrientationToVertical()
+        GetVerticalPanel():BlockPaddingOffset(true)
+        GetHorizontalPanel():BlockPaddingOffset(true)
     end
 
     /*
@@ -105,14 +109,6 @@ class ViolinPlot is Chart
             return now
         end
         parent:Chart:LoadGraphics(properties)
-
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
-        end
-
-        if hasGroups and not GetShowBracketOverride()
-            ShowGroupBrackets()
-        end
 
         LoadChartAreaItems()
     end
@@ -434,20 +430,6 @@ class ViolinPlot is Chart
     end
 
     /*
-        Sets a flag that's used by GenerateInfoTree to determine if it should include accessibility navigation through plot groups
-    */
-    action HasGroups(boolean flag)
-        hasGroups = flag
-    end
-
-    /*
-        Returns the has groups flag
-    */
-    action HasGroups() returns boolean
-        return hasGroups
-    end
-
-    /*
         Sets a flag that determines if a plot should be split for 2 column, one factor 
     */
     action IsSplit(boolean flag)
@@ -465,9 +447,15 @@ class ViolinPlot is Chart
     Appends a new plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
+        if maxValue < group:GetMaxOutlierValue()
+            maxValue = group:GetMaxOutlierValue()
+        end
+        if minValue > group:GetMinOutlierValue()
+            minValue = group:GetMinOutlierValue()
+        end
         plotGroups:Add(group)
         if group:GetSize() > 1
-            hasGroups = true
+            HasGroups(true)
         end
     end
    
@@ -478,20 +466,57 @@ class ViolinPlot is Chart
         return plotGroups
     end
 
-    /*
-        Gets the default selection color (highlighting)
-    */
-    action GetHighlightColor returns Color
-        return highlightColor
+    /* 
+        Max and min value will track the highest and lowest values and limit the axis controls to not pass that value.
+    */ 
+    action SetXAxisMaximum(number max)
+        if GetVerticalFlag()
+            parent:Chart:SetXAxisMaximum(max)
+        else
+            if max >= maxValue
+                parent:Chart:SetXAxisMaximum(max)
+            else
+                output "X-axis maximum cannot be below the highest plot value: " + maxValue
+            end
+        end
     end
 
-    /*
-        Sets the default selection color (highlighting)
-    */
-    action SetHighlightColor(Color color)
-        me:highlightColor = color
+    action SetXAxisMinimum(number min)
+        if GetVerticalFlag()
+            parent:Chart:SetXAxisMinimum(min)
+        else
+            if min <= minValue
+                parent:Chart:SetXAxisMinimum(min)
+            else
+                output "X-axis minimum cannot be above the lowest plot value: " + minValue
+            end
+        end
     end
-/*
+
+    action SetYAxisMaximum(number max)
+        if GetHorizontalFlag()
+            parent:Chart:SetYAxisMaximum(max)
+        else
+            if max >= maxValue
+                parent:Chart:SetYAxisMaximum(max)
+            else
+                output "Y-axis maximum cannot be below highest plot maximum value: " + maxValue
+            end
+        end
+    end
+
+    action SetYAxisMinimum(number min)
+        if GetHorizontalFlag()
+            parent:Chart:SetYAxisMinimum(min)
+        else
+            if min <= minValue
+                parent:Chart:SetYAxisMinimum(min)
+            else
+                output "Y-axis minimum cannot be above the lowest plot value: " + minValue
+            end
+        end
+    end
+    /*
         This is called by GenerateInfoTree to generate the summary that is heard when
         you first focus on the chart. Also the highest level of the information tree
         of  the chart.
@@ -503,7 +528,7 @@ class ViolinPlot is Chart
             linetext = "Group"
             plotText = "violin plot"
         end
-        if hasGroups
+        if HasGroups()
             SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
             + ". " + "Use the arrow keys to navigate the chart.")
         else
@@ -537,7 +562,7 @@ class ViolinPlot is Chart
         chartArea:SetParent(summary)
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Violin Plot")
-        if hasGroups
+        if HasGroups()
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " groups")
         else
             me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots")
@@ -693,7 +718,7 @@ class ViolinPlot is Chart
                 i = i + 1
             end
         else
-            if hasGroups
+            if HasGroups()
                 //Plot Groups
                 ChartItem firstGroup
                 firstGroup:SetContainer(me)
