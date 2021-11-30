@@ -142,32 +142,101 @@ class VerticalAxisPanel is Control
         yAxis:SetParent(summary)
         yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
-
+        
         chartArea:SetPrevious(yAxis)
         chartArea:SetNext(yAxis)
         yAxis:SetNext(chartArea)
         yAxis:SetPrevious(chartArea)     
-
-        // Labels
-        ChartItem firstLabel
-        firstLabel:SetContainer(chart)
-        if labels:GetSize() > 0
-            yAxis:SetChild(firstLabel)
-            firstLabel:SetParent(yAxis)
-            firstLabel:SetFocusTarget(labels:Get(0))
-        end
-
-        i = 1
-        ChartItem previousLabel = firstLabel
-        repeat while i < labels:GetSize()
-            ChartItem labelNode
-            labelNode:SetContainer(chart)
-            labelNode:SetParent(yAxis)
-            labelNode:SetFocusTarget(labels:Get(i))
-            previousLabel:SetNext(labelNode)
-            labelNode:SetPrevious(previousLabel)
-            previousLabel = labelNode
-            i = i + 1
+        
+        if not chart:IsSeparatedByFactor()
+            // Labels
+            ChartItem firstLabel
+            firstLabel:SetContainer(chart)
+            if labels:GetSize() > 0
+                yAxis:SetChild(firstLabel)
+                firstLabel:SetParent(yAxis)
+                firstLabel:SetFocusTarget(labels:Get(0))
+            end
+    
+            i = 1
+            ChartItem previousLabel = firstLabel
+            repeat while i < labels:GetSize()
+                ChartItem labelNode
+                labelNode:SetContainer(chart)
+                labelNode:SetParent(yAxis)
+                labelNode:SetFocusTarget(labels:Get(i))
+                previousLabel:SetNext(labelNode)
+                labelNode:SetPrevious(previousLabel)
+                previousLabel = labelNode
+                i = i + 1
+            end
+        elseif chart:GetSubVerticalPanels():GetSize() > 0
+            //SubPanel axis
+            
+            ChartItem firstSubPanel
+            firstSubPanel:SetContainer(chart)
+            yAxis:SetChild(firstSubPanel)
+            firstSubPanel:SetParent(yAxis)
+            firstSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(0))
+            
+            Array<ControlLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
+            if labels:GetSize() > 0
+                ChartItem firstLabel
+                firstLabel:SetContainer(chart)
+                firstSubPanel:SetChild(firstLabel)
+                firstLabel:SetParent(firstSubPanel)
+                firstLabel:SetFocusTarget(labels:Get(0))
+        
+                j = 1
+                ChartItem previousLabel = firstLabel
+                repeat while j < labels:GetSize()
+                    ChartItem labelNode
+                    labelNode:SetContainer(chart)
+                    labelNode:SetParent(firstSubPanel)
+                    labelNode:SetFocusTarget(labels:Get(j))
+                    previousLabel:SetNext(labelNode)
+                    labelNode:SetPrevious(previousLabel)
+                    previousLabel = labelNode
+                    j = j + 1
+                end
+            end
+    
+            i = 1
+            ChartItem previousSubPanel = firstSubPanel
+            repeat while i < chart:GetSubVerticalPanels():GetSize()
+                ChartItem currentSubPanel
+                currentSubPanel:SetContainer(chart)
+                currentSubPanel:SetParent(yAxis)
+                currentSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(i))
+                previousSubPanel:SetNext(currentSubPanel)
+                currentSubPanel:SetPrevious(previousSubPanel)
+                previousSubPanel = currentSubPanel
+                
+                
+                labels = chart:GetSubVerticalPanels():Get(i):GetLabels()
+                if labels:GetSize() > 0
+                    ChartItem firstLabel
+                    firstLabel:SetContainer(chart)
+                    currentSubPanel:SetChild(firstLabel)
+                    firstLabel:SetParent(currentSubPanel)
+                    firstLabel:SetFocusTarget(labels:Get(0))
+        
+                    j = 1
+                    ChartItem previousLabel = firstLabel
+                    repeat while j < labels:GetSize()
+                        ChartItem labelNode
+                        labelNode:SetContainer(chart)
+                        labelNode:SetParent(currentSubPanel)
+                        labelNode:SetFocusTarget(labels:Get(j))
+                        previousLabel:SetNext(labelNode)
+                        labelNode:SetPrevious(previousLabel)
+                        previousLabel = labelNode
+                        j = j + 1
+                    end
+                end
+    
+                i = i + 1
+            end
         end
     end
 

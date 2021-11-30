@@ -468,7 +468,9 @@ class ChartWriter
             svgSubChartArea:SetPosition(currentSubChartArea:GetGlobalX(), TranslatePositionY(currentSubChartArea)  - currentSubChartArea:GetHeight())
             svgSubChartArea:SetID(canvas:GetID() + "-" + svgSubChartArea:GetHashCode())
             svgSubChartArea:SetTabIndex(-1)
-            
+            if HasAccessibility()
+                svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
+            end
             me:subChartAreas:Add(svgSubChartArea)
             canvas:Add(svgSubChartArea)
             i = i + 1
@@ -503,7 +505,7 @@ class ChartWriter
             horizontalPanel:SetTabIndex(-1)
             horizontalPanel:SetID(canvas:GetID() + "-" + horizontalAxisPanel:GetHashCode())
             if HasAccessibility()
-                horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetDescription())
+                horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
             end
             canvas:Add(horizontalPanel)
         end
@@ -525,7 +527,7 @@ class ChartWriter
                 svgSubHorizontalPanel:SetTabIndex(-1)
                 svgSubHorizontalPanel:SetID(canvas:GetID() + "-" + currentSubHorizontalPanel:GetHashCode())
                 if HasAccessibility()
-                    svgSubHorizontalPanel:SetAriaLabel(currentSubHorizontalPanel:GetDescription())
+                    svgSubHorizontalPanel:SetAriaLabel(currentSubHorizontalPanel:GetName() + currentSubHorizontalPanel:GetDescription())
                 end
                 me:subHorizontalPanels:Add(svgSubHorizontalPanel)
                 canvas:Add(svgSubHorizontalPanel)
@@ -566,7 +568,7 @@ class ChartWriter
             verticalPanel:SetTabIndex(-1)
             verticalPanel:SetID(canvas:GetID() + "-" + verticalAxisPanel:GetHashCode())
             if HasAccessibility()
-                verticalPanel:SetAriaLabel(verticalAxisPanel:GetDescription())
+                verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
             end
             canvas:Add(verticalPanel)
         end
@@ -588,9 +590,9 @@ class ChartWriter
                 svgSubVerticalPanel:SetTabIndex(-1)
                 svgSubVerticalPanel:SetID(canvas:GetID() + "-" + currentSubVerticalPanel:GetHashCode())
                 if HasAccessibility()
-                    svgSubVerticalPanel:SetAriaLabel(currentSubVerticalPanel:GetDescription())
+                    svgSubVerticalPanel:SetAriaLabel(currentSubVerticalPanel:GetName() + currentSubVerticalPanel:GetDescription())
                 end
-                me:subHorizontalPanels:Add(svgSubVerticalPanel)
+                me:subVerticalPanels:Add(svgSubVerticalPanel)
                 canvas:Add(svgSubVerticalPanel)
             end
             i = i + 1
@@ -1227,8 +1229,28 @@ class ChartWriter
         verticalPanelItem:AddAttribute("aria-labelledby",verticalPanel:GetID())
         verticalPanelItem:AddAttribute("aria-expanded","false")
         verticalPanelItem:SetTabIndex("-1")
-        AddYAxisAccessibility(chart, verticalPanelItem)
         tree:Add(verticalPanelItem)
+        if chart:GetSubVerticalPanels():GetSize() <= 0
+            AddYAxisAccessibility(chart, yLabels, verticalPanelItem)
+        else
+            UnorderedList subVerticalPanelUL
+            subVerticalPanelUL:AddAttribute("role","group")
+            verticalPanelItem:Add(subVerticalPanelUL)
+
+            i = 0
+            repeat while i < subVerticalPanels:GetSize()
+                ListItem subVerticalPanelItem
+                subVerticalPanelItem:SetIdentifier(subVerticalPanels:Get(i):GetID() + "-nav")
+                subVerticalPanelItem:AddAttribute("role","treeitem")
+                subVerticalPanelItem:AddAttribute("aria-labelledby",subVerticalPanels:Get(i):GetID())
+                subVerticalPanelItem:AddAttribute("aria-expanded","false")
+                subVerticalPanelItem:SetTabIndex("-1")
+                AddYAxisAccessibility(chart, subYLabels:Get(i), subVerticalPanelItem)
+                subVerticalPanelUL:Add(subVerticalPanelItem)
+
+                i = i + 1
+            end
+        end
 
         ListItem chartAreaItem
         chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
@@ -1236,8 +1258,29 @@ class ChartWriter
         chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
         chartAreaItem:AddAttribute("aria-expanded","false")
         chartAreaItem:SetTabIndex("-1")
-        AddChartContentAccessibility(canvas, chart, chartAreaItem)
         tree:Add(chartAreaItem)
+        if not chart:IsSeparatedByFactor()
+            AddChartContentAccessibility(canvas, chart, chart:GetChartArea(), chartAreaItem)
+    
+        else
+            UnorderedList subChartAreaUL
+            subChartAreaUL:AddAttribute("role","group")
+            chartAreaItem:Add(subChartAreaUL)
+
+            i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                ListItem subChartAreaItem
+                subChartAreaItem:SetIdentifier(subChartAreas:Get(i):GetID() + "-nav")
+                subChartAreaItem:AddAttribute("role","treeitem")
+                subChartAreaItem:AddAttribute("aria-labelledby",subChartAreas:Get(i):GetID())
+                subChartAreaItem:AddAttribute("aria-expanded","false")
+                subChartAreaItem:SetTabIndex("-1")
+                AddChartContentAccessibility(canvas, chart, chart:GetSubChartAreas():Get(i), subChartAreaItem)
+                subChartAreaUL:Add(subChartAreaItem)
+
+                i = i + 1
+            end
+        end
 
         ListItem horizontalPanelItem
         horizontalPanelItem:SetIdentifier(horizontalPanel:GetID() + "-nav")
@@ -1245,8 +1288,30 @@ class ChartWriter
         horizontalPanelItem:AddAttribute("aria-labelledby",horizontalPanel:GetID())
         horizontalPanelItem:AddAttribute("aria-expanded","false")
         horizontalPanelItem:SetTabIndex("-1")
-        AddXAxisAccessibility(horizontalPanelItem)
         tree:Add(horizontalPanelItem)
+
+        if chart:GetSubHorizontalPanels():GetSize() <= 0
+            AddXAxisAccessibility(chart, xLabels, horizontalPanelItem)
+        else
+            UnorderedList subHorizontalPanelUL
+            subHorizontalPanelUL:AddAttribute("role","group")
+            horizontalPanelItem:Add(subHorizontalPanelUL)
+
+            i = 0
+            repeat while i < subHorizontalPanels:GetSize()
+                ListItem subHorizontalPanelItem
+                subHorizontalPanelItem:SetIdentifier(subHorizontalPanels:Get(i):GetID() + "-nav")
+                subHorizontalPanelItem:AddAttribute("role","treeitem")
+                subHorizontalPanelItem:AddAttribute("aria-labelledby",subHorizontalPanels:Get(i):GetID())
+                subHorizontalPanelItem:AddAttribute("aria-expanded","false")
+                subHorizontalPanelItem:SetTabIndex("-1")
+                AddXAxisAccessibility(chart, subXLabels:Get(i), subHorizontalPanelItem)
+                subHorizontalPanelUL:Add(subHorizontalPanelItem)
+
+                i = i + 1
+            end
+        end
+
 
         if chart:IsShowingLegend()
             ListItem legendItem
@@ -1262,22 +1327,22 @@ class ChartWriter
         canvas:Add(div)
     end
 
-    action AddYAxisAccessibility(Chart chart, ListItem yAxisLabelItem)
+    action AddYAxisAccessibility(Chart chart, Array<Label> yLabels, ListItem yAxisLabelItem)
         VerticalAxisPanel verticalContainer
         verticalContainer = chart:GetVerticalPanel()
-        boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
+        //boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
         UnorderedList yAxisGroup
         yAxisGroup:AddAttribute("role","group")
         yAxisLabelItem:AddNestedTag(yAxisGroup)
-
+        
         i = 0
         repeat while i < yLabels:GetSize()
             Label currentLabel
-            if usingGrouping
-                currentLabel = yLabels:Get(yLabels:GetSize() - 1 - i)
-            else
+            //if usingGrouping
+            //    currentLabel = yLabels:Get(yLabels:GetSize() - 1 - i)
+            //else
                 currentLabel = yLabels:Get(i)
-            end
+            //end
             ListItem labelNav
             labelNav:SetIdentifier(currentLabel:GetID() + "-nav")
             labelNav:AddAttribute("role","treeitem")
@@ -1289,9 +1354,9 @@ class ChartWriter
         end
     end
 
-    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem chartAreaItem)
+    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
 
-    action AddXAxisAccessibility(ListItem xAxisLabelItem)
+    action AddXAxisAccessibility(Chart chart,  Array<Label> yLabels, ListItem xAxisLabelItem)
         UnorderedList xAxisGroup
         xAxisGroup:AddAttribute("role","group")
         xAxisLabelItem:AddNestedTag(xAxisGroup)
