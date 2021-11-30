@@ -16,6 +16,7 @@ import org.robovm.apple.glkit.GLKViewDrawableColorFormat;
 import org.robovm.apple.glkit.GLKViewDrawableDepthFormat;
 import org.robovm.apple.glkit.GLKViewDrawableStencilFormat;
 import org.robovm.apple.glkit.GLKViewDrawableMultisample;
+import org.robovm.apple.opengles.OpenGLES;
 import org.robovm.apple.uikit.UIEvent;
 import org.robovm.apple.uikit.UIInterfaceOrientation;
 import org.robovm.apple.uikit.UIInterfaceOrientationMask;
@@ -188,7 +189,12 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         this.graphics = graphics;
         
         context = new EAGLContext(EAGLRenderingAPI.OpenGLES3);
-        
+        if(context == null) {
+            Foundation.log("%@", new NSString("Null Context"));
+        } else {
+            Foundation.log("%@", new NSString("Context: " + context.getAPI().name()));
+        }
+        Foundation.log("%@", new NSString("OpenGLES Version: " + OpenGLES.getMajorVersion() + ", " + OpenGLES.getMinorVersion()));
         /*
         Creation of an anonymous inner class using GLKView which will call to
         the proper input handler (when it is implemented) and will call upon

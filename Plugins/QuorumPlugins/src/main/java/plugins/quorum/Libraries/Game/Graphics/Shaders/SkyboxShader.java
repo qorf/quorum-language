@@ -14,6 +14,7 @@ import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Game.Graphics.Camera_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Game.Graphics.Skybox_;
+import quorum.Libraries.System.Properties;
 
 /**
  *
@@ -22,9 +23,26 @@ import quorum.Libraries.Game.Graphics.Skybox_;
 public class SkyboxShader 
 {
     public Object me_;
+    public static String version = "#version 410\\n";
+    static {
+        quorum.Libraries.System.Properties prop = new quorum.Libraries.System.Properties();
+        if(prop.IsWindows()) {
+            version = "#version 410\n";
+        } else if (prop.IsMac()) {
+            version = "#version 410\n";
+        } else if (prop.IsAndroid()) {
+            version = "#version 300 es\n";
+        } else if (prop.IsIosSimulator()) {
+            version = "#version 300 es\n";
+        } else if (prop.IsWebBrowser()) {
+            version = "#version 300 es\n";
+        } else {
+            version = "#version 300 es\n";
+        }
+    }
 
     public static final String vertexShader =
-            "#version 410\n" +
+            version +
             "in vec3 position;\n" +
             "out vec3 textureCoordinates;\n" +
             "\n" +
@@ -40,7 +58,7 @@ public class SkyboxShader
             "}";
 
     public static final String fragmentShader =
-            "#version 410\n" +
+            version +
             "#ifdef GL_ES\n" +
             "precision mediump float;\n" +
             "#endif\n" +
