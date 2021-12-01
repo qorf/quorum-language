@@ -38,7 +38,6 @@ use Libraries.Interface.Layouts.ManualLayout
 */
 
 class SharedBarChartParent is Chart
-    private ChartItem summary // Root of the info tree
     private integer numberOfBars = 0
     private number maxBarValue = 0
 
@@ -375,9 +374,9 @@ class SharedBarChartParent is Chart
             bartext = " bar"    
         end
 
+        ChartItem summary = GetInfoTreeRoot()
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(chartArea)
         summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
@@ -431,6 +430,7 @@ class SharedBarChartParent is Chart
                     previousBar = bar
                     j = j + 1
                 end
+                firstArea:SetLastChild(previousBar)
             end
 
             integer i = 1
@@ -471,9 +471,11 @@ class SharedBarChartParent is Chart
                         previousBar = bar
                         j = j + 1
                     end
+                    nextArea:SetLastChild(previousBar)
                 end
                 i = i + 1
             end
+            chartArea:SetLastChild(previousArea)
         else
             if HasGroups()
                 //Bar Groups
@@ -504,7 +506,8 @@ class SharedBarChartParent is Chart
                         previousBar = bar
                         j = j + 1
                     end
-                end
+                    firstGroup:SetLastChild(previousBar)
+                end        
         
                 integer i = 1
                 ChartItem previousGroup = firstGroup
@@ -534,9 +537,10 @@ class SharedBarChartParent is Chart
                         bar:SetFocusTarget(barGroups:Get(i):Get(j):GetIcon())
                         previousBar:SetNext(bar)
                         bar:SetPrevious(previousBar)
-                        previousBar = bar
+                        previousBar = bar                 
                         j = j + 1
                     end
+                    group:SetLastChild(previousBar)
                     i = i + 1
                 end
             else
@@ -560,6 +564,7 @@ class SharedBarChartParent is Chart
                         previousBar = bar
                         i = i + 1
                     end
+                    chartArea:SetLastChild(previousBar)
                 end
             end
         end

@@ -59,7 +59,9 @@ use Libraries.Interface.Views.LabelBoxView
     end
 */
 class Chart is Control
+    // Chart Accessibilty
     boolean treeNeedsUpdate = true
+    private ChartItem infoTreeRoot //The root chart item for all charts
 
     ChartSelection selection
     ChartOptions options
@@ -1547,9 +1549,21 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetNext()
+        ChartItem next
+        if selected:IsOpen()
+            next = selected:GetChildItem()
+        else
+            next = selected:GetNext()
+        end
         if next = undefined
-            return now
+            ChartItem parentItem = selected:GetParentItem()
+            repeat while parentItem:GetNext() = undefined
+                if parentItem = infoTreeRoot
+                    return now
+                end
+                parentItem = parentItem:GetParentItem()
+            end
+            next = parentItem:GetNext()
         end
         selection:Set(next)
     end
@@ -1565,8 +1579,19 @@ class Chart is Control
         end
 
         ChartItem next = selected:GetPrevious()
+        if next not= undefined
+            repeat while next:IsOpen()
+                next = next:GetLastChild()
+                if next = undefined
+                    return now
+                end
+            end
+        end
         if next = undefined
-            return now
+            next = selected:GetParentItem()
+            if next = undefined
+                return now
+            end
         end
 
         selection:Set(next)
@@ -1582,7 +1607,7 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetChild()
+        ChartItem next = selected:GetChildItem()
         if next = undefined
             return now
         end
@@ -1600,13 +1625,62 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetParent()
+        ChartItem next = selected:GetParentItem()
         if next = undefined
             return now
         end
 
         selection:Set(next)
     end
+
+    /*
+        This action opens the chart item if it has children
+        If it has children and is already open it moves to first child.
+    */
+    action OpenItem
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        if not selected:Open() and selected:IsOpenable()
+            ChartItem next = selected:GetChildItem()
+            if next = undefined
+                return now
+            end
+    
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action opens the chart item if it is open
+        If it has children and is already open it moves to first child.
+    */
+    action CloseItem
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        if not selected:Close()
+            ChartItem next = selected:GetParentItem()
+            if next = undefined
+                return now
+            end
+            selection:Set(next)
+        end
+    end
+
+    /*
+        Attribute: Returns the root chart item
+    */
+    action GetInfoTreeRoot returns ChartItem
+        return infoTreeRoot
+    end
+
     /*
         This action tells the system to update all of its graphics because its structure has changed. This might 
         be true if the charts are being used to update a live data source.

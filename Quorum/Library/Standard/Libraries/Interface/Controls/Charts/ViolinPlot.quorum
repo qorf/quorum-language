@@ -40,8 +40,6 @@ use Libraries.Compute.Statistics.WindowingActions.NormalDistributionAction
 */
 
 class ViolinPlot is Chart
-    private ChartItem summary // Root of the info tree
-
     //bandWidth is a scale option for distribution graph
     //the bigger the value, the flatter the distribution graph will be
     private integer bandWidth = 0
@@ -551,10 +549,9 @@ class ViolinPlot is Chart
         ChartItem xAxis
         ChartItem yAxis
         ChartItem chartArea //not to be confused with panels
-        
+        ChartItem summary = GetInfoTreeRoot()
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(chartArea)
         summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
@@ -640,8 +637,10 @@ class ViolinPlot is Chart
                             end
                             index = index + 1
                         end
+                        next_target:SetLastChild(previous)
                         k = k + 1
                     end
+                    firstArea:SetLastChild(prev_target)
                 end
             end
 
@@ -711,12 +710,15 @@ class ViolinPlot is Chart
                                 end
                                 index = index + 1
                             end
+                            next_target:SetLastChild(previous)
                             k = k + 1
                         end
+                        nextArea:SetLastChild(prev_target)
                     end
                 end
                 i = i + 1
             end
+            chartArea:SetLastChild(previousArea)
         else
             if HasGroups()
                 //Plot Groups
@@ -773,8 +775,10 @@ class ViolinPlot is Chart
                                 end
                                 index = index + 1
                             end
+                            next_target:SetLastChild(previous)
                             k = k + 1
                         end
+                        firstGroup:SetLastChild(prev_target)
                     end
                 end
         
@@ -835,11 +839,14 @@ class ViolinPlot is Chart
                                 end
                                 index = index + 1
                             end
+                            next_target:SetLastChild(previous)
                             k = k + 1
                         end
+                        group:SetLastChild(prev_target)
                     end
                     i = i + 1
                 end
+                chartArea:SetLastChild(previousGroup)
             else
                 ChartItem prev_target
                 integer k = 0
@@ -885,8 +892,10 @@ class ViolinPlot is Chart
                         end
                         index = index + 1
                     end
+                    next_target:SetLastChild(previous)
                     k = k + 1
                 end
+                chartArea:SetLastChild(prev_target)
             end
         end
         
