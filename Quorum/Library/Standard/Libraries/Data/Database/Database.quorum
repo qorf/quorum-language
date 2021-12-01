@@ -3,6 +3,31 @@ use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Containers.Array
 
+/*
+    The Database class is used to connect to a live database and either get 
+    information about the Database or run queries on the database and return
+    results. After calling Connect running a query or using a designated helper
+    function will send a SQL query to that database. 
+ 
+
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Find
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Find query
+query:SetTable("employees")
+query:AddColumn("lastName")
+query:AddColumn("firstName")
+
+QueryResult results = database:Find(query)
+
+*/
+
 class Database
     DatabaseStrategy strategy = undefined
     DatabaseMetaData meta = undefined
@@ -14,6 +39,23 @@ class Database
         strategy = db
     end
 
+/*
+    Takes a connection object to establish a connection to the database. A connection
+    object holds the user and location information but this action does not need to be used
+    directly because the other Connect action will handle it for the user.
+
+    Attribute: Parameter connection The Connection object containing the information needed to establish a connection
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Connection
+
+    Database db
+
+    Connection connection
+    db:Connect(connection)
+
+*/
     action Connect(Connection connection)
         check
             strategy:Connect(connection)
@@ -23,10 +65,38 @@ class Database
         end
     end
 
+/*
+    Returns whether or not this database object is currently connected to a database
+
+    Attribute: Returns Returns true if currently connected to a database
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    output db:IsConnected()
+*/
     action IsConnected returns boolean
         return connected
     end
 
+/*
+    This action attempts to create a connection to a database using the given parameters.
+    If the connection is made successfully IsConnected will return true.
+
+    Attribute: Parameter location The location of the database. A common location is "localhost."
+    Attribute: Parameter database The name of the database
+    Attribute: Parameter username The name of the user
+    Attribute: Parameter password The password for the user
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:IsConnected()
+*/
     action Connect(text location, text database, text username, text password)
         Connection connection
         connection:SetLocation(location)
@@ -36,51 +106,214 @@ class Database
         Connect(connection)
     end
 
+/*
+    This action returns whether or not the database will automatically commit with every transaction on the database.
+    An example of a "transaction" would be an Insert or Update. If the database has auto commit set to true then an
+    insert will immediately take effect after being sent to the database.
+
+    Attribute: Returns Returns true if auto commit is on and false otherwise.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:GetAutoCommit()
+*/
     action GetAutoCommit returns boolean
         return strategy:GetAutoCommit()
     end
 
+/*
+    Sets the the auto commit behavior of the database.
+
+    Attribute: Parameter commit If true the database will automatically commit with every query.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:SetAutoCommit(false)
+*/
     action SetAutoCommit(boolean commit)
         strategy:SetAutoCommit(commit)
     end
 
+/*
+    This action will commit any changes made through Inserts, Updates, or Deletes. This only needs to be called
+    if auto commit is set to false.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:SetAutoCommit(false)
+    // do an insert
+    // ...
+
+    db:Commit()
+
+*/
     action Commit
         strategy:Commit()
     end
 
+/*
+    This action will rollback changes that have not been commited to the database.
+    Note that not all changes can be rolled back such a removing a table.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:SetAutoCommit(false)
+    // do an insert
+    // ...
+
+    db:Rollback()
+
+*/
     action Rollback
         strategy:Rollback()
     end
 
+/*
+    This action closes the connection to the database. If there are any uncommited changes
+    they will be commited.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:Close()
+
+*/
     action Close
         strategy:Close()
     end
 
+/*
+    This takes a Find query and sends it to the database and returns the result.
+
+    Attribute: Parameter query The query to run
+    Attribute: Returns Returns a query result which for a Find will be the rows that matched with the query.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Find query
+    db:Find(query)
+
+*/
     action Find(Find query) returns QueryResult
         SetMeta(query)
         return strategy:Find(query)
     end
 
+/*
+    This takes an Insert query and sends it to the database and returns the result.
+
+    Attribute: Parameter query The query to run
+    Attribute: Returns Returns the number of rows that were affected
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Insert
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Insert query
+    db:Insert(query)
+
+*/
     action Insert(Insert query) returns integer
         SetMeta(query)
         return strategy:Insert(query)
     end
 
+/*
+    This takes an Update query and sends it to the database and returns the result.
+
+    Attribute: Parameter query The query to run
+    Attribute: Returns Returns the number of rows affected by the Update
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Update
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Update query
+    db:Update(query)
+
+*/
     action Update(Update query) returns integer
         SetMeta(query)
         return strategy:Update(query)
     end
 
+/*
+    This takes an Delete query and sends it to the database and returns the result.
+
+    Attribute: Parameter query The query to run
+    Attribute: Returns Returns the number of rows affected by the Delete
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Delete
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Delete query
+    db:Delete(query)
+
+*/
     action Delete(Delete query) returns integer
         SetMeta(query)
         return strategy:Delete(query)
     end
 
+/*
+    Returns the DatabaseMetaData object which contains more information about the currently connected database
+    such as what tables exist. 
+
+    Attribute: Returns Returns a DatabaseMetaData object filled with information from the connected database.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    DatabaseMetaData meta = db:GetDatabaseMetaData()
+
+*/
     action GetDatabaseMetaData returns DatabaseMetaData
         meta = strategy:GetDatabaseMetaData()
         return meta
     end
 
+    /* INTERNAL Sets the metadata of a query*/
     private action SetMeta(Query query)
         if meta = undefined
             GetDatabaseMetaData()
@@ -88,6 +321,7 @@ class Database
         query:SetDatabaseMetaData(meta)
     end
 
+    /* Queries like CreateTable will make the metadata incorrect so this updates the metadata */
     private action RefreshMeta()
         if meta = undefined
             GetDatabaseMetaData()
@@ -96,35 +330,131 @@ class Database
         end
     end
 
+/*
+    This action takes a CreateTable query and sends it to the database. If successful the metadata
+    will be updated to include the new table.
+
+    Attribute: Parameter query The query to run
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.CreateTable
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    CreateTable query
+    db:CreateTable(query)
+*/
     action CreateTable(CreateTable creation)
         SetMeta(creation)
         strategy:CreateTable(creation)
         RefreshMeta()
     end
 
+/*
+    This action takes a DropTable query and sends it to the database. If successful the metadata
+    will be updated to reflect the changes. Most of what can be through a DropTable query can be
+    done through other actions in the class such as RemoveTable().
+
+    Attribute: Parameter query The query to run
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DropTable
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    DropTable query
+    db:DropTable(query)
+*/
     action DropTable(DropTable drop)
         SetMeta(drop)
         strategy:DropTable(drop)
         RefreshMeta()
     end
 
+/*
+    This action takes a EditTable query and sends it to the database. If successful the metadata
+    will be updated to reflect any changes.
+
+    Attribute: Parameter query The query to run
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.EditTable
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    EditTable query
+    db:EditTable(query)
+*/
     action EditTable(EditTable edit)
         SetMeta(edit)
         strategy:EditTable(edit)
         RefreshMeta()
     end
 
+/*
+    This action takes a CreateView query and sends it to the database. If successful the metadata
+    will be updated to include the new view. Creating a view typically consists of setting a Find 
+    query so the other helper function can simplify adding a view. 
+
+    Attribute: Parameter query The query to run
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.CreateView
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    CreateView query
+    db:CreateView(query)
+*/
     action CreateView(CreateView view)
         SetMeta(view)
         strategy:CreateView(view)
         RefreshMeta()
     end
 
+/*
+    This action takes a QueryResult and converts it to a DataFrame. The conversion will try to have the 
+    columns of the DataFrame be the same type as returned by the result.
+
+    Attribute: Parameter query The QueryResult to convert. Typically this QueryResult will come from running a Find
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:ConvertResultToDataFrame(db:Find("myDB_table"))
+*/
     action ConvertResultToDataFrame(QueryResult result) returns DataFrame
         QueryResultToDataFrameConverter converter
         return converter:Convert(result)
     end
 
+/*
+    This action takes a QueryResult and converts it to a DataFrame. The conversion will try to have the 
+    columns of the DataFrame be the same type as returned by the result.
+
+    Attribute: Parameter query The QueryResult to convert. Typically this QueryResult will come from running a Find
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:ConvertResultToDataFrame(db:Find("myDB_table"))
+*/
     action FindAsDataFrame(Find query) returns DataFrame
         SetMeta(query)
         QueryResult result = strategy:Find(query)
@@ -132,24 +462,90 @@ class Database
         return converter:Convert(result)
     end
 
+/*
+    This action runs a find based on the given parameter and returns the result as a DataFrame.
+    This action will return all columns and rows from a database table.
+
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Compute.Statistics.DataFrame
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    DataFrame frame = db:FindAsDataFrame("myDB_table")
+*/
     action FindAsDataFrame(text table) returns DataFrame
         QueryResult result = Find(table)
         QueryResultToDataFrameConverter converter
         return converter:Convert(result)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the result as a DataFrame.
+    This action will return all columns and rows from a database table where the filter expression is true.
+
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Compute.Statistics.DataFrame
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    DataFrame frame = db:FindAsDataFrame("myDB_table", "roomNumber = 1001")
+*/
     action FindAsDataFrame(text table, text filter) returns DataFrame
         QueryResult result = Find(table, filter)
         QueryResultToDataFrameConverter converter
         return converter:Convert(result)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action will return all columns and rows from a database table.
+
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Returns Returns a QueryResult containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:Find("myDB_table")
+*/
     action Find(text table) returns QueryResult
         Find find
         find:SetTable(table)
         return Find(find)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action will return all columns and rows from a database table where the filter expression is true.
+
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a QueryResult containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:Find("myDB_table", "id > 200")
+*/
     action Find(text table, text filter) returns QueryResult
         Find find
         find:SetTable(table)
@@ -157,10 +553,55 @@ class Database
         return Find(find)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action will return all columns and rows from a database table that match an expression if one
+    is given and are of the column specified.
+
+    Attribute: Parameter columns An array containing the list of columns that will be returned from the result. 
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Returns Returns a QueryResult containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+    use Libraries.Containers.Array
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Array<text> columns
+    columns:Add("id")
+    columns:Add("roomNumber")
+    QueryResult result = db:Find(columns, "myDB_table")
+*/
     action Find(Array<text> columns, text table) returns QueryResult
         return Find(columns, table, undefined)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action will return all columns and rows from a database table that match an expression if one
+    is given and are of the column specified.
+
+    Attribute: Parameter columns An array containing the list of columns that will be returned from the result. 
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+    use Libraries.Containers.Array
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Array<text> columns
+    columns:Add("id")
+    columns:Add("roomNumber")
+    QueryResult result = db:Find(columns, "myDB_table", "id > 100")
+*/
     action Find(Array<text> columns, text table, text filter) returns QueryResult
         Find find
         i = 0
@@ -175,13 +616,49 @@ class Database
         return Find(find)
     end
 
-    // multi column finds
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action simplifies running a find when only one column needs to be returned
+
+    Attribute: Parameter column The column to return from the result
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:OneColumnFind("id", "myDB_table", "id > 100")
+*/
     action OneColumnFind(text column, text table, text filter) returns QueryResult
         Array<text> columnList
         columnList:Add(column)
         return Find(columnList, table, filter)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action simplifies running a find when only two columns need to be returned
+
+    Attribute: Parameter column1 The first column to return from the result
+    Attribute: Parameter column2 The second column to return from the result
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:TwoColumnFind("id", "roomNumber", "myDB_table", "id > 100")
+*/
     action TwoColumnFind(text column1, text column2, text table, text filter) returns QueryResult
         Array<text> columnList
         columnList:Add(column1)
@@ -189,6 +666,26 @@ class Database
         return Find(columnList, table, filter)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action simplifies running a find when only three columns need to be returned
+
+    Attribute: Parameter column1 The first column to return from the result
+    Attribute: Parameter column2 The second column to return from the result
+    Attribute: Parameter column3 The third column to return from the result
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:ThreeColumnFind("id", "roomNumber", "officeCode", "myDB_table", "id > 100")
+*/
     action ThreeColumnFind(text column1, text column2, text column3, text table, text filter) returns QueryResult
         Array<text> columnList
         columnList:Add(column1)
@@ -197,6 +694,27 @@ class Database
         return Find(columnList, table, filter)
     end
 
+/*
+    This action runs a find based on the given parameters and returns the QueryResult.
+    This action simplifies running a find when only two columns need to be returned
+
+    Attribute: Parameter column1 The first column to return from the result
+    Attribute: Parameter column2 The second column to return from the result
+    Attribute: Parameter column3 The third column to return from the result
+    Attribute: Parameter column4 The fourth column to return from the result
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be returned by the query
+    Attribute: Returns Returns a DataFrame containing the results of the query
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.QueryResult
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    QueryResult result = db:FourColumnFind("id", "roomNumber", "officeCode", "startTime", "myDB_table", "id > 100")
+*/
     action FourColumnFind(text column1, text column2, text column3, text column4, text table, text filter) returns QueryResult
         Array<text> columnList
         columnList:Add(column1)
@@ -238,117 +756,172 @@ class Database
 
     //INNER JOINS
 
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoin(text table, text joinedTable, text joinCondition) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoin(text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoinUsingColumn(text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoinUsingColumn(text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs an Inner Join using given parameters */
     action FindInnerJoin(Array<text> columns, text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindJoin(columns, table, joinedTable, joinCondition, filter, 0)
     end
 
     // LEFT JOINS
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoin(text table, text joinedTable, text joinCondition) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+    /* Runs a Left Join using given parameters */
     action FindLeftJoin(text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoinUsingColumn(text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoinUsingColumn(text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs a Left Join using given parameters */
     action FindLeftJoin(Array<text> columns, text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindJoin(columns, table, joinedTable, joinCondition, filter, 1)
     end
 
     // RIGHT JOINS
+
+    /* Runs a Right Join using given parameters */
     action FindRightJoin(text table, text joinedTable, text joinCondition) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+
+    /* Runs a Right Join using given parameters */
     action FindRightJoin(text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+
+    /* Runs a Right Join using given parameters */
     action FindRightJoinUsingColumn(text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, undefined)
     end
 
+    /* Runs a Right Join using given parameters */
     action FindRightJoinUsingColumn(text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(undefined, table, joinedTable, joinCondition, filter)
     end
 
+    /* Runs a Right Join using given parameters */
     action FindRightJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, undefined)
     end
 
+    /* Runs a Right Join using given parameters */
     action FindRightJoinUsingColumn(Array<text> columns, text table, text joinedTable, text column, text filter) returns QueryResult
         text joinCondition = table+":"+column+" = "+joinedTable+":"+column
         return FindInnerJoin(columns, table, joinedTable, joinCondition, filter)
     end
 
+    /* Runs a Right Join using given parameters */
     action FindRightJoin(Array<text> columns, text table, text joinedTable, text joinCondition, text filter) returns QueryResult
         return FindJoin(columns, table, joinedTable, joinCondition, filter, 2)
     end
 
     // CROSS JOINS
+
+    /* Runs a Cross Join using given parameters */
     action FindCrossJoin(text table, text joinedTable) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, undefined, undefined)
     end
 
+    /* Runs a Cross Join using given parameters */
     action FindCrossJoin(text table, text joinedTable, text filter) returns QueryResult
         return FindInnerJoin(undefined, table, joinedTable, undefined, filter)
     end
 
+    /* Runs a Cross Join using given parameters */
     action FindCrossJoin(Array<text> columns, text table, text joinedTable, text filter) returns QueryResult
         return FindJoin(columns, table, joinedTable, undefined, filter, 4)
     end
 
+
+/*
+    This action runs a delete query where rows are removed from a table if the columns of the row make the filter true.
+
+    Attribute: Parameter table The database table to run the query on
+    Attribute: Parameter filter A filter to that will affect what will be deleted
+    Attribute: Returns Returns the number of rows affected by this delete
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    integer rowsAffected = db:Delete("myDB_table", "id = 100")
+*/
     action Delete(text table, text filter) returns integer
         Delete delete
         delete:SetTable(table)
@@ -356,12 +929,41 @@ class Database
         return Delete(delete)
     end
 
+/*
+    This action will create a view on the database from the passed Find query.
+
+    Attribute: Parameter query The find query to build a view from
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    Find findQuery
+    db:CreateView(findQuery)
+*/
     action CreateView(Find query)
         CreateView view
         view:SetQuery(query)
         CreateView(view)
     end
 
+/*
+    This action renames a table on the database
+
+    Attribute: Parameter table The table to rename
+    Attribute: Parameter newName The new name to give to the table
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:RenameTable("myDB_table", "tableWithNewName")
+*/
     action RenameTable(text table, text newName)
         EditTable edit
         edit:SetTable(table)
@@ -369,12 +971,38 @@ class Database
         EditTable(edit)
     end
 
+/*
+    This action removes a table on the database
+
+    Attribute: Parameter table The table to remove
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:RemoveTable("myDB_table")
+*/
     action RemoveTable(text table)
         DropTable drop
         drop:SetTable(table)
         DropTable(drop)
     end
 
+/*
+    This action removes all rows in a table
+
+    Attribute: Parameter table The table to empty
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    db:EmptyTable("myDB_table")
+*/
     action EmptyTable(text table)
         DropTable drop
         drop:SetTable(table)
