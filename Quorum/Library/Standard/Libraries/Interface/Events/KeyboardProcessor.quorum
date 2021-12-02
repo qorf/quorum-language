@@ -1,7 +1,6 @@
 package Libraries.Interface.Events
 
-use Libraries.Containers.List
-use Libraries.Containers.Iterator
+use Libraries.Containers.Array
 
 /*
 This class is used to read KeyboardEvents from the Keyboard and send them to
@@ -9,30 +8,10 @@ KeyboardListeners which have registered themselves with this processor.
 */
 class KeyboardProcessor
     
-    List<KeyboardEvent> events
-
     /*  
     The Update action will check if any keyboard events have occured, and if
     there are any, it will add them to the events list. 
     */
-    system action Update
+    system action Update(Array<KeyboardEvent> array)
 
-    /*
-    This action returns a List of all of the events that have been stored in
-    this KeyboardProcessor. Events are stored during the Update action. The
-    KeyboardProcessor will never remove any of its events on its own, so it is
-    necessary for the user to manually remove events once they are finished
-    processing them.
-    */
-    action GetEvents returns List<KeyboardEvent>
-        return events
-    end
-
-    /*
-    This action returns true if the KeyboardProcessor has stored any events from
-    the Update action, or false if there are no events stored.
-    */
-    action HasEvents returns boolean
-        return (not events:IsEmpty())
-    end
 end

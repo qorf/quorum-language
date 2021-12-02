@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Interface.Events;
 
 import java.util.LinkedList;
 import quorum.Libraries.Interface.Events.ResizeEvent;
+import quorum.Libraries.Containers.Array_;
 
 /**
  *
@@ -20,11 +21,8 @@ public class ResizeProcessor
     // GLFWFramebufferSizeCallback to see where these are supplied from.
     public static LinkedList<ResizeEvent> resizeEvents = new LinkedList<>();
 
-    public void Update() 
+    public void Update(Array_ events)
     {
-        quorum.Libraries.Interface.Events.ResizeProcessor quorumProcessor = (quorum.Libraries.Interface.Events.ResizeProcessor) me_;
-        quorum.Libraries.Containers.List_ events = quorumProcessor.events;
-
         while (!resizeEvents.isEmpty()) 
         {
             ResizeEvent event = resizeEvents.remove();

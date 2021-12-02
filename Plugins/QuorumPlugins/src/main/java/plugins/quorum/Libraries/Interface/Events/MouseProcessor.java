@@ -9,6 +9,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.LinkedList;
 import quorum.Libraries.Interface.Events.MouseEvent;
 import plugins.quorum.Libraries.Game.GameStateManager;
+import quorum.Libraries.Containers.Array_;
 
 /**
  *
@@ -38,12 +39,8 @@ public class MouseProcessor
     private static double lastX = 0;
     private static double lastY = 0;
     
-    public void GetCurrentEventsNative()
+    public void Update(Array_ events)
     {
-        quorum.Libraries.Interface.Events.MouseProcessor quorumProcessor = (quorum.Libraries.Interface.Events.MouseProcessor)me_;
-        
-        quorum.Libraries.Containers.List_ events = quorumProcessor.events;
-        
         while (!mouseEvents.isEmpty())
         {
             events.Add(mouseEvents.remove());

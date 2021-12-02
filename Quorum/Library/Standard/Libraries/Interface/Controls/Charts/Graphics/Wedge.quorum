@@ -8,6 +8,61 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 
+/*
+The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
+the number of pixels from the origin (the center of a pie chart) to the outer edge of the wedge.
+They also have an inner radius that measures how many pixels are between the origin and the start
+of the wedge, allowing for "donut" style charts.
+
+A wedge should always be the same size as its parent container. If it doesn't have a parent, the
+wedge should be large enough to render the whole circle, even if it's only a portion of it.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Drawable pieChart
+        pieChart:LoadFilledRectangle(400, 400, color:White())
+
+        // Put it wedges until we've filled a whole pie chart shape.
+        number total = 0
+        repeat until total >= 1
+            Wedge wedge
+            Color newColor
+            newColor:SetColor(1 - total, 0.5, total, 1)
+            wedge:Load(newColor)
+
+            // The size of the wedge should match the size of its parent container.
+            // If it isn't a child of another item, it should be large enough to contain the entire circle, even if it's only a portion of it.
+            wedge:SetSize(pieChart:GetWidth(), pieChart:GetHeight())
+            wedge:SetOuterRadius(180)
+            wedge:SetInnerRadius(25)
+            
+            number newTotal = total + 0.125
+
+            // Each wedge is positioned according to what percent of a pie chart it begins and ends at.
+            // The percentages are stored as values between 0 and 1.
+            wedge:SetStartPercentage(total)
+            wedge:SetEndPercentage(newTotal)
+
+            total = newTotal
+            pieChart:Add(wedge)
+        end
+
+        Add(pieChart)
+    end
+end
+*/
 class Wedge is Drawable
 
     public constant text WEDGE_SHADER_PROGRAM_NAME = "Wedge Shader Program"
@@ -22,10 +77,12 @@ class Wedge is Drawable
     // A vector2 used for testing coordinates in the Contains action. Vital for mouse input.
     Vector2 point
 
-    on create
+    private action LoadDefaultShaderProgram returns ShaderProgram
         ShaderManager manager
         if manager:HasShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
-            SetShaderProgram(manager:GetShaderProgram(WEDGE_SHADER_PROGRAM_NAME))
+            ShaderProgram program = manager:GetShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
+            SetShaderProgram(program)
+            return program
         else
             DefaultVertexShader2D vertex
             WedgeFragmentShader fragment
@@ -40,6 +97,7 @@ class Wedge is Drawable
             program:Compile()
 
             SetShaderProgram(program)
+            return program
         end
     end
 
@@ -192,6 +250,14 @@ class Wedge is Drawable
         angle = angle / (2 * math:pi)
 
         return angle >= startPercentage and angle <= endPercentage
+    end
+
+    action GetShaderProgram returns ShaderProgram
+        ShaderProgram program = parent:Drawable:GetShaderProgram()
+        if program = undefined
+            program = LoadDefaultShaderProgram()
+        end
+        return program
     end
 
 end

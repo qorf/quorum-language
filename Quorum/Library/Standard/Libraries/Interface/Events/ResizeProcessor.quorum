@@ -1,34 +1,14 @@
 package Libraries.Interface.Events
 
-use Libraries.Containers.List
+use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 
 class ResizeProcessor 
 
-    List<ResizeEvent> events
-
     /*  
     The Update action will check if any text input events have occured, and if
-    there are any, it will add them to the events list. 
+    there are any, it will add them to the events array. 
     */
-    system action Update
+    system action Update(Array<ResizeEvent> array)
 
-    /*
-    This action returns a List of all of the events that have been stored in
-    this ResizeProcessor. Events are stored during the Update action. The
-    ResizeProcessor will never remove any of its events on its own, so it is
-    necessary for the user to manually remove events once they are finished
-    processing them.
-    */
-    action GetEvents returns List<ResizeEvent>
-        return events
-    end
-
-    /*
-    This action returns true if the ResizeProcessor has stored any events 
-    from the Update action, or false if there are no events stored.
-    */
-    action HasEvents returns boolean
-        return (not events:IsEmpty())
-    end
 end

@@ -9,10 +9,15 @@ class DatabaseColumn
     boolean isNullable = false
     boolean isAutoIncrement = false
 
+    /* This action returns the name of this column as returned by the database
+    */
     action GetName returns text
         return name
     end
 
+    /* This action sets the name of this column. This is used by the system when
+        the metadata is grabbed. Not meant to be used the user.
+    */
     action SetName(text name)
         me:name = name
     end
@@ -24,6 +29,9 @@ class DatabaseColumn
         return type
     end
 
+    /* This action returns the type of this column based on the raw type. Used internally
+        for type checking.
+    */
     action GetType returns Type
         DatabaseTypeConstants constants
         
