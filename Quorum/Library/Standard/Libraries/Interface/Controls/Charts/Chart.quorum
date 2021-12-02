@@ -64,15 +64,13 @@ class Chart is Control
     ChartSelection selection
     ChartOptions options
     Color color
+    Color highlightColor = undefined
     Math math
-    
+
     // Chart Orientation
-    text currentOrientation = undefined
-    text defaultOrientation = undefined
-    boolean orientationFlag = false
-    boolean separateByFactor = false
-    boolean defaultSeparation = false
-    boolean overrideDefaultSeparation = false
+    boolean horizontalOrientation = false
+    boolean verticalOrientation = false
+    boolean orientationChanged = false
 
     // Chart Area Components
     ControlLabel title = undefined
@@ -85,14 +83,18 @@ class Chart is Control
     Drawable backgroundD = undefined
     Array<Icon> groupPanels
     integer paddedChartOffset = 0
-    boolean showBracketOverride = false
     integer numberOfChartAreas = 1
+    private boolean separateByFactor = false
+    private boolean defaultSeparation = false
+    private boolean overrideDefaultSeparation = false
+    private boolean hasGroups = false
+    private boolean defaultShowBrackets = false
+    private boolean overrideDefaultShowBrackets = false
 
     // X-Axis Components
     HorizontalAxisPanel horizontalPanel
     Array <HorizontalAxisPanel> subHorizontalPanels
     boolean showXAxis = true   
-    boolean showXTicks = false
     boolean showMajorXGridLines = true
     boolean showMinorXGridLines = false
     boolean xLabelFontSizeOverride = false
@@ -107,7 +109,6 @@ class Chart is Control
     VerticalAxisPanel verticalPanel
     Array <VerticalAxisPanel> subVerticalPanels
     boolean showYAxis = true
-    boolean showYTicks = false
     boolean showMajorYGridLines = true
     boolean showMinorYGridLines = false   
     boolean yLabelFontSizeOverride = false
@@ -120,7 +121,6 @@ class Chart is Control
     // Legend Components
     Legend legend
     boolean showLegend = true
-    boolean showLegendOverride = false
     boolean legendLabelFontSizeOverride = false
     boolean legendTitleFontSizeOverride = false
     number legendPanelWidthPercent = 0.05
@@ -200,6 +200,16 @@ class Chart is Control
             SeparateByFactor()
         end
 
+        if defaultShowBrackets and HasGroups() and not overrideDefaultShowBrackets
+            verticalPanel:ShowGroupBrackets(true)
+            horizontalPanel:ShowGroupBrackets(true)
+        end
+
+        // Default highlight color is selection color (currently blue)
+        if GetHighlightColor() = undefined
+            SetHighlightColor(options:GetSelectionColor())
+        end
+
         if numberOfChartAreas > 1
             integer i = 0
             repeat while i < numberOfChartAreas
@@ -221,10 +231,6 @@ class Chart is Control
                 end
                 i = i + 1
             end
-        end
-
-        if orientationFlag
-            FlipAxisInfo()
         end
 
         horizontalPanel:LoadAxis(me, properties)
@@ -275,6 +281,10 @@ class Chart is Control
         horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
         verticalPanel:SetTickInterval(temp)
 
+        integer tempint = horizontalPanel:GetTickCount()
+        horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
+        verticalPanel:SetTickCount(tempint)
+
         boolean tempflag = horizontalPanel:NumericalOverrideLabels()
         horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
         verticalPanel:NumericalOverrideLabels(tempflag)
@@ -282,6 +292,10 @@ class Chart is Control
         tempflag = horizontalPanel:ShowGroupBrackets()
         horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
         verticalPanel:ShowGroupBrackets(tempflag)
+
+        tempflag = horizontalPanel:ShowTicks()
+        horizontalPanel:ShowTicks(verticalPanel:ShowTicks())
+        verticalPanel:ShowTicks(tempflag)
 
         tempflag = horizontalPanel:OverrideDefaultMin()
         horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
@@ -291,59 +305,13 @@ class Chart is Control
         horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
         verticalPanel:OverrideDefaultMax(tempflag)
 
-        text tempTitle = horizontalPanel:GetTitleText()
+        text temptext = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
-        verticalPanel:SetTitleText(tempTitle)
-    end
+        verticalPanel:SetTitleText(temptext)
 
-    /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually. 
-
-        Attribute: Returns a the best interval 
-    */
-    action CalculateBestIntervalForRange(number range) returns number
-        number tickSkips = 0
-        if range <= 2.5
-            if range > 1.5
-                tickSkips = 0.5
-            else
-                tickSkips = 0.1
-            end
-        else //I'm sure a better way to set the default intervals can be produced.
-            if range > 1000000
-                tickSkips = 500000
-            elseif range > 250000
-                tickSkips = 50000
-            elseif range > 50000
-                tickSkips = 10000
-            elseif range > 25000
-                tickSkips = 10000
-            elseif range > 10000
-                tickSkips = 5000
-            elseif range > 5000
-                tickSkips = 1000
-            elseif range > 2500
-                tickSkips = 500
-            elseif range > 1000
-                tickSkips = 250
-            elseif range > 500
-                tickSkips = 100
-            elseif range > 200
-                tickSkips = 50
-            elseif range > 100
-                tickSkips = 20
-            elseif range > 50
-                tickSkips = 10
-            elseif range > 20
-                tickSkips = 5
-            elseif range > 10
-                tickSkips = 2
-            else
-                tickSkips = 1
-            end
-        end
-        return tickSkips
+        temptext = horizontalPanel:GetNumberFormat()
+        horizontalPanel:SetNumberFormat(verticalPanel:GetNumberFormat())
+        verticalPanel:SetNumberFormat(temptext)
     end
 
     action DisposeDrawables()
@@ -484,61 +452,53 @@ class Chart is Control
         verticalPanelWidthPercent = num
     end
 
-    action ShowYTicks()
-        showYTicks = true
-    end
-    action HideYTicks()
-        showYTicks = false
+    action ShowYTicks(boolean show)
+        verticalPanel:ShowTicks(show)
     end
 
-    action ShowXTicks()
-        showXTicks = true
-    end
-    action HideXTicks()
-        showXTicks = false
-    end
+    action ShowXTicks(boolean show)
+        horizontalPanel:ShowTicks(show)
+    end    
 
-    action ShowAllTicks()
-        showYTicks = true
-        showXTicks = true
+    action ShowAllTicks
+        verticalPanel:ShowTicks(true)
+        horizontalPanel:ShowTicks(true)
     end
-    action HideAllTicks()
-        showYTicks = false
-        showXTicks = false
-    end
-
-    action IsShowingYTicks returns boolean
-        return showYTicks
-    end
-
-    action IsShowingXTicks returns boolean
-        return showXTicks
+    action HideAllTicks
+        verticalPanel:ShowTicks(false)
+        horizontalPanel:ShowTicks(false)
     end
 
     action SetXTickCount(integer ticks)
-        horizontalPanel:SetTickCountOverride(ticks)
+        horizontalPanel:SetTickCount(ticks)
+        horizontalPanel:OverrideDefaultTickCount(true)
     end
 
     action SetXTickInterval(number set)
         horizontalPanel:SetTickInterval(set)
         horizontalPanel:SetNumberFormat("number")
+        horizontalPanel:OverrideDefaultInterval(true)
     end
 
     action SetXTickInterval(integer set)
         horizontalPanel:SetTickInterval(cast(number, set))
+        horizontalPanel:OverrideDefaultInterval(true)
     end
 
     action SetYTickCount(integer ticks)
-        verticalPanel:SetTickCountOverride(ticks)
+        verticalPanel:SetTickCount(ticks)
+        verticalPanel:OverrideDefaultTickCount(true)
     end
 
     action SetYTickInterval(number set)
         verticalPanel:SetTickInterval(set)
         verticalPanel:SetNumberFormat("number")
+        verticalPanel:OverrideDefaultInterval(true)
     end
 
     action SetYTickInterval(integer set)
         verticalPanel:SetTickInterval(cast(number, set))
+        verticalPanel:OverrideDefaultInterval(true)
     end
 
     action GetXAxisMinimum returns number
@@ -611,66 +571,57 @@ class Chart is Control
 
     Attribute: Orientation controls
     */
-    action GetOrientation returns text
-        return currentOrientation
-    end
-    action GetDefaultOrientation returns text
-        return defaultOrientation
+
+    private action SetDefaultOrientationToHorizontal
+        verticalOrientation = false
+        horizontalOrientation = true
     end
 
-    action SetOrientation(text orient)
-        text newOrientation = orient:ToLowerCase()
-        if newOrientation = "horizontal" or newOrientation = "vertical"
-            if newOrientation = currentOrientation
-                orientationFlag = false
-            else
-                currentOrientation = newOrientation
-                orientationFlag = true
-            end
-        else
-            alert("Orientation can only by vertical or horizontal")
+    private action SetDefaultOrientationToVertical
+        verticalOrientation = true
+        horizontalOrientation = false
+    end
+
+    action SetOrientationToHorizontal
+        if not orientationChanged and not horizontalOrientation
+            orientationChanged = true
+            horizontalOrientation = true
+            verticalOrientation = false
         end
     end
 
-    action SetDefaultOrientation(text orient)
-        text newOrientation = orient:ToLowerCase()
-        if newOrientation = "horizontal" or newOrientation = "vertical"
-            defaultOrientation = newOrientation
-            currentOrientation = newOrientation
-        else
-            alert("Orientation can only by vertical or horizontal")
+    action SetOrientationToVertical
+        if not orientationChanged and not verticalOrientation
+            orientationChanged = true
+            horizontalOrientation = false
+            verticalOrientation = true
         end
     end
 
     action FlipOrientation()
-        if currentOrientation not= undefined
-            orientationFlag = not orientationFlag
-            if currentOrientation = "horizontal"
-                currentOrientation = "vertical"
+        if not orientationChanged
+            orientationChanged = true
+            if verticalOrientation
+                verticalOrientation = false
+                horizontalOrientation = true
             else
-                currentOrientation = "horizontal"
+                verticalOrientation = true
+                horizontalOrientation = false
             end
+            FlipAxisInfo()
         end
     end
 
     action OrientationChanged returns boolean
-        return orientationFlag 
+        return orientationChanged
     end
 
     action GetHorizontalFlag returns boolean
-        if currentOrientation = "horizontal"
-            return true
-        else
-            return false
-        end
+        return horizontalOrientation
     end
 
     action GetVerticalFlag returns boolean
-        if currentOrientation = "vertical"
-            return true
-        else
-            return false
-        end
+        return verticalOrientation
     end
 
     action SeparateByFactor()
@@ -713,7 +664,7 @@ class Chart is Control
     end
 
     private action SetDefaultSeparation(boolean flag)
-        defaultSeparation = true
+        defaultSeparation = flag
     end
 
 
@@ -877,29 +828,35 @@ class Chart is Control
     action ShowXAxis(boolean show)
         showXAxis = show
     end
-    action IsShowingXAxis returns boolean
+
+    action IsShowingXAxis() returns boolean
         return showXAxis
     end
+
     action ShowYAxis(boolean show)
         showYAxis = show
     end
-    action IsShowingYAxis returns boolean
+
+    action IsShowingYAxis() returns boolean
         return showYAxis
     end
 
-    action ShowGroupBrackets()
-        verticalPanel:ShowGroupBrackets(true)
-        horizontalPanel:ShowGroupBrackets(true)
+    action ShowGroupBrackets(boolean flag)
+        verticalPanel:ShowGroupBrackets(flag)
+        horizontalPanel:ShowGroupBrackets(flag)
+        overrideDefaultShowBrackets = true
     end
 
-    action HideGroupBrackets()
-        showBracketOverride = true
-        verticalPanel:ShowGroupBrackets(false)
-        horizontalPanel:ShowGroupBrackets(false)
+    private action SetDefaultShowBrackets(boolean flag)
+        defaultShowBrackets = flag
     end
 
-    action GetShowBracketOverride() returns boolean
-        return showBracketOverride
+    action HasGroups(boolean hasGroups)
+        me:hasGroups = hasGroups
+    end
+
+    action HasGroups returns boolean
+        return hasGroups
     end
 
     /*
@@ -1174,6 +1131,20 @@ class Chart is Control
 
     action SetCurrentPaletteToGrayScale()
         options:SetPaletteToGrayScale()
+    end
+
+    /*
+        Gets the default selection color (highlighting) the chart items
+    */
+    action GetHighlightColor() returns Color
+        return highlightColor
+    end
+
+    /*
+        Sets the default selection color (highlighting) the chart items
+    */
+    action SetHighlightColor(Color color)
+        me:highlightColor = color
     end
 
     action Resize
@@ -1758,4 +1729,5 @@ class Chart is Control
         game:SetChart(me)
         game:StartGame()
     end
+
 end

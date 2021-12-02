@@ -15,6 +15,8 @@ use Libraries.Web.Page.Script
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Web.Page.UnorderedList
 use Libraries.Web.Page.ListItem
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Icon
 
 /*
     The BarChartWriter class is part of the set of writers that allow for Charts
@@ -98,92 +100,138 @@ class BarChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
-        integer i = 0
-        integer j = 0
-        repeat while i < chart:GetBarGroups():GetSize()
-            BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
-
-            if chart:HasBarGroups()
-                Rectangle barGroup
-                barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
-                barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
-                barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
-                barGroup:SetFill(transparent)
-                barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
-                barGroup:SetTabIndex(-1)
-                if HasAccessibility()
-                    barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
+        if not chart:IsSeparatedByFactor()
+            i = 0
+            repeat while i < chart:GetBarGroups():GetSize()
+                BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
+    
+                if chart:HasGroups()
+                    Rectangle barGroup
+                    barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
+                    barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
+                    barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
+                    barGroup:SetFill(transparent)
+                    barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
+                    barGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
+                    end
+                    GetGroupPanels():Add(barGroup)
+                    canvas:Add(barGroup)
+    
                 end
-                GetGroupPanels():Add(barGroup)
-                canvas:Add(barGroup)
-
-            end
-            
-            j = 0
-            repeat while j < currentBarGroup:GetSize()
-                Bar currentBar = currentBarGroup:Get(j)
-
-                Rectangle bar
-                bar:SetWidth(currentBar:GetIcon():GetWidth())
-                bar:SetHeight(currentBar:GetIcon():GetHeight())
-                bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
-                bar:SetFill(currentBar:GetIcon():GetColor())
-                bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
-                bar:SetTabIndex(-1)
-                if HasAccessibility()
-                    bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
+                
+                j = 0
+                repeat while j < currentBarGroup:GetSize()
+                    Bar currentBar = currentBarGroup:Get(j)
+    
+                    Rectangle bar
+                    bar:SetWidth(currentBar:GetIcon():GetWidth())
+                    bar:SetHeight(currentBar:GetIcon():GetHeight())
+                    bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
+                    bar:SetFill(currentBar:GetIcon():GetColor())
+                    bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    bar:SetTabIndex(-1)
+                    if HasAccessibility()
+                        bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
+                    end
+                    bars:Add(bar)
+                    canvas:Add(bar)
+    
+                    j = j + 1
                 end
-                bars:Add(bar)
-                canvas:Add(bar)
-
-                j = j + 1
+    
+                i = i + 1
             end
-
-            i = i + 1
+        else
+            i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                j = 0
+                repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                    Icon currentBar
+                    currentBar = cast(Icon, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
+    
+                    Rectangle bar
+                    bar:SetWidth(currentBar:GetWidth())
+                    bar:SetHeight(currentBar:GetHeight())
+                    bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                    bar:SetFill(currentBar:GetColor())
+                    bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    bar:SetTabIndex(-1)
+                    if HasAccessibility()
+                        bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                    end
+                    bars:Add(bar)
+                    canvas:Add(bar)
+    
+                    j = j + 1
+                end
+                i = i + 1
+            end
         end
     end
 
-    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem chartAreaItem)
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
         
         BarChart barChart
         barChart = cast(BarChart, chart)
-        Array<BarGroup> barGroups = barChart:GetBarGroups()
 
-        UnorderedList barGroupsUL
-        barGroupsUL:AddAttribute("role","group")
-        chartAreaItem:AddNestedTag(barGroupsUL)
-        
-        UnorderedList currentGrouping = barGroupsUL
-        i = 0
-        repeat while i < barGroups:GetSize()
-            if barChart:HasBarGroups()
-                ListItem barGroupNav 
-                barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
-                barGroupNav:AddAttribute("role","treeitem")
-                barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
-                barGroupNav:AddAttribute("aria-expanded","false")
-                barGroupNav:SetTabIndex("-1")
-                barGroupsUL:Add(barGroupNav)
+        if not chart:IsSeparatedByFactor()
+            Array<BarGroup> barGroups = barChart:GetBarGroups()
     
-                
-                UnorderedList barsUL
-                barsUL:AddAttribute("role","group")
-                barGroupNav:AddNestedTag(barsUL)
-                currentGrouping = barsUL
-            end
+            UnorderedList barGroupsUL
+            barGroupsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(barGroupsUL)
             
-            j = 0
-            repeat while j < barGroups:Get(i):GetSize()
-                ListItem barNav 
-                barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
-                barNav:AddAttribute("role","treeitem")
-                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
-                barNav:SetTabIndex("-1")
-                currentGrouping:Add(barNav)
-
-                j = j + 1
+            UnorderedList currentGrouping = barGroupsUL
+            i = 0
+            repeat while i < barGroups:GetSize()
+                if barChart:HasGroups()
+                    ListItem barGroupNav 
+                    barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
+                    barGroupNav:AddAttribute("role","treeitem")
+                    barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                    barGroupNav:AddAttribute("aria-expanded","false")
+                    barGroupNav:SetTabIndex("-1")
+                    barGroupsUL:Add(barGroupNav)
+        
+                    
+                    UnorderedList barsUL
+                    barsUL:AddAttribute("role","group")
+                    barGroupNav:AddNestedTag(barsUL)
+                    currentGrouping = barsUL
+                end
+                
+                j = 0
+                repeat while j < barGroups:Get(i):GetSize()
+                    ListItem barNav 
+                    barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
+                    barNav:AddAttribute("role","treeitem")
+                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                    barNav:SetTabIndex("-1")
+                    currentGrouping:Add(barNav)
+    
+                    j = j + 1
+                end
+                i = i + 1
             end
-            i = i + 1
+        else
+            UnorderedList subChartAreaItemsUL
+            subChartAreaItemsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
+
+            i = 0
+            repeat while i < chartArea:GetChartAreaItems():GetSize()
+                Item bar = chartArea:GetChartAreaItems():Get(i)
+                ListItem barNav 
+                barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode() + "-nav")
+                barNav:AddAttribute("role","treeitem")
+                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode())
+                barNav:SetTabIndex("-1")
+                subChartAreaItemsUL:Add(barNav)
+
+                i = i + 1
+            end
         end
     end
 end

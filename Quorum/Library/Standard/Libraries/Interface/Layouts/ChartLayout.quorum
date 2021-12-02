@@ -207,13 +207,14 @@ class ChartLayout is Layout
             chartHeight = chart:GetSubChartAreas():Get(0):GetHeight()
         end 
 
+        originPointY = mainVerticalContainer:GetPaddingOffset()
         if usingGrouping
             groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetHeight())/2.0
-            originPointY = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+            originPointY = originPointY + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetHeight())
             chart:HideAllYGridLines()
         else
-            scaleDivWidth = chartHeight / (ticks:GetSize()-1)
+            scaleDivWidth = (chartHeight - 2*mainVerticalContainer:GetPaddingOffset()) / (ticks:GetSize()-1)
         end
         minorScaleDivWidth = scaleDivWidth/mainVerticalContainer:GetMinorGridlineCount()
 
@@ -259,7 +260,7 @@ class ChartLayout is Layout
             currentTick:LoadFilledRectangle(tickWidth, tickHeight)
             currentTick:SetPosition(cast(integer, tickX), cast(integer, tickY))
 
-            if not chart:IsShowingYTicks()
+            if not mainVerticalContainer:ShowTicks()
                 currentTick:Hide()
             end
 
@@ -271,7 +272,7 @@ class ChartLayout is Layout
                 Drawable majorLine
                 if chart:IsShowingMajorYGridLines() and startIndex < lines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the x-axis
-                        if not chart:IsShowingXAxis()
+                        if not chart:IsShowingXAxis() or mainVerticalContainer:GetPaddingOffset() not= 0
                             majorLine = lines:Get(startIndex)
                         end
                     else
@@ -306,12 +307,12 @@ class ChartLayout is Layout
 
         //This code represents the labels on the Y axis 
         originPointX = cast(integer, verticalContainer:GetWidth() - 0.5*tickWidth)
-        if chart:IsShowingYTicks()
+        if mainVerticalContainer:ShowTicks()
             originPointX = originPointX - tickWidth
         end
-        originPointY = 0
+        originPointY = mainVerticalContainer:GetPaddingOffset()
         if usingGrouping
-            originPointY = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+            originPointY = originPointY + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             if mainVerticalContainer:ShowGroupBrackets()
                 originPointX = originPointX - tickHeight - tickWidth
             end
@@ -395,13 +396,14 @@ class ChartLayout is Layout
             chartHeight = chart:GetSubChartAreas():Get(0):GetHeight()
         end 
 
+        originPointX = mainHorizontalContainer:GetPaddingOffset()
         if usingGrouping
             groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetWidth())/2.0
-            originPointX = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+            originPointX = originPointX + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetWidth())
             chart:HideAllXGridLines()
         else
-            scaleDivWidth = chartWidth / (ticks:GetSize()-1)
+            scaleDivWidth = (chartWidth - 2*mainHorizontalContainer:GetPaddingOffset()) / (ticks:GetSize()-1)
         end
         minorScaleDivWidth = scaleDivWidth/mainHorizontalContainer:GetMinorGridlineCount()
 
@@ -446,7 +448,7 @@ class ChartLayout is Layout
             end
             currentTick:LoadFilledRectangle(tickWidth, tickHeight)
             currentTick:SetPosition(cast(integer, tickX), cast(integer, tickY))
-            if not chart:IsShowingXTicks()
+            if not mainHorizontalContainer:ShowTicks()
                 currentTick:Hide()
             end
 
@@ -458,7 +460,7 @@ class ChartLayout is Layout
                 Drawable majorLine
                 if chart:IsShowingMajorXGridLines() and startIndex < lines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the y-axis
-                        if not chart:IsShowingYAxis()
+                        if not chart:IsShowingYAxis() or mainHorizontalContainer:GetPaddingOffset() not= 0
                             majorLine = lines:Get(startIndex)
                         end
                     else
@@ -490,11 +492,11 @@ class ChartLayout is Layout
         end
 
         // This code represents the labels on the X axis 
-        originPointX = 0
+        originPointX = mainHorizontalContainer:GetPaddingOffset()
         if usingGrouping
-            originPointX = cast(integer, groupOffset) + chart:GetPaddedChartOffset()
+            originPointX = originPointX + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
         end
-        if chart:IsShowingXTicks()
+        if mainHorizontalContainer:ShowTicks()
             originPointY = originPointY - tickHeight
         end
         if mainHorizontalContainer:ShowGroupBrackets()

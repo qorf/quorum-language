@@ -46,7 +46,13 @@ class Histogram is SharedBarChartParent
     Array<number> binFloor
     Comparison comparison = undefined
     number binWidth = -1
+    boolean binWidthOverride = false
+    integer binCount = 0
+    boolean binCountOverride = false
+
     boolean decimalScale = false
+    number dataMin = 0
+    number dataMax = 0
 
     on create
         HistogramLayout layout
@@ -76,9 +82,10 @@ class Histogram is SharedBarChartParent
         SetAccessibilityCode(parent:Item:ITEM)
 
         ShowAllTicks()
-        HideGroupBrackets()
-        SetDefaultOrientation("vertical")
+        SetDefaultOrientationToVertical()
         SetDefaultSeparation(true)
+        GetVerticalPanel():BlockPaddingOffset(true)
+        GetHorizontalPanel():BlockPaddingOffset(true)
     end
 
     /*
@@ -88,7 +95,7 @@ class Histogram is SharedBarChartParent
     */
     private action GenerateSummary returns text
         text grouptext = ""
-        if HasBarGroups()
+        if HasGroups()
             text groups = " groups and "
             if GetBarGroups():GetSize() = 1
                 groups = " group and "
@@ -116,66 +123,107 @@ class Histogram is SharedBarChartParent
 //    end
 
 
-    action SetBinWidth(integer width) 
-        if width > 0 and binWidth not= width
-            binWidth = cast(number, width)
-            decimalScale = false
-            SetXAxisNumberFormat("integer")
-            MakeBins()
-        end
-    end
-
-    action SetBinWidth(number width) 
-        if width > 0 and binWidth not= width
-            binWidth = width
-            decimalScale = true
-            SetXAxisNumberFormat("number")
-            MakeBins()
-        end
-    end
-
-    action GetBinWidth() returns number
-        return binWidth
-    end
-
-    action GetColumns() returns Array<DataFrameColumn>
-        return columns
-    end
-
     action MakeBins()
-        if binWidth < 0
-            return now
-        end
-
         integer numberOfColumns = columns:GetSize()
         if numberOfColumns < 1
             alert("Cannot create a Histogram without any columns.")
         end
 
         if numberOfColumns = 1
-            HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
+            HasGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         end
 
         GetBarGroups():Empty()
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        number min = 0
-        number max = 0
+        number min = dataMin
+        number max = dataMax
 
         if GetHorizontalFlag() // Default is vertical
-            SetYTickInterval(binWidth)
             min = GetVerticalPanel():GetMinimum()
             max = GetVerticalPanel():GetMaximum()
         else
-            SetXTickInterval(binWidth)
             min = GetHorizontalPanel():GetMinimum()
             max = GetHorizontalPanel():GetMaximum()
         end
+        number range = max - min
 
         // Take range and divide it amongst bins and round up to get the default bin width
-        integer numberOfBins = cast(integer, math:Ceiling((max-min)/binWidth))
-        if numberOfBins > 100
+        if binCountOverride //Bin count override supercedes bin width override
+            if max < 2.5
+                decimalScale = true
+                binWidth = math:Round(range / cast(number, binCount),3)
+                if GetHorizontalFlag()
+                    GetVerticalPanel():SetTickDigits(3)
+                else
+                    GetHorizontalPanel():SetTickDigits(3)
+                end
+                if math:Round(max mod binWidth, 3) = min
+                    binWidth = math:Round(range / cast(number, binCount-1),3)
+                end
+                max = math:Round(binWidth * binCount + min, 3)
+            else
+                min = math:Floor(min)
+                max = math:Ceiling(max)
+                range = max - min
+                binWidth = math:Ceiling(range / cast(number, binCount))
+                if math:Round(max mod binWidth,3) = min
+                    binWidth = math:Ceiling(range / cast(number, binCount-1))
+                end
+                max = math:Round(binWidth * binCount + min, 3)
+            end
+        else
+            if binWidthOverride
+                if max < 2.5
+                    decimalScale = true
+                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                    if GetHorizontalFlag()
+                        GetVerticalPanel():SetTickDigits(3)
+                    else
+                        GetHorizontalPanel():SetTickDigits(3)
+                    end
+                    max = math:Round(binWidth * binCount + min, 3)
+                else
+                    if decimalScale 
+                        if GetHorizontalFlag()
+                            GetVerticalPanel():SetTickDigits(3)
+                        else
+                            GetHorizontalPanel():SetTickDigits(3)
+                        end
+                    else
+                        min = math:Floor(min)
+                        max = math:Ceiling(max)
+                        range = max - min
+                    end
+                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                end
+            else
+                //Default binwidth and bincount
+                binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize())))
+                if max < 2.5
+                    decimalScale = true
+                    binWidth = math:Round(range / cast(number, binCount),1)
+                    if GetHorizontalFlag()
+                        GetVerticalPanel():SetTickDigits(3)
+                    else
+                        GetHorizontalPanel():SetTickDigits(3)
+                    end
+                    binCount = cast(integer, math:Ceiling(range / binWidth))
+                else
+                    min = math:Floor(min)
+                    max = math:Ceiling(max)
+                    range = max - min
+                    binWidth = math:Ceiling(range  / cast(number, binCount))
+                    binCount = cast(integer, math:Ceiling(range / binWidth))+1
+                    if max = dataMax and (max mod binWidth = 0)
+                        max = max + binWidth
+                    end
+                end
+            end
+        end
+
+        if binCount > 100
             alert("This results in over 100 bins, please change bin width.")
         end
 
@@ -184,7 +232,7 @@ class Histogram is SharedBarChartParent
 
         n = 0
         number floor = min // Starts at minimum value
-        repeat while n < numberOfBins
+        repeat while n < binCount
             count:Add(0)
             binFloor:Add(floor)
             text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
@@ -196,7 +244,7 @@ class Histogram is SharedBarChartParent
                 group:SetName(valueDisplay)
                 groupFactor:Add(valueDisplay, group)
             end
-            floor = floor + binWidth
+            floor = math:Round(floor + binWidth, 3)
             n = n + 1
         end  
 
@@ -206,7 +254,7 @@ class Histogram is SharedBarChartParent
 
             // Reset counts to zero for each series
             i = 0
-            repeat while i < numberOfBins
+            repeat while i < binCount
                 count:Set(i, 0)
                 i = i + 1
             end     
@@ -215,12 +263,16 @@ class Histogram is SharedBarChartParent
             repeat while i < column:GetSize()
                 if not column:IsUndefined(i)
                     number value = column:GetAsNumber(i)
-                    integer bin = cast(integer, math:Floor((value - min) / binWidth))
-                    number binRoof = binFloor:Get(bin) + binWidth
-                    if value < binRoof and value >= binFloor:Get(bin)
-                        count:Set(bin, count:Get(bin) + 1)
-                    elseif value >= binRoof
-                        count:Set(bin+1, count:Get(bin+1) + 1)
+                    if value >= min
+                        integer bin = cast(integer, math:Floor((value - min) / binWidth))
+                        if bin < binFloor:GetSize()
+                            number binRoof = binFloor:Get(bin) + binWidth
+                            if value < binRoof and value >= binFloor:Get(bin)
+                                count:Set(bin, count:Get(bin) + 1)
+                            elseif value >= binRoof
+                                count:Set(bin+1, count:Get(bin+1) + 1)
+                            end
+                        end
                     end
                 end
                 i = i + 1
@@ -302,52 +354,156 @@ class Histogram is SharedBarChartParent
         end
 
         if GetHorizontalFlag() // Default is vertical
+            if GetHorizontalPanel():OverrideDefaultMax()
+                if maxFrequency < GetHorizontalPanel():GetMaximum()
+                    maxFrequency = GetHorizontalPanel():GetMaximum()
+                end
+            end
             SetScale(min, max, 0, maxFrequency)
             SetYTickInterval(binWidth)
-            parent:Chart:SetYAxisMinimum(math:Floor(min))
-            parent:Chart:SetYAxisMaximum(math:Ceiling(max))
         else
+            if GetVerticalPanel():OverrideDefaultMax()
+                if maxFrequency < GetVerticalPanel():GetMaximum()
+                    maxFrequency = GetVerticalPanel():GetMaximum()
+                end
+            end
             SetScale(0, maxFrequency, min, max)
             SetXTickInterval(binWidth)
-            parent:Chart:SetXAxisMinimum(math:Floor(min))
-            parent:Chart:SetXAxisMaximum(math:Ceiling(max))
         end
         SetSeriesList(seriesList)
     end
 
     private action SetScale(number ymin, number ymax, number xmin, number xmax)
-        GetVerticalPanel():SetMinimum(ymin)
-        GetVerticalPanel():SetMaximum(ymax)
-        GetHorizontalPanel():SetMinimum(xmin)
-        GetHorizontalPanel():SetMaximum(xmax)
+        if GetHorizontalFlag()
+            parent:SharedBarChartParent:SetYAxisMaximum(ymax)
+            parent:SharedBarChartParent:SetYAxisMinimum(ymin)
+            GetHorizontalPanel():SetMinimum(xmin)
+            GetHorizontalPanel():SetMaximum(xmax)
+        else
+            GetVerticalPanel():SetMinimum(ymin)
+            GetVerticalPanel():SetMaximum(ymax)
+            parent:SharedBarChartParent:SetXAxisMaximum(xmax)
+            parent:SharedBarChartParent:SetXAxisMinimum(xmin)
+        end
     end
 
     action SetXAxisMaximum(number max)
-        parent:Chart:SetXAxisMaximum(max)
-        if not GetHorizontalFlag()
+        parent:SharedBarChartParent:SetXAxisMaximum(max)
+        if GetVerticalFlag()
             MakeBins()
         end
     end
 
     action SetXAxisMinimum(number min)
-        parent:Chart:SetXAxisMinimum(min)
-        if not GetHorizontalFlag()
+        parent:SharedBarChartParent:SetXAxisMinimum(min)
+        if GetVerticalFlag()
+            MakeBins()
+        end
+    end
+
+    action SetYAxisMaximum(number max)
+        parent:SharedBarChartParent:SetYAxisMaximum(max)
+        if GetHorizontalFlag()
+            MakeBins()
+        end
+    end
+
+    action SetYAxisMinimum(number min)
+        parent:SharedBarChartParent:SetYAxisMinimum(min)
+        if GetHorizontalFlag()
             MakeBins()
         end
     end
 
     action SetXTickInterval(number set)
         parent:Chart:SetXTickInterval(set)
-        if not GetHorizontalFlag()
+        if GetVerticalFlag()
             SetBinWidth(set)
         end
     end
 
     action SetXTickInterval(integer set)
         parent:Chart:SetXTickInterval(set)
-        if not GetHorizontalFlag()
+        if GetVerticalFlag()
             SetBinWidth(set)
         end
     end
+
+    action SetYTickInterval(number set)
+        parent:Chart:SetYTickInterval(set)
+        if GetHorizontalFlag()
+            SetBinWidth(set)
+        end
+    end
+
+    action SetYTickInterval(integer set)
+        parent:Chart:SetYTickInterval(set)
+        if GetHorizontalFlag()
+            SetBinWidth(set)
+        end
+    end
+
+    action SetBinWidth(integer width) 
+        if width > 0 and binWidth not= width
+            binWidth = cast(number, width)
+            binWidthOverride = true
+            MakeBins()
+        end
+    end
+
+    action SetBinWidth(number width) 
+        if width > 0 and binWidth not= width
+            binWidth = width
+            binWidthOverride = true
+            decimalScale = true
+            MakeBins()
+        end
+    end
+
+    action SetXTickCount(integer count)
+        parent:Chart:SetXTickCount(count)
+        if GetVerticalFlag()
+            binCountOverride = true
+            binCount = count
+            MakeBins()
+        end
+    end
+
+    action SetYTickCount(integer count)
+        parent:Chart:SetYTickCount(count)
+        if GetHorizontalFlag()
+            binCountOverride = true
+            binCount = count
+            MakeBins()
+        end
+    end
+
+    action SetBinCount(integer count)
+        binCountOverride = true
+        binCount = count
+        if GetVerticalFlag()
+            parent:Chart:SetXTickCount(count+1)
+        else
+            parent:Chart:SetYTickCount(count+1)
+        end
+        MakeBins()
+    end
+
+    action SetDecimalScale(boolean decimalScale)
+        me:decimalScale = decimalScale
+    end
+
+    action GetColumns() returns Array<DataFrameColumn>
+        return columns
+    end
+
+    action SetDataMinimum(number dataMin)
+        me:dataMin = dataMin
+    end
+
+    action SetDataMaximum(number dataMax)
+        me:dataMax = dataMax
+    end
+
 end
 

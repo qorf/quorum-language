@@ -44,12 +44,15 @@ class TwoVariableChart is Chart
     ChartOptions options
     Math math
 
+    private number maxPointHeightValue = 0
+    private number maxPointWidthValue = 0
+    private number minPointHeightValue = 0
+    private number minPointWidthValue = 0
+
     private integer PointDensity = 0
     private integer LineDensity = 0
     private boolean showPoints = true
 
-    
-    Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
 
@@ -75,11 +78,6 @@ class TwoVariableChart is Chart
             return now
         end
         parent:Chart:LoadGraphics(properties)
- 
-        // Default highlight color is selection color (currently blue)
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
-        end
 
         // Check for orientation change
         if OrientationChanged()
@@ -375,27 +373,37 @@ class TwoVariableChart is Chart
     end
 
     /*
-        Gets the default selection color (highlighting)
-    */
-    action GetHighlightColor returns Color
-        return highlightColor
-    end
-
-    /*
-        Sets the default selection color (highlighting)
-    */
-    action SetHighlightColor(Color color)
-        me:highlightColor = color
-    end
-
-    /*
         Used to create a new ChartLine object for the chart and add it to the lines array.
     */
     action AddChartLine(ChartLine newLine)
+        if maxPointHeightValue < newLine:GetLineMax():GetValueY()
+            maxPointHeightValue = newLine:GetLineMax():GetValueY()
+        end
+        if minPointHeightValue > newLine:GetLineMin():GetValueY()
+            minPointHeightValue = newLine:GetLineMin():GetValueY()
+        end
+        if maxPointWidthValue < newLine:GetLineEnd():GetValueX()
+            maxPointWidthValue = newLine:GetLineEnd():GetValueX()
+        end
+        if minPointWidthValue > newLine:GetLineStart():GetValueX()
+            minPointWidthValue = newLine:GetLineStart():GetValueX()
+        end
         lines:Add(newLine)
     end
 
     action AddPoint(ChartPoint point)
+        if maxPointHeightValue < point:GetValueY()
+            maxPointHeightValue = point:GetValueY()
+        end
+        if minPointHeightValue > point:GetValueY()
+            minPointHeightValue = point:GetValueY()
+        end
+        if maxPointWidthValue < point:GetValueX()
+            maxPointWidthValue = point:GetValueX()
+        end
+        if minPointWidthValue > point:GetValueX()
+            minPointWidthValue = point:GetValueX()
+        end
         points:Add(point)
     end
 
@@ -1091,5 +1099,70 @@ class TwoVariableChart is Chart
 
     action GetMaximumSubdivisions returns integer
         return maxSubdivisions
+    end
+
+    /* 
+        Max and min point values will track the highest and lowest points and limit the axis controls to not pass that value.
+    */ 
+
+//    action SetMaxPointHeightValue(number maxPointHeightValue)
+//        me:maxPointHeightValue = maxPointHeightValue
+//    end
+//    action SetMinPointHeightValue(number minPointHeightValue)
+//        me:minPointHeightValue = minPointHeightValue
+//    end
+//    action SetMaxPointWidthValue(number maxPointWidthValue)
+//        me:maxPointWidthValue = maxPointWidthValue
+//    end
+//    action SetMinPointWidthValue(number minPointWidthValue)
+//        me:minPointWidthValue = minPointWidthValue
+//    end
+
+    action SetXAxisMaximum(number max)
+        number pointMax = maxPointWidthValue
+        if GetVerticalFlag()
+            pointMax = maxPointHeightValue
+        end
+        if max >= pointMax
+            parent:Chart:SetXAxisMaximum(max)
+        else
+            output "X-axis maximum cannot be below highest point value: " + pointMax
+        end
+    end
+
+    action SetXAxisMinimum(number min)
+        number pointMin = minPointWidthValue
+        if GetVerticalFlag()
+            pointMin = minPointHeightValue
+        end
+        if min <= pointMin
+            parent:Chart:SetXAxisMinimum(min)
+        else
+            output "X-axis minimum cannot be above lowest point value: " + pointMin
+        end
+    end
+
+    action SetYAxisMaximum(number max)
+        number pointMax = maxPointHeightValue
+        if GetVerticalFlag()
+            pointMax = maxPointWidthValue
+        end
+        if max >= pointMax
+            parent:Chart:SetYAxisMaximum(max)
+        else
+            output "Y-axis maximum cannot be below highest point value: " + pointMax
+        end
+    end
+
+    action SetYAxisMinimum(number min)
+        number pointMin = minPointHeightValue
+        if GetVerticalFlag()
+            pointMin = minPointWidthValue
+        end
+        if min <= pointMin
+            parent:Chart:SetYAxisMinimum(min)
+        else
+            output "Y-axis minimum cannot be above lowest point value: " + pointMin
+        end
     end
 end

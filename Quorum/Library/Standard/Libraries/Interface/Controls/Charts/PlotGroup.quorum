@@ -31,8 +31,31 @@ class PlotGroup
     Drawable item = undefined
     Icon icon
     text name = ""
+    private number maxValue = 0
+    private number minValue = 0
+    private number maxOutlierValue = 0
+    private number minOutlierValue = 0
 
     action AddPlot(Plot newPlot)
+        if plots:GetSize() = 0
+            maxValue = newPlot:GetInfoAt(4)
+            minValue = newPlot:GetInfoAt(3)
+            maxOutlierValue = newPlot:GetMaxOutlierValue()
+            minOutlierValue = newPlot:GetMinOutlierValue()
+        else   
+            if newPlot:GetInfoAt(4) > maxValue
+                maxValue = newPlot:GetInfoAt(4)
+            end
+            if newPlot:GetInfoAt(3) < minValue
+                minValue = newPlot:GetInfoAt(3)
+            end
+            if newPlot:GetMaxOutlierValue() > maxOutlierValue
+                maxOutlierValue = newPlot:GetMaxOutlierValue()
+            end
+            if newPlot:GetMinOutlierValue() < minOutlierValue
+                minOutlierValue = newPlot:GetMinOutlierValue()
+            end
+        end
         plots:Add(newPlot)
     end
 
@@ -68,4 +91,19 @@ class PlotGroup
         return plots:Get(i)
     end
 
+    action GetMaxValue returns number
+        return maxValue
+    end
+
+    action GetMinValue returns number
+        return minValue
+    end
+
+    action GetMaxOutlierValue returns number
+        return maxOutlierValue
+    end
+
+    action GetMinOutlierValue returns number
+        return minOutlierValue
+    end
 end

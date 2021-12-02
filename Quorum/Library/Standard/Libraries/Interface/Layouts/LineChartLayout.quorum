@@ -28,8 +28,8 @@ class LineChartLayout is TwoVariableChartLayout
 
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
-        number width = chartAreaContainer:GetWidth()
-        number height = chartAreaContainer:GetHeight()
+        number width = chartAreaContainer:GetWidth() - 2*chart:GetHorizontalPanel():GetPaddingOffset()
+        number height = chartAreaContainer:GetHeight() - 2*chart:GetVerticalPanel():GetPaddingOffset()
 
         number xMin = chart:GetXAxisMinimum()
         number xMax = chart:GetXAxisMaximum()
@@ -70,8 +70,8 @@ class LineChartLayout is TwoVariableChartLayout
                 end
                 point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
                 point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
-                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0))
-                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0))
+                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + chart:GetHorizontalPanel():GetPaddingOffset()
+                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + chart:GetVerticalPanel():GetPaddingOffset()
                 point:SetPosition(x, y)
                 j = j + 1
             end

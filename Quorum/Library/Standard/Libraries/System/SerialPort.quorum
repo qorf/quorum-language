@@ -1,0 +1,32 @@
+package Libraries.System
+
+/*
+    This is an implementation of a Serial Port in Quorum. 
+    It provides for very basic querying of the port, like its system names, and allows us to open and close it. 
+    More information about Serial Ports can be found on Wikipedia: https://en.wikipedia.org/wiki/Serial_port
+*/
+class SerialPort
+    /* Returns the system's name for the port. */
+    system action GetName returns text
+
+    /* Returns a description of the port. */
+    system action GetDescription returns text
+
+    /* Returns a potentially more descriptive name for the port. */
+    system action GetDescriptiveName returns text
+
+    /* Writes to the port. */
+    system action Write(text value)
+
+    /* Reads from the port. */
+    system action Read returns text
+
+    /* Closes the port. */
+    system action Close returns boolean
+
+    /* Opens the port. */
+    system action Open returns boolean
+
+    /* Opens the port with a timeout. */
+    system action Open(integer timeout) returns boolean
+end
