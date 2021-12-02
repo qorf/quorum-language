@@ -77,6 +77,7 @@ class Painter2D
     private Number32BitArray vertices
 
     GameStateManager manager
+    ShaderManager shaderManager
     OpenGLConstants constants
 
     /*
@@ -592,7 +593,6 @@ class Painter2D
             currentProgram = candidate
             currentProgram:Begin()
 
-            ShaderManager shaderManager
             batchDrawables = (currentProgram = shaderManager:GetDefaultShaderProgram2D())
         end
 
@@ -617,6 +617,7 @@ class Painter2D
                 drawIndex = drawIndex + 1
                 counter = counter + 1
             end
+            batchDrawables = (currentProgram = shaderManager:GetDefaultShaderProgram2D())
         else
             batchDrawables = false
         end

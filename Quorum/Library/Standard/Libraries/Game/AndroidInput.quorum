@@ -39,6 +39,10 @@ class AndroidInput is GameInput
     GameStateManager manager
     InputSet keyboardModifiers
 
+    // An array used to store incoming keyboard and text input events.
+    Array<KeyboardEvent> keyboardEvents
+    Array<TextInputEvent> textInputEvents
+
     /*
     An array containing "recent" touches. Touches are considered recent if
     they happened within a certain number of seconds, defined by the
@@ -493,23 +497,26 @@ class AndroidInput is GameInput
     end
     
     public action HandleKeyboardEvents()
-        keyboardProcessor:Update()
+        keyboardProcessor:Update(keyboardEvents)
         
-        if keyboardProcessor:HasEvents()
-            ProcessKeyboardEvent(keyboardProcessor:GetEvents())
+        if keyboardEvents:IsEmpty() = false
+            ProcessKeyboardEvent(keyboardEvents)
         end
+
+        keyboardEvents:Empty(false)
     end
  
     public action HandleTextInputEvents()
-         textInputProcessor:Update()
+         textInputProcessor:Update(textInputEvents)
          
-         AndroidApplication application = cast(AndroidApplication, manager:GetApplication())
-         if textInputProcessor:HasEvents()
-             ProcessTextInputEvent(textInputProcessor:GetEvents())
+         if textInputEvents:IsEmpty() = false
+             ProcessTextInputEvent(textInputEvents)
          end
-    end  
 
-private action ProcessKeyboardEvent(List<KeyboardEvent> events)
+        textInputEvents:Empty(false)
+    end
+
+private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
         KeyboardEvent currentEvent = undefined
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
@@ -593,7 +600,7 @@ private action ProcessKeyboardEvent(List<KeyboardEvent> events)
         end
     end
 
-    private action ProcessTextInputEvent(List<TextInputEvent> events)
+    private action ProcessTextInputEvent(Array<TextInputEvent> events)
         TextInputEvent currentEvent = undefined
         TextInputListener currentListener = undefined
         Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()

@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Interface.Events;
 
 import quorum.Libraries.Interface.Events.TextInputEvent;
+import quorum.Libraries.Containers.Array_;
 import java.util.LinkedList;
 
 /**
@@ -20,11 +21,8 @@ public class TextInputProcessor
     // KeyboardEvent method in plugins.quorum.Libraries.Game.DesktopDisplay
     public static LinkedList<quorum.Libraries.Interface.Events.TextInputEvent> textEvents = new LinkedList<>();
 
-    public void Update() 
+    public void Update(Array_ events)
     {
-        quorum.Libraries.Interface.Events.TextInputProcessor quorumProcessor = (quorum.Libraries.Interface.Events.TextInputProcessor) me_;
-        quorum.Libraries.Containers.List_ events = quorumProcessor.events;
-
         while (!textEvents.isEmpty()) 
         {
             quorum.Libraries.Interface.Events.TextInputEvent event = textEvents.remove();
