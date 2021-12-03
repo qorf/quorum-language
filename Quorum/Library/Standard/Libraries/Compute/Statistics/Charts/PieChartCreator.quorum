@@ -141,7 +141,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         PieChart chart
         integer columns = GetColumnSize()
 
-        HashTable<text, Series> seriesFactor
+        HashTable<text, Wedge> sliceFactor
 
         integer i = 0
         repeat while i < columns
@@ -158,23 +158,18 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             sum:Calculate(column)
             sum:GetSum()
 
-            Wedge wedge
-            wedge:SetName(column:GetHeader())
-            wedge:SetValue(sum:GetSum())
-            chart:AddSlice(wedge)
-
-            if(not seriesFactor:HasKey(column:GetHeader()))
-                Series series
-                series:SetName(column:GetHeader())
-                series:AddItem(wedge)
-                seriesFactor:Add(column:GetHeader(), series)
+            if not sliceFactor:HasKey(column:GetHeader())
+                Wedge slice
+                slice:SetName(column:GetHeader())
+                slice:SetValue(sum:GetSum())
+                sliceFactor:Add(column:GetHeader(), slice)
             end
             i = i + 1
         end
 
         // Sort and add the series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        Array<text> seriesKeyArray = sliceFactor:CopyToKeyArray()
         if comparison = undefined
             seriesKeyArray:Sort()
         else
@@ -182,7 +177,11 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            Series series
+            series:SetName(seriesKeyArray:Get(i))
+            series:AddItem(sliceFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(series)
+            chart:AddSlice(sliceFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
