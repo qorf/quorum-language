@@ -2675,6 +2675,66 @@ class DataFrame
     end
 
     /*
+        This action creates a PieChart with a donut hole of 0.5 (50%) from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:DonutChart()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action DonutChart returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        PieChart chart = cast(PieChart, CreateChart(creator))
+        chart:SetDonutHolePercent(0.5)
+        return chart
+    end
+
+    /*
+        This action creates a PieChart with a donut hole of variable size from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:DonutChart(0.25)
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action DonutChart(number donutHolePercent) returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        PieChart chart = cast(PieChart, CreateChart(creator))
+        if donutHolePercent > 0 and donutHolePercent < 1.0
+            chart:SetDonutHolePercent(donutHolePercent)
+        else
+            alert("Donut hole percent can be a number between 0 and 1")
+        end
+        return chart
+    end
+
+    /*
         The CrossTab class takes a DataFrame and its selection to decide how to transform it. Specifically, 
         CrossTab takes the first column in the selection and places it on the left-most column of the 
         new frame, then the second column and places it on top. In both cases, the columns are filtered 

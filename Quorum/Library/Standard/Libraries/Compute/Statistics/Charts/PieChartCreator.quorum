@@ -3,10 +3,9 @@ package Libraries.Compute.Statistics.Charts
 use Libraries.Compute.Statistics.DataFrameChartCreator
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Charts.ColumnToTextArray
-use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.Calculations.Summarize
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
@@ -15,35 +14,31 @@ use Libraries.Containers.Support.Comparison
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Interface.Controls.Charts.Series
-use Libraries.Containers.Iterator
-use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
 
 /*
     This class is used to create a Pie Chart from columns of data in a DataFrame.
-    It will accept any number of numerical columns and a single factor or a single factor/column only.
-
+    There are three ways to make a pie chart from the data frame using this class:
+        1. One column or one factor: Each unique item will have its own wedge using its frequency as the value.
+        2. More than one column without a factor: Each column will have its own wedge using its sum as the value. 
+        3. One or more columns with a factor: Sum of all values associated with each factor will be in one wedge.
+    
     Attribute: Author Hannah Williams
     Attribute: Example
-
+    
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Charts.PieChartCreator
-
+    use Libraries.Compute.Statistics.Charts.PieChart
+    
     DataFrame frame
     frame:Load("Data/Data.csv")
-
-    //Create a Pie Chart and set some properties
-    PieChartCreator creator
-    creator:AddColumn(4)
-    creator:AddFactor(0)
-
-    Chart chart = frame:CreateChart(creator)
-    chart:Display(2000,1000)
+    frame:AddSelectedFactors("Factor")
+    frame:AddSelectedColumns("Numerical Column")
+    
+    PieChart chart = frame:PieChart()
+    chart:Display(1200,1000)
 */
-
 class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     Comparison comparison = undefined
-    integer countMax = 0
-    integer countMin = 0
 
     action Create(DataFrame frame) returns Chart
         integer columns = GetColumnSize()
@@ -55,44 +50,39 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         elseif columns = 1 and factors = 0
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             return CreateChartByCount(column)
-        elseif columns >= 1 and factors = 1 // Add all the values per factor. Columns must be numerical.
-            return CreateChart(frame)
+        elseif columns > 1 and factors = 0 
+            return CreateChartBySum(frame)
+        elseif columns >= 1 and factors = 1
+            return CreateChart(frame) //perhaps make side by side pie charts?? 
         else
             alert("PieChartCreator does not support the number of column/factors that were selected")
         end
         return undefined
     end
 
+    /*
+        This action is used by Create to create wedges based on each unique item.
+        The wedge value will be the number of times that item is seen in the column.
+        Each count and unique item will be saved as a wedge and a series for the legend.
+    
+        Attribute: Parameter column, the data to be counted.
+    */
     private action CreateChartByCount(DataFrameColumn column) returns PieChart
         PieChart chart
-
         HashTable<text, integer> hash = CalculateItemCounts(column)
         DataFrameColumn labels = column:Copy(true,true)
-        chart:SetTitle(column:GetHeader():ToUpperCase())
-        boolean numerical = false
-
-        CalculateCountMinMax(hash)
-        integer max = countMax
-        integer min = 0
-        integer stepCounter = 0
+        chart:SetTitle(column:GetHeader())
 
         Array <Series> seriesList
-
-        if labels:IsNumberColumn()
-            numerical = true
-        end
-        Array <Drawable> slices
-        Array <Number> sliceValues
-        //make chart
-        i = 0
+        integer i = 0
         repeat while i < labels:GetSize()
             if not labels:IsUndefined(i)
                 number valueForName = hash:GetValue(labels:GetAsText(i))
 
-                Drawable wedge
+                Wedge wedge
                 wedge:SetName(labels:GetAsText(i))
-                slices:Add(wedge)
-                sliceValues:Add(valueForName)
+                wedge:SetValue(valueForName)
+                chart:AddSlice(wedge)
                 
                 Series series
                 series:SetName(labels:GetAsText(i))
@@ -102,26 +92,18 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        chart:SetSlices(slices)
-        chart:SetSliceValues(sliceValues)
         chart:SetSeriesList(seriesList)
-
-        SetScale(chart, min, countMax, min, min)
+        SetScale(chart, 0, 1, 0, 1)
         return chart
     end
 
-    private action SetScale(PieChart chart, number ymin, number ymax, number xmin, number xmax)
-        chart:GetVerticalPanel():SetMinimum(ymin)
-        chart:GetVerticalPanel():SetMaximum(ymax)
-        chart:GetHorizontalPanel():SetMinimum(xmin)
-        chart:GetHorizontalPanel():SetMaximum(xmax)
-    end
-
-    action CreateChart(DataFrame frame) returns PieChart
-        PieChart chart
-        return chart
-    end
-
+    /*
+        Used by CreateChartByCount to calculate the number of times a unique entry is seen.
+        This action will return a hashtable of all unique items and their counts, as well
+        as a count for all undefined entries.
+    
+        Attribute: Parameter column and returns a hashtable of unique items and their counts.
+    */
     private action CalculateItemCounts(DataFrameColumn column) returns HashTable<text, integer>
         HashTable<text, integer> result
         integer groupCount = 0
@@ -147,27 +129,151 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return result
     end
 
-    private action CalculateCountMinMax(HashTable<text, integer> hash)
-        Iterator<integer> iterator = hash:GetValueIterator()
-        //adjust values to percentage
-        integer max = 0
-        integer min = 0
-        max = max:GetMinimumValue()
-        min = min:GetMaximumValue()
-        integer i = 1
-        repeat while iterator:HasNext()
-            integer value = iterator:Next()
-            if value > max
-                max = value
+    /*
+        This action is used by Create to create wedges based on each column.
+        The wedge value will be the sum of all values in that column.
+        Because it relies on numerical data it will error if text columns are given.
+        Each column is saved as a series and a wedge.
+    
+        Attribute: Parameter frame (with multiple columns and no factors)
+    */
+    private action CreateChartBySum(DataFrame frame) returns PieChart
+        PieChart chart
+        integer columns = GetColumnSize()
+
+        HashTable<text, Series> seriesFactor
+
+        integer i = 0
+        repeat while i < columns
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsNumberColumn()
+                alert("PieChartCreator does not support multiple columns when a text column is used. Text columns can be used alone or used as a factor.")
+                return undefined
+            end
+            if not column:CanConvertToVector()
+                alert("Could not covert values in " + GetColumn(i)+ " to vector")
             end
 
-            if value < min
-                min = value
+            Summarize sum
+            sum:Calculate(column)
+            sum:GetSum()
+
+            Wedge wedge
+            wedge:SetName(column:GetHeader())
+            wedge:SetValue(sum:GetSum())
+            chart:AddSlice(wedge)
+
+            if(not seriesFactor:HasKey(column:GetHeader()))
+                Series series
+                series:SetName(column:GetHeader())
+                series:AddItem(wedge)
+                seriesFactor:Add(column:GetHeader(), series)
             end
-        i = i + 1
+            i = i + 1
         end
-        countMax = max
-        countMin = min
+
+        // Sort and add the series
+        Array <Series> seriesList
+        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
+
+        chart:SetSeriesList(seriesList)
+        SetScale(chart, 0, 1, 0, 1)
+        return chart
+    end
+
+    /*
+        This action is used by Create to create wedges based on a factor across one or more columns
+        The wedge value will be the sum of all values associated with that factor.
+        Because it relies on numerical data it will error if text columns are given.
+        However, the factor can be text or numerical.
+        Each factor is saved as a series and a wedge.
+    
+        Attribute: Parameter frame (one or more columns and one factor)
+    */
+    private action CreateChart(DataFrame frame) returns PieChart
+        PieChart chart
+        integer columns = GetColumnSize()
+
+        HashTable<text, Wedge> sliceFactor
+        
+        DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+        integer i = 0
+        repeat while i < factor:GetSize()
+            if not factor:IsUndefined(i)
+                if not sliceFactor:HasKey(factor:GetAsText(i))
+                    Wedge slice
+                    slice:SetName(factor:GetAsText(i))
+                    slice:SetValue(0)
+                    sliceFactor:Add(factor:GetAsText(i), slice)
+                end
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < columns
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsNumberColumn()
+                alert("PieChartCreator does not support text columns when using a factor.")
+                return undefined
+            end
+            if not column:CanConvertToVector()
+                alert("Could not covert values in " + GetColumn(i) + " to vector")
+            end
+            integer j = 0
+            repeat while j < column:GetSize()
+                if not column:IsUndefined(j) and not factor:IsUndefined(j)
+                    number value = column:GetAsNumber(j)
+                    number oldValue = sliceFactor:GetValue(factor:GetAsText(j)):GetValue()
+                    sliceFactor:GetValue(factor:GetAsText(j)):SetValue(oldValue + value)
+                end
+                j = j + 1
+            end            
+            i = i + 1
+        end
+
+        // Sort and add the series
+        Array <Series> seriesList
+        Array<text> seriesKeyArray = sliceFactor:CopyToKeyArray()
+        if comparison = undefined
+            seriesKeyArray:Sort()
+        else
+            seriesKeyArray:Sort(comparison)
+        end
+        i = 0
+        repeat while i < seriesKeyArray:GetSize()
+            Series series
+            series:SetName(seriesKeyArray:Get(i))
+            series:AddItem(sliceFactor:GetValue(seriesKeyArray:Get(i)))
+            seriesList:Add(series)
+            chart:AddSlice(sliceFactor:GetValue(seriesKeyArray:Get(i)))
+            i = i + 1
+        end
+
+        chart:SetSeriesList(seriesList)
+        SetScale(chart, 0, 1, 0, 1)
+        return chart
+    end    
+
+    /*
+        This sets the initial scale for the x and y axis.
+        PieChart does not show the x and y axis by default.
+    */
+    private action SetScale(PieChart chart, number ymin, number ymax, number xmin, number xmax)
+        chart:GetVerticalPanel():SetMinimum(ymin)
+        chart:GetVerticalPanel():SetMaximum(ymax)
+        chart:GetHorizontalPanel():SetMinimum(xmin)
+        chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 end
 

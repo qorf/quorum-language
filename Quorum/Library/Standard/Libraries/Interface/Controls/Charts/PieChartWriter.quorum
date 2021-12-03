@@ -1,0 +1,102 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.System.File
+use Libraries.System.FileWriter
+use Libraries.Web.Page.Script
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+
+/*
+    The PieChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.PieChart
+    use Libraries.Interface.Controls.Charts.PieChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    PieChart chart = frame:PieChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    PieChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
+
+class PieChartWriter is ChartWriter
+    
+    Array<Wedge> slices
+
+    action WriteOutChart(PieChart chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(PieChart chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(PieChart chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
+
+    action WriteOutChart(PieChart chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        PieChart pieChart
+        pieChart = cast(PieChart, chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area " + pieChart:GetSlices():GetSize() + " slices.")
+        end
+    end
+
+    /*
+        This action adds the content of the PieChart
+    */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        PieChart pieChart
+        pieChart = cast(PieChart, chart)
+        AddSlices(canvas, pieChart)
+    end
+
+    /*
+        This action adds the content of the PieChart to the SVG
+    */
+
+    private action AddSlices(ScalableVectorGraphics canvas, PieChart chart)
+
+    end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        PieChart pieChart
+        pieChart = cast(PieChart, chart)
+
+    end
+end

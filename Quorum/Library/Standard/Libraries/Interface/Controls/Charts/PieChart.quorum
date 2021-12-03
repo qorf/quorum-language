@@ -1,17 +1,19 @@
 package Libraries.Interface.Controls.Charts
 
+use Libraries.Compute.Math
+use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
-use Libraries.Compute.Math
-use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.ControlLabel
-use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Views.LabelBoxView
-use Libraries.Interface.Layouts.PieChartLayout
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
-use Libraries.Containers.Array
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.PieChartLayout
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.System.File
 
 /*
     The PieChart class is Chart object that inherits from Control and like other
@@ -47,8 +49,10 @@ use Libraries.Containers.Array
 
 class PieChart is Chart
     private ChartItem summary // The Root ChartItem.
-    Array<Drawable> slices
-    Array<number> sliceValues
+    Array<Wedge> slices
+    number totalValue = 0
+    Drawable pieBox
+    number donutHolePercent = 0
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -101,24 +105,22 @@ class PieChart is Chart
         end
         parent:Chart:LoadGraphics(properties)
 
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
-        end
-
         LoadChartAreaItems()
     end
 
     action LoadChartAreaItems()
         Control chartArea = GetChartArea()
 
+        chartArea:Add(pieBox)
+
         integer i = 0
         repeat while i < slices:GetSize()
-            Drawable slice = slices:Get(i)
+            Wedge slice = slices:Get(i)
             slice:SetFocusable(true)
             slice:SetAccessibilityCode(parent:Item:ITEM)
             slice:SetNextFocus(GetNextFocus())
             slice:SetPreviousFocus(GetPreviousFocus())
-            chartArea:Add(slice)
+            slice:SetDescription("" + slice:GetValue())
             i = i + 1
         end
     end
@@ -165,6 +167,9 @@ class PieChart is Chart
                 end
                 temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+            elseif target is Wedge
+                Wedge temp = cast(Wedge, target)
+                temp:SetColor(previousColor)
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -211,6 +216,10 @@ class PieChart is Chart
                 end
                 temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetHighlightColor())
+            elseif target is Wedge
+                Wedge temp = cast(Wedge, target)
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -225,44 +234,44 @@ class PieChart is Chart
         end
     end
 
-
-    /*
-        Gets the default selection color (highlighting)
-    */
-    action GetHighlightColor returns Color
-        return highlightColor
+    action AddSlice(Wedge slice)
+        if slice:GetValue() > 0
+            slices:Add(slice)
+            totalValue = totalValue + slice:GetValue()
+        end
     end
 
-    /*
-        Sets the default selection color (highlighting)
-    */
-    action SetHighlightColor(Color color)
-        me:highlightColor = color
-    end
-
-    action SetSlices(Array <Drawable> slices)
-        me:slices = slices
-    end
-
-    action GetSlices returns Array <Drawable> 
+    action GetSlices returns Array <Wedge> 
         return slices
     end
 
-    action SetSliceValues(Array <number> sliceValues)
-        me:sliceValues = sliceValues
+    action GetPieBox returns Drawable
+        return pieBox
     end
 
-    action GetSliceValues returns Array <number> 
-        return sliceValues
+    action GetTotalValue returns number
+        return totalValue
+    end
+
+    action GetDonutHolePercent returns number
+        return donutHolePercent
+    end
+
+    action SetDonutHolePercent(number donutHolePercent)
+        if donutHolePercent >= 0 and donutHolePercent < 1
+            me:donutHolePercent = donutHolePercent
+        else
+            alert("Donut hole percent can be a number between 0 and 1")
+        end
     end
 
     /*
-        This is called by GenerateInfoTree to generate the summary that is heard when
+        This is used by GenerateInfoTree to generate the summary that is heard when
         you first focus on the chart. Also the highest level of the information tree
         of  the chart.
     */
     action GenerateSummary returns text
-        SetDescription("This is a pie chart")
+        SetDescription("Chart Area " + slices:GetSize() + " slices.")
         return GetDescription()
     end
 
@@ -303,11 +312,33 @@ class PieChart is Chart
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
+
+        if slices:GetSize() > 0
+            ChartItem firstSlice
+            firstSlice:SetContainer(me)
+            chartArea:SetChild(firstSlice)
+            firstSlice:SetParent(chartArea)
+            firstSlice:SetFocusTarget(slices:Get(0))
+
+            integer i = 1
+            ChartItem previousSlice = firstSlice
+            repeat while i < slices:GetSize()
+                ChartItem slice
+                slice:SetContainer(me)
+                slice:SetParent(chartArea)
+                slice:SetFocusTarget(slices:Get(i))
+                previousSlice:SetNext(slice)
+                slice:SetPrevious(previousSlice)
+                previousSlice = slice
+                i = i + 1
+            end
+            chartArea:SetLastChild(previousSlice)
+        end
         
         ChartSelection selection = GetSelection()
         selection:Set(summary)
             
-    end //end of Genarate infotree
+    end
    
     /* 
         This action converts this chart to a text value that contains information 
@@ -316,8 +347,22 @@ class PieChart is Chart
 
         Attribute: Returns the Scalable Vector Graphics (SVG) text.
     */
-//    action ConvertToScalableVectorGraphics returns text
-//        PieChartWriter writer
-//        return writer:WriteOutChart(me)
-//    end
+    action ConvertToScalableVectorGraphics returns text
+        PieChartWriter writer
+        return writer:WriteOutChart(me)
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            PieChartWriter chartWriter
+            chartWriter:WriteOutChart(me,file)
+        end
+    end
 end

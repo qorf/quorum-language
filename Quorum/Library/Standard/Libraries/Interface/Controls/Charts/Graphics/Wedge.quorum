@@ -68,7 +68,7 @@ class Wedge is Drawable
     public constant text WEDGE_SHADER_PROGRAM_NAME = "Wedge Shader Program"
 
     Math math
-
+    number value = 0
     number outerRadius = 100
     number innerRadius = 0
     number startPercentage = 0
@@ -258,6 +258,22 @@ class Wedge is Drawable
             program = LoadDefaultShaderProgram()
         end
         return program
+    end
+
+
+    /*
+    This action returns the actual value associated with this wedge.
+    The parent PieChart has a total value to which this value will be compared
+    to get a percent for the appropriate size.
+
+    Attribute: Returns a number value
+    */
+    action GetValue returns number
+        return value
+    end
+
+    action SetValue(number value)
+        me:value = value
     end
 
 end
