@@ -3,7 +3,34 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 
 /*
-    This class represents meta data for a particular query back from a database.
+    This class holds a table of all the database tables. This class allows for checking what tables
+    exist on a database and from there it is possible to get more information about a specific table.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.DatabaseMetaData
+use Libraries.Data.Database.DatabaseTable
+use Libraries.Data.Database.DatabaseColumn
+use Libraries.Containers.Iterator
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+DatabaseMetaData meta = database:GetDatabaseMetaData()
+meta:QueryDatabaseForTables()
+// output all the tables and all of their columns
+Iterator<DatabaseTable> iterator = meta:GetIterator()
+repeat while iterator:HasNext()
+    DatabaseTable table = iterator:Next()
+    output "=== " + table:GetName() + " === " + table:GetType() + " === "
+    Iterator<DatabaseColumn> columns = table:GetIterator()
+    repeat while columns:HasNext()
+        DatabaseColumn column = columns:Next()
+        output "    " + column:GetName()
+    end
+end
+
 */
 class DatabaseMetaData
     HashTable<text, DatabaseTable> tables
@@ -15,17 +42,45 @@ class DatabaseMetaData
         tables:Add(table:GetName(), table)
     end
 
-    /*
-        Used internally by plugins to fill out the metadata
-    */
+/*
+    This action returns how many tables are in the database.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    DatabaseMetaData meta = database:GetDatabaseMetaData()
+    meta:QueryDatabaseForTables()
+
+    output "Number of tables: " + meta:GetSize()
+*/
     action GetSize returns integer
         return tables:GetSize()
     end
 
-    /*
-        Searches for table by name and returns the DatabaseTable 
-        which contains more information about the table stored in the database.
-    */
+/*
+    Searches for table by name and returns the DatabaseTable 
+    which contains more information about the table stored in the database.
+
+    Attribute: Example
+    
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+    use Libraries.Data.Database.DatabaseTable
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    DatabaseMetaData meta = database:GetDatabaseMetaData()
+    meta:QueryDatabaseForTables()
+    
+    DatabaseTable table = meta:GetTable("myDB_table")
+    output table:GetName()
+*/
     action GetTable(text name) returns DatabaseTable
         if tables:IsEmpty()
             QueryDatabaseForTables()
@@ -34,9 +89,30 @@ class DatabaseMetaData
         return tables:GetValue(name)
     end
 
-    /*
-        Returns the Iterator for iterating through the database tables.
-    */
+/*
+    Returns the Iterator for iterating through the database tables. The iterator simplifies
+    making a repeat statement for looping through all the database tables.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+    use Libraries.Data.Database.DatabaseTable
+    use Libraries.Data.Database.DatabaseColumn
+    use Libraries.Containers.Iterator
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    DatabaseMetaData meta = database:GetDatabaseMetaData()
+    meta:QueryDatabaseForTables()
+
+    Iterator<DatabaseTable> iterator = meta:GetIterator()
+    repeat while iterator:HasNext()
+        DatabaseTable table = iterator:Next()
+        output table:GetName()
+    end
+*/
     action GetIterator returns Iterator<DatabaseTable>
         return tables:GetValueIterator()
     end
@@ -46,6 +122,18 @@ class DatabaseMetaData
         filling the in-memory representation of these objects for use. If this action is called 
         multiple times, it will keep adding to the table, which means that refreshes of this object
         require calling Empty before use. Otherwise, we get duplicates.
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
     */
     system action QueryDatabaseForTables
 
@@ -53,6 +141,20 @@ class DatabaseMetaData
     /*
         Clears the list of tables. Used to prevent the metadata from having duplicates if QueryForDatabaseForTables
         needs to be called multiple times.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        meta:Empty()
     */
     action Empty
         tables:Empty()

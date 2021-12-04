@@ -20,6 +20,11 @@ use Libraries.Data.Database.Support.Parameter
 use Libraries.Containers.Array
 use Libraries.Data.Database.Support.TableTarget
 
+/*
+    This class is Expression Listener that takes an expression that has been passed through both the Quorum Lexer and Parser
+    and tranverses it. As it traverses it different logic is applied to take the existing expression and convert the expression
+    into an expression that would be valid in SQL.
+*/
 class QueryExpressionListener is DefaultExpressionListener
     Stack<text> stack
     DatabaseMetaData meta = undefined

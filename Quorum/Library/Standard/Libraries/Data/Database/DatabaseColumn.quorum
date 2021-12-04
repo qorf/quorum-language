@@ -1,6 +1,27 @@
 package Libraries.Data.Database
 use Libraries.Language.Compile.Symbol.Type
 
+/*
+    The DatabaseColumn class contains information about a column in a database table.
+    This class is useful when checking the type of a column which is used interally in the system
+    for type checking filter expressions. 
+ 
+    Attribute: Example
+
+use Libraries.Data.Database.DatabaseMetaData
+use Libraries.Data.Database.DatabaseTable
+use Libraries.Data.Database.DatabaseColumn
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+DatabaseMetaData meta = database:GetDatabaseMetaData()
+DatabaseTable table = meta:GetTable("myDB")
+DatabaseColumn column = table:GetColumn("id")
+output column:GetName()
+
+*/
+
 class DatabaseColumn
     text name = ""
     integer type = -1

@@ -6,6 +6,9 @@ use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Translate.QuorumOpcode
 
+/*
+    This class is used to convert a filter/expression from using quorum syntax to syntax accepted by SQL.
+*/
 class QueryFilterConverter
     DatabaseMetaData meta = undefined
     text conversion = ""
@@ -13,18 +16,29 @@ class QueryFilterConverter
     Query query = undefined
     Type finalType = undefined
 
+    /* Returns the DatabaseMetaData which is used for checking if an expression is valid */
     action GetDatabaseMetaData returns DatabaseMetaData
         return meta
     end
 
+    /*
+       Sets the meta data that will be used when converting. For example if a name is used in an expression it 
+       will be taken as a column and the meta data is used to check if that column exists 
+    */
     action SetDatabaseMetaData(DatabaseMetaData meta)
         me:meta = meta
     end
 
+    /* If converting the expression didnt fail this will return true */
     action HasConversion returns boolean
         return hasConversion
     end
 
+    /*
+        This action takes a filter and converts it for use when converting a query to SQL.
+        This action will fail if the DatabaseMetaData is not set.
+        To grab the conversion you can check if it worked by using HasConversion() and then calling GetConversion().
+    */
     action Convert(text filter)
         if meta = undefined
             alert("Could not find database information. Did you request DatabaseMetaData
@@ -66,18 +80,31 @@ class QueryFilterConverter
         hasConversion = listener:HasConversion()
     end
 
+    /* This returns the conversion made from calling Convert() */
     action GetConversion returns text
         return conversion
     end
 
+    /*
+        Converting an Expression will also type check it and this action is used grab what the final type is.
+        Used in certain queries where an expression is used in place of a column and the type needs to be known.
+    */
     action GetFinalType returns Type
         return finalType
     end
 
+    /*
+        This action returns the query set for this converter. The query is used for the internal ExpressionListener
+        since for certain cases information from the query is needed.
+    */
     action GetQuery returns Query
         return query
     end
 
+    /*
+        This action sets the query for this converter. The query is used for the internal ExpressionListener
+        since for certain cases information from the query is needed.
+    */
     action SetQuery(Query query)
         me:query = query
     end

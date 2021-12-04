@@ -1,11 +1,239 @@
 package Libraries.Data.Database
 
+/*
+    The QueryResult class allows the user to iterate through a result given back from a database query.
+    The result set that is returned from a query can be huge depending on the amount of data on the database
+    so the default method of going through a result is iterate through it row by row rather than return all data at once.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Find
+use Libraries.Data.Database.QueryResult
+use Libraries.Data.Database.QueryMetaData
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Find find
+find:AddColumn("itemName")
+find:AddColumn("quantity")
+find:AddColumn("price")
+find:SetTable("orders")
+
+QueryResult result = database:Find(find)
+
+QueryMetaData meta = result:GetQueryMetaData()
+integer size = meta:GetSize()
+repeat while result:HasNext()
+    output "row: "
+    result:Next()
+    i = 0
+    repeat while i < size
+        text value = result:GetText(i)
+        output value + ", "
+        i = i + 1
+    end
+    output ""
+end
+
+*/
 class QueryResult
+
+/*
+    This action returns true if there is another row in the query result to iterate to.
+
+    Attribute: Returns Returns true if there another row in this QueryResult. If there is then Next() will move this QueryResult to the next row.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    boolean hasResult = result:HasNext()
+*/
     system action HasNext returns boolean
+/*
+    This action moves the QueryResult to the next row. A QueryResult only allows for grabbing columns from one row at a time so while iterating through a whole set
+    of a result this action is used when a user wants to move on to the next row.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    repeat while result:HasNext()
+        result:Next()
+        output "row found"
+    end
+*/
     system action Next
+
+/*
+    This action returns a column from the current row as text. This action grabs a column by name. 
+
+    Attribute: Parameter column The name of the column to return
+    Attribute: Returns Returns the column value as text
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    repeat while result:HasNext()
+        result:Next()
+        output result:GetText("itemName")
+    end
+*/
     system action GetText(text column) returns text
+
+/*
+    This action returns a column from the current row as text. This action grabs a column by position. 
+
+    Attribute: Parameter column The position of the column to return
+    Attribute: Returns Returns the column value as text
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    repeat while result:HasNext()
+        result:Next()
+        output result:GetText(0)
+    end
+*/
     system action GetText(integer column) returns text
+
+/*
+    This action returns a column from the current row as an integer. This action grabs a column by name. 
+
+    Attribute: Parameter column The name of the column to return
+    Attribute: Returns Returns the column value as an integer
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    repeat while result:HasNext()
+        result:Next()
+        output result:GetInteger("quantity")
+    end
+*/
     system action GetInteger(text column) returns integer
+
+/*
+    This action returns a column from the current row as an integer. This action grabs a column by position. 
+
+    Attribute: Parameter column The position of the column to return
+    Attribute: Returns Returns the column value as an integer
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    repeat while result:HasNext()
+        result:Next()
+        output result:GetInteger(1)
+    end
+*/
     system action GetInteger(integer column) returns integer
+/*
+    This action returns metadata related to the query result. The metadata has information about
+    the returned columns such as names, types, and how many were returned. Note that the metadata
+    can only tell you how many columns in the result not how many rows. 
+
+    Attribute: Returns Returns the QueryMetaData of this QueryResult
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    use Libraries.Data.Database.QueryMetaData
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("itemName")
+    find:AddColumn("quantity")
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    QueryMetaData meta = result:GetQueryMetaData()
+    integer size = meta:GetSize()
+    output "Number of Columns Returned: " + size
+
+*/
     system action GetQueryMetaData returns QueryMetaData
 end

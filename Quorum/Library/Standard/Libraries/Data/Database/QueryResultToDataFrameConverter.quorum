@@ -8,8 +8,40 @@ use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.BigIntegerColumn
 
+/*
+    This class is used to take a QueryResult from a query such as a Find and take the data from a result
+    and put all of the data into a DataFrame. The DataFrame class makes it easier to use different
+    statistical tests from the Statisics Library.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Find
+use Libraries.Data.Database.QueryResult
+use Libraries.Data.Database.QueryResultToDataFrameConverter
+use Libraries.Compute.Statistics.DataFrame
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Find find
+find:AddColumn("itemName")
+find:AddColumn("quantity")
+find:AddColumn("price")
+find:SetTable("orders")
+
+QueryResult result = database:Find(find)
+
+QueryResultToDataFrameConverter converter
+DataFrame frame = converter:Convert(result)
+
+output frame:ToText()
+
+*/
 class QueryResultToDataFrameConverter
     DatabaseTypeConstants constants
+
+    /* Returns an empty column that is the appropiate type depending on the raw type of the query result */
     private action GetColumn(integer type) returns DataFrameColumn 
         if constants:IsText(type)
             TextColumn column
@@ -30,6 +62,33 @@ class QueryResultToDataFrameConverter
         return undefined
     end
 
+/*
+    This action takes a QueryResult and will iterate through it and put every row into a DataFrame and then return that DataFrame.
+
+    Attribute: Parameter result The QueryResult to convert that typically comes from running a Find on a database
+    Attribute: Returns Returns a DataFrame that contains all the data from the QueryResult
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.Find
+    use Libraries.Data.Database.QueryResult
+    use Libraries.Data.Database.QueryResultToDataFrameConverter
+    use Libraries.Compute.Statistics.DataFrame
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    Find find
+    find:AddColumn("price")
+    find:SetTable("orders")
+    
+    QueryResult result = database:Find(find)
+    
+    QueryResultToDataFrameConverter converter
+    DataFrame frame = converter:Convert(result)
+
+*/
     action Convert(QueryResult result) returns DataFrame
         if result = undefined
             return undefined
