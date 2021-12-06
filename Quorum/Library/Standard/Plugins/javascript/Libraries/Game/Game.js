@@ -3097,7 +3097,7 @@ function plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_()
     graphics.glBufferData(graphics.gl.ARRAY_BUFFER, skyboxBuffer, graphics.gl.STATIC_DRAW);
     graphics.glBindBuffer(null);
     
-    this.Render = function(skybox, camera)
+    this.Render$quorum_Libraries_Game_Graphics_Skybox$quorum_Libraries_Game_Graphics_Camera = function(skybox, camera)
     {
         program.Begin();
       

@@ -18,7 +18,7 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
     {
         var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
         var texturePlugin = texture.plugin_;
-        texturePlugin.SetGL20Info$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
+        texturePlugin.SetGraphicsInfo$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
         texturePlugin.Bind();
         
         graphics.SetTextureParameter$quorum_integer$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, graphics.gl.TEXTURE_MAG_FILTER, graphics.gl.LINEAR);
@@ -46,42 +46,42 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
                 sidesRequested[plugins_quorum_Libraries_Game_Graphics_Skybox_.DOWN] = true;
                 break;
             case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_Z:
-                sidesRequested[plugins_quorum_Libraries_Game_Graphics_Skybox_.FRONT] = true;
+                sidesRequested[plugins_quorum_Libraries_Game_Graphics_Skybox_.BACK] = true;
                 break;
             case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z:
-                sidesRequested[plugins_quorum_Libraries_Game_Graphics_Skybox_.BACK] = true;
+                sidesRequested[plugins_quorum_Libraries_Game_Graphics_Skybox_.FRONT] = true;
                 break;
         }
         
         var me_ = this.me_;
+        switch(side)
+        {
+            case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_X:
+                me_.Set_Libraries_Game_Graphics_Skybox__rightSource_(file);
+                break;
+            case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_X:
+                me_.Set_Libraries_Game_Graphics_Skybox__leftSource_(file);
+                break;
+            case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_Y:
+                me_.Set_Libraries_Game_Graphics_Skybox__upSource_(file);
+                break;
+            case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_Y:
+                me_.Set_Libraries_Game_Graphics_Skybox__downSource_(file);
+                break;
+            case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_Z:
+                me_.Set_Libraries_Game_Graphics_Skybox__backSource_(file);
+                break;
+            case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z:
+                me_.Set_Libraries_Game_Graphics_Skybox__frontSource_(file);
+                break;
+        }
+        
         var loadImage = new Image();
         loadImage.onload = function()
         {   
             texture.Bind();
             graphics.glTexImage2D(side, 0, graphics.gl.RGBA, loadImage.width, loadImage.height,
             0, graphics.gl.RGBA, graphics.gl.UNSIGNED_BYTE, loadImage);
-            
-            switch(side)
-            {
-                case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_X:
-                    me_.Set_Libraries_Game_Graphics_Skybox__rightLoaded_(true);
-                    break;
-                case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_X:
-                    me_.Set_Libraries_Game_Graphics_Skybox__leftLoaded_(true);
-                    break;
-                case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_Y:
-                    me_.Set_Libraries_Game_Graphics_Skybox__upLoaded_(true);
-                    break;
-                case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_Y:
-                    me_.Set_Libraries_Game_Graphics_Skybox__downLoaded_(true);
-                    break;
-                case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_Z:
-                    me_.Set_Libraries_Game_Graphics_Skybox__frontLoaded_(true);
-                    break;
-                case graphics.gl.TEXTURE_CUBE_MAP_NEGATIVE_Z:
-                    me_.Set_Libraries_Game_Graphics_Skybox__backLoaded_(true);
-                    break;
-            }
         };
         loadImage.src = file.GetAbsolutePath();
     };

@@ -87,13 +87,11 @@ class DefaultShaderMapping3D is ShaderMapping
     integer vertexColorID = -1
     
     // Specific IDs and values for sub-fields of the directional/point light struct arrays    
-    integer directionalLightColorID = -1
-    integer directionalLightDirectionID = -1
-    integer directionalLightSize = -1
-    integer pointLightColorID = -1
-    integer pointLightPositionID = -1
-    integer pointLightIntensityID = -1
-    integer pointLightSize = -1
+    Array<integer> directionalLightColorID
+    Array<integer> directionalLightDirectionID
+    Array<integer> pointLightColorID
+    Array<integer> pointLightPositionID
+    Array<integer> pointLightIntensityID
 
 
     // Used to perform light calculations and transfer matrix data to the shader
@@ -191,12 +189,23 @@ class DefaultShaderMapping3D is ShaderMapping
             alphaTestID = program:GetShaderInputLocation("u_alphaTest")
             vertexColorID = program:GetVertexInputLocation("a_color")
             
-            directionalLightColorID = program:GetShaderInputLocation("u_dirLights[0].color")
-            directionalLightDirectionID = program:GetShaderInputLocation("u_dirLights[0].direction")
-            directionalLightSize = program:GetShaderInputLocation("u_dirLights[1].color") - directionalLightColorID
-            pointLightColorID = program:GetShaderInputLocation("u_pointLights[0].color")
-            pointLightPositionID = program:GetShaderInputLocation("u_pointLights[0].position")
-            pointLightSize = program:GetShaderInputLocation("u_pointLights[1].color") - pointLightColorID
+            directionalLightColorID:SetSize(maxDirectionalLights)
+            directionalLightDirectionID:SetSize(maxDirectionalLights)
+            integer i = 0
+            repeat while i < maxDirectionalLights
+                directionalLightColorID:Set(i,program:GetShaderInputLocation("u_dirLights[" + i + "].color"))
+                directionalLightDirectionID:Set(i, program:GetShaderInputLocation("u_dirLights[" + i + "].direction"))
+                i = i + 1
+            end
+            
+            pointLightColorID:SetSize(maxPointLights)
+            pointLightPositionID:SetSize(maxPointLights)
+            i = 0
+            repeat while i < maxPointLights
+                pointLightColorID:Set(i, program:GetShaderInputLocation("u_pointLights[" + i + "].color"))
+                pointLightPositionID:Set(i, program:GetShaderInputLocation("u_pointLights[" + i + "].position"))
+                i = i + 1
+            end
 
             shaderIDsFetched = true
         end
@@ -541,8 +550,6 @@ class DefaultShaderMapping3D is ShaderMapping
                 max = maxDirectionalLights
             end
 
-            integer directionOffset = directionalLightDirectionID - directionalLightColorID
-
             repeat while counter < directionalLights:GetSize()
                 DirectionalLight current = directionalLights:Get(counter)
                 Color color = current:GetColor()
@@ -550,13 +557,9 @@ class DefaultShaderMapping3D is ShaderMapping
                 tempVector3:Normalize()
                 
                 if counter < max
-                    integer index = directionalLightColorID + counter * directionalLightSize
-//                    output counter + ": Setting color at " + index + " = " + color:GetRed() + ", " + color:GetGreen() + ", " + color:GetBlue()
-                    program:SetShaderInput(index, color:GetRed(), color:GetGreen(), color:GetBlue())
-//                    output counter + ": Setting direction at " + (index + directionOffset) + " = " + direction:GetX() + ", " + direction:GetY() + ", " + direction:GetZ()
-                    program:SetShaderInput(index + directionOffset, tempVector3:GetX(), tempVector3:GetY(), -tempVector3:GetZ())
+                    program:SetShaderInput(directionalLightColorID:Get(counter), color:GetRed(), color:GetGreen(), color:GetBlue())
+                    program:SetShaderInput(directionalLightDirectionID:Get(counter), tempVector3:GetX(), tempVector3:GetY(), -tempVector3:GetZ())
                 else
-//                    output "Adding light " + counter + " to cubemap"
                     ambientCubemap:Add(color, tempVector3)
                 end
 
@@ -581,8 +584,6 @@ class DefaultShaderMapping3D is ShaderMapping
                 max = maxPointLights
             end
 
-            integer positionOffset = pointLightPositionID - pointLightColorID
-
             repeat while counter < pointLights:GetSize()
                 PointLight current = pointLights:Get(counter)
                 Color color = current:GetColor()
@@ -590,18 +591,15 @@ class DefaultShaderMapping3D is ShaderMapping
                 number intensity = current:GetIntensity()
 
                 if counter < max
-                    integer index = pointLightColorID + counter * pointLightSize
-                    program:SetShaderInput(index, color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)
-                    program:SetShaderInput(index + positionOffset, position:GetX(), position:GetY(), -position:GetZ())
+                    program:SetShaderInput(pointLightColorID:Get(counter), color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)
+                    program:SetShaderInput(pointLightPositionID:Get(counter), position:GetX(), position:GetY(), -position:GetZ())
                 else
-//                    output "Adding light " + counter + " to cubemap"
                     ambientCubemap:Add(color, position, tempVector3, intensity)
                 end
 
                 counter = counter + 1
             end
             program:SetShaderInput(pointLightCountID, max)
-//            program:SetShaderInput(pointLightCountID, 0)
         else
             program:SetShaderInput(pointLightCountID, 0)
         end
@@ -610,43 +608,12 @@ class DefaultShaderMapping3D is ShaderMapping
 
         ambientCubemap:Clamp()
 
-//        Number32BitArray array = ambientCubemap:GetData()
-//        integer i = 0
-//        output "Cubemap:"
-//        repeat while i < array:GetSize()
-//            output i + ": " + array:Get(i)
-//            i = i + 1
-//        end
-
         program:SetShaderInputVector3Array(ambientCubemapID, ambientCubemap:GetData(), 0, 18)
 
         tempMatrix3:Set(renderable:worldTransform)
         tempMatrix3:Inverse()
         tempMatrix3:Transpose()
-//        output tempMatrix:row0column0 + ", " + tempMatrix:row0column1 + ", " + tempMatrix:row0column2 + ", " + tempMatrix:row0column3
-//        output tempMatrix:row1column0 + ", " + tempMatrix:row1column1 + ", " + tempMatrix:row1column2 + ", " + tempMatrix:row1column3
-//        output tempMatrix:row2column0 + ", " + tempMatrix:row2column1 + ", " + tempMatrix:row2column2 + ", " + tempMatrix:row2column3
-//        output tempMatrix:row3column0 + ", " + tempMatrix:row3column1 + ", " + tempMatrix:row3column2 + ", " + tempMatrix:row3column3
         program:SetShaderInputMatrix(normalMatrixID, tempMatrix3)
-
-//        VertexAttributes vertices = renderable:meshPart:mesh:GetVertexAttributes()
-//        text uhOh = ""
-//        integer current = 0
-//        integer i = 0
-//
-//        check
-//            integer positionOffset = vertices:GetOffset(vertices:NORMAL)
-//            VertexData data = renderable:meshPart:mesh:GetVertexData()
-//            uhOh = "Size = " + data:GetSize() + ", max size = " + data:GetMaxSize()
-//            output ("Vertex Normals: size = " + data:GetSize() + ", max size = " + data:GetMaxSize())
-//            repeat while i < 8
-//                current = positionOffset + i * (vertices:vertexSize / 4)
-//                output (i + ": " + data:Get(current) + ", " + data:Get(current + 1) + ", " + data:Get(current + 2) + " (1st index = " + current + ")")
-//                i = i + 1
-//            end
-//        detect e
-//            alert(uhOh + " -- accessed at " + current + " using i = " + i)
-//        end
 
         lightsSet = true
     end

@@ -24,6 +24,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
             canvas = document.getElementById(currentIDECanvas_$Global_);
         } else {
             var id = configuration.canvasID;
+            currentIDECanvas_$Global_ = id;
             canvas = document.getElementById(id);
         }
     };

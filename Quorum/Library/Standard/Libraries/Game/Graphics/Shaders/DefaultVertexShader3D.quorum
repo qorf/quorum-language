@@ -50,8 +50,8 @@ uniform vec4 u_cameraPosition;
 
 
 // Always used
-in vec3 a_position;
-in vec4 a_color; // Defaults to (1, 1, 1, 1)
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec4 a_color; // Defaults to (1, 1, 1, 1)
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
 uniform float u_shininess; // Defaults to 20.0

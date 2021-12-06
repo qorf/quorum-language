@@ -47,4 +47,9 @@ function plugins_quorum_Libraries_Game_Graphics_Number32BitBuffer_()
     {
         return floatArray;
     };
+    
+    this.Get$quorum_integer = function(index)
+    {
+        return floatArray[index];
+    };
 }

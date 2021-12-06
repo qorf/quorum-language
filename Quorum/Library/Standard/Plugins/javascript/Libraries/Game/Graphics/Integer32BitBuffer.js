@@ -72,4 +72,9 @@ function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_()
             intArray[writePosition] = array.Get$quorum_integer(i);
         }
     };
+    
+    this.Get$quorum_integer = function(index)
+    {
+        return intArray[index];
+    };
 }

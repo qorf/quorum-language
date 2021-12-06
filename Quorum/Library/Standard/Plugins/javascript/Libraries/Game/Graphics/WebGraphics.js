@@ -270,7 +270,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         this.glUniform3f(uniformID, value1, value2, value3);
     };
 
-    this.SetShaderInput$quorum_integer$quorum_number$quorum_number$quorum_number = function(uniformID, value1, value2, value3, value4)
+    this.SetShaderInput$quorum_integer$quorum_number$quorum_number$quorum_number$quorum_number = function(uniformID, value1, value2, value3, value4)
     {
         this.glUniform4f(uniformID, value1, value2, value3, value4);
     };
@@ -322,17 +322,17 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     
     this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number = function(location, x, y)
     {
-        this.glVertexAttrib1f(location, x, y);
+        this.glVertexAttrib2f(location, x, y);
     };
     
     this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number$quorum_number = function(location, x, y, z)
     {
-        this.glVertexAttrib1f(location, x, y, z);
+        this.glVertexAttrib3f(location, x, y, z);
     };
     
     this.SetDefaultVertexValue$quorum_integer$quorum_number$quorum_number$quorum_number$quorum_number = function(location, x, y, z, w)
     {
-        this.glVertexAttrib1f(location, x, y, z, w);
+        this.glVertexAttrib4f(location, x, y, z, w);
     };
     
     this.SetPixelClipping$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height)

@@ -165,6 +165,10 @@ class Painter3D is Disposable
             if (skybox:IsLoaded() = false)
                 alert("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.")
             end
+            GraphicsManager graphics = manager:GetGameGraphics()
+            OpenGLConstants constants
+            graphics:EnableProperty(constants:GL_DEPTH_TEST)
+            graphics:EnableProperty(constants:GL_BLEND)
             skyboxShader:Render(skybox, camera)
         end
 
@@ -205,6 +209,10 @@ class Painter3D is Disposable
                     currentProgram:End()
                 end
                 currentProgram = undefined
+                GraphicsManager graphics = manager:GetGameGraphics()
+                OpenGLConstants constants
+                graphics:EnableProperty(constants:GL_DEPTH_TEST)
+                graphics:EnableProperty(constants:GL_BLEND)
                 skyboxShader:Render(skybox, camera)
             end
             
