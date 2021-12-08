@@ -38,7 +38,6 @@ use Libraries.Interface.Layouts.ManualLayout
 */
 
 class TwoVariableChart is Chart
-    ChartItem summary // Root of the info tree
     Array<ChartLine> lines      // Used with Line Charts
     Array<ChartPoint> points    // Used with Scatter Plots
     ChartOptions options
@@ -511,7 +510,7 @@ class TwoVariableChart is Chart
         ChartItem xAxis
         ChartItem yAxis
         ChartItem chartArea //not to be confused with panels
-        
+        ChartItem summary = GetInfoTreeRoot()
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
         summary:SetNext(chartArea)
@@ -617,6 +616,7 @@ class TwoVariableChart is Chart
                     end
                     i = i + 1
                 end
+                chartArea:SetLastChild(previousArea)
             else
                 ChartItem firstChartLineItem
                 firstChartLineItem:SetContainer(me)
@@ -653,7 +653,7 @@ class TwoVariableChart is Chart
                     previousChartLineItem = chartLineItem
                     i = i + 1
                 end
-                previousChartLineItem:SetNext(firstChartLineItem)
+                chartArea:SetLastChild(previousChartLineItem)
             end
         end
 
@@ -695,6 +695,7 @@ class TwoVariableChart is Chart
                     end
                     i = i + 1
                 end
+                chartArea:SetLastChild(previousArea)
             else
                 Icon newIcon = NewRegionIcon(0,0,1,1)
                 SubdivideQuadrant(GetChartArea(), chartArea, newIcon, points, 0)
@@ -806,6 +807,7 @@ class TwoVariableChart is Chart
                     if GetPointsFlag()
                         firstLineItem:SetParent(firstPointItem)
                         firstPointItem:SetChild(firstLineItem)
+                        firstPointItem:SetLastChild(firstLineItem)
                     else
                         firstLineItem:SetParent(item)
                         item:SetChild(firstLineItem)
@@ -852,6 +854,9 @@ class TwoVariableChart is Chart
                         if GetPointsFlag()
                             lineItem:SetParent(pointItem)
                             pointItem:SetChild(lineItem)
+                            pointItem:SetLastChild(lineItem)
+                            prevPoint:SetNext(pointItem)
+                            prevPoint = pointItem
                         else
                             lineItem:SetParent(item)
                             lineItem:SetPrevious(prevLine)
@@ -875,12 +880,15 @@ class TwoVariableChart is Chart
                         lineItem:SetFocusTarget(line)
                     end
 
-                    prevPoint:SetNext(pointItem)
-                    prevPoint = pointItem
                     i = i + 1
                 end
-                prevPoint:SetNext(firstPointItem)  
-                prevLine:SetNext(firstLineItem)            
+//                prevPoint:SetNext(firstPointItem) //wraps back to first point 
+//                prevLine:SetNext(firstLineItem) //wraps back to first line 
+                if GetPointsFlag()
+                    item:SetLastChild(prevPoint)
+                else
+                    item:SetLastChild(prevLine)
+                end           
             else
                 region:SetDescription(chunkDescription)
             end
@@ -931,8 +939,9 @@ class TwoVariableChart is Chart
 
             item:SetChild(leftChunkItem)
             leftChunkItem:SetNext(rightChunkItem)
-            leftChunkItem:SetPrevious(rightChunkItem)
-            rightChunkItem:SetNext(leftChunkItem)
+//            leftChunkItem:SetPrevious(rightChunkItem) //wraps chunks
+//            rightChunkItem:SetNext(leftChunkItem)
+            item:SetLastChild(rightChunkItem)
             rightChunkItem:SetPrevious(leftChunkItem)
             
             CreateChunks(chartArea, leftChunkItem, leftChunkRegion, leftChunkPoints, leftChunkLines, currentLevel + 1)
@@ -995,6 +1004,7 @@ class TwoVariableChart is Chart
                     previous = pointItem
                     i = i + 1
                 end
+                item:SetLastChild(previous)
             else
                 region:SetDescription(rangeText)
             end
@@ -1071,12 +1081,13 @@ class TwoVariableChart is Chart
 
             item:SetChild(topLeftItem)
             topLeftItem:SetNext(topRightItem)
-            topLeftItem:SetPrevious(bottomLeftItem)
+//            topLeftItem:SetPrevious(bottomLeftItem) //wraps quadrants
             topRightItem:SetNext(bottomRightItem)
             topRightItem:SetPrevious(topLeftItem)
             bottomRightItem:SetNext(bottomLeftItem)
             bottomRightItem:SetPrevious(topRightItem)
-            bottomLeftItem:SetNext(topLeftItem)
+//            bottomLeftItem:SetNext(topLeftItem)
+            item:SetLastChild(bottomLeftItem)
             bottomLeftItem:SetPrevious(bottomRightItem)
 
             SubdivideQuadrant(chartArea, topLeftItem, topLeftRegion, topLeft, currentLevel + 1)

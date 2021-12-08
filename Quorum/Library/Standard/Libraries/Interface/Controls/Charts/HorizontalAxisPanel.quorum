@@ -179,6 +179,7 @@ class HorizontalAxisPanel is Control
                 previousLabel = labelNode
                 i = i + 1
             end
+            xAxis:SetLastChild(previousLabel)
         elseif chart:GetSubHorizontalPanels():GetSize() > 0
             //SubPanel axis
             
@@ -208,6 +209,7 @@ class HorizontalAxisPanel is Control
                     previousLabel = labelNode
                     j = j + 1
                 end
+                firstSubPanel:SetLastChild(previousLabel)
             end
     
             i = 1
@@ -242,10 +244,12 @@ class HorizontalAxisPanel is Control
                         previousLabel = labelNode
                         j = j + 1
                     end
+                    currentSubPanel:SetLastChild(previousLabel)
                 end
     
                 i = i + 1
             end
+            xAxis:SetLastChild(previousSubPanel)
         end
     end
 

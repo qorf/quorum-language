@@ -3,22 +3,22 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.ControlLabel
-use Libraries.Game.Graphics.Color
-use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.Charts.ChartOptions
 
 /*
     This class represents one region inside of a chart. This can be anything, 
     from a region that contains data points to a broader summary of the chart itself. 
     This item should not be used itself, except when obtaining information from a chart.
 */
-class ChartItem
+class ChartItem is Control
     text information = ""
     Chart container = undefined
     ChartItem parentNode = undefined
     ChartItem childNode = undefined
     ChartItem nextNode = undefined
     ChartItem previousNode = undefined
+    ChartItem lastchildNode = undefined
+    boolean open = false
+    boolean openable = false
 
     Item focusTarget = undefined
     ChartOptions options
@@ -49,7 +49,7 @@ class ChartItem
     /*
         Gets the parent of this item.
     */
-    action GetParent returns ChartItem
+    action GetParentItem returns ChartItem
         return parentNode
     end
 
@@ -58,13 +58,28 @@ class ChartItem
     */
     action SetChild(ChartItem childNode)
         me:childNode = childNode
+        openable = true
     end
 
     /*
         Every chart item has a single parent and child, which indicates broader structure, but not what is in that structure.
     */
-    action GetChild returns ChartItem
+    action GetChildItem returns ChartItem
         return childNode
+    end
+
+    /*
+        Tracks the last 'child' under a parent
+    */
+    action SetLastChild(ChartItem lastchildNode)
+        me:lastchildNode = lastchildNode
+    end
+
+    /*
+        Tracks the last 'child' under a parent
+    */
+    action GetLastChild returns ChartItem
+        return lastchildNode
     end
 
     /*
@@ -129,4 +144,41 @@ class ChartItem
         me:container = container
     end
 
+    /*
+        This action opens the chart item if possible
+        Attribute: Returns true if opening was successful
+    */
+    action Open returns boolean
+        if not open and openable
+            open = true
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action closes the chart item if it is open
+        Attribute: Returns true if closing was successful
+    */
+    action Close returns boolean
+        if open
+            open = false
+            return true
+        end
+        return false
+    end
+
+    /*
+        Attribute: Returns true if the item is currently open
+    */
+    action IsOpen returns boolean
+        return open
+    end
+
+    /*
+        Attribute: Returns true if the item is a parent and can be opened.
+    */
+    action IsOpenable returns boolean
+        return openable
+    end
 end

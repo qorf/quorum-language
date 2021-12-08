@@ -14,13 +14,13 @@ class ChartNavigateBehavior is Behavior
             integer keycode = event:GetKeyboardEvent():keyCode
             Chart chart = cast(Chart, event:GetItem())
             if keycode = keys:UP
-                chart:SelectParent()
-            elseif keycode = keys:DOWN
-                chart:SelectChild()
-            elseif keycode = keys:LEFT
                 chart:SelectPrevious()
-            elseif keycode = keys:RIGHT
+            elseif keycode = keys:DOWN
                 chart:SelectNext()
+            elseif keycode = keys:LEFT
+                chart:CloseItem()
+            elseif keycode = keys:RIGHT
+                chart:OpenItem()
             end
         end
     end
