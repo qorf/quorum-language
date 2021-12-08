@@ -1,5 +1,9 @@
 package Libraries.Data.Database.Support
 
+/*
+    This is a support class for implementing Joins in the Find query. This class holds information
+    about a join so the Join portion of the Find can be written out correctly.
+*/
 class Join
     //join types
     constant text INNER_JOIN = "INNER JOIN"
@@ -11,38 +15,67 @@ class Join
     text joinCondition = ""
     text joinedTable = ""
 
+    /*
+        Returns the type of join this is. The type is set using the SetToXJoin actions so the actual
+        value for the join doesn't need to be remembered. 
+    */
     action GetJoinType returns text
         return joinType
     end
 
+    /*
+        Sets the join condition of this join. In SQL this would be what goes in the ON clause.
+        In the Find query this is converted using the filter converter.
+    */
     action SetJoinCondition(text condition)
         joinCondition = condition
     end
 
+    /*
+        Returns this joins join condition
+    */
     action GetJoinCondition returns text
         return joinCondition
     end
 
+    /*
+        Sets the table to join to the query
+    */
     action SetTable(text table)
         joinedTable = table
     end
 
+    /*
+        Returns the table being joined to the query
+    */
     action GetTable returns text
         return joinedTable
     end
 
+    /*
+        Sets the type of the join to an Inner Join
+    */
     action SetToInnerJoin()
         joinType = INNER_JOIN
     end
 
+    /*
+        Sets the type of the join to a Left Join
+    */
     action SetToLeftJoin()
         joinType = LEFT_JOIN
     end
 
+    /*
+        Sets the type of the join to a Right Join
+    */
     action SetToRightJoin()
         joinType = RIGHT_JOIN
     end
 
+    /*
+        Sets the type of the join to a Cross Join
+    */
     action SetToCrossJoin
         joinType = CROSS_JOIN
     end

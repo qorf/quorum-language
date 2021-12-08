@@ -2,7 +2,13 @@ package Libraries.Data.Database.Support
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Data.Database.DatabaseTypeConstants
 
-
+/*
+    This class is used mainly by the Find class to hold information related to the columns internal to a query.
+    This class is used internally in the Library and is not exposed directly to the user.
+    Typically when referencing a column the minimum needed is the name of the column and this class holds that and
+    other information such as the table it belongs to and the type. This class also has an action that outputs the target
+    to text for use directly in a query. 
+*/
 class ColumnTarget is RemappableName
 
     text name = ""
@@ -42,38 +48,68 @@ class ColumnTarget is RemappableName
         return result
     end
 
+    /*
+        Sets the name of the column
+    */
     action SetName(text name)
         me:name = name
     end
 
+    /*
+        Returns the name of the column
+    */
     action GetName returns text
         return name
     end
 
+    /*
+        Sets the name of the table that should contain the column.
+    */
     action SetTable(text table)
         me:table = table
     end
 
+    /*
+        Returns the name of the table that should contain the column.
+    */
     action GetTable returns text
         return table
     end
 
+    /*
+        Sets the function that this column will be in. Examples are SUM, AVG, and MIN.
+    */
     action SetFunction(text function)
         me:function = function
     end
 
+    /*
+        Returns the function that this column will be in. Examples are SUM, AVG, and MIN.
+    */
     action GetFunction returns text
         return function
     end
 
+    /*
+        Sets the raw type of the column which is calculated with the meta data given to the query.
+    */
     action SetRawType(integer rawType)
         me:rawType = rawType
     end
 
+    /*
+        Returns the raw type of the column. If -1 then the type has not been found yet.
+        This can only be calculated with the use of meta data that is populated when the query is being generated
+        with an active database connection. 
+    */
     action GetRawType returns integer
         return rawType
     end
 
+    /*
+        Returns a Type object corresponding to the mapping of the raw type to a Quorum type.
+        Used when type checking the target.
+    */
     action GetType returns Type
         DatabaseTypeConstants constants
         
@@ -98,14 +134,24 @@ class ColumnTarget is RemappableName
         return undefined
     end
 
+    /*
+        Sets if this is a Distinct column. Useful for Find query with distinct aggregation functions.
+    */
     action SetDistinct(boolean distinct)
         me:distinct = distinct
     end
 
+    /*
+        Returns if this is a Distinct column. Useful for Find query with distinct aggregation functions.
+    */
     action IsDistinct returns boolean
         return distinct
     end
 
+    /*
+        When converting this target to text the table portion is sometimes not necessary to have and can even
+        cause issues so setting this to false will remove that portion.
+    */
     action SetPrintTable(boolean printTable)
         me:printTable = printTable
     end

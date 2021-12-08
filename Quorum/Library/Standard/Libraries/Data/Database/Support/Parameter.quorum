@@ -4,7 +4,13 @@ use Libraries.Compute.BigInteger
 use Libraries.Data.Database.DatabaseTypeConstants
 use Libraries.Language.Compile.Symbol.Type
 
-
+/*
+    This is a support class mainly used for Inserts and Updates. This is used internally and not exposed to the user. 
+    This class holds a value that would typically be used to set to a row in a column.
+    For example if a column needs to be set to 4, a parameter object will be created with the value 4 as an integer stored
+    and the type of this parameter is set to Integer. Then the queries can grab that value as text for when it's written out
+    and then use this class to check if the type is compatible to the type of the column this needs to be set to.
+*/
 class Parameter
     //supported quorum types for parameters
     private constant text NULL_TYPE = "NULL"
@@ -44,6 +50,7 @@ class Parameter
         return undefined
     end
 
+    /* Given a raw type this will check if the internal type here is compatible with the raw type as mapped to Quorum. */
     action IsTypeCompatible(integer rawType) returns boolean
         DatabaseTypeConstants constants
         // TODO: Get type of Expression, for now assume true
@@ -73,6 +80,7 @@ class Parameter
         return false
     end
 
+    /* Returns the value as text no matter what type the value actually is */
     action GetValueAsText returns text
         if IsUndefined()
             return "NULL" //using SQL NULL here not quorum undefined
@@ -92,9 +100,13 @@ class Parameter
         return undefined
     end
 
+    /* Returns the name of type of this parameter */
     action GetType returns text
         return type
     end
+
+    // For every type supported here there is an action to set the type,
+    // set the value, and a function to check what type it is
 
     action SetToUndefined
         type = NULL_TYPE

@@ -1,23 +1,495 @@
 package Libraries.Data.Database
 
+/*
+    The DatabaseStrategy Class is the class used by the Database Class to interact with a database server.
+    This class on it's own does nothing it must be inherited and the actions must be implemented by the subclass.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+use Libraries.Data.Database.DatabaseStrategy
+use Libraries.Data.Database.Connection
+
+boolean connected = false
+
+DefaultDatabaseStrategy strategy
+
+Connection connection
+connection:SetLocation("localhost")
+connection:SetUsername("user1")
+connection:SetPassword("secretPassword")
+connection:SetDatabase("myDB")
+check
+    strategy:Connect(connection)
+    connected = true
+detect e
+    connected = false
+end
+
+output connected
+*/
 class DatabaseStrategy
 
-    
 
+    /*
+        This action takes a connection object and uses the information from it to establish
+        a connection to a database server.
+
+        Attribute: Parameter connection The Connection object containing server information and user information needed to establish a connection
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.DatabaseStrategy
+        use Libraries.Data.Database.Connection
+        
+        boolean connected = false
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        check
+            strategy:Connect(connection)
+            connected = true
+        detect e
+            connected = false
+        end
+        
+        output connected
+    */
     blueprint action Connect(Connection connection)
+
+    /*
+        This action tries to close the current connection.
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.DatabaseStrategy
+        use Libraries.Data.Database.Connection
+
+        boolean connected = false
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        check
+            strategy:Connect(connection)
+            connected = true
+        detect e
+            connected = false
+        end
+        
+        output connected
+
+        strategy:Close()
+    */
     blueprint action Close
+
+    /*
+        Some database servers support the auto-commit feature. Auto-commit is where certain transcations 
+        on a database such as an insert are either saved immediately if auto=commit is on or only saved if
+        commit is called explicitly. This action sets the mode to either auto save every transaction or not
+        if the server supports it.
+
+        Attribute: Parameter commit If true if will enable auto-commit mode, if false it will disable it
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+        output connected
+
+        strategy:SetAutoCommit(false)
+    */
     blueprint action SetAutoCommit(boolean commit)
+
+    /*
+        Some database servers support the auto-commit feature. Auto-commit is where certain transcations 
+        on a database such as an insert are either saved immediately if auto=commit is on or only saved if
+        commit is called explicitly. This action returns true if the mode is set to save automatically or false
+        otherwise.
+
+        Attribute: Returns Returns true if auto-commit is enable, false otherwise
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+        output connected
+
+        output strategy:GetAutoCommit()
+    */
     blueprint action GetAutoCommit returns boolean
+
+    /*
+        This action will commit any changes made to server such as an insert, or delete that hasn't already been
+        saved to the server. A commit on a server is similar to saving work on a regular file. It's common practice
+        for there to be a Commit when closing a connection so work might not be lost but having the ability to explicitly
+        commit is recommended so a user knows they are saving work and changes.
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Update
+
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+        output connected
+
+        strategy:SetAutoCommit(false)
+
+        Update update
+        update:SetTable("tasks")
+        update:Add("priority", 1)
+        update:Filter("priority = 4")
+    
+        strategy:Update(update)
+        
+        strategy:Commit()
+    */
     blueprint action Commit
+
+    /*
+        This action will rollback changes made to server. A Rollback is like having unsaved changes on a document and then
+        choosing to not keep those changes and going back to a previous version of that document. Note that not all changes can be
+        reverted. Rollback is only works if auto-commit is off and the changes can be rolled back such as a insert but not a dropped table.
+
+        Attribute: Example
+        
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Update
+
+        DefaultDatabaseStrategy strategy
+        
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+        output connected
+
+        strategy:SetAutoCommit(false)
+
+        Update update
+        update:SetTable("tasks")
+        update:Add("priority", 1)
+        update:Filter("priority = 4")
+
+        integer rowsAffected = strategy:Update(update)
+        if rowsAffected = 1
+            strategy:Commit()
+        else
+            strategy:Rollback()
+        end
+
+    */
     blueprint action Rollback
 
+    /*
+        This action runs a Find query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+        Attribute: Returns Returns a QueryResult object containing the result returned from running the Find
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Find
+        use Libraries.Data.Database.QueryResult
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        Find find
+        find:SetTable("myDB_table")
+    
+        QueryResult result = strategy:Find(find)
+
+    */
     blueprint action Find(Find query) returns QueryResult
+
+    /*
+        This action runs a CreateTable query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.CreateTable
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        CreateTable create
+        create:SetTable("newTable")
+        create:AddIntegerColumn("id")
+    
+        strategy:CreateTable(create)
+
+    */
     blueprint action CreateTable(CreateTable creation)
+
+    /*
+        This action runs a DropTable query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.DropTable
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        DropTable drop
+        drop:SetTable("oldTable")
+    
+        strategy:DropTable(drop)
+
+    */
     blueprint action DropTable(DropTable drop)
+
+    /*
+        This action runs an EditTable query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.EditTable
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        EditTable edit
+        edit:SetTable("myDB_table")
+        edit:RenameTable("mainTable")
+    
+        strategy:EditTable(edit)
+    */
     blueprint action EditTable(EditTable edit)
+
+    /*
+        This action runs a CreateView query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.CreateView
+        use Libraries.Data.Database.Find
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+
+        Find find
+        find:SetTable("myDB_table")
+        find:AddColumn("id")
+    
+        CreateView view
+        view:SetQuery(find)
+        view:SetName("id_view")
+    
+        strategy:CreateView(view)
+    */
     blueprint action CreateView(CreateView query)
+
+    /*
+        This action runs an Insert query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+        Attribute: Returns Returns the number of rows affected
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Insert
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        Insert insert
+        insert:SetTable("tasks")
+        insert:Add("title", "Low Priority Task")
+        insert:Add("priority", 4)
+        insert:Add("start_date", "2021-12-31")
+    
+        integer rowsAffected = strategy:Insert(insert)
+        output rowsAffected
+    */
     blueprint action Insert(Insert query) returns integer
+
+    /*
+        This action runs an Update query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+        Attribute: Returns Returns the number of rows affected
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Update
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        Update update
+        update:SetTable("tasks")
+        update:Add("priority", 1)
+        update:Filter("priority = 4")
+    
+        integer rowsAffected = strategy:Update(update)
+        output rowsAffected
+    */
     blueprint action Update(Update query) returns integer
+
+    /*
+        This action runs a Delete query on the database. The query object itself has all the information needed to build the query
+        to send to a database server and some queries have an action to build their equivalent SQL string.
+
+        Attribute: Parameter query They query object containing all the information needed to build a valid query to send to a database server
+        Attribute: Returns Returns the number of rows affected
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Delete
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        Delete delete
+        delete:SetTable("tasks")
+        delete:Filter("priority = 4")
+    
+        integer rowsAffected = strategy:Delete(delete)
+        output rowsAffected
+    */
     blueprint action Delete(Delete query) returns integer
+
+    /*
+        This action returns the DatabaseMetaData object which contains information about the currently connected database. 
+
+        Attribute: Returns Returns a DatabaseMetaData object that contains information about the connected database.
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Insert
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        DatabaseMetaData meta = strategy:GetDatabaseMetaData()
+        output meta:GetSize()
+    */
     blueprint action GetDatabaseMetaData returns DatabaseMetaData
 end

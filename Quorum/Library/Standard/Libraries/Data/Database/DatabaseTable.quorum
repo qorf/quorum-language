@@ -2,51 +2,246 @@ package Libraries.Data.Database
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 
+/*
+    The DatabaseTable class holds information about the table that exists on a database. This information
+    consists mostly of what columns the table contains and what type of table it is. The common table types
+    are regular tables or a view. The DatabaseTable object corresponding to a table on a live database
+    can be accessed through DatabaseMetaData.
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.DatabaseMetaData
+use Libraries.Data.Database.DatabaseTable
+use Libraries.Containers.Iterator
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+DatabaseMetaData meta = database:GetDatabaseMetaData()
+meta:QueryDatabaseForTables()
+
+Iterator<DatabaseTable> iterator = meta:GetIterator()
+repeat while iterator:HasNext()
+    DatabaseTable table = iterator:Next()
+    output "=== " + table:GetName() + " === " + table:GetType() + " === "
+end
+*/
 class DatabaseTable
     text name = ""
     text type = ""
 
     HashTable<text, DatabaseColumn> columns
+
+    /*
+        This action returns a DatabaseColumn object that corresponds to the column that is in this DatabaseTable.
+        The DatabaseColumn object has more information about the column such as the type of data it holds. If the
+        column does not exist this action will return undefined.
+
+        Attribute: Parameter name The name of the column to grab from this table
+        Attribute: Returns Returns the DatabaseColumn with the same name as given, if the table does not have that column then undefined will be returned
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        DatabaseColumn column = table:GetColumn("id")
+    */
     action GetColumn(text name) returns DatabaseColumn
         return columns:GetValue(name)
     end
 
+    /*
+        This action returns true if the name given matches the name of a column in the table.
+
+        Attribute: Parameter name The name of the column to search for in this table
+        Attribute: Returns Returns true if the table has the column, false otherwise
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        boolean hasID = table:HasColumn("id")
+        output hasID
+    */
     action HasColumn(text name) returns boolean
         return columns:HasKey(name)
     end
 
+    /*
+        This action is used internally when the database metadata is updated.
+        This adds columns to this table, not intended to be called by the user.
+    */
     action Add(DatabaseColumn column) 
         text value = column:GetName()
         columns:Add(value, column)
     end
 
+    /*
+        This action returns an Iterator object that allows for looping through all the columns in this table.
+
+        Attribute: Returns Returns a DatabaseColumn iterator object
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Containers.Iterator
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+        
+        Iterator<DatabaseTable> iterator = meta:GetIterator()
+        repeat while iterator:HasNext()
+            DatabaseTable table = iterator:Next()
+            output "=== " + table:GetName() + " === " + table:GetType() + " === "
+        end
+    */
     action GetIterator returns Iterator<DatabaseColumn> 
         return columns:GetValueIterator()
     end
 
     /*
         Returns the number of columns in the database table.
+
+        Attribute: Returns Returns the number of column in this table
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        output table:GetSize()
     */
     action GetSize returns integer
         return columns:GetSize()
     end
 
+    /*
+        This action returns the name of the table as it is stored on the database. 
+
+        Attribute: Returns Returns the name of the table as text
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        output table:GetName()
+    */
+
     action GetName returns text
         return name
     end
 
+    /*
+        This action sets the name of this table. This is used internally when the database metadata is updated
+        so this is not intended to be called by the user.
+    */
     action SetName(text name)
         me:name = name
     end
+
+    /*
+        This action returns the type of table this is.
+        This will commonly return either "TABLE" or "VIEW".
+
+        Attribute: Returns Returns the type of the table as text
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        output table:GetType()
+    */
 
     action GetType returns text
         return type
     end
 
+    /*
+        Used internally when the metadata is being updated.
+        Sets the type of table this is. Either a view or a base table.
+    */
     action SetType(text type)
         me:type = type
     end
 
+    /*
+        This action returns true if the table is a view. A view is a table on the database that is made up of rows and columns from the base tables.
+        A view can be created from a Find query. The biggest difference is that you can not insert, or delete rows from a view but the entire view can
+        be replaced or updated.
+
+        Attribute: Returns Returns true if the table is a view, false otherwise
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Database
+        use Libraries.Data.Database.DatabaseMetaData
+        use Libraries.Data.Database.DatabaseTable
+        use Libraries.Data.Database.DatabaseColumn
+        
+        Database database
+        database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+        
+        DatabaseMetaData meta = database:GetDatabaseMetaData()
+        meta:QueryDatabaseForTables()
+
+        DatabaseTable table = meta:GetTable("myDB_table")
+        output "Table is view: " + table:IsView()
+    */
     action IsView returns boolean
         return (type = "VIEW")
     end
