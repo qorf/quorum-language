@@ -1,12 +1,22 @@
 package Libraries.Data.Database.Support
 
+/*
+
+    This is a support class that holds an alias with an action to Set that alias and get it.
+    This class is meant to be used as a parent class to classes where they need to support the 
+    ability to remap the name of this. For example the ColumnTarget class is a RemappableName
+    because columns can be renamed in a Find query.
+*/
+
 class RemappableName
 text alias = undefined
 
+    /* Returns the alias */
     action GetRemappedName returns text
         return me:alias
     end
 
+    /* Sets the alias */
     action SetRemappedName(text remappedName)
         me:alias = remappedName
     end

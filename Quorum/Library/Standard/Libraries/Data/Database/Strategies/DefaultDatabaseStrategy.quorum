@@ -13,6 +13,11 @@ use Libraries.Data.Database.CreateView
 use Libraries.Data.Database.QueryResult
 use Libraries.Data.Database.DatabaseMetaData
 
+/*
+    This class implements a DatabaseStrategy and is the default strategy the Database class uses.
+    This class uses a plugin that connects to MySQL servers so if using another system underneath such
+    as PostgreSQL another class needs to be made that implements the actions in DatabaseStrategy.
+*/
 class DefaultDatabaseStrategy is DatabaseStrategy
 
     action Connect(Connection connection)
@@ -25,6 +30,8 @@ class DefaultDatabaseStrategy is DatabaseStrategy
         ConnectNative(connect)
     end
 
+    // All this class does is pass down parameters or call native functions so
+    // almost every action has a Native equivalent
     private system action GetAutoCommitNative returns boolean
     private system action SetAutoCommitNative(boolean commit)
     private system action CommitNative

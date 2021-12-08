@@ -1,11 +1,14 @@
 package Libraries.Data.Database
 
 /*
-    These names correspond to the constants in Java's JDBC. The names have been changed and the system can detect how everything maps to Quorum
+    This is a shared class containing the supported type constants for use in the Database Library.
+    These names correspond to the constants in Java's JDBC. The names have been changed and the 
+    system can detect how everything maps to Quorum.
 */
 shared class DatabaseTypeConstants
     public constant integer BIT = -7
     
+    /* If the value given is of Type BIT this will return true */
     action IsBoolean(integer value) returns boolean
         if  value = BIT
             return true
@@ -37,6 +40,9 @@ shared class DatabaseTypeConstants
         return false
     end
 
+    /*
+        This returns true if the value is a 64-bit Integer. In Quorum this would map to the BigInteger Class,
+    */
     action IsInteger64(integer value) returns boolean
         if  value = INTEGER64
             return true
@@ -65,6 +71,7 @@ shared class DatabaseTypeConstants
 
     public constant integer NUMBER = NUMBER64
     
+    /* This returns true if the type constant maps to a number */
     action IsNumber(integer value) returns boolean
         if  value = NUMBER64_WRONG
             or value = NUMBER32
@@ -90,6 +97,7 @@ shared class DatabaseTypeConstants
     //LONGVARCHAR
     private constant integer TEXT_LONG = -1
 
+    /* This returns true if the type maps to the Quorum Text type. */
     action IsText(integer value) returns boolean
         if  value = TEXT_FIXED_SIZE
             or value = TEXT
@@ -106,6 +114,11 @@ shared class DatabaseTypeConstants
     
     public constant integer TIMESTAMP = 93
     
+    /* 
+        This action returns true if the type is a Date, Time, or a Timestamp. In practice text can be used 
+        and will be parsed by the system but Quorum has DateTime calss that will handle getting times and
+        using them in a database easier.
+    */
     action IsDateTime(integer value) returns boolean
         if  value = DATE
             or value = TIME
@@ -127,6 +140,11 @@ shared class DatabaseTypeConstants
     //NULL
     public constant integer UNDEFINED = 0
 
+    /*
+    Returns true if the type is a Byte Array.
+    A byte array is a string of binary characters. It is similar to VARCHAR and text but instead of a string of characters
+    it is a string of binary data.
+    */
     action IsByteArray(integer value) returns boolean
         if  value = BYTE_FIXED_SIZE
             or value = BYTE
@@ -137,6 +155,7 @@ shared class DatabaseTypeConstants
         return false
     end
 
+    /* in SQL there can be columns with a NULL value and this maps to Quorum's undefined.*/
     action IsUndefined(integer value) returns boolean
         if  value = UNDEFINED
             return true

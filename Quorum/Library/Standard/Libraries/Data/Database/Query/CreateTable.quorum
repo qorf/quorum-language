@@ -1,7 +1,19 @@
 package Libraries.Data.Database
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
+/*
+    The CreateTable class is a query make a new table on a database. To create a table you need to give
+    it a name using SetTable and then the table needs at least one column. 
 
+    Attribute: Example
+
+    use Libraries.Data.Database.CreateTable
+
+    CreateTable table
+    table:SetTable("Users")
+    table:AddIntegerColumn("id")
+    
+*/
 class CreateTable is Query
     constant text NAME_ERROR = "Cannot create a column with an empty or undefined name."
     HashTable<text, text> columns
