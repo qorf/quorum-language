@@ -1,0 +1,1 @@
+docker build --no-cache -f Dockerfile.quorum.build -t andreasstefik/quorum:9.5 .
