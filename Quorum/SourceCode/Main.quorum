@@ -428,6 +428,7 @@ class Main is NetworkExchangeListener
 
     action ResponseReceived(NetworkExchange exchange)
         text response = "No Quorum Code Sent to Server."
+        text query = ""
         check
             HashTable<text, text> params = exchange:GetParameters()
             if params = undefined
@@ -442,7 +443,7 @@ class Main is NetworkExchangeListener
                 exchange:SendResponse(response)
                 return now
             end
-            text query = params:GetValue("code")
+            query = params:GetValue("code")
             number start = time:GetEpochTime()
     
             Compiler compiler
@@ -475,9 +476,20 @@ class Main is NetworkExchangeListener
             exchange:SendResponseHeaders(200, response:GetSize())
             exchange:SendResponse(response)
             number stop = time:GetEpochTime()
-            output "Time: " + (stop - start)
+            output time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+                time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond() + ", " + (stop - start)
         detect e
+            output "------------ ERROR ------------"
+            output "Stack Trace"
             output e:GetStackTraceMessage()
+            output ""
+            output "Time"
+            output time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+                time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond()
+            output ""
+            output "Code"
+            output query
+            output "------------ ERROR ------------"
         end        
     end
 

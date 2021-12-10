@@ -6,6 +6,8 @@
 package plugins.quorum.Libraries.Network;
 
 import com.sun.net.httpserver.HttpExchange;
+import java.io.ByteArrayInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +39,18 @@ public class NetworkExchange {
     
     public void SendResponse(String response) throws IOException {
         OutputStream body = exchange.getResponseBody();
-        body.write(response.getBytes());
-        body.close();
+        BufferedOutputStream out = new BufferedOutputStream(body);
+        if(response == null) {
+            response = "";
+        }
+        ByteArrayInputStream byteResponseStream = new ByteArrayInputStream(response.getBytes());
+
+        byte [] buffer = new byte [1024];
+        int count = 0;
+        while ((count = byteResponseStream.read(buffer)) != -1) {
+            out.write(buffer, 0, count);
+        }
+        out.close();
     }
     
     public HashTable_ GetParameters() throws UnsupportedEncodingException, IOException {
