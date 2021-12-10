@@ -33,17 +33,19 @@ public class NetworkExchange {
     private HttpExchange exchange;
     private URI uri;
         
-    public void SendResponseHeaders(int code, int size) throws IOException {
-        exchange.sendResponseHeaders(code, size);
+    public void SendResponseHeaders(int code, String response) throws IOException {
+        String resp2 = new String(response.getBytes(), ENCODING);
+        exchange.sendResponseHeaders(code, resp2.getBytes().length);
     }
     
     public void SendResponse(String response) throws IOException {
+        response = new String(response.getBytes(), ENCODING);
         OutputStream body = exchange.getResponseBody();
         BufferedOutputStream out = new BufferedOutputStream(body);
         if(response == null) {
             response = "";
         }
-        ByteArrayInputStream byteResponseStream = new ByteArrayInputStream(response.getBytes());
+        ByteArrayInputStream byteResponseStream = new ByteArrayInputStream(response.getBytes(ENCODING));
 
         byte [] buffer = new byte [1024];
         int count = 0;
@@ -110,7 +112,7 @@ public class NetworkExchange {
     }
     
     public String GetHost() {
-        return uri.getHost();
+        return exchange.getRemoteAddress().toString();
     }
     
     public int GetPort() {

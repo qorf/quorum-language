@@ -65,7 +65,7 @@ public class NetworkConnection {
             conn.setReadTimeout(request.GetReadTimeout());
             String body = request.GetBody();
             if (request.IsFixedLengthStreamingMode()) {
-                conn.setFixedLengthStreamingMode(body.getBytes(StandardCharsets.UTF_8).length);
+                conn.setFixedLengthStreamingMode(body.getBytes().length);
             } else {
             // Note: the HttpURLConnection object handles the mode. Removed for now, but kept here for future reference.
             //     conn.setChunkedStreamingMode(connection.GetChunkLength());
