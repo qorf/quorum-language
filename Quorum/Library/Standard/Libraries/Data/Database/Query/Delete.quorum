@@ -1,7 +1,31 @@
 package Libraries.Data.Database
 use Libraries.Data.Database.Support.TableTarget
 
+/*
+    The Delete query represents the Delete command of the SQL (Structured Query Language) language. 
+    This query allows for the removal of a row that already exists in the database. To remove a row
+    the table the row is in needs to be specified and a filter needs to be added that will match with
+    the row to be removed. A filter must be specified because without a filter every row in the table 
+    will match resulting in the deletion of every row in the table. If that behavior is wanted then 
+    SetIsFiltering(false) must be called.
 
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Delete
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Delete query
+query:SetTable("tasks")
+query:Filter("priority < 10")
+
+integer rows = database:Delete(query)
+output rows + "row(s) deleted"
+
+*/
 class Delete is Query
     private constant text NO_TABLE_ERROR = "Must specify table for delete"
     private constant text FILTER_WARNING = "You have a delete with no filter. This will delete the whole table. If this is what you wish to do then use SetIsFiltering(false)."
