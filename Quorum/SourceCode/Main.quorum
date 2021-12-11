@@ -432,14 +432,14 @@ class Main is NetworkExchangeListener
         check
             HashTable<text, text> params = exchange:GetParameters()
             if params = undefined
-                exchange:SendResponseHeaders(200, response:GetSize())
+                exchange:SendResponseHeaders(200, response)
                 exchange:SendResponse(response)
                 return now
             end
     
             //by default the server sends a parmater called code, with the code in it.
             if not params:HasKey("code")
-                exchange:SendResponseHeaders(200, response:GetSize())
+                exchange:SendResponseHeaders(200, response)
                 exchange:SendResponse(response)
                 return now
             end
@@ -472,19 +472,18 @@ class Main is NetworkExchangeListener
                 response = manager:GetCompilerErrorsAsHTML()
             end
             
-            
-            exchange:SendResponseHeaders(200, response:GetSize())
+            exchange:SendResponseHeaders(200, response)
             exchange:SendResponse(response)
             number stop = time:GetEpochTime()
-            output time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+            output exchange:GetHost() + ": " + time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
                 time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond() + ", " + (stop - start)
         detect e
             output "------------ ERROR ------------"
             output "Stack Trace"
             output e:GetStackTraceMessage()
             output ""
-            output "Time"
-            output time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+            output "Status"
+            output exchange:GetHost() + ": " + time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
                 time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond()
             output ""
             output "Code"

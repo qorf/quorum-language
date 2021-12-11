@@ -1,6 +1,5 @@
 function plugins_quorum_Libraries_System_File_() {
-    this.defaultWorkingDirectory = window.location.href;
-    this.defaultWorkingDirectory = this.defaultWorkingDirectory.substring(0, this.defaultWorkingDirectory.lastIndexOf( "/" ) + 1);
+    this.defaultWorkingDirectory = window.location.hostname;
     this.path = "";
     //
     this.GetLastModifiedNative = function () {

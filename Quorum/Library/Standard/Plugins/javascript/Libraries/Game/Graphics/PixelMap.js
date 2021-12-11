@@ -102,11 +102,20 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     {
         var loadImage = new Image();
         var pixelMap = this.me_;
+        var url = file.GetAbsolutePath();
+        if (!url.startsWith("http"))
+        {
+            if (location.protocol === "https:")
+                url = "https://" + url;
+            else
+                url = "http://" + url;
+        }
+
         loadImage.onload = function()
         {
             FinishLoadingAsynchronously(loadImage, file, format, useMipMaps, drawable, texture, pixelMap);
         };
-        loadImage.src = file.GetAbsolutePath();
+        loadImage.src = url;
     };
     
     function FinishLoadingAsynchronously(loadImage, file, formatValue, useMipMaps, drawable, texture, pixelMap)

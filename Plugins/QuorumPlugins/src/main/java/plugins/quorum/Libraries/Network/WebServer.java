@@ -24,6 +24,7 @@ public class WebServer {
             server.stop(0);
             server = null;
         }
+
         server = HttpServer.create(new InetSocketAddress(port), 0);
     }
     
