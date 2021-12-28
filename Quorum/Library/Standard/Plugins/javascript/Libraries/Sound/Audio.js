@@ -234,7 +234,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         var runQueuedActions = this.RunQueuedActions;
         
         var request = new XMLHttpRequest();
-        request.open('GET', file.GetPath(), true);
+        request.open('GET', file.plugin_.ConvertAbsoluteToRelativeURL(file), true);
         request.responseType = 'arraybuffer';
         
         request.onload = function()
