@@ -71,7 +71,53 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 {
                     accessibility.Shutdown();
                 }
-                
+
+                // Wipe the screen clean.
+                var graphics = manager.GetGameGraphics();
+                // 16640 is the result of binary OR on GL_COLOR_BUFFER_BIT and GL_DEPTH_BUFFER_BIT.
+                graphics.ClearScreen$quorum_integer(16640);
+
+                // We need to handle the global resources stored by  the ShaderManager.
+                // First get the shared copy of the class.
+                var shaderManager = (global_Get_Shared_Class("Libraries.Game.Graphics.Shaders.ShaderManager") == null ? global_Add_Shared_Class("Libraries.Game.Graphics.Shaders.ShaderManager", new quorum_Libraries_Game_Graphics_Shaders_ShaderManager_()) : global_Get_Shared_Class("Libraries.Game.Graphics.Shaders.ShaderManager"));
+
+                // Delete shader resources we no longer need.
+                var programs = shaderManager.registeredPrograms.GetValueIterator();
+                while (programs.HasNext())
+                {
+                    graphics.DeleteShaderProgram$quorum_integer(programs.Next().GetID());
+                }
+
+                var shaders = shaderManager.registeredShaders.GetValueIterator();
+                while (shaders.HasNext())
+                {
+                    graphics.DeleteShader$quorum_integer(shaders.Next().GetID());
+                }
+
+                // Empty the ShaderManager's hash tables.
+                shaderManager.registeredShaders.Empty();
+                shaderManager.registeredPrograms.Empty();
+                shaderManager.reloadableMeshes.Empty();
+
+                // Stop currently playing sounds, if there are any.
+                if (typeof plugins_quorum_Libraries_Sound_Audio_ === "function" && typeof plugins_quorum_Libraries_Sound_Audio_.StopAllSources === "function")
+                {
+                    plugins_quorum_Libraries_Sound_Audio_.StopAllSources();
+                }
+
+                // Reset values to their null defaults when the game ends.
+                // If a new game starts on the same page, we don't want left over data.
+                frameInterval = 0;
+                elapsedTime = 0;
+                startTime = 0;
+                lastTime = 0;
+                currentTime = 0;
+                targetFPS = 30;
+
+                configuration = null;
+                game = null;
+                display = null;
+                loopCall = null;
                 return;
             }
             else

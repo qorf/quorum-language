@@ -69,7 +69,8 @@ shared class ShaderManager
         end
 
         Iterator<ShaderProgram> programs = registeredPrograms:GetValueIterator()
-        
+        // TO-DO: Iterate through the programs and reload them.
+        alert("Failed to reload shaders. An error occurred.")
     end
 
     action GetDefaultShaderProgram2D returns ShaderProgram

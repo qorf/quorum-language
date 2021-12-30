@@ -1735,7 +1735,10 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "   var manager = new quorum_Libraries_Game_GameStateManager_();" + EOL
             convertedSource = convertedSource + "   var game = manager.GetGame();" + EOL
             convertedSource = convertedSource + "   if ((game != null)) {" + EOL
-            convertedSource = convertedSource + "   game.Exit();" + EOL
+            convertedSource = convertedSource + "       game.Exit();" + EOL
+            convertedSource = convertedSource + "   }" + EOL
+            convertedSource = convertedSource + "   else if (typeof plugins_quorum_Libraries_Sound_Audio_ === " + quote + "function" + quote + " && typeof plugins_quorum_Libraries_Sound_Audio_.StopAllSources === " + quote + "function" + quote + ") {" + EOL
+            convertedSource = convertedSource + "       plugins_quorum_Libraries_Sound_Audio_.StopAllSources();" + EOL
             convertedSource = convertedSource + "   }" + EOL
             convertedSource = convertedSource + "}" + EOL
         end

@@ -116,6 +116,11 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     {
         this.glDeleteProgram(programID);
     };
+
+    this.DeleteShader$quorum_integer = function(programID)
+    {
+        this.glDeleteShader(programID);
+    };
     
     this.EnableProperty$quorum_integer = function(property)
     {

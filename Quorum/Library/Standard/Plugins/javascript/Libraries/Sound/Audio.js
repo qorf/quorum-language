@@ -31,6 +31,24 @@ function plugins_quorum_Libraries_Sound_Audio_()
         
         plugins_quorum_Libraries_Sound_Audio_.defaultReferenceDistance = 1.0;
         plugins_quorum_Libraries_Sound_Audio_.defaultRolloff = 1.0;
+
+        plugins_quorum_Libraries_Sound_Audio_.globalSourceArray = [];
+
+        plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource = function()
+        {
+            var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+            plugins_quorum_Libraries_Sound_Audio_.globalSourceArray.push(newSource);
+            return newSource;
+        }
+
+        plugins_quorum_Libraries_Sound_Audio_.StopAllSources = function()
+        {
+            for (var i = 0; i < plugins_quorum_Libraries_Sound_Audio_.globalSourceArray.length; i++)
+            {
+                plugins_quorum_Libraries_Sound_Audio_.globalSourceArray[i].stop();
+            }
+            plugins_quorum_Libraries_Sound_Audio_.globalSourceArray = [];
+        }
     }
 
     if (plugins_quorum_Libraries_Sound_Audio_.audioContext === undefined)
@@ -298,7 +316,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                     var container = {};
                     container.samples = queuedSamples.shift();
 
-                    var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                    var newSource = plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource();
                     newSource.buffer = container.samples.plugin_.buffer;
                     newSource.connect(panner);
                     newSource.loop = false;
@@ -318,7 +336,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 if (this.IsPlaying())
                     source.stop();
 
-                source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                source = plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource();
                 source.buffer = soundBuffer;
                 source.connect(panner);
                 source.loop = looping;
@@ -414,7 +432,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
             var container = {};
             container.samples = queuedSamples.shift();
 
-            var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+            var newSource = plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource();
             newSource.buffer = container.samples.plugin_.buffer;
             newSource.connect(panner);
             newSource.loop = false;
@@ -431,7 +449,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
         }
         else
         {
-            source = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+            source = plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource();
             source.buffer = soundBuffer;
             source.connect(panner);
             source.loop = looping;
@@ -478,6 +496,15 @@ function plugins_quorum_Libraries_Sound_Audio_()
     
     this.Dispose = function()
     {
+        for (var i = 0; i < plugins_quorum_Libraries_Sound_Audio_.globalSourceArray.length; i++)
+        {
+            if (plugins_quorum_Libraries_Sound_Audio_.globalSourceArray[i] === source)
+            {
+                plugins_quorum_Libraries_Sound_Audio_.globalSourceArray.splice(i, 1);
+                break;
+            }
+        }
+
         this.Stop();
         queuedSamples = [];
         playingSamples = [];
@@ -576,7 +603,7 @@ function plugins_quorum_Libraries_Sound_Audio_()
                 var container = {};
                 container.samples = queuedSamples.shift();
                 
-                var newSource = plugins_quorum_Libraries_Sound_Audio_.audioContext.createBufferSource();
+                var newSource = plugins_quorum_Libraries_Sound_Audio_.CreateBufferSource();
                 newSource.buffer = container.samples.plugin_.buffer;
                 newSource.connect(panner);
                 newSource.loop = false;
