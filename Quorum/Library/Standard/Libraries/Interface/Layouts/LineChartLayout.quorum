@@ -110,7 +110,7 @@ class LineChartLayout is TwoVariableChartLayout
      
                 line:SetPoint1(a)
                 line:SetPoint2(b)
-                line:SetName("Line segment between point " + (j+1) + " and " + (j+2) + ".")
+                line:SetName("Line segment between " + a:GetName() + " and " + b:GetName())
                 j = j + 1
             end
             i = i + 1

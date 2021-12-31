@@ -1,4 +1,4 @@
-  package Libraries.Interface.Controls.Charts
+package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Interface.Controls.ControlLabel
@@ -90,7 +90,7 @@ class SharedBarChartParent is Chart
             if HasGroups() and not IsSeparatedByFactor()
                 Icon barGroupIcon = barGroups:Get(i):GetIcon() 
                 barGroupIcon:SetName(groupname + " group, ")
-                barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, this group has " + barGroups:Get(i):GetSize() + " bars.")
+                barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, has " + barGroups:Get(i):GetSize() + " bars.")
                 barGroupIcon:SetFocusable(true)
                 barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
                 barGroupIcon:SetNextFocus(GetNextFocus())
@@ -105,13 +105,22 @@ class SharedBarChartParent is Chart
                 Icon temp = bar:GetIcon()
                 text barname = bar:GetName()
                 number value = math:Round(bar:GetValue(), 2)
-                text placement = (j + 1) + " of " + barGroups:Get(i):GetSize() + " bars inside " + groupname + "group."
+                text placement = (j + 1) + " of " + barGroups:Get(i):GetSize() + " bars inside " + groupname + " group."
                 if HasGroups()
-                    temp:SetName(barname + " bar. ")
-                    temp:SetDescription(" value of " + value + " " + placement)
+                    temp:SetName(barname + " bar, ")
+                    if IsSeparatedByFactor()
+                        placement = ""
+                    end
+                    temp:SetDescription(value + ", " + placement)
+                    if CheckIfInteger(value)
+                        temp:SetDescription(cast(integer, value) + ", " + placement)
+                    end
                 else
-                    temp:SetName(barname + " bar. ")
-                    temp:SetDescription(" value of " + value + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
+                    temp:SetName(barname + " bar, ")
+                    temp:SetDescription(value + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
+                    if CheckIfInteger(value)
+                        temp:SetDescription(cast(integer, value) + ", " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
+                    end
                 end
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
@@ -133,6 +142,10 @@ class SharedBarChartParent is Chart
             end
             i = i + 1
         end
+    end
+
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
     end
 
     action AdjustStacked() 
@@ -172,103 +185,48 @@ class SharedBarChartParent is Chart
     end
     
     /*
-        LostSelection
-        This an inherited action from a blueprint in parent Chart class
+        LostSelection is a supplemental action to the parent Chart's LostSelection.
+        Any items specific to only this type of chart or if an item needs different highlighting
+        instructions than that of the parent class, it will have their LostSelection defined here.
 
         Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
         has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
         this action, they do not need to call this action directly.
 
-        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action LostSelection(ChartItem ci)
-        if ci = undefined
+    action LostSelection(ChartItem item)
+        if item = undefined
             return now
         end
-        Item target = ci:GetFocusTarget()
+        Item target = item:GetFocusTarget()
         if target not= undefined
-            if target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:LostSelection()
-            elseif target is Series
-                Series temp = cast(Series, target)
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable item = temp:GetItemAt(i)
-                    item:SetColor(previousColor)
-                    item:SetZ(previousZ)
-                    i = i + 1
-                end
-                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
-            elseif target is Icon
-                Icon temp = cast(Icon, target)
-                temp:SetColor(previousColor)
-                temp:SetZ(previousZ)
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                    view:Initialize(properties:GetBackgroundColor(), previousColorGroup)
-                    temp:SetView2D(view)
-                end
-            end
+            parent:Chart:LostSelection(item)
         end
     end
 
     /* 
-        GainedSelection
-        This an inherited action from a blueprint in parent Chart class
+        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        Any items specific to only this type of chart or if an item needs different highlighting
+        instructions than that of the parent class, it will have their GainedSelection defined here.
 
         Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
         has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
         this action, they do not need to call this action directly.
 
-        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem ci)
-        if ci = undefined
+    action GainedSelection(ChartItem item)
+        if item = undefined
             return now
         end
-        Item target = ci:GetFocusTarget()
+        Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
-            if target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:GainedSelection()
-            elseif target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable item = temp:GetItemAt(i)
-                    item:SetColor(GetHighlightColor())
-                    item:SetZ(-1)
-                    i = i + 1
-                end
-                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
-            elseif target is Icon
-                Color c
-                Icon temp = cast(Icon, target)
-                previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
-                temp:SetZ(-1)
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    previousColorGroup = properties:GetBorderColor()
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(properties:GetBackgroundColor(), GetHighlightColor())
-                    temp:SetView2D(view)
-                end
-            end            
+            output target:GetName() + target:GetDescription()
+            parent:Chart:GainedSelection(item)            
         end
     end
 
@@ -387,10 +345,10 @@ class SharedBarChartParent is Chart
         me:GetChartArea():SetDescription(" with " + numberOfBars + bartext)
     
         // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis()
+        if IsShowingYAxis() 
             GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
-        if IsShowingXAxis()
+        if IsShowingXAxis() 
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
@@ -398,16 +356,18 @@ class SharedBarChartParent is Chart
         end
 
         if IsSeparatedByFactor()
+            integer subAreaCount = GetLegend():GetSeriesList():GetSize()
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
+                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                 GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
-                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars")
+                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts.")
 
                 //Bars within SubChartArea
                 ChartItem firstBar
@@ -416,6 +376,7 @@ class SharedBarChartParent is Chart
                     firstArea:SetChild(firstBar)
                     firstBar:SetParent(firstArea)
                     firstBar:SetFocusTarget(chartAreaItems:Get(0))
+                    chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + " 1 of " + chartAreaItems:GetSize() + " bars.")
                 end
 
                 integer j = 1
@@ -425,6 +386,7 @@ class SharedBarChartParent is Chart
                     bar:SetContainer(me)
                     bar:SetParent(firstArea)
                     bar:SetFocusTarget(chartAreaItems:Get(j))
+                    chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + (j+1) + " of " + chartAreaItems:GetSize() + " bars.")
                     previousBar:SetNext(bar)
                     bar:SetPrevious(previousBar)
                     previousBar = bar
@@ -448,7 +410,7 @@ class SharedBarChartParent is Chart
                     nextArea:SetDisplayName(chartSubArea:GetTitleName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
                     chartSubArea:SetName(chartSubArea:GetSeries():GetName())
-                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars")
+                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars, " + (i+1) + " of " + subAreaCount + " sub charts.")
 
                     //Bars within SubChartArea
                     ChartItem firstBar
@@ -457,6 +419,7 @@ class SharedBarChartParent is Chart
                         nextArea:SetChild(firstBar)
                         firstBar:SetParent(nextArea)
                         firstBar:SetFocusTarget(chartAreaItems:Get(0))
+                        chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + " 1 of " + chartAreaItems:GetSize() + " bars.")
                     end
     
                     j = 1
@@ -466,6 +429,7 @@ class SharedBarChartParent is Chart
                         bar:SetContainer(me)
                         bar:SetParent(nextArea)
                         bar:SetFocusTarget(chartAreaItems:Get(j))
+                        chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + (j+1) + " of " + chartAreaItems:GetSize() + " bars.")
                         previousBar:SetNext(bar)
                         bar:SetPrevious(previousBar)
                         previousBar = bar
@@ -574,6 +538,7 @@ class SharedBarChartParent is Chart
 
     /* 
         Max bar value will track the largest bar and limit the axis controls to not drop below that value.
+        This will prevent the bar from being drawn over the edge of the chart area.
     */ 
 
     action SetXAxisMaximum(number max)

@@ -5,7 +5,6 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Color
 
 class LineSegment is Drawable
-    text name = ""
     boolean increasing = false
     ChartPoint point1
     ChartPoint point2
@@ -15,14 +14,6 @@ class LineSegment is Drawable
     on create
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
-    end
-
-    action GetName returns text
-        return name
-    end
-
-    action SetName(text name)
-        me:name = name
     end
 
     action GetPoint1 returns ChartPoint

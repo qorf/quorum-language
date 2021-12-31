@@ -173,7 +173,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if not pointFactor:HasKey(pointKey)
                         ChartPoint point
                         point:SetValueY(valueForName)
-                        point:SetName("Point for "+ pointKey)
+                        point:SetName(pointKey)
                         pointFactor:Add(pointKey, point)
                         if groupFactor:HasKey(xposition)
                             groupFactor:GetValue(xposition):Add(point)

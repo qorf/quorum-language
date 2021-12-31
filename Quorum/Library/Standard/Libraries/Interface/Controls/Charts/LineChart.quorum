@@ -76,7 +76,11 @@ class LineChart is TwoVariableChart
         if lines = 1
             lineText = "line"
         end
-        SetDescription("Line Chart with" + lines + " " + lineText + ". Use the arrow keys to navigate the chart.")
+        if GetName() = "Line Chart"
+            SetDescription(" with " + lines + " " + lineText + ". Use the arrow keys to navigate the chart.")
+        else
+            SetDescription("Line chart with " + lines + " " + lineText + ". Use the arrow keys to navigate the chart.")
+        end
         return GetDescription()
     end
 
