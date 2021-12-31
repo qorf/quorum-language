@@ -225,7 +225,6 @@ class SharedBarChartParent is Chart
         Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
-            output target:GetName() + target:GetDescription()
             parent:Chart:GainedSelection(item)            
         end
     end

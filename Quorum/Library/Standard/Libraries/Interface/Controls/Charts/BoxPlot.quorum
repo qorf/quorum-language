@@ -409,7 +409,6 @@ class BoxPlot is Chart
 
         if target not= undefined
             target:Focus()
-            output target:GetName() + target:GetDescription()
             if target is Series
                 Series temp = cast(Series, target)
                 previousColor = temp:GetColor()
