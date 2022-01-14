@@ -416,7 +416,7 @@ public class AndroidApplication
             throw new GameRuntimeError("I couldn't load this file: " + assetName);
         }
     }
-    
+
     public static InputStream AssetAsInputStream(String assetName)
     {
         try

@@ -16,6 +16,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.ShortBuffer;
+
+import org.lwjgl.opengl.GL20;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import static plugins.quorum.Libraries.Game.Graphics.GraphicsManager.GL_FLOAT;
 import quorum.Libraries.Containers.Number32BitArray;
@@ -367,6 +369,11 @@ public class AndroidGraphics implements GraphicsManager
             glVertexAttribPointer(inputID, size, type, normalize, stride, bytes);
             bytes.position(oldPosition);
         }
+    }
+
+    public void SetVertexInputID(int program, int index, String name)
+    {
+        GLES20.glBindAttribLocation(program, index, name);
     }
     
     public void SetDefaultVertexValue(int location, double x)
