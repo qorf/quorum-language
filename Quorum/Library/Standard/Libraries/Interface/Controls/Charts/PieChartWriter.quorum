@@ -44,8 +44,8 @@ use Libraries.Web.Page.ListItem
 */
 
 class PieChartWriter is ChartWriter
-    number centerX = 0
-    number centerY = 0
+    private number centerX = 0
+    private number centerY = 0
 
     action WriteOutChart(PieChart chart, integer svgWidth, integer svgHeight) returns text
         return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
@@ -107,17 +107,17 @@ class PieChartWriter is ChartWriter
         integer i = 0
         repeat while i < chart:GetSlices():GetSize()
             Wedge slice
-            //Set outer radius and center
+            //Set outer radius
             number radius = chart:GetSlices():Get(i):GetOuterRadius()
             number innerRadius = chart:GetSlices():Get(i):GetInnerRadius()
             slice:SetOuterRadius(radius)
 
-            //Start point
+            //Start point of outer arc
             x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
             y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
             slice:SetStart(x, y)
 
-            //End point
+            //End point of outer arc
             number percent = chart:GetSlices():Get(i):GetEndPercentage() - chart:GetSlices():Get(i):GetStartPercentage()
             currentTheta = currentTheta + percent * 360
             x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
@@ -127,12 +127,15 @@ class PieChartWriter is ChartWriter
             // This will account for the offset if the pie chart has a donut hole.
             if innerRadius > 0
                 slice:SetInnerRadius(innerRadius)  
+
+                //End point of inner arc
                 if i = 0
                     prevX = centerX
                     prevY = centerY - innerRadius
                 end
                 slice:SetInnerEnd(prevX, prevY)
                 
+                //Start point of inner arc
                 newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
                 newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
                 slice:SetCenter(newX, newY)
@@ -140,9 +143,11 @@ class PieChartWriter is ChartWriter
                 prevX = newX
                 prevY = newY
             else
+                // Center point if inner radius is not used.
                 slice:SetCenter(centerX, centerY)
             end
             slice:SetFill(chart:GetSlices():Get(i):GetColor())
+            slice:SetID(canvas:GetID() + "-" + chart:GetSlices():Get(i):GetHashCode())
             slice:SetTabIndex(-1)
             if HasAccessibility()
                 slice:SetAriaLabel(chart:GetSlices():Get(i):GetName() + chart:GetSlices():Get(i):GetDescription())
@@ -156,6 +161,10 @@ class PieChartWriter is ChartWriter
         PieChart pieChart
         pieChart = cast(PieChart, chart)
         
+        UnorderedList slicesUL
+        slicesUL:AddAttribute("role","group")
+        chartAreaItem:AddNestedTag(slicesUL)
+
         integer i = 0
         repeat while i < pieChart:GetSlices():GetSize()
             ListItem sliceNav 
@@ -163,6 +172,7 @@ class PieChartWriter is ChartWriter
             sliceNav:AddAttribute("role","treeitem")
             sliceNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + pieChart:GetSlices():Get(i):GetHashCode())
             sliceNav:SetTabIndex("-1")
+            slicesUL:Add(sliceNav)
             i = i + 1
         end
     end

@@ -6,7 +6,7 @@ use Libraries.Containers.Array
     path is used to make closed shapes on a portion of a circle. Like other ScalableVectorGraphicsObjects 
     the wedge class inherits global attributes but it also has its own attributes.
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Hannah Williams
 
     Attribute: Example
 
@@ -71,29 +71,48 @@ class Wedge is ScalableVectorGraphicsObject
         return result
     end
 
+    /*
+        This action sets the inner radius pixel count
+    */
     action SetInnerRadius(number innerRadius)
         me:innerRadius = innerRadius
     end
 
+    /*
+        This action sets the outer radius pixel count
+    */
     action SetOuterRadius(number outerRadius)
         me:outerRadius = outerRadius
     end
 
+    /*
+        This action sets the start point of the outer arc
+    */
     action SetStart(number x, number y)
         startX = x
         startY = y
     end
 
+    /*
+        This action sets the end point of the outer arc
+    */
     action SetEnd(number x, number y)
         endX = x
         endY = y
     end
 
+    /*
+        This action sets the center point of the outer arc or the start point of the inner arc.
+        Depending on if the there is an inner radius (i.e. making a donut chart)
+    */
     action SetCenter(number x, number y)
         centerX = x
         centerY = y
     end
 
+    /*
+        This action sets the end point of the inner arc
+    */
     action SetInnerEnd(number x, number y)
         innerEndX = x
         innerEndY = y
