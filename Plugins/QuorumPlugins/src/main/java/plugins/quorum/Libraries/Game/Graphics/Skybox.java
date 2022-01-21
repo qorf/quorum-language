@@ -29,8 +29,14 @@ public class Skybox
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_MIN_FILTER, GraphicsManager.GL_LINEAR);
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_S, GraphicsManager.GL_CLAMP_TO_EDGE);
         graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_T, GraphicsManager.GL_CLAMP_TO_EDGE);
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_R, GraphicsManager.GL_CLAMP_TO_EDGE);  
-        
+        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_R, GraphicsManager.GL_CLAMP_TO_EDGE);
+
+        // Flush the error queue -- on certain Android devices, spurious errors can be recorded by the last set texture parameter call.
+        int errorCode = GameStateManager.nativeGraphics.GetGraphicsErrorCode();
+        while (errorCode != 0) {
+            errorCode = GameStateManager.nativeGraphics.GetGraphicsErrorCode();
+        }
+
         // Make sure the texture will be reloaded after a context loss.
         texturePlugin.AddReloadableTexture();
     }

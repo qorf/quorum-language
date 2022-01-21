@@ -19,7 +19,9 @@ import java.nio.IntBuffer;
 public interface GraphicsManager {
     //public java.lang.Object me_ = null;
 
-    //Sets the OpenGL Clear Screen color when wiping the screen
+	public int GetGraphicsErrorCode();
+
+	//Sets the OpenGL Clear Screen color when wiping the screen
     public void ClearScreenColor(float red, float green, float blue, float alpha);
 
     public void glBindTexture (int target, int texture);

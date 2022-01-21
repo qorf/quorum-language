@@ -95,7 +95,7 @@ public class SkyboxShader
         viewIndex = program.FetchUniformLocation("view", true);
         skyboxIndex = program.FetchUniformLocation("skybox", true);
         inverterIndex = program.FetchUniformLocation("inverter", true);
-        
+
         float[] skyboxVertices = {
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -140,7 +140,7 @@ public class SkyboxShader
              1.0f, -1.0f,  1.0f
         };
 
-        byteBuffer = BufferUtils.newByteBuffer(skyboxVertices.length * 4);        
+        byteBuffer = BufferUtils.newByteBuffer(skyboxVertices.length * 4);
         skyboxBuffer = byteBuffer.asFloatBuffer();
         skyboxBuffer.put(skyboxVertices);
         skyboxBuffer.position(0);
@@ -148,7 +148,7 @@ public class SkyboxShader
         byteBuffer.limit(skyboxBuffer.limit() * 4);
 
         bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
-        
+
         GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
         GameStateManager.nativeGraphics.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, GraphicsManager.GL_STATIC_DRAW);
         GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
@@ -157,41 +157,41 @@ public class SkyboxShader
     public void Render(Skybox_ skybox, Camera_ camera)
     {
         program.Begin();
-        
+
         GraphicsManager graphics = GameStateManager.nativeGraphics;
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
-        
+
         Matrix4 m = (Matrix4)camera.GetViewMatrix();
         float[] temp = {-(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
                         -(float)m.row0column1,  (float)m.row1column1,  (float)m.row2column1, 0,
                          (float)m.row0column2, -(float)m.row1column2, -(float)m.row2column2, 0,
                         0, 0, 0, 1};
-        
+
         Matrix4 proj = (Matrix4)camera.GetProjectionMatrix();
         float[] projTemp = {(float)proj.row0column0, (float)proj.row1column0, (float)proj.row2column0, (float)proj.row3column0,
                             (float)proj.row0column1, (float)proj.row1column1, (float)proj.row2column1, (float)proj.row3column1,
                             (float)proj.row0column2, (float)proj.row1column2,                       0, (float)proj.row3column2,
                             (float)proj.row0column3, (float)proj.row1column3,                       0, (float)proj.row3column3};
-        
+
         program.SetUniformMatrix4(viewIndex, temp);
         program.SetUniformMatrix4(projectionIndex, projTemp);
         program.SetUniformMatrix(rotationIndex, skybox.Get_Libraries_Game_Graphics_Skybox__transform_());
-        
+
         program.EnableVertexAttribute(positionIndex);
         program.SetVertexAttribute(positionIndex, 3, GraphicsManager.GL_FLOAT, false, 12, 0);
-        
+
         graphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
         program.SetUniform(skyboxIndex, 0);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
-        
+
         program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
-        
+
         graphics.glDrawArrays(GraphicsManager.GL_TRIANGLES, 0, 36);
-        
+
         graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
         program.DisableVertexAttribute(positionIndex);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().BindToDefault();
-        
+
         program.End();
     }
 }
