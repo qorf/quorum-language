@@ -197,8 +197,12 @@ class ChartWriter
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
+        if chart:IsShowingXAxis()
+            AddXLabels(chartCanvas, chart)
+        end
+        if chart:IsShowingYAxis()
+            AddYLabels(chartCanvas, chart)
+        end
         AddAxes(chartCanvas, chart)
         AddChartTitle(chartCanvas, chart)
         AddChartContent(chartCanvas, chart)

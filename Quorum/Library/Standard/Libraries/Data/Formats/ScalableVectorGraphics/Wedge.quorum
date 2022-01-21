@@ -1,0 +1,101 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+use Libraries.Containers.Array
+
+/*
+    The Wedge class is an implementation of the slice/wedge shape in the SVG standard. The 
+    path is used to make closed shapes on a portion of a circle. Like other ScalableVectorGraphicsObjects 
+    the wedge class inherits global attributes but it also has its own attributes.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    Libraries.Data.Formats.ScalableVectorGraphics.all
+
+    Wedge myShape
+
+*/
+
+class Wedge is ScalableVectorGraphicsObject
+    constant text objectName = "path"
+    private number outerRadius = 100
+    private number innerRadius = 0
+    private number centerX = 0
+    private number centerY = 0
+    private number startX = 0
+    private number startY = 0
+    private number endX = 0
+    private number endY = 0
+    private number innerEndX = 0
+    private number innerEndY = 0
+
+    /*
+        This action writes out all of the necessary tags and attributes that make up this
+        polygon. This action will be called automatically by the parent ScalableVectorGraphics,
+        as such this action does not need to be used directly by the user.
+
+        Attribute: Returns the formatted string of all tags and attributes for this shape
+
+    */
+    action ToText returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        result = "<" + objectName 
+        result = result + GlobalAttributesToText()
+        result = result + " d=" + dq + "M" + startX + "," + startY + " A " + outerRadius + "," + outerRadius + " 0 0 1 " + endX + "," + endY
+        if innerRadius > 0
+            result = result + " L " + centerX + "," + centerY + " A " + innerRadius + "," + innerRadius + " 0 0 0 " + innerEndX + "," + innerEndY
+        else
+            result = result + " L " + centerX + "," + centerY + " A 0,0 0 0 0 " + centerX + "," + centerY
+        end
+        result = result + " z" + dq
+
+        if GetTitle() not= "" or GetDescription() not= ""
+            result = result + ">" + newLine
+            if GetTitle() not= ""
+                Title title
+                title:SetTitle(GetTitle())
+                result = result + tab + tab + title:ToText() + newLine
+            end
+            if GetDescription() not= ""
+                Description desc
+                desc:SetDescription(GetDescription())
+                result = result + tab + tab + desc:ToText() + newLine
+            end
+            result = result + tab
+        end
+        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        return result
+    end
+
+    action SetInnerRadius(number innerRadius)
+        me:innerRadius = innerRadius
+    end
+
+    action SetOuterRadius(number outerRadius)
+        me:outerRadius = outerRadius
+    end
+
+    action SetStart(number x, number y)
+        startX = x
+        startY = y
+    end
+
+    action SetEnd(number x, number y)
+        endX = x
+        endY = y
+    end
+
+    action SetCenter(number x, number y)
+        centerX = x
+        centerY = y
+    end
+
+    action SetInnerEnd(number x, number y)
+        innerEndX = x
+        innerEndY = y
+    end
+end
