@@ -1,0 +1,113 @@
+package Libraries.Data.Database.Support
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Data.Database.DatabaseTypeConstants
+
+
+class ColumnTarget is RemappableName
+
+    text name = ""
+    text table= ""
+    text function = ""
+    integer rawType = -1
+
+    // used in Find query
+    boolean distinct = false
+
+    boolean printTable = true
+    /*
+        returns FUNCTION ( TABLE.COLUMN ) AS REMAPPED_NAME
+    */
+    action ToText returns text
+        result = ""
+        boolean closeParens = false
+        if function not= undefined and function not= ""
+            result = function + "( "
+            if distinct
+                result = result + "DISTINCT "
+            end
+            closeParens = true
+        end
+        if printTable and table not= undefined and table not= ""
+            result = result + table + "."
+        end
+        result = result + name
+        if closeParens
+            result = result + " )"
+        end
+
+        text alias = GetRemappedName()
+        if alias not= undefined and alias not= ""
+            result = result + " AS " + alias
+        end
+        return result
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetTable(text table)
+        me:table = table
+    end
+
+    action GetTable returns text
+        return table
+    end
+
+    action SetFunction(text function)
+        me:function = function
+    end
+
+    action GetFunction returns text
+        return function
+    end
+
+    action SetRawType(integer rawType)
+        me:rawType = rawType
+    end
+
+    action GetRawType returns integer
+        return rawType
+    end
+
+    action GetType returns Type
+        DatabaseTypeConstants constants
+        
+        if constants:IsInteger(rawType)
+            Type result
+            result:SetToInteger()
+            return result
+        elseif constants:IsNumber(rawType)
+            Type result
+            result:SetToNumber()
+            return result
+        elseif constants:IsText(rawType)
+            Type result
+            result:SetToText()
+            return result
+        elseif constants:IsUndefined(rawType)
+            Type result
+            result:SetToUndefined()
+            return result
+        end 
+
+        return undefined
+    end
+
+    action SetDistinct(boolean distinct)
+        me:distinct = distinct
+    end
+
+    action IsDistinct returns boolean
+        return distinct
+    end
+
+    action SetPrintTable(boolean printTable)
+        me:printTable = printTable
+    end
+
+end

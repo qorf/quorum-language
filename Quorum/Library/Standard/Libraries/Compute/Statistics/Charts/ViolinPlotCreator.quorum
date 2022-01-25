@@ -167,7 +167,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Per " + frame:GetColumn(GetFactor(0)):GetHeader() + " Violin Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         Array<text> groupNames
@@ -315,8 +315,13 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = 0
             repeat while i < numberKeyArray:GetSize()
                 PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
+                if CheckIfInteger(numberKeyArray:Get(i))
+                    group:SetName(cast(text, cast(integer, numberKeyArray:Get(i))))
+                    groupNames:Add(cast(text, cast(integer, numberKeyArray:Get(i))))
+                else
+                    groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
+                end
                 chart:AddPlotGroup(group)
-                groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
                 i = i + 1
             end
        else
@@ -344,6 +349,10 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
+    end
+
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
     end
 
     private action SetScale(ViolinPlot chart, number ymin, number ymax, number xmin, number xmax)

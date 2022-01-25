@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics
+use Libraries.Compute.BitwiseOperations
 
 /*
 The ColorAttribute class represents a single visual property of a 3D object or
@@ -78,6 +79,19 @@ class ColorAttribute is Attribute
     public constant text REFLECTION_ALIAS = "reflectionColor"
     public constant text AMBIENT_LIGHT_ALIAS = "ambientLightColor"
     public constant text FOG_ALIAS = "fogColor"
+
+    AttributeManager manager
+
+    public constant integer DIFFUSE = manager:Register(DIFFUSE_ALIAS)
+    public constant integer SPECULAR = manager:Register(SPECULAR_ALIAS)
+    public constant integer AMBIENT = manager:Register(AMBIENT_ALIAS)
+    public constant integer EMISSIVE = manager:Register(EMISSIVE_ALIAS)
+    public constant integer REFLECTION = manager:Register(REFLECTION_ALIAS)
+    public constant integer AMBIENT_LIGHT = manager:Register(AMBIENT_LIGHT_ALIAS)
+    public constant integer FOG = manager:Register(FOG_ALIAS)
+
+    BitwiseOperations bits
+    public constant integer BITMASK = bits:Or(DIFFUSE, bits:Or(SPECULAR, bits:Or(AMBIENT, bits:Or(EMISSIVE, bits:Or(REFLECTION, bits:Or(AMBIENT_LIGHT, FOG))))))
 
     /*
     The CreateAmbient action will create a new ColorAttribute using the
@@ -883,7 +897,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action SupportsAttribute(integer type) returns boolean
+    action SupportsAttribute(integer type) returns boolean
+        return bits:And(BITMASK, type) not= 0
+    end
 
     /*
     This action returns the integer value representing a Diffuse color attribute.
@@ -911,7 +927,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetDiffuseValue returns integer
+    action GetDiffuseValue returns integer
+        return DIFFUSE
+    end
 
     /*
     This action returns the integer value representing a Specular color attribute.
@@ -939,7 +957,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetSpecularValue returns integer
+    action GetSpecularValue returns integer
+        return SPECULAR
+    end
 
     /*
     This action returns the integer value representing an Ambient color attribute.
@@ -967,7 +987,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetAmbientValue returns integer
+    action GetAmbientValue returns integer
+        return AMBIENT
+    end
 
     /*
     This action returns the integer value representing an Emissive color attribute.
@@ -995,7 +1017,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetEmissiveValue returns integer
+    action GetEmissiveValue returns integer
+        return EMISSIVE
+    end
 
     /*
     This action returns the integer value representing a Reflection color attribute.
@@ -1023,7 +1047,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetReflectionValue returns integer
+    action GetReflectionValue returns integer
+        return REFLECTION
+    end
 
     /*
     This action returns the integer value representing an AmbientLight color attribute.
@@ -1051,7 +1077,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetAmbientLightValue returns integer
+    action GetAmbientLightValue returns integer
+        return AMBIENT_LIGHT
+    end
 
     /*
     This action returns the integer value representing a Fog color attribute.
@@ -1079,7 +1107,9 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetFogValue returns integer
+    action GetFogValue returns integer
+        return FOG
+    end
 
     /*
     Returns the sum of all color attribute values.
@@ -1106,6 +1136,8 @@ class ColorAttribute is Attribute
         end
     end
     */
-    system action GetColorAttributeMask returns integer
+    action GetColorAttributeMask returns integer
+        return BITMASK
+    end
     
 end

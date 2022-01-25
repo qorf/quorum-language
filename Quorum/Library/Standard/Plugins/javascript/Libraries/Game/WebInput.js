@@ -961,25 +961,32 @@ function plugins_quorum_Libraries_Game_WebInput_()
             quorumEvent.Set_Libraries_Interface_Events_MouseEvent__movementX_(event.movementX);
             quorumEvent.Set_Libraries_Interface_Events_MouseEvent__movementY_(event.movementY);
             
-            switch(event.button)
+            if (code === quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MOVED_MOUSE_() || code === quorumEvent.Get_Libraries_Interface_Events_MouseEvent__SCROLLED_MOUSE_())
             {
-                case 0:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__LEFT_());
-                    break;
-                case 1:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MIDDLE_());
-                    break;
-                case 2:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__RIGHT_());
-                    break;
-                case 3:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__BACK_());
-                    break;
-                case 4:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__FRONT_());
-                    break;
-                default:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__ANY_());
+                quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__NONE_());
+            }
+            else
+            {
+                switch(event.button)
+                {
+                    case 0:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__LEFT_());
+                        break;
+                    case 1:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MIDDLE_());
+                        break;
+                    case 2:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__RIGHT_());
+                        break;
+                    case 3:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__BACK_());
+                        break;
+                    case 4:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__FRONT_());
+                        break;
+                    default:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__ANY_());
+                }
             }
             
             plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x = x;

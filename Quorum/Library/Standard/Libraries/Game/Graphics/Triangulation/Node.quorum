@@ -1,0 +1,41 @@
+package Libraries.Game.Graphics.Triangulation
+
+class Node
+
+    // The corresponding vertex index in the coordinates array
+    public integer index = 0
+
+    // Vertex coordinates.
+    public number x = 0
+    public number y = 0
+
+    // Z-order curve value
+    public number z = x:GetMinimumValue()
+
+    // Set to true if this node represents a steiner point.
+    public boolean steinerPoint = false
+
+    // The next and previous vertex nodes in a polygon ring.
+    public Node previous = undefined
+    public Node next = undefined
+
+    // The next and previous nodes in z-order.
+    public Node previousZ = undefined
+    public Node nextZ = undefined
+
+    action Set(integer index, number x, number y)
+        me:index = index
+        me:x = x
+        me:y = y
+    end
+
+    action Compare(Node other) returns integer
+        if x - other:x > 0
+            return 1
+        elseif x - other:x < 0
+            return -2
+        else
+            return 0
+        end
+    end
+end

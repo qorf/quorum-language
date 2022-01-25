@@ -1562,7 +1562,7 @@ class QuorumParser
         if next:category = constants:ME
             context:hasMe = true
             next = tokenIterator:Next()
-            if next:category = constants:COLON
+            if next not= undefined and next:category = constants:COLON
                 next = tokenIterator:Next()
             else //this is an error
                 SendDefaultError("Expected colon after me. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_BAD_COLON)
@@ -2197,6 +2197,9 @@ class QuorumParser
                 variable:SetIsParameter(true)
                 variable:SetType(param:type)
                 variable:SetName(param:name)
+                if param not= undefined
+                    variable:SetLocation(param:GetLocation())
+                end
                 variables:Add(variable)
 
                 if not IsValid() return undefined end
@@ -2214,6 +2217,9 @@ class QuorumParser
                     variable2:SetIsParameter(true)
                     variable2:SetType(param:type)
                     variable2:SetName(param:name)
+                    if param not= undefined
+                        variable2:SetLocation(param:GetLocation())
+                    end
                     variables:Add(variable2)
                     next = tokenIterator:GetCurrent()
                 end

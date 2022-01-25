@@ -59,31 +59,36 @@ use Libraries.Interface.Views.LabelBoxView
     end
 */
 class Chart is Control
-    boolean treeNeedsUpdate = true
-
-    ChartSelection selection
-    ChartOptions options
-    Color color
-    Color highlightColor = undefined
     Math math
 
+    // Chart Accessibilty
+    private boolean treeNeedsUpdate = true
+    private ChartItem infoTreeRoot //The root chart item for all charts
+    private ChartSelection selection
+    private ChartOptions options
+    private Color highlightColor = undefined
+    private ColorGroup previousColorGroup = undefined
+    private ColorGroup previousBackgroundColor = undefined
+    private Color previousColor = undefined
+    private number previousZ = 0
+
     // Chart Orientation
-    boolean horizontalOrientation = false
-    boolean verticalOrientation = false
-    boolean orientationChanged = false
+    private boolean horizontalOrientation = false
+    private boolean verticalOrientation = false
+    private boolean orientationChanged = false
 
     // Chart Area Components
-    ControlLabel title = undefined
-    integer titlefontsize = 0
-    boolean titleFontSizeOverride = false
-    number titleAreaHeightPercent = 0.10
-    number titleAreaWidthPercent = 0.75
-    ChartAreaPanel chartArea
-    Array <ChartAreaPanel> subChartAreas
-    Drawable backgroundD = undefined
-    Array<Icon> groupPanels
-    integer paddedChartOffset = 0
-    integer numberOfChartAreas = 1
+    private ControlLabel title = undefined
+    private integer titlefontsize = 0
+    private boolean titleFontSizeOverride = false
+    private number titleAreaHeightPercent = 0.10
+    private number titleAreaWidthPercent = 0.75
+    private ChartAreaPanel chartArea
+    private Array <ChartAreaPanel> subChartAreas
+    private Drawable backgroundD = undefined
+    private Array<Icon> groupPanels
+    private integer paddedChartOffset = 0
+    private integer numberOfChartAreas = 1
     private boolean separateByFactor = false
     private boolean defaultSeparation = false
     private boolean overrideDefaultSeparation = false
@@ -92,39 +97,37 @@ class Chart is Control
     private boolean overrideDefaultShowBrackets = false
 
     // X-Axis Components
-    HorizontalAxisPanel horizontalPanel
-    Array <HorizontalAxisPanel> subHorizontalPanels
-    boolean showXAxis = true   
-    boolean showMajorXGridLines = true
-    boolean showMinorXGridLines = false
-    boolean xLabelFontSizeOverride = false
-    boolean xTitleFontSizeOverride = false
-    boolean overrideXLabelsRotation = false
-
-    number horizontalPanelWidthPercent = 0.75
-    number horizontalPanelHeightPercent = 0.05
-    integer xLabelsRotation = 0
+    private HorizontalAxisPanel horizontalPanel
+    private Array <HorizontalAxisPanel> subHorizontalPanels
+    private boolean showXAxis = true   
+    private boolean showMajorXGridLines = true
+    private boolean showMinorXGridLines = false
+    private boolean xLabelFontSizeOverride = false
+    private boolean xTitleFontSizeOverride = false
+    private boolean overrideXLabelsRotation = false
+    private number horizontalPanelWidthPercent = 0.75
+    private number horizontalPanelHeightPercent = 0.05
+    private integer xLabelsRotation = 0
 
     // Y-Axis Components
-    VerticalAxisPanel verticalPanel
-    Array <VerticalAxisPanel> subVerticalPanels
-    boolean showYAxis = true
-    boolean showMajorYGridLines = true
-    boolean showMinorYGridLines = false   
-    boolean yLabelFontSizeOverride = false
-    boolean yTitleFontSizeOverride = false
-
-    number verticalPanelWidthPercent = 0.05
-    number verticalPanelHeightPercent = 0.75 
-    integer yLabelsRotation = 0
+    private VerticalAxisPanel verticalPanel
+    private Array <VerticalAxisPanel> subVerticalPanels
+    private boolean showYAxis = true
+    private boolean showMajorYGridLines = true
+    private boolean showMinorYGridLines = false   
+    private boolean yLabelFontSizeOverride = false
+    private boolean yTitleFontSizeOverride = false
+    private number verticalPanelWidthPercent = 0.05
+    private number verticalPanelHeightPercent = 0.75 
+    private integer yLabelsRotation = 0
 
     // Legend Components
-    Legend legend
-    boolean showLegend = true
-    boolean legendLabelFontSizeOverride = false
-    boolean legendTitleFontSizeOverride = false
-    number legendPanelWidthPercent = 0.05
-    number legendPanelHeightPercent = 0.05
+    private Legend legend
+    private boolean showLegend = true
+    private boolean legendLabelFontSizeOverride = false
+    private boolean legendTitleFontSizeOverride = false
+    private number legendPanelWidthPercent = 0.05
+    private number legendPanelHeightPercent = 0.05
 
     on create
         chartArea:SetName("Chart Area")
@@ -145,6 +148,7 @@ class Chart is Control
             return now
         end
 
+        Color color
         ColorGroup background = properties:GetBackgroundColor()
         ColorGroup border = properties:GetBorderColor()
         number borderThickness = properties:GetBorderThickness()
@@ -264,7 +268,7 @@ class Chart is Control
         Then the un-used axis will be deactivated so it won't interfere with the
         accessibility navigation.
     */
-    action FlipAxisInfo()
+    private action FlipAxisInfo()
         number temp = horizontalPanel:GetMaximum()
         horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
         verticalPanel:SetMaximum(temp)
@@ -314,7 +318,7 @@ class Chart is Control
         verticalPanel:SetNumberFormat(temptext)
     end
 
-    action DisposeDrawables()
+    private action DisposeDrawables()
         if title not= undefined
             title:Dispose()
             Remove(title)
@@ -867,7 +871,7 @@ class Chart is Control
         defaultShowBrackets = flag
     end
 
-    action HasGroups(boolean hasGroups)
+    private action HasGroups(boolean hasGroups)
         me:hasGroups = hasGroups
     end
 
@@ -1516,20 +1520,103 @@ class Chart is Control
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
         has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
         this action, they do not need to call this action directly.
+        This action will control the LostSelection for ChartItems shared amoung all charts.
+        Any ChartItems specific to one type of chart (i.e. lines for LineCharts) will have 
+        an addition LostSelection action defined in the inherited class.
 
-        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    blueprint action LostSelection(ChartItem item)
+    action LostSelection(ChartItem item)
+        if item = undefined
+            return now
+        end
+        Item target = item:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is Series
+                Series temp = cast(Series, target)
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Drawable element = temp:GetItemAt(i)
+                    element:SetColor(previousColor)
+                    element:SetZ(previousZ)
+                    i = i + 1
+                end
+                temp:GetLabel():LostSelection()
+                temp:GetIcon():SetColor(previousColor)
+            elseif target is Drawable
+                Drawable temp = cast(Drawable, target)
+                temp:SetZ(previousZ)
+                temp:SetColor(previousColor)
+            elseif target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:LostSelection()
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+                    view:Initialize(previousBackgroundColor, previousColorGroup)
+                    temp:SetView2D(view)
+                end
+            end
+        end
+    end
 
     /* 
         Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
         has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
         this action, they do not need to call this action directly.
+        This action will control the GainedSelection for ChartItems shared amoung all charts.
+        Any ChartItems specific to one type of chart (i.e. lines for LineCharts) will have 
+        an addition GainedSelection action defined in the inherited class.
 
-        Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    blueprint action GainedSelection(ChartItem item)
+    action GainedSelection(ChartItem item)
+        if item = undefined
+            return now
+        end
+        Item target = item:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Drawable element = temp:GetItemAt(i)
+                    element:SetColor(GetHighlightColor())
+                    element:SetZ(-1)
+                    i = i + 1
+                end
+                temp:GetLabel():GainedSelection()
+                temp:GetIcon():SetColor(GetHighlightColor())
+            elseif target is Drawable
+                Drawable temp = cast(Drawable, target)
+                previousZ = temp:GetZ()
+                previousColor = temp:GetColor()
+                temp:SetZ(-1)
+                temp:SetColor(GetHighlightColor())
+            elseif target is ControlLabel
+                ControlLabel temp = cast(ControlLabel, target)
+                temp:GainedSelection()
+            elseif target is Control
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    previousColorGroup = properties:GetBorderColor()
+                    previousBackgroundColor = properties:GetBackgroundColor()
+                    LabelBoxView view
+                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
+                    view:Initialize(GetHighlightColor():White(), GetHighlightColor())
+                    temp:SetView2D(view)
+                end
+            end
+        end
+    end
 
     /*
         This action gets the ChartSelection, which contains the ChartItem that is currently selected. 
@@ -1563,9 +1650,21 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetNext()
+        ChartItem next
+        if selected:IsOpen()
+            next = selected:GetChildItem()
+        else
+            next = selected:GetNext()
+        end
         if next = undefined
-            return now
+            ChartItem parentItem = selected:GetParentItem()
+            repeat while parentItem:GetNext() = undefined
+                if parentItem = infoTreeRoot
+                    return now
+                end
+                parentItem = parentItem:GetParentItem()
+            end
+            next = parentItem:GetNext()
         end
         selection:Set(next)
     end
@@ -1581,8 +1680,19 @@ class Chart is Control
         end
 
         ChartItem next = selected:GetPrevious()
+        if next not= undefined
+            repeat while next:IsOpen()
+                next = next:GetLastChild()
+                if next = undefined
+                    return now
+                end
+            end
+        end
         if next = undefined
-            return now
+            next = selected:GetParentItem()
+            if next = undefined
+                return now
+            end
         end
 
         selection:Set(next)
@@ -1598,7 +1708,7 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetChild()
+        ChartItem next = selected:GetChildItem()
         if next = undefined
             return now
         end
@@ -1616,13 +1726,62 @@ class Chart is Control
             return now
         end
 
-        ChartItem next = selected:GetParent()
+        ChartItem next = selected:GetParentItem()
         if next = undefined
             return now
         end
 
         selection:Set(next)
     end
+
+    /*
+        This action opens the chart item if it has children
+        If it has children and is already open it moves to first child.
+    */
+    action OpenItem
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        if not selected:Open() and selected:IsOpenable()
+            ChartItem next = selected:GetChildItem()
+            if next = undefined
+                return now
+            end
+    
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action opens the chart item if it is open
+        If it has children and is already open it moves to first child.
+    */
+    action CloseItem
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            return now
+        end
+
+        if not selected:Close()
+            ChartItem next = selected:GetParentItem()
+            if next = undefined
+                return now
+            end
+            selection:Set(next)
+        end
+    end
+
+    /*
+        Attribute: Returns the root chart item
+    */
+    action GetInfoTreeRoot returns ChartItem
+        return infoTreeRoot
+    end
+
     /*
         This action tells the system to update all of its graphics because its structure has changed. This might 
         be true if the charts are being used to update a live data source.

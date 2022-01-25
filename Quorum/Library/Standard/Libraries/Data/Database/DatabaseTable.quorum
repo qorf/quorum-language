@@ -1,0 +1,54 @@
+package Libraries.Data.Database
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class DatabaseTable
+    text name = ""
+    text type = ""
+
+    HashTable<text, DatabaseColumn> columns
+    action GetColumn(text name) returns DatabaseColumn
+        return columns:GetValue(name)
+    end
+
+    action HasColumn(text name) returns boolean
+        return columns:HasKey(name)
+    end
+
+    action Add(DatabaseColumn column) 
+        text value = column:GetName()
+        columns:Add(value, column)
+    end
+
+    action GetIterator returns Iterator<DatabaseColumn> 
+        return columns:GetValueIterator()
+    end
+
+    /*
+        Returns the number of columns in the database table.
+    */
+    action GetSize returns integer
+        return columns:GetSize()
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetType returns text
+        return type
+    end
+
+    action SetType(text type)
+        me:type = type
+    end
+
+    action IsView returns boolean
+        return (type = "VIEW")
+    end
+
+end

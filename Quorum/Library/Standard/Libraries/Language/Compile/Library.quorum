@@ -14,8 +14,13 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.Iterator
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.System.Process
+use Libraries.System.ProcessEvent
+use Libraries.System.ProcessListener
+use Libraries.System.SystemHelper
+use Libraries.System.Properties
 
-class Library 
+class Library is ProcessListener
     File location = undefined
     File outputFolder = undefined
     File buildFolder
@@ -29,6 +34,7 @@ class Library
     File nativeFolder
     File graphicsFolder
     File robotsFolder
+    File pluginsFolder = undefined
     constant text STANDARD = "Standard"
     constant text STANDARD_LIBRARY_JAR = "QuorumStandardLibrary.jar"
     constant text STANDARD_PLUGINS_JAR = "QuorumStandardPlugins.jar"
@@ -40,6 +46,8 @@ class Library
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
+    constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
+    boolean regeneratePlugins = true
 
     boolean hasScannedStandardLibrary = false
     SymbolTable librarySymbolTable
@@ -47,7 +55,8 @@ class Library
     HashTable<text, Lexer> lexers
     boolean cacheOpcodes = false
     Array<CompilerListener> listeners
-    boolean outputJavaScript = false
+    //This flag says whether or not to output the standard library as JavaScript
+    boolean outputJavaScript = true
     boolean scanningFromPrecompute = false
     text javascriptOutput = ""
     text javascriptPlugins = ""
@@ -58,6 +67,20 @@ class Library
 
     action RemoveListener(CompilerListener listener)
         listeners:Remove(listener)
+    end
+
+    /*
+        This sets the location of Quorum's plugins, to be compiled when the library script is run.
+    */
+    action SetPluginsFolder(File file)
+        me:pluginsFolder = file
+    end
+
+    /*
+        This gets the location of Quorum's plugins, to be compiled when the library script is run.
+    */
+    action GetPluginsFolder returns File
+        return pluginsFolder
     end
 
     private action UpdateListenerLabels(text label)
@@ -288,17 +311,17 @@ class Library
         nativeDeployment:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         nativeDeployment:SetPath("Deploy")
 
-        File lwjglFolder
-        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        lwjglFolder:SetPath("LWJGL")
-
-        File dbus
-        File ev3
-        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        dbus:SetPath("dbusjava.jar")
-
-        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-        ev3:SetPath("ev3classes.jar")
+//        File lwjglFolder
+//        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        lwjglFolder:SetPath("LWJGL")
+//
+//        File dbus
+//        File ev3
+//        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        dbus:SetPath("dbusjava.jar")
+//
+//        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
+//        ev3:SetPath("ev3classes.jar")
 
         speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
@@ -306,20 +329,20 @@ class Library
         if nativeDeployment:Exists()
             nativeDeployment:Copy(nativeFolder, true)
         end
-        lwjglFolder:Copy(graphicsFolder, true)
+//        lwjglFolder:Copy(graphicsFolder, true)
         
 
-        File copier
-        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
-        copier:SetPath("dbusjava.jar")
-        if not copier:GetParentDirectory():Exists()
-            copier:GetParentDirectory():CreateDirectories()
-        end
+//        File copier
+//        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
+//        copier:SetPath("dbusjava.jar")
+//        if not copier:GetParentDirectory():Exists()
+//            copier:GetParentDirectory():CreateDirectories()
+//        end
 
-        dbus:Copy(copier, true)
+//        dbus:Copy(copier, true)
 
-        copier:SetPath("ev3classes.jar")
-        ev3:Copy(copier, true)
+//        copier:SetPath("ev3classes.jar")
+//        ev3:Copy(copier, true)
 
         File fontWeb
         fontWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/javascript")
@@ -416,22 +439,67 @@ class Library
         return result
     end
 
+    /*
+        This writes the standard plugins for Quorum. In Quorum-10, this was changed to use the gradle build system
+        to generate all the compilation info and 
+    */
     action WriteStandardPlugins
-        JarGenerator generator
-        text value = GetStandardPluginsManifest(generator)
-        generator:SetManifest(value)
+        if not regeneratePlugins return now end
+        Process process
 
-        if pluginJar:Exists()
-            pluginJar:GetParentDirectory():CreateDirectories()
+        //this needs to be different on mac and windows
+        output "Compiling Quorum Plugins. "
+        
+
+
+        if pluginsFolder = undefined
+            File file
+            pluginsFolder = file
+            pluginsFolder:SetWorkingDirectory(location:GetAbsolutePath())
+            pluginsFolder = pluginsFolder:GetParentDirectory():GetParentDirectory():GetParentDirectory()
+            pluginsFolder:SetPath(DEFAULT_PLUGINS_FOLDER)
         end
-        generator:Open(pluginJar)
-        AddStandardPlugins(generator)
-        AddCompilerDependencies(generator)
-        AddSoundDependencies(generator)
-        AddGameDependencies(generator)
-        AddLegoDependencies(generator)
-        AddSpeechDependencies(generator)
-        generator:Close()
+
+        File gradle
+        gradle:SetWorkingDirectory(pluginsFolder:GetAbsolutePath())
+        gradle:SetPath(GetGradleName())
+        process:SetName(gradle:GetAbsolutePath())
+
+        process:SetDirectory(pluginsFolder)
+        Array<text> flags
+        flags:Add("jar")
+        flags:Add("copyToQuorum")
+
+        process:SetParameters(flags)
+        process:AddListener(me)
+        //now Run it
+        process:Run() 
+    end
+
+    action ProcessStarted(ProcessEvent event)
+    end
+
+    action ProcessStopped(ProcessEvent event)
+    end
+
+    action Output(ProcessEvent event)
+        output  event:GetOutput()
+    end
+
+    action Error(ProcessEvent event)
+        output  event:GetOutput()
+    end
+
+    private action GetGradleName returns text
+        text result = ""
+
+        Properties prop
+        if prop:IsWindows()
+            return "gradlew.bat"
+        else
+            return "gradlew"
+        end
+        return result
     end
 
     private action AddCompilerDependencies(JarGenerator generator)
@@ -572,8 +640,9 @@ class Library
         text main = ""
 
         //now write any jar dependencies into the manifest
-        text classpath = GetStandardLibraryClasspath()
-        classpath = classpath + line + "  " + STANDARD_PLUGINS_JAR
+        //Changed in Quorum-10 to allow for the new plugin and dependency system.
+        //text classpath = GetStandardLibraryClasspath()
+        text classpath = "Class-Path: " + STANDARD_PLUGINS_JAR
 
         total = version + created + classpath + line
         return total
@@ -700,6 +769,14 @@ class Library
 
     action SetScanningFromPrecompute(boolean scanningFromPrecompute)
         me:scanningFromPrecompute = scanningFromPrecompute
+    end
+
+    action GetRegeneratePlugins returns boolean
+        return regeneratePlugins
+    end
+
+    action SetRegeneratePlugins(boolean regeneratePlugins)
+        me:regeneratePlugins = regeneratePlugins
     end
 
 end

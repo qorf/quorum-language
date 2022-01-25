@@ -1,14 +1,26 @@
 package Libraries.Game.Graphics
 
-use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.VertexData
 use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Disposable
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 
 class VertexBufferObject is VertexData
 
-    system action Dispose
+    VertexAttributes attributes = undefined
+    Number32BitBuffer buffer = undefined
+
+    integer bufferHandle = -1
+    integer usage = -1
+    boolean ownsBuffer = true
+    boolean isDirty = false
+    boolean isBound = false
+
+    GameStateManager manager
+    OpenGLConstants constants
 
     action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
         VertexAttributes vertexAttributes
@@ -16,55 +28,171 @@ class VertexBufferObject is VertexData
         Load(isStatic, verticesCount, vertexAttributes)
     end
 
-    system action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
+    action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        
+        bufferHandle = graphics:CreateBuffer()
 
-    system action GetSize returns integer
+        Number32BitBuffer newBuffer
+        newBuffer:SetSize((attributes:vertexSize / 4) * verticesCount)
+        SetBuffer(newBuffer, true, attributes)
 
-    system action GetMaxSize returns integer
-
-    system action GetAttributes returns VertexAttributes
-
-    action SetVertices(Number32BitArray vertices)
-        SendToBridgeArray(vertices)
-        PopulateVertexBuffer()
-    end
-
-    private system action SetVerticesNative(integer offset, integer count)
-
-    action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
-        SendToBridgeArray(vertices, sourceOffset, count)
-        UpdateVerticesNative(targetOffset, sourceOffset, count)
-    end
-
-    private system action UpdateVerticesNative(integer targetOffset, integer sourceOffset, integer count)
-
-    system action Reload
-
-    action FillVertexBuffer(Number32BitArray vertices)
-        SendToBridgeArray(vertices)
-        PopulateVertexBuffer()
-    end
-
-    /* Used to inform the plugin that we are about to send a new array of
-    doubles with the given length. */
-    private system action PrepareBridgeArray(integer length)
-
-    /* Sends an entire Quorum array to be stored in the bridge array within the plugins. */
-    private system action SendToBridgeArray(Number32BitArray array)
-
-    /* Sends part of a Quorum array to be stored in the bridge array within the plugins. */
-    private action SendToBridgeArray(Number32BitArray array, integer offset, integer count)
-        PrepareBridgeArray(count)
-        integer index = offset
-        repeat count times
-            SendToBridgeArray(index, array:Get(index))
-            index = index + 1
+        if isStatic
+            SetUsage(constants:GL_STATIC_DRAW)
+        else
+            SetUsage(constants:GL_DYNAMIC_DRAW)
         end
     end
 
-    /* Sends a value to be stored in the bridge array at the given index. */
-    private system action SendToBridgeArray(integer index, number value)
+    private action SetBuffer(Number32BitBuffer data, boolean ownsBuffer, VertexAttributes value)
+        if isBound
+            alert("I cannot change the attributes of a VertexBufferObject while it is bound.")
+        end
 
-    /* Uses the filled values of the bridge array to populate the byte buffer. */
-    private system action PopulateVertexBuffer
+        if me:ownsBuffer and buffer not= undefined
+            buffer:Dispose()
+        end
+
+        attributes = value
+        buffer = data
+        me:ownsBuffer = ownsBuffer
+    end
+
+    private action SetUsage(integer value)
+        if isBound
+            alert("I cannot change the attributes of a VertexBufferObject while it is bound.")
+        end
+        usage = value
+    end
+
+    action GetSize returns integer
+        return (buffer:GetSize() * 4) / attributes:vertexSize
+    end
+
+    action GetMaxSize returns integer
+        return (buffer:GetMaxSize() * 4) / attributes:vertexSize
+    end
+
+    action GetBuffer returns Number32BitBuffer
+        return buffer
+    end
+
+    action GetAttributes returns VertexAttributes
+        return attributes
+    end
+
+    action Get(integer index) returns number
+        return buffer:Get(index)
+    end
+
+    action Dispose
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, 0)
+        graphics:DeleteBuffer(bufferHandle)
+        bufferHandle = 0
+        if ownsBuffer
+            buffer:Dispose()
+        end
+    end
+
+    action SetVertices(Number32BitArray vertices)
+        isDirty = true
+        buffer:Set(vertices)
+        BufferChanged()
+    end
+
+    private action BufferChanged
+        if isBound
+            GraphicsManager graphics = manager:GetGameGraphics()
+            graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)   
+            isDirty = false
+        end
+    end
+
+    action UpdateVertices(integer targetOffset, Number32BitArray vertices, integer sourceOffset, integer count)
+        isDirty = true
+        buffer:Set(targetOffset, vertices, sourceOffset, count)
+        BufferChanged()
+    end
+
+    action Reload
+        GraphicsManager graphics = manager:GetGameGraphics()
+        bufferHandle = graphics:CreateBuffer()
+        isDirty = true
+    end
+
+    action Bind(ShaderProgram program)
+        Bind(program, undefined)
+    end
+
+    action Bind(ShaderProgram program, Array<integer> locations)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, bufferHandle)
+        
+        if isDirty
+            graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)
+            isDirty = false
+        end
+
+        integer attributeCount = attributes:GetSize()
+    
+        if locations = undefined
+            integer i = 0
+            repeat while i < attributeCount
+                VertexAttribute attribute = attributes:GetAttribute(i)
+                integer id = program:GetVertexInputLocation(attribute:alias)
+
+                if id >= 0
+                    program:EnableVertexInput(id)
+                    program:SetVertexInput(id, attribute:componentCount, attribute:type, attribute:normalized, attributes:vertexSize, attribute:offset)
+                end
+
+                i = i + 1
+            end
+        else
+            integer i = 0
+            repeat while i < attributeCount
+                VertexAttribute attribute = attributes:GetAttribute(i)
+                integer id = locations:Get(i)
+
+                if id >= 0
+                    program:EnableVertexInput(id)
+                    program:SetVertexInput(id, attribute:componentCount, attribute:type, attribute:normalized, attributes:vertexSize, attribute:offset)
+                end
+
+                i = i + 1
+            end
+        end
+
+        isBound = true
+    end
+
+    action Unbind(ShaderProgram program)
+        Unbind(program, undefined)
+    end
+
+    action Unbind(ShaderProgram program, Array<integer> locations)
+        GraphicsManager graphics = manager:GetGameGraphics()
+        integer attributeCount = attributes:GetSize()
+
+        integer i = 0
+        if locations = undefined
+            repeat while i < attributeCount
+                program:DisableVertexInput(attributes:GetAttribute(i):alias)
+                i = i + 1
+            end
+        else
+            repeat while i < attributeCount
+                integer id = locations:Get(i)
+                if id >= 0
+                    program:DisableVertexInput(id)
+                end
+                i = i + 1
+            end
+        end
+
+        graphics:BindBuffer(constants:GL_ARRAY_BUFFER, 0)
+        isBound = false
+    end
+
 end

@@ -65,7 +65,8 @@ class ModelBlueprint is Disposable
         meshes:Add(mesh)
         disposables:Add(mesh)
 
-        mesh:GetVertexData():FillVertexBuffer(modelMesh:vertices)
+        // Previously, we used "FillVertexBuffer" instead of "SetVertices", but changes to the system made the former unnecessary.    
+        mesh:GetVertexData():SetVertices(modelMesh:vertices)
         mesh:GetIndexData():Clear()
 
         integer offset = 0

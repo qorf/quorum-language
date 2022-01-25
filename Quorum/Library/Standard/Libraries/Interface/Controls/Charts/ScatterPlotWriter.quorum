@@ -147,7 +147,7 @@ class ScatterPlotWriter is ChartWriter
     
         ChartItem chartItem = scatterplot:GetChartAreaItem()
         if not chart:IsSeparatedByFactor()
-            ChartItem firstItem = chartItem:GetChild()
+            ChartItem firstItem = chartItem:GetChildItem()
 
             if firstItem not= undefined
                 if firstItem:GetFocusTarget() is ChartPoint
@@ -158,9 +158,9 @@ class ScatterPlotWriter is ChartWriter
             end
             
         else
-            ChartItem firstSubChartAreaItem = chartItem:GetChild()
+            ChartItem firstSubChartAreaItem = chartItem:GetChildItem()
             if firstSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, firstSubChartAreaItem:GetFocusTarget()) = chartArea
-                ChartItem firstItem = firstSubChartAreaItem:GetChild()
+                ChartItem firstItem = firstSubChartAreaItem:GetChildItem()
 
                 if firstItem not= undefined
                     if firstItem:GetFocusTarget() is ChartPoint
@@ -175,7 +175,7 @@ class ScatterPlotWriter is ChartWriter
             ChartItem nextSubChartAreaItem = firstSubChartAreaItem:GetNext()
             repeat while nextSubChartAreaItem not= undefined and nextSubChartAreaItem not= firstSubChartAreaItem
                 if nextSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, nextSubChartAreaItem:GetFocusTarget()) = chartArea
-                    ChartItem firstItem = nextSubChartAreaItem:GetChild()
+                    ChartItem firstItem = nextSubChartAreaItem:GetChildItem()
     
                     if firstItem not= undefined
                         if firstItem:GetFocusTarget() is ChartPoint
@@ -207,11 +207,11 @@ class ScatterPlotWriter is ChartWriter
         firstRegionNav:SetTabIndex("-1")
         groupUL:Add(firstRegionNav)
 
-        if firstItem:GetChild() not= undefined
-            if firstItem:GetChild():GetFocusTarget() is ChartPoint
-                AddPointsAccessibility(canvas, firstItem:GetChild(), firstRegionNav)
+        if firstItem:GetChildItem() not= undefined
+            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint
+                AddPointsAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
             else
-                AddRegionLayerAccessibily(canvas, firstItem:GetChild(), firstRegionNav)
+                AddRegionLayerAccessibily(canvas, firstItem:GetChildItem(), firstRegionNav)
             end
         end
 
@@ -226,11 +226,11 @@ class ScatterPlotWriter is ChartWriter
             regionNav:SetTabIndex("-1")
             groupUL:Add(regionNav)
 
-            if nextItem:GetChild() not= undefined
-                if nextItem:GetChild():GetFocusTarget() is ChartPoint
-                    AddPointsAccessibility(canvas, nextItem:GetChild(), regionNav)
+            if nextItem:GetChildItem() not= undefined
+                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint
+                    AddPointsAccessibility(canvas, nextItem:GetChildItem(), regionNav)
                 else
-                    AddRegionLayerAccessibily(canvas, nextItem:GetChild(), regionNav)
+                    AddRegionLayerAccessibily(canvas, nextItem:GetChildItem(), regionNav)
                 end
             end
 

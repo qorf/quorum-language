@@ -1,0 +1,48 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.GameStateManager
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.OpenGLConstants
+
+class DefaultShaderMapping2D is ShaderMapping
+    
+    ShaderProgram program = undefined
+    GameStateManager manager
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
+        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+        program:SetShaderInput("u_texture", 0)
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        // Nothing to be done here.
+        // The default 2D shader handles all of its inputs via the vertices, so no additional information has to be set.
+        // This action still has to be overridden in order to prevent the base implementation from alerting an error for invalid input.
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
+
+end

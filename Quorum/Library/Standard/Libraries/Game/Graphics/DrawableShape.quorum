@@ -1,0 +1,740 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Shapes.Rectangle
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Triangulation.Triangulation
+
+class DrawableShape
+
+    // The vertex index of the first x-coordinate value.
+    public constant integer X_OFFSET = 0
+
+    // The vertex  index of the first y-coordinate value.
+    public constant integer Y_OFFSET = 1
+
+    // The vertex index of the first z-coordinate value.
+    public constant integer Z_OFFSET = 2
+
+    // The vertex index of the first color value.
+    public constant integer COLOR_OFFSET = 3
+
+    // The vertex index of the first "u" coordinate. When applying a texture to the shape, this is the x-coordinate on the texture where sampling will occur for this point.
+    public constant integer U_OFFSET = 4
+
+    // The vertex index of the first "v" coordinate. When applying a texture to the shape, this is the y-coordinate on the texture where sampling will occur for this point.
+    public constant integer V_OFFSET = 5
+
+    // How many number components are stored for each vertex.
+    public constant integer VERTEX_SIZE = 6
+
+    Number32BitArray vertices
+
+    // If this shape needs to recalculate its vertices.
+    boolean needsUpdate = false
+
+    /*
+    The position of each point relative to the origin of the Drawable.
+    This is a sequence of x, y coordinates. Z-coordinates are not stored here.
+    This is undefined if the shape hasn't been loaded yet.
+    */
+    Number32BitArray basePositions = undefined
+
+    /*
+    The width and height of this shape, as calculated from the base positions.
+    May not reflect the exact width and height of the values in the vertices if
+    the Drawable has been scaled or rotated.
+    */
+    number baseWidth = 0
+    number baseHeight = 0
+
+    /*
+    The last valid baseWidth or baseHeight used for size calculations.
+    We need to store this in case we receive a new width/height of 0.
+    If we don't store the old value, it becomes impossible to calculate
+    the correct size in the future if we get new sizing requests.
+    */
+    number lastValidWidth = 0
+    number lastValidHeight = 0
+
+    // The Drawable this shape belongs to.
+    Drawable drawable = undefined
+
+    // Cached bounding rectangle. Undefined if no rectangle has been requested.
+    Rectangle bounds = undefined
+
+    // A specialized mesh used to render this shape. If this shape is just a rectangle, this is left undefined, and the Painter2D uses its default mesh instead.
+    Mesh mesh = undefined
+
+
+    action LoadRectangle(number width, number height)
+        LoadRectangle(width, height, 0, 1, 0, 1)
+    end
+
+    action LoadRectangle(number width, number height, TextureRegion region)
+        LoadRectangle(width, height, region:GetLeftSide(), region:GetRightSide(), region:GetBottomSide(), region:GetTopSide())
+    end
+
+    action LoadRectangle(number width, number height, number textureLeft, number textureRight, number textureBottom, number textureTop)
+        vertices:SetSize(VERTEX_SIZE * 4)
+
+        Number32BitArray array
+        basePositions = array
+        basePositions:SetSize(8)
+
+        // 1st vertex: bottom-left corner
+        basePositions:Set(0, 0)
+        basePositions:Set(1, 0)
+        vertices:Set(U_OFFSET, textureLeft)
+        vertices:Set(V_OFFSET, textureBottom)
+
+        // 2nd vertex: top-left corner
+        basePositions:Set(2, 0)
+        basePositions:Set(3, height)
+        vertices:Set(U_OFFSET + VERTEX_SIZE, textureLeft)
+        vertices:Set(V_OFFSET + VERTEX_SIZE, textureTop)
+
+        // 3rd vertex: top-right corner
+        basePositions:Set(4, width)
+        basePositions:Set(5, height)
+        vertices:Set(U_OFFSET + VERTEX_SIZE * 2, textureRight)
+        vertices:Set(V_OFFSET + VERTEX_SIZE * 2, textureTop)
+
+        // 4th vertex: bottom-right corner
+        basePositions:Set(6, width)
+        basePositions:Set(7, 0)
+        vertices:Set(U_OFFSET + VERTEX_SIZE * 3, textureRight)
+        vertices:Set(V_OFFSET + VERTEX_SIZE * 3, textureBottom)
+
+        mesh = undefined
+        baseWidth = width
+        baseHeight = height
+        needsUpdate = true
+    end
+
+    action LoadTriangle(number x1, number y1, number x2, number y2, number x3, number y3, TextureRegion region)
+        LoadTriangle(x1, y1, x2, y2, x3, y3)
+        SetTextureRegion(region)
+    end
+
+    action LoadTriangle(number x1, number y1, number x2, number y2, number x3, number y3)
+        vertices:SetSize(VERTEX_SIZE * 3)
+        
+        number minX = x1
+        number maxX = x1
+
+        if x2 < minX
+            minX = x2
+        elseif x2 > maxX
+            maxX = x2
+        end
+
+        if x3 < minX
+            minX = x3
+        elseif x3 > maxX
+            maxX = x3
+        end
+
+        number minY = y1
+        number maxY = y1
+
+        if y2 < minY
+            minY = y2
+        elseif y2 > maxY
+            maxY = y2
+        end
+
+        if y3 < minY
+            minY = y3
+        elseif y3 > maxY
+            maxY = y3
+        end
+
+        baseWidth = maxX - minX
+        baseHeight = maxY - minY
+
+        Number32BitArray array
+        basePositions = array
+        basePositions:SetSize(6)
+
+        basePositions:Set(0, x1)
+        basePositions:Set(1, y1)
+        basePositions:Set(2, x2)
+        basePositions:Set(3, y2)
+        basePositions:Set(4, x3)
+        basePositions:Set(5, y3)
+        
+        mesh = GenerateMesh(3 * VERTEX_SIZE, 3)
+        Integer32BitArray indices
+        indices:SetSize(3)
+        indices:Set(0, 0)
+        indices:Set(1, 1)
+        indices:Set(2, 2)
+        mesh:SetIndices(indices)
+
+        needsUpdate = true
+    end
+
+    /*
+    This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
+    */
+    action Load(Array<number> points)
+        Load(points, undefined)
+    end
+
+    /*
+    This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
+    */
+    action Load(Array<number> points, TextureRegion region)
+        vertices:SetSize((points:GetSize() / 2) * VERTEX_SIZE)
+
+        Number32BitArray array
+        basePositions = array
+        basePositions:SetSize(points:GetSize())
+
+        integer i = 0
+        repeat while i < points:GetSize()
+            basePositions:Set(i, points:Get(i))
+            basePositions:Set(i + 1, points:Get(i + 1))
+
+            i = i + 2
+        end
+
+        if region = undefined
+            SetTextureRegion(0, 1, 0, 1)
+        else
+            SetTextureRegion(region)
+        end
+
+        Triangulation triangulation
+        Array<integer> indexArray = triangulation:Triangulate(basePositions)
+        
+        Integer32BitArray indices
+        indices:SetSize(indexArray:GetSize())
+        i = 0
+        repeat while i < indexArray:GetSize()
+            indices:Set(i, indexArray:Get(i))
+            i = i + 1
+        end
+
+        mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
+        mesh:SetIndices(indices)
+
+        needsUpdate = true
+    end
+
+    action SetTextureRegion(TextureRegion region)
+        SetTextureRegion(region:GetLeftSide(), region:GetRightSide(), region:GetBottomSide(), region:GetTopSide())
+    end
+
+    action SetTextureRegion(number left, number right, number bottom, number top)
+        number minX = basePositions:Get(0)
+        number maxX = minX
+        number minY = basePositions:Get(1)
+        number maxY = minY
+
+        // Figure out the minimum/maximum x and y values so we can associate left/bottom with minimum x/y, and right/top with maximum x/y
+        integer i = 2
+        repeat while i < basePositions:GetSize()
+            number x = basePositions:Get(i)
+            if x < minX
+                minX = x
+            elseif x > maxX
+                maxX = x
+            end
+
+            number y = basePositions:Get(i + 1)
+            if y < minY
+                minY = y
+            elseif y > maxY
+                maxY = y
+            end
+
+            i = i + 2
+        end
+
+        number rangeX = maxX - minX
+        number rangeY = maxY - minY
+
+        number textureRangeX = right - left
+        number textureRangeY = top - bottom
+        
+        i = 0
+        integer vertexIndex = U_OFFSET
+        repeat while i < basePositions:GetSize()
+            // This is a value between 0 and 1, indicating how far to the left or right this point is within the shape.
+            number relativeHorizontal = (basePositions:Get(i) - minX) / rangeX
+            number resultX = left + relativeHorizontal * textureRangeX
+            vertices:Set(vertexIndex, resultX)
+
+            // This is a value between 0 and 1, indicating where this point is between the top and the bottom of the shape.
+            number relativeVertical = (basePositions:Get(i + 1) - minY) / rangeY
+            number resultY = bottom + relativeVertical * textureRangeY
+            vertices:Set(vertexIndex + 1, resultY)
+
+            i = i + 2
+            vertexIndex = vertexIndex + VERTEX_SIZE
+        end
+
+        if needsUpdate = false
+            UpdateMeshVertices()
+        end
+    end
+
+    action FlipX
+        number min = basePositions:Get(0)
+        number max = min
+
+        // Figure out the minimum/maximum x values
+        integer i = 2
+        repeat while i < basePositions:GetSize()
+            number x = basePositions:Get(i)
+            if x < min
+                min = x
+            elseif x > max
+                max = x
+            end
+
+            i = i + 2
+        end
+
+        number range = max - min
+
+        i = 0
+        repeat while i < basePositions:GetSize()
+            // This is a value between 0 and 1, indicating how far to the left or right this point is within the shape.
+            number relativeHorizontal = (basePositions:Get(i) - min) / range
+            // "Flip" the value across 0, then make it positive again. 0 becomes 1, 1 becomes 0, and all other values fall in between
+            relativeHorizontal = -(relativeHorizontal - 1)
+            basePositions:Set(i, min + relativeHorizontal * range)
+            i = i + 2
+        end
+
+        needsUpdate = true
+    end
+
+    action FlipY
+        number min = basePositions:Get(1)
+        number max = min
+
+        // Figure out the minimum/maximum x values
+        integer i = 3
+        repeat while i < basePositions:GetSize()
+            number y = basePositions:Get(i)
+            if y < min
+                min = y
+            elseif y > max
+                max = y
+            end
+
+            i = i + 2
+        end
+
+        number range = max - min
+
+        i = 1
+        repeat while i < basePositions:GetSize()
+            // This is a value between 0 and 1, indicating where this point is between the top and the bottom of the shape.
+            number relativeHorizontal = (basePositions:Get(i) - min) / range
+            // "Flip" the value across 0, then make it positive again. 0 becomes 1, 1 becomes 0, and all other values fall in between
+            relativeHorizontal = -(relativeHorizontal - 1)
+            basePositions:Set(i, min + relativeHorizontal * range)
+            i = i + 2
+        end
+
+        needsUpdate = true
+    end
+
+    action SetColor(Color color)
+        number colorCode = color:EncodeColorAsNumber()
+        SetColor(colorCode)
+    end
+
+    action SetColor(number colorCode)
+        integer i = COLOR_OFFSET
+        repeat while i < vertices:GetSize()
+            vertices:Set(i, colorCode)
+            i = i + VERTEX_SIZE
+        end
+
+        if needsUpdate = false
+            UpdateMeshVertices()
+        end
+    end
+
+    action SetColor(ColorGroup group)
+        if group is Color
+            SetColor(cast(Color, group))
+            return now
+        end
+
+        Array<Color> array
+        array:Add(group:GetBottomLeft())
+        array:Add(group:GetTopLeft())
+        array:Add(group:GetTopRight())
+        array:Add(group:GetBottomRight())
+        SetColor(array)
+    end
+
+    action SetColor(Array<Color> colors)
+        if colors:GetSize() not= vertices:GetSize() / VERTEX_SIZE
+            alert("I was asked to apply " + colors:GetSize() + " colors to " + (vertices:GetSize() / VERTEX_SIZE) + " vertices, but I can't do that. The number of colors and vertices must match.")
+        end
+
+        integer i = 0
+        integer index = COLOR_OFFSET
+        repeat while index < vertices:GetSize()
+            number colorCode = colors:Get(i):EncodeColorAsNumber()
+            vertices:Set(index, colorCode)
+
+            i = i + 1
+            index = index + VERTEX_SIZE
+        end
+
+        if needsUpdate = false
+            UpdateMeshVertices()
+        end
+    end
+
+    action SetWidth(number width)
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
+        if width = 0
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+            baseWidth = width
+        end
+
+        number oldWidth = baseWidth
+
+        if width = 0
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldWidth = 0
+                oldWidth = lastValidWidth
+            end
+        end
+
+        number xModifier = width / oldWidth
+
+        integer i = 0
+        repeat while i < basePositions:GetSize()
+            basePositions:Set(i, basePositions:Get(i) * xModifier)
+            i = i + 2
+        end
+        needsUpdate = true
+
+        baseWidth = width
+    end
+
+    action SetHeight(number height)
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
+        if height = 0
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+            baseHeight = height
+        end
+
+        number oldHeight = baseHeight
+
+        if height = 0
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldHeight = 0
+                oldHeight = lastValidHeight
+            end
+        end
+
+        number yModifier = height / oldHeight
+
+        integer i = 1
+        repeat while i < basePositions:GetSize()
+            basePositions:Set(i, basePositions:Get(i) * yModifier)
+            i = i + 2
+        end
+        needsUpdate = true
+
+        baseHeight = height
+    end
+
+    action SetSize(number width, number height)
+        // If we get a width or height of 0, we need to take special care to track the old size and keep our base vertices intact.
+        if width = 0
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+            baseWidth = width
+        end
+        if height = 0
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+            baseHeight = height
+        end
+
+        number oldWidth = baseWidth
+        number oldHeight = baseHeight
+
+        if width = 0 and height = 0
+            return now
+        elseif width = 0
+            SetHeight(height)
+            return now
+        elseif height = 0
+            SetWidth(width)
+            return now
+        else
+            // If the last base width/height is 0, fetch the last valid value we stored.
+            if oldWidth = 0
+                oldWidth = lastValidWidth
+            end
+
+            if oldHeight = 0
+                oldHeight = lastValidHeight
+            end
+        end
+
+        number xModifier = width / oldWidth
+        number yModifier = height / oldHeight
+
+        integer i = 0
+        repeat while i < basePositions:GetSize()
+            basePositions:Set(i, basePositions:Get(i) * xModifier)
+            basePositions:Set(i + 1, basePositions:Get(i + 1) * yModifier)
+            i = i + 2
+        end
+        needsUpdate = true
+
+        baseWidth = width
+        baseHeight = height
+    end
+
+
+    action GetWidth returns number
+        return baseWidth
+    end
+
+    action GetHeight returns number
+        return baseHeight
+    end
+
+    private action UsesScaleOrRotation returns boolean
+        return not (drawable:GetRotation() = 0 and drawable:GetScaleX() = 1 and drawable:GetScaleY() = 1)
+    end
+
+    action RequestUpdate
+        needsUpdate = true
+    end
+
+    action NeedsUpdate returns boolean
+        return needsUpdate
+    end
+
+    action UpdateVertices
+        if needsUpdate = false
+            return now
+        end
+
+        /*
+        If the base width/height ever need to become 0, we want to try to store a copy of the last valid
+        value we had. This will make it possible to resize the base vertices in the future if we receive
+        new sizing information.
+        */
+        number drawableWidth = drawable:GetWidth()
+        if drawableWidth = 0
+            if baseWidth not= 0
+                lastValidWidth = baseWidth
+            end
+        end
+
+        number drawableHeight = drawable:GetHeight()
+        if drawableHeight = 0
+            if baseHeight not= 0
+                lastValidHeight = baseHeight
+            end
+        end
+
+        baseWidth = drawableWidth
+        baseHeight = drawableHeight
+
+        if IsRenderable() = false
+            needsUpdate = false
+            return now
+        end
+
+        // Vertices are set to negative Z to reverse draw order.
+        number negatedZ = -drawable:GetGlobalZ()
+        number globalX = drawable:GetGlobalX()
+        number globalY = drawable:GetGlobalY()
+
+        if UsesScaleOrRotation() = false
+            integer i = 0
+            integer baseIndex = 0
+
+            repeat while i < vertices:GetSize()
+                vertices:Set(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX))
+                vertices:Set(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY))
+                vertices:Set(i + Z_OFFSET, negatedZ)
+
+                baseIndex = baseIndex + 2
+                i = i + VERTEX_SIZE
+            end
+        else
+            number originX = drawable:GetOriginX()
+            number originY = drawable:GetOriginY()
+            number scaleX = drawable:GetScaleX()
+            number scaleY = drawable:GetScaleY()
+            number scaleOffsetX = (scaleX * baseWidth - baseWidth) / 2
+            number scaleOffsetY = (scaleY * baseHeight - baseHeight) / 2
+            number worldOriginX = globalX + originX + scaleOffsetX
+            number worldOriginY = globalY + originY + scaleOffsetY
+
+            number angle = -drawable:GetRotation()
+            Vector2 vector
+
+            integer i = 0
+            integer baseIndex = 0
+            repeat while i < vertices:GetSize()
+                number localX = (basePositions:Get(baseIndex) - originX) * scaleX
+                number localY = (basePositions:Get(baseIndex + 1) - originY) * scaleY
+
+                if angle not= 0
+                    vector:Set(localX, localY)
+                    vector:Rotate(angle)
+                    localX = vector:GetX()
+                    localY = vector:GetY()
+                end
+
+                vertices:Set(i + X_OFFSET, localX + worldOriginX)
+                vertices:Set(i + Y_OFFSET, localY + worldOriginY)
+                vertices:Set(i + Z_OFFSET, negatedZ)
+
+                baseIndex = baseIndex + 2
+                i = i + VERTEX_SIZE
+            end
+        end
+
+        needsUpdate = false
+        UpdateMeshVertices()
+    end
+
+    action GetBoundingRectangle returns Rectangle
+        if bounds = undefined
+            Rectangle rectangle
+            bounds = rectangle
+        end
+
+        if NeedsUpdate()
+            UpdateVertices()
+        end
+
+        number minX = vertices:Get(X_OFFSET)
+        number minY = vertices:Get(Y_OFFSET)
+        number maxX = minX
+        number maxY = minY
+
+        integer i = X_OFFSET + VERTEX_SIZE
+        repeat while i < vertices:GetSize()
+            number x = vertices:Get(i)
+            number y = vertices:Get(i + 1)
+
+            if x < minX
+                minX = x
+            elseif x > maxX
+                maxX = x
+            end
+
+            if y < minY
+                minY = y
+            elseif y > maxY
+                maxY = y
+            end
+
+            i = i + VERTEX_SIZE
+        end
+
+        bounds:SetRectangle(minX, minY, maxX - minX, maxY - minY)
+
+        return bounds
+    end
+
+    private action GenerateMesh(integer vertices, integer indices) returns Mesh
+        VertexAttributes attributes
+        Array<VertexAttribute> array
+
+        // TO-DO: Instead of hardcoded names for the attributes, fetch these names from a common source 
+        VertexAttribute position
+        position:SetAttribute(position:POSITION, 3, "a_position")
+        VertexAttribute colorPacked
+        colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
+        VertexAttribute textureCoords
+        textureCoords:SetAttribute(textureCoords:TEXTURE_COORDINATES, 2, "a_texCoord0")
+
+        array:Add(position)
+        array:Add(colorPacked)
+        array:Add(textureCoords)
+        attributes:SetAttributes(array)
+
+        Mesh mesh
+        mesh:Load(false, vertices, indices, attributes)
+        return mesh
+    end
+
+    private action UpdateMeshVertices
+        if mesh not= undefined
+            mesh:GetVertexData():SetVertices(vertices)
+        end
+    end
+
+    action GetDrawable returns Drawable
+        return drawable
+    end
+
+    action SetDrawable(Drawable drawable)
+        me:drawable = drawable
+        needsUpdate = true
+    end
+
+    /*
+    This action returns how many vertices are used to form this shape.
+    */
+    action GetVertexCount returns integer
+        return vertices:GetSize() / VERTEX_SIZE
+    end
+
+    /*
+    This action returns how many total number values are stored across all of the shape's vertices.
+    */
+    action GetDataCount returns integer
+        return vertices:GetSize()
+    end
+
+    /*
+    This action returns how many indices are used to render this shape as triangles.
+    */
+    action GetIndexCount returns integer
+        if mesh = undefined
+            return 6
+        else
+            return mesh:GetIndexData():GetSize()
+        end
+    end
+
+    action GetVertexData(integer index) returns number
+        return vertices:Get(index)
+    end
+
+    action GetMesh returns Mesh
+        return mesh
+    end
+
+    action IsRenderable returns boolean
+        return baseWidth not= 0 and baseHeight not= 0
+    end
+
+end

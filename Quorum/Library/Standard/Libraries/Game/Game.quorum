@@ -3288,6 +3288,9 @@ class Game
     not need to use this action directly.
     */
     action InitializeLayers
+        // TO-DO: Consider moving this elsewhere. This needs to happen as a first step in initializing graphics before Painters are made, which occurs when creating layers.
+        manager:GetGameGraphics():UseDefaultVertexArray()
+
         layers:Empty()
         
         Layer3D layer3D

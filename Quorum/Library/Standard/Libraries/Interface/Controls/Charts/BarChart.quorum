@@ -81,11 +81,15 @@ class BarChart is SharedBarChartParent
             end
             grouptext = GetBarGroups():GetSize() + groups
         end
-        text bartext = GetNumberOfBars() + " bars."
+        text bartext = GetNumberOfBars() + " bars"
         if GetNumberOfBars() = 1
-            bartext = GetNumberOfBars() + " bar."
+            bartext = GetNumberOfBars() + " bar"
         end
-        SetDescription(" with " + grouptext + bartext + " Use the arrow keys to navigate the chart.")
+        if GetName() = "Bar Chart"
+            SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+        else
+            SetDescription("Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+        end
         return GetDescription()
     end
     

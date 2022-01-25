@@ -3004,11 +3004,11 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         u_ambientCubemap = -1;
 }
 
-function plugins_quorum_Libraries_Game_Graphics_SkyboxShader_()
+function plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_()
 {
-    if (!plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_)
+    if (!plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_)
     {
-        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.vertexShader = 
+        plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.vertexShader = 
             "attribute vec3 position;\n" +
             "varying vec3 textureCoordinates;\n" +
             "\n" +
@@ -3023,7 +3023,7 @@ function plugins_quorum_Libraries_Game_Graphics_SkyboxShader_()
             "    textureCoordinates = position;\n" +
             "}";
     
-        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.fragmentShader = 
+        plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.fragmentShader = 
             "precision highp float;\n" +
             "varying highp vec3 textureCoordinates;\n" +
             "uniform samplerCube skybox;\n" +
@@ -3036,10 +3036,10 @@ function plugins_quorum_Libraries_Game_Graphics_SkyboxShader_()
             "    gl_FragColor = textureCube(skybox, texCoords);\n" +
             "}";
     
-        plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_ = true;
+        plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_ = true;
     }
     
-    var program = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.vertexShader, plugins_quorum_Libraries_Game_Graphics_SkyboxShader_.fragmentShader);
+    var program = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.vertexShader, plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.fragmentShader);
     var positionIndex = program.FetchAttributeLocation("position");
     var projectionIndex = program.FetchUniformLocation("projection", true);
     var rotationIndex = program.FetchUniformLocation("rotation", true);

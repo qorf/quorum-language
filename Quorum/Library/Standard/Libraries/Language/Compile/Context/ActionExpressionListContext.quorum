@@ -20,4 +20,11 @@ class ActionExpressionListContext is ParseContext
         ExitDocumentation(listener)
         listener:ExitActionExpressionList(me)
     end
+
+    action IsEmpty returns boolean
+        if contexts = undefined or contexts:IsEmpty()
+            return true
+        end
+        return false
+    end
 end

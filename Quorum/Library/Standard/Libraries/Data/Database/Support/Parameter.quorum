@@ -1,0 +1,193 @@
+package Libraries.Data.Database.Support
+
+use Libraries.Compute.BigInteger
+use Libraries.Data.Database.DatabaseTypeConstants
+use Libraries.Language.Compile.Symbol.Type
+
+
+class Parameter
+    //supported quorum types for parameters
+    private constant text NULL_TYPE = "NULL"
+    private constant text EXPRESSION = "EXPR"
+    private constant text BOOLEAN_TYPE = "BOOLEAN"
+    private constant text INTEGER_TYPE = "INTEGER"
+    private constant text NUMBER_TYPE = "NUMBER"
+    private constant text TEXT_TYPE = "TEXT"
+    private constant text BIG_INTEGER_TYPE = "BIG_INTEGER"
+
+    text type = undefined
+
+    text expression = undefined
+    Type expressionType = undefined
+    boolean booleanValue = false
+    integer integerValue = 0
+    number numberValue = 0
+    text textValue = undefined
+    BigInteger bigIntValue = undefined
+
+    private action GetTypeName(Type type) returns text
+        if type = undefined
+            return undefined
+        end
+        if type:IsBoolean()
+            return BOOLEAN_TYPE
+        elseif type:IsInteger()
+            return INTEGER_TYPE
+        elseif type:IsNumber()
+            return NUMBER_TYPE
+        elseif type:IsText()
+            return TEXT_TYPE
+        else
+            alert(type:GetName())
+            // i dont know how to tell what object it could be so just error for now
+        end
+        return undefined
+    end
+
+    action IsTypeCompatible(integer rawType) returns boolean
+        DatabaseTypeConstants constants
+        // TODO: Get type of Expression, for now assume true
+        if IsExpression()
+            me:type = GetTypeName(expressionType)
+            if me:type not= undefined
+                boolean compatible = IsTypeCompatible(rawType)
+                me:type = EXPRESSION
+                return compatible
+            end
+        end
+        if constants:IsUndefined(rawType) and IsUndefined()
+            return true
+        elseif constants:IsBoolean(rawType) and IsBoolean()
+            return true
+        elseif constants:IsInteger(rawType) and IsInteger()
+            return true
+        elseif constants:IsInteger64(rawType) and IsBigInteger()
+            return true
+        elseif constants:IsNumber(rawType) and IsNumber()
+            return true
+        elseif constants:IsText(rawType) and IsText()
+            return true
+        elseif constants:IsDateTime(rawType) and IsText() // NOT FINAL
+            return true
+        end
+        return false
+    end
+
+    action GetValueAsText returns text
+        if IsUndefined()
+            return "NULL" //using SQL NULL here not quorum undefined
+        elseif IsExpression()
+            return expression
+        elseif IsBoolean()
+            return cast(text, booleanValue)
+        elseif IsInteger()
+            return cast(text, integerValue)
+        elseif IsNumber()
+            return cast(text, numberValue)
+        elseif IsText()
+            return textValue
+        elseif IsBigInteger()
+            return bigIntValue:GetText()
+        end
+        return undefined
+    end
+
+    action GetType returns text
+        return type
+    end
+
+    action SetToUndefined
+        type = NULL_TYPE
+    end
+
+    action IsUndefined returns boolean
+        return type = NULL_TYPE
+    end
+
+    action SetToExpression(text value)
+        expression = value
+        type = EXPRESSION
+    end
+
+    action GetExpressionValue returns boolean
+        return booleanValue
+    end
+
+    action SetExpressionType(Type type)
+        me:expressionType = type
+    end
+
+    action GetExpressionType returns Type
+        return expressionType
+    end
+
+    action IsExpression returns boolean
+        return type = EXPRESSION
+    end
+
+    action SetToBoolean(boolean value)
+        booleanValue = value
+        type = BOOLEAN_TYPE
+    end
+
+    action GetBooleanValue returns boolean
+        return booleanValue
+    end
+
+    action IsBoolean returns boolean
+        return type = BOOLEAN_TYPE
+    end
+
+    action SetToInteger(integer value)
+        integerValue = value
+        type = INTEGER_TYPE
+    end
+
+    action GetIntegerValue returns integer
+        return integerValue
+    end
+
+    action IsInteger returns boolean
+        return type = INTEGER_TYPE
+    end
+
+    action SetToNumber(number value)
+        numberValue = value
+        type = NUMBER_TYPE
+    end
+
+    action GetNumberValue returns number
+        return numberValue
+    end
+
+    action IsNumber returns boolean
+        return type = NUMBER_TYPE
+    end
+
+    action SetToText(text value)
+        textValue = value
+        type = TEXT_TYPE
+    end
+
+    action GetTextValue returns text
+        return textValue
+    end
+
+    action IsText returns boolean
+        return type = TEXT_TYPE
+    end
+
+    action SetToBigInteger(BigInteger value)
+        bigIntValue = value
+        type = BIG_INTEGER_TYPE
+    end
+
+    action GetBigIntegerValue returns BigInteger
+        return bigIntValue
+    end
+
+    action IsBigInteger returns boolean
+        return type = BIG_INTEGER_TYPE
+    end
+
+end

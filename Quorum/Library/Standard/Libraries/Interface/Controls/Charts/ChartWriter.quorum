@@ -22,10 +22,6 @@ class ChartWriter
     private number axisPointY = 90
     private number axisLengthX = 525
     private number axisLengthY = 450
-//    private number axisPointX = 15
-//    private number axisPointY = 85
-//    private number axisLengthX = 75
-//    private number axisLengthY = 75
     private integer svgHeight = 600
     private integer svgWidth = 700
     private boolean hasAccessibility = true
@@ -143,10 +139,6 @@ class ChartWriter
         chartCanvas:SetID("svg-" + chartCanvas:GetHashCode() + "-" + UniversalUniqueIdentifier())
         chartCanvas:SetRole("img")
 
-        //Initalize a few settings that change during Chart:LoadGraphics()
-        //InitWriter(chart)
-        //LayoutChartContent(chartCanvas, chart)
-
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
@@ -204,15 +196,15 @@ class ChartWriter
         chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
         chartCanvas:SetRole("img")
 
-        //Initalize a few settings that change during Chart:LoadGraphics()
-        //InitWriter(chart)
-        //LayoutChartContent(chartCanvas, chart)
-
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
+        if chart:IsShowingXAxis()
+            AddXLabels(chartCanvas, chart)
+        end
+        if chart:IsShowingYAxis()
+            AddYLabels(chartCanvas, chart)
+        end
         AddAxes(chartCanvas, chart)
         AddChartTitle(chartCanvas, chart)
         AddChartContent(chartCanvas, chart)
@@ -611,9 +603,6 @@ class ChartWriter
             yAxisLabel:SetFontFamily("Arial")
             yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
             yAxisLabel:SetTabIndex(-1)
-            if HasAccessibility()
-                //yAxisLabel:SetAriaLabel()
-            end
             canvas:Add(yAxisLabel)
         end
     end
@@ -630,9 +619,6 @@ class ChartWriter
         chartTitle:SetFontFamily("Arial")
         chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
         chartTitle:SetTabIndex(-1)
-        if HasAccessibility()
-            
-        end
         canvas:Add(chartTitle)
     end
 
@@ -1392,7 +1378,6 @@ class ChartWriter
             seriesItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + currentSeries:GetHashCode())
             seriesItem:SetTabIndex("-1")
             legendGroup:Add(seriesItem)
-
             i = i + 1
         end
     end

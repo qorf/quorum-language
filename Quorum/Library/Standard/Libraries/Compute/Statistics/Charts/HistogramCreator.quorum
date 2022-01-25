@@ -75,10 +75,6 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             alert("Cannot create a Histogram without any columns.")
         end
 
-        if GetColumnSize() = 1
-            chart:HasGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
-        end
-
         integer columnSize = 0 // This will keep track of the largest column (if they are not all the same)
 
         // Find overall max and min of all series and largest column

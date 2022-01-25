@@ -123,12 +123,21 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		Module._free(dataHeap.byteOffset);
 
 		if (character != ' ') {
+                        var rgbaBuffer = new Uint8Array(num_bytes * 4);
+                        for (var i = 0; i < rgbaBuffer.length; i += 4)
+                        {
+                            rgbaBuffer[i] = 255;
+                            rgbaBuffer[i + 1] = 255;
+                            rgbaBuffer[i + 2] = 255;
+                            rgbaBuffer[i + 3] = bitmapBuffer[i / 4];
+                        }
+                    
 			// Create Alpha pixel map
 			var pixmap = new quorum_Libraries_Game_Graphics_PixelMap_();
 			var map = pixmap.plugin_;
 			var format = new quorum_Libraries_Game_Graphics_Format_();
-			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__ALPHA_());
-			map.LoadFromFontBitmap(bitmapBuffer, bitmapData[3], bitmapData[2], format);
+			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
+			map.LoadFromFontBitmap(rgbaBuffer, bitmapData[3], bitmapData[2], format);
 
 			// Create File texture data
 			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
@@ -340,7 +349,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		rows.push(new ImageSheetRow(rowHeight, 255));
 
 		// Assemble the ByteBuffers into a single ByteBuffer for use by PixelMap.
-		var destination = new Uint8Array(totalWidth * totalHeight);
+		var destination = new Uint8Array(totalWidth * totalHeight * 4);
 		var currentRow = rows.shift(); // O(n)
 		var currentSource = null;
 		var currentRegion = null;
@@ -369,9 +378,13 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 				currentRegion = regionData[startOfRow];
 			}
 
-			for (var x = 0, subX = -padding; x < totalWidth; x++, subX++, destinationIndex++) {
+			for (var x = 0, subX = -padding; x < totalWidth; x++, subX++, destinationIndex += 4) {
+                                destination[destinationIndex] = 255;
+                                destination[destinationIndex + 1] = 255;
+                                destination[destinationIndex + 2] = 255;
+                            
 				if (currentRow == null || currentImage > currentRow.endOfRow || subX < 0) {
-					destination[destinationIndex] = 0;
+                                        destination[destinationIndex + 3] = 0;
 					continue;
 				}
 
@@ -391,10 +404,10 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 				}
 
 				if (subY >= currentRegion.height || subY < 0 || subX < 0) {
-					destination[destinationIndex] = 0;
+					destination[destinationIndex + 3] = 0;
 				}
 				else {
-					destination[destinationIndex] = currentSource[currentRegion.width * subY + subX];
+					destination[destinationIndex + 3] = currentSource[currentRegion.width * subY + subX];
 				}
 			}
 		}
@@ -403,7 +416,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		var pixmap = new quorum_Libraries_Game_Graphics_PixelMap_();
 		var map = pixmap.plugin_;
 		var format = new quorum_Libraries_Game_Graphics_Format_();
-		format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__ALPHA_());
+		format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
 		map.LoadFromFontBitmap(destination, totalWidth, totalHeight, format);
 
 		// Create File texture data

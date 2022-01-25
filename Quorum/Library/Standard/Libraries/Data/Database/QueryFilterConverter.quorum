@@ -1,0 +1,85 @@
+package Libraries.Data.Database
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Translate.QuorumOpcode
+
+class QueryFilterConverter
+    DatabaseMetaData meta = undefined
+    text conversion = ""
+    boolean hasConversion = false
+    Query query = undefined
+    Type finalType = undefined
+
+    action GetDatabaseMetaData returns DatabaseMetaData
+        return meta
+    end
+
+    action SetDatabaseMetaData(DatabaseMetaData meta)
+        me:meta = meta
+    end
+
+    action HasConversion returns boolean
+        return hasConversion
+    end
+
+    action Convert(text filter)
+        if meta = undefined
+            alert("Could not find database information. Did you request DatabaseMetaData
+                    from the database Connection?")
+        end
+        QuorumLexer luthor
+        CompilerErrorManager errors
+        luthor:SetCompilerErrorManager(errors)
+        luthor:Read(filter)
+
+        if not errors:IsCompilationErrorFree()
+            alert("Incorrect Query '" + filter + "' with error '" + errors:GetFirstMessageAsText() + ".'")
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+
+        if expression = undefined or not errors:IsCompilationErrorFree()
+            alert("Incorrect Query '" + filter + "' with error '" + errors:GetFirstMessageAsText() + ".'")
+        end
+        
+        QueryExpressionListener listener
+        listener:SetOriginalQuery(filter)
+        listener:SetCompilerErrorManager(errors)
+        listener:SetDatabaseMetaData(meta)
+        listener:SetQuery(query)
+        expression:Traverse(listener)
+        listener:Finish()
+
+
+        if not listener:GetOpcodeStack():IsEmpty()
+            QuorumOpcode opcode = listener:GetOpcodeStack():Peek()
+            finalType = opcode:GetType()
+        end
+        conversion = listener:GetConversion()
+        hasConversion = listener:HasConversion()
+    end
+
+    action GetConversion returns text
+        return conversion
+    end
+
+    action GetFinalType returns Type
+        return finalType
+    end
+
+    action GetQuery returns Query
+        return query
+    end
+
+    action SetQuery(Query query)
+        me:query = query
+    end
+
+end

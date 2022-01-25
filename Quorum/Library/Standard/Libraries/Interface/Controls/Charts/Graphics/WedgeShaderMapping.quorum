@@ -1,0 +1,52 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Game.Graphics.Shaders.DefaultShaderMapping2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Interface.Item2D
+
+class WedgeShaderMapping is DefaultShaderMapping2D
+
+    ShaderProgram program = undefined
+    GameStateManager manager
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
+        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        if drawable is Wedge
+            Wedge wedge = cast(Wedge, drawable)
+            program:SetShaderInput("u_outerRadius", wedge:GetOuterRadius())
+            program:SetShaderInput("u_innerRadius", wedge:GetInnerRadius())
+            program:SetShaderInput("u_minAngle", wedge:GetStartPercentage())
+            program:SetShaderInput("u_maxAngle", wedge:GetEndPercentage())
+
+            if wedge:GetParent() = undefined
+                program:SetShaderInput("u_originPoint", wedge:GetGlobalX() + wedge:GetWidth() / 2, wedge:GetGlobalY() + wedge:GetHeight() / 2)
+            else
+                Item2D item = wedge:GetParent()
+                program:SetShaderInput("u_originPoint", item:GetGlobalX() + item:GetWidth() / 2, item:GetGlobalY() + item:GetHeight() / 2)
+            end
+        end
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
+
+end

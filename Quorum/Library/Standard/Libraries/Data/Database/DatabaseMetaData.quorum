@@ -1,0 +1,71 @@
+package Libraries.Data.Database
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+/*
+    This class represents meta data for a particular query back from a database.
+*/
+class DatabaseMetaData
+    HashTable<text, DatabaseTable> tables
+
+    /*
+        Used internally by plugins to fill out the metadata
+    */
+    action Add(DatabaseTable table) 
+        tables:Add(table:GetName(), table)
+    end
+
+    /*
+        Used internally by plugins to fill out the metadata
+    */
+    action GetSize returns integer
+        return tables:GetSize()
+    end
+
+    /*
+        Searches for table by name and returns the DatabaseTable 
+        which contains more information about the table stored in the database.
+    */
+    action GetTable(text name) returns DatabaseTable
+        if tables:IsEmpty()
+            QueryDatabaseForTables()
+        end
+
+        return tables:GetValue(name)
+    end
+
+    /*
+        Returns the Iterator for iterating through the database tables.
+    */
+    action GetIterator returns Iterator<DatabaseTable>
+        return tables:GetValueIterator()
+    end
+
+    /*
+        This action queries the database connection for any tables in the database and its columns,
+        filling the in-memory representation of these objects for use. If this action is called 
+        multiple times, it will keep adding to the table, which means that refreshes of this object
+        require calling Empty before use. Otherwise, we get duplicates.
+    */
+    system action QueryDatabaseForTables
+
+
+    /*
+        Clears the list of tables. Used to prevent the metadata from having duplicates if QueryForDatabaseForTables
+        needs to be called multiple times.
+    */
+    action Empty
+        tables:Empty()
+    end
+
+    /*
+        Some queries can add more tables or views which would alter the metadata. This action can be
+        used to refresh the metadata so it can be up to data with the state of the database after a
+        query.
+    */
+    action RefreshTables()
+        Empty()
+        QueryDatabaseForTables()
+    end
+
+end

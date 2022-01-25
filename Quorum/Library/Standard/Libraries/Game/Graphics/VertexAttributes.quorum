@@ -24,6 +24,8 @@ class VertexAttributes
     // The cached value of the GetMask action. 
     private integer mask = -1 
 
+    BitwiseOperations bits
+
     // private ReadOnlyIterable<VertexAttribute> iterable
 
     action SetAttributes(Array<VertexAttribute> array)
@@ -80,7 +82,6 @@ class VertexAttributes
     */
     action GetMask returns integer
         if mask = -1
-            BitwiseOperations bits
             integer index = 0
             integer result = 0
 
@@ -93,6 +94,17 @@ class VertexAttributes
         end
 
         return mask
+    end
+
+    /*
+    This action tests if a particular type of VertexAttribute (as identified by its integer code)
+    is present in the VertexAttributes. Most commonly, the code should be one of the constants in
+    this class, such as POSITION or NORMAL.
+
+    Attribute: Parameter attributeCode An integer representing a VertexAttribute, such as the POSITION constant in this class
+    */
+    action HasAttribute(integer attributeCode) returns boolean
+        return bits:And(GetMask(), attributeCode) not= 0
     end
 
     private action CalculateOffsets returns integer

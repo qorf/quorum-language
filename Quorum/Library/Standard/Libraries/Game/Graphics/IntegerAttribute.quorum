@@ -4,7 +4,10 @@ use Libraries.Game.Graphics.Attribute
 
 class IntegerAttribute is Attribute
     
+    AttributeManager manager
+
     public constant text CULL_FACE_ALIAS = "cullFace"
+    public constant integer CULL_FACE = manager:Register(CULL_FACE_ALIAS)
 
     public integer value = 0
 
@@ -18,6 +21,8 @@ class IntegerAttribute is Attribute
         return new
     end
 
-    system action GetCullFaceValue returns integer
+    action GetCullFaceValue returns integer
+        return CULL_FACE
+    end
 
 end

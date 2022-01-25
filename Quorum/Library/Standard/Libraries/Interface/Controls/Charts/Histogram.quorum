@@ -107,7 +107,11 @@ class Histogram is SharedBarChartParent
         if GetNumberOfBars() = 1
             bartext = GetNumberOfBars() + " bar."
         end
-        SetDescription(" with " + grouptext + bartext + " Use the arrow keys to navigate the chart.")
+        if GetName() = "Histogram"
+            SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+        else
+            SetDescription("Histogram with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+        end
         return GetDescription()
     end
 

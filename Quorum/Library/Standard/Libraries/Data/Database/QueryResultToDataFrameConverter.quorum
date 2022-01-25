@@ -1,0 +1,78 @@
+package Libraries.Data.Database
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.BooleanColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.BigIntegerColumn
+
+class QueryResultToDataFrameConverter
+    DatabaseTypeConstants constants
+    private action GetColumn(integer type) returns DataFrameColumn 
+        if constants:IsText(type)
+            TextColumn column
+            return column
+        elseif constants:IsInteger(type)
+            IntegerColumn column
+            return column
+        elseif constants:IsNumber(type)
+            NumberColumn column
+            return column
+        elseif constants:IsBoolean(type)
+            BooleanColumn column
+            return column
+        elseif constants:IsInteger64(type)
+            BigIntegerColumn column
+            return column
+        end
+        return undefined
+    end
+
+    action Convert(QueryResult result) returns DataFrame
+        if result = undefined
+            return undefined
+        end
+
+        QueryMetaData meta = result:GetQueryMetaData()
+        if meta = undefined
+            return undefined
+        end
+
+        DataFrame frame 
+        Array<DataFrameColumn> columns
+        Array<integer> locations
+        integer size = meta:GetSize()
+        i = 0
+        repeat while i < size
+            //If it has a name, try to put it in a frame
+            if meta:GetName(i) not= undefined
+                DataFrameColumn col = GetColumn(meta:GetType(i))
+                if col not= undefined
+                    col:SetHeader(meta:GetName(i))
+                    columns:Add(col)
+                    locations:Add(i)
+                end
+            end
+            
+            i = i + 1
+        end
+
+        //now get all of the rows into the columns
+        repeat while result:HasNext()
+            result:Next()
+            i = 0
+            repeat while i < locations:GetSize()
+                integer col = locations:Get(i)
+                DataFrameColumn column = columns:Get(i)
+                text value = result:GetText(col)
+                column:Add(value)
+                i = i + 1
+            end
+        end
+
+        frame:SetColumns(columns)
+        return frame
+    end
+end

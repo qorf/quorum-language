@@ -76,7 +76,11 @@ class ScatterPlot is TwoVariableChart
         if points = 1
             pointText = "point"
         end
-        SetDescription("Scatter Plot with" + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+        if GetName() = "Scatter Plot"
+            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+        else
+            SetDescription("Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+        end
         return GetDescription()
     end
 
