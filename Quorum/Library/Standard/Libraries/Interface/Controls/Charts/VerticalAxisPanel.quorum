@@ -67,6 +67,7 @@ class VerticalAxisPanel is Control
     boolean overrideDefaultTickCount = false
     boolean overrideDefaultTickInterval = false
     boolean overrideDefaultNumberFormat = false
+    boolean appendPercent = false
 
     text titleText = ""
     text numberformat = "integer"
@@ -352,7 +353,11 @@ class VerticalAxisPanel is Control
                     scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
                 end    
                 if overrideLabels = undefined
-                    label:SetText(scaleText)
+                    if appendPercent
+                        label:SetText(scaleText + "%")
+                    else
+                        label:SetText(scaleText)
+                    end
                 else
                     scaleText = overrideLabels:Get((cast(integer, i*intervaloverride) mod overrideLabels:GetSize()))
                     label:SetText(scaleText)
@@ -1089,6 +1094,14 @@ class VerticalAxisPanel is Control
 
     action OverrideDefaultMax(boolean flag)
         overrideDefaultMax = flag
+    end
+
+    action UsePercent returns boolean
+        return appendPercent
+    end
+
+    action UsePercent(boolean flag)
+        appendPercent = flag
     end
 
     action GetNumberOfSections returns integer

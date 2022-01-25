@@ -551,6 +551,22 @@ class Chart is Control
         end
     end
 
+    action SetYAxisUsePercent(boolean bool)
+        verticalPanel:UsePercent(bool)
+    end
+
+    action GetYAxisUsePercent returns boolean
+        return verticalPanel:UsePercent()
+    end
+
+    action SetXAxisUsePercent(boolean bool)
+        horizontalPanel:UsePercent(bool)
+    end
+
+    action GetXAxisUsePercent returns boolean
+        return horizontalPanel:UsePercent()
+    end
+
     /*
     These actions are used to offset the start of the tick placement
     if the chart has added white space on either side of the chart area.

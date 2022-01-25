@@ -1,0 +1,237 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.Histogram
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Graphics.Color
+use Libraries.Web.Page.Script
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Icon
+
+/*
+    The HistogramWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Gabriel Contreras
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.Histogram
+    use Libraries.Interface.Controls.Charts.HistogramWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    Histogram chart = frame:Histogram()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    HistogramWriter writer
+    output writer:WriteOutChart(chart)
+*/
+
+class HistogramWriter is ChartWriter
+
+    private number outerEdgePadding = 0
+    private number betweenGroupPadding = 0
+    private number betweenBarPadding = 0
+    private number barWidthPercent = 0
+    private number barHeightPercent = 0
+    
+    Array<Rectangle> bars
+
+    action WriteOutChart(Histogram chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(Histogram chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(Histogram chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
+
+    action WriteOutChart(Histogram chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        Histogram histogram
+        histogram = cast(Histogram, chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area " + histogram:GetNumberOfBars() + " bars.")
+        end
+    end
+
+    /*
+        This action adds the content of the Histogram
+    */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        Histogram histogram
+        histogram = cast(Histogram, chart)
+        AddBars(canvas, histogram)
+    end
+
+    /*
+        This action adds the content of the Histogram to the SVG
+    */
+
+    private action AddBars(ScalableVectorGraphics canvas, Histogram chart)
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
+
+        if not chart:IsSeparatedByFactor()
+            i = 0
+            repeat while i < chart:GetBarGroups():GetSize()
+                BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
+    
+                if chart:HasGroups()
+                    Rectangle barGroup
+                    barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
+                    barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
+                    barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
+                    barGroup:SetFill(transparent)
+                    barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
+                    barGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
+                    end
+                    GetGroupPanels():Add(barGroup)
+                    canvas:Add(barGroup)
+    
+                end
+                
+                j = 0
+                repeat while j < currentBarGroup:GetSize()
+                    Bar currentBar = currentBarGroup:Get(j)
+    
+                    Rectangle bar
+                    bar:SetWidth(currentBar:GetIcon():GetWidth())
+                    bar:SetHeight(currentBar:GetIcon():GetHeight())
+                    bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
+                    bar:SetFill(currentBar:GetIcon():GetColor())
+                    bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    bar:SetTabIndex(-1)
+                    if HasAccessibility()
+                        bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
+                    end
+                    bars:Add(bar)
+                    canvas:Add(bar)
+    
+                    j = j + 1
+                end
+    
+                i = i + 1
+            end
+        else
+            i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                j = 0
+                repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                    Icon currentBar
+                    currentBar = cast(Icon, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
+    
+                    Rectangle bar
+                    bar:SetWidth(currentBar:GetWidth())
+                    bar:SetHeight(currentBar:GetHeight())
+                    bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                    bar:SetFill(currentBar:GetColor())
+                    bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    bar:SetTabIndex(-1)
+                    if HasAccessibility()
+                        bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                    end
+                    bars:Add(bar)
+                    canvas:Add(bar)
+    
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        
+        Histogram histogram
+        histogram = cast(Histogram, chart)
+
+        if not chart:IsSeparatedByFactor()
+            Array<BarGroup> barGroups = histogram:GetBarGroups()
+    
+            UnorderedList barGroupsUL
+            barGroupsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(barGroupsUL)
+            
+            UnorderedList currentGrouping = barGroupsUL
+            i = 0
+            repeat while i < barGroups:GetSize()
+                if histogram:HasGroups()
+                    ListItem barGroupNav 
+                    barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
+                    barGroupNav:AddAttribute("role","treeitem")
+                    barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                    barGroupNav:AddAttribute("aria-expanded","false")
+                    barGroupNav:SetTabIndex("-1")
+                    barGroupsUL:Add(barGroupNav)
+        
+                    
+                    UnorderedList barsUL
+                    barsUL:AddAttribute("role","group")
+                    barGroupNav:AddNestedTag(barsUL)
+                    currentGrouping = barsUL
+                end
+                
+                j = 0
+                repeat while j < barGroups:Get(i):GetSize()
+                    ListItem barNav 
+                    barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
+                    barNav:AddAttribute("role","treeitem")
+                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                    barNav:SetTabIndex("-1")
+                    currentGrouping:Add(barNav)
+    
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        else
+            UnorderedList subChartAreaItemsUL
+            subChartAreaItemsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
+
+            i = 0
+            repeat while i < chartArea:GetChartAreaItems():GetSize()
+                Item bar = chartArea:GetChartAreaItems():Get(i)
+                ListItem barNav 
+                barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode() + "-nav")
+                barNav:AddAttribute("role","treeitem")
+                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode())
+                barNav:SetTabIndex("-1")
+                subChartAreaItemsUL:Add(barNav)
+
+                i = i + 1
+            end
+        end
+    end
+end
