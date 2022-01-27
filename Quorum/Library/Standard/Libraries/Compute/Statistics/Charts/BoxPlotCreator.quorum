@@ -311,8 +311,13 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = 0
             repeat while i < numberKeyArray:GetSize()
                 PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
+                if CheckIfInteger(numberKeyArray:Get(i))
+                    group:SetName(cast(text, cast(integer, numberKeyArray:Get(i))))
+                    groupNames:Add(cast(text, cast(integer, numberKeyArray:Get(i))))
+                else
+                    groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
+                end
                 chart:AddPlotGroup(group)
-                groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
                 i = i + 1
             end
        else
@@ -335,6 +340,10 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
         return chart
+    end
+
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
     end
 
     private action SetScale(BoxPlot chart, number ymin, number ymax, number xmin, number xmax)

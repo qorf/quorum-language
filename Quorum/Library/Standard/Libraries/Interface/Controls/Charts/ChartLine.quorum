@@ -16,7 +16,6 @@ use Libraries.Interface.Controls.Charts.ChartLinePointComparison
     Attribute: Author Cody Molisee
 */
 class ChartLine is Drawable
-    text name = ""
     Array<ChartPoint> points
     Array<LineSegment> lines
     private boolean showPoints = true
@@ -25,14 +24,6 @@ class ChartLine is Drawable
     ChartPoint lineStart
     ChartPoint lineEnd
     Series series = undefined
-
-    action GetName returns text
-        return name
-    end
-
-    action SetName(text name)
-        me:name = name
-    end
 
     /*
     Returns max y point of all points
@@ -141,7 +132,6 @@ class ChartLine is Drawable
         points:Add(point)
         if points:GetSize() > 1
             LineSegment line
-            line:SetName("Line ")
             lines:Add(line)
         end
     end
@@ -154,24 +144,23 @@ class ChartLine is Drawable
         ChartLinePointComparison comparison
         points:Sort(comparison)
 
-        lineStart = points:Get(0)
-        lineEnd = points:Get(points:GetSize()-1)
+        if points:GetSize() > 0
+            lineStart = points:Get(0)
+            lineEnd = points:Get(points:GetSize()-1)
+            lineMax = points:Get(0)
+            lineMin = points:Get(0)
 
-        //Get max point and min point
-        number maxY = 0.0
-        number minY = 1.0
-        i = 0
-        repeat while i < points:GetSize()
-            if points:Get(i):GetValueY() > maxY
-                maxY = points:Get(i):GetValueY()
-                lineMax = points:Get(i)
+            integer i = 1
+            repeat while i < points:GetSize()
+                if points:Get(i):GetValueY() > lineMax:GetValueY()
+                    lineMax = points:Get(i)
+                end
+                if points:Get(i):GetValueY() < lineMin:GetValueY()
+                    lineMin = points:Get(i)
+                end
+                i = i + 1
             end
-            if points:Get(i):GetValueY() < minY
-                minY = points:Get(i):GetValueY()
-                lineMin = points:Get(i)
-            end
-            i = i + 1
-        end
+        end        
     end
 
     action GetSeries returns Series

@@ -76,10 +76,10 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             copyFrame:Sort(copyFrame:GetColumn(GetFactor(0)):GetHeader())
             DataFrameColumn factor = copyFrame:GetColumn(GetFactor(0))
             DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
-            return CreateChart(factor, column)
+            return CreateChart(factor, column, true)
 
         elseif columns > 1 and factors = 1
-            return CreateChart(frame)
+            return CreateChart(frame, true)
 
         elseif columns = 1 and factors = 2
             //Make a copy of the frame so it can be sorted without altering the original
@@ -88,7 +88,56 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             DataFrameColumn factor1 = copyFrame:GetColumn(GetFactor(0))
             DataFrameColumn factor2 = copyFrame:GetColumn(GetFactor(1))
             DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
-            return CreateChart(factor1, factor2, column)
+            return CreateChart(factor1, factor2, column, true)
+
+        else
+            alert("BarChartCreator does not support the number of column/factors that were selected")
+        end
+        return undefined
+    end
+
+    action Create(DataFrame frame, boolean sort) returns Chart
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        if columns = 1 and factors = 0
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            if column:IsNumberColumn()
+                return CreateChartBySum(frame) // Create bars by sum of column
+            else
+                return CreateChartByCount(column) // Create bars by count
+            end
+
+        elseif columns > 1 and factors = 0
+            return CreateChartBySum(frame) // Create bars by sum of each column
+
+        elseif columns = 0 and factors = 1
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            return CreateChartByCount(factor) // Create bars by count
+
+        elseif columns = 1 and factors = 1
+            //Make a copy of the frame so it can be sorted without altering the original
+            DataFrame copyFrame = frame:Copy()
+            if sort
+                copyFrame:Sort(copyFrame:GetColumn(GetFactor(0)):GetHeader())
+            end
+            DataFrameColumn factor = copyFrame:GetColumn(GetFactor(0))
+            DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
+            return CreateChart(factor, column, sort)
+
+        elseif columns > 1 and factors = 1
+            return CreateChart(frame, sort)
+
+        elseif columns = 1 and factors = 2
+            //Make a copy of the frame so it can be sorted without altering the original
+            DataFrame copyFrame = frame:Copy()
+            if sort
+                copyFrame:Sort(copyFrame:GetColumn(GetFactor(0)):GetHeader() + "," + copyFrame:GetColumn(GetFactor(1)):GetHeader())
+            end
+            DataFrameColumn factor1 = copyFrame:GetColumn(GetFactor(0))
+            DataFrameColumn factor2 = copyFrame:GetColumn(GetFactor(1))
+            DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
+            return CreateChart(factor1, factor2, column, sort)
 
         else
             alert("BarChartCreator does not support the number of column/factors that were selected")
@@ -233,7 +282,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    private action CreateChart(DataFrame frame) returns BarChart
+    private action CreateChart(DataFrame frame, boolean sort) returns BarChart
         BarChart chart
         integer columns = GetColumnSize()
         
@@ -317,10 +366,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         // Sort and add the series
         Array <Series> seriesList
         Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
+        if sort
+            if comparison = undefined
+                seriesKeyArray:Sort()
+            else
+                seriesKeyArray:Sort(comparison)
+            end
         end
         i = 0
         repeat while i < seriesKeyArray:GetSize()
@@ -348,10 +399,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         // Sort the bar groups within the chart
         if numerical
             Array<number> numberKeyArray = numberForText:CopyToKeyArray()
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
+            if sort
+                if comparison = undefined
+                    numberKeyArray:Sort()
+                else
+                    numberKeyArray:Sort(comparison)
+                end
             end
             i = 0
             repeat while i < numberKeyArray:GetSize()
@@ -361,10 +414,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 i = i + 1
             end
         else
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
+            if sort
+                if comparison = undefined
+                    groupKeyArray:Sort()
+                else
+                    groupKeyArray:Sort(comparison)
+                end
             end
             i = 0
             repeat while i < groupKeyArray:GetSize()
@@ -382,7 +437,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    private action CreateChart(DataFrameColumn factor, DataFrameColumn column) returns BarChart
+    private action CreateChart(DataFrameColumn factor, DataFrameColumn column, boolean sort) returns BarChart
         BarChart chart
         if not column:IsNumberColumn()
             alert("BarChartCreator does not support text columns used with factors.")
@@ -405,8 +460,27 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         column:Calculate(summary)
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
-        DataFrameColumn uniqueFactor = factor:Copy(true,true)
-        HashTable<text, Number> groupingFactor = CreateSortedGrouping(uniqueFactor) 
+        DataFrameColumn uniqueFactor = factor:Copy(sort,true)
+        if not sort
+            DataFrameColumn preserveOrder = uniqueFactor:Copy()
+            integer preserveOrderIndex = 0
+            integer i = 0
+            repeat while i < factor:GetSize()
+                integer j = 0
+                repeat while j < uniqueFactor:GetSize()
+                    if uniqueFactor:GetAsText(j) not= undefined and factor:GetAsText(i) = uniqueFactor:GetAsText(j)
+                        preserveOrder:CopyToRow(uniqueFactor, preserveOrderIndex, j)
+                        uniqueFactor:SetAsText(j,undefined)
+                        preserveOrderIndex = preserveOrderIndex + 1
+                    end
+                    j = j + 1
+                end
+
+                i = i + 1
+            end
+            uniqueFactor = preserveOrder:Copy()
+        end
+        HashTable<text, Number> groupingFactor = CreateSortedGrouping(uniqueFactor)
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor:IsUndefined(i)
@@ -454,7 +528,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BarChart
+    private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column, boolean sort) returns BarChart
         BarChart chart
         if not column:IsNumberColumn()
             alert("BarChartCreator does not support text columns used with factors.")
@@ -474,8 +548,47 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         number max = summary:GetMaximum()
         number min = summary:GetMinimum()
         
-        DataFrameColumn uniqueFactor1 = factor1:Copy(true,true)
-        DataFrameColumn uniqueFactor2 = factor2:Copy(true,true)       
+        DataFrameColumn uniqueFactor1 = factor1:Copy(sort,true)
+        if not sort
+            DataFrameColumn preserveOrder = uniqueFactor1:Copy()
+            integer preserveOrderIndex = 0
+            integer i = 0
+            repeat while i < factor1:GetSize()
+                integer j = 0
+                repeat while j < uniqueFactor1:GetSize()
+                    if uniqueFactor1:GetAsText(j) not= undefined and factor1:GetAsText(i) = uniqueFactor1:GetAsText(j)
+                        preserveOrder:CopyToRow(uniqueFactor1, preserveOrderIndex, j)
+                        uniqueFactor1:SetAsText(j,undefined)
+                        preserveOrderIndex = preserveOrderIndex + 1
+                    end
+                    j = j + 1
+                end
+
+                i = i + 1
+            end
+            uniqueFactor1 = preserveOrder:Copy()
+        end
+
+        DataFrameColumn uniqueFactor2 = factor2:Copy(sort,true)  
+        if not sort
+            DataFrameColumn preserveOrder = uniqueFactor2:Copy()
+            integer preserveOrderIndex = 0
+            integer i = 0
+            repeat while i < factor2:GetSize()
+                integer j = 0
+                repeat while j < uniqueFactor2:GetSize()
+                    if uniqueFactor2:GetAsText(j) not= undefined and factor2:GetAsText(i) = uniqueFactor2:GetAsText(j)
+                        preserveOrder:CopyToRow(uniqueFactor2, preserveOrderIndex, j)
+                        uniqueFactor2:SetAsText(j,undefined)
+                        preserveOrderIndex = preserveOrderIndex + 1
+                    end
+                    j = j + 1
+                end
+
+                i = i + 1
+            end
+            uniqueFactor2 = preserveOrder:Copy()
+        end     
 
         HashTable<text, HashTable<text, Number>> groupingFactor = CreateSortedGrouping(uniqueFactor1,uniqueFactor2)
         HashTable<text, Series> seriesFactor = CreateSortedSeriesList(uniqueFactor2)

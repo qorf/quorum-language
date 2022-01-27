@@ -25,73 +25,95 @@ use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Compute.Math
 
+/*
+    This class represents the horizontal axis panel area on the charts.
+    This class is not meant to be accessed by the user directly.
+    All of its actions and components should only be controlled by the user
+    through the Chart class.
+
+
+    Attribute: Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            BarChart chart
+            chart:SetXAxisMinimum(-10)
+            chart:SetXTickCount(5)
+            chart:ShowXTicks(true)
+            Add(chart)
+        end
+    end
+*/
 
 class HorizontalAxisPanel is Control
     ChartOptions options
     Math math
 
-    Drawable axis = undefined
-    ControlLabel title = undefined
-    Array <ControlLabel> labels
-    Array <text> overrideLabels = undefined
-    Array <Drawable> ticks
-    Array <Drawable> brackets
-    Array <Drawable> majorlines
-    Array <Drawable> minorlines
-    ControlLabel longestLabel
+    private Drawable axis = undefined
+    private ControlLabel title = undefined
+    private Array <ControlLabel> labels
+    private Array <text> overrideLabels = undefined
+    private Array <Drawable> ticks
+    private Array <Drawable> brackets
+    private Array <Drawable> majorlines
+    private Array <Drawable> minorlines
+    private ControlLabel longestLabel
 
-    boolean tickCountOverride = false
-    boolean labelOverridesAreNumbers = false
-    boolean showGroupBrackets = false
-    boolean showTicks = false
+    private boolean labelOverridesAreNumbers = false
+    private boolean showGroupBrackets = false
+    private boolean showTicks = false
 
-    integer numberOfSections = 1
-    integer minorlinecount = 5
-    integer tickCount = 0
-    integer tickHeight = 15
-    integer tickWidth = 3
-    integer labelCount = 0
-    integer titleFontSize = 0
-    integer labelFontSize = 0
-    number tickInterval = -1.0 //This is used for the numerical label spacing
-    integer intervaloverride = 1 //This is used for the text label spacing
-    number min = 0.0
-    number max = 0.0
-    number sumOfLabelHeights = 0
-    number sumOfLabelWidths = 0
-    number labelMinimum = 0
-    integer labelRotation = 0
-    integer paddingOffset = 0
+    private integer numberOfSections = 1
+    private integer minorlinecount = 5
+    private integer tickCount = 0
+    private integer tickHeight = 15
+    private integer tickWidth = 3
+    private integer labelCount = 0
+    private integer titleFontSize = 0
+    private integer labelFontSize = 0
+    private number tickInterval = -1.0 //This is used for the numerical label spacing
+    private integer intervaloverride = 1 //This is used for the text label spacing
+    private number min = 0.0
+    private number max = 0.0
+    private number sumOfLabelHeights = 0
+    private number sumOfLabelWidths = 0
+    private number labelMinimum = 0
+    private integer labelRotation = 0
+    private integer paddingOffset = 0
     
-    boolean blockPaddingOffset = false
-    boolean overrideDefaultMin = false
-    boolean overrideDefaultMax = false
-    boolean overrideDefaultTickCount = false
-    boolean overrideDefaultTickInterval = false
-    boolean overrideDefaultNumberFormat = false
+    private boolean blockPaddingOffset = false
+    private boolean overrideDefaultMin = false
+    private boolean overrideDefaultMax = false
+    private boolean overrideDefaultTickCount = false
+    private boolean overrideDefaultTickInterval = false
+    private boolean overrideDefaultNumberFormat = false
+    boolean appendPercent = false
 
-    text titleText = ""
-    text numberformat = "integer"
+    private text titleText = ""
+    private text numberformat = "integer"
 
     on create
         ManualLayout layout
         SetLayout(layout)
 
+        Color transparent
+        transparent:SetColor(0,0,0,0)
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:STANDARD)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetBackgroundColor(transparent)
+        properties:SetBorderColor(transparent)
+        properties:SetBorderThickness(4)
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
-
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:Black())
         SetName("x axis")
 
         SetFocusable(true)
@@ -103,9 +125,9 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the x-axis. Also the highest level of the information tree
-    of  the chart.
+        This is called by GenerateInfoTree to generate the summary that is heard when
+        you first focus on the x-axis. Also the highest level of the information tree
+        of  the chart.
     */
     private action GenerateSummary returns text
         if labels:GetSize() > 0
@@ -115,7 +137,7 @@ class HorizontalAxisPanel is Control
             if overrideLabels not= undefined
                 if labels:GetSize() = 1
                     text list = "The label is " + labels:Get(labels:GetSize()-1):GetText()
-                    SetDescription(" uses text labels, there is, " + overrideLabels:GetSize() + " label. " + list)
+                    SetDescription(" has " + overrideLabels:GetSize() + " text label. " + list)
                 else
                     text list = "The labels are "
                     integer i = 0
@@ -123,11 +145,11 @@ class HorizontalAxisPanel is Control
                         list = list + labels:Get(i):GetText() + ", "
                         i = i + 1
                     end
-                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText()
-                    SetDescription(" uses text labels, there are, " + overrideLabels:GetSize() + " labels. " + list)
+                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText() + ". "
+                    SetDescription(" has " + overrideLabels:GetSize() + " text labels. " + list)
                 end
             else
-                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ".")
+                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ". ")
             end
         end
         return GetDescription()
@@ -136,10 +158,10 @@ class HorizontalAxisPanel is Control
     /*
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
-    */
-    /*
-        Generates the tree of ChartItems that define how the chart will be 
-        navigated and what extra information might be sent to the screen reader.
+        All of the chartItems that are descendants of this axis will be skipped in navigation
+        if the axis is not showing.
+
+        Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         xAxis:SetFocusTarget(me)
@@ -180,15 +202,47 @@ class HorizontalAxisPanel is Control
                 i = i + 1
             end
             xAxis:SetLastChild(previousLabel)
-        elseif chart:GetSubHorizontalPanels():GetSize() > 0
+        elseif chart:GetSubHorizontalPanels():GetSize() = 1
+            Array<ControlLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
+            if overrideLabels not= undefined
+                chart:GetSubHorizontalPanels():Get(0):SetOverrideLabels(labels)
+            end
+            SetDescription(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
+            SetName(titleText + " axis, ")
+            ChartItem firstLabel
+            firstLabel:SetContainer(chart)
+            if labels:GetSize() > 0
+                xAxis:SetChild(firstLabel)
+                firstLabel:SetParent(xAxis)
+                firstLabel:SetFocusTarget(labels:Get(0))
+            end
+    
+            i = 1
+            ChartItem previousLabel = firstLabel
+            repeat while i < labels:GetSize()
+                ChartItem labelNode
+                labelNode:SetContainer(chart)
+                labelNode:SetParent(xAxis)
+                labelNode:SetFocusTarget(labels:Get(i))
+                previousLabel:SetNext(labelNode)
+                labelNode:SetPrevious(previousLabel)
+                previousLabel = labelNode
+                i = i + 1
+            end
+            xAxis:SetLastChild(previousLabel)
+        else
             //SubPanel axis
-            
+            if overrideLabels not= undefined
+                chart:GetSubHorizontalPanels():Get(0):SetOverrideLabels(chart:GetSubHorizontalPanels():Get(0):GetLabels())
+            end
             ChartItem firstSubPanel
-            firstSubPanel:SetContainer(chart)
             xAxis:SetChild(firstSubPanel)
             firstSubPanel:SetParent(xAxis)
+            firstSubPanel:SetContainer(chart)
             firstSubPanel:SetFocusTarget(chart:GetSubHorizontalPanels():Get(0))
-            
+            firstSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
+            chart:GetSubHorizontalPanels():Get(0):SetName("Sub " + titleText + " axis, ")
+            chart:GetSubHorizontalPanels():Get(0):SetDescription(firstSubPanel:GetDisplayName() + " 1 of " + numberOfSections + " sub axes.")  
             Array<ControlLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
             if labels:GetSize() > 0
                 ChartItem firstLabel
@@ -215,14 +269,19 @@ class HorizontalAxisPanel is Control
             i = 1
             ChartItem previousSubPanel = firstSubPanel
             repeat while i < chart:GetSubHorizontalPanels():GetSize()
+                if overrideLabels not= undefined
+                    chart:GetSubHorizontalPanels():Get(i):SetOverrideLabels(chart:GetSubHorizontalPanels():Get(i):GetLabels())
+                end
                 ChartItem currentSubPanel
                 currentSubPanel:SetContainer(chart)
                 currentSubPanel:SetParent(xAxis)
                 currentSubPanel:SetFocusTarget(chart:GetSubHorizontalPanels():Get(i))
+                currentSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(i):GenerateSummary())
+                chart:GetSubHorizontalPanels():Get(i):SetName("Sub " + titleText + " axis, ")
+                chart:GetSubHorizontalPanels():Get(i):SetDescription(currentSubPanel:GetDisplayName() + " " + (i+1) + " of " + numberOfSections + " sub axes.")
                 previousSubPanel:SetNext(currentSubPanel)
                 currentSubPanel:SetPrevious(previousSubPanel)
                 previousSubPanel = currentSubPanel
-                
 
                 labels = chart:GetSubHorizontalPanels():Get(i):GetLabels()
                 if labels:GetSize() > 0
@@ -250,13 +309,15 @@ class HorizontalAxisPanel is Control
                 i = i + 1
             end
             xAxis:SetLastChild(previousSubPanel)
+            SetName(titleText + " axis, ")
+            SetDescription(" with " + chart:GetSubHorizontalPanels():GetSize() + " sub axes")
         end
     end
 
     /*
-    This action is used to load the graphical components of the Control. This is
-    handled automatically by the Game engine as needed, and most users shouldn't
-    need to use this action directly.
+        This action is used to load the graphical components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
         if properties = undefined
@@ -264,6 +325,13 @@ class HorizontalAxisPanel is Control
         end
         parent:Control:LoadGraphics(properties)
     end
+
+    /*
+        This action is used to load the axis panel contents to the chart. 
+        It is used by the LoadGraphics action in the parent Chart. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+    */
     action LoadAxis(Chart chart, LayoutProperties properties)
         DisposeDrawables()
         if properties = undefined
@@ -300,27 +368,25 @@ class HorizontalAxisPanel is Control
             max = overrideLabels:GetSize()-1
         end
 
-        InitLabels(chart)
+        LoadAxisLabels(chart)
     end
 
-    action InitLabels(Chart chart)
-        number scaleWidth = CalculateScaleWidth(chart)
+    /*
+        This action is used to load the labels, gridlines and ticks into the correct chart area. 
+        This is handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+
+        Attribute: Parameter is Chart object that the axis will be added to.
+    */
+    private action LoadAxisLabels(Chart chart)
+        number scaleWidth = CalculateScaleWidth()
         labelCount = 0
         
         integer k = 0
         repeat while k < numberOfSections
             HorizontalAxisPanel subPanel = undefined
-            if chart:GetNumberOfChartAreas() > 1 and k < numberOfSections
+            if chart:GetNumberOfChartAreas() > 1 and k < chart:GetSubHorizontalPanels():GetSize()
                 subPanel = chart:GetSubHorizontalPanels():Get(k)
-                ManualLayout manualLayout
-                subPanel:SetLayout(manualLayout)
-
-                Color color
-                color:SetColor(0,0,0,0)
-                LayoutProperties properties = subPanel:GetDefaultLayoutProperties()
-                properties:SetBackgroundColor(color)
-                properties:SetBorderColor(color)
-                properties:SetBorderThickness(4)
                 Add(subPanel)
             end
             number scaleNum = min
@@ -365,11 +431,18 @@ class HorizontalAxisPanel is Control
                     scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
                 end    
                 if overrideLabels = undefined
-                    label:SetText(scaleText)
+                    if appendPercent
+                        label:SetText(scaleText + "%")
+                    else
+                        label:SetText(scaleText)
+                    end
+                    label:SetDescription(" label. ")
                 else
                     scaleText = overrideLabels:Get((cast(integer, i*intervaloverride) mod overrideLabels:GetSize()))
-                    label:SetText(scaleText)
+                    label:SetDescription(", " + (i+1) + " of " + tickCount + " labels.")
                 end
+                label:SetText(scaleText)
+                label:SetName(scaleText)
                 number labelHeight = label:GetHeight()
                 number labelWidth = label:GetWidth()
                 if labelWidth > longestLabel:GetWidth()
@@ -452,7 +525,27 @@ class HorizontalAxisPanel is Control
         end
     end
 
-    action CalculateScaleWidth(Chart chart) returns number
+    /*
+        This action is used by LoadAxisLabels to calculate an aesthetically pleasing, easy-to-read interval, min and max.
+        These default calculations can be overridden by manually setting the min, max, interval, or tickcount.
+        The default number display for a label will be an integer if possible, but can be manually set to a number format.
+        If the labels are text labels the interval will be 1.
+        Example:
+
+        DataFrame frame
+        frame:Load("../Data.csv")
+        frame:AddSelectedColumns("Information")
+        LineChart chart = frame:LineChart()
+        chart:SetXTickInterval(75)
+        chart:SetXTickCount(10)
+        chart:SetXAxisMinimum(-10)
+        chart:SetXAxisMaximum(750)
+        chart:SetXAxisNumberFormat("number")
+        chart:Display()
+
+        Attribute: Returns the interval between tick marks.
+    */
+    private action CalculateScaleWidth returns number
         number range = max-min
         number scaleWidth = 0.0
 
@@ -553,7 +646,19 @@ class HorizontalAxisPanel is Control
         return scaleWidth
     end
 
-    action RunDefault(number scaleWidth)
+    /*
+        RunDefault is a supplemental action used in CalculateScaleWidth that will set
+        the min, max and tick count that best shows the data. This action will not be 
+        used if the user has set their own min, max or tickcount.
+
+        In short, this will round the min down to the next divisor of the interval 
+        while max will round up to the next divisor of the interval.
+        After the default min and max are set then the tickCount will get set to divide
+        the whole range by the interval.
+
+        Attribute: Takes a number scaleWidth which is the interval between ticks.
+    */
+    private action RunDefault(number scaleWidth)
         if scaleWidth not= 1
             number minValue = math:Floor(min)
             number modResult = minValue mod scaleWidth
@@ -590,12 +695,14 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-        This action takes a range of data and returns a decent interval, this is only the default.
-        The user can choose any interval they wish and set it manually. 
+        CalculateBestIntervalForRange takes a range of data and returns a decent 
+        interval, this is only the default. The user can choose any interval they 
+        wish and set it manually. This action will not be used if the user set 
+        their own interval or tickcount.
 
-        Attribute: Returns a the best interval 
+        Attribute: Takes a range, and returns a reasonable interval.
     */
-    action CalculateBestIntervalForRange(number range) returns number
+    private action CalculateBestIntervalForRange(number range) returns number
         number tickSkips = 0
         if range <= 2.5
             if range > 1.5
@@ -639,7 +746,12 @@ class HorizontalAxisPanel is Control
         return tickSkips
     end
 
-    action DisposeDrawables()
+    /*
+        DisposeDrawables destroys the previous drawables as to avoid duplicates with 
+        the axis is resized and redrawn. It is called in LoadAxis before any new items
+        are added to the panel.
+    */
+    private action DisposeDrawables
         if title not= undefined
             title:Dispose()
             Remove(title)
@@ -731,9 +843,9 @@ class HorizontalAxisPanel is Control
 
 
     /*
-    These actions control the title on the axis.
-
-    Attribute: Label for horizontal panel.
+        These actions control the title on the axis.
+    
+        Attribute: Label for horizontal panel.
     */
 
     action GetTitleFontSize returns integer
@@ -775,7 +887,7 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    These actions get and set the tick width.
+        These actions get and set the tick width.
     */
     action GetTickWidth returns integer
         return tickWidth
@@ -786,7 +898,7 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    These actions get and set the tick length.
+        These actions get and set the tick height.
     */
     action GetTickHeight returns integer
         return tickHeight
@@ -797,11 +909,11 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-
-    Attribute: Array of major and minor gridlines and number of minor gridlines
+        This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
+    
+        Attribute: Arrays of major and minor gridlines and number of minor gridlines
     */
     action GetMinorGridlineCount returns integer
         return minorlinecount
@@ -827,25 +939,14 @@ class HorizontalAxisPanel is Control
         return majorlines
     end
 
-    /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-    */
     action SetTicks(Array<Drawable> ticks)
         me:ticks = ticks
     end
 
-    /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-    */
     action GetTicks returns Array<Drawable>
         return ticks
     end
 
-    // This is used when the user manually sets the number of ticks.
     action SetTickCount(integer ticks)
         if overrideLabels = undefined
             if ticks > 1
@@ -883,13 +984,6 @@ class HorizontalAxisPanel is Control
         return intervaloverride
     end
 
-    /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
-
-    Attribute: The tick labels for the axis
-    */
     action GetLabels returns Array<ControlLabel>
         return labels
     end
@@ -956,7 +1050,7 @@ class HorizontalAxisPanel is Control
         end
     end  
 
-    action ChangeOverrideLabelsToIntegers()
+    private action ChangeOverrideLabelsToIntegers()
         integer i = 0
         repeat while i < overrideLabels:GetSize()
             number value = cast(number, overrideLabels:Get(i))
@@ -968,7 +1062,7 @@ class HorizontalAxisPanel is Control
         end
     end
 
-    action ChangeOverrideLabelsToNumbers()
+    private action ChangeOverrideLabelsToNumbers()
         integer i = 0
         repeat while i < overrideLabels:GetSize()
             number value = cast(number, overrideLabels:Get(i))
@@ -986,12 +1080,12 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    These actions control whether decimal numbers or integers are shown
-    along the x-axis (if the axis is numerical not text)
-    All values are stored in number format but can be 
-    read or used as integer format if UseInteger() returns true.
-
-    Attribute: Text that is either "integer" or "number"
+        These actions control whether decimal numbers or integers are shown
+        along the x-axis (if the axis is numerical not text)
+        All values are stored in number format but can be 
+        read or used as integer format if UseInteger() returns true.
+    
+        Attribute: Text that is either "integer" or "number"
     */
     action SetNumberFormat(text format)
         numberformat = format
@@ -1004,6 +1098,7 @@ class HorizontalAxisPanel is Control
                 ChangeOverrideLabelsToIntegers()
             end
         end
+        overrideDefaultNumberFormat = true
     end
 
     action GetNumberFormat() returns text
@@ -1011,7 +1106,7 @@ class HorizontalAxisPanel is Control
     end
 
     // This action is used for a number scale axis not a text axis.
-    action UseIntegers() returns boolean
+    private action UseIntegers() returns boolean
         if numberformat = "integer"
             return true
         else
@@ -1019,19 +1114,14 @@ class HorizontalAxisPanel is Control
         end
     end
     
-    action CheckIfInteger(number value) returns boolean
-        integer val = cast(integer, value)
-        if val not= value
-            return false
-        else
-            return true
-        end
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
     end
 
     /*
-    These actions control the minimum and maximum horizontal scale.
-    These values are used in all charts regardless if axis is showing 
-    or not in order to scale the items to the right location.
+        These actions control the minimum and maximum horizontal scale.
+        These values are used in all charts regardless if axis is showing 
+        or not in order to scale the items to the right location.
     */
     action GetMinimum returns number
         return min
@@ -1050,9 +1140,9 @@ class HorizontalAxisPanel is Control
     end
 
     /*
-    This action is used by the layout to position the graphical components of 
-    the Chart. Layout is handled automatically so users don't need to use this
-    action directly.
+        This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
     */
     action GetAxis returns Drawable
         return axis
@@ -1102,6 +1192,14 @@ class HorizontalAxisPanel is Control
 
     action OverrideDefaultMax(boolean flag)
         me:overrideDefaultMax = flag
+    end
+
+    action UsePercent returns boolean
+        return appendPercent
+    end
+
+    action UsePercent(boolean flag)
+        appendPercent = flag
     end
 
     action GetNumberOfSections returns integer

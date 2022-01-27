@@ -14,6 +14,8 @@ use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Item2D
 use Libraries.System.File
 use Libraries.Interface.Controls.Icon
+use Libraries.Compute.Random
+use Libraries.System.DateTime
 
 class ChartWriter
     private number axisPointX = 105
@@ -134,7 +136,7 @@ class ChartWriter
         ScalableVectorGraphics chartCanvas
         chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetTabIndex(-1)
-        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode() + "-" + UniversalUniqueIdentifier())
         chartCanvas:SetRole("img")
 
         //Generate SVG elements for each piece of the chart
@@ -197,8 +199,12 @@ class ChartWriter
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
+        if chart:IsShowingXAxis()
+            AddXLabels(chartCanvas, chart)
+        end
+        if chart:IsShowingYAxis()
+            AddYLabels(chartCanvas, chart)
+        end
         AddAxes(chartCanvas, chart)
         AddChartTitle(chartCanvas, chart)
         AddChartContent(chartCanvas, chart)
@@ -1378,6 +1384,19 @@ class ChartWriter
 
     action TranslatePositionY(Item2D item) returns integer
         return cast(integer, svgHeight - item:GetGlobalY())
+    end
+
+    action UniversalUniqueIdentifier() returns text
+        Random random
+        DateTime datetime
+        text uuid = ""
+
+        random:SetSeed(datetime:GetSecond())
+        integer randomizedInteger = random:RandomInteger()
+
+        uuid = "" + datetime:GetMonth() + datetime:GetDayOfMonth() + datetime:GetYear() + datetime:GetHour() + datetime:GetMinute() + datetime:GetSecond() + randomizedInteger
+
+        return uuid
     end
 
 end
