@@ -93,8 +93,8 @@ class PieChartWriter is ChartWriter
     private action AddSlices(ScalableVectorGraphics canvas, PieChart chart)
         Math math
         if chart:GetPieBox() not= undefined
-            centerX = chart:GetPieBox():GetX() + chart:GetPieBox():GetWidth()/2 + cast(integer, chart:GetVerticalPanel():GetWidth())
-            centerY = chart:GetPieBox():GetY() + chart:GetPieBox():GetHeight()/2 + (GetChartHeight() - (GetChartAreaHeight()+cast(integer, chart:GetHorizontalPanel():GetHeight())))
+            centerX = chart:GetPieBox():GetX() + chart:GetPieBox():GetWidth()/2 + cast(integer, chart:GetChartArea():GetGlobalX())
+            centerY = chart:GetPieBox():GetY() + chart:GetPieBox():GetHeight()/2 + cast(integer, TranslatePositionY(chart:GetChartArea()) - chart:GetChartArea():GetHeight())
         end
 
         number prevX = 0 //Used on donut hole (inner radius)

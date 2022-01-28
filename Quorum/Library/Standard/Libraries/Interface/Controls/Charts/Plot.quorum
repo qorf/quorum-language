@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
+use Libraries.Containers.Support.Pair
 
 /*
 The Plot class is a data structure that stores information for each 
@@ -37,6 +38,7 @@ class Plot is Drawable
     text name = ""
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
+    Array<Pair<integer>> points
 
     /* Indices info of individual plot values (info)
         0: MEDIAN
@@ -153,4 +155,9 @@ class Plot is Drawable
     action GetMaxOutlierValue returns number
         return maxOutlierValue
     end
+
+    action GetPoints returns Array<Pair<integer>>
+        return points
+    end
+
 end
