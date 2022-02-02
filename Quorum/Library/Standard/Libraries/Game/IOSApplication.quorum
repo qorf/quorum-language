@@ -1,4 +1,5 @@
 package Libraries.Game
+
 use Libraries.Interface.Accessibility.MacAccessibility
 
 class IOSApplication is Application
@@ -12,6 +13,9 @@ class IOSApplication is Application
         parent:Application:Setup(game)
         SetupNative(game)
 
+        // NOTE: This needs to be moved. No code executes after "SetupNative" above (because the program enters the main loop).
+        // It's not clear yet where this needs to go -- it might go directly above SetupNative, but it depends on the implementation of the accessibility.
+        // It likely also needs to use a different accessibility manager instead of MacAccessibility.
         boolean enableAccessibility = true
         if enableAccessibility //We might need to change this, but it should do no harm having it pass in events
             MacAccessibility mac

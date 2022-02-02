@@ -446,7 +446,8 @@ public class DesktopGraphics implements GraphicsManager {
         return GL11.glGenTextures();
     }
 
-    public void glGenTextures (int n, IntBuffer textures) {
+    public void glGenTextures (int n, IntBuffer textures)
+    {
         GL11.glGenTextures(textures);
     }
 

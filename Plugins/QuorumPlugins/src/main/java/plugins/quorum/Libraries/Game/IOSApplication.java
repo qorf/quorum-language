@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Game;
 
 import quorum.Libraries.Game.Game_;
+import quorum.Libraries.Game.Graphics.GraphicsManager;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
@@ -63,18 +64,11 @@ public class IOSApplication
     public static void SetOperatingSystem()
     {
         quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
-        Foundation.log("%@", new NSString("Version is " + System.getProperty("os.name")));
-        /*
-        Foundation.log("%@", new NSString("Default directory + path: " + qFile.GetWorkingDirectory() + " + " + qFile.GetPath()));
-        Foundation.log("%@", new NSString("Version is " + System.getProperty("os.version")));
-        Foundation.log("%@", new NSString("Device name is " + UIDevice.getCurrentDevice().getName()));
-        */
+
         if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
             GameStateManager.operatingSystem = "iOS Simulator";
         else
             GameStateManager.operatingSystem = "iOS Device";
-
-        //Foundation.log("%@", new NSString("Set OS as " + GameState.GetOperatingSystem()));
     }
 
     public static boolean IsSimulator() {
@@ -97,11 +91,7 @@ public class IOSApplication
         {
             plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
             qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
-            Foundation.log("%@", new NSString("Default working directory set to " + NSBundle.getMainBundle().getBundlePath()));
-            Foundation.log("%@", new NSString ("Directory listing is:\n" + qFile.GetDirectoryListingNative()));
         }
-        else
-            Foundation.log("%@", new NSString("Did not change default working directory for simulator."));
 
         delegate = new IOSDelegate();
         delegate.Begin(this);

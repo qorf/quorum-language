@@ -9,6 +9,8 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+
+import org.lwjgl.opengl.GL20;
 import org.robovm.apple.foundation.Foundation;
 import org.robovm.apple.foundation.NSString;
 import static plugins.quorum.Libraries.Game.Graphics.GraphicsManager.GL_FLOAT;
@@ -387,7 +389,12 @@ public class IOSGraphics implements GraphicsManager
         glGetIntegerv(code, buffer);
         return buffer.get(0);
     }
-    
+
+    public void SetVertexInputID(int program, int index, String name)
+    {
+        glBindAttribLocation(program, index, name);
+    }
+
     public int GetGraphicsErrorCode()    
     {
         return glGetError();

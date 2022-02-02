@@ -190,11 +190,9 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         
         context = new EAGLContext(EAGLRenderingAPI.OpenGLES3);
         if(context == null) {
-            Foundation.log("%@", new NSString("Null Context"));
-        } else {
-            Foundation.log("%@", new NSString("Context: " + context.getAPI().name()));
+            Foundation.log("%@", new NSString("Could not create OpenGL context."));
         }
-        Foundation.log("%@", new NSString("OpenGLES Version: " + OpenGLES.getMajorVersion() + ", " + OpenGLES.getMinorVersion()));
+
         /*
         Creation of an anonymous inner class using GLKView which will call to
         the proper input handler (when it is implemented) and will call upon
@@ -402,7 +400,9 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             // Create the game's Painter2D.
             //Painter2D painter = new Painter2D();
             ((quorum.Libraries.Game.IOSApplication)GameStateManager.application).plugin_.game.InitializeLayers();
-            
+
+            GameStateManager.nativeGraphics.ClearScreenColor(0.85f, 0.85f, 0.85f, 1.0f);
+
             app.game.CreateGame();
             //app.game.Resize(width, height);
             created = true;

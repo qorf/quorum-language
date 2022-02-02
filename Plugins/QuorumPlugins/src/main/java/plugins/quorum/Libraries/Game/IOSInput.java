@@ -605,7 +605,7 @@ public class IOSInput
                 final CGRect bounds = app.GetCachedBounds();
                 
                 locX = (int)(loc.getX() * app.displayScaleFactor - bounds.getMinX());
-                //Foundation.log("%@", new NSString("Min bounds are " + bounds.getMinX() + ", " + bounds.getMinY()));
+
                 // We need to invert the y-axis to match the Quorum engine's y-axis.
                 locY = (int)(bounds.getMaxY() - (loc.getY() * app.displayScaleFactor));
                 
