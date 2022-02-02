@@ -7,20 +7,49 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.ColorGroup
 
+/*
+    This class represents the horizontal axis panel area on the charts.
+    This class is not meant to be accessed by the user directly.
+    All of its actions and components should only be controlled by the user
+    through the Chart class.
+
+
+    Attribute: Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            BarChart chart
+            Color color
+            chart:SetChartAreaBorderColor(color:Black())
+            Add(chart)
+        end
+    end
+*/
 
 class ChartAreaPanel is Control
-    Series series = undefined
-    text name = ""
-    Array <Item> chartAreaItems
-    boolean isShowing = false
+    private LayoutProperties properties = undefined
+    private Series series = undefined
+    private text title = ""
+    private Array <Item> chartAreaItems
+    private boolean isShowing = false
 
     on create
         ManualLayout manualLayout
         SetLayout(manualLayout)
-
+        
         Color color
-        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties = GetDefaultLayoutProperties()
         properties:SetBackgroundColor(color:White())
         properties:SetBorderColor(color:White())
         properties:SetBorderThickness(4)
@@ -48,11 +77,7 @@ class ChartAreaPanel is Control
         end
     end
 
-    action OutlineChartArea 
-        Color color
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetBorderColor(color:Black())
-
+    action LoadChartAreaView 
         if properties:GetView2D() = undefined
             LabelBoxView view 
             view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
@@ -80,11 +105,18 @@ class ChartAreaPanel is Control
     end
 
     action GetTitleName returns text
-        return name
+        return title
     end
 
     action SetTitleName(text name)
-        me:name = name
+        me:title = name
     end
 
+    action SetBorderColor(ColorGroup color)
+        properties:SetBorderColor(color)
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        properties:SetBackgroundColor(color)
+    end
 end

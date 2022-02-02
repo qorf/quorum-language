@@ -28,6 +28,7 @@ class ChartLayout is Layout
     integer minimumLabelOffset = 35
     number yLabelHeight = 0.30
     Math math
+    Color color
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         LayoutProperties containerProperties
@@ -52,15 +53,17 @@ class ChartLayout is Layout
                 originPointY = cast(integer, chart:GetHeight()*chart:GetHorizontalPanelHeightPercent())
 
                 // Title
-                ControlLabel titleLabel = chart:GetTitleLabel()
-                if titleLabel:GetDefaultLayoutProperties():NeedsRendering()
-                    titleLabel:LoadGraphics(titleLabel:GetDefaultLayoutProperties())
+                if chart:IsShowingTitle()
+                    ControlLabel titleLabel = chart:GetTitleLabel()
+                    if titleLabel:GetDefaultLayoutProperties():NeedsRendering()
+                        titleLabel:LoadGraphics(titleLabel:GetDefaultLayoutProperties())
+                    end
+                    number titleAreaWidth = chart:GetChartArea():GetWidth()
+                    number titleAreaHeight = containerHeight*chart:GetTitleAreaHeightPercent()
+                    integer titleX = originPointX + cast(integer, titleAreaWidth/2 - titleLabel:GetWidth()/2)
+                    integer titleY = cast(integer, containerHeight- titleAreaHeight/2 - titleLabel:GetHeight()/2)
+                    titleLabel:SetPosition(titleX, titleY)
                 end
-                number titleAreaWidth = chart:GetChartArea():GetWidth()
-                number titleAreaHeight = containerHeight*0.10 //hardcoded right now.
-                integer titleX = originPointX + cast(integer, titleAreaWidth/2 - titleLabel:GetWidth()/2)
-                integer titleY = cast(integer, containerHeight- titleAreaHeight/2 - titleLabel:GetHeight()/2)
-                titleLabel:SetPosition(titleX, titleY)
                 
                 //Get Panel Containers
                 HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()
@@ -130,7 +133,8 @@ class ChartLayout is Layout
                         end
                         subContainer:SetPosition(x, y)
                         subContainer:SetSize(width, height)
-                        subContainer:OutlineChartArea()
+                        subContainer:SetBorderColor(color:Black())
+                        subContainer:LoadChartAreaView()
                         LayoutChartContent(chart, subContainer)
                         if y = 0 and k < horizontalContainer:GetNumberOfSections()
                             HorizontalAxisPanel subAxis = chart:GetSubHorizontalPanels():Get(k)

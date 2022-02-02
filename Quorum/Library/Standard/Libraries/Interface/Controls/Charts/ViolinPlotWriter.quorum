@@ -15,13 +15,19 @@ use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Vector
 use Libraries.Interface.Layouts.ViolinPlotLayout
 use Libraries.Game.Graphics.Color
+use Libraries.Web.Page.ListItem
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
+use Libraries.Containers.Support.Pair
+use Libraries.Game.Graphics.Drawable
+use Libraries.Web.Page.UnorderedList
+use Libraries.Interface.Item
 
 /*
     The ViolinPlotWriter class is part of the set of writers that allow for Charts
     to save their representation in the form ScalableVectorGraphics. This class will write out
     all of the necessary text needed to write out an SVG file that will contain the chart.
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Gabriel Contreras, Hannah Williams
 
     Attribute: Example
 
@@ -40,291 +46,361 @@ use Libraries.Game.Graphics.Color
     ViolinPlotWriter writer
     output writer:WriteOutChart(chart)
 */
-class ViolinPlotWriter
-    private number axisPointX = 15
-    private number axisPointY = 85
-    private number axisLength = 75
+class ViolinPlotWriter is ChartWriter
 
-/*
-    This action writes out the ViolinPlot by grabbing necessary information from the chart and it will then return
-    all of the necessary text needed to write out an SVG file that will contain the chart.
+    action WriteOutChart(ViolinPlot chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
 
-    Attribute: Parameter chart The chart that will be used to create an SVG
+    action WriteOutChart(ViolinPlot chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
 
-    Attribute: Example
-
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Interface.Controls.Charts.ViolinPlot
-    use Libraries.Interface.Controls.Charts.ViolinPlotWriter
-    
-    DataFrame frame
-    frame:Load("Data.csv")
-    frame:SetSelectedColumnRange(0,1)
-    ViolinPlot chart = frame:ViolinPlot()
-    chart:Display()
-
-    ViolinPlotWriter writer
-    output writer:WriteOutChart(chart)
-*/
     action WriteOutChart(ViolinPlot chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
 
-        ScalableVectorGraphics chartCanvas
-        chartCanvas:SetSize(700,600)
-
-        Label chartTitle
-        Label xAxisLabel
-        Label yAxisLabel
-
-        //start setting stuff
-        AddBackground(chartCanvas)
-        AddAxes(chartCanvas)
-        chartTitle:SetText(chart:GetTitle())
-        chartTitle:SetTextAnchor("middle")
-        chartTitle:SetPosition(50, 5, "%")
-        chartTitle:SetFontSize("18pt")
-        chartCanvas:Add(chartTitle)
-
-        xAxisLabel:SetText(chart:GetXAxisTitle())
-        xAxisLabel:SetTextAnchor("middle")
-        xAxisLabel:SetPosition(50, 95, "%")
-        xAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(xAxisLabel)
-
-        yAxisLabel:SetText(chart:GetYAxisTitle())
-        yAxisLabel:SetTextAnchor("middle")
-        yAxisLabel:SetPosition(5, 50, "%")
-        yAxisLabel:SetTransform("rotate(270, 40,300)")
-        yAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(yAxisLabel)
-
-
-        AddViolins(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
-
-        return chartCanvas:ToText()
+    action WriteOutChart(ViolinPlot chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
     end
 
     /*
         This action adds a white background to the canvas
     */
-    private action AddBackground(ScalableVectorGraphics canvas)
-        Rectangle background
-        background:SetFill("white")
-        background:SetSize(100,100, "%")
-        canvas:Add(background)
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area ")
+        end
     end
 
     /*
-        This action adds the two lines for the x and y axis
+        This action adds the content of the Violin Plot
     */
-    private action AddAxes(ScalableVectorGraphics canvas)
-        Line xAxis
-        Line yAxis
-        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
-        xAxis:SetStroke("black")
-        xAxis:SetTabIndex(-1)
-        xAxis:SetStrokeWidth(0.4,"%")
-        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
-        yAxis:SetStroke("black")
-        yAxis:SetTabIndex(-1)
-        yAxis:SetStrokeWidth(0.4,"%")
-
-        canvas:Add(xAxis)
-        canvas:Add(yAxis)
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        ViolinPlot plot
+        plot = cast(ViolinPlot, chart)
+        AddViolins(canvas, plot)
     end
 
     /*
-        This action adds the content of the BarChart
+        This action adds the content of the Violin Plot
     */
     private action AddViolins(ScalableVectorGraphics canvas, ViolinPlot chart)
-        //this is needed for calculations so this will probably change if stuff is moved around 
-        ViolinPlotLayout layout
-        boolean split = chart:GetSplitFlag()
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
 
-        Array <PlotGroup> plotGroups = chart:GetPlotGroups()
-        integer groups = plotGroups:GetSize()
-        if groups > 0 and axisLength > 0 // To eliminate divide by zero
-            number panelwidth = axisLength/groups
-            number height = axisLength
-            number dataScale = chart:GetYAxisMaximum()/height
+        if not chart:IsSeparatedByFactor()
+            Array <PlotGroup> plotGroups = chart:GetPlotGroups()
 
             integer i = 0
-            repeat while i < groups
+            repeat while i < plotGroups:GetSize()
                 PlotGroup group = plotGroups:Get(i)
-                integer plots = group:GetSize()
 
-                //Give each group an alloted section  
-                integer startpanelw = cast(integer, panelwidth*i)
-
-                if plots > 0
-                    if split
-                        if plots = 2
-                            plots = 1 // changing the width and line percent for this plot to use 1 section instead of two
-                        else
-                            split = false
-                        end
+                if chart:HasGroups()
+                    Rectangle plotGroup
+                    plotGroup:SetWidth(group:GetItem():GetWidth())
+                    plotGroup:SetHeight(group:GetItem():GetHeight())
+                    plotGroup:SetPosition(group:GetItem():GetGlobalX(), TranslatePositionY(group:GetItem()) - group:GetItem():GetHeight()) 
+                    plotGroup:SetFill(transparent)
+                    plotGroup:SetID(canvas:GetID() + "-" + group:GetHashCode())
+                    plotGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotGroup:SetAriaLabel(group:GetItem():GetName() + group:GetItem():GetDescription())
                     end
-
-                    integer width = cast(integer, panelwidth/plots)
-                    integer center = cast(integer, width/2) 
-                    integer centerOffset = center
-                    integer size = cast(integer, width/4)
-                    number linePercent = (0.005)*plots*groups
-                    if linePercent > 0.05
-                        linePercent = 0.05
-                    end
-
-                    integer line = cast(integer, width * linePercent)
-                    integer midline = line/2
-                    line = midline*2
-
-                    integer k = 0
-                    repeat while k < group:GetSize()
-                        Plot plot = group:Get(k)
-                        number median = plot:GetInfoAt(0)
-                        number lowerQuartile = plot:GetInfoAt(1)
-                        number upperQuartile = plot:GetInfoAt(2)
-                        number min = plot:GetInfoAt(3)
-                        number max = plot:GetInfoAt(4)
-            
-                        //Give each chart an alloted section  
-                        integer startw = width*k + startpanelw
-                        integer centerline = center - midline //This is to center the vertical lines over the very middle of the plot area
-                        if split
-                            centerline = center - line
-                        end
-                        integer x = startw + centerline
+                    GetGroupPanels():Add(plotGroup)
+                    canvas:Add(plotGroup)
     
-                        //even though lines could be used here rectangles are used for translation purposes
-                        // IQR Region
-                        Rectangle first
-                        first:SetSize(line*2, cast(integer,(upperQuartile-lowerQuartile)/dataScale), "%")
-                        first:SetPosition(axisPointX + startw + (center - line), axisPointY - cast(integer, lowerQuartile/dataScale)-midline, "%")
-                        first:SetFill("black")
+                end
 
-                        // Whisker
-                        Rectangle second
-                        second:SetSize(line, cast(integer, (max-min)/dataScale), "%")
-                        second:SetPosition(axisPointX + x, axisPointY - cast(integer, max/dataScale)-midline, "%")
-                        second:SetFill("black")
+                integer k = 0
+                repeat while k < group:GetSize()
+                    Plot plot = group:Get(k)
+                    Array<Drawable> items = plot:GetPlotItems()
+                    /* Indices for items of individual violin plot
+                        0: PLOT AREA (ENTIRE REGION)
+                        1: MINIMUM LINE
+                        2: LOWER WHISKER
+                        3: INTERQUARTILE RANGE
+                        4: RIGHT BORDER OF IQR - not used in violin plots
+                        5: LEFT BORDER OF IQR - not used in violin plots
+                        6: Q1 LINE
+                        7: MEDIAN LINE
+                        8: Q3 LINE
+                        9: UPPER WHISKER    
+                        10: MAXIMUM LINE 
+                        11: PIXEL DENSITY MAP
+                    */        
 
-                        // Maximum
-                        Rectangle third
-                        third:SetSize(line, line, "%")
-                        third:SetPosition(axisPointX + x, axisPointY - cast(integer, max/dataScale)-midline, "%")
-                        third:SetFill("black")
-
-                        // Q1
-                        Rectangle fourth
-                        fourth:SetSize(line, line, "%")
-                        fourth:SetPosition(axisPointX + x, axisPointY - cast(integer, upperQuartile/dataScale)-midline, "%")     
-                        fourth:SetFill("black")
-
-                        // Median
-                        Circle dot
-                        dot:SetRadius(midline, "%")
-                        dot:SetPosition(axisPointX + x, axisPointY - cast(integer, median/dataScale)-midline, "%")
-                        dot:SetFill("white")
-
-                        // Q3
-                        Rectangle fifth
-                        fifth:SetSize(line, line, "%")
-                        fifth:SetPosition(axisPointX + x, axisPointY - cast(integer, lowerQuartile/dataScale)-midline, "%")
-                        fifth:SetFill("black")
-
-                        // Minimum
-                        Rectangle sixth
-                        sixth:SetSize(line, line, "%")
-                        sixth:SetPosition(axisPointX + x, axisPointY - cast(integer, min/dataScale)-midline, "%")
-                        sixth:SetFill("black")
-                        
-                        //bandWidth will be auto set to a value according the height of the chart
-                        number bandWidth = chart:GetYAxisMaximum()*0.015
-                        Array<number> estimates = layout:EstimateDensity(bandWidth,dataScale,plot:GetData(),chart:GetWindowingAction())
-                        integer nextPixel = cast(integer, min/dataScale)+1
-                        number maxEstimate = estimates:Get(estimates:GetSize()-1)
-                        number estimateScale = maxEstimate/(width/2)
-                        integer index = 0
-                        repeat while index < estimates:GetSize()-1
-                            number estimate = estimates:Get(index)
-                            number pixW = cast(integer, (estimate/estimateScale)*0.75)
-                            number pixH = height - nextPixel
-                            Line tempLine
-                            tempLine:SetPoints(axisPointX + center-pixW, axisPointY - axisLength + pixH,axisPointX + center+pixW, axisPointY - axisLength + pixH, "%")
-                            tempLine:SetStroke("blue")
-                            tempLine:SetStrokeWidth(6)
-                            canvas:Add(tempLine)
-                            nextPixel = nextPixel + 1
-                            index = index + 1
-                        end
-                        canvas:Add(first)
-                        canvas:Add(second)
-                        canvas:Add(third)
-                        canvas:Add(fourth)
-                        canvas:Add(dot)
-                        canvas:Add(fifth)
-                        canvas:Add(sixth)
-                        k = k + 1
+                    // LAYER ONE   
+                    // Index 0: This is the transparent box around the entire plot used for navigation.
+                    Rectangle plotArea
+                    plotArea:SetSize(items:Get(0):GetWidth(),items:Get(0):GetHeight())
+                    plotArea:SetPosition(items:Get(0):GetGlobalX(), TranslatePositionY(items:Get(0)) - items:Get(0):GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(0):GetHashCode())
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaLabel(items:Get(0):GetName() + items:Get(0):GetDescription())
                     end 
+                    canvas:Add(plotArea)                         
+              
+                    // Index 11: The violin shape, will be loaded as a polygon in the SVG          
+                    Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
+                    Polygon violin
+                    integer index = 0
+                    repeat while index < points:GetSize()
+                        integer xCoor = points:Get(index):GetFirstValue() + cast(integer, chart:GetChartArea():GetGlobalX())
+                        integer yCoor = points:Get(index):GetSecondValue() + cast(integer, TranslatePositionY(chart:GetChartArea()) - chart:GetChartArea():GetHeight())
+                        if chart:GetHorizontalFlag()
+                            yCoor = cast(integer, TranslatePositionY(chart:GetChartArea())) - points:Get(index):GetSecondValue()
+                        end
+                        violin:AddPoint(xCoor, yCoor)
+                        index = index + 1
+                    end 
+                    violin:SetFill(plot:GetIcon():GetColor())
+                    violin:SetTabIndex(-1)
+                    violin:SetStroke("black")
+                    violin:SetStrokeWidth(1)
+                    canvas:Add(violin)
+
+                    // LAYER TWO
+                    Circle medianDot
+                    index = 1
+                    repeat while index < 11
+                        if index = 7 // This is the median dot shape to be initialized now and added in the next layer.
+                            number radius = items:Get(index):GetHeight()/2
+                            medianDot:SetRadius(radius)
+                            medianDot:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
+                            medianDot:SetFill("white")  
+                            medianDot:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                            medianDot:SetStroke("black")
+                            medianDot:SetStrokeWidth(1)
+                            medianDot:SetTabIndex(-1)
+                            if HasAccessibility()
+                                medianDot:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                            end 
+                        else
+                            // Skip the IQR borders, as our violin plots do not use them.
+                            if index not= 4 and index not= 5
+                                Rectangle plotLine
+                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
+                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
+                                plotLine:SetFill("black")
+                                plotLine:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                end 
+                                canvas:Add(plotLine)
+                            end
+                        end
+                        index = index + 1
+                    end
+
+                    //LAYER THREE
+                    // Index 7: The median dot, we want this to sit on top of the other elements so it's the last to be added.
+                    canvas:Add(medianDot)
+    
+                    k = k + 1
                 end  
+                i = i + 1
+            end
+        else
+            integer i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                integer j = 0
+                repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                    Plot plot
+                    plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
+
+                    Array<Drawable> items = plot:GetPlotItems()
+                    /* Indices for items of individual violin plot
+                        0: PLOT AREA (ENTIRE REGION)
+                        1: MINIMUM LINE
+                        2: LOWER WHISKER
+                        3: INTERQUARTILE RANGE
+                        4: RIGHT BORDER OF IQR - not used in violin plots
+                        5: LEFT BORDER OF IQR - not used in violin plots
+                        6: Q1 LINE
+                        7: MEDIAN LINE
+                        8: Q3 LINE
+                        9: UPPER WHISKER    
+                        10: MAXIMUM LINE 
+                        11: PIXEL DENSITY MAP
+                    */    
+
+                    // LAYER ONE   
+                    // Index 0: This is the transparent box around the entire plot used for navigation.
+                    Rectangle plotArea
+                    plotArea:SetSize(items:Get(0):GetWidth(),items:Get(0):GetHeight())
+                    plotArea:SetPosition(items:Get(0):GetGlobalX(), TranslatePositionY(items:Get(0)) - items:Get(0):GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(0):GetHashCode())
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaLabel(items:Get(0):GetName() + items:Get(0):GetDescription())
+                    end 
+                    canvas:Add(plotArea)                                  
+                
+                    // Index 11: The violin shape, will be loaded as a polygon in the SVG. It is not directly included in the navigation tree as of now.        
+                    Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
+                    Polygon violin
+                    integer index = 0
+                    repeat while index < points:GetSize()
+                        integer xCoor = points:Get(index):GetFirstValue() + cast(integer, chart:GetSubChartAreas():Get(i):GetGlobalX())
+                        integer yCoor = points:Get(index):GetSecondValue() + cast(integer, TranslatePositionY(chart:GetSubChartAreas():Get(i)) - chart:GetSubChartAreas():Get(i):GetHeight())
+                        violin:AddPoint(xCoor, yCoor)
+                        index = index + 1
+                    end 
+                    violin:SetFill(plot:GetIcon():GetColor())
+                    violin:SetStroke("black")
+                    violin:SetStrokeWidth(1)
+                    violin:SetTabIndex(-1)
+                    canvas:Add(violin)
+
+                    // LAYER TWO
+                    Circle medianDot
+                    index = 1
+                    repeat while index < 11
+                        if index = 7 // This is the median dot shape to be initialized now and added in the next layer.
+                            number radius = items:Get(index):GetHeight()/2
+                            medianDot:SetRadius(radius)
+                            medianDot:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
+                            medianDot:SetFill("white")
+                            medianDot:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                            medianDot:SetTabIndex(-1)
+                            if HasAccessibility()
+                                medianDot:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                            end  
+                        else
+                            // Skip the IQR borders, as our violin plots do not use them.
+                            if index not= 4 and index not= 5
+                                Rectangle plotLine
+                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
+                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
+                                plotLine:SetFill("black")
+                                plotLine:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                end
+                                canvas:Add(plotLine)
+                            end
+                        end
+                        index = index + 1
+                    end
+
+                    //LAYER THREE
+                    // Index 7: The median dot, we want this to sit on top of the other elements so it's the last to be added.
+                    canvas:Add(medianDot)
+    
+                    j = j + 1
+                end
                 i = i + 1
             end
         end
     end
 
-    /*
-        This action adds the labels on the x axis
-    */
-    private action AddXLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
-//        integer i = 0
-//        Array<text> xLabelText = chart:GetXAxisLabels()
-//        integer total = chart:GetPlotGroups():GetSize()
-//        number space = axisLength/(total)
-//        repeat while i < total
-//            Label tempLabel
-//
-//            tempLabel:SetText(chart:GetXAxisLabels():Get(i))
-//            tempLabel:SetTextAnchor("middle")
-//            tempLabel:SetPosition(axisPointX + (i) * space + space/2, axisPointY + 4, "%")
-//            canvas:Add(tempLabel)
-//            i = i + 1
-//        end
-    end
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        ViolinPlot violinPlot
+        violinPlot = cast(ViolinPlot, chart)
 
-    /*
-        This action the labels on the y axis
-    */
-    private action AddYLabels(ScalableVectorGraphics canvas, ViolinPlot chart)
-//        number scaleNum = 0//chart:GetYAxisMinimum()
-//        
-//        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
-//        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
-//        // scale
-//        Math math
-//        i = 0
-//        //output chart:GetYMax()
-//        repeat while i < chart:GetYTickCount()
-//            Label scaleLabel
-//            Line scaleTick
-//            
-//            scaleLabel:SetTextAnchor("end")
-//            scaleLabel:SetText("" + math:Round(scaleNum, 1))
-//            scaleLabel:SetFontSize("8pt")
-//            scaleNum = scaleNum + scaleWidth
-//
-//            scaleTick:SetTabIndex(-1)
-//            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
-//            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
-//            scaleTick:SetStroke("black")
-//            scaleTick:SetStrokeWidth(0.4,"%")
-//            
-//            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
-//
-//            canvas:Add(scaleLabel)
-//            canvas:Add(scaleTick)
-//        i = i+1
-//        end
-    end
+        if not chart:IsSeparatedByFactor()
+            Array<PlotGroup> plotGroups = violinPlot:GetPlotGroups()
+    
+            UnorderedList plotGroupsUL
+            plotGroupsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(plotGroupsUL)
+            
+            UnorderedList currentGrouping = plotGroupsUL
+            i = 0
+            repeat while i < plotGroups:GetSize()
+                if violinPlot:HasGroups()
+                    ListItem plotGroupNav 
+                    plotGroupNav:SetIdentifier(canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode() + "-nav")
+                    plotGroupNav:AddAttribute("role","treeitem")
+                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode())
+                    plotGroupNav:AddAttribute("aria-expanded","false")
+                    plotGroupNav:SetTabIndex("-1")
+                    plotGroupsUL:Add(plotGroupNav)
+        
+                    
+                    UnorderedList plotsUL
+                    plotsUL:AddAttribute("role","group")
+                    plotGroupNav:AddNestedTag(plotsUL)
+                    currentGrouping = plotsUL
+                end
+            
+                j = 0
+                repeat while j < plotGroups:Get(i):GetSize()
+                    Plot plot = plotGroups:Get(i):Get(j)
+                    ListItem plotNav 
+                    plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode() + "-nav")
+                    plotNav:AddAttribute("role","treeitem")
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode())
+                    plotNav:AddAttribute("aria-expanded","false")
+                    plotNav:SetTabIndex("-1")
+                    currentGrouping:Add(plotNav)
 
+                    UnorderedList itemsUL
+                    itemsUL:AddAttribute("role","group")
+                    plotNav:AddNestedTag(itemsUL)
+
+                    k = 1
+                    repeat while k < 11 //plotGroups:Get(i):Get(j):GetPlotItems():GetSize()
+                        // Add navigation for all parts.
+                        if k not= 2 and k not= 4 and k not= 5 and k not= 9 and k not= 11 // Skip the elements not included in the navigation
+                            ListItem itemNav 
+                            itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                            itemNav:AddAttribute("role","treeitem")
+                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                            itemNav:SetTabIndex("-1")
+                            itemsUL:Add(itemNav)
+                        end
+                        k = k + 1
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        else
+            UnorderedList subChartAreaItemsUL
+            subChartAreaItemsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
+
+            i = 0
+            repeat while i < chartArea:GetChartAreaItems():GetSize()
+                Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
+
+                ListItem plotNav 
+                plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode() + "-nav")
+                plotNav:AddAttribute("role","treeitem")
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode())
+                plotNav:AddAttribute("aria-expanded","false")
+                plotNav:SetTabIndex("-1")
+                subChartAreaItemsUL:Add(plotNav)
+
+                UnorderedList itemsUL
+                itemsUL:AddAttribute("role","group")
+                plotNav:AddNestedTag(itemsUL)
+
+                k = 1
+                repeat while k < 11 //plotGroups:Get(i):Get(j):GetPlotItems():GetSize()
+                    // Add navigation for all parts.
+                    if k not= 2 and k not= 4 and k not= 5 and k not= 9 and k not= 11 // Skip the elements not included in the navigation
+                        ListItem itemNav 
+                        itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                        itemNav:AddAttribute("role","treeitem")
+                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                        itemNav:SetTabIndex("-1")
+                        itemsUL:Add(itemNav)
+                    end
+                    k = k + 1
+                end
+                i = i + 1
+            end
+        end
+    end
 end
