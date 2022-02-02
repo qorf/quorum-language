@@ -959,6 +959,10 @@ class HorizontalAxisPanel is Control
         overrideDefaultTickCount = flag
     end
 
+    action GetOverrideDefaultTickCount returns boolean
+        return overrideDefaultTickCount
+    end
+
     action GetTickCount() returns integer
         return tickCount
     end
@@ -974,6 +978,10 @@ class HorizontalAxisPanel is Control
 
     action OverrideDefaultInterval(boolean flag)
         overrideDefaultTickInterval = flag
+    end
+
+    action GetOverrideDefaultInterval returns boolean
+        return overrideDefaultTickInterval
     end
 
     action GetTickInterval() returns number
