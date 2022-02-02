@@ -334,6 +334,7 @@ class SharedBarChartParent is Chart
         ChartItem summary = GetInfoTreeRoot()
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
+        summary:SetNext(chartArea)
         summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
