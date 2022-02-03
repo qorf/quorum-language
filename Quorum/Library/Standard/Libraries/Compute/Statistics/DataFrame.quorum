@@ -57,6 +57,7 @@ use Libraries.Compute.Statistics.Charts.BoxPlotCreator
 use Libraries.Interface.Controls.Charts.BoxPlot
 use Libraries.Compute.Statistics.Charts.PieChartCreator
 use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -578,6 +579,9 @@ class DataFrame
             elseif col:IsBooleanColumn()
                 BooleanColumn boolCol = cast(BooleanColumn, col)
                 tuple:values:Add(boolCol:Get(row))
+            elseif col is DateTimeColumn
+                DateTimeColumn dateTimeCol = cast(DateTimeColumn, col)
+                tuple:values:Add(dateTimeCol:Get(row))
             else
                 alert("Could not find the column type of column index: " + sortOrder:Get(i))
             end
