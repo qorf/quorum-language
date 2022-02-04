@@ -1680,6 +1680,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         boolean shouldDeleteSelection = (selection:IsEmpty() = false)
 
         if shouldDeleteSelection
+            originalIndex = selection:GetStartIndex()
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
             DeleteSelection(false, false)
         end
@@ -1731,16 +1732,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
             Resize()
-        end
-
-        FitCharacterOnScreen(caretLine, caretCharacter)
-        
-        if newLines = 0
+        elseif newLines = 0
             InsertInLine(oldCaretLine, oldCaretCharacter, value)
         else
             GetLineDrawables()
         end
 
+        FitCharacterOnScreen(caretLine, caretCharacter)
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
