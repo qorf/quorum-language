@@ -6,14 +6,13 @@ use Libraries.Interface.Controls.Icon
 class ChartPoint is Drawable
     number percentX = 0
     number percentY = 0
+    number valueX = 0
+    number valueY = 0
     text name = ""
+    Series series = undefined
     
     Icon parentRegion = undefined
-
-    on create
-        SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
-    end
+    Icon icon
 
     action GetName returns text
         return name
@@ -39,6 +38,22 @@ class ChartPoint is Drawable
         me:percentY = percentY
     end
 
+    action GetValueX returns number
+        return valueX
+    end
+
+    action SetValueX(number valueX)
+        me:valueX = valueX
+    end
+
+    action GetValueY returns number
+        return valueY
+    end
+
+    action SetValueY(number valueY)
+        me:valueY = valueY
+    end
+
     action SetParentRegion(Icon region)
         parentRegion = region
     end
@@ -46,4 +61,20 @@ class ChartPoint is Drawable
     action GetParentRegion returns Icon
         return parentRegion
     end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetIcon returns Icon
+        return icon
+    end
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
 end

@@ -15,6 +15,7 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.System.File
 use Libraries.Containers.Stack
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class QuorumBytecodeListener is QuorumSourceListener 
     QualifiedName packageValue = undefined
@@ -65,6 +66,7 @@ class QuorumBytecodeListener is QuorumSourceListener
     boolean isInAlwaysBlock = false
     boolean recentStatementWasReturn = false
     boolean hasSayStatement = false
+    CompilerErrorCodes codes
 
     private action HasErrors returns boolean
         CompilerErrorManager manager = GetCompilerErrorManager()
@@ -272,6 +274,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                             clazz:AddUseLocation(returnLocation:CreateLocationCopy())
                         else 
                             CompilerError e
+                            e:SetCode(codes:QUORUM_BYTECODE_ACTION_HEADER_NO_CLASS)
                             e:SetErrorMessage("Could not find the class  " + returnKey +
                                 " used in the return statement.")
                             CompilerErrorType t
@@ -380,6 +383,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         //either in a top level block or all appropriate sub-blocks
         if not returnType:IsVoid() and not satisfied
             CompilerError e
+            e:SetCode(codes:QUORUM_BYTECODE_EXIT_ACTION_MISSING_RETURN)
             e:SetErrorMessage("The action " + currentAction:GetStaticKey() +
                 " is missing a return statement.")
             CompilerErrorType t
@@ -421,6 +425,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if not isText and not isErrorType
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_ALERT)
             error:SetErrorMessage("The alert was passed type " + key + 
                 ". Alert can only accept text, objects of type Libraries.Language.Errors.Error, or subclasses of Error.")
             error:SetLocation(context:GetLocation())
@@ -493,7 +498,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if type = undefined
             return now //This cannot be determined, but the error has been issued already.
         end
-        if type:IsPrimitive()
+        if type:IsPrimitive() and currentBlockOpcode not= undefined
             OutputOpcode out
             out:SetLocation(context:GetLocation())
             out:SetOpcode(op)
@@ -501,6 +506,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             currentBlockOpcode:Add(out)
         else
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_OUTPUT)
             error:SetLocation(context:GetLocation())
             error:SetErrorMessage("Output can only use integer, text, number, or boolean types.")
             CompilerErrorType t
@@ -522,7 +528,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now //This cannot be determined, but the error has been issued already.
         end
 
-        if type:IsPrimitive()
+        if type:IsPrimitive() and currentBlockOpcode not= undefined
             SayOpcode out
             out:SetLocation(context:GetLocation())
             hasSayStatement = true
@@ -532,6 +538,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             currentBlockOpcode:Add(out)
         else
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_SAY)
             error:SetLocation(context:GetLocation())
             error:SetErrorMessage("Say can only use integer, text, number, or boolean types.")
             CompilerErrorType t
@@ -543,9 +550,9 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     action EnterBlock(BlockContext context)
-        if currentBlock = undefined
+        if currentBlock = undefined 
             currentBlock = currentAction:GetBlock()
-            blockPositionStack:Push(0)
+            blockPositionStack:Push(0)  
         else 
             integer value = blockPositionStack:Pop()
             if value < currentBlock:GetSubBlockSize()
@@ -631,6 +638,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type type = qop:GetType()
         if type = undefined
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_LOOP_TYPE)
             error:SetErrorMessage("The type of the loop expression is not clear.")
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
@@ -644,6 +652,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if loop:IsTimes()
             if not type:IsInteger()
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_REPEAT_NOT_INTEGER)
                 error:SetErrorMessage("Repeat times can only use integers, but the type was " + type:GetStaticKey() + ".")
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType errorType
@@ -656,6 +665,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         else
             if not type:IsBoolean()
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_REPEAT_NOT_BOOLEAN)
                 error:SetErrorMessage("Repeat while and until statements can only use booleans, but the type was " + type:GetStaticKey() + ".")
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType errorType
@@ -757,6 +767,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 Class clazz = currentClass:GetValidUseName(name:GetStaticKey())
                 if clazz = undefined
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CLASS_NOT_FOUND)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:MISSING_CLASS)
@@ -772,6 +783,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 if not clazz:HasParentClass(type:ERROR_KEY)
                    and clazz:GetStaticKey() not= type:ERROR_KEY
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CLASS_MUST_INHERIT_ERROR)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:INVALID_ERROR)
@@ -787,6 +799,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 //block
                 if checkOp:HasDetectBlockType(clazz:GetStaticKey())
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CLASS_JUMP_DUPLICATE)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:INVALID_ERROR)
@@ -862,6 +875,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type type = qop:GetType()
         if type = undefined
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_IF_TYPE_UNKNOWN)
             error:SetErrorMessage("If can only use booleans, but the type is unknown.")
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
@@ -872,6 +886,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         elseif not type:IsBoolean()
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_IF_TYPE_NOT_BOOLEAN)
             error:SetErrorMessage("If can only use booleans, but the type is " + type:GetStaticKey() + ".")
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
@@ -941,6 +956,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type type = qop:GetType()
         if type = undefined
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_ELSE_IF_TYPE_UNKNOWN)
             error:SetErrorMessage("If can only use booleans, but the type is unknown.")
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
@@ -951,6 +967,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             return now
         elseif not type:IsBoolean()
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_ELSE_IF_TYPE_NOT_BOOLEAN)
             error:SetErrorMessage("If can only use booleans, but the type is " + type:GetStaticKey() + ".")
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
@@ -999,9 +1016,10 @@ class QuorumBytecodeListener is QuorumSourceListener
             Location useLocation
             useLocation:SetLocation(context:objectLocation)
             variable:AddUseLocation(useLocation)
+            //the right hand side has been processed, so we can safely set this here.
+            variable:SetFirstAssignment(false)
         end
-
-
+        
         //this is an assignment to a field in a parent
         if theParent not= undefined
             //get the full static key of the parent
@@ -1022,6 +1040,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             hasParent = baseClass:HasParentClass(resolvedType:GetStaticKey())
             if not hasParent
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CANNOT_FIND_PARENT)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_PARENT)
@@ -1035,6 +1054,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             Variable var = parentClass:GetVariable(name)
             if var = undefined
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CANNOT_FIND_PARENT_VARIABLE)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_VARIABLE)
@@ -1048,6 +1068,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             if var not= undefined
                 if var:IsConstant() //issue an error, this is not allowed.
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CONSTANT_REASSIGNMENT)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
@@ -1115,6 +1136,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     if field not= undefined
                         if field:IsConstant() //issue an error, this is not allowed.
                             CompilerError error
+                            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_PARENT_CONSTANT_REASSIGNMENT)
                             error:SetLocation(context:GetLocation())
                             CompilerErrorType errorType
                             errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
@@ -1126,6 +1148,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         end
                     else
                         CompilerError error
+                        error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_FIELD)
                         error:SetLocation(context:GetLocation())
                         CompilerErrorType errorType
                         errorType:SetCurrentType(errorType:MISSING_VARIABLE)
@@ -1137,6 +1160,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     end
                 else  
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_PRIMITIVE_ASSIGNMENT)
                     error:SetLocation(variable)
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:INVALID_OPERATOR)
@@ -1148,6 +1172,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 variable:SetIsDefined(true)
             else 
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_FIELD_OBJECT)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:MISSING_VARIABLE)
@@ -1211,6 +1236,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             else
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_GENERIC_MISMATCH)
                 error:SetLocation(variable)
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
@@ -1276,6 +1302,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         hasParent = currentClass:HasParentClass(resolvedType:GetStaticKey())
         if not hasParent
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_PARENT)
             error:SetLocation(context:GetLocation())
             CompilerErrorType t
             t:SetCurrentType(t:MISSING_PARENT)
@@ -1289,6 +1316,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Variable var = parentClass:GetVariable(variableName)
         if var = undefined
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_PARENT_VARIABLE)
             error:SetLocation(context:GetLocation())
             CompilerErrorType t
             t:SetCurrentType(t:MISSING_VARIABLE)
@@ -1302,6 +1330,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if var not= undefined
             if var:IsConstant() //issue an error, this is not allowed.
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_PARENT_CONSTANT_REASSIGNMENT_EXIT_PARENT_ASSIGNMENT)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
@@ -1311,6 +1340,8 @@ class QuorumBytecodeListener is QuorumSourceListener
                 manager:Add(error)
             end
             var:SetIsDefined(true)
+            //the right hand side has been processed, so we can safely set this here.
+            var:SetFirstAssignment(false)
         end
 
         Type left = var:GetType()
@@ -1363,6 +1394,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
         if variable = undefined
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_ASSIGNMENT)
             error:SetLocation(context:GetLocation())
             CompilerErrorType t
             t:SetCurrentType(t:MISSING_VARIABLE)
@@ -1383,6 +1415,11 @@ class QuorumBytecodeListener is QuorumSourceListener
         useLocation:SetLocation(context:variableLocation)
         variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
+
+        if name = "NOT_ACCESSIBLE"
+            a = 5
+        end
+        variable:SetFirstAssignment(false)
         if isInAlwaysBlock
             variable:SetDefinedInAlwaysBlock(true)
         end
@@ -1399,6 +1436,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 clazz:AddUseLocation(typeLocation:CreateLocationCopy())
             else 
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CLASS_MISSING_IN_ALWAYS)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_CLASS)
@@ -1422,6 +1460,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 //matters or not. 
 
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_PRIMITIVE_INFER)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:NO_RIGHT_HAND_SIDE_ON_NORMAL_ASSIGNMENT)
@@ -1450,6 +1489,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 if left:IsMappedToGeneric()
                     //we can't allow this to be instantiated, throw an error
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_GENERIC_CRASH_PREVENT)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:INSTANTIATE_GENERIC)
@@ -1472,6 +1512,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 opcode:SetMethodWriter(methodWriter)
                 if clazz = undefined
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_CLASS)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:MISSING_CLASS)
@@ -1488,6 +1529,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 //that has blueprints
                 if clazz:HasBlueprints()
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CREATE_ABSTRACT)
                     error:SetLocation(context:GetLocation())
                     CompilerErrorType t
                     t:SetCurrentType(t:INSTANTIATE_ABSTRACT)
@@ -1601,6 +1643,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         if variable not= undefined
             if variable:IsConstant() //issue an error, this is not allowed.
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CONSTANT_REASSIGNMENT_EXIT_NO_TYPE_ASSIGNMENT)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:CONSTANT_REASSIGNMENT)
@@ -1612,6 +1655,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         else 
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_NO_TYPE)
             error:SetLocation(context:GetLocation())
             CompilerErrorType errorType
             errorType:SetCurrentType(errorType:MISSING_VARIABLE)
@@ -1632,6 +1676,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         useLocation:SetLocation(context:variableLocation)
         variable:AddUseLocation(useLocation)
         variable:SetIsDefined(true)
+        variable:SetFirstAssignment(false)
         Type left = variable:GetType()
 
         QuorumOpcode right = opcodeStack:Pop()
@@ -1644,6 +1689,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 variable:SetType(left)
             else
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_PRIMITIVE_INFER_NO_TYPE_ASSIGNMENT)
                 error:SetLocation(variable)
                 CompilerErrorType errorType
                 errorType:SetCurrentType(errorType:VARIABLE_INFERENCE)
@@ -1803,7 +1849,9 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
             
         end
-        currentBlockOpcode:Add(ops)
+        if currentBlockOpcode not= undefined
+            currentBlockOpcode:Add(ops)
+        end
     end
 
     action FinishActionResolution(ActionCallOpcode actionCall, ActionCallResolution resolved)
@@ -1819,6 +1867,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 and act:IsPrivate()
                 //this action is private and in another class.
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CALL_PRIVATE)
                 error:SetLocation(actionCall:GetLocation())
                 error:SetErrorMessage("The action call " + act:GetName()
                     + "is private"
@@ -1930,6 +1979,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             else //no index, this is an error
                 CompilerErrorManager manager = GetCompilerErrorManager()
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_GENERIC_AT_INDEX)
                 error:SetLocation(act)
                 CompilerErrorType t2
                 t2:SetCurrentType(t2:INCOMPATIBLE_TYPES)
@@ -2075,6 +2125,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             if variable = undefined
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_NO_SKIP)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_VARIABLE)
@@ -2093,6 +2144,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             //if this type is null, it means the variable was found, but it's type could not be determined.
             if variableType = undefined
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_TYPE_UNKNOWN)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:VARIABLE_INFERENCE)
@@ -2115,6 +2167,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             hasParent = fieldClass:HasParentClass(resolvedType:GetStaticKey())
             if not hasParent
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_PARENT_ADAPT_HAS_FIELD)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_PARENT)
@@ -2142,6 +2195,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             hasParent = currentClass:HasParentClass(resolvedType:GetStaticKey())
             if not hasParent
                 CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_PARENT_ADAPT)
                 error:SetLocation(context:GetLocation())
                 CompilerErrorType t
                 t:SetCurrentType(t:MISSING_PARENT)
@@ -2256,6 +2310,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 integer a = 4
                 if classToMakeCallOn = undefined
                     CompilerError classNotFoundError
+                    classNotFoundError:SetCode(codes:QUORUM_BYTECODE_EXIT_ACTION_CALL_NO_CLASS)
                     classNotFoundError:SetLocation(context:GetLocation())
                     classNotFoundError:SetErrorMessage("Could not find the class " + resolvedKey)
                     CompilerErrorType errorType
@@ -2293,6 +2348,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 text name = act:GetName()
                 if name = "SetValue" or name = "SetValueNative" or name = "GetValue" or name = "GetValueNative"//these calls aren't allowed on primitives
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_PRIMITIVE_CALL)
                     error:SetLocation(context:GetLocation())
                     error:SetErrorMessage("Found a call to the primitive calling the action " + name + ", but this cannot be called on a primitive.")
                     CompilerErrorType errorType
@@ -2338,6 +2394,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         //grabbing from is a parent
                         if variable:IsPrivate() and not currentClass:HasParentClass(callingName)
                             CompilerError error
+                            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_PARENT_FIELD_PRIVATE)
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found " + name 
                                 + ", but it is private in the parent class "
@@ -2350,8 +2407,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                             return now
                         end
 
-                        if not variable:IsDefined()
+                        if not variable:IsDefined() 
+                            or (variable:IsField() and variable:IsFirstAssignment() and not isInAction)
                             CompilerError error
+                            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_VARIABLE_NOT_DEFINED)
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found " + name + ", but it must be defined first.")
                             CompilerErrorType errorType
@@ -2374,6 +2433,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     //a type, and thus cannot be infered
                     if type = undefined
                         CompilerError error
+                        error:SetCode(codes:QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION)
                         error:SetLocation(context:GetLocation())
                         error:SetErrorMessage("Found " + name + ", but did not infer its type. Set its value before using it.")
                         CompilerErrorType errorType
@@ -2387,7 +2447,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                     //check if this variable has been defined.
                     //if it hasn't, it is an error
                     if not variable:IsDefined()
+                        or (variable:IsField() and variable:IsFirstAssignment() and not isInAction)
                         CompilerError error
+                        error:SetCode(codes:QUORUM_BYTECODE_LISTENER_VARIABLE_NOT_DEFINED_FIELDS)
                         error:SetLocation(context:GetLocation())
                         error:SetErrorMessage("Found " + name + ", but it must be defined first.")
                         CompilerErrorType errorType
@@ -2409,6 +2471,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                     variable:AddUseLocation(useLocation)
                 else
                     CompilerError error
+                    error:SetCode(codes:QUORUM_BYTECODE_LISTENER_VARIABLE_MISSING)
                     error:SetLocation(context:GetLocation())
                     error:SetErrorMessage("Could not find the variable " + name)
                     CompilerErrorType errorType
@@ -2423,12 +2486,16 @@ class QuorumBytecodeListener is QuorumSourceListener
                 ActionCallOpcode code = stack:Get(stack:GetSize() - 1)
                 
                 Type type = code:GetType()
-                if not type:IsPrimitive() //if it is, again previous phase will catch this
+                if type not= undefined and not type:IsPrimitive() //if it is, again previous phase will catch this
                     text staticKey = type:GetStaticKey()
                     Class clazz = table:GetClass(staticKey)
                     
+                    
                     //get a field.
-                    Variable field = clazz:GetVariable(name)
+                    Variable field = undefined
+                    if clazz not= undefined
+                        field = clazz:GetVariable(name)
+                    end
                     if field not= undefined
                     
                         //if the field is in another class, make sure that it is public
@@ -2437,6 +2504,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                            //we are trying to access a private member in another class, 
                            //throw a compiler error.
                             CompilerError error
+                            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_FIELD_PRIVATE)
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found a call to " + staticKey + ":" + name 
                                 + ", which is private"
@@ -2452,7 +2520,9 @@ class QuorumBytecodeListener is QuorumSourceListener
                         end
 
                         if not field:IsDefined()
+                            or (field:IsField() and field:IsFirstAssignment() and not isInAction)
                             CompilerError error
+                            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION_AGAIN)
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found the variable " + name + ", but it must be defined first.")
                             CompilerErrorType errorType
@@ -2475,6 +2545,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                         field:AddUseLocation(useLocation)
                     else
                         CompilerError error
+                        error:SetCode(codes:QUORUM_BYTECODE_LISTENER_MISSING_VARIABLE_EXIT_ACTION)
                         error:SetLocation(context:GetLocation())
                         error:SetErrorMessage("Could not find the variable " + name)
                         CompilerErrorType errorType
@@ -2495,6 +2566,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitReturnStatement(ReturnContext context) 
         recentStatementWasReturn = true
+        if currentAction = undefined
+            return now
+        end
         Type type = currentAction:GetReturnType()
         if type = undefined
             return now
@@ -2553,7 +2627,9 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action ExitStatement(StatementContext context) 
         if recentStatementWasReturn
-            currentBlock:SetReturnThisBlock(true)
+            if currentBlock not= undefined
+                currentBlock:SetReturnThisBlock(true)
+            end
             recentStatementWasReturn = false
         else
             HasAlreadyReturnedFromBlock(context:GetLocation())
@@ -2561,12 +2637,13 @@ class QuorumBytecodeListener is QuorumSourceListener
     end
 
     private action HasAlreadyReturnedFromBlock(Location location)
-        if currentBlock:HasReturnThisBlock()
+        if currentBlock not= undefined and currentBlock:HasReturnThisBlock()
             //first check if we've already issued an error.
             //if we already have, there's no need to issue another one.
             //if we haven't, issue the error and then set the value in the block
             if not currentBlock:HasIssuedReturnError()
                 CompilerError e
+                e:SetCode(codes:QUORUM_BYTECODE_BLOCK_RETURN)
                 e:SetErrorMessage("This statement would not execute, because we have already returned from the action.")
                 CompilerErrorType t
                 t:SetCurrentType(t:UNREACHABLE)
@@ -2884,7 +2961,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         opcode:SetType(type)
         QuorumOpcode op = opcodeStack:Pop()
 
-        if op = undefined
+        if op = undefined or op:GetType() = undefined
             return now
         end
 
@@ -2892,6 +2969,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         Type returnedType = op:GetType()
         if not (returnedType:IsText() or returnedType:IsUndefined())
             CompilerError error
+            error:SetCode(codes:QUORUM_BYTECODE_LISTENER_BAD_INPUT)
             error:SetLocation(context:GetLocation())
             error:SetErrorMessage("To use input, you can either pass nothing at all, text, or the value undefined.")
             CompilerErrorType t

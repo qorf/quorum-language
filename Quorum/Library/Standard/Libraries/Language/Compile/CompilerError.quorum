@@ -8,6 +8,33 @@ use Libraries.Language.Compile.Hints.Hint
 class CompilerError is Location
     text message = ""
     CompilerErrorType errorType = undefined
+    /*
+        This code is a unique code to the specific error in the compiler that was issued.
+    */
+    integer code = -1
+
+    /* 
+        Sets the unique code for the error.
+
+        Attribute: Parameter code the unique code.
+    */
+    action SetCode(integer code)
+        CompilerErrorCodes codes
+        if codes:IsValid(code)
+            me:code = code
+        else
+            alert("Invalid Compiler Error Code.")
+        end
+    end
+
+    /*
+        Returns the unique code for the error.
+
+        Attribute: Returns the unique code.
+    */
+    action GetCode returns integer
+        return me:code
+    end
 
     action GetCompilerErrorType returns CompilerErrorType
         if errorType not= undefined

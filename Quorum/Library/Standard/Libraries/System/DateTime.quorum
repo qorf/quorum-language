@@ -147,6 +147,8 @@ class DateTime
     */
     system action GetEpochTime() returns number
 
+    system action Now returns number
+
     /*
     This action sets the date/time to be represented by this DateTime instance
     to the specified epochTime value. Once this function is called, this DateTime
@@ -173,4 +175,103 @@ class DateTime
     output "The current UTC hour is " + datetime:GetHour()
     */
     system action SetTimeZone(integer timeZoneOffset)
+
+    system action GetTimestamp returns text
+
+    system action ToText returns text
+
+    system action DateToText returns text
+
+    system action TimeToText returns text
+
+    system action GetMonthName returns text
+
+    system action GetShortMonthName returns text
+
+    system action GetDayOfWeekName returns text
+
+    system action GetShortDayofWeekName returns text
+
+    system action ParseTimestamp(text timestamp)
+
+    system action ParseDate(text date)
+
+    system action ParseAmericanDate(text date)
+
+    action ParseTime(text time)
+        ParseTime(time, false)
+    end
+
+    system action ParseTime(text time, boolean keepDate)
+
+    system action IsBefore(DateTime time) returns boolean
+
+    system action IsAfter(DateTime time) returns boolean
+
+    action Compare(Object object) returns integer
+        if object is DateTime
+            DateTime other = cast(DateTime, object)
+            if IsAfter(other)
+                return 1
+            elseif IsBefore(other)
+                return -1
+            else
+                return 0
+            end
+        end
+
+        return parent:Object:Compare(object)
+    end
+
+    action GetMillisecondDifference(DateTime time) returns number
+        return GetEpochTime() - time:GetEpochTime()
+    end
+
+    action GetSecondDifference(DateTime time) returns number
+        return GetMillisecondDifference(time) / 1000
+    end
+
+    action GetMinuteDifference(DateTime time) returns number
+        return GetSecondDifference(time) / 60
+    end
+
+    action GetHourDifference(DateTime time) returns number
+        return GetMinuteDifference(time) / 60
+    end
+
+    action GetDayDifference(DateTime time) returns number
+        return GetHourDifference(time) / 24
+    end
+
+    action GetMonthDifference(DateTime time) returns number
+        return GetDayDifference(time) / 30.417
+    end
+
+    system action AddYears(integer years)
+
+    system action AddMonths(integer months)
+
+    system action AddWeeks(integer weeks)
+
+    system action AddDays(integer days)
+
+    system action AddHours(integer hours)
+
+    system action AddMinutes(integer minutes)
+
+    system action AddSeconds(integer seconds)
+
+    system action SubtractYears(integer years)
+
+    system action SubtractMonths(integer months)
+
+    system action SubtractWeeks(integer weeks)
+
+    system action SubtractDays(integer days)
+
+    system action SubtractHours(integer hours)
+
+    system action SubtractMinutes(integer minutes)
+
+    system action SubtractSeconds(integer seconds)
 end

@@ -492,6 +492,10 @@ class Game
 
         DefaultSceneManager manager
         sceneManager = manager
+    
+        if accessibility not= undefined
+            accessibility:Setup()
+        end
 
         application:Setup(me)
     end
@@ -3019,6 +3023,30 @@ class Game
     end
 
     /*
+    This action returns the name of the game displayed at the top of the window. 
+    The default name is "Game". 
+
+    Attribute: Returns The name displayed on the Game window.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            action Main
+                output "The default name is " + GetGameName()
+                SetGameName("Mariachi Band Simulator 3000")
+                output "The new name is " + GetGameName()
+                StartGame()
+            end
+        end
+    */
+    action GetGameName returns text
+        return desktopConfig:title
+    end
+
+    /*
     This action enables or disables auto resizing of textures if the game window
     is resized. Passing a value of true enables it, a value of false disables it.
     Texture auto resizing is enabled by default. This action should be called
@@ -3265,6 +3293,9 @@ class Game
     not need to use this action directly.
     */
     action InitializeLayers
+        // TO-DO: Consider moving this elsewhere. This needs to happen as a first step in initializing graphics before Painters are made, which occurs when creating layers.
+        manager:GetGameGraphics():UseDefaultVertexArray()
+
         layers:Empty()
         
         Layer3D layer3D

@@ -1,0 +1,138 @@
+package Libraries.Builder
+use Libraries.System.DateTime
+//use Libraries.System.Process
+//use Libraries.System.ProcessListener
+//use Libraries.System.ProcessEvent
+use Libraries.Containers.Array
+use Libraries.System.File
+
+/*
+    This is a script for handling all dependencies and native compilation used for the compiler.
+    It is an experimental script and a work in progress. 
+*/
+class Natives// is ProcessListener
+    File root
+    action Main
+        output "Creating Native Libraries."
+        DateTime time
+        number start = time:GetEpochTime()
+        root:SetWorkingDirectory(root:GetParentDirectory():GetAbsolutePath())
+        root:SetPath("Natives")
+
+        output root:GetAbsolutePath()
+        CreateMacFolders()
+        RunClang()
+        RunLinkerMac()
+        CopyMac()
+
+        number stop = time:GetEpochTime()
+        number amount = (stop - start) / 1000.0
+        output "Native Creation Completed in " + amount + " seconds."
+    end
+
+    action CopyMac
+        File from
+        from:SetWorkingDirectory(root:GetAbsolutePath())
+        from:SetPath("Deploy")
+        
+        File to
+        to:SetWorkingDirectory(root:GetWorkingDirectory())
+        to:SetPath("Quorum/Library/Standard/Native/Deploy")
+        output to:GetAbsolutePath()
+        from:Copy(to, true)
+
+    end
+
+    action RunLinkerMac
+//        Process process
+//        process:SetDirectory(root)
+//
+//
+//        process:SetName("ld")
+//        
+//        Array<text> parameters
+//
+//
+//        parameters:Add("-dylib")
+//        parameters:Add("-o")
+//        parameters:Add("Deploy/Mac/Mac.dylib")
+//        parameters:Add("-L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib")
+//        parameters:Add("-arch")
+//        parameters:Add("x86_64")
+//        parameters:Add("-macosx_version_min")
+//        parameters:Add("11.1")
+//        parameters:Add("-lSystem")
+//        parameters:Add("-L/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/server")
+//        parameters:Add("-rpath")
+//        parameters:Add("/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/server")
+//        parameters:Add("-ljvm")
+//        parameters:Add("-F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/")
+//        parameters:Add("-framework")
+//        parameters:Add("Foundation")
+//        parameters:Add("Build/Mac/Mac.o")
+//
+//
+//        process:SetParameters(parameters)
+//        process:AddListener(me)
+//        process:Run()
+    end
+
+    action CreateMacFolders
+        File folder
+        folder:SetWorkingDirectory(root:GetAbsolutePath())
+        folder:SetPath("Build/Mac")
+        folder:CreateDirectories()
+
+        folder:SetPath("Build/iOS")
+        folder:CreateDirectories()
+
+        folder:SetPath("Deploy/Mac")
+        folder:CreateDirectories()
+
+        folder:SetPath("Deploy/iOS")
+        folder:CreateDirectories()
+    end
+
+    action RunClang
+//        Process process
+//        process:SetDirectory(root)
+//
+//
+//        process:SetName("clang")
+//        
+//        Array<text> parameters
+//        parameters:Add("-g")
+//
+//
+//        parameters:Add("-o")
+//        parameters:Add("Build/Mac/Mac.o")
+//        parameters:Add("-c")
+//        parameters:Add("Source/Mac/Mac.m")
+//        parameters:Add("-I/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/include")
+//        parameters:Add("-I/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/include/darwin/")
+//
+//
+//
+//        process:SetParameters(parameters)
+//        process:AddListener(me)
+//        process:Run()
+    end
+
+
+
+//    action ProcessStarted(ProcessEvent event)
+//        output "Started " + event:GetName()
+//    end
+//
+//    action ProcessStopped(ProcessEvent event)
+//        output "Stopped " + event:GetName()
+//    end
+//
+//    action Output(ProcessEvent event)
+//        output event:GetOutput()
+//    end
+//
+//    action Error(ProcessEvent event)
+//        output "Error: " + event:GetOutput()
+//    end
+end

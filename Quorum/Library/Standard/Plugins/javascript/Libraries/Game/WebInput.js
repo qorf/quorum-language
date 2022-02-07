@@ -961,25 +961,32 @@ function plugins_quorum_Libraries_Game_WebInput_()
             quorumEvent.Set_Libraries_Interface_Events_MouseEvent__movementX_(event.movementX);
             quorumEvent.Set_Libraries_Interface_Events_MouseEvent__movementY_(event.movementY);
             
-            switch(event.button)
+            if (code === quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MOVED_MOUSE_() || code === quorumEvent.Get_Libraries_Interface_Events_MouseEvent__SCROLLED_MOUSE_())
             {
-                case 0:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__LEFT_());
-                    break;
-                case 1:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MIDDLE_());
-                    break;
-                case 2:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__RIGHT_());
-                    break;
-                case 3:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__BACK_());
-                    break;
-                case 4:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__FRONT_());
-                    break;
-                default:
-                    quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__ANY_());
+                quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__NONE_());
+            }
+            else
+            {
+                switch(event.button)
+                {
+                    case 0:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__LEFT_());
+                        break;
+                    case 1:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__MIDDLE_());
+                        break;
+                    case 2:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__RIGHT_());
+                        break;
+                    case 3:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__BACK_());
+                        break;
+                    case 4:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__FRONT_());
+                        break;
+                    default:
+                        quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__ANY_());
+                }
             }
             
             plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x = x;
@@ -1053,10 +1060,25 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_ = true;
     }
     
+    var lastWidth = 0;
+    var lastHeight = 0;
+    
     this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents)
     {
-        // Resize events currently aren't being captured by the system, so there
-        // are no events to return for it.
+        // We manually construct the resize events here.
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight)
+        {
+            lastWidth = display.clientWidth;
+            lastHeight = display.clientHeight;
+            display.width = display.clientWidth;
+            display.height = display.clientHeight;
+            
+            var quorumEvent = new quorum_Libraries_Interface_Events_ResizeEvent_();
+            quorumEvent.SetWidth$quorum_integer(lastWidth);
+            quorumEvent.SetHeight$quorum_integer(lastHeight);
+            resizeEvents.Add$quorum_Libraries_Language_Object(quorumEvent);
+        }
         
         for (var i = 0; i < plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.length; i++)
         {

@@ -20,10 +20,16 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Layouts.ManualLayout
 
 class ProgressBar is Control
     Label label = undefined
     Icon icon = undefined
+
+    Icon backgroundBar
+    Icon bar
+    Color barColor
+
     LayoutProperties labelProperties
     GameStateManager manager
     number minimum = 0
@@ -31,16 +37,21 @@ class ProgressBar is Control
     number value = 0
 
     on create
-        FlowLayout flowLayout
-        SetLayout(flowLayout)
+        ManualLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
         Font font
-        font:LoadFont("Arial")
+        if (font:IsFontAvailable("Arial"))
+            font:LoadFont("Arial")
+        else
+            font = GetDefaultFont()
+        end
         properties:SetFont(font)
         properties:SetFontSize(16)
+        SetSize(150,25)
 
         Color color
         Gradient gradient
@@ -51,6 +62,7 @@ class ProgressBar is Control
         properties:SetBackgroundColor(gradient)
         properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
+        barColor = color:CustomColor(0.282, 0.4, 0.706, 1)
         SetName("Progress Bar")
 
         SetInputGroup("ProgressBar")
@@ -59,6 +71,33 @@ class ProgressBar is Control
     end
 
     action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        ColorGroup background = properties:GetBackgroundColor()
+        ColorGroup border = properties:GetBorderColor()
+        number borderThickness = properties:GetBorderThickness()
+        Color color
+        backgroundBar:LoadRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), border)
+        FlowLayout layout
+        backgroundBar:SetLayout(layout)
+        LayoutProperties iconProperties = backgroundBar:GetDefaultLayoutProperties()
+        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(1.0)
+        backgroundBar:SetName("Bar Background")
+        Add(backgroundBar)
+
+        bar:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), barColor)
+        iconProperties = bar:GetDefaultLayoutProperties()
+        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(0)
+        iconProperties:SetLeftPadding(borderThickness)
+        iconProperties:SetRightPadding(borderThickness)
+        iconProperties:SetTopPadding(borderThickness)
+        iconProperties:SetBottomPadding(borderThickness)
+        bar:SetName("Bar Fill")
+        backgroundBar:Add(bar)
+
         parent:Control:LoadGraphics(properties)
     end
 
@@ -84,8 +123,6 @@ class ProgressBar is Control
     end
 
     action SetValue(number value)
-        
-
         Accessibility access = manager:GetAccessibility()
         if access not= undefined
             ProgressBarValueChangedEvent event
@@ -95,5 +132,18 @@ class ProgressBar is Control
             access:ProgressBarValueChanged(event)
         end
         me:value = value
+        if bar not= undefined
+            // not sure if this works for any given range but works fine for 0 to 100
+            number percentage = (value - minimum)/(maximum - minimum)
+            if percentage >= 0 and percentage <= 1
+                bar:SetPercentageWidth(percentage)
+                bar:RequestLayout()
+            end
+        end
     end
+
+    action SetBarColor(Color barColor)
+        me:barColor = barColor
+    end
+
 end

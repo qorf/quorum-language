@@ -6,7 +6,10 @@ use Libraries.Containers.Array
 
 class DirectionalLightsAttribute is Attribute
     
+    AttributeManager manager
+
     public constant text DIRECTIONAL_LIGHTS_ALIAS = "directionalLights"
+    public constant integer DIRECTIONAL_LIGHTS = manager:Register(DIRECTIONAL_LIGHTS_ALIAS)
 
     /*
     An array containing all lights that are stored in this attribute.
@@ -43,6 +46,8 @@ class DirectionalLightsAttribute is Attribute
     /*
     Returns the integer value representing a DirectionalLightsAttribute.
     */
-    system action GetDirectionalLightsValue returns integer
+    action GetDirectionalLightsValue returns integer
+        return DIRECTIONAL_LIGHTS
+    end
 
 end

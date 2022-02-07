@@ -766,6 +766,7 @@ class Label is Control
                         drawable = undefined
                         if glyph:texture not= undefined
                             Drawable newDrawable = GetDrawable()
+                            newDrawable:SetName("Glyph")
                             newDrawable:Load(glyph:texture)
                             newDrawable:SetColor(fontColor)
                             drawable = newDrawable

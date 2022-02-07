@@ -1,0 +1,94 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+
+/*
+    This class determines the visual layout for a pie chart.
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.Creator
+    use Libraries.Interface.Controls.Charts.BoxPlot
+    use Libraries.Game.Game
+    
+    class Main is Game
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            DataFrame frame
+            frame:Load("Data/Data.csv")
+            BoxPlotCreator creator
+            creator:AddColumn(2)
+        
+            BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+            chart:SetPercentageWidth(1)
+            chart:SetPercentageHeight(1)
+            chart:SetTitle("Sample Title")
+            chart:SetXAxisTitle("X-axis Variable")
+            chart:SetYAxisTitle("Y-axis Variable")
+            Add(chart)
+        end
+    end
+*/
+
+class PieChartLayout is ChartLayout
+    Color transparent
+    Math math
+
+    action LayoutChartContent(Chart control, Control chartAreaContainer)
+        if not (control is PieChart)
+            return now
+        end
+
+        PieChart chart = cast(PieChart, control)
+        Drawable pieBox = chart:GetPieBox()
+        Array<Wedge> slices = chart:GetSlices()
+        number width = chartAreaContainer:GetWidth()
+        number height = chartAreaContainer:GetHeight()
+        number donutHolePercent = chart:GetDonutHolePercent()
+
+        integer middleX = cast(integer, width/2)
+        integer middleY = cast(integer, height/2)
+        integer radius = middleY
+        pieBox:SetPosition(middleX - radius, 0)
+        if width < height
+            radius = middleX
+            pieBox:SetPosition(0, middleY - radius)
+        end
+        transparent:SetColor(0, 0, 0, 0)
+        pieBox:LoadFilledRectangle(radius*2, radius*2, transparent)
+
+        number currentPercent = 0
+        integer i = 0
+        repeat while i < slices:GetSize()
+            currentPercent = currentPercent
+            Wedge slice = slices:Get(i)
+            number percent = math:Round(slice:GetValue()/cast(number, chart:GetTotalValue()), 5)
+            slice:Load(slice:GetColor())
+            slice:SetSize(pieBox:GetWidth(), pieBox:GetHeight())
+            slice:SetOuterRadius(radius)
+            slice:SetInnerRadius(cast(integer, donutHolePercent*radius))
+            
+            slice:SetStartPercentage(currentPercent)
+            currentPercent = currentPercent + percent
+            slice:SetEndPercentage(currentPercent)
+            pieBox:Add(slice)
+            i = i + 1
+        end
+    end
+end

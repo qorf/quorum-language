@@ -7,6 +7,7 @@ use Libraries.System.File
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Parser is QuorumSourceListener
     QualifiedName packageValue = undefined
@@ -24,6 +25,7 @@ class Parser is QuorumSourceListener
     Stack<Location> locationStack
     Stack<Documentation> documents
     constant text ILLEGAL_ID = "_"
+    CompilerErrorCodes codes
 
     /*
         This action returns an iterator of all of the classes parsed
@@ -66,6 +68,7 @@ class Parser is QuorumSourceListener
     private action CheckName(text name, Location location)
         if name:EndsWith(ILLEGAL_ID)
             CompilerError error
+            error:SetCode(codes:PARSER_LISTENER_UNDERSCORE_RULE)
             CompilerErrorType type
             type:SetCurrentType(type:OTHER)
             error:SetCompilerErrorType(type)
@@ -449,6 +452,7 @@ class Parser is QuorumSourceListener
 
         if currentClass:GetConstructor() not= undefined
             CompilerError error
+            error:SetCode(codes:PARSER_LISTENER_DUPLICATE_CONSTRUCTOR)
             error:SetLocation(context:GetLocation())
             CompilerErrorType cet
             cet:SetCurrentType(cet:METHOD_DUPLICATE)
@@ -592,4 +596,8 @@ class Parser is QuorumSourceListener
             manager:Add(error)
         end
     end
+    action GetCodes returns CompilerErrorCodes
+        return codes
+    end
+
 end

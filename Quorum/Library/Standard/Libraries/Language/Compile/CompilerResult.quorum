@@ -8,6 +8,7 @@ use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Context.StartContext
 
 class CompilerResult
     public CompilerErrorManager compilerErrorManager = undefined
@@ -23,6 +24,7 @@ class CompilerResult
     public Array<File> projectFiles = undefined
     public HashTable<text, Lexer> lexers
     public Array<Token> sourceTokens = undefined
+    public HashTable<text, StartContext> trees
 
     action CopyToBareResult returns CompilerResult
         CompilerResult result
@@ -53,7 +55,8 @@ class CompilerResult
         The symbol tabls and the lexers are left intact. 
     */
     action Dispose
-        typeChecker = undefined
+        //typeChecker = undefined
         opcodes = undefined
+        trees:Empty()
     end
 end

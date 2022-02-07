@@ -21,7 +21,7 @@ public class Skybox
     public void InitializeCubeMap(Texture_ texture)
     {
         Texture texturePlugin = ((quorum.Libraries.Game.Graphics.Texture)texture).plugin_;
-        texturePlugin.SetGL20Info(GraphicsManager.GL_TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
+        texturePlugin.SetGraphicsInfo(GraphicsManager.GL_TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
         texturePlugin.Bind();
         
         GraphicsManager graphics = GameStateManager.nativeGraphics;

@@ -7,11 +7,17 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Containers.Array
 use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
 use Libraries.Data.Formats.ScalableVectorGraphics.Label
-use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.System.FileWriter
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Game.Graphics.Color
+use Libraries.Web.Page.Script
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Icon
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 
 /*
     The ScatterPlotWriter class is part of the set of writers that allow for Charts
@@ -37,187 +43,228 @@ use Libraries.Interface.Controls.Charts.ChartPoint
     ScatterPlotWriter writer
     output writer:WriteOutChart(chart)
 */
-class ScatterPlotWriter
-    private number axisPointX = 15
-    private number axisPointY = 85
-    private number axisLength = 75
 
-/*
-    This action writes out the ScatterPlot by grabbing necessary information from the chart and it will then return
-    all of the necessary text needed to write out an SVG file that will contain the chart.
+class ScatterPlotWriter is ChartWriter
 
-    Attribute: Parameter chart The chart that will be used to create an SVG
-
-    Attribute: Example
-
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Interface.Controls.Charts.ScatterPlot
-    use Libraries.Interface.Controls.Charts.ScatterPlotWriter
+    private number outerEdgePadding = 0
+    private number betweenGroupPadding = 0
+    private number betweenBarPadding = 0
+    private number barWidthPercent = 0
+    private number barHeightPercent = 0
     
-    DataFrame frame
-    frame:Load("Data.csv")
-    frame:SetSelectedColumnRange(0,1)
-    ScatterPlot chart = frame:ScatterPlot()
-    chart:Display()
+    //Array<Circle> points
+    //Array<Rectangle> regions
 
-    ScatterPlotWriter writer
-    output writer:WriteOutChart(chart)
-*/
+    action WriteOutChart(ScatterPlot chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(ScatterPlot chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
     action WriteOutChart(ScatterPlot chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
 
-        ScalableVectorGraphics chartCanvas
-        chartCanvas:SetSize(700,600)
-
-        Label chartTitle
-        Label xAxisLabel
-        Label yAxisLabel
-
-        //start setting stuff
-        AddBackground(chartCanvas)
-        AddAxes(chartCanvas)
-        chartTitle:SetText(chart:GetTitle())
-        chartTitle:SetTextAnchor("middle")
-        chartTitle:SetPosition(50, 5, "%")
-        chartTitle:SetFontSize("18pt")
-        chartCanvas:Add(chartTitle)
-
-        xAxisLabel:SetText(chart:GetXAxisTitle())
-        xAxisLabel:SetTextAnchor("middle")
-        xAxisLabel:SetPosition(50, 95, "%")
-        xAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(xAxisLabel)
-
-        yAxisLabel:SetText(chart:GetYAxisTitle())
-        yAxisLabel:SetTextAnchor("middle")
-        yAxisLabel:SetPosition(5, 50, "%")
-        yAxisLabel:SetTransform("rotate(270, 40,300)")
-        yAxisLabel:SetFontSize("18pt")
-        chartCanvas:Add(yAxisLabel)
-
-
-        AddPoints(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
-
-        return chartCanvas:ToText()
+    action WriteOutChart(ScatterPlot chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
     end
 
     /*
         This action adds a white background to the canvas
     */
-    private action AddBackground(ScalableVectorGraphics canvas)
-        Rectangle background
-        background:SetFill("white")
-        background:SetSize(100,100, "%")
-        canvas:Add(background)
-    end
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        ScatterPlot scatterplot
+        scatterplot = cast(ScatterPlot, chart)
 
-    /*
-        This action adds the two lines for the x and y axis
-    */
-    private action AddAxes(ScalableVectorGraphics canvas)
-        Line xAxis
-        Line yAxis
-        xAxis:SetPoints(axisPointX, axisPointY, axisPointX + axisLength, axisPointY, "%")
-        xAxis:SetStroke("black")
-        xAxis:SetTabIndex(-1)
-        xAxis:SetStrokeWidth(0.4,"%")
-        yAxis:SetPoints(axisPointX, axisPointY, axisPointX, axisPointY - axisLength, "%")
-        yAxis:SetStroke("black")
-        yAxis:SetTabIndex(-1)
-        yAxis:SetStrokeWidth(0.4,"%")
-
-        canvas:Add(xAxis)
-        canvas:Add(yAxis)
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area " + scatterplot:GetChartArea():GetDescription())
+        end
     end
 
     /*
         This action adds the content of the ScatterPlot
     */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        ScatterPlot scatterplot
+        scatterplot = cast(ScatterPlot, chart)
+        AddPoints(canvas, scatterplot)
+    end
+
+    /*
+        This action adds the content of the ScatterPlot to the SVG
+    */
+
     private action AddPoints(ScalableVectorGraphics canvas, ScatterPlot chart)
-        Array<ChartPoint> points = chart:GetChartPoints()
-        if points = undefined
-            return now
-        end
- 
-        number width = axisLength
-        number height = axisLength
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
+
         i = 0
-        repeat while i < points:GetSize()
-            Circle tempPoint
-            tempPoint:SetRadius(0.5, "%")
-            tempPoint:SetFill("black")
-            ChartPoint point = points:Get(i)
-            tempPoint:SetPosition(axisPointX + point:GetPercentX() * width, axisPointY- point:GetPercentY() * height, "%")
-            canvas:Add(tempPoint)
+        repeat while i < chart:GetRegions():GetSize()
+            Icon currentRegion = chart:GetRegions():Get(i)
+
+            Rectangle region
+            region:SetWidth(currentRegion:GetWidth())
+            region:SetHeight(currentRegion:GetHeight())
+            region:SetPosition(currentRegion:GetGlobalX(), TranslatePositionY(currentRegion) - currentRegion:GetHeight()) 
+            region:SetFill(transparent)
+            region:SetID(canvas:GetID() + "-" + currentRegion:GetHashCode())
+            region:SetTabIndex(-1)
+            if HasAccessibility()
+                region:SetAriaLabel(currentRegion:GetName() + currentRegion:GetDescription())
+            end
+            canvas:Add(region)
+
+            i = i + 1
+        end
+        i = 0
+        repeat while i < chart:GetChartPoints():GetSize()
+            ChartPoint currentPoint = chart:GetChartPoints():Get(i)
+
+            Circle point
+            point:SetRadius(currentPoint:GetShape():GetRadius())
+            point:SetPosition(currentPoint:GetGlobalX(), TranslatePositionY(currentPoint)) 
+            point:SetFill(currentPoint:GetColor())
+            point:SetID(canvas:GetID() + "-" + currentPoint:GetSeries():GetHashCode() + "-" + currentPoint:GetHashCode())
+            point:SetTabIndex(-1)
+            if HasAccessibility()
+                point:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
+            end
+            //points:Add(point)
+            canvas:Add(point)
+
             i = i + 1
         end
     end
 
-    /*
-        This action the labels on the x axis
-    */
-    private action AddXLabels(ScalableVectorGraphics canvas, ScatterPlot chart)
-        Math math
-        number scaleNum = chart:GetXAxisMinimum()
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
         
-        number scaleWidth = (chart:GetXAxisMaximum()) / (chart:GetXTickCount()- 1)
-        number scaleDivWidth = axisLength / (chart:GetXTickCount() - 1)
-        integer i = 0
-        repeat while i < chart:GetXTickCount()
-            Label scaleLabel
-            Line scaleTick
+        ScatterPlot scatterplot
+        scatterplot = cast(ScatterPlot, chart)
+    
+        ChartItem chartItem = scatterplot:GetChartAreaItem()
+        if not chart:IsSeparatedByFactor()
+            ChartItem firstItem = chartItem:GetChildItem()
 
-            scaleTick:SetFirstPoint(axisPointX + scaleDivWidth*i, axisPointY, "%")
-            scaleTick:SetSecondPoint(axisPointX + scaleDivWidth*i, axisPointY + 3, "%")
-            scaleTick:SetStroke("black")
-            scaleTick:SetTabIndex(-1)
-            scaleTick:SetStrokeWidth(0.4,"%")
-            canvas:Add(scaleTick)
+            if firstItem not= undefined
+                if firstItem:GetFocusTarget() is ChartPoint
+                    AddPointsAccessibility(canvas, firstItem, chartAreaItem)
+                else
+                    AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                end
+            end
+            
+        else
+            ChartItem firstSubChartAreaItem = chartItem:GetChildItem()
+            if firstSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, firstSubChartAreaItem:GetFocusTarget()) = chartArea
+                ChartItem firstItem = firstSubChartAreaItem:GetChildItem()
 
-            scaleLabel:SetTextAnchor("middle")
-            scaleLabel:SetText("" + math:Round(scaleNum, 1))
-            scaleLabel:SetFontSize("8pt")
-            scaleLabel:SetPosition(axisPointX + i * scaleDivWidth, axisPointY + 5, "%")
-            scaleNum = scaleNum + scaleWidth
-            canvas:Add(scaleLabel)
-            i = i + 1
+                if firstItem not= undefined
+                    if firstItem:GetFocusTarget() is ChartPoint
+                        AddPointsAccessibility(canvas, firstItem, chartAreaItem)
+                    else
+                        AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                    end
+                end
+            end
+
+            
+            ChartItem nextSubChartAreaItem = firstSubChartAreaItem:GetNext()
+            repeat while nextSubChartAreaItem not= undefined and nextSubChartAreaItem not= firstSubChartAreaItem
+                if nextSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, nextSubChartAreaItem:GetFocusTarget()) = chartArea
+                    ChartItem firstItem = nextSubChartAreaItem:GetChildItem()
+    
+                    if firstItem not= undefined
+                        if firstItem:GetFocusTarget() is ChartPoint
+                            AddPointsAccessibility(canvas, firstItem, chartAreaItem)
+                        else
+                            AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                        end
+                    end
+                end
+
+                nextSubChartAreaItem = nextSubChartAreaItem:GetNext()
+            end
+        end
+
+    end
+
+    action AddRegionLayerAccessibily(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        UnorderedList groupUL
+        groupUL:AddAttribute("role","group")
+        chartListItem:AddNestedTag(groupUL)
+
+        Icon region = cast(Icon, firstItem:GetFocusTarget())
+
+        ListItem firstRegionNav
+        firstRegionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
+        firstRegionNav:AddAttribute("role","treeitem")
+        firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
+        firstRegionNav:AddAttribute("aria-expanded","false")
+        firstRegionNav:SetTabIndex("-1")
+        groupUL:Add(firstRegionNav)
+
+        if firstItem:GetChildItem() not= undefined
+            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint
+                AddPointsAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
+            else
+                AddRegionLayerAccessibily(canvas, firstItem:GetChildItem(), firstRegionNav)
+            end
+        end
+
+        ChartItem nextItem = firstItem:GetNext()
+        repeat while nextItem not= undefined and nextItem not= firstItem
+            region = cast(Icon, nextItem:GetFocusTarget())
+            ListItem regionNav
+            regionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
+            regionNav:AddAttribute("role","treeitem")
+            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
+            regionNav:AddAttribute("aria-expanded","false")
+            regionNav:SetTabIndex("-1")
+            groupUL:Add(regionNav)
+
+            if nextItem:GetChildItem() not= undefined
+                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint
+                    AddPointsAccessibility(canvas, nextItem:GetChildItem(), regionNav)
+                else
+                    AddRegionLayerAccessibily(canvas, nextItem:GetChildItem(), regionNav)
+                end
+            end
+
+            nextItem = nextItem:GetNext()
         end
     end
 
-    /*
-        This action the labels on the y axis
-    */
-    private action AddYLabels(ScalableVectorGraphics canvas, ScatterPlot chart)
-        number scaleNum = chart:GetYAxisMinimum()
-        
-        number scaleWidth = (chart:GetYAxisMaximum()) / (chart:GetYTickCount()- 1)
-        number scaleDivWidth = axisLength / (chart:GetYTickCount() - 1)
-        // scale
-        Math math
-        i = 0
-        output chart:GetYAxisMaximum()
-        repeat while i < chart:GetYTickCount()
-            Label scaleLabel
-            Line scaleTick
-            
-            scaleLabel:SetTextAnchor("end")
-            scaleLabel:SetText("" + math:Round(scaleNum, 1))
-            scaleLabel:SetFontSize("8pt")
-            scaleNum = scaleNum + scaleWidth
+    action AddPointsAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        UnorderedList groupUL
+        groupUL:AddAttribute("role","group")
+        chartListItem:AddNestedTag(groupUL)
 
-            scaleTick:SetTabIndex(-1)
-            scaleTick:SetFirstPoint(axisPointX, axisPointY - scaleDivWidth*i, "%")
-            scaleTick:SetSecondPoint(axisPointX - 2, axisPointY - scaleDivWidth*i, "%")
-            scaleTick:SetStroke("black")
-            scaleTick:SetStrokeWidth(0.4,"%")
-            
-            scaleLabel:SetPosition(axisPointX - 3, axisPointY - scaleDivWidth*i + 0.5, "%")
+        ChartPoint point = cast(ChartPoint, firstItem:GetFocusTarget())
 
-            canvas:Add(scaleLabel)
-            canvas:Add(scaleTick)
-        i = i+1
+        ListItem firstPointNav
+        firstPointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
+        firstPointNav:AddAttribute("role","treeitem")
+        firstPointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
+        firstPointNav:AddAttribute("aria-expanded","false")
+        firstPointNav:SetTabIndex("-1")
+        groupUL:Add(firstPointNav)
+
+        ChartItem nextItem = firstItem:GetNext()
+        repeat while nextItem not= undefined and nextItem not= firstItem
+            point = cast(ChartPoint, nextItem:GetFocusTarget())
+            ListItem pointNav
+            pointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
+            pointNav:AddAttribute("role","treeitem")
+            pointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
+            pointNav:AddAttribute("aria-expanded","false")
+            pointNav:SetTabIndex("-1")
+            groupUL:Add(pointNav)
+
+            nextItem = nextItem:GetNext()
         end
     end
-
 end

@@ -1,0 +1,259 @@
+package Libraries.Data.Database
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Data.Database.Support.Parameter
+use Libraries.Data.Database.Support.RemappableName
+use Libraries.Data.Database.Support.TableTarget
+
+/*
+    The Query class meant to be used as a parent to other types of queries. This holds information that most queries are gonna need
+    such as a filter and a table. This class has an action ConvertToStructuredQueryLanguage() that writes out the query as text to be
+    sent to a database server. Here that action returns and empty string so every subclass needs to override it to output a valid
+    StructuredQueryLanguage string.
+*/
+class Query is RemappableName
+    text table = ""
+    text filter = ""
+    text rawFilter = undefined
+    HashTable<text, integer> tableReferences
+    HashTable<text, RemappableName> nameRemaps
+    HashTable<text, Find> subqueries
+    DatabaseMetaData meta = undefined
+    Array<Parameter> preparedParameters
+
+
+    /*
+        This action is meant to be overwritten by the sub classes. This class takes the information
+        from the query and build a text string in StructuredQueryLanguage (SQL) and that string will
+        be sent to the database server be ran
+    */
+    action ConvertToStructuredQueryLanguage returns text
+        return ""
+    end
+
+    /* By default convert to structured query language. */
+    action ToText returns text
+        return ConvertToStructuredQueryLanguage()
+    end
+
+    /* Returns the table this query is meant to be ran against */
+    action GetTable returns text
+        return table
+    end
+
+    /*
+        This action sets the table of the query. Most queries run against 
+        a single table and this action is used to set which table the query will
+        affect or search. 
+
+        Attribute: Parameter table The name of the table to set for this query
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members")
+    */
+    action SetTable(text table)
+        RemoveTableReference(me:table)
+        me:table = table
+        tableReferences:Add(table, 0)
+    end
+
+    /*
+        This action sets the table of the query. Most queries run against 
+        a single table and this action is used to set which table the query will
+        affect or search. This action also lets you rename the table so in filters 
+        a different name can be used.
+
+        Attribute: Parameter table The name of the table to set for this query
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("members", "m")
+    */
+    action SetTable(text table, text newName)
+        RemoveTableReference(me:table)
+        me:table = newName
+        // still referencing the original table it just has a new Name
+        tableReferences:Add(table, 0)
+        TableTarget tableRemap
+        tableRemap:SetRemappedName(newName)
+        tableRemap:SetTable(table)
+        AddNameRemap(newName, tableRemap)
+    end
+
+    /*
+        This action sets the table of the query. Most queries run against 
+        a single table and this action is used to set which table the query will
+        affect or search. This action also lets you rename the table so in filters 
+        a different name can be used.
+
+        Attribute: Parameter table The name of the table to set for this query
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTableWithName("members", "m")
+    */
+    action SetTableWithName(text table, text newName)
+        SetTable(table, newName)
+    end
+
+    /*
+        This adds a name that can be used in the place of a table. This action does not 
+        set the table of this query but only a name that can be referenced if the table is
+        added. 
+
+        Attribute: Parameter table The name of the table to set for this query
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Find
+
+        Find query
+        query:SetTable("orders", "o")
+        query:AddTableNameRemap("members", "m")
+        query:AddInnerJoin("m", "o:name = m:name")
+    */
+    action AddTableNameRemap(text table, text newName)
+        TableTarget tableRemap
+        tableRemap:SetRemappedName(newName)
+        tableRemap:SetTable(table)
+        AddNameRemap(newName, tableRemap)
+    end
+
+
+    /*
+        Some queries make use of the filter which is an expression checked against the values of the columns 
+        in the rows of a database table. The filter is written using Quorum syntax and will be type checked to see
+        if it's valid. Column names can be used and the names made by the user using name remaps. An example filter would
+        be "priority < 4" where priority is a column that exists and can be mapped to an integer.
+
+        Attribute: Parameter value The expression to be used in the query
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Delete
+
+        Delete query
+        query:SetTable("orders")
+        query:Filter("priority < 4")
+    */
+    action Filter(text value)
+        rawFilter = value
+    end
+
+    /* 
+        Returns the filter as given by the user. The filter will be converted to a syntax
+        accepted by the database server and this action returns whatever the user originally
+        typed
+    */
+    action GetRawFilter returns text
+        return rawFilter
+    end
+
+    /* 
+        Returns the filter as translated by the quorum compiler. The filter will be converted to a syntax
+        accepted by the database server and this action returns whatever the user originally
+        typed
+    */
+    action GetTranslatedFilter returns text
+        return filter
+    end
+
+    /* Returns the meta data object set for this query */
+    action GetDatabaseMetaData returns DatabaseMetaData
+        return meta
+    end
+
+    /* Sets the DatabaseMetaData for this query. This is necessary for checking things like if a table referenced exists
+        or if a filter has valid column references.
+     */
+    action SetDatabaseMetaData(DatabaseMetaData meta)
+        me:meta = meta
+    end
+
+    /* Internal. Queries keep track of what tables are referenced to check for ambiguous column names */
+    action AddTableReference(text table)
+        tableReferences:Add(table, 1)
+    end
+
+    /* Internal. Clears a table reference if it is removed to prevent issues with a query being after changing
+        internal values such as the table with SetTable()
+     */
+    private action RemoveTableReference(text table)
+        if table not= undefined and table not= "" and tableReferences:GetValue(me:table) = 0
+            tableReferences:RemoveKey(table)
+        end
+    end
+
+    /* Internal. Used by other actions to grab what tables are referenced to check if column names are valid. */
+    action GetTableReferences returns HashTable<text, integer>
+        return tableReferences
+    end
+
+    /* Empties the table references hash table. */
+    action EmptyTableReferences
+        tableReferences:Empty()
+    end
+
+    /* Adds objects that have been remapped to single table for reference in actions called when building the 
+        query to text. Examples of RemappableNames are columns, tables, and subqueries. */
+    action AddNameRemap(text newName, RemappableName original)
+        if newName = undefined or newName = ""
+           alert("Name remap can not be empty")
+        end
+        if newName:Contains(" ")
+           alert("Name remap can not have any spaces in it")
+        end
+        nameRemaps:Add(newName, original)
+    end
+
+    /* Grabs the table containing all aliases that have been set in this query */
+    action GetNameRemaps returns HashTable<text, RemappableName>
+        return nameRemaps
+    end
+
+    /* 
+        Adds a subquery to this query. Only Find queries are supported for now. 
+        A Subquery is a query that exists another outer query. An example could be 
+        a Find where the table to search through is actually the result of another query.
+    */
+    action AddSubquery(text name, Find subquery)
+        Query test = cast(Query, subquery)
+        if test = me
+            alert("Cannot be a subquery of yourself")
+        end
+        subqueries:Add(name, subquery)
+        nameRemaps:Add(name, subquery)
+    end
+
+    /*
+        At the plugin level prepared statements are used to add a layer of security from injection attacks.
+        Every parameter in the prepared paramter array will be stripped from the actual query text and 
+        set appropriately at the plugin level.
+    */
+    action AddPreparedParameter(Parameter param)
+        preparedParameters:Add(param)
+    end
+
+    /* Used at the plugin level to get all parameters that need to be set in the prepared statement */
+    action GetPreparedParameters returns Array<Parameter>
+        return preparedParameters
+    end
+
+    /*
+        Clears the prepared parameter list. Necessary because running a query again without emptying the list
+        will cause the list of parameters to not shrink
+    */
+    action EmptyPreparedParameters
+        preparedParameters:Empty()
+    end
+end

@@ -143,6 +143,7 @@ class ActionsTester
         MissingReturn9()
         MissingReturn10()
         MissingReturn11()
+        MissingUseInParam()
         MissingVariable()
         ReturnCast2ActionsInt()
         SameParameterName()
@@ -1525,6 +1526,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "MissingReturn11.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action MissingUseInParam
+        Array<File> files
+        File main
+        main:SetPath(path + "MissingUseInParam.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

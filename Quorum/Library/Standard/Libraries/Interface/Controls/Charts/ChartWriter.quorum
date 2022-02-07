@@ -1,0 +1,1402 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Web.Page.Script
+use Libraries.Containers.Array
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.ListItem
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Item2D
+use Libraries.System.File
+use Libraries.Interface.Controls.Icon
+use Libraries.Compute.Random
+use Libraries.System.DateTime
+
+class ChartWriter
+    private number axisPointX = 105
+    private number axisPointY = 90
+    private number axisLengthX = 525
+    private number axisLengthY = 450
+    private integer svgHeight = 600
+    private integer svgWidth = 700
+    private boolean hasAccessibility = true
+    private number paddedChartOffset = 0
+    private number fontSize = 12
+
+    Label chartTitle
+    Label xAxisLabel
+    Label yAxisLabel
+    Rectangle xAxis
+    Rectangle yAxis
+    Rectangle horizontalPanel
+    Rectangle verticalPanel
+    Rectangle background
+    Rectangle chartArea
+    Array<Rectangle> subChartAreas
+    Array<Rectangle> subHorizontalPanels
+    Array<Rectangle> subVerticalPanels
+    Array<Rectangle> subXAxes
+    Array<Rectangle> subYAxes
+    Array<Label> yLabels
+    Array<Label> xLabels
+    Array<Array<Label>> subYLabels
+    Array<Array<Label>> subXLabels
+    Array<Rectangle> groupPanels
+
+    
+    
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, integer svgWidth, integer svgHeight) returns text
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        return WriteOutChart(chart)
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
+        Attribute: Parameter svgWidth The width in pixels of the SVG
+        Attribute: Parameter svgHeight The height in pixels of the SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        File f
+        f:SetPath("aFile.svg")
+        chartWriter:WriteOutChart(chart, f, 1400, 1200)
+    */
+    action WriteOutChart(Chart chart, File file, integer svgWidth, integer svgHeight)
+        me:svgWidth = svgWidth
+        me:svgHeight = svgHeight
+        WriteOutChart(chart, file)
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        output writer:WriteOutChart(chart)
+    */
+    action WriteOutChart(Chart chart) returns text
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(svgWidth,svgHeight)
+        chartCanvas:SetTabIndex(-1)
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode() + "-" + UniversalUniqueIdentifier())
+        chartCanvas:SetRole("img")
+
+        //Generate SVG elements for each piece of the chart
+        AddBackground(chartCanvas, chart)
+        AddChartArea(chartCanvas, chart)
+        AddXLabels(chartCanvas, chart)
+        AddYLabels(chartCanvas, chart)
+        AddAxes(chartCanvas, chart)
+        AddChartTitle(chartCanvas, chart)
+        AddChartContent(chartCanvas, chart)
+        if chart:IsShowingLegend()
+            AddLegend(chartCanvas, chart)
+        end
+
+        //Generate a list tree to give navigation structure
+        if HasAccessibility()
+            AddAccessibility(chartCanvas, chart)
+        end
+
+        return chartCanvas:ToText()
+    end
+
+    /*
+        This action writes out the Chart by grabbing necessary information from the chart and it will then return
+        all of the necessary text needed to write out an SVG file that will contain the chart.
+    
+        Attribute: Parameter chart The chart that will be used to create an SVG
+        Attribute: Parameter file The file object that will be written to
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.BarChartWriter
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart()
+        chart:Display()
+    
+        BarChartWriter writer
+        File f
+        f:SetPath("aFile.svg")
+        chartWriter:WriteOutChart(chart, f)
+    */
+    action WriteOutChart(Chart chart, File file)
+        svgWidth = cast(integer,chart:GetWidth())
+        svgHeight = cast(integer,chart:GetHeight())
+        axisLengthX = cast(integer, svgWidth*chart:GetChartAreaWidthPercent())
+        axisPointX = cast(integer, svgWidth*chart:GetVerticalPanelWidthPercent())
+        axisLengthY = cast(integer, svgHeight*chart:GetChartAreaHeightPercent())
+        axisPointY = cast(integer, svgHeight*(1 - chart:GetHorizontalPanelHeightPercent()))
+        ScalableVectorGraphics chartCanvas
+        chartCanvas:SetSize(svgWidth,svgHeight)
+        chartCanvas:SetTabIndex(-1)
+        chartCanvas:SetID("svg-" + chartCanvas:GetHashCode())
+        chartCanvas:SetRole("img")
+
+        //Generate SVG elements for each piece of the chart
+        AddBackground(chartCanvas, chart)
+        AddChartArea(chartCanvas, chart)
+        if chart:IsShowingXAxis()
+            AddXLabels(chartCanvas, chart)
+        end
+        if chart:IsShowingYAxis()
+            AddYLabels(chartCanvas, chart)
+        end
+        AddAxes(chartCanvas, chart)
+        AddChartTitle(chartCanvas, chart)
+        AddChartContent(chartCanvas, chart)
+        if chart:IsShowingLegend()
+            AddLegend(chartCanvas, chart)
+        end
+
+        //Generate a list tree to give navigation structure
+        if HasAccessibility()
+            AddAccessibility(chartCanvas, chart)
+        end
+
+        chartCanvas:Write(file)
+    end
+
+    /*
+        This action sets a flag to know if all of the accessibility
+        information should be included. This may be used to reduce
+        the size of the image in cases where it will be used
+        as a flat image such as in a PDF.
+    */
+    action SetAccessibilityFlag(boolean hasAccessibility)
+        me:hasAccessibility = hasAccessibility
+    end
+
+    action HasAccessibility() returns boolean
+        return hasAccessibility
+    end
+
+    /*
+        These actions are used to offset the start of the tick placement
+        if the chart has added white space on either side of the chart area.
+    */
+    action SetPaddedChartOffset(number paddedChartOffset)
+        me:paddedChartOffset = paddedChartOffset
+    end
+
+    action GetPaddedChartOffset() returns number
+        return paddedChartOffset
+    end
+
+    /*
+        This action sets the position (percentage) of the chart area.
+    */
+    action SetChartAreaPosition(number x, number y)
+        axisPointX = x
+        axisPointY = y
+    end
+
+    action SetChartAreaPositionX(number x)
+        axisPointX = x
+    end
+
+    action GetChartAreaPositionX() returns number
+        return axisPointX
+    end
+
+    action SetChartAreaPositionY(number y)
+        axisPointY = y
+    end
+
+    action GetChartAreaPositionY() returns number
+        return axisPointY
+    end
+
+    /*
+        This action sets the width (percentage) of the chart area.
+    */
+    action SetChartAreaWidth(number width)
+        axisLengthX = width
+    end
+
+    action GetChartAreaWidth() returns number
+        return axisLengthX
+    end
+
+    /*
+        This action sets the height (percentage) of the chart area.
+    */
+    action SetChartAreaHeight(number height)
+        axisLengthY = height
+    end
+
+    action GetChartAreaHeight() returns number
+        return axisLengthY
+    end
+
+    /*
+        This action sets the height (pixel) of the chart.
+    */
+    action SetChartHeight(integer svgHeight)
+        me:svgHeight = svgHeight
+    end
+
+    action GetChartHeight() returns integer
+        return svgHeight
+    end
+
+    /*
+        This action sets the width (pixel) of the chart.
+    */
+    action SetChartWidth(integer svgWidth)
+        me:svgWidth = svgWidth
+    end
+
+    action GetChartWidth() returns integer
+        return svgWidth
+    end
+
+    /*
+        This action sets the chart title.
+    */
+    action SetChartTitle(Label chartTitle)
+        me:chartTitle = chartTitle
+    end
+
+    action GetChartTitle() returns Label
+        return chartTitle
+    end
+
+    /*
+        This action sets the x axis label.
+    */
+    action SetXAxisLabel(Label xAxisLabel)
+        me:xAxisLabel = xAxisLabel
+    end
+
+    action GetXAxisLabel() returns Label
+        return xAxisLabel
+    end
+
+    /*
+        This action sets the y axis label.
+    */
+    action SetYAxisLabel(Label yAxisLabel)
+        me:yAxisLabel = yAxisLabel
+    end
+
+    action GetYAxisLabel() returns Label
+        return yAxisLabel
+    end
+
+    /*
+        This action sets the x axis line.
+    */
+    action SetXAxis(Rectangle xAxis)
+        me:xAxis = xAxis
+    end
+
+    action GetXAxis() returns Rectangle
+        return xAxis
+    end
+
+    /*
+        This action sets the y axis line.
+    */
+    action SetYAxis(Rectangle yAxis)
+        me:yAxis = yAxis
+    end
+
+    action GetYAxis() returns Rectangle
+        return yAxis
+    end
+
+    /*
+        This action sets the background.
+    */
+    action SetBackground(Rectangle background)
+        me:background = background
+    end
+
+    action GetBackground() returns Rectangle
+        return background
+    end
+
+    /*
+        This action sets the chart area.
+    */
+    action SetChartArea(Rectangle chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea() returns Rectangle
+        return chartArea
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetXLabels(Array<Label> xLabels)
+        me:xLabels = xLabels
+    end
+
+    action GetXLabels() returns Array<Label>
+        return xLabels
+    end
+
+    /*
+        This action sets the y labels.
+    */
+    action SetYLabels(Array<Label> yLabels)
+        me:yLabels = yLabels
+    end
+
+    action GetYLabels() returns Array<Label>
+        return yLabels
+    end
+
+    /*
+        This action sets the group panels.
+    */
+    action GetGroupPanels() returns Array<Rectangle>
+        return groupPanels
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
+        background:SetFill("white")
+        background:SetSize(100,100, "%")
+        background:SetPosition(0, 0, "%")
+        background:SetID(canvas:GetID() + "-" + background:GetHashCode())
+        background:SetTabIndex(-1)
+        if HasAccessibility()
+            background:SetAriaLabel(chart:GetTitle() + ", " + chart:GenerateSummary())
+        end
+        canvas:Add(background)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        chartArea:SetFill("white")
+        chartArea:SetSize(axisLengthX,axisLengthY)
+        chartArea:SetPosition(axisPointX, axisPointY - axisLengthY)
+        chartArea:SetID(canvas:GetID() + "-" + chartArea:GetHashCode())
+        chartArea:SetTabIndex(-1)
+        if HasAccessibility()
+            
+        end
+        canvas:Add(chartArea)
+
+        Array<ChartAreaPanel> subChartAreas = chart:GetSubChartAreas()
+        i = 0
+        repeat while i < subChartAreas:GetSize()
+            ChartAreaPanel currentSubChartArea = subChartAreas:Get(i)
+
+            Rectangle svgSubChartArea
+
+            svgSubChartArea:SetFill("white")
+            svgSubChartArea:SetStyle("stroke:black;stroke-width:4")
+            svgSubChartArea:SetSize(currentSubChartArea:GetWidth(),currentSubChartArea:GetHeight())
+            svgSubChartArea:SetPosition(currentSubChartArea:GetGlobalX(), TranslatePositionY(currentSubChartArea)  - currentSubChartArea:GetHeight())
+            svgSubChartArea:SetID(canvas:GetID() + "-" + svgSubChartArea:GetHashCode())
+            svgSubChartArea:SetTabIndex(-1)
+            if HasAccessibility()
+                svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
+            end
+            me:subChartAreas:Add(svgSubChartArea)
+            canvas:Add(svgSubChartArea)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action adds the two lines for the x and y axis
+    */
+    private action AddAxes(ScalableVectorGraphics canvas, Chart chart)
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
+
+        HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
+
+        Drawable chartXAxis = chart:GetHorizontalPanel():GetAxis()
+        if chartXAxis not= undefined and chartXAxis:IsShowing()
+            xAxis:SetWidth(chartXAxis:GetWidth())
+            xAxis:SetHeight(chartXAxis:GetHeight())
+            xAxis:SetPosition(chartXAxis:GetGlobalX(), TranslatePositionY(chartXAxis) - chartXAxis:GetHeight())
+            xAxis:SetFill(chartXAxis:GetColor())
+            xAxis:SetTabIndex(-1)
+            xAxis:SetID(canvas:GetID() + "-" + xAxis:GetHashCode())
+            canvas:Add(xAxis)
+        end
+
+        if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
+            horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
+            horizontalPanel:SetHeight(horizontalAxisPanel:GetHeight())
+            horizontalPanel:SetPosition(horizontalAxisPanel:GetGlobalX(), TranslatePositionY(horizontalAxisPanel) - horizontalAxisPanel:GetHeight())
+            horizontalPanel:SetFill(transparent)
+            horizontalPanel:SetTabIndex(-1)
+            horizontalPanel:SetID(canvas:GetID() + "-" + horizontalAxisPanel:GetHashCode())
+            if HasAccessibility()
+                horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+            end
+            canvas:Add(horizontalPanel)
+        end
+
+        Array<HorizontalAxisPanel> subHorizontalPanels = chart:GetSubHorizontalPanels()
+
+        i = 0
+        repeat while i < subHorizontalPanels:GetSize()
+            HorizontalAxisPanel currentSubHorizontalPanel = subHorizontalPanels:Get(i)
+
+            if currentSubHorizontalPanel not= undefined and currentSubHorizontalPanel:IsShowing()
+                //Background of sub panel
+                Rectangle svgSubHorizontalPanel
+    
+                svgSubHorizontalPanel:SetWidth(currentSubHorizontalPanel:GetWidth())
+                svgSubHorizontalPanel:SetHeight(currentSubHorizontalPanel:GetHeight())
+                svgSubHorizontalPanel:SetPosition(currentSubHorizontalPanel:GetGlobalX(), TranslatePositionY(currentSubHorizontalPanel) - currentSubHorizontalPanel:GetHeight())
+                svgSubHorizontalPanel:SetFill(transparent)
+                svgSubHorizontalPanel:SetTabIndex(-1)
+                svgSubHorizontalPanel:SetID(canvas:GetID() + "-" + currentSubHorizontalPanel:GetHashCode())
+                if HasAccessibility()
+                    svgSubHorizontalPanel:SetAriaLabel(currentSubHorizontalPanel:GetName() + currentSubHorizontalPanel:GetDescription())
+                end
+                me:subHorizontalPanels:Add(svgSubHorizontalPanel)
+                canvas:Add(svgSubHorizontalPanel)
+            end
+            i = i + 1
+        end
+
+        ControlLabel xAxisTitle = chart:GetHorizontalPanel():GetTitleLabel()
+        if xAxisTitle not= undefined xAxisTitle:IsShowing()
+            xAxisLabel:SetText(chart:GetXAxisTitle())
+            xAxisLabel:SetTextAnchor("left")
+            xAxisLabel:SetPosition(xAxisTitle:GetGlobalX(), TranslatePositionY(xAxisTitle))
+            xAxisLabel:SetFontSize(xAxisTitle:GetFontSize() + "px")
+            xAxisLabel:SetFontFamily("Arial")
+            xAxisLabel:SetID(canvas:GetID() + "-" + xAxisLabel:GetHashCode())
+            xAxisLabel:SetTabIndex(-1)
+            canvas:Add(xAxisLabel)
+        end
+
+        VerticalAxisPanel verticalAxisPanel = chart:GetVerticalPanel()
+
+        Drawable chartYAxis = chart:GetVerticalPanel():GetAxis()
+        if chartYAxis not= undefined and chartYAxis:IsShowing()
+            yAxis:SetWidth(chartYAxis:GetWidth())
+            yAxis:SetHeight(chartYAxis:GetHeight())
+            yAxis:SetPosition(chartYAxis:GetGlobalX(), TranslatePositionY(chartYAxis) - chartYAxis:GetHeight())
+            yAxis:SetFill(chartYAxis:GetColor())
+            yAxis:SetTabIndex(-1)
+            yAxis:SetID(canvas:GetID() + "-" + yAxis:GetHashCode())
+            canvas:Add(yAxis)
+        end
+
+        if verticalAxisPanel not= undefined and verticalAxisPanel:IsShowing()
+            verticalPanel:SetWidth(verticalAxisPanel:GetWidth())
+            verticalPanel:SetHeight(verticalAxisPanel:GetHeight())
+            verticalPanel:SetPosition(verticalAxisPanel:GetGlobalX(), TranslatePositionY(verticalAxisPanel) - verticalAxisPanel:GetHeight())
+            verticalPanel:SetFill(transparent)
+            verticalPanel:SetTabIndex(-1)
+            verticalPanel:SetID(canvas:GetID() + "-" + verticalAxisPanel:GetHashCode())
+            if HasAccessibility()
+                verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+            end
+            canvas:Add(verticalPanel)
+        end
+
+        Array<VerticalAxisPanel> subVerticalPanels = chart:GetSubVerticalPanels()
+
+        i = 0
+        repeat while i < subVerticalPanels:GetSize()
+            VerticalAxisPanel currentSubVerticalPanel = subVerticalPanels:Get(i)
+
+            if currentSubVerticalPanel not= undefined and currentSubVerticalPanel:IsShowing()
+                //Background of sub panel
+                Rectangle svgSubVerticalPanel
+    
+                svgSubVerticalPanel:SetWidth(currentSubVerticalPanel:GetWidth())
+                svgSubVerticalPanel:SetHeight(currentSubVerticalPanel:GetHeight())
+                svgSubVerticalPanel:SetPosition(currentSubVerticalPanel:GetGlobalX(), TranslatePositionY(currentSubVerticalPanel) - currentSubVerticalPanel:GetHeight())
+                svgSubVerticalPanel:SetFill(transparent)
+                svgSubVerticalPanel:SetTabIndex(-1)
+                svgSubVerticalPanel:SetID(canvas:GetID() + "-" + currentSubVerticalPanel:GetHashCode())
+                if HasAccessibility()
+                    svgSubVerticalPanel:SetAriaLabel(currentSubVerticalPanel:GetName() + currentSubVerticalPanel:GetDescription())
+                end
+                me:subVerticalPanels:Add(svgSubVerticalPanel)
+                canvas:Add(svgSubVerticalPanel)
+            end
+            i = i + 1
+        end
+
+        ControlLabel yAxisTitle = chart:GetVerticalPanel():GetTitleLabel()
+        if yAxisTitle not= undefined and yAxisTitle:IsShowing()
+            Item2D yAxisTitleAnchor = chart:GetVerticalPanel():GetTitleLabel():GetParent()
+            yAxisLabel:SetText(chart:GetYAxisTitle())
+            yAxisLabel:SetTextAnchor("left")
+            yAxisLabel:SetPosition(yAxisTitleAnchor:GetGlobalX(), TranslatePositionY(yAxisTitleAnchor))
+            yAxisLabel:SetTransform("rotate(" + yAxisTitleAnchor:GetRotation() + ", " + yAxisTitleAnchor:GetGlobalX() + ", " + TranslatePositionY(yAxisTitleAnchor) + ")")
+            yAxisLabel:SetFontSize(yAxisTitle:GetFontSize() + "px")
+            yAxisLabel:SetFontFamily("Arial")
+            yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
+            yAxisLabel:SetTabIndex(-1)
+            canvas:Add(yAxisLabel)
+        end
+    end
+
+    /*
+        This action adds a chart title to the canvas
+    */
+    private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
+        
+        chartTitle:SetText(chart:GetTitle())
+        chartTitle:SetTextAnchor("left")
+        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))
+        chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
+        chartTitle:SetFontFamily("Arial")
+        chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
+        chartTitle:SetTabIndex(-1)
+        canvas:Add(chartTitle)
+    end
+
+    /*
+        This action adds the elements used within the chart area (bars, lines, datapoints, etc). 
+
+        Attribute: Parameter The chart that will be used to create an SVG
+        Attribute: Parameter chart
+    */
+    blueprint action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+
+    /*
+        This action adds the labels on the x axis
+    */
+    action AddXLabels(ScalableVectorGraphics canvas, Chart chart)
+        HorizontalAxisPanel horizontalContainer
+        horizontalContainer = chart:GetHorizontalPanel()
+        
+        Array<HorizontalAxisPanel> subHorizontalPanels = chart:GetSubHorizontalPanels()
+        Array<Drawable> ticks = horizontalContainer:GetTicks()
+        Array<Drawable> brackets = horizontalContainer:GetBrackets()
+        Array<Drawable> lines = horizontalContainer:GetMajorGridlines()
+        Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
+        Array<ControlLabel> labels = horizontalContainer:GetLabels()
+
+        i = 0
+        repeat while i < ticks:GetSize()
+            Drawable currentTick = ticks:Get(i)
+            if currentTick:IsShowing()
+                Rectangle svgElementTick
+
+                svgElementTick:SetWidth(currentTick:GetWidth())
+                svgElementTick:SetHeight(currentTick:GetHeight())
+                svgElementTick:SetPosition(currentTick:GetGlobalX(), TranslatePositionY(currentTick) - currentTick:GetHeight())
+                svgElementTick:SetFill(currentTick:GetColor())
+                svgElementTick:SetTabIndex(-1)
+                svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
+
+                canvas:Add(svgElementTick)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < brackets:GetSize()
+            Drawable currentBracket = brackets:Get(i)
+            if currentBracket:IsShowing()
+                Rectangle svgElementBracket
+                
+                svgElementBracket:SetWidth(currentBracket:GetWidth())
+                svgElementBracket:SetHeight(currentBracket:GetHeight())
+                svgElementBracket:SetPosition(currentBracket:GetGlobalX(), TranslatePositionY(currentBracket) - currentBracket:GetHeight())
+                svgElementBracket:SetFill(currentBracket:GetColor())
+                svgElementBracket:SetTabIndex(-1)
+                svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
+
+                canvas:Add(svgElementBracket)
+            end
+            i = i + 1
+        end
+
+
+        i = 0
+        repeat while i < lines:GetSize()
+            Drawable currentLine = lines:Get(i)
+            if currentLine:IsShowing()
+                Rectangle svgElementLine
+                
+                svgElementLine:SetWidth(currentLine:GetWidth())
+                svgElementLine:SetHeight(currentLine:GetHeight())
+                svgElementLine:SetPosition(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight())
+                svgElementLine:SetFill(currentLine:GetColor())
+                svgElementLine:SetTabIndex(-1)
+                svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
+
+                canvas:Add(svgElementLine)
+            end
+            i = i + 1
+        end
+
+
+        i = 0
+        repeat while i < minorlines:GetSize()
+            Drawable currentMinorline = minorlines:Get(i)
+            if currentMinorline:IsShowing()
+                Rectangle svgElementMinorline
+
+                svgElementMinorline:SetWidth(currentMinorline:GetWidth())
+                svgElementMinorline:SetHeight(currentMinorline:GetHeight())
+                svgElementMinorline:SetPosition(currentMinorline:GetGlobalX(), TranslatePositionY(currentMinorline) - currentMinorline:GetHeight())
+                svgElementMinorline:SetFill(currentMinorline:GetColor())
+                svgElementMinorline:SetTabIndex(-1)
+                svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
+
+                canvas:Add(svgElementMinorline)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < labels:GetSize()
+            ControlLabel currentLabel = labels:Get(i)
+            if currentLabel:IsShowing()
+                Item2D currentLabelAnchor = currentLabel:GetParent()
+                Label svgLabel
+
+                svgLabel:SetText(currentLabel:GetText())
+                svgLabel:SetTextAnchor("left")
+                svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+                svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                svgLabel:SetFontSize(currentLabel:GetFontSize() + "px")
+                svgLabel:SetFontFamily("Arial")
+                
+                svgLabel:SetID(canvas:GetID() + "-" + svgLabel:GetHashCode())
+                svgLabel:SetTabIndex(-1)
+
+                if HasAccessibility()
+                    svgLabel:SetAriaLabel(currentLabel:GetDescription())
+                end
+                
+                canvas:Add(svgLabel)
+                xLabels:Add(svgLabel)
+            end
+            i = i + 1
+        end
+
+        j = 0
+        repeat while j < subHorizontalPanels:GetSize()
+            HorizontalAxisPanel subHorizontalPanel = subHorizontalPanels:Get(j)
+            Array<Drawable> subTicks = subHorizontalPanel:GetTicks()
+            Array<Drawable> subBrackets = subHorizontalPanel:GetBrackets()
+            Array<Drawable> subLines = subHorizontalPanel:GetMajorGridlines()
+            Array<Drawable> subMinorlines = subHorizontalPanel:GetMinorGridlines()
+            Array<ControlLabel> subLabels = subHorizontalPanel:GetLabels()
+            
+            Array<Label> subXLabels
+
+            i = 0
+            repeat while i < subTicks:GetSize()
+                Drawable currentSubTick = subTicks:Get(i)
+                if currentSubTick:IsShowing()
+                    Rectangle svgElementTick
+    
+                    svgElementTick:SetWidth(currentSubTick:GetWidth())
+                    svgElementTick:SetHeight(currentSubTick:GetHeight())
+                    svgElementTick:SetPosition(currentSubTick:GetGlobalX(), TranslatePositionY(currentSubTick) - currentSubTick:GetHeight())
+                    svgElementTick:SetFill(currentSubTick:GetColor())
+                    svgElementTick:SetTabIndex(-1)
+                    svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
+    
+                    canvas:Add(svgElementTick)
+                end
+                i = i + 1
+            end
+    
+            i = 0
+            repeat while i < subBrackets:GetSize()
+                Drawable currentSubBracket = subBrackets:Get(i)
+                if currentSubBracket:IsShowing()
+                    Rectangle svgElementBracket
+                    
+                    svgElementBracket:SetWidth(currentSubBracket:GetWidth())
+                    svgElementBracket:SetHeight(currentSubBracket:GetHeight())
+                    svgElementBracket:SetPosition(currentSubBracket:GetGlobalX(), TranslatePositionY(currentSubBracket) - currentSubBracket:GetHeight())
+                    svgElementBracket:SetFill(currentSubBracket:GetColor())
+                    svgElementBracket:SetTabIndex(-1)
+                    svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
+    
+                    canvas:Add(svgElementBracket)
+                end
+                i = i + 1
+            end
+    
+    
+            i = 0
+            repeat while i < subLines:GetSize()
+                Drawable currentSubLine = subLines:Get(i)
+                if currentSubLine:IsShowing()
+                    Rectangle svgElementLine
+                    
+                    svgElementLine:SetWidth(currentSubLine:GetWidth())
+                    svgElementLine:SetHeight(currentSubLine:GetHeight())
+                    svgElementLine:SetPosition(currentSubLine:GetGlobalX(), TranslatePositionY(currentSubLine) - currentSubLine:GetHeight())
+                    svgElementLine:SetFill(currentSubLine:GetColor())
+                    svgElementLine:SetTabIndex(-1)
+                    svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
+    
+                    canvas:Add(svgElementLine)
+                end
+                i = i + 1
+            end
+    
+    
+            i = 0
+            repeat while i < subMinorlines:GetSize()
+                Drawable currentSubMinorline = subMinorlines:Get(i)
+                if currentSubMinorline:IsShowing()
+                    Rectangle svgElementMinorline
+    
+                    svgElementMinorline:SetWidth(currentSubMinorline:GetWidth())
+                    svgElementMinorline:SetHeight(currentSubMinorline:GetHeight())
+                    svgElementMinorline:SetPosition(currentSubMinorline:GetGlobalX(), TranslatePositionY(currentSubMinorline) - currentSubMinorline:GetHeight())
+                    svgElementMinorline:SetFill(currentSubMinorline:GetColor())
+                    svgElementMinorline:SetTabIndex(-1)
+                    svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
+    
+                    canvas:Add(svgElementMinorline)
+                end
+                i = i + 1
+            end
+    
+            i = 0
+            repeat while i < subLabels:GetSize()
+                ControlLabel currentSubLabel = subLabels:Get(i)
+                if currentSubLabel:IsShowing()
+                    Item2D currentLabelAnchor = currentSubLabel:GetParent()
+                    Label svgLabel
+    
+                    svgLabel:SetText(currentSubLabel:GetText())
+                    svgLabel:SetTextAnchor("left")
+                    svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+                    svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                    svgLabel:SetFontSize(currentSubLabel:GetFontSize() + "px")
+                    svgLabel:SetFontFamily("Arial")
+                    
+                    svgLabel:SetID(canvas:GetID() + "-" + svgLabel:GetHashCode())
+                    svgLabel:SetTabIndex(-1)
+    
+                    if HasAccessibility()
+                        svgLabel:SetAriaLabel(currentSubLabel:GetDescription())
+                    end
+                    
+                    canvas:Add(svgLabel)
+                    subXLabels:Add(svgLabel)
+                end
+                i = i + 1
+            end
+    
+            me:subXLabels:Add(subXLabels)
+            j = j + 1
+        end
+
+    end
+
+    /*
+        This action adds the labels on the y axis
+    */
+    action AddYLabels(ScalableVectorGraphics canvas, Chart chart)
+        VerticalAxisPanel verticalContainer
+        verticalContainer = chart:GetVerticalPanel()
+        
+        Array<VerticalAxisPanel> subVerticalPanels = chart:GetSubVerticalPanels()
+        Array<Drawable> ticks = verticalContainer:GetTicks()
+        Array<Drawable> brackets = verticalContainer:GetBrackets()
+        Array<Drawable> lines = verticalContainer:GetMajorGridlines()
+        Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
+        Array<ControlLabel> labels = verticalContainer:GetLabels()
+
+        i = 0
+        repeat while i < ticks:GetSize()
+            Drawable currentTick = ticks:Get(i)
+            if currentTick:IsShowing()
+                Rectangle svgElementTick
+
+                svgElementTick:SetWidth(currentTick:GetWidth())
+                svgElementTick:SetHeight(currentTick:GetHeight())
+                svgElementTick:SetPosition(currentTick:GetGlobalX(), TranslatePositionY(currentTick) - currentTick:GetHeight())
+                svgElementTick:SetFill(currentTick:GetColor())
+                svgElementTick:SetTabIndex(-1)
+                svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
+
+                canvas:Add(svgElementTick)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < brackets:GetSize()
+            Drawable currentBracket = brackets:Get(i)
+            if currentBracket:IsShowing()
+                Rectangle svgElementBracket
+                
+                svgElementBracket:SetWidth(currentBracket:GetWidth())
+                svgElementBracket:SetHeight(currentBracket:GetHeight())
+                svgElementBracket:SetPosition(currentBracket:GetGlobalX(), TranslatePositionY(currentBracket) - currentBracket:GetHeight())
+                svgElementBracket:SetFill(currentBracket:GetColor())
+                svgElementBracket:SetTabIndex(-1)
+                svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
+
+                canvas:Add(svgElementBracket)
+            end
+            i = i + 1
+        end
+
+
+        i = 0
+        repeat while i < lines:GetSize()
+            Drawable currentLine = lines:Get(i)
+            if currentLine:IsShowing()
+                Rectangle svgElementLine
+                
+                svgElementLine:SetWidth(currentLine:GetWidth())
+                svgElementLine:SetHeight(currentLine:GetHeight())
+                svgElementLine:SetPosition(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight())
+                svgElementLine:SetFill(currentLine:GetColor())
+                svgElementLine:SetTabIndex(-1)
+                svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
+
+                canvas:Add(svgElementLine)
+            end
+            i = i + 1
+        end
+
+
+        i = 0
+        repeat while i < minorlines:GetSize()
+            Drawable currentMinorline = minorlines:Get(i)
+            if currentMinorline:IsShowing()
+                Rectangle svgElementMinorline
+                
+                svgElementMinorline:SetWidth(currentMinorline:GetWidth())
+                svgElementMinorline:SetHeight(currentMinorline:GetHeight())
+                svgElementMinorline:SetPosition(currentMinorline:GetGlobalX(), TranslatePositionY(currentMinorline) - currentMinorline:GetHeight())
+                svgElementMinorline:SetFill(currentMinorline:GetColor())
+                svgElementMinorline:SetTabIndex(-1)
+                svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
+
+                canvas:Add(svgElementMinorline)
+            end
+            i = i + 1
+        end
+
+
+        i = 0
+        repeat while i < labels:GetSize()
+            ControlLabel currentLabel = labels:Get(i)
+            if currentLabel:IsShowing()
+                //Item2D currentLabelAnchor = currentLabel:GetParent()
+                Label svgLabel
+
+                svgLabel:SetText(currentLabel:GetText())
+                svgLabel:SetTextAnchor("left")
+                svgLabel:SetPosition(currentLabel:GetGlobalX(), TranslatePositionY(currentLabel))  
+                //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+                //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                svgLabel:SetFontSize(currentLabel:GetFontSize() + "px")
+                svgLabel:SetFontFamily("Arial")
+
+                svgLabel:SetID(canvas:GetID() + "-" + svgLabel:GetHashCode())
+                svgLabel:SetTabIndex(-1)
+                
+                if HasAccessibility()
+                    svgLabel:SetAriaLabel(currentLabel:GetDescription())
+                end
+
+                canvas:Add(svgLabel)
+                yLabels:Add(svgLabel)
+            end
+            i = i + 1
+        end
+
+        j = 0
+        repeat while j < subVerticalPanels:GetSize()
+            VerticalAxisPanel subVerticalPanel = subVerticalPanels:Get(j)
+            Array<Drawable> subTicks = subVerticalPanel:GetTicks()
+            Array<Drawable> subBrackets = subVerticalPanel:GetBrackets()
+            Array<Drawable> subLines = subVerticalPanel:GetMajorGridlines()
+            Array<Drawable> subMinorlines = subVerticalPanel:GetMinorGridlines()
+            Array<ControlLabel> subLabels = subVerticalPanel:GetLabels()
+    
+            Array<Label> subYLabels
+
+            i = 0
+            repeat while i < subTicks:GetSize()
+                Drawable currentSubTick = subTicks:Get(i)
+                if currentSubTick:IsShowing()
+                    Rectangle svgElementTick
+    
+                    svgElementTick:SetWidth(currentSubTick:GetWidth())
+                    svgElementTick:SetHeight(currentSubTick:GetHeight())
+                    svgElementTick:SetPosition(currentSubTick:GetGlobalX(), TranslatePositionY(currentSubTick) - currentSubTick:GetHeight())
+                    svgElementTick:SetFill(currentSubTick:GetColor())
+                    svgElementTick:SetTabIndex(-1)
+                    svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
+    
+                    canvas:Add(svgElementTick)
+                end
+                i = i + 1
+            end
+    
+            i = 0
+            repeat while i < subBrackets:GetSize()
+                Drawable currentSubBracket = subBrackets:Get(i)
+                if currentSubBracket:IsShowing()
+                    Rectangle svgElementBracket
+                    
+                    svgElementBracket:SetWidth(currentSubBracket:GetWidth())
+                    svgElementBracket:SetHeight(currentSubBracket:GetHeight())
+                    svgElementBracket:SetPosition(currentSubBracket:GetGlobalX(), TranslatePositionY(currentSubBracket) - currentSubBracket:GetHeight())
+                    svgElementBracket:SetFill(currentSubBracket:GetColor())
+                    svgElementBracket:SetTabIndex(-1)
+                    svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
+    
+                    canvas:Add(svgElementBracket)
+                end
+                i = i + 1
+            end
+    
+    
+            i = 0
+            repeat while i < subLines:GetSize()
+                Drawable currentSubLine = subLines:Get(i)
+                if currentSubLine:IsShowing()
+                    Rectangle svgElementLine
+                    
+                    svgElementLine:SetWidth(currentSubLine:GetWidth())
+                    svgElementLine:SetHeight(currentSubLine:GetHeight())
+                    svgElementLine:SetPosition(currentSubLine:GetGlobalX(), TranslatePositionY(currentSubLine) - currentSubLine:GetHeight())
+                    svgElementLine:SetFill(currentSubLine:GetColor())
+                    svgElementLine:SetTabIndex(-1)
+                    svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
+    
+                    canvas:Add(svgElementLine)
+                end
+                i = i + 1
+            end
+    
+    
+            i = 0
+            repeat while i < subMinorlines:GetSize()
+                Drawable currentSubMinorline = subMinorlines:Get(i)
+                if currentSubMinorline:IsShowing()
+                    Rectangle svgElementMinorline
+    
+                    svgElementMinorline:SetWidth(currentSubMinorline:GetWidth())
+                    svgElementMinorline:SetHeight(currentSubMinorline:GetHeight())
+                    svgElementMinorline:SetPosition(currentSubMinorline:GetGlobalX(), TranslatePositionY(currentSubMinorline) - currentSubMinorline:GetHeight())
+                    svgElementMinorline:SetFill(currentSubMinorline:GetColor())
+                    svgElementMinorline:SetTabIndex(-1)
+                    svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
+    
+                    canvas:Add(svgElementMinorline)
+                end
+                i = i + 1
+            end
+    
+            i = 0
+            repeat while i < subLabels:GetSize()
+                ControlLabel currentSubLabel = subLabels:Get(i)
+                if currentSubLabel:IsShowing()
+                    Item2D currentLabelAnchor = currentSubLabel:GetParent()
+                    Label svgLabel
+    
+                    svgLabel:SetText(currentSubLabel:GetText())
+                    svgLabel:SetTextAnchor("left")
+                    svgLabel:SetPosition(currentSubLabel:GetGlobalX(), TranslatePositionY(currentSubLabel))  
+                    //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+                    //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                    svgLabel:SetFontSize(currentSubLabel:GetFontSize() + "px")
+                    svgLabel:SetFontFamily("Arial")
+                    
+                    svgLabel:SetID(canvas:GetID() + "-" + svgLabel:GetHashCode())
+                    svgLabel:SetTabIndex(-1)
+    
+                    if HasAccessibility()
+                        svgLabel:SetAriaLabel(currentSubLabel:GetDescription())
+                    end
+                    
+                    canvas:Add(svgLabel)
+                    subYLabels:Add(svgLabel)
+                end
+                i = i + 1
+            end
+    
+            me:subYLabels:Add(subYLabels)
+            j = j + 1
+        end
+    end
+
+    
+    /*
+        This action adds the labels on the y axis
+    */
+    action AddLegend(ScalableVectorGraphics canvas, Chart chart)
+        Color transparent
+        transparent:SetColor(0,0,0,0)
+
+        Legend legend = chart:GetLegend()
+
+        Rectangle svgElementLegend
+        
+        svgElementLegend:SetWidth(legend:GetWidth())
+        svgElementLegend:SetHeight(legend:GetHeight())
+        svgElementLegend:SetPosition(legend:GetGlobalX(), TranslatePositionY(legend) - legend:GetHeight())
+        svgElementLegend:SetFill(transparent)
+        svgElementLegend:SetTabIndex(-1)
+        svgElementLegend:SetID(canvas:GetID() + "-" + legend:GetHashCode())
+
+        if HasAccessibility()
+            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
+        end
+
+        canvas:Add(svgElementLegend)
+
+        ControlLabel legendTitle = legend:GetTitleLabel()
+        if legendTitle not= undefined and legendTitle:IsShowing()
+            Label svgElementLegendTitle
+
+            svgElementLegendTitle:SetText(legendTitle:GetText())
+            svgElementLegendTitle:SetTextAnchor("left")
+            svgElementLegendTitle:SetPosition(legendTitle:GetGlobalX(), TranslatePositionY(legendTitle))  
+            //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+            //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+            svgElementLegendTitle:SetFontSize(legendTitle:GetFontSize() + "px")
+            svgElementLegendTitle:SetFontFamily("Arial")
+
+            svgElementLegendTitle:SetID(canvas:GetID() + "-" + legendTitle:GetHashCode())
+            svgElementLegendTitle:SetTabIndex(-1)
+            
+            if HasAccessibility()
+                svgElementLegendTitle:SetAriaLabel(legendTitle:GetDescription())
+            end
+
+            canvas:Add(svgElementLegendTitle)
+        end
+
+        integer i = 0
+        Array<Series> seriesList = legend:GetSeriesList()
+        repeat while i < seriesList:GetSize()
+            Icon currentSeriesIcon = seriesList:Get(i):GetIcon()
+            if currentSeriesIcon not= undefined and currentSeriesIcon:IsShowing()
+                Rectangle svgElementSeriesIcon
+                
+                svgElementSeriesIcon:SetWidth(currentSeriesIcon:GetWidth())
+                svgElementSeriesIcon:SetHeight(currentSeriesIcon:GetHeight())
+                svgElementSeriesIcon:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight())
+                svgElementSeriesIcon:SetFill(currentSeriesIcon:GetColor())
+                svgElementSeriesIcon:SetTabIndex(-1)
+                svgElementSeriesIcon:SetID(canvas:GetID() + "-" + currentSeriesIcon:GetHashCode())
+
+                canvas:Add(svgElementSeriesIcon)
+            end
+
+            ControlLabel currentSeriesLabel = seriesList:Get(i):GetLabel()
+            if currentSeriesLabel not= undefined and currentSeriesLabel:IsShowing()
+                Label svgElementSeriesLabel
+    
+                svgElementSeriesLabel:SetText(currentSeriesLabel:GetText())
+                svgElementSeriesLabel:SetTextAnchor("left")
+                svgElementSeriesLabel:SetPosition(currentSeriesLabel:GetGlobalX(), TranslatePositionY(currentSeriesLabel))  
+                //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
+                //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                svgElementSeriesLabel:SetFontSize(currentSeriesLabel:GetFontSize() + "px")
+                svgElementSeriesLabel:SetFontFamily("Arial")
+    
+                svgElementSeriesLabel:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+                svgElementSeriesLabel:SetTabIndex(-1)
+                
+                if HasAccessibility()
+                    svgElementSeriesLabel:SetAriaLabel(currentSeriesLabel:GetDescription())
+                end
+    
+                canvas:Add(svgElementSeriesLabel)
+            end
+
+            i = i + 1
+        end
+    end
+
+    /*
+        Generates the treeview of treeitems that define how the chart will be 
+        navigated and what extra information might be sent to the screen reader.
+    */
+    private action AddAccessibility(ScalableVectorGraphics canvas, Chart chart)
+        //Navigation Wrapper
+        Division div
+        div:SetIdentifier(canvas:GetID() + "-nav")
+        div:SetClassAttribute("svgNavigation")
+        div:AddAttribute("role","application")
+        
+        UnorderedList tree
+        tree:AddAttribute("role","tree")
+        div:AddNestedTag(tree)
+
+        //Level 1
+        ListItem chartItem
+        chartItem:SetIdentifier(background:GetID() + "-nav")
+        chartItem:AddAttribute("role","treeitem")
+        chartItem:AddAttribute("aria-labelledby",background:GetID())
+        chartItem:SetTabIndex("-1")
+        tree:Add(chartItem)
+
+        ListItem verticalPanelItem
+        verticalPanelItem:SetIdentifier(verticalPanel:GetID() + "-nav")
+        verticalPanelItem:AddAttribute("role","treeitem")
+        verticalPanelItem:AddAttribute("aria-labelledby",verticalPanel:GetID())
+        verticalPanelItem:AddAttribute("aria-expanded","false")
+        verticalPanelItem:SetTabIndex("-1")
+        tree:Add(verticalPanelItem)
+        if chart:GetSubVerticalPanels():GetSize() <= 0
+            AddYAxisAccessibility(chart, yLabels, verticalPanelItem)
+        else
+            UnorderedList subVerticalPanelUL
+            subVerticalPanelUL:AddAttribute("role","group")
+            verticalPanelItem:Add(subVerticalPanelUL)
+
+            i = 0
+            repeat while i < subVerticalPanels:GetSize()
+                ListItem subVerticalPanelItem
+                subVerticalPanelItem:SetIdentifier(subVerticalPanels:Get(i):GetID() + "-nav")
+                subVerticalPanelItem:AddAttribute("role","treeitem")
+                subVerticalPanelItem:AddAttribute("aria-labelledby",subVerticalPanels:Get(i):GetID())
+                subVerticalPanelItem:AddAttribute("aria-expanded","false")
+                subVerticalPanelItem:SetTabIndex("-1")
+                AddYAxisAccessibility(chart, subYLabels:Get(i), subVerticalPanelItem)
+                subVerticalPanelUL:Add(subVerticalPanelItem)
+
+                i = i + 1
+            end
+        end
+
+        ListItem chartAreaItem
+        chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
+        chartAreaItem:AddAttribute("role","treeitem")
+        chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
+        chartAreaItem:AddAttribute("aria-expanded","false")
+        chartAreaItem:SetTabIndex("-1")
+        tree:Add(chartAreaItem)
+        if not chart:IsSeparatedByFactor()
+            AddChartContentAccessibility(canvas, chart, chart:GetChartArea(), chartAreaItem)
+    
+        else
+            UnorderedList subChartAreaUL
+            subChartAreaUL:AddAttribute("role","group")
+            chartAreaItem:Add(subChartAreaUL)
+
+            i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                ListItem subChartAreaItem
+                subChartAreaItem:SetIdentifier(subChartAreas:Get(i):GetID() + "-nav")
+                subChartAreaItem:AddAttribute("role","treeitem")
+                subChartAreaItem:AddAttribute("aria-labelledby",subChartAreas:Get(i):GetID())
+                subChartAreaItem:AddAttribute("aria-expanded","false")
+                subChartAreaItem:SetTabIndex("-1")
+                AddChartContentAccessibility(canvas, chart, chart:GetSubChartAreas():Get(i), subChartAreaItem)
+                subChartAreaUL:Add(subChartAreaItem)
+
+                i = i + 1
+            end
+        end
+
+        ListItem horizontalPanelItem
+        horizontalPanelItem:SetIdentifier(horizontalPanel:GetID() + "-nav")
+        horizontalPanelItem:AddAttribute("role","treeitem")
+        horizontalPanelItem:AddAttribute("aria-labelledby",horizontalPanel:GetID())
+        horizontalPanelItem:AddAttribute("aria-expanded","false")
+        horizontalPanelItem:SetTabIndex("-1")
+        tree:Add(horizontalPanelItem)
+
+        if chart:GetSubHorizontalPanels():GetSize() <= 0
+            AddXAxisAccessibility(chart, xLabels, horizontalPanelItem)
+        else
+            UnorderedList subHorizontalPanelUL
+            subHorizontalPanelUL:AddAttribute("role","group")
+            horizontalPanelItem:Add(subHorizontalPanelUL)
+
+            i = 0
+            repeat while i < subHorizontalPanels:GetSize()
+                ListItem subHorizontalPanelItem
+                subHorizontalPanelItem:SetIdentifier(subHorizontalPanels:Get(i):GetID() + "-nav")
+                subHorizontalPanelItem:AddAttribute("role","treeitem")
+                subHorizontalPanelItem:AddAttribute("aria-labelledby",subHorizontalPanels:Get(i):GetID())
+                subHorizontalPanelItem:AddAttribute("aria-expanded","false")
+                subHorizontalPanelItem:SetTabIndex("-1")
+                AddXAxisAccessibility(chart, subXLabels:Get(i), subHorizontalPanelItem)
+                subHorizontalPanelUL:Add(subHorizontalPanelItem)
+
+                i = i + 1
+            end
+        end
+
+
+        if chart:IsShowingLegend()
+            ListItem legendItem
+            legendItem:SetIdentifier(canvas:GetID() + "-" + chart:GetLegend():GetHashCode() + "-nav")
+            legendItem:AddAttribute("role","treeitem")
+            legendItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chart:GetLegend():GetHashCode())
+            legendItem:AddAttribute("aria-expanded","false")
+            legendItem:SetTabIndex("-1")
+            AddLegendAccessibility(canvas, chart, legendItem)
+            tree:Add(legendItem)
+        end
+
+        canvas:Add(div)
+    end
+
+    action AddYAxisAccessibility(Chart chart, Array<Label> yLabels, ListItem yAxisLabelItem)
+        VerticalAxisPanel verticalContainer
+        verticalContainer = chart:GetVerticalPanel()
+        //boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
+        UnorderedList yAxisGroup
+        yAxisGroup:AddAttribute("role","group")
+        yAxisLabelItem:AddNestedTag(yAxisGroup)
+        
+        i = 0
+        repeat while i < yLabels:GetSize()
+            Label currentLabel
+            //if usingGrouping
+            //    currentLabel = yLabels:Get(yLabels:GetSize() - 1 - i)
+            //else
+                currentLabel = yLabels:Get(i)
+            //end
+            ListItem labelNav
+            labelNav:SetIdentifier(currentLabel:GetID() + "-nav")
+            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("aria-labelledby",currentLabel:GetID())
+            labelNav:SetTabIndex("-1")
+            yAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+
+    action AddXAxisAccessibility(Chart chart,  Array<Label> yLabels, ListItem xAxisLabelItem)
+        UnorderedList xAxisGroup
+        xAxisGroup:AddAttribute("role","group")
+        xAxisLabelItem:AddNestedTag(xAxisGroup)
+
+        i = 0
+        repeat while i < xLabels:GetSize()
+            ListItem labelNav 
+            labelNav:SetIdentifier(xLabels:Get(i):GetID() + "-nav")
+            labelNav:AddAttribute("role","treeitem")
+            labelNav:AddAttribute("aria-labelledby",xLabels:Get(i):GetID())
+            labelNav:SetTabIndex("-1")
+            xAxisGroup:Add(labelNav)
+
+            i = i + 1
+        end
+    end
+
+    action AddLegendAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem legendItem)
+        UnorderedList legendGroup
+        legendGroup:AddAttribute("role","group")
+        legendItem:AddNestedTag(legendGroup)
+
+        Legend legend = chart:GetLegend()
+        i = 0
+        repeat while i < legend:GetSeriesList():GetSize()
+            Series currentSeries = legend:GetSeriesList():Get(i)
+
+            ListItem seriesItem 
+            seriesItem:SetIdentifier(canvas:GetID() + "-" + currentSeries:GetHashCode() + "-nav")
+            seriesItem:AddAttribute("role","treeitem")
+            seriesItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + currentSeries:GetHashCode())
+            seriesItem:SetTabIndex("-1")
+            legendGroup:Add(seriesItem)
+            i = i + 1
+        end
+    end
+
+    action TranslatePositionY(Item2D item) returns integer
+        return cast(integer, svgHeight - item:GetGlobalY())
+    end
+
+    action UniversalUniqueIdentifier() returns text
+        Random random
+        DateTime datetime
+        text uuid = ""
+
+        random:SetSeed(datetime:GetSecond())
+        integer randomizedInteger = random:RandomInteger()
+
+        uuid = "" + datetime:GetMonth() + datetime:GetDayOfMonth() + datetime:GetYear() + datetime:GetHour() + datetime:GetMinute() + datetime:GetSecond() + randomizedInteger
+
+        return uuid
+    end
+
+end

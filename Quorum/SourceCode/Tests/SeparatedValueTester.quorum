@@ -9,6 +9,10 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
+/*
+    In the separated value tester, Javascript tests are intentionally turned off. So far as we can tell,
+    it does work, but the code is designed to be run in a browser not on a local machine. 
+*/
 class SeparatedValueTester 
     CompilerTestSuite suite = undefined
     text path = "Library/Tests/SeparatedValue/"
@@ -50,7 +54,7 @@ class SeparatedValueTester
         results:Add(2, "IsConsistent: true")
         results:Add(3, "Separator: |")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action FinalLineEndings
@@ -68,7 +72,7 @@ class SeparatedValueTester
         results:Add(2, "IsConsistent: true")
         results:Add(3, "Separator: ,")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action Inconsistent
@@ -82,7 +86,7 @@ class SeparatedValueTester
         results:Add(2, "IsConsistent: false")
         results:Add(3, "Separator: ,")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action LargeFile
@@ -96,7 +100,7 @@ class SeparatedValueTester
         results:Add(2, "IsConsistent: true")
         results:Add(3, "Separator: ,")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
     action Simple
@@ -110,7 +114,7 @@ class SeparatedValueTester
         results:Add(2, "IsConsistent: true")
         results:Add(3, "Separator: ,")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        //suite:TestJavaScript(files, results)
     end
 
 end

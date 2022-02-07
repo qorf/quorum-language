@@ -7,6 +7,8 @@ use Libraries.Language.Object
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.ModelData.MeshPart
 use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 class Renderable
     
@@ -28,10 +30,18 @@ class Renderable
 
     public Array<Matrix4> bones = undefined
 
+    public Camera camera = undefined
+
+    public ShaderProgram shaderProgram = undefined
+
+    public ShaderMapping shaderMapping = undefined
+
     /*
-        User definable value, may be undefined.
+    An optional field with an arbitrary object containing additional data for use by a shader.
+    This is undefined by default. If it isn't undefined, it's up to the ShaderMapping to determine
+    how this data should be used. The default shaders/mappings will typically ignore this value.
     */
-    // public Object userData
+    public Object shaderData = undefined
 
     /*
     Sets this renderable to have all of the same data as the provided renderable.
@@ -41,16 +51,13 @@ class Renderable
         material = renderable:material
         meshPart:Set(renderable:meshPart)
         bones = renderable:bones
-        //environment = renderable:environment
-        //shader = renderable:shader
-        //userData = renderable:userData
-
-        SetNative(renderable)
+        environment = renderable:environment
+        shaderProgram = renderable:shaderProgram
+        shaderMapping = renderable:shaderMapping
+        shaderData = renderable:shaderData
 
         return me
     end
-
-    private system action SetNative(Renderable renderable)
 
     action UsesBlending returns boolean
         return material:HasAttribute(blendingValue)
@@ -75,13 +82,13 @@ class Renderable
         boolean blend1 = UsesBlending()
         if blend1
             BlendingAttribute attribute = cast(BlendingAttribute, material:GetAttribute(blendingValue))
-            blend1 = blend1 and attribute:blended
+            blend1 = blend1 and attribute:blendingEnabled
         end
     
         boolean blend2 = other:UsesBlending()
         if blend2
             BlendingAttribute attribute = cast(BlendingAttribute, other:material:GetAttribute(blendingValue))
-            blend2 = blend2 and attribute:blended
+            blend2 = blend2 and attribute:blendingEnabled
         end
 
         if not blend1 = blend2
@@ -120,5 +127,7 @@ class Renderable
     /*
     Gets the camera from the plugin. Used for sorting purposes.
     */
-    private system action GetCamera returns Camera
+    private action GetCamera returns Camera
+        return camera
+    end
 end

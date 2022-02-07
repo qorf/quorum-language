@@ -91,6 +91,10 @@ class Polygon is ScalableVectorGraphicsObject
         point:Set(x, y)
         points:Add(point)
     end
+    
+    action GetPoints() returns Array<Pair<integer>>
+        return points
+    end
 
     /*
         This action empties the list of points that construct the polygon.

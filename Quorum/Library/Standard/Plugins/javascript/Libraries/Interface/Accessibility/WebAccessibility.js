@@ -4,19 +4,29 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
      * but presume they will be modified or go away as we develop the library.
      */
     var type = "";      //specifies the input type of the element
-    var elementType = "";   //specifies the type of element DEFAULT is INPUT right now for testing
+    var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     
 //    system action NameChanged(Item item)
 
     this.NameChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            element.setAttribute("aria-label", item.GetName());
+        }
         console.log("Name Changed");
     };
 
 //    system action DescriptionChanged(Item item)
 
     this.DescriptionChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            element.setAttribute("aria-description", item.GetDescription());
+        }
         console.log("Description Changed");
     };
     
@@ -25,130 +35,494 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
         console.log("Text field updated Changed");
     };
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
+    var textbox = selection.GetTextBox();
+    if (textbox == null){
+        return;
+    }
+    
+}
+
+//  private system action TextSelectionChanged(TextBoxSelection selection)
+this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
+    var textField = selection.GetTextField();
+    var id = textField.GetHashCode();
+    var element = document.getElementById(id);
+    
+    element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+
+    console.log("TextField Selection Changed");
+}
     
 //    system action Update
-
+//this is handled in Quorum for now might be added back if need be
     this.Update = function() {
-        console.log("Update called");
+        //removed
+        //console.log("Update called");
     };
     
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
+        let progressbarID = event.GetProgressBar().GetHashCode();
+        if(elementList[progressbarID] != null) {
+            let element = document.getElementById(progressbarID);
+            element.setAttribute("aria-valuenow", event.GetNewValue());
+        }
         console.log("Progress bar updated");
     };
-    
-//    system action SelectionChanged(SelectionEvent event)
 
+//    system action Select(Item item)
+
+    this.Select$quorum_Libraries_Interface_Item = function(item) {
+        console.log(item.GetName() + " selected");
+        var id = item.GetHashCode();
+        var element = document.getElementById(currentIDECanvas_$Global_);
+        element.setAttribute("aria-activedescendant", id);
+    };
+
+//    system action SelectionChanged(SelectionEvent event)
+    // REMOVED for now as it was easier to handle Quorum side
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
         console.log("Selection Changed");
     };
     
 //    system action ButtonActivated(Button button)
-    this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
-        console.log("BUtton Activated");
-    };
-    
+this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        // removed for now because this makes it a toggle button
+        // not sure what we should be doing instead
+        //element.setAttribute('aria-pressed', "true");
+    }
+    console.log("Button Activated");
+};
+
 //    system action ToggleButtonToggled(ToggleButton button)    
-    this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
-        console.log("Toggled Buttoned");
-    };
+this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = function(button) {
+    var id = button.GetHashCode();
+    if( elementList[id] != null ) {
+        var element = document.getElementById(id);
+        element.setAttribute("aria-checked", button.GetToggleState())
+    }
+    console.log("Toggled Buttoned");
+};
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
         console.log("Focus Changed");
+        var item = event.GetNewFocus();
+        if(item == null) {
+            console.log("Tried to focus nothing");
+            return;
+        }
+        // if not accessible focus the parent
+        // if no accessible parent then ignore event
+        if (item.GetAccessibilityCode() == -1) {
+            var accessibleFocus = item.GetAccessibleParent();
+            if (accessibleFocus != undefined) {
+                item = accessibleFocus;
+            } else {
+                return;
+            }
+        }
+        var id = item.GetHashCode();
+        //accessible item got focus that was never added
+        if (elementList[id] == null) {
+            return;
+        }
+        currentFocus = item;
+        //TEXTBOX or TEXTFIELD
+        if (item.GetAccessibilityCode() == 6 || item.GetAccessibilityCode() == 17){
+            var element = document.getElementById(id);
+            element.focus;
+        }
+        
+        var element = document.getElementById(currentIDECanvas_$Global_);
+        element.setAttribute("aria-activedescendant", id);
+        
     };
-//    system action Add(Item item)
-    this.Add$quorum_Libraries_Interface_Item = function(item) {      
+//    system action NativeAdd(Item item)
+    this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
+        //dont add to DOM if not accessible
+        if (item.GetAccessibilityCode() == -1) {
+            return;
+        }
+
        //replace this code with item appropriate material
-        var id = item.GetHashCode();        
-        var description = item.GetName();   //used for testing purposes
-//        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
-//        
-//        if (item.GetAccessibilityCode() == 1)
-//        {
-//            type = "image";
-//            elementType = "IMG";
-//        }
-//        if (item.GetAccessibilityCode() == 2)
-//        {
-//            type = "checkbox";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 3)
-//        {
-//            type = "radio";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 4 || item.GetAccessibilityCode() == 13)
-//        {
-//            type = "button";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 5)
-//        {
-//            type = "range";
-//            elementType = "INPUT";
-//        }
-//        else if (item.GetAccessibilityCode() == 6)
-//        {
-//            type = "textarea";
-//            elementType = "INPUT";
-//        }
-//       
-//        /* Creating Item Element Tag with Attributes */
-//        var para = document.createElement(elementType);
-//        para.id = id;       //sets the item's id to the item's HashCode value
-//        para.setAttribute("type", type);
-//        para.setAttribute("value", item.GetDescription());
-//        if (item.GetAccessibilityCode() == 4){
-//           para.onclick = this.InvokeButton$quorum_Libraries_Interface_Item;
-//        }
-//        else if (item.GetAccessibilityCode() == 2){
-//            para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-//        }
-//        else if (item.GetAccessibilityCode() == 3){
-//            para.setAttribute("name", item.GetName());  //item.GetButtonGroup() for value
-//            para.onclick = this.UpdateToggleState$quorum_Libraries_Interface_Item$boolean;
-//        }
-//        
-//        /*
-//        //Drawable using an img tag 
-//        else if (item.GetAccessibilityCode() == 1){
-//            para.setAttribute("src", description);      //Need Path for src attribute
-//            para.setAttribute("alt", item.GetDescription());
-//        }
-//        */
-//       
-//        var node = document.createTextNode(description);
-//        para.appendChild(node);
-//
-//        //we very likely need to not hard code this, but for testing it is ok.
-//        var element = document.getElementById("QuorumGraphicsCanvas");
-//        element.appendChild(para);
-        console.log(description, " has been added.");
-    };
-//    system action Remove(Item item)
-    this.Remove$quorum_Libraries_Interface_Item = function(item) {
-        var parent = document.getElementById("QuorumGraphicsCanvas");
-        var child = document.getElementById(item.GetHashCode());
-        parent.removeChild(child);
-        console.log(elementList[item.GetHashCode()], " has been removed.");
+        var id = item.GetHashCode();
+        //dont want to add something to the DOM twice
+        if( elementList[id] != null ) {
+            return;
+        }
+        var itemName = item.GetName();
+        elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
+        elementType = "DIV";
+        //default role
+        let role = "region";
+
+        /* Creating Item Element Tag with Attributes */
+        var parent = undefined; // used if item needs to be added to group
+        var para = document.createElement(elementType);
+        para.id = id;       //sets the item's id to the item's HashCode value
+
+        switch(item.GetAccessibilityCode()){
+            //ITEM or CUSTOM
+            case 0:
+            case 1:
+                para.setAttribute("aria-roledescription","");
+                break;
+            //CHECKBOX
+            case 2:
+                role = "checkbox";
+                if (item.GetName() == undefined)
+                    itemName = "Check Box"
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Checkbox")) {
+                    let checkbox = global_CheckCast(item, "Libraries.Interface.Controls.Checkbox");
+                    para.setAttribute('aria-checked', checkbox.GetToggleState());
+                }   
+                //check for checked status
+                break;
+            //RADIO_BUTTON
+            case 3:
+                role = "radio";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.RadioButton")) {
+                    let radioButton = global_CheckCast(item, "Libraries.Interface.Controls.RadioButton");
+                    // attach to proper parent
+                    // IDK WHAT WILL HAPPEN IF RADIO BUTTON IS ADDED TO GAME BEFORE GROUP
+                    let parentGroup = radioButton.GetButtonGroup();
+                    if (parentGroup != undefined) {
+                        // attach to radiogroup
+                        parent = parentGroup.GetHashCode();
+                    }
+                    para.setAttribute("aria-checked", radioButton.GetToggleState());
+                }
+                break;
+            //BUTTON
+            case 4:
+                role = "button";
+                break;
+            //TOGGLE_BUTTON
+            case 5:
+                role = "button";
+                para.setAttribute("aria-roledescription","toggle button");
+                if (item.GetName() == undefined)
+                    itemName = "Toggle Button"
+                para.setAttribute('aria-pressed', "false");
+                //check for pressed
+                break;
+            //TEXTBOX
+            case 6:
+                role = "textbox";
+                break;
+            //MENU_BAR
+            case 7:
+                role = "menubar";
+                break;
+            //MENU_ITEM
+            case 8:
+                role = "menuitem";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.MenuItem")) {
+                    let menuItem = global_CheckCast(item, "Libraries.Interface.Controls.MenuItem");
+                    if (menuItem.IsMenu()) {
+                        let menuGroup = document.createElement(elementType);
+                        menuGroup.id = id + "-submenu";
+                        menuGroup.setAttribute("role", "menu");
+                        para.appendChild(menuGroup);
+                        para.setAttribute("aria-haspopup", true);
+                        para.setAttribute("aria-expanded", menuItem.IsOpen());
+                    }
+                    //attach to proper parent
+                    let parentMenu = menuItem.GetParentMenu();
+                    if (parentMenu != undefined) {
+                        parent = parentMenu.GetHashCode() + "-submenu";
+                    } else {
+                        parentMenu = menuItem.GetMenuRoot();
+                        if (parentMenu != undefined) {
+                            parent = parentMenu.GetHashCode();
+                        } else {
+                            // lonely menu item
+                        }
+                    }
+                }
+                break;
+            //PANE
+            case 9:
+                break;
+            //TREE
+            case 10:
+                role = "tree";
+                break;
+            //TREE_ITEM
+            case 11:
+                role = "treeitem";
+                // tree items can have subtrees so they need a group too
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeItem")) {
+                    let treeItem = global_CheckCast(item, "Libraries.Interface.Controls.TreeItem");
+                    if (treeItem.IsSubtree()) {
+                        let treegroup = document.createElement(elementType);
+                        treegroup.id = id+"-group";
+                        treegroup.setAttribute("role","group");
+                        para.appendChild(treegroup);
+                        para.setAttribute("aria-expanded", treeItem.IsOpen());
+                    }
+                    // attach to proper parent
+                    let parentTree = treeItem.GetParentTreeItem();
+                    if (parentTree != undefined) {
+                        // if attached to a treeitem they need to be in a group
+                        parent = parentTree.GetHashCode() + "-group";
+                    } else {
+                        parentTree = treeItem.GetTree();
+                        if (parentTree != undefined) {
+                            // if attached to tree directly they can be a child of that element
+                            parent = parentTree.GetHashCode();
+                        } else {
+                            // the tree item is not on any tree
+                        }
+                    }
+                }
+                break;
+            //TOOLBAR
+            case 12:
+                role = "toolbar";
+                break;
+            //TAB
+            case 13:
+                role = "tab";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Tab")) {
+                    let tab = global_CheckCast(item, "Libraries.Interface.Controls.Tab");
+                    let tabpane = tab.GetTabPane();
+                    if (tabpane != undefined) {
+                        parent = tabpane.GetHashCode()+"-tablist";
+                    }
+                }
+                break;
+            //TAB_PANE
+            case 14:
+                role = "tabpanel";
+                let tablist = document.createElement(elementType);
+                tablist.id = id + "-tablist";
+                tablist.role = "tablist";
+                //probably shouldn't be attached to the tab panel so adding directly to canvas
+                let canvas = document.getElementById(currentIDECanvas_$Global_);
+                canvas.appendChild(tablist);
+                break;
+            //TABLE
+            case 15:
+                role = "table";
+                // if cells get added after the spreadsheet is added this could cause issues
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Spreadsheet")) {
+                    let spreadsheet = global_CheckCast(item, "Libraries.Interface.Controls.Spreadsheet");
+                    for (let i = 0; i < spreadsheet.GetColumnsSize(); i++) {
+                        let row = document.createElement(elementType);
+                        row.id =id+"-row-"+i;
+                        row.setAttribute("role","row");
+                        para.appendChild(row);
+                    }
+                }
+                break;
+            //CELL
+            case 16:
+                role = "cell";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Cell")) {
+                    let cell = global_CheckCast(item, "Libraries.Interface.Controls.Cell");
+                    let spreadsheet = global_CheckCast(cell.GetSpreadsheet(), "Libraries.Interface.Controls.Spreadsheet");
+                    para.innerHTML = cell.GetText();
+                    if(spreadsheet != undefined) {
+                        let position = spreadsheet.GetCellCoordinates$quorum_Libraries_Interface_Controls_Cell(cell);
+                        let rowNum = position.GetFirstValue();
+                        parent = spreadsheet.GetHashCode()+"-row-"+rowNum.GetValue();
+                    }
+                }
+                break;
+            //TEXT_FIELD
+            case 17:
+                elementType = "INPUT"
+                para = document.createElement(elementType);
+                para.id = id;
+                para.type = "text"
+                //role = "textbox";
+                //para.setAttribute("contenteditable",true);
+                break;
+            //LIST
+            case 18:
+                role = "list";
+                break;
+            //LIST_ITEM
+            case 19:
+                role = "listitem";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
+                    let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
+                    para.innerHTML = listItem.GetText();
+                    itemName = listItem.GetText();
+                    //attach to proper parent
+                    let parentList = listItem.GetList();
+                    if (parentList != undefined) {
+                        parent = parentList.GetHashCode();
+                    } else {
+                        // the list item is not in a list
+                    }
+                }
+                break;
+            //TREE_TABLE
+            case 20:
+                role = "treegrid";
+                let rowgroup = document.createElement(elementType);
+                rowgroup.id = id+"-rowgroup";
+                rowgroup.setAttribute("role", "rowgroup");
+                para.appendChild(rowgroup);
+                break;
+            //DIALOG
+            case 21:
+                role = "dialog";
+                // dialogs are accessible parents so as long as their children are added properly dialogs will be announced
+                break;
+            //POPUP_MENU
+            case 22:
+                break;
+            //PROGRESS_BAR
+            case 23:
+                role = "progressbar";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.ProgressBar")) {
+                    let progressbar = global_CheckCast(item, "Libraries.Interface.Controls.ProgressBar");
+                    para.setAttribute("aria-valuemin", progressbar.GetMinimum());
+                    para.setAttribute("aria-valuemax", progressbar.GetMaximum());
+                    para.setAttribute("aria-valuenow", progressbar.GetValue());
+                }
+                break;
+            //TREE_TABLE_CELL
+            case 24:
+                role = "gridcell";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.TreeTableCell")) {
+                    let treecell = global_CheckCast(item, "Libraries.Interface.Controls.TreeTableCell");
+                    let treeTableID = undefined;
+                    if (treecell.GetTreeTable() != undefined) {
+                        treeTableID = treecell.GetTreeTable().GetHashCode() + "-rowgroup"
+                    }
+                    let treeTableRow = treecell.GetRow();
+                    if (treeTableRow != undefined && treeTableID != undefined) {
+                        let rowID = treeTableRow.GetHashCode();
+                        let row = document.getElementById(rowID);
+                        // if the row is not in the DOM make a new row
+                        if (row == undefined) {
+                            row = document.createElement(elementType);
+                            row.id = treeTableRow.GetHashCode();
+                            row.setAttribute("role", "row");
+                            let tableElement = document.getElementById(treeTableID);
+                            if (tableElement != undefined) {
+                                tableElement.appendChild(row);
+                            }
+                        }
+                        parent = rowID;
+                        //check if this is an expandable cell
+                        if (!treeTableRow.IsEmpty()) {
+                            let column = treecell.GetColumn();
+                            if (column != undefined && column.IsFirstColumn()) {
+                                para.setAttribute("aria-expanded", treeTableRow.IsExpanded());
+                            }
+                        }
+                    }
+                    para.innerHTML = treecell.GetText();
+                }
+                break;
+            //GROUP
+            case 25:
+                role = "radiogroup";
+                if (item.GetName() == undefined)
+                    itemName = "Radio Group"
+                break;
+            default:
+                // do nothing?
+        }
+
+        if (parent == undefined) {
+            let accessibleParent = item.GetAccessibleParent();
+            if (accessibleParent != undefined) {
+                let parentID = accessibleParent.GetHashCode();
+                if (elementList[parentID] != null) {
+                    parent = parentID;
+                }
+            }
+        }
+
+        para.setAttribute("role",role);
+        para.setAttribute("aria-label", itemName);
+        para.setAttribute("aria-description", item.GetDescription())
+        para.tabindex = -1;
+
+        //add element to a parent if need be or directly to canvas
+        if (parent != undefined) {
+            var parentElement = document.getElementById(parent);
+            parentElement.appendChild(para);
+            console.log(item.GetName(), " has been added to a parent.");
+        } else {
+            var canvas = document.getElementById(currentIDECanvas_$Global_);
+            canvas.appendChild(para);
+            console.log(item.GetName(), " has been added.");
+        }
+};
+//    system action NativeRemove(Item item)
+    this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
+        let id = item.GetHashCode();
+        //cant remove what's not there
+        if( elementList[id] == null ) {
+            return;
+        }
+        let element = document.getElementById(id);
+        if (element != null) { //if the parent was removed then this would come up null
+            element.remove();
+        }
+        console.log(elementList[id], " has been removed.");
+        elementList[id] = null;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)
     this.MenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
         console.log("Menu Changed");
+        var menuItemID = event.GetMenuItem().GetHashCode();
+        if (elementList[menuItemID] != null) {
+            var element = document.getElementById(menuItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeChanged(TreeChangeEvent event)
     this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
         console.log("Tree Changed");
+        var treeItemID = event.GetTreeItem().GetHashCode();
+        if (elementList[treeItemID] != null) {
+            var element = document.getElementById(treeItemID);
+            if (event.GetEventType() == 1) {  //OPENED
+                element.setAttribute("aria-expanded", true);
+            } else if (event.GetEventType() == 2) {   //CLOSED
+                element.setAttribute("aria-expanded", false);
+            }
+        }
     };
     
 //    system action TreeTableChanged(TreeTableChangeEvent event)
     this.TreeTableChanged$quorum_Libraries_Interface_Events_TreeTableChangeEvent = function(event) {
         console.log("TreeTable Changed");
+        let cells = event.GetTreeTableCells();
+        for(let i = 0; i< cells.GetSize(); i++) {
+            let cell = cells.Get$quorum_integer(i).GetHashCode();
+            let element = document.getElementById(cell);
+            if (element != undefined && element.hasAttribute("aria-expanded")) {
+                if (event.GetEventType() == 1) {  //OPENED
+                    element.setAttribute("aria-expanded", true);
+                } else if (event.GetEventType() == 2) {   //CLOSED
+                    element.setAttribute("aria-expanded", false);
+                }
+                break;
+            }
+        }
     };
     
 //    system action ControlActivated(ControlActivationEvent event)
@@ -158,7 +532,29 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     
 //    system action TextChanged(TextChangeEvent event)
     this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
-        console.log("Text Changed");
+        var control = event.GetControl();
+        if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextBox") )
+        {
+            var textbox = global_CheckCast(control, "Libraries.Interface.Controls.TextBox");
+            var text = textbox.GetText();
+            var id = textbox.GetHashCode();
+            var element = document.getElementById(id);
+            element.innerHTML = text;
+            console.log("TextBox text Changed");
+        }
+        else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
+        {
+            var textfield = global_CheckCast(control, "Libraries.Interface.Controls.TextField");
+            var text = textfield.GetText();
+            var id = textfield.GetHashCode();
+            var element = document.getElementById(id);
+            element.value = text;
+            console.log("TextField Text Changed");
+        }
+        else {
+            console.log("Text Changed");
+        }
+        
     };
     
 //    system action WindowFocusChanged(WindowFocusEvent event)
@@ -178,7 +574,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     
 //    system action Shutdown
     this.Shutdown = function() {
-        console.log("SHutdown");
+        console.log("Shutdown");
+        //dispose of the children
+        var canvas = document.getElementById(currentIDECanvas_$Global_);
+        while (canvas.firstChild) {
+            canvas.firstChild.remove()
+        }
+        elementList.length = 0;
+        currentFocus = null;
     };
     
 

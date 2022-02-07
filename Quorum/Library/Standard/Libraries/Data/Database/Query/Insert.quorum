@@ -1,0 +1,283 @@
+package Libraries.Data.Database
+use Libraries.Containers.Array
+use Libraries.Data.Database.Support.Parameter
+use Libraries.Data.Database.Support.TableTarget
+
+
+    /*
+        The Insert query represents the INSERT INTO command of the SQL (Structured Query Language) language. 
+        This query allows for data manipulation by inserting new rows into a table.
+
+        Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Insert
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Insert query
+query:SetTable("Orders")
+query:Add("orderNumber", 12)
+query:Add("price", 9.50)
+query:Add("status", "Processing")
+
+database:Insert(query)
+
+    */
+class Insert is Query
+    private constant text NO_TABLE_ERROR = "Must specify table for insert"
+    private constant text TABLE_NOT_FOUND = "The table '?table?' was referenced but could not be found in the database"
+    private constant text EMPTY_QUERY = "Columns must be specified for insert"
+    private constant text SIZE_MISMATCH = "Size mismatch for column targets and values"
+    private constant text TABLE_ALIAS_ERROR = "Cannot remap the name of a table in an insert"
+
+    Array<text> columnTargets
+    Array<Parameter> values
+
+
+    /*
+        Add a column
+    */
+    private action AddColumn(text name)
+        columnTargets:Add(name)
+    end
+
+    /*
+        Add a value
+    */
+
+    private action AddValue(Parameter value)
+        values:Add(value)
+    end
+
+    /*
+        Add a column target along with the value that will be associated to it.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("orderNumber", 115)
+
+    */
+    action Add(text column, integer value)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetToInteger(value)
+        AddValue(param)
+    end
+
+    /*
+        Add a column target along with the value that will be associated to it.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("price", 9.50)
+
+    */
+    action Add(text column, number value)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetToNumber(value)
+        AddValue(param)
+    end
+
+    /*
+        Add a column target along with the value that will be associated to it.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("status", "Processing")
+
+    */
+    action Add(text column, text value)
+        columnTargets:Add(column)
+        text dq = value:GetDoubleQuote()
+        Parameter param
+        param:SetToText(value)
+        AddValue(param)
+    end
+
+    /*
+        Removes all columns and values associated with them from the query.
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("price", 9.50)
+
+        query:Empty()
+    */
+
+
+    action Empty
+        columnTargets:Empty()
+        values:Empty()
+    end
+
+    /*
+        This action checks if the query has a column specifically named within it.
+
+        Attribute: Parameter column The name of the column to check for
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("price", 9.50)
+
+        boolean hasPrice = query:HasColumn("price")
+
+    */
+    action HasColumn(text name) returns boolean
+        return columnTargets:Has(name)
+    end
+
+
+    /*
+        This action removes a column and the value associated with it
+
+        Attribute: Parameter name The name of the column to remove
+
+        Attribute: Returns Returns true if the column and value was removed and false if it was not removed. 
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("price", 9.50)
+
+        query:RemoveColumn("price")
+    */
+    action RemoveColumn(text name) returns boolean
+        integer location = columnTargets:GetFirstLocation(name)
+        if location not= -1
+            values:RemoveAt(location)
+            columnTargets:RemoveAt(location)
+            return true
+        end
+        return false
+    end
+
+    private action CheckColumnValuePairs
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        integer i = 0
+        repeat columnTargets:GetSize() times
+            text column = columnTargets:Get(i)
+            Parameter value = values:Get(i)
+            DatabaseTable table = meta:GetTable(GetTable())
+            if table = undefined
+                alert(TABLE_NOT_FOUND)
+            end
+            DatabaseColumn dataColumn = table:GetColumn(column)
+            if dataColumn = undefined
+                alert("")
+            end
+            integer columnType = dataColumn:GetRawType()
+            if not value:IsTypeCompatible(columnType)
+                alert("cannot assign type " + columnType + " to " + value:GetType())
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        text query = "INSERT INTO "
+
+        // check if table is valid
+        text table = GetTable()
+        if table = "" or table = undefined
+            alert(NO_TABLE_ERROR)
+        end
+
+        //check if table exists, also if there's a name remap resolve the name
+        if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+            alert(TABLE_ALIAS_ERROR)
+        end
+        DatabaseTable tableCheck = meta:GetTable(table)
+        if tableCheck = undefined
+            alert(TABLE_NOT_FOUND:Replace("?table?",table))
+        end
+        query = query + table
+
+        if columnTargets:IsEmpty()
+            alert(EMPTY_QUERY)
+        end
+
+        // for now only allow one row
+        if columnTargets:GetSize() not= values:GetSize()
+            alert(SIZE_MISMATCH)
+        end
+        
+        CheckColumnValuePairs()
+
+        query = query + "("
+        integer i = 0
+        repeat columnTargets:GetSize() times
+            text columnName = columnTargets:Get(i)
+            query = query + columnName
+            if i not= columnTargets:GetSize() - 1
+                query = query+", "
+            else
+                query = query+") "
+            end
+            i = i + 1
+        end
+
+        query = query + " VALUES ("
+        i = 0
+        repeat values:GetSize() times
+            Parameter param = values:Get(i)
+            text value = ""
+            if param:IsText()
+                value = "?"
+                AddPreparedParameter(param)
+            else
+                value = param:GetValueAsText()
+            end
+            query = query + value
+            if i not= values:GetSize() - 1
+                query = query+", "
+            else
+                query = query+") "
+            end
+            i = i + 1
+        end
+
+        return query
+    end
+end

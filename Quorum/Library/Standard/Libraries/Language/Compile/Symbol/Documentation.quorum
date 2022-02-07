@@ -66,8 +66,9 @@ class Documentation is Location
             division:Add(exampleParagraph)
 
             PreformattedText t
-            t:AddAttribute("class", "code")
+            t:SetClassAttribute("line-numbers")
             CodeBlock block
+            block:SetClassAttribute("language-quorum")
             block:AddText(example)
             t:Add(block)
 

@@ -157,6 +157,21 @@ class Rectangle is ScalableVectorGraphicsObject
     end
 
     /*
+        This action gets the width of the rectangle along with a unit.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Rectangle rectangle
+        Text width
+        width = rectangle:GetWidth()
+    */
+    action GetWidth() returns text
+        return me:width
+    end
+
+    /*
         This action sets the height of the rectangle along with a unit.
 
         Attribute: Parameter height The height of the rectangle.
@@ -171,6 +186,21 @@ class Rectangle is ScalableVectorGraphicsObject
     */
     action SetHeight(number height, text unit)
         me:height = "" + height + unit
+    end
+
+    /*
+        This action gets the height of the rectangle along with a unit.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Rectangle rectangle
+        Text height
+        height = rectangle:GetHeight()
+    */
+    action GetHeight() returns text
+        return me:height
     end
 
     /*

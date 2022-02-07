@@ -1,0 +1,21 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Camera
+
+class ShaderMapping
+
+    action MapInputs(ShaderProgram program, Renderable renderable)
+        alert("Error while trying to render a renderable with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 3D renderables.")
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        alert("Error while trying to render the drawable " + drawable:GetName() + " with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 2D drawables.")
+    end
+
+    blueprint action Begin(ShaderProgram program, Camera camera)
+
+    blueprint action End(ShaderProgram program)
+
+end

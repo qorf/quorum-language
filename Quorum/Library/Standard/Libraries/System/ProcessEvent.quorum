@@ -1,0 +1,150 @@
+package Libraries.System
+
+use Libraries.Containers.Array
+
+/*
+    This class represents an event that happened while using a process. There are four 
+    kinds, a process starting, stopping, output through standard out, or output through
+    standard error. The event code needs to be checked in order to use the event.
+*/
+class ProcessEvent 
+    text name = ""
+    text out = ""
+    Array<text> parameters = undefined
+    Process process = undefined
+
+    /*
+        This constant indicates the process has started.
+    */
+    public constant integer START_EVENT = 0
+
+    /*
+        This constant indicates the process has stopped.
+    */
+    public constant integer STOP_EVENT = 1
+
+    /*
+        This constant indicates the process has output from standard out.
+    */
+    public constant integer OUTPUT_EVENT = 2
+
+    /*
+        This constant indicates the process has output from standard error.
+    */
+    public constant integer ERROR_EVENT = 3
+    integer eventCode = START_EVENT
+    integer exit = -1
+    
+    /*
+        This returns which event code is on this event.
+
+        Attribute: Returns the event code for the event.
+    */
+    action GetEventCode returns integer
+        return eventCode
+    end
+
+    /*
+        This sets the event code is on this event.
+
+        Attribute: Parameter code the event code for the event.
+    */
+    action SetEventCode(integer code)
+        eventCode = code
+    end
+
+    /* Returns the process on which the event was fired.
+
+        Attribute: Returns the process.
+    */
+    action GetProcess returns Process
+        return process
+    end
+
+    /* 
+        Sets the process on which the event was fired.
+
+        Attribute: Parameter process the process.
+    */
+    action SetProcess(Process process)
+        me:process = process
+    end
+
+    /* 
+        Returns the name of the process
+
+        Attribute: Returns the name.
+    */
+    action GetName returns text
+        return me:name
+    end
+
+    /* 
+        Sets the name of the process
+
+        Attribute: Parameter name the name of the process.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /* 
+        Returns the parameters of the process
+
+        Attribute: Returns the parameters.
+    */
+    action GetParameters returns Array<text>
+        return me:parameters
+    end
+
+    /* 
+        Sets the parameters of the process
+
+        Attribute: Parameter flags the parameters of the process.
+    */
+    action SetParameters(Array<text> flags)
+        me:parameters = flags
+    end
+
+    /* 
+        Returns output from the process. Whether this was on standard error or standard out, the call is the same.
+        The only different is that the event code will indicate where the output came from.
+
+        Attribute: Returns the output.
+    */
+    action GetOutput returns text
+        return out
+    end
+
+    /* 
+        Sets output from the process. Generally, we need to set where the output is coming from and this is automatic
+        by the system.
+
+        Attribute: Parameter out the output.
+    */
+    action SetOutput(text out)
+        me:out = out
+    end
+
+    /* 
+        Returns the exit code from the process. An exit code of 0 means that the process ended normally. Anything except 
+        for zero means that the process ended in an error. Non-zero codes, to our knowledge, do not have a standardized meaning,
+        so they should not be relied upon.
+
+        Attribute: Returns the exit code.
+    */
+    action GetExit returns integer
+        return exit
+    end
+
+    /* 
+        Returns the exit code from the process. An exit code of 0 means that the process ended normally. Anything except 
+        for zero means that the process ended in an error. Non-zero codes, to our knowledge, do not have a standardized meaning,
+        so they should not be relied upon.
+
+        Attribute: Parameter exit the exit code.
+    */
+    action SetExit(integer exit)
+        me:exit = exit
+    end
+end

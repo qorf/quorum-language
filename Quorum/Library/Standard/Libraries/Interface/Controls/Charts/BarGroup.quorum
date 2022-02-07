@@ -30,9 +30,15 @@ class BarGroup
     Array<Bar> bars
     Icon icon
     Label groupName
+    number totalValueOfGroup = 0.0
+    number maxBarValue = 0
 
     action AddBar(Bar newBar)
         bars:Add(newBar)
+        if newBar:GetValue() > maxBarValue
+            maxBarValue = newBar:GetValue()
+        end
+        totalValueOfGroup = totalValueOfGroup + newBar:GetValue()
     end
 
     action GetName() returns text
@@ -66,5 +72,21 @@ class BarGroup
 
     action Get(integer i) returns Bar
         return bars:Get(i)
+    end
+
+    action Set(integer i, Bar bar)
+        bars:Set(i, bar)
+    end
+
+    action GetValue() returns number
+        return totalValueOfGroup
+    end
+
+    action SetValue(number value)
+        totalValueOfGroup = value
+    end
+
+    action GetMaxBarValue returns number
+        return maxBarValue
     end
 end

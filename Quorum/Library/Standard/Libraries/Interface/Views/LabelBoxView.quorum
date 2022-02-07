@@ -38,6 +38,10 @@ class LabelBoxView is Item2D, ControlView
 
     boolean applyEffectsOnClick = true
 
+    on create
+        SetName("LabelBoxView")
+    end
+
     action Initialize(ColorGroup backgroundColor, ColorGroup borderColor)
         background:LoadFilledRectangle(1, 1, backgroundColor)
         border:LoadFilledRectangle(1, 1, borderColor)
@@ -308,5 +312,13 @@ class LabelBoxView is Item2D, ControlView
         content:SetBorderThickness(GetBorderThickness())
         content:SetText(GetText())
         return content
+    end
+
+    action SetName(text value)
+        parent:Item:SetName(value)
+        border:SetName(value + " Border")
+        background:SetName(value + " Background")
+        clickEffect:SetName(value + " Click FX")
+        mouseOverEffect:SetName(value + " Mouseover FX")
     end
 end

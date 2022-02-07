@@ -6,13 +6,16 @@ class BlendingAttribute is Attribute
         SetAttribute(GetBlendedValue())
     end
 
+    AttributeManager manager
+
     public constant text ALIAS = "blended"
+    public constant integer BLENDED = manager:Register(ALIAS)
 
     /*
     Whether this material should be considered blended. Defaults to true. This
     is used for sorting.
     */
-    public boolean blended = true
+    public boolean blendingEnabled = true
     
     /*
     Specifies how the (incoming) source blending factors are computed. By 
@@ -22,9 +25,9 @@ class BlendingAttribute is Attribute
     
     /*
     Specifies how the (existing) destination blending factors are computed. By
-    default, destFunction has the same value as GL_ONE_MINUS_SRC_ALPHA.
+    default, destinationFunction has the same value as GL_ONE_MINUS_SRC_ALPHA.
     */
-    public integer destFunction = 771
+    public integer destinationFunction = 771
     
     /*
     The opacity used as source alpha value, ranging from 0 (fully transparent)
@@ -35,13 +38,15 @@ class BlendingAttribute is Attribute
     /*
     Returns the integer value representing a BlendingAttribute.
     */
-    system action GetBlendedValue returns integer
+    action GetBlendedValue returns integer
+        return BLENDED
+    end
 
     action Copy returns Attribute
         BlendingAttribute new
-        new:blended = blended
+        new:blendingEnabled = blendingEnabled
         new:sourceFunction = sourceFunction
-        new:destFunction = destFunction
+        new:destinationFunction = destinationFunction
         new:opacity = opacity
         return new
     end

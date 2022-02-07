@@ -1,4 +1,5 @@
 var globalStaticHash = 1;
+const globalSharedClasses = new Map();
 
 function plugins_quorum_Libraries_Language_Object_(optional) {
     this.me = false;
@@ -14,6 +15,17 @@ function plugins_quorum_Libraries_Language_Object_(optional) {
     this.myHash = globalStaticHash;
     globalStaticHash = globalStaticHash + 1;
 }
+
+function global_Get_Shared_Class(value) {
+    return globalSharedClasses[value];
+}
+
+function global_Add_Shared_Class(key, value) {
+    globalSharedClasses[key] = value;
+    return value;
+}
+
+
 
 function global_number_converter_(value) {
     var result = value % 1 == 0 ? value.toFixed(1) : value;

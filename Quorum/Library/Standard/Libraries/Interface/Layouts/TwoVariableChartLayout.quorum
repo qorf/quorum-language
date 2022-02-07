@@ -5,70 +5,9 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Item2D
 
 class TwoVariableChartLayout is ChartLayout
-
-    /*
-        Chart layouts do not have a way to determine the ticks of a subclass because charts are very different in style.
-        As such, every chart needs to override this with ticks relevant for its own chart type.
-    */
-    action LayoutHorizontalAxis(Chart chart, Control horizontalContainer)
-        originPointX = 0
-        originPointY = cast(integer, horizontalContainer:GetHeight())
-
-        // This is the ticks on the X axis
-        number scaleDivWidth = 0
-        integer tickHeight = 0
-        integer tickWidth = 0
-        Array<Drawable> ticks = chart:GetXTicks()
-        if not ticks:IsEmpty()
-            
-            Drawable axis = chart:GetXAxis()            
-            Drawable currentTick = ticks:Get(0)
-            tickHeight = cast(integer, currentTick:GetHeight())
-            tickWidth = cast(integer, currentTick:GetWidth())
-            scaleDivWidth = (axis:GetWidth() - tickWidth) / (ticks:GetSize() - 1)
-            number tickX = originPointX
-            integer tickY = originPointY - cast(integer, currentTick:GetHeight())
-            integer i = 0
-            repeat while i < ticks:GetSize()
-                currentTick = ticks:Get(i)
-                currentTick:SetPosition(cast(integer, tickX), tickY)
-                tickX = tickX + scaleDivWidth
-                i = i + 1
-            end
-        end
-
-        // This code represents the labels on the X axis 
-        originPointX = 0
-        originPointY = originPointY - tickHeight
-        integer labelHeight = 0
-        Array<ControlLabel> xLabels = chart:GetXLabels()
-        if not xLabels:IsEmpty()
-            Label currentLabel = xLabels:Get(0)
-            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-            end
-            labelHeight = currentLabel:GetLineHeight()
-            integer i = 0
-            repeat while i < xLabels:GetSize()
-                currentLabel = xLabels:Get(i)
-                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
-                end
-                integer xCurrentLabel = cast(integer, originPointX + (scaleDivWidth * i) - (currentLabel:GetWidth() / 2))
-                integer yCurrentLabel = cast(integer, originPointY - currentLabel:GetLineHeight())
-                currentLabel:SetPosition(xCurrentLabel, yCurrentLabel)
-                i = i + 1
-            end
-        end
-
-        //This is the X axis title label.
-        originPointY = originPointY - labelHeight
-        ControlLabel axisLabel = chart:GetXLabel()
-        axisLabel:SetPositionOnBaseLine(true)
-        axisLabel:SetX(cast(integer, horizontalContainer:GetWidth() / 2.0 - axisLabel:GetWidth() / 2.0))
-        axisLabel:SetY(cast(integer, (originPointY - axisLabel:GetHeight()) / 2.0))
-    end
 
 end

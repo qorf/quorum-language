@@ -27,6 +27,7 @@ class Bar
     number barValue = 0     //barValue is the actual numerical value
     text barName = ""
     Icon barIcon
+    Series series = undefined
 
     action SetIcon(Icon icon)
         barIcon = icon
@@ -60,6 +61,14 @@ class Bar
     
     action GetHeight() returns number
         return barHeight
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    action GetSeries returns Series
+        return series
     end
 
 end

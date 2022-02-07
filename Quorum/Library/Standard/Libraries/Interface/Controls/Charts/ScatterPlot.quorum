@@ -1,37 +1,20 @@
 package Libraries.Interface.Controls.Charts
 
-use Libraries.Interface.Controls.Control
-use Libraries.Interface.Accessibility
-use Libraries.Interface.Behaviors.Behavior
-use Libraries.Interface.Events.BehaviorEvent
-use Libraries.Game.GameStateManager
+use Libraries.Interface.Layouts.ScatterPlotLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
-use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureRegion
-use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Label
-use Libraries.Interface.Item
-use Libraries.Interface.Views.View2D
-use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Controls.Icon
-use Libraries.Containers.Array
-use Libraries.Interface.Events.FocusEvent
-use Libraries.Interface.Controls.ControlLabel
-use Libraries.Interface.Layouts.ManualLayout
-use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Compute.Math
-use Libraries.Interface.Controls.Charts.ChartPoint
-use Libraries.Interface.Layouts.ScatterPlotLayout
-use Libraries.Interface.Controls.Charts.TwoVariableChart
-use Libraries.Interface.Controls.Charts.ChartPointComparison
+use Libraries.System.File
 
 /*
-    The ScatterPlot class ...
+    The ScatterPlot class is Chart object that inherits from TwoVariableChart and like other
+    UI elements it is added to the Game class. The Scatter Plot is used to represent a a relationship between
+    pairs of numerical data, with one variable on each axis. The first two columns will determine the axes.
+    Any additional column will be plotted against the first column.
+    The title label, axis labels, and scales can be modified. Any number of points can be added.
 
-    Attribute: Author Andreas Stefik
+    Attribute: Author Andreas Stefik, Hannah Williams
 
     Attribute: Example
 
@@ -50,33 +33,9 @@ use Libraries.Interface.Controls.Charts.ChartPointComparison
     end
 */
 class ScatterPlot is TwoVariableChart
-    LayoutProperties labelProperties
-    Array<ChartPoint> points
-    ChartOptions options
-    Math math
-
-    // If there are fewer than this many points in a quadrant, we don't subdivide the quadrant further.
-    integer quadrantThreshold = 10
-
-    // The maximum number of times that regions can be subdivided into quadrants.
-    integer maxSubdivisions = 4
-
-    // A value used to scale the size of points as a percentage of chart size.
-    private number pointScaleFactor = 0.008
-
-    // The minimum radius of a single chart point.
-    private integer minimumPointRadius = 2
-
-    // The default color of each point.
-    Color pointColor
-    Color pointSelectionColor
-
-    // Used to sort the points when they're being placed into regions.
-    ChartPointComparison comparison
-
     on create
-        ScatterPlotLayout lay
-        SetLayout(lay)
+        ScatterPlotLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
@@ -100,304 +59,59 @@ class ScatterPlot is TwoVariableChart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
-        pointColor:SetColor(0, 0, 0, 1)
-        pointSelectionColor:SetColor(1, 0, 0, 1)
+        ShowAllTicks()
+        SetDefaultOrientationToHorizontal()
+        GetHorizontalPanel():SetPaddingOffset(25)
+        GetVerticalPanel():SetPaddingOffset(25)
     end
 
     /*
-    This is called by GenerateInfoTree to generate the summary that is heard when
-    you first focus on the chart. Also the highest level of the information tree
-    of  the chart.
+        This is called by GenerateInfoTree to generate the summary that is heard when
+        you first focus on the chart. Also the highest level of the information tree
+        of  the chart.
     */
     private action GenerateSummary returns text
+        integer points = parent:TwoVariableChart:GetNumberOfPoints()
         text pointText = "points"
-        if points:GetSize() = 1
+        if points = 1
             pointText = "point"
         end
-        SetDescription("Scatter Plot with " + points:GetSize() + " " + pointText + ", " +
-            "Use the arrow keys to navigate the chart.")
+        if GetName() = "Scatter Plot"
+            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+        else
+            SetDescription("Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+        end
         return GetDescription()
     end
 
-    private action NewRegionIcon(number percentX, number percentY, number percentWidth, number percentHeight) returns Icon
-        Icon region
-        Color color
-        color:SetColor(191/255.0, 191/255.0, 255/255.0, 0.3)
-        region:LoadFilledRectangle(1, 1, color)
-        region:SetPercentageX(percentX)
-        region:SetPercentageY(percentY)
-        region:SetPercentageWidth(percentWidth)
-        region:SetPercentageHeight(percentHeight)
-        region:SetFocusable(true)
-        region:SetAccessibilityCode(region:parent:Item:ITEM)
-        region:Hide()
-        return region
+    action Add(ChartPoint point)
+        parent:TwoVariableChart:AddPoint(point)
     end
 
-    action GenerateChartAreaInfo returns ChartItem
-        ChartItem chartArea
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
 
-        Icon chartRegion = NewRegionIcon(0, 0, 1.0, 1.0)
-        chartRegion:SetName("Scatter Plot")
-        GetChartArea():Add(chartRegion)
-        chartArea:SetFocusTarget(chartRegion)
-        
-        SubdivideQuadrant(chartArea, points, 0)
-
-        return chartArea
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        ScatterPlotWriter writer
+        return writer:WriteOutChart(me)
     end
 
     /*
-    If the quadrant represented by the ChartItem has more points than the quadrant
-    threshold, up to four new quadrants will be added as children to the ChartItem.
-    This is then called recursively on the new quadrants, if any.
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
     */
-    private action SubdivideQuadrant(ChartItem item, Array<ChartPoint> points, integer currentLevel)
-        Icon region = cast(Icon, item:GetFocusTarget())
-        number x1 = math:Round(region:GetPercentageX() * GetXAxisMaximum(), options:GetTickDigits())
-        number x2 = math:Round((region:GetPercentageX() + region:GetPercentageWidth()) * GetXAxisMaximum(), options:GetTickDigits())
-        number y1 = math:Round(region:GetPercentageY() * GetYAxisMaximum(), options:GetTickDigits())
-        number y2 = math:Round((region:GetPercentageY() + region:GetPercentageHeight()) * GetYAxisMaximum(), options:GetTickDigits())
-
-        text pointsText = ""
-        if points:GetSize() = 1
-            pointsText = "1 point. "
-        else
-            pointsText = points:GetSize() + " points. "
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            ScatterPlotWriter chartWriter
+            chartWriter:WriteOutChart(me,file)
         end
-
-        text rangeText = pointsText + GetXAxisTitle() + " " + x1 + " to " + x2 + ", " + GetYAxisTitle() + " " + y1 + " to " + y2
-
-        if points:GetSize() <= quadrantThreshold or currentLevel >= maxSubdivisions
-            if points:IsEmpty() = false
-                points:Sort(comparison)
-
-                region:SetDescription(rangeText + ", Use the arrow keys to navigate the points.")
-
-                ChartItem firstPointItem
-                ChartPoint firstPoint = points:Get(0)
-                firstPointItem:SetContainer(me)
-                firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
-                    + ", 1 of " + points:GetSize())
-                firstPoint:SetName(firstPointItem:GetDisplayName())
-                firstPoint:SetParentRegion(region)
-                firstPointItem:SetParent(item)
-                firstPointItem:SetFocusTarget(firstPoint)
-                item:SetChild(firstPointItem)
-        
-                integer i = 1
-                ChartItem previous = firstPointItem
-                repeat while i < points:GetSize()
-                    ChartItem pointItem
-                    ChartPoint point = points:Get(i)
-
-                    pointItem:SetContainer(me)
-                    pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
-                        + ", " + (i + 1) + " of " + points:GetSize())
-                    point:SetName(pointItem:GetDisplayName())
-                    point:SetParentRegion(region)
-                    pointItem:SetParent(item)
-                    pointItem:SetPrevious(previous)
-                    pointItem:SetFocusTarget(point)
-                    previous:SetNext(pointItem)
-                    previous = pointItem
-                    i = i + 1
-                end
-            else
-                region:SetDescription(rangeText)
-            end
-        else
-            region:SetDescription(rangeText + ", Use the arrows to inspect the sub-regions.")
-
-            number xDivider = region:GetPercentageX() + (region:GetPercentageWidth() / 2.0)
-            number yDivider = region:GetPercentageY() + (region:GetPercentageHeight() / 2.0)
-            Array<ChartPoint> topLeft
-            Array<ChartPoint> topRight
-            Array<ChartPoint> bottomLeft
-            Array<ChartPoint> bottomRight
-
-            integer i = 0
-            repeat while i < points:GetSize()
-                ChartPoint point = points:Get(i)
-                if point:GetPercentX() < xDivider
-                    if point:GetPercentY() < yDivider
-                        bottomLeft:Add(point)
-                    else
-                        topLeft:Add(point)
-                    end
-                else
-                    if point:GetPercentY() < yDivider
-                        bottomRight:Add(point)
-                    else
-                        topRight:Add(point)
-                    end
-                end
-
-                i = i + 1
-            end
-
-            text quadrantName = "Quadrant"
-            if currentLevel >= 1
-                quadrantName = "Subregion"
-            end
-
-            ChartItem topLeftItem
-            topLeftItem:SetContainer(me)
-            topLeftItem:SetParent(item)
-            Icon topLeftRegion = NewRegionIcon(region:GetPercentageX(), region:GetPercentageY() + region:GetPercentageHeight() / 2.0,
-                    region:GetPercentageWidth() / 2.0, region:GetPercentageHeight() / 2.0)
-            topLeftRegion:SetName("Top-Left " + quadrantName)
-            GetChartArea():Add(topLeftRegion)
-            topLeftItem:SetFocusTarget(topLeftRegion)
-
-            ChartItem topRightItem
-            topRightItem:SetContainer(me)
-            topRightItem:SetParent(item)
-            Icon topRightRegion = NewRegionIcon(region:GetPercentageX() + region:GetPercentageWidth() / 2.0, region:GetPercentageY() + region:GetPercentageHeight() / 2.0,
-                    region:GetPercentageWidth() / 2.0, region:GetPercentageHeight() / 2.0)
-            topRightRegion:SetName("Top-Right " + quadrantName)
-            GetChartArea():Add(topRightRegion)
-            topRightItem:SetFocusTarget(topRightRegion)
-
-            ChartItem bottomRightItem
-            bottomRightItem:SetContainer(me)
-            bottomRightItem:SetParent(item)
-            Icon bottomRightRegion = NewRegionIcon(region:GetPercentageX() + region:GetPercentageWidth() / 2.0, region:GetPercentageY(),
-                    region:GetPercentageWidth() / 2.0, region:GetPercentageHeight() / 2.0)
-            bottomRightRegion:SetName("Bottom-Right " + quadrantName)
-            GetChartArea():Add(bottomRightRegion)
-            bottomRightItem:SetFocusTarget(bottomRightRegion)
-
-            ChartItem bottomLeftItem
-            bottomLeftItem:SetContainer(me)
-            bottomLeftItem:SetParent(item)
-            Icon bottomLeftRegion = NewRegionIcon(region:GetPercentageX(), region:GetPercentageY(),
-                    region:GetPercentageWidth() / 2.0, region:GetPercentageHeight() / 2.0)
-            bottomLeftRegion:SetName("Bottom-Left " + quadrantName)
-            GetChartArea():Add(bottomLeftRegion)
-            bottomLeftItem:SetFocusTarget(bottomLeftRegion)
-
-            item:SetChild(topLeftItem)
-            topLeftItem:SetNext(topRightItem)
-            topLeftItem:SetPrevious(bottomLeftItem)
-            topRightItem:SetNext(bottomRightItem)
-            topRightItem:SetPrevious(topLeftItem)
-            bottomRightItem:SetNext(bottomLeftItem)
-            bottomRightItem:SetPrevious(topRightItem)
-            bottomLeftItem:SetNext(topLeftItem)
-            bottomLeftItem:SetPrevious(bottomRightItem)
-
-            SubdivideQuadrant(topLeftItem, topLeft, currentLevel + 1)
-            SubdivideQuadrant(topRightItem, topRight, currentLevel + 1)
-            SubdivideQuadrant(bottomRightItem, bottomRight, currentLevel + 1)
-            SubdivideQuadrant(bottomLeftItem, bottomLeft, currentLevel + 1)
-        end
-    end
-
-    action Add(ChartPoint point)
-        points:Add(point)
-        GetChartArea():Add(point)
-    end
-
-    action GetChartPoints returns Array<ChartPoint> 
-        return points
-    end
-
-    action LostSelection(ChartItem ci)
-        if ci = undefined
-            return now
-        end
-        Item target = ci:GetFocusTarget()
-
-        if target is ChartPoint
-            ChartPoint temp = cast(ChartPoint, target)
-            temp:SetColor(pointColor)
-            temp:GetParentRegion():Hide()
-        elseif target is Icon
-            target:Hide()
-        else
-            parent:TwoVariableChart:LostSelection(ci)
-        end
-    end
-
-    action GainedSelection(ChartItem ci)
-        if ci = undefined
-            return now
-        end
-        Item target = ci:GetFocusTarget()
-        if target not= undefined
-            if target is ChartPoint
-                target:Focus()
-                ChartPoint temp = cast(ChartPoint, target)
-                temp:SetColor(pointSelectionColor)
-                temp:GetParentRegion():Show()
-            elseif target is Icon
-                target:Focus()
-                target:Show()
-            else
-                parent:TwoVariableChart:GainedSelection(ci)
-            end          
-        end
-    end
-
-    action DisposeDrawables()
-        parent:TwoVariableChart:DisposeDrawables()
-        integer i = 0
-        repeat while i < points:GetSize()
-            ChartPoint point = points:Get(i)
-            if point:GetTexture() not= undefined
-                point:Dispose()
-            end
-            i = i + 1
-        end
-    end
-
-    action LoadGraphics(LayoutProperties properties)
-        DisposeDrawables()
-        parent:TwoVariableChart:LoadGraphics(properties)
-        if properties = undefined
-            return now
-        end
-
-        number width = GetXAxis():GetWidth()
-        number height = GetYAxis():GetHeight()
-        integer radius = 0
-        if width < height
-            radius = cast(integer, width * pointScaleFactor)
-        else
-            radius = cast(integer, height * pointScaleFactor)
-        end
-
-        if radius < minimumPointRadius
-            radius = minimumPointRadius
-        end
-
-        integer i = 0
-        repeat while i < points:GetSize()
-            ChartPoint point = points:Get(i)
-            point:LoadFilledCircle(radius, points:Get(i):GetColor()) 
-            i = i + 1
-        end
-    end
-
-    action Resize
-        parent:Chart:Resize()
-    end
-
-    action SetQuadrantThreshold(integer threshold)
-        quadrantThreshold = threshold
-    end
-    
-    action GetQuadrantThreshold returns integer
-        return quadrantThreshold
-    end
-
-    action SetMaximumSubdivisons(integer subdivisions)
-        maxSubdivisions = subdivisions
-    end
-
-    action GetMaximumSubdivisions returns integer
-        return maxSubdivisions
     end
 end
 

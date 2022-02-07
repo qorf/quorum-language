@@ -4,7 +4,8 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Attributes
 
 class Material is Attributes
-    //private static int counter = 0;
+
+    AttributeManager manager
 
     text id = ""
 
@@ -19,7 +20,9 @@ class Material is Attributes
         return id
     end
 
-    private system action GenerateDefaultID returns text
+    private action GenerateDefaultID returns text
+        return manager:GenerateMaterialID()
+    end
     
     action Copy returns Material
         Material temp

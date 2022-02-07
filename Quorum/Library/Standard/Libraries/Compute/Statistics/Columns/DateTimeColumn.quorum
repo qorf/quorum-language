@@ -1,0 +1,247 @@
+package Libraries.Compute.Statistics.Columns
+
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.System.DateTime
+use Libraries.Compute.Statistics.DateTimeParsers.DateTimeColumnParser
+use Libraries.Compute.Statistics.DateTimeParsers.TimestampParser
+
+
+/*
+    DateTimeColumn is a DataFrameColumn that contains DateTime objects. These objects can be undefined
+    or not. 
+
+    Attribute: Author Gabriel Contreras
+*/
+class DateTimeColumn is DataFrameColumn
+    Array<DateTime> rows
+
+    DateTimeColumnParser parser = undefined
+
+    on create
+        TimestampParser temp
+        parser = temp
+    end
+
+    action Add(text value)
+        if value = undefined
+            rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+            return now
+        end
+
+        check 
+            DateTime time
+            time = parser:Parse(value)
+            rows:Add(time)
+        detect e
+            rows:Add(undefined) //add a missing value
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+            alert(value + " failed to parse")
+        end
+    end
+
+    action SetParser(DateTimeColumnParser parser)
+        me:parser = parser
+    end
+
+    action GetParser returns DateTimeColumnParser
+        return parser
+    end
+
+    action CanConvertToVector returns boolean
+        return false
+    end
+
+    action IsUndefined(integer row) returns boolean
+        return rows:Get(row) = undefined
+    end
+
+    action Get(integer row) returns DateTime
+        return rows:Get(row)
+    end
+
+    action GetAsText(integer index) returns text
+        DateTime value = rows:Get(index)
+        if value = undefined
+            return undefined
+        else
+            return "" + parser:ToText(value)
+        end
+    end
+
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+        DateTime time = rows:Get(index)
+        calculation:Add(time)
+    end
+
+    action GetAsNumber(integer index) returns number
+        DateTime time = rows:Get(index)
+        if time = undefined
+            alert("Cannot convert value at position " + index + " to number.")
+        end
+        return time:GetEpochTime()
+    end
+
+    action SetAsNumber(integer index, number value)
+        DateTime time
+        time:SetEpochTime(value)
+        rows:Set(index, time)
+    end
+
+    action SetSize(integer size)
+        rows:SetSize(size)
+    end
+
+    action GetSize returns integer
+        return rows:GetSize()
+    end
+
+    action Swap(integer left, integer right)
+        DateTime temp = undefined
+        temp = rows:Get(left)
+        rows:Set(left, rows:Get(right))
+        rows:Set(right, temp)
+    end
+
+    action Move(integer left, integer right)
+        rows:Set(right, rows:Get(left))
+    end
+
+    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+        DateTimeColumn column
+        column:SetHeader(GetHeader())
+
+        i = rowStart
+        repeat while i < rowEnd
+            DateTime value = rows:Get(i)
+            if value = undefined
+                column:rows:Add(undefined)
+            else
+                DateTime value2
+                value2:SetEpochTime(value:GetEpochTime())
+                column:rows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        return column
+    end
+
+    action Copy returns DataFrameColumn
+        return Copy(0, rows:GetSize())
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        DateTimeColumn column
+        column:SetHeader(GetHeader())
+
+        Array<DateTime> newRows
+        i = rowStart
+        repeat while i < rowEnd
+            DateTime value = rows:Get(i)
+            if value = undefined
+                newRows:Add(undefined)
+            else
+                DateTime value2
+                value2:SetEpochTime(value:GetEpochTime())
+                newRows:Add(value2)
+            end
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            newRows:Sort()
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsNumber(to,column:GetAsNumber(from))
+    end
+
+    private action CalculateValueCount(Array<DateTime> values) returns HashTable<DateTime,integer>
+        HashTable<DateTime, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if rows:Get(i) not= undefined
+                if hash:HasKey(rows:Get(i))
+                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+                else
+                    hash:Add(rows:Get(i), 1)
+                end
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Array<DateTime> array) returns Array<DateTime>
+        Array<DateTime> set
+        HashTable<DateTime,integer> hash = CalculateValueCount(array)
+        Iterator<DateTime> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
+
+
+    action CalculateValueCount returns HashTable<DateTime,integer>
+        HashTable<DateTime, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    action GetUnique returns Array<DateTime>
+        Array<DateTime> set
+        HashTable<DateTime,integer> hash = CalculateValueCount()
+        Iterator<DateTime> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            DateTime time = rows:Get(i)
+            if time not= undefined
+                text value = time:DateToText()
+                result = result + value + lf
+            else
+                result = result + GetUndefinedText() + lf
+            end
+            i = i + 1
+        end
+        return result
+    end
+
+end

@@ -1,0 +1,51 @@
+package Libraries.Data.Database
+
+/*
+    This class represents meta data for a particular query back from a database.
+    A common use for this used to find out how many columns are in a query which can help with
+    iterating through the result of a query. 
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Find
+use Libraries.Data.Database.QueryResult
+use Libraries.Data.Database.QueryMetaData
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Find find
+find:AddColumn("itemName")
+find:AddColumn("quantity")
+find:AddColumn("price")
+find:SetTable("orders")
+
+QueryResult result = database:Find(find)
+
+// grab how many columns there are in the result set from the metadata
+QueryMetaData meta = result:GetQueryMetaData()
+integer size = meta:GetSize()
+
+
+repeat while result:HasNext()
+    output "row: "
+    result:Next()
+    i = 0
+    repeat while i < size
+        text value = result:GetText(i)
+        output value + ", "
+        i = i + 1
+    end
+    output ""
+end
+*/
+class QueryMetaData
+
+    /* Returns the number of columns in the query. */
+    system action GetSize returns integer
+    /* Returns the name of the column. If the column was aliased this will return the alias */
+    system action GetName(integer column) returns text
+    /* Returns the raw type of a column. Using DatabaseTypeConstants can help determine what the associated Quorum Type is.*/
+    system action GetType(integer column) returns integer
+end

@@ -247,34 +247,14 @@ String.prototype.EqualsIgnoringCase$quorum_Libraries_Language_Object = function(
     return this.valueOf().toLowerCase() == value.GetValue().toLowerCase();
 };
 String.prototype.Compare$quorum_Libraries_Language_Object = function (value) {
-    var result = new quorum_Libraries_Language_Support_CompareResult_();
     var valueText = global_CheckCast(value, "Libraries.Language.Types.Text").GetValue();
     var nativeResult = this.CompareInt$quorum_text$quorum_text$quorum_boolean(this.valueOf(), valueText, false);
-    if ((nativeResult == 0)) {
-        result.result = result.EQUAL;
-    }
-    else if ((nativeResult < 0)) {
-        result.result = result.SMALLER;
-    }
-    else {
-        result.result = result.LARGER;
-    }
-    return result;
+    return nativeResult;
 };
 String.prototype.CompareIgnoringCase$quorum_Libraries_Language_Object = function (value) {
-    var result = new quorum_Libraries_Language_Support_CompareResult_();
     var valueText = global_CheckCast(value, "Libraries.Language.Types.Text").GetValue();
     var nativeResult = this.CompareInt$quorum_text$quorum_text$quorum_boolean(this.valueOf(), valueText, true);
-    if ((nativeResult == 0)) {
-        result.result = result.EQUAL;
-    }
-    else if ((nativeResult < 0)) {
-        result.result = result.SMALLER;
-    }
-    else {
-        result.result = result.LARGER;
-    }
-    return result;
+    return nativeResult;
 };
 String.prototype.GetCharacter$quorum_integer = function(value) {
     return this.GetCharacterNative$quorum_integer(value);

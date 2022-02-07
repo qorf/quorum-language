@@ -29,8 +29,9 @@ class Main
 end
 */
 
-class Series
+class Series is Drawable
     ControlLabel name
+    text textName = ""
     Icon icon
     Color color
     Array<Drawable> items
@@ -39,7 +40,12 @@ class Series
         return name:GetName()
     end
 
+    action GetTextName() returns text
+        return textName
+    end
+
     action SetName(text name)
+        textName = name
         me:name:SetName(name)
         me:name:SetText(name)
     end
@@ -73,7 +79,7 @@ class Series
         items:Add(item)
     end
 
-    action GetItem(integer index) returns Drawable
+    action GetItemAt(integer index) returns Drawable
         return items:Get(index)
     end
 

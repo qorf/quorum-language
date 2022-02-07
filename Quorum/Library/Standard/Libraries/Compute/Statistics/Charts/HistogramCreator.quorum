@@ -18,6 +18,7 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Charts.ColumnToTextArray
 use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class is used to create a histogram for use in an application. By default, it uses 
@@ -50,28 +51,28 @@ use Libraries.Containers.Support.Comparison
 
     //we might then add this chart to a game.
 */
-class HistogramCreator is DataFrameChartCreator, ColumnInput
-    private integer valueColumn = -1
-    private integer ticks = 5
+class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
     number binWidthOverride = -1
+    boolean decimalScale = false
+
     Comparison comparison = undefined
     
     action Create(DataFrame frame) returns Chart
         Histogram chart
-        chart:SetYAxisTitle("Count")
+        if GetFactorSize() > 0
+            alert("HistogramCreator does not support factors.")
+        end
+
+        chart:SetYAxisTitle("Frequency")
+        chart:SetXAxisTitle("Range")
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        boolean decimalScale = false
         number min = 10000000.0
         number max = 0.0
 
         if GetColumnSize() < 1
             alert("Cannot create a Histogram without any columns.")
-        end
-
-        if GetColumnSize() = 1
-            chart:HasBarGroups(false) //remove the bargroup level of accessible navigation since every bar group should have 1 bar
         end
 
         integer columnSize = 0 // This will keep track of the largest column (if they are not all the same)
@@ -80,6 +81,11 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
         integer n = 0
         repeat while n < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(n))
+           if not column:IsNumberColumn()
+                alert("HistogramCreator does not support text columns. " + column:GetHeader() + " is a text column.")
+                return undefined
+            end
+            chart:GetColumns():Add(column)
             if(column:GetSize() > columnSize)
                 columnSize = column:GetSize()
             end
@@ -94,175 +100,15 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
             n = n + 1 
         end
 
-        Math math
-        // Take square root of number of data points and round up for default number of bins
-        // If too many bins are made, they won't be placed on chart after the max value
-        integer numberOfBins = cast(integer, math:SquareRoot(columnSize)) + 1
-
-        // Take range and divide it amongst bins and round up to get the default bin width
-        number binWidth = 0.0
-        if max <= 1
-            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 0.01
-            decimalScale = true
-        else
-            binWidth = ((max - min)  / (cast(number, numberOfBins))) + 1.0
+        if binWidthOverride > 0.0
+            chart:SetBinWidth(binWidthOverride)
         end
-
-        Array<integer> count
-        Array<number> binFloor
-
-        n = 0
-        number floor = min // Starts at minimum value
-        repeat while n < numberOfBins
-            count:Add(0)
-            binFloor:Add(floor)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
-            if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
-            end
-            if(not groupFactor:HasKey(valueDisplay))
-                BarGroup group
-                group:SetName(valueDisplay)
-                groupFactor:Add(valueDisplay, group)
-            end
-            floor = floor + binWidth
-            n = n + 1
-        end  
-
-        n = 0
-        repeat while n < GetColumnSize()  
-            DataFrameColumn column = frame:GetColumn(GetColumn(n))   
-
-            // Reset counts to zero for each series
-            i = 0
-            repeat while i < numberOfBins
-                count:Set(i, 0)
-                i = i + 1
-            end     
-
-            i = 0
-            repeat while i < column:GetSize()
-                if not column:IsUndefined(i)
-                    number value = column:GetAsNumber(i)
-                    integer bin = cast(integer, (value - min) / binWidth)
-                    number binRoof = binFloor:Get(bin) + binWidth
-                    if value < binRoof and value >= binFloor:Get(bin)
-                        count:Set(bin, count:Get(bin) + 1)
-                    elseif value >= binRoof
-                        count:Set(bin+1, count:Get(bin+1) + 1)
-                    end
-                end
-                i = i + 1
-            end
-    
-            // Find max frequency of all counts across all series
-            i = 0
-            repeat while i < count:GetSize()
-                integer amount = count:Get(i)
-                if amount > maxFrequency
-                    maxFrequency = amount
-                end
-                i = i + 1
-            end
-
-            // If a new series (ie new column)
-            if(not seriesFactor:HasKey(column:GetHeader()))
-                Series series
-                series:SetName(column:GetHeader())
-                seriesFactor:Add(column:GetHeader(), series)
-            end
-    
-            i = 0
-            floor = 0.0
-            repeat while i < count:GetSize() and floor < max
-                integer amount = count:Get(i)
-                floor = binFloor:Get(i)
-                text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
-                if(decimalScale)
-                    valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
-                end
-                Bar bar
-                bar:SetValue(amount)
-                bar:SetName(valueDisplay)
-                // If bar is part of a group
-                if(groupFactor:HasKey(valueDisplay))
-                    groupFactor:GetValue(valueDisplay):AddBar(bar)
-                end
-                // If bar is part of a series
-                if(seriesFactor:HasKey(column:GetHeader()))
-                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
-                end
-                i = i + 1
-            end
-            n = n + 1
-        end
-
-        // Bar Groups
-        i = 0
-        repeat while i < groupFactor:GetSize()
-            floor = binFloor:Get(i)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
-            if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
-            end
-            if(groupFactor:HasKey(valueDisplay) and floor < max) 
-                chart:AddBarGroup(groupFactor:GetValue(valueDisplay))
-            end
-            i = i + 1
-        end    
-        
-        // Series
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            chart:AddSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
-
-        chart:SetScaleMaximum(maxFrequency)
-        chart:SetYTickSteps(ticks)
-        Legend legend
-        chart:SetMaxBarValue(maxFrequency)
-        legend:SetSeriesList(chart:GetSeriesList())
-        chart:SetLegend(legend)
+        chart:SetDataMinimum(min)
+        chart:SetDataMaximum(max)
+        chart:GetHorizontalPanel():SetMinimum(min)
+        chart:GetHorizontalPanel():SetMaximum(max)
+        chart:MakeBins()
         return chart
-    end
-
-    /*
-        Returns the name of the value column specified.
-    */
-    action GetColumn returns integer
-        return valueColumn
-    end
-
-    /*
-        Sets the name of the name column specified.
-    */
-    action SetColumn(integer column)
-        me:valueColumn = column
-    end
-
-    /*
-        This returns the number of ticks to present on the chart.
-
-        Attribute: Returns the number of ticks    
-    */
-    action GetTicks returns integer
-        return ticks
-    end
-
-    /*
-        This sets the number of ticks to present on the chart.
-
-        Attribute: Parameter ticks the number of ticks    
-    */
-    action SetTicks(integer ticks)
-        me:ticks = ticks
     end
 
     /* Obtains what the bin width was. */
@@ -273,5 +119,13 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput
     /* Manually changes the bin width. */
     action SetBinWidth(number binWidthOverride)
         me:binWidthOverride = binWidthOverride
+    end
+
+    /* 
+        Boolean to see if binwidth is a number or integer, helps with clean x labels 
+        Example a bin width of 1 (integer) would produce a label [1-2] and a bin width of 1.0 would produce [1.0-2.0]
+    */
+    action BinWidthIsNumber(boolean flag)
+        decimalScale = flag
     end
 end

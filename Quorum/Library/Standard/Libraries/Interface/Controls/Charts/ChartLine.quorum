@@ -3,7 +3,11 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Controls.Charts.LineSegment
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Charts.ChartLinePointComparison
 
 /*
     This object class is used to contain the points and lines for each line object in the line chart. It should
@@ -12,28 +16,38 @@ use Libraries.Game.Graphics.Color
     Attribute: Author Cody Molisee
 */
 class ChartLine is Drawable
-    private text name = ""
     Array<ChartPoint> points
-    Array<Drawable> lines
+    Array<LineSegment> lines
     private boolean showPoints = true
-    private Color lineColor
-
-    on create
-        lineColor:SetColor(0, 0, 1, 1)
-    end
-
-    /*
-    Returns the name of this line.
-    */
-    action GetName() returns text
-        return name
-    end
+    ChartPoint lineMax
+    ChartPoint lineMin
+    ChartPoint lineStart
+    ChartPoint lineEnd
+    Series series = undefined
 
     /*
-    Sets/Changes the name of this line.
+    Returns max y point of all points
     */
-    action SetName(text name)
-        me:name = name
+    action GetLineMax() returns ChartPoint
+        return lineMax
+    end
+    /*
+    Returns min y point of all points
+    */
+    action GetLineMin() returns ChartPoint
+        return lineMin
+    end
+    /*
+    Returns max x point of all points
+    */
+    action GetLineStart() returns ChartPoint
+        return lineStart
+    end
+    /*
+    Returns min x point of all points
+    */
+    action GetLineEnd() returns ChartPoint
+        return lineEnd
     end
 
     /*
@@ -46,7 +60,7 @@ class ChartLine is Drawable
     /*
     Returns an array of Drawables for this line.
     */
-    action GetLines() returns Array<Drawable>
+    action GetLines() returns Array<LineSegment>
         return lines
     end
 
@@ -74,17 +88,40 @@ class ChartLine is Drawable
     end
 
     /*
-    Returns the color for this line.
-    */
-    action GetColor() returns Color
-        return lineColor
-    end
-
-    /*
     Sets/changes the color for this line.
     */
     action SetColor(Color lineColor)
-        me:lineColor = lineColor
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+    end
+
+    /*
+    Sets/changes the z value for this line.
+    True will bring forward, false will move it back.
+    */
+    action BringForward(boolean show)
+        integer value = 0
+        if show
+            value = -1
+        end
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetZ(value)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetZ(value)
+            i = i + 1
+        end
     end
     
     /*
@@ -93,38 +130,45 @@ class ChartLine is Drawable
     */
     action Add(ChartPoint point)
         points:Add(point)
-
         if points:GetSize() > 1
-            Drawable line
-            line:SetFocusable(true)
-            line:SetAccessibilityCode(parent:Item:CUSTOM)
+            LineSegment line
             lines:Add(line)
         end
     end
     
     /*
     Sorts all the chart points within the line by lowest x value first
-    Very basic bubble sort, can be improved. Used in numerical factor line charts
+    This is used in numerical factor line charts
     */
     action SortPoints()
-        integer i = 0
-        repeat while i < points:GetSize()-1
-            integer j = 0
-            repeat while j < points:GetSize()-i-1
-                if points:Get(j):GetPercentX() > points:Get(j+1):GetPercentX()
-                    ChartPoint temp
-                    temp:SetPercentX(points:Get(j):GetPercentX())
-                    temp:SetPercentY(points:Get(j):GetPercentY())
+        ChartLinePointComparison comparison
+        points:Sort(comparison)
 
-                    points:Get(j):SetPercentX(points:Get(j+1):GetPercentX())
-                    points:Get(j):SetPercentY(points:Get(j+1):GetPercentY())
+        if points:GetSize() > 0
+            lineStart = points:Get(0)
+            lineEnd = points:Get(points:GetSize()-1)
+            lineMax = points:Get(0)
+            lineMin = points:Get(0)
 
-                    points:Get(j+1):SetPercentX(temp:GetPercentX())
-                    points:Get(j+1):SetPercentY(temp:GetPercentY())
+            integer i = 1
+            repeat while i < points:GetSize()
+                if points:Get(i):GetValueY() > lineMax:GetValueY()
+                    lineMax = points:Get(i)
                 end
-                j = j + 1 
+                if points:Get(i):GetValueY() < lineMin:GetValueY()
+                    lineMin = points:Get(i)
+                end
+                i = i + 1
             end
-            i = i + 1
-        end
+        end        
     end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
 end

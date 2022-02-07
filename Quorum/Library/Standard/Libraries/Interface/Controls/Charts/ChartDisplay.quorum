@@ -3,12 +3,15 @@ use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
 
 /*
-    This class is used as a defult display region for charts. It allows basic
+    This class is used as a default display region for charts. It allows basic
     charts to be shown on screen, and accessible, without extending the game class.
 
     Attribute: Author Andreas Stefik
 */
 class ChartDisplay is Game
+    boolean exitOnStart = false
+    integer frame = 0
+
     Chart chart = undefined
     action GetChart returns Chart
         return chart
@@ -27,5 +30,21 @@ class ChartDisplay is Game
 
         Add(chart)
         chart:Focus()
+    end
+
+    action Update(number seconds)
+        if frame >= 1 and exitOnStart
+            Exit()
+        end
+
+        frame = frame + 1
+    end
+
+    action GetExitOnStart returns boolean
+        return exitOnStart
+    end
+
+    action SetExitOnStart(boolean exitOnStart)
+        me:exitOnStart = exitOnStart
     end
 end

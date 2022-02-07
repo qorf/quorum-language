@@ -1,6 +1,5 @@
 function plugins_quorum_Libraries_System_File_() {
-    this.defaultWorkingDirectory = window.location.href;
-    this.defaultWorkingDirectory = this.defaultWorkingDirectory.substring(0, this.defaultWorkingDirectory.lastIndexOf( "/" ) + 1);
+    this.defaultWorkingDirectory = window.location.hostname;
     this.path = "";
     //
     this.GetLastModifiedNative = function () {
@@ -147,4 +146,68 @@ function plugins_quorum_Libraries_System_File_() {
     this.SetExecutable$quorum_text = function(exec) {
         
     };
+
+    /*
+    Plugin only function. This converts the absolute path of this File to a URL that's relative to the directory
+    that the webpage is running from.
+    */
+    this.ConvertAbsoluteToRelativeURL = function()
+    {
+        var source = document.URL.substring(0,document.URL.lastIndexOf('/'));
+        var destination = this.GetAbsolutePathNative();
+
+        if (destination.startsWith("http://"))
+            destination = destination.substring(7);
+        else if (destination.startsWith("https://"))
+            destination = destination.substring(8);
+
+        if (source.startsWith("http://"))
+            source = source.substring(7);
+        else if (source.startsWith("https://"))
+            source = source.substring(8);
+
+        destArray = destination.split("/");
+        sourceArray = source.split("/");
+
+        var result = "";
+
+        // First, remove all common elements between the two paths.
+        while (sourceArray.length > 0 && destArray.length > 0)
+        {
+            if (sourceArray[0] === destArray[0])
+            {
+                sourceArray.shift();
+                destArray.shift();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        /*
+        Each remaining value in the source array is a directory we need to come up from.
+        For each directory remaining in the source, we append "../" to the result.
+        This may occur zero times (if the destination is within the source directory).
+        */
+        for (var i = 0; i < sourceArray.length; i++)
+        {
+            result += "../";
+        }
+
+        /*
+        Now, append the remaining destination values to the result. Each value must be separated by a slash, with no
+        slash following the final element.
+        This can occur zero times (if the destination is a directory below the source directory, or the same directory
+        as the source directory).
+        */
+        for (var i = 0; i < destArray.length; i++)
+        {
+            result += destArray[i];
+            if (i !== (destArray.length - 1))
+                result += "/";
+        }
+
+        return result;
+    }
 }

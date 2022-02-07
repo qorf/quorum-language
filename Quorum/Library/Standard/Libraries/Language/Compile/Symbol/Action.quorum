@@ -8,6 +8,7 @@ use Libraries.Language.Support.CompareResult
 use Libraries.System.File
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorCodes
 
 class Action is Symbol
     List<Variable> parameters
@@ -25,6 +26,7 @@ class Action is Symbol
     Location returnLocation = undefined
     HashTable<text, List<Location>> callLocationHash
     List<ActionCallResolution> actionCalls
+    CompilerErrorCodes codes
 
     action AddCallLocation(Location location) 
         File file = location:GetFile()
@@ -181,6 +183,7 @@ class Action is Symbol
         //Thanks to Gabriel for finding this issue. The compiler should have been checking for this.
         if HasParameter(parameter:GetStaticKey())
             CompilerError error
+            error:SetCode(codes:ACTION_DUPLICATE_PARAMETER)
             error:SetLocation(parameter)
             error:SetErrorMessage("Parameter " + parameter:GetDisplayName() + " is already defined. That is not possible, because I would not know which definition to use.")
             CompilerErrorType errorType
@@ -320,9 +323,9 @@ class Action is Symbol
     private action GetTypeName(Type type) returns text
         text result = ""
         boolean mapped = type:IsMappedToGeneric()
-        if mapped
+        //if mapped
             result = type:GetName()
-        end
+        //end
 
         if type:GetNumberGenerics() > 0
             Iterator<Type> generics = type:GetGenerics()

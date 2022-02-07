@@ -1,0 +1,103 @@
+package Libraries.Data.Database.Strategies
+
+use Libraries.Data.Database.DatabaseStrategy
+use Libraries.Data.Database.Connection
+use Libraries.Data.Database.Find
+use Libraries.Data.Database.Insert
+use Libraries.Data.Database.Update
+use Libraries.Data.Database.Delete
+use Libraries.Data.Database.CreateTable
+use Libraries.Data.Database.DropTable
+use Libraries.Data.Database.EditTable
+use Libraries.Data.Database.CreateView
+use Libraries.Data.Database.QueryResult
+use Libraries.Data.Database.DatabaseMetaData
+
+/*
+    This class implements a DatabaseStrategy and is the default strategy the Database class uses.
+    This class uses a plugin that connects to MySQL servers so if using another system underneath such
+    as PostgreSQL another class needs to be made that implements the actions in DatabaseStrategy.
+*/
+class DefaultDatabaseStrategy is DatabaseStrategy
+
+    action Connect(Connection connection)
+        text connect = "jdbc:mysql://"
+        connect = connect + connection:GetLocation() + "/" 
+            + connection:GetDatabase() + "?user="
+            + connection:GetUsername() + "&password="
+            + connection:GetPassword()
+
+        ConnectNative(connect)
+    end
+
+    // All this class does is pass down parameters or call native functions so
+    // almost every action has a Native equivalent
+    private system action GetAutoCommitNative returns boolean
+    private system action SetAutoCommitNative(boolean commit)
+    private system action CommitNative
+    private system action RollbackNative
+    private system action ConnectNative(text connection)
+    private system action CloseNative
+    private system action FindNative(Find query) returns QueryResult
+    private system action CreateTableNative(CreateTable query)
+    private system action DropTableNative(DropTable query)
+    private system action EditTableNative(EditTable query)
+    private system action CreateViewNative(CreateView query)
+    private system action InsertNative(Insert query) returns integer
+    private system action UpdateNative(Update query) returns integer
+    private system action DeleteNative(Delete query) returns integer
+    system action GetDatabaseMetaData returns DatabaseMetaData
+
+    action Close
+        CloseNative()
+    end
+
+    action GetAutoCommit returns boolean
+        return GetAutoCommitNative()
+    end
+
+    action SetAutoCommit(boolean commit)
+        SetAutoCommitNative(commit)
+    end
+
+    action Commit
+        CommitNative()
+    end
+
+    action Rollback
+        RollbackNative()
+    end
+
+    action CreateTable(CreateTable creation)
+        CreateTableNative(creation)
+    end
+
+    action DropTable(DropTable drop)
+        DropTableNative(drop)
+    end
+
+    action EditTable(EditTable edit)
+        EditTableNative(edit)
+    end
+
+    action CreateView(CreateView query)
+        CreateViewNative(query)
+    end
+
+    action Find(Find query) returns QueryResult
+        
+        return FindNative(query)
+    end
+
+    action Insert(Insert query) returns integer
+        return InsertNative(query)
+    end
+
+    action Update(Update query) returns integer
+        return UpdateNative(query)
+    end
+
+    action Delete(Delete query) returns integer
+        return DeleteNative(query)
+    end
+end

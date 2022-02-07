@@ -8,6 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorCodes
 
 /*
     Ths SymbolTable class stores all pertinent information about a compile 
@@ -24,7 +25,7 @@ class SymbolTable
     HashTable<text, HashTable<text, Class>> classNames
     HashTable<text, HashTable<text, Class>> packages
     Library library = undefined
-    
+    CompilerErrorCodes codes
     /*
         This action gathers all of the classes from the table variable and puts
         them into this symbol table, clearing out the table before starting. This
@@ -107,6 +108,7 @@ class SymbolTable
     action Add(Class clazz) returns CompilerError
         if classes:HasKey(clazz:GetStaticKey())
             CompilerError error
+            error:SetCode(codes:SYMBOL_TABLE_ADD_CLASS)
             error:SetLineNumber(clazz:GetLineNumber())
             error:SetFile(clazz:GetFile())
             error:SetErrorMessage("Class " + clazz:GetStaticKey() + " is already defined.")

@@ -2,7 +2,7 @@ package Libraries.Network
 use Libraries.Containers.HashTable
 
 class NetworkExchange
-    system action SendResponseHeaders(integer code, integer size)
+    system action SendResponseHeaders(integer code, text response)
 
     system action SendResponse(text response)
 

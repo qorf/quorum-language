@@ -254,7 +254,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         this.me_.color.SetColor(red, green, blue, alpha);
         colorValue = this.me_.color.EncodeColorAsNumber();
     };
-    
+
     this.SystemDraw$quorum_Libraries_Game_Graphics_Drawable = function(drawable) 
     {
         if (!(this.me_.IsDrawing()))
@@ -281,12 +281,12 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         if (!(drawable.UsingCustomTint()))
         {
-            for (var i = drawable.Get_Libraries_Game_Graphics_Drawable__Z1_(); i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
+            for (var i = drawable.Get_Libraries_Game_Graphics_Drawable__C1_(); i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i = i + drawable.Get_Libraries_Game_Graphics_Drawable__VERTEX_SIZE_())
             {
                 drawable.SetVertex$quorum_integer$quorum_number(i, colorValue);
             }
         }
-        
+
         for (var i = 0; i < drawable.Get_Libraries_Game_Graphics_Drawable__DRAWABLE_SIZE_(); i++)
         {
             this.me_.SetVertex$quorum_integer$quorum_number(index, drawable.GetVertex$quorum_integer(i));
@@ -364,8 +364,8 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
                 
                 this.SetupMatrices();
             }
-            //fontShader.SetUniform("u_fontColor", texture.plugin_.fontColor);
-			fontShader.SetUniform4fFromName("u_fontColor", texture.plugin_.fontColor.GetRed(), texture.plugin_.fontColor.GetGreen(), texture.plugin_.fontColor.GetBlue(), texture.plugin_.fontColor.GetAlpha());
+
+            fontShader.SetUniform4fFromName("u_fontColor", texture.plugin_.fontColor.GetRed(), texture.plugin_.fontColor.GetGreen(), texture.plugin_.fontColor.GetBlue(), texture.plugin_.fontColor.GetAlpha());
         }
         else
         {

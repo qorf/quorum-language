@@ -1,0 +1,121 @@
+package Libraries.Data.Database
+use Libraries.Data.Database.Support.TableTarget
+
+/*
+    The Delete query represents the Delete command of the SQL (Structured Query Language) language. 
+    This query allows for the removal of a row that already exists in the database. To remove a row
+    the table the row is in needs to be specified and a filter needs to be added that will match with
+    the row to be removed. A filter must be specified because without a filter every row in the table 
+    will match resulting in the deletion of every row in the table. If that behavior is wanted then 
+    SetIsFiltering(false) must be called.
+
+
+    Attribute: Example
+
+use Libraries.Data.Database.Database
+use Libraries.Data.Database.Delete
+
+Database database
+database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+
+Delete query
+query:SetTable("tasks")
+query:Filter("priority < 10")
+
+integer rows = database:Delete(query)
+output rows + "row(s) deleted"
+
+*/
+class Delete is Query
+    private constant text NO_TABLE_ERROR = "Must specify table for delete"
+    private constant text FILTER_WARNING = "You have a delete with no filter. This will delete the whole table. If this is what you wish to do then use SetIsFiltering(false)."
+    private constant text TABLE_ALIAS_ERROR = "Cannot remap the name of a table in a delete"
+    private constant text TABLE_NOT_FOUND = "The table '?table?' was referenced but could not be found in the database"
+
+    boolean filtering = true
+
+    /*
+        If this flag is set to false then the query will be allowed to run with no filter which deletes all rows in the table.
+
+        Attribute: Parameter filtering If false this query will not use a filter for deleting rows
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Delete
+
+        Delete query
+        query:SetTable("tasks")
+
+        query:SetIsFiltering(false)
+
+    */
+    action SetIsFiltering(boolean filtering)
+        me:filtering = filtering
+    end
+
+
+    /*
+        This action returns whether or not this Delete query will use a filter.
+
+        Attribute: Returns Returns false if not using a filter and true if it will
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Delete
+
+        Delete query
+        query:SetTable("tasks")
+
+        boolean filtering = query:UsingFilter()
+    */
+    action UsingFilter returns boolean
+        return filtering
+    end
+
+    /*
+        This action returns the query as text in Structured Query Language (SQL).
+        Not intended to be used directly by the user, this is more for internals 
+        of the API to make calls to the database
+    */
+    action ConvertToStructuredQueryLanguage returns text
+        EmptyPreparedParameters()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        text query = "DELETE FROM "
+
+        // check if table is valid
+        text table = GetTable()
+        if table = "" or table = undefined
+            alert(NO_TABLE_ERROR)
+        end
+
+        //check if table exists, also if there's a name remap resolve the name
+        if GetNameRemaps():HasKey(table) and GetNameRemaps():GetValue(table) is TableTarget
+            alert(TABLE_ALIAS_ERROR)
+        end
+        DatabaseTable tableCheck = meta:GetTable(table)
+        if tableCheck = undefined
+            alert(TABLE_NOT_FOUND:Replace("?table?",table))
+        end
+        query = query + table
+
+        text raw = GetRawFilter()
+        if raw = undefined and filtering
+            alert(FILTER_WARNING)
+        end
+        if raw not= undefined and filtering
+            //if there is a filter, get the meta data from the database, 
+            //convert the query and type check it, then add it to the current value
+            QueryFilterConverter converter
+            converter:SetDatabaseMetaData(GetDatabaseMetaData())
+            converter:SetQuery(me)
+            converter:Convert(raw)
+            //if the conversion went poorly, an error would have been thrown already.
+            if converter:HasConversion()
+                text where = converter:GetConversion()
+                query = query + " WHERE " + where
+            end
+        end
+
+        return query
+    end
+end

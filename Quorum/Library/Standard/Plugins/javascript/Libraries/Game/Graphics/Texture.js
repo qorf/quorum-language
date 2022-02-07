@@ -38,7 +38,7 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
         return graphics.glGenTexture();
     };
     
-    this.SetGL20Info$quorum_integer$quorum_integer = function(target, handle) 
+    this.SetGraphicsInfo$quorum_integer$quorum_integer = function(target, handle) 
     {
         glTarget = target;
         glHandle = handle;

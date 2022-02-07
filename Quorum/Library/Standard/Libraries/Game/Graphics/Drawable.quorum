@@ -17,8 +17,11 @@ use Libraries.Compute.Vector2
 use Libraries.Language.Errors.Error
 use Libraries.System.File
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Scenes.SceneProperties
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 /*
     The Drawable class is a Libraries.Interface.Item that can be drawn on the
@@ -56,43 +59,31 @@ use Libraries.Data.Formats.JavaScriptObjectNotation
 */
 class Drawable is TextureRegion, Item2D
 
-    // These constants represent certain aspects of each vertex. For example,
-    // X1 and Y2 represent the x value of the first vertex and the y value of
-    // the second vertex, respectively.
-    constant integer X1 = 0
-    constant integer Y1 = 1
-    constant integer Z1 = 2
-    constant integer C1 = 3
-    constant integer U1 = 4
-    constant integer V1 = 5
-    constant integer X2 = 6
-    constant integer Y2 = 7
-    constant integer Z2 = 8
-    constant integer C2 = 9
-    constant integer U2 = 10
-    constant integer V2 = 11
-    constant integer X3 = 12
-    constant integer Y3 = 13
-    constant integer Z3 = 14
-    constant integer C3 = 15
-    constant integer U3 = 16
-    constant integer V3 = 17
-    constant integer X4 = 18
-    constant integer Y4 = 19
-    constant integer Z4 = 20
-    constant integer C4 = 21
-    constant integer U4 = 22
-    constant integer V4 = 23
-
-    constant integer VERTEX_SIZE = 6
-    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
-
     private ColorGroup colorGroup = undefined
     private boolean useCustomColor = false
     private boolean useCustomGradient = false
     Math math
 
     integer drawableType = 0
+
+    // The shape that defines this Drawable. Holds the vertex information used by the graphics card when drawing this Drawable. Undefined until loading occurs.
+    DrawableShape shape = undefined
+
+    // A custom shader program. If this isn't undefined, this will be used instead of the default shader to render this object.
+    ShaderProgram shaderProgram = undefined
+
+    // A custom shader mapping. If this isn't undefined, it will be used to map this Model's renderables to shader inputs when it's rendered by a shader.
+    ShaderMapping shaderMapping = undefined
+
+    /*
+    An optional field with an arbitrary object containing additional data for use by a shader.
+    This is undefined by default. If it isn't undefined, it's up to the ShaderMapping to determine
+    how this data should be used. The default shaders/mappings will typically ignore this value.
+    */
+    Object shaderData = undefined
+
+    // The mesh used to render this object to the screen.
+    Mesh mesh = undefined
 
     on create
         SceneProperties properties
@@ -291,6 +282,10 @@ class Drawable is TextureRegion, Item2D
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
 
+        DrawableShape newShape
+        SetDrawableShape(newShape)
+        newShape:LoadRectangle(sourceWidth, sourceHeight, me)
+
         SceneProperties properties
         drawableType = properties:CUSTOM
     end
@@ -330,6 +325,10 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+
+        DrawableShape newShape
+        SetDrawableShape(newShape)
+        newShape:LoadRectangle(GetWidth(), GetHeight(), me)
 
         SceneProperties properties
         drawableType = properties:CUSTOM
@@ -372,6 +371,10 @@ class Drawable is TextureRegion, Item2D
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
 
+        DrawableShape newShape
+        SetDrawableShape(newShape)
+        newShape:LoadRectangle(sourceWidth, sourceHeight, me)
+
         SceneProperties properties
         drawableType = properties:CUSTOM
     end
@@ -410,12 +413,9 @@ class Drawable is TextureRegion, Item2D
     action SetColor(ColorGroup tint)
         colorGroup = tint
 
-        Number32BitArray vertices = GetVertices()
-
-        vertices:Set(C1, tint:GetBottomLeft():EncodeColorAsNumber())
-        vertices:Set(C2, tint:GetTopLeft():EncodeColorAsNumber())
-        vertices:Set(C3, tint:GetTopRight():EncodeColorAsNumber())
-        vertices:Set(C4, tint:GetBottomRight():EncodeColorAsNumber())
+        if shape not= undefined
+            shape:SetColor(tint)
+        end
     end
 
     /*
@@ -487,20 +487,9 @@ class Drawable is TextureRegion, Item2D
         BitwiseOperations ops
         NumberUtilities utility
 
-        Number32BitArray vertices = GetVertices()
-
-        integer alphaBits = ops:ShiftLeft(cast(integer, 255 * alpha), 24)
-        integer blueBits = ops:ShiftLeft(cast(integer, 255 * blue), 16)
-        integer greenBits = ops:ShiftLeft(cast(integer, 255 * green), 8)
-        integer redBits = cast(integer, 255 * red)
-
-        integer result = ops:Or(ops:Or(alphaBits, blueBits), ops:Or(greenBits, redBits))
-        number colorValue = utility:EncodeColorIntegerAsNumber(result)
-
-        vertices:Set(C1, colorValue)
-        vertices:Set(C2, colorValue)
-        vertices:Set(C3, colorValue)
-        vertices:Set(C4, colorValue)
+        if shape not= undefined
+            shape:SetColor(color)
+        end
     end
 
     /*
@@ -646,19 +635,9 @@ class Drawable is TextureRegion, Item2D
     */
     action SetRegion(number left, number top, number right, number bottom)
         parent:TextureRegion:SetRegion(left, top, right, bottom)
-        Number32BitArray vertices = GetVertices()
-
-        vertices:Set(U1, left)
-        vertices:Set(V1, bottom)
-
-        vertices:Set(U2, left)
-        vertices:Set(V2, top)
-
-        vertices:Set(U3, right)
-        vertices:Set(V3, top)
-
-        vertices:Set(U4, right)
-        vertices:Set(V4, bottom)
+        if shape not= undefined
+            shape:SetTextureRegion(left, right, bottom, top)
+        end
     end
 
     /*
@@ -668,9 +647,9 @@ class Drawable is TextureRegion, Item2D
     */
     action SetLeftSide(number left)
         parent:TextureRegion:SetLeftSide(left)
-        Number32BitArray vertices = GetVertices()
-        vertices:Set(U1, left)
-        vertices:Set(U2, left)
+        if shape not= undefined
+            shape:SetTextureRegion(left, GetRightSide(), GetBottomSide(), GetTopSide())
+        end
     end
 
     /*
@@ -680,9 +659,9 @@ class Drawable is TextureRegion, Item2D
     */
     action SetTopSide(number top)
         parent:TextureRegion:SetTopSide(top)
-        Number32BitArray vertices = GetVertices()
-        vertices:Set(V2, top)
-        vertices:Set(V3, top)
+        if shape not= undefined
+            shape:SetTextureRegion(GetLeftSide(), GetRightSide(), GetBottomSide(), top)
+        end
     end
 
     /*
@@ -692,9 +671,9 @@ class Drawable is TextureRegion, Item2D
     */
     action SetRightSide(number right)
         parent:TextureRegion:SetRightSide(right)
-        Number32BitArray vertices = GetVertices()
-        vertices:Set(U3, right)
-        vertices:Set(U4, right)
+        if shape not= undefined
+            shape:SetTextureRegion(GetLeftSide(), right, GetBottomSide(), GetTopSide())
+        end
     end
 
     /*
@@ -704,9 +683,9 @@ class Drawable is TextureRegion, Item2D
     */
     action SetBottomSide(number bottom)
         parent:TextureRegion:SetBottomSide(bottom)
-        Number32BitArray vertices = GetVertices()
-        vertices:Set(V1, bottom)
-        vertices:Set(V4, bottom)
+        if shape not= undefined
+            shape:SetTextureRegion(GetLeftSide(), GetRightSide(), bottom, GetTopSide())
+        end
     end
 
     /*
@@ -736,14 +715,9 @@ class Drawable is TextureRegion, Item2D
     action FlipX
         parent:TextureRegion:FlipX()
 
-        Number32BitArray vertices = parent:Item2D:vertices
-
-        number temp = vertices:Get(U1)
-        vertices:Set(U1, vertices:Get(U3))
-        vertices:Set(U3, temp)
-        temp = vertices:Get(U2)
-        vertices:Set(U2, vertices:Get(U4))
-        vertices:Set(U4, temp)
+        if shape not= undefined
+            shape:FlipX()
+        end
 
         parent:Item2D:FlipX()
     end
@@ -775,14 +749,9 @@ class Drawable is TextureRegion, Item2D
     action FlipY
         parent:TextureRegion:FlipY()
 
-        Number32BitArray vertices = parent:Item2D:vertices
-
-        number temp = vertices:Get(V1)
-        vertices:Set(V1, vertices:Get(V3))
-        vertices:Set(V3, temp)
-        temp = vertices:Get(V2)
-        vertices:Set(V2, vertices:Get(V4))
-        vertices:Set(V4, temp)
+        if shape not= undefined
+            shape:FlipY()
+        end
 
         parent:Item2D:FlipY()
     end
@@ -1649,6 +1618,11 @@ class Drawable is TextureRegion, Item2D
         polygon:Set(vertices, 3)
         SetShape(polygon)
 
+        DrawableShape shape
+        shape:LoadTriangle(x1, y1, x2, y2, x3, y3, me)
+        shape:SetColor(color)
+        SetDrawableShape(shape)
+
         SceneProperties properties
         drawableType = properties:FILLED_TRIANGLE
 
@@ -1661,6 +1635,196 @@ class Drawable is TextureRegion, Item2D
         points:Add(x3)
         points:Add(y3)
         SetProperty(properties:POINTS, points)
+    end
+
+    /*
+    
+    */
+    action LoadShape(Array<number> points)
+        Color color
+        color:SetColor(0, 0, 0, 1)
+        LoadShape(points, color)
+    end
+
+    /*
+    
+    */
+    action LoadShape(Array<number> points, ColorGroup color)
+        Texture temp
+        temp:LoadFilledRectangle(4, 4)
+        Load(temp)
+        SetColor(color)
+
+        JavaScriptObjectNotation jsonPoints
+        jsonPoints:SetArray()
+
+        number minX = points:Get(0)
+        number maxX = minX
+        number minY = points:Get(1)
+        number maxY = minY
+
+        integer counter = 0
+        Array<Vector2> vertices
+        repeat while counter < points:GetSize()
+            number x = points:Get(counter)
+            number y = points:Get(counter + 1)
+
+            if x < minX
+                minX = x
+            elseif x > maxX
+                maxX = x
+            end
+
+            if y < minY
+                minY = y
+            elseif y > maxY
+                maxY = y
+            end
+
+            Vector2 vertex
+            vertex:Set(x, y)
+            vertices:Add(vertex)
+
+            jsonPoints:Add(x)
+            jsonPoints:Add(y)
+
+            counter = counter + 2
+        end
+
+        SetOrigin((maxX - minX) / 2, (maxY - minY) / 2)
+
+        check
+            Polygon polygon
+            polygon:Set(vertices, vertices:GetSize())
+            SetShape(polygon)
+        detect error
+            /*
+            The polygon set action can fail if we received vertices that are very close together.
+            If this happens, just ignore it. Allow default collision handling to do its work.
+            In this case, the item is most likely incredibly small anyway, so high precision collision is less important.
+            */
+        end
+
+        DrawableShape shape
+        SetDrawableShape(shape)
+        shape:Load(points, me)
+        shape:SetColor(color)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM_SHAPE
+
+        SetProperty(properties:POINTS, jsonPoints)
+    end
+
+    /*
+    
+    */
+    action LoadShape(Array<number> points, Array<Color> colors)
+        Texture temp
+        temp:LoadFilledRectangle(4, 4)
+        Load(temp)
+        SetColor(colors:Get(0))
+
+        JavaScriptObjectNotation jsonPoints
+        jsonPoints:SetArray()
+
+        number minX = points:Get(0)
+        number maxX = minX
+        number minY = points:Get(1)
+        number maxY = minY
+
+        integer counter = 0
+        Array<Vector2> vertices
+        repeat while counter < points:GetSize()
+            number x = points:Get(counter)
+            number y = points:Get(counter + 1)
+
+            if x < minX
+                minX = x
+            elseif x > maxX
+                maxX = x
+            end
+
+            if y < minY
+                minY = y
+            elseif y > maxY
+                maxY = y
+            end
+
+            Vector2 vertex
+            vertex:Set(x, y)
+            vertices:Add(vertex)
+
+            jsonPoints:Add(x)
+            jsonPoints:Add(y)
+
+            counter = counter + 2
+        end
+
+        SetOrigin((maxX - minX) / 2, (maxY - minY) / 2)
+
+        check
+            Polygon polygon
+            polygon:Set(vertices, vertices:GetSize())
+            SetShape(polygon)
+        detect error
+            /*
+            The polygon set action can fail if we received vertices that are very close together.
+            If this happens, just ignore it. Allow default collision handling to do its work.
+            In this case, the item is most likely incredibly small anyway, so high precision collision is less important.
+            */
+        end
+
+        DrawableShape shape
+        SetDrawableShape(shape)
+        shape:Load(points, me)
+        shape:SetColor(colors)
+
+        SceneProperties properties
+        drawableType = properties:CUSTOM_SHAPE
+
+        SetProperty(properties:POINTS, jsonPoints)
+    end
+
+    action GetShaderProgram returns ShaderProgram
+        return shaderProgram
+    end
+
+    action SetShaderProgram(ShaderProgram shaderProgram)
+        me:shaderProgram = shaderProgram
+    end
+
+    action GetShaderMapping returns ShaderMapping
+        return shaderMapping
+    end
+
+    action SetShaderMapping(ShaderMapping shaderMapping)
+        me:shaderMapping = shaderMapping
+    end
+
+    action GetShaderData returns Object
+        return shaderData
+    end
+
+    action SetShaderData(Object shaderData)
+        me:shaderData = shaderData
+    end
+
+    action GetMesh returns Mesh
+        return mesh
+    end
+
+    action SetMesh(Mesh mesh)
+        me:mesh = mesh
+    end
+
+    action SetDrawableShape(DrawableShape shape)
+        me:shape = shape
+        shape:SetDrawable(me)
+    end
+
+    action GetDrawableShape returns DrawableShape
+        return shape
     end
 
 end

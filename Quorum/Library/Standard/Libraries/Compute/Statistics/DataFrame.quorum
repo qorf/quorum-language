@@ -42,8 +42,8 @@ use Libraries.Language.Compile.Interpreter.Result
 use Libraries.Language.Compile.Interpreter.RuntimeBlock
 use Libraries.Compute.Statistics.Charts.LineChartCreator
 use Libraries.Interface.Controls.Charts.LineChart
-use Libraries.Compute.Statistics.Charts.ViolinChartCreator
-use Libraries.Interface.Controls.Charts.ViolinChart
+use Libraries.Compute.Statistics.Charts.ViolinPlotCreator
+use Libraries.Interface.Controls.Charts.ViolinPlot
 use Libraries.Compute.Statistics.Transforms.CrossTab
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
@@ -53,6 +53,11 @@ use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Transforms.DataTupleComparison
+use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Compute.Statistics.Charts.PieChartCreator
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -574,6 +579,9 @@ class DataFrame
             elseif col:IsBooleanColumn()
                 BooleanColumn boolCol = cast(BooleanColumn, col)
                 tuple:values:Add(boolCol:Get(row))
+            elseif col is DateTimeColumn
+                DateTimeColumn dateTimeCol = cast(DateTimeColumn, col)
+                tuple:values:Add(dateTimeCol:Get(row))
             else
                 alert("Could not find the column type of column index: " + sortOrder:Get(i))
             end
@@ -1029,6 +1037,30 @@ class DataFrame
     */
     action CreateChart(DataFrameChartCreator creator) returns Chart
         return creator:Create(me)
+    end
+
+    /*
+        This action creates a chart, given a particular DataFrameChartCreator instance
+        and returns a chart from it for this particular data.
+
+        Attribute: Parameter creator The object that converts the DataFrame into a chart
+        Attribute: Returns A chart object, which can be embedded into a user interface
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Charts.BarChartCreator
+        use Libraries.System.File
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //We might instantiate an object to create a bar chart, setting some properties if we want to
+        BarChartCreator create
+        frame:CreateChart(create) 
+    */
+    action CreateChart(DataFrameChartCreator creator, boolean sort) returns Chart
+        return creator:Create(me, sort)
     end
 
     /*
@@ -2412,6 +2444,7 @@ class DataFrame
     action Histogram returns Histogram
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
 
         return cast(Histogram, CreateChart(creator))
     end
@@ -2436,22 +2469,23 @@ class DataFrame
         chart:Display()
     */
     action Histogram(integer binWidth) returns Histogram
-        if not IsSingleColumnSelection()
-            alert("Can only conduct this calculation on a single column")
-        end
-
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
         creator:SetBinWidth(binWidth)
+        creator:BinWidthIsNumber(false)
 
-        DataFrameColumn col = GetColumn(selection:GetColumn(0))
-        
-        Histogram histogram = cast(Histogram, CreateChart(creator))
-        //set a default title.
-        if col:GetHeader() not= undefined
-            histogram:SetXAxisTitle(col:GetHeader())
-        end
-        return histogram
+        return cast(Histogram, CreateChart(creator))
+    end
+
+    action Histogram(number binWidth) returns Histogram
+        HistogramCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+        creator:SetBinWidth(binWidth)
+        creator:BinWidthIsNumber(true)
+
+        return cast(Histogram, CreateChart(creator))
     end
 
     /*
@@ -2479,6 +2513,34 @@ class DataFrame
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(BarChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a BarChart from the current column selection in the DataFrame
+        with an option to turn sorting off for the factors. By default, it uses the first 
+        column in the selection as the x-axis and the second column as the y-axis. This 
+        can be reversed by changing the selection order.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SetSelectedColumnRange(0,1)
+        BarChart chart = frame:BarChart(false)
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action BarChart(boolean sort) returns BarChart
+        BarChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(BarChart, CreateChart(creator,sort))
     end
     
     /*
@@ -2560,7 +2622,7 @@ class DataFrame
     end
     
     /*
-        This action creates a ViolinChart from the current column selection in the DataFrame.
+        This action creates a ViolinPlot from the current column selection in the DataFrame.
         By default, it uses all columns as separate values in the selection as the chart area. 
         Factors have no impact on this action.
 
@@ -2568,21 +2630,50 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Interface.Controls.Charts.ViolinChart
+        use Libraries.Interface.Controls.Charts.ViolinPlot
         
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(1)
-        ViolinChart chart = frame:ViolinChart()
+        ViolinPlot chart = frame:ViolinPlot()
         chart:SetTitle("My Awesome Title")
         chart:SetXAxisTitle("Time")
         chart:Display()
     */
-    action ViolinChart returns ViolinChart
-        ViolinChartCreator creator
+    action ViolinPlot returns ViolinPlot
+        ViolinPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
 
-        return cast(ViolinChart, CreateChart(creator))
+        return cast(ViolinPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a BoxPlot from the current column selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+        Multiple columns will result in multiple plots of different colors labeled along the 
+        the x-axis. If a factor is given, the plots will be grouped based by that factor.
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BoxPlot
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        BoxPlot chart = frame:BoxPlot()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action BoxPlot returns BoxPlot
+        BoxPlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(BoxPlot, CreateChart(creator))
     end
 
     /*
@@ -2611,6 +2702,92 @@ class DataFrame
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a PieChart from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:PieChart()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action PieChart returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(PieChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a PieChart with a donut hole of 0.5 (50%) from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:DonutChart()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action DonutChart returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        PieChart chart = cast(PieChart, CreateChart(creator))
+        chart:SetDonutHolePercent(0.5)
+        return chart
+    end
+
+    /*
+        This action creates a PieChart with a donut hole of variable size from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Piechart
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        PieChart chart = frame:DonutChart(0.25)
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action DonutChart(number donutHolePercent) returns PieChart
+        PieChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        PieChart chart = cast(PieChart, CreateChart(creator))
+        if donutHolePercent > 0 and donutHolePercent < 1.0
+            chart:SetDonutHolePercent(donutHolePercent)
+        else
+            alert("Donut hole percent can be a number between 0 and 1")
+        end
+        return chart
     end
 
     /*

@@ -1,0 +1,122 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Font
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.ColorGroup
+
+/*
+    This class represents the horizontal axis panel area on the charts.
+    This class is not meant to be accessed by the user directly.
+    All of its actions and components should only be controlled by the user
+    through the Chart class.
+
+
+    Attribute: Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            BarChart chart
+            Color color
+            chart:SetChartAreaBorderColor(color:Black())
+            Add(chart)
+        end
+    end
+*/
+
+class ChartAreaPanel is Control
+    private LayoutProperties properties = undefined
+    private Series series = undefined
+    private text title = ""
+    private Array <Item> chartAreaItems
+    private boolean isShowing = false
+
+    on create
+        ManualLayout manualLayout
+        SetLayout(manualLayout)
+        
+        Color color
+        properties = GetDefaultLayoutProperties()
+        properties:SetBackgroundColor(color:White())
+        properties:SetBorderColor(color:White())
+        properties:SetBorderThickness(4)
+        Font font = GetDefaultFont()
+        properties:SetFont(font)
+        properties:SetFontSize(GetDefaultFontSize())
+
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+        if series not= undefined
+            name = series:GetTextName()
+        end
+    end
+
+    action LoadChartAreaView 
+        if properties:GetView2D() = undefined
+            LabelBoxView view 
+            view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
+            view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+            SetView2D(view)
+        else
+            SetView2D(GetDefaultLayoutProperties():GetView2D())
+        end
+    end
+
+    action GetChartAreaItems returns Array <Item>
+        return chartAreaItems
+    end
+
+    action AddChartAreaItem(Item item)
+        chartAreaItems:Add(item)
+    end
+
+    action GetIsShowing returns boolean
+        return isShowing
+    end
+
+    action SetIsShowing(boolean isShowing)
+        me:isShowing = isShowing
+    end
+
+    action GetTitleName returns text
+        return title
+    end
+
+    action SetTitleName(text name)
+        me:title = name
+    end
+
+    action SetBorderColor(ColorGroup color)
+        properties:SetBorderColor(color)
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        properties:SetBackgroundColor(color)
+    end
+end

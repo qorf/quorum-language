@@ -14,6 +14,16 @@ class IndexData is Disposable
 
     blueprint action SetIndices(Integer32BitArray indices, integer offset, integer count)
 
+    /*
+    This returns a single element from within the VertexData at the given index.
+    */
+    blueprint action Get(integer index) returns integer
+
+    /*
+    Sets the beginning (inclusive) and ending (exclusive) indices of this IndexData.
+    */
+//    blueprint action SetIndexRange(integer startIndex, integer endIndex)
+
     blueprint action Bind
 
     blueprint action Unbind
@@ -27,11 +37,6 @@ class IndexData is Disposable
 
     blueprint action SetPosition(integer position)
 
-    /*
-    This action is never called or used. It exists only as a hack to force the
-    Quorum plugin system to acknowledge a plugin for this class. This allows for
-    a Java version of this interface to exist under the hood.
-    */
-    private system action ForcePluginCreation
+    blueprint action GetBuffer returns Integer32BitBuffer
 
 end
