@@ -224,6 +224,7 @@ class Compiler
     */
     action Compile(CompilerRequest request) returns CompilerResult
         Array<File> files = request:files
+        Array<text> filesValues = request:filesValues
         HashTable<text, File> originalFileHash
         //this is only used if the standard library is not pre-scanned
         HashTable<text, File> standardLibraryFileHash
@@ -244,7 +245,6 @@ class Compiler
                 if clazz not= undefined
                     clazz:RemoveCallLocationsFromDependencies(request:recompile)
                 end
-
             end
         end
 
@@ -341,19 +341,26 @@ class Compiler
         i = 0
         repeat while i < files:GetSize()
             File file = files:Get(i)
+            
             Parser listener
             if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
                 Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             elseif not table:HasFile(file:GetAbsolutePath())
-                Traverse(file:Read(), listener, table, errors, checker, file, result)
+                text value = ""
+                if filesValues not= undefined and filesValues:GetSize() = files:GetSize()
+                    value = filesValues:Get(i)
+                else
+                    value = file:Read()
+                end
+                Traverse(value, listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
-            Lexer luthor = listener:GetLexer()
-            if luthor not= undefined
-                text value = file:GetAbsolutePath()
-                lexers:Add(value, luthor)
-            end
+//            Lexer luthor = listener:GetLexer()
+//            if luthor not= undefined
+//                text value = file:GetAbsolutePath()
+//                lexers:Add(value, luthor)
+//            end
             i = i + 1
         end
         profiler:Add(time:GetEpochTime())
@@ -449,7 +456,13 @@ class Compiler
                         theOpcodes:Add(op:GetStaticKey(), op)
                     end
                 elseif needsCompilationSet:HasKey(file:GetAbsolutePath())
-                    Traverse(undefined, listener, table, errors, checker, file, result)
+                    text value = undefined
+                    if filesValues not= undefined and filesValues:GetSize() = files:GetSize()
+                        value = filesValues:Get(i)                        
+                    else
+                        value = undefined
+                    end
+                    Traverse(value, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
                         containsSpeechCommandInCompile = true
                     end
