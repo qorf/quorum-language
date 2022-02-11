@@ -50,20 +50,26 @@ function plugins_quorum_Libraries_Game_WebInput_()
         public constant integer RELEASED_MOUSE = 4
         public constant integer SCROLLED_MOUSE = 5
         */
-        
-        plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
+
+        const isMouseInCanvas = function(event)
         {
             var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
             var rect = canvas.getBoundingClientRect();
-
+            return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+        };
+        
+        plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
+        {
             /*
              * Testing for mouse click using the dimensions of the rectangle
              * allows the first click on the window (i.e. the one that gives the
              * window focus) to trigger a mouse event, and prevents clicks from
              * outside the window being captured.
              */
-            if (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom)
+            if (isMouseInCanvas(event))
             {
+                event.stopPropagation();
+                event.preventDefault();
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }
@@ -71,6 +77,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseUp = function(event)
         {
+            if (isMouseInCanvas(event))
+            {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4);
@@ -80,6 +92,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseMove = function(event)
         {
+            if (isMouseInCanvas(event))
+            {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
@@ -90,6 +108,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
+            if (isMouseInCanvas(event))
+            {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5);
