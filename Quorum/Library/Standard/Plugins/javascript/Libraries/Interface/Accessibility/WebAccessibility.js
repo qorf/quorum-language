@@ -458,6 +458,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             });
         }
 
+        if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
+            let control = global_CheckCast(item, "Libraries.Interface.Controls.Control");
+            para.addEventListener("click", (event) => {
+                if (event.target !== para) {
+                    return; // ignore bubbled events
+                }
+                control.Activate();
+            });
+        }
+
         //add element to a parent if need be or directly to canvas
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
