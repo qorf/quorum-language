@@ -32,6 +32,15 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
+                if (event.code === "Escape" && plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
+                {
+                    // If we trap focus inside the canvas, give the user a way
+                    // to get out. Do this in the key up handler to ensure
+                    // Quorum gets the key up event for Escape, even though
+                    // the canvas is about to lose focus.
+                    document.activeElement.blur();
+                }
+
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false);
                 if (plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {
