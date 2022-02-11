@@ -135,14 +135,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        //TEXTBOX or TEXTFIELD
-        if (item.GetAccessibilityCode() == 6 || item.GetAccessibilityCode() == 17){
-            var element = document.getElementById(id);
-            element.focus;
-        }
-        
-        var element = document.getElementById(currentIDECanvas_$Global_);
-        element.setAttribute("aria-activedescendant", id);
+        var element = document.getElementById(id);
+        element.focus();
         
     };
 //    system action NativeAdd(Item item)
@@ -451,7 +445,18 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         para.setAttribute("role",role);
         para.setAttribute("aria-label", itemName);
         para.setAttribute("aria-description", item.GetDescription())
-        para.tabindex = -1;
+
+        if (item.IsFocusable()) {
+            para.setAttribute("tabindex", "-1");
+            para.addEventListener("focus", (event) => {
+                if (event.target !== para) {
+                    return; // ignore bubbled events
+                }
+                if (currentFocus !== para) {
+                    item.Focus();
+                }
+            });
+        }
 
         //add element to a parent if need be or directly to canvas
         if (parent != undefined) {

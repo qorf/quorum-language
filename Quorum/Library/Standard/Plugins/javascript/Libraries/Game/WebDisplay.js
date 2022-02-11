@@ -34,6 +34,18 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         return canvas;
     };
     
+    this.IsCanvasFocused = function()
+    {
+        let element = document.activeElement;
+        while (element) {
+            if (element === canvas) {
+                return true;
+            }
+            element = element.parentElement;
+        }
+        return false;
+    };
+    
     this.SetDisplayMode$quorum_integer$quorum_integer$quorum_boolean = function(width, height, fullscreen)
     {
         // Currently resizes canvas but does not support fullscreen.

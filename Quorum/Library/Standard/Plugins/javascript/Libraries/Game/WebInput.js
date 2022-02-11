@@ -16,7 +16,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.KeyDown = function(event)
         {
-            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, true);
                 if (!plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
@@ -30,7 +30,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.KeyUp = function(event)
         {
-            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas() === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false);
                 if (plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
@@ -71,8 +71,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseUp = function(event)
         {
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-            if (canvas === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
@@ -81,8 +80,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseMove = function(event)
         {
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-            if (canvas === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, event.buttons > 0 ? 3 : 2);
@@ -92,8 +90,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-            if (canvas === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
@@ -102,8 +99,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.ContextMenu = function(event)
         {
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-            if (canvas === document.activeElement)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 if (plugins_quorum_Libraries_Game_WebInput_.disableContextMenu)
                     event.preventDefault();
