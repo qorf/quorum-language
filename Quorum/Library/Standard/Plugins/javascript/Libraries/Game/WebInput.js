@@ -126,7 +126,10 @@ function plugins_quorum_Libraries_Game_WebInput_()
             if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
             {
                 if (plugins_quorum_Libraries_Game_WebInput_.disableContextMenu)
+                {
+                    event.stopPropagation();
                     event.preventDefault();
+                }
             }
         };
         
@@ -524,7 +527,10 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 }
                 
                 if (event.code !== "Tab" || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
+                {
+                    event.stopPropagation();
                     event.preventDefault();
+                }
             }
             else
             {
@@ -930,7 +936,10 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 }
                 
                 if (event.keyCode !== 9 || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
+                {
+                    event.stopPropagation();
                     event.preventDefault();
+                }
             }
             
             if (createTextEvent && pressed)
