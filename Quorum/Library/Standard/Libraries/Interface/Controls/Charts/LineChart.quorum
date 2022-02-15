@@ -58,6 +58,8 @@ class LineChart is TwoVariableChart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        // Default settings specific to line chart
+        RegressionCapable(true)
         ShowAllTicks()
         SetDefaultOrientationToHorizontal()
         SetDefaultSeparation(true)

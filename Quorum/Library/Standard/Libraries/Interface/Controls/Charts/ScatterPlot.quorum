@@ -59,7 +59,10 @@ class ScatterPlot is TwoVariableChart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        // Default settings specific to scatter plot
+        RegressionCapable(true)
         ShowAllTicks()
+        SetDefaultSeparation(false)
         SetDefaultOrientationToHorizontal()
         GetHorizontalPanel():SetPaddingOffset(25)
         GetVerticalPanel():SetPaddingOffset(25)

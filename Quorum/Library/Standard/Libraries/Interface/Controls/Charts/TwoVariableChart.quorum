@@ -38,13 +38,13 @@ use Libraries.Interface.Layouts.ManualLayout
 */
 
 class TwoVariableChart is Chart
-    ChartItem chartAreaItem
-	
-    Array<ChartLine> lines      // Used with Line Charts
-    Array<ChartPoint> points    // Used with Scatter Plots
-    Array<Icon> regions    // Used with Line Charts / Scatter Plots
-    ChartOptions options
-    Math math
+    private ChartItem chartAreaItem
+
+    private Array<ChartLine> lines      // Used with Line Charts
+    private Array<ChartPoint> points    // Used with Scatter Plots
+    private Array<Icon> regions    // Used with Line Charts / Scatter Plots
+    private ChartOptions options
+    private Math math
 
     private number maxPointHeightValue = 0
     private number maxPointWidthValue = 0
@@ -55,9 +55,9 @@ class TwoVariableChart is Chart
     private integer LineDensity = 0
     private boolean showPoints = true
 
-    ColorGroup previousColorGroup = undefined
-    Color previousColor = undefined
-    number previousZ = 0
+    private ColorGroup previousColorGroup = undefined
+    private Color previousColor = undefined
+    private number previousZ = 0
 
     // If there are fewer than this many points in a quadrant, we don't subdivide the quadrant further.
     private integer quadrantThreshold = 10
@@ -67,7 +67,7 @@ class TwoVariableChart is Chart
     private integer maxSubdivisions = 4
     private integer maxChunks = 16
     
-    ChartPointComparison comparison
+    private ChartPointComparison comparison
 
     /*
         LoadGraphics
@@ -246,8 +246,9 @@ class TwoVariableChart is Chart
                         i = i + 1
                     end
                 end
-                temp:GetLabel():LostSelection()
+//                temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
@@ -312,8 +313,9 @@ class TwoVariableChart is Chart
                         i = i + 1
                     end
                 end
-                temp:GetLabel():GainedSelection()
+//                temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 if GetPointsFlag()
@@ -350,6 +352,12 @@ class TwoVariableChart is Chart
         Used to create a new ChartLine object for the chart and add it to the lines array.
     */
     action AddChartLine(ChartLine newLine)
+        if lines:GetSize() = 0
+            maxPointHeightValue = newLine:GetLineMax():GetValueY()
+            minPointHeightValue = newLine:GetLineMin():GetValueY()
+            maxPointWidthValue = newLine:GetLineEnd():GetValueX()
+            minPointWidthValue = newLine:GetLineStart():GetValueX()
+        end
         if maxPointHeightValue < newLine:GetLineMax():GetValueY()
             maxPointHeightValue = newLine:GetLineMax():GetValueY()
         end
@@ -366,6 +374,12 @@ class TwoVariableChart is Chart
     end
 
     action AddPoint(ChartPoint point)
+        if points:GetSize() = 0
+            maxPointHeightValue = point:GetValueY()
+            minPointHeightValue = point:GetValueY()
+            maxPointWidthValue = point:GetValueX()
+            minPointWidthValue = point:GetValueX()
+        end
         if maxPointHeightValue < point:GetValueY()
             maxPointHeightValue = point:GetValueY()
         end
@@ -500,7 +514,7 @@ class TwoVariableChart is Chart
         ChartItem yAxis
         ChartItem chartArea //not to be confused with panels
         ChartItem summary = GetInfoTreeRoot()
-		
+
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
         summary:SetNext(chartAreaItem)

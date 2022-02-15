@@ -361,8 +361,9 @@ class ViolinPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():LostSelection()
+//                temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -403,8 +404,9 @@ class ViolinPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():GainedSelection()
+//                temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
             else
                 parent:Chart:GainedSelection(ci)
             end           

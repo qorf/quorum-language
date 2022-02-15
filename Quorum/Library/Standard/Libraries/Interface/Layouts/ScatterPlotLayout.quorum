@@ -18,9 +18,13 @@ class ScatterPlotLayout is TwoVariableChartLayout
         if points = undefined
             return now
         end
-
+        
         number width = chartAreaContainer:GetWidth() - 2*chart:GetHorizontalPanel():GetPaddingOffset()
         number height = chartAreaContainer:GetHeight() - 2*chart:GetVerticalPanel():GetPaddingOffset()
+        number xMin = chart:GetXAxisMinimum()
+        number xMax = chart:GetXAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
+        number yMax = chart:GetYAxisMaximum()
 
         // Set default point density
         integer pointRadius = chart:GetPointDensity()
@@ -37,12 +41,16 @@ class ScatterPlotLayout is TwoVariableChartLayout
             
             point:LoadFilledCircle(pointRadius, points:Get(i):GetColor())
 
-            point:SetPercentX((point:GetValueX() - chart:GetXAxisMinimum()) / (chart:GetXAxisMaximum() - chart:GetXAxisMinimum()))
-            point:SetPercentY((point:GetValueY() - chart:GetYAxisMinimum()) / (chart:GetYAxisMaximum() - chart:GetYAxisMinimum()))
+            point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
+            point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
             integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + chart:GetHorizontalPanel():GetPaddingOffset()
             integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + chart:GetVerticalPanel():GetPaddingOffset()
             point:SetPosition(x, y)
             i = i + 1
+        end
+
+        if chart:IsShowingLinearRegression()
+            LayoutRegressionLines(chart, chartAreaContainer)
         end
     end
 end

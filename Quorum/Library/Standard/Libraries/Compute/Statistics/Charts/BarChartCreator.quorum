@@ -19,6 +19,9 @@ use Libraries.Interface.Controls.Charts.Bar
 use Libraries.Interface.Controls.Charts.BarGroup
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Interface.Controls.Charts.RegressionLine
 
 /*
     This class is used to create a Bar Chart from columns of data in a DataFrame.
@@ -151,8 +154,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         HashTable<text, integer> hash = CalculateItemCounts(column)
         DataFrameColumn labels = column:Copy(true,true)
         chart:SetTitle(column:GetHeader():ToUpperCase())
-        chart:SetXAxisTitle(column:GetHeader():ToUpperCase())
-        chart:SetYAxisTitle("COUNT")
+        chart:SetXAxisTitle(column:GetHeader())
+        chart:SetYAxisTitle("Count")
         boolean numerical = false
 
         CalculateCountMinMax(hash)
@@ -169,6 +172,10 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
         Array <text> barNames
         //make chart
+
+        Array<DataFrameColumn> regColumns 
+        NumberColumn column1 //independent
+        NumberColumn column2 //dependent
         i = 0
         repeat while i < labels:GetSize()
             if not labels:IsUndefined(i)
@@ -184,10 +191,37 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 series:AddItem(bar:GetIcon())
                 bar:SetSeries(series)
                 chart:AddBarGroup(group)
+
+                if numerical
+//                    column1:Add(labels:GetAsText(i))
+                    column1:Add(""+i)
+                    column2:Add(cast(text, valueForName))
+                end
             end
             i = i + 1
         end
         
+        if numerical
+            if labels:GetSize() < 3
+                output "Linear regression was not computable for " + column:GetHeader()
+            else
+                regColumns:Add(column1)
+                regColumns:Add(column2)
+                RegressionLine regLine
+//                regLine:SetIndependentVariable(column:GetHeader())
+//                regLine:SetDependentVariable("Count")
+//                regLine:NamedAfterSeries(true)
+                DataFrame regressionFrame
+                regressionFrame:SetColumns(regColumns)
+                Regression regression 
+                regression:AddFactor(0) //the independent variable
+                regression:AddColumn(1) //the dependent variable
+                regressionFrame:Calculate(regression)
+                regLine:SetRegression(regression)
+                regLine:SetSeries(series)
+                series:SetRegressionLine(regLine)
+            end
+        end
         seriesList:Add(series)
         
         SetScale(chart, min, max, 0, barNames:GetSize())

@@ -19,6 +19,9 @@ use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.Legend
 use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Interface.Controls.Charts.RegressionLine
+use Libraries.Compute.Statistics.Tests.Regression
 
 /*
     This class is used to create a Line Chart from a dataframe. The class contains two possible inputs, 
@@ -92,7 +95,6 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         number max = 0.0
         number min = 0.0
 
-        chart:SetYAxisTitle("Total")
         DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
         if useFactor
             factor = frame:GetColumn(GetFactor(0))
@@ -102,7 +104,6 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 min = factor:GetAsNumber(0) // default min
             end
         else
-            chart:SetXAxisTitle("Entry")
             numericalFactor = true
         end
 
@@ -157,7 +158,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 series:SetName(column:GetHeader())
                 series:AddItem(newline)
                 newline:SetSeries(series)
-                seriesFactor:Add(column:GetHeader(), series)           
+                seriesFactor:Add(column:GetHeader(), series)
             end
     
             number valueForName = 0.0
@@ -268,6 +269,37 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
             chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
+            if numericalFactor
+                Array<DataFrameColumn> regColumns 
+                NumberColumn column1 //independent
+                NumberColumn column2 //dependent
+                ChartLine line = lineFactor:GetValue(seriesKeyArray:Get(i))
+                integer j = 0
+                repeat while j < line:GetPoints():GetSize()
+                    column1:Add(cast(text, line:GetPoints():Get(j):GetValueX()))
+                    column2:Add(cast(text, line:GetPoints():Get(j):GetValueY()))
+                    j = j + 1
+                end
+                if line:GetPoints():GetSize() < 3
+                    output "Linear regression was not computable for " + seriesKeyArray:Get(i)
+                else
+                    regColumns:Add(column1)
+                    regColumns:Add(column2)
+                    RegressionLine regLine
+                    regLine:SetIndependentVariable(chart:GetXAxisTitle())
+                    regLine:SetDependentVariable(seriesKeyArray:Get(i))
+                    regLine:NamedAfterSeries(true)
+                    DataFrame regressionFrame
+                    regressionFrame:SetColumns(regColumns)
+                    Regression regression 
+                    regression:AddFactor(0) //the independent variable
+                    regression:AddColumn(1) //the dependent variable
+                    regressionFrame:Calculate(regression)
+                    regLine:SetRegression(regression)
+                    regLine:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+                    seriesFactor:GetValue(seriesKeyArray:Get(i)):SetRegressionLine(regLine)
+                end
+            end
             i = i + 1
         end
 

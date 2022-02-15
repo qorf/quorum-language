@@ -34,14 +34,14 @@ class Legend is Control
     boolean displayOnRight = true
     boolean displayOnTop = false
     boolean displayOnBottom = false
+    boolean showRegression = false
 
     text titleText = ""
     integer titleFontSize = 0
     integer labelFontSize = 0
 
-    number sumOfLabelHeights = 0
-    number sumOfLabelWidths = 0
-    number widestLabel = 0
+    number minimumWidth = 0
+    number minimumHeight = 0
 
     on create
         ManualLayout layout
@@ -108,6 +108,27 @@ class Legend is Control
             seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
             firstEntry:SetParent(legendArea)
             firstEntry:SetFocusTarget(seriesList:Get(0))
+            if showRegression
+                if seriesList:Get(0):GetRegressionLine() not= undefined
+                    // Regression equation
+                    ChartItem equation
+                    equation:SetContainer(chart)
+                    equation:SetParent(firstEntry)
+                    firstEntry:SetChild(equation)
+                    seriesList:Get(0):GetRegressionLine():SetName(seriesList:Get(0):GetTextName()+" regression line.")
+                    seriesList:Get(0):GetRegressionLine():SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
+                    equation:SetFocusTarget(seriesList:Get(0):GetRegressionLine())
+
+                    // R-squared
+                    ChartItem r2
+                    r2:SetContainer(chart)
+                    r2:SetParent(firstEntry)
+                    r2:SetPrevious(equation)
+                    equation:SetNext(r2)
+                    r2:SetFocusTarget(seriesList:Get(0):GetRegressionLine():GetRSquaredLabel())
+                    firstEntry:SetLastChild(r2)
+                end
+            end
         end
         integer i = 1
         ChartItem previous = firstEntry
@@ -118,6 +139,27 @@ class Legend is Control
             seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
             entry:SetParent(legendArea)
             entry:SetFocusTarget(seriesList:Get(i))
+            if showRegression
+                if seriesList:Get(i):GetRegressionLine() not= undefined
+                    // Regression equation
+                    ChartItem equation
+                    equation:SetContainer(chart)
+                    equation:SetParent(entry)
+                    entry:SetChild(equation)
+                    seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetTextName()+" regression line.")
+                    seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+                    equation:SetFocusTarget(seriesList:Get(i):GetRegressionLine())
+
+                    // R-squared
+                    ChartItem r2
+                    r2:SetContainer(chart)
+                    r2:SetParent(entry)
+                    r2:SetPrevious(equation)
+                    equation:SetNext(r2)
+                    r2:SetFocusTarget(seriesList:Get(i):GetRegressionLine():GetRSquaredLabel())
+                    entry:SetLastChild(r2)
+                end
+            end
             previous:SetNext(entry)
             entry:SetPrevious(previous)
             previous = entry
@@ -145,17 +187,15 @@ class Legend is Control
         end
 
         if GetTitleLabel() = undefined 
-            Item2D labelAnchor
             ControlLabel newLabel
             SetTitleLabel(newLabel)
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetFocusable(true)
             newLabel:SetAccessibilityCode(parent:Item:ITEM)
-            labelAnchor:Add(GetTitleLabel())
-            Add(labelAnchor)
+            Add(GetTitleLabel())
         end
-                       
+                  
         integer i = 0
         repeat while i < seriesList:GetSize()
             Icon seriesIcon
@@ -165,21 +205,41 @@ class Legend is Control
             end
             Add(seriesIcon)
 
-            Item2D labelAnchor
             ControlLabel newLabel
             newLabel:SetText(seriesList:Get(i):GetTextName())
             newLabel:SetName(seriesList:Get(i):GetTextName())
             seriesList:Get(i):SetLabel(newLabel)
             seriesList:Get(i):SetFocusable(true)
             seriesList:Get(i):SetAccessibilityCode(parent:Item:ITEM)
-            
-            labelAnchor:Add(seriesList:Get(i):GetLabel())
-            Add(labelAnchor)
+           
+            Add(seriesList:Get(i):GetLabel())
             Add(seriesList:Get(i))
+
+            if showRegression
+                if seriesList:Get(i):GetRegressionLine() not= undefined
+                    RegressionLine regLine = seriesList:Get(i):GetRegressionLine()
+                    regLine:SetVariableNames(chart:GetYAxisTitle(), chart:GetXAxisTitle(), chart:GetHorizontalFlag(), chart:OrientationChanged())
+
+                    ControlLabel regressionLabel = seriesList:Get(i):GetRegressionLine():GetLabel()
+                    regressionLabel:SetFocusable(true)
+                    regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
+                    Add(regressionLabel)
+
+                    ControlLabel r2Label = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                    r2Label:SetFocusable(true)
+                    r2Label:SetAccessibilityCode(parent:Item:ITEM)
+                    Add(r2Label)
+    
+                    Icon regressionIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                    if seriesList:Get(i):GetColor() not= undefined
+                        regressionIcon:SetColor(seriesList:Get(i):GetColor())
+                        Add(regressionIcon)
+                    end
+                end
+            end
             i = i + 1
         end
     end
-
 
     action ApplySeriesColor()
         ChartOptions options
@@ -285,30 +345,13 @@ class Legend is Control
         labelFontSize = size
     end
 
-    action GetWidestLabel returns number
-        return widestLabel
+    action IsShowingRegression returns boolean
+        return showRegression
     end
 
-    action SetWidestLabel(number width)
-        widestLabel = width
+    action ShowRegression(boolean show)
+        showRegression = show
     end
-
-    action GetSumOfLabelWidths returns number
-        return sumOfLabelWidths
-    end
-
-    action SetSumOfLabelWidths(number newSum)
-        sumOfLabelWidths = newSum
-    end
-
-    action GetSumOfLabelHeights returns number
-        return sumOfLabelHeights
-    end
-
-    action SetSumOfLabelHeights(number newSum)
-        sumOfLabelHeights = newSum
-    end
-
 
     action Add(text entry)
         itemNames:AddToEnd(entry)
@@ -367,7 +410,114 @@ class Legend is Control
         return displayOnBottom
     end
 
-    
+    action SetMinimumWidth(number minimumWidth)
+        me:minimumWidth = minimumWidth
+    end
+
+    action GetMinimumWidth returns number
+        return minimumWidth
+    end
+
+    action SetMinimumHeight(number minimumHeight)
+        me:minimumHeight = minimumHeight
+    end
+
+    action GetMinimumHeight returns number
+        return minimumHeight
+    end
+
+    action CalculateMinimumSpace()
+        ControlLabel currentLabel
+        number labelWidth = 0
+        number labelHeight = 0
+        if GetTitleLabel() not= undefined
+            GetTitleLabel():SetFontSize(titleFontSize)
+            minimumWidth = GetTitleLabel():GetWidth()+labelFontSize //padding 
+            minimumHeight = GetTitleLabel():GetHeight()
+        end
+        integer i = 0
+        repeat while i < seriesList:GetSize()
+            if seriesList:Get(i):GetLabel() not= undefined
+                if displayOnLeft or displayOnRight
+                    currentLabel = seriesList:Get(i):GetLabel()
+                    currentLabel:SetFontSize(labelFontSize)
+                    labelWidth = currentLabel:GetWidth()
+                    labelHeight = currentLabel:GetHeight()
+                    if labelWidth+(2.5*labelHeight) > minimumWidth
+                        minimumWidth = labelWidth+(2.5*labelHeight)
+                    end
+
+                    integer extraLabelCount = 0
+                    if showRegression
+                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                            //Regression equation
+                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel:SetFontSize(labelFontSize)
+                            labelWidth = currentLabel:GetWidth()
+                            labelHeight = currentLabel:GetHeight()
+                            if labelWidth+(2.5*labelHeight) > minimumWidth
+                                minimumWidth = labelWidth+(2.5*labelHeight)
+                            end
+
+                            //R^2 value
+                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel:SetFontSize(labelFontSize)
+                            labelWidth = currentLabel:GetWidth()
+                            labelHeight = currentLabel:GetHeight()
+                            if labelWidth+(2.5*labelHeight) > minimumWidth
+                                minimumWidth = labelWidth+(2.5*labelHeight)
+                            end
+
+                            extraLabelCount = 2
+                        end
+                    end
+                    minimumHeight = minimumHeight + labelHeight*(extraLabelCount+1) //enough height for the labels
+                    minimumHeight = minimumHeight + (0.25*labelHeight)*(extraLabelCount) //enough padding between related labels
+                    minimumHeight = minimumHeight + (0.5*labelHeight) // enough padding between series (unrelated labels)
+                else
+                    currentLabel = seriesList:Get(i):GetLabel()
+                    currentLabel:SetFontSize(labelFontSize)
+                    labelWidth = currentLabel:GetWidth()
+                    labelHeight = currentLabel:GetHeight()
+                    number widthOfSeries = labelWidth+(2*labelHeight)
+                    integer extraLabelCount = 0
+                    if showRegression
+                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                            //Regression equation
+                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel:SetFontSize(labelFontSize)
+                            labelWidth = currentLabel:GetWidth()
+                            labelHeight = currentLabel:GetHeight()
+                            if labelWidth+(2.5*labelHeight) > widthOfSeries
+                                widthOfSeries = labelWidth+(2.5*labelHeight)
+                            end
+
+                            //R^2 value
+                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel:SetFontSize(labelFontSize)
+                            labelWidth = currentLabel:GetWidth()
+                            labelHeight = currentLabel:GetHeight()
+                            if labelWidth+(2.5*labelHeight) > widthOfSeries
+                                widthOfSeries = labelWidth+(2.5*labelHeight)
+                            end
+
+                            extraLabelCount = 2
+                        end
+                    end
+
+                    number heightOfSeries = labelHeight*(extraLabelCount+1) + labelHeight //enough height for the labels 
+                    heightOfSeries = heightOfSeries + (0.25*labelHeight)*(extraLabelCount) //enough padding between related labels 
+                    if heightOfSeries > minimumHeight
+                        minimumHeight = heightOfSeries
+                    end
+                    minimumWidth = minimumWidth + widthOfSeries
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    // This are currently obsolete
     private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
         Icon newItemStructure
         newItemStructure:SetFocusable(true)
@@ -412,6 +562,7 @@ class Legend is Control
         return newItemStructure
     end
     
+    // This are currently obsolete
     private action MakeEntry(text name) returns Control
         Control newItemStructure
         newItemStructure:SetFocusable(true)
@@ -458,6 +609,7 @@ class Legend is Control
         return newItemStructure
     end
 
+    // This are currently obsolete
     action MakeTitleEntry(text title) returns Control
         Control newItemStructure
         newItemStructure:SetFocusable(true)

@@ -16,6 +16,9 @@ use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Interface.Controls.Charts.RegressionLine
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
     This class is used to create a scatter plot for use in an application.
@@ -28,7 +31,7 @@ use Libraries.Containers.Support.Comparison
 
     DataFrame frame
     frame:Load("Data.csv")
-    frame:AddSelectedColumn(1)
+    frame:AddSelectedColumn(1) //Independent Variable
     frame:AddSelectedColumn(2)
     ScatterPlot chart = frame:ScatterPlot()
     chart:SetTitle("My Awesome Title")
@@ -67,6 +70,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer columns = GetColumnSize()
 
         HashTable<text, Series> seriesFactor
+        HashTable<text, Array<DataFrameColumn>> regressionFactor //Used for regression lines
         HashTable<number, text> numberForText //Used to later sort
         HashTable<text, number> xLabels //Used for non-numerical data
         HashTable<text, number> yLabels //Used for non-numerical data
@@ -89,13 +93,19 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if numericalFactor
                             numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
                         end
+                        Array<DataFrameColumn> regColumns
+                        NumberColumn column1 //independent
+                        NumberColumn column2 //dependent
+                        regColumns:Add(column1)
+                        regColumns:Add(column2)
+                        regressionFactor:Add(factor:GetAsText(i), regColumns)
                     end
                 end
                 i = i + 1 
             end
         end
 
-        // The first column will default to the x-axis
+        // The first column will default to the x-axis (independent variable)
         DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
         if(dfx:IsNumberColumn())
             if dfx = undefined and dfx:CanConvertToVector()
@@ -127,17 +137,22 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     Series series
                     series:SetName(dfy:GetHeader())
                     seriesFactor:Add(dfy:GetHeader(), series)
+                    Array<DataFrameColumn> regColumns
+                    NumberColumn column1 //independent
+                    column1:SetHeader(dfx:GetHeader())
+                    NumberColumn column2 //dependent
+                    column2:SetHeader(dfy:GetHeader())
+                    regColumns:Add(column1)
+                    regColumns:Add(column2)
+                    regressionFactor:Add(dfy:GetHeader(), regColumns)
                 end
             end
-
             i = i + 1
         end
 
         chart:SetXAxisTitle(dfx:GetHeader())
         if columns = 2
             chart:SetYAxisTitle(frame:GetColumn(GetColumn(1)):GetHeader())
-        else
-            chart:SetYAxisTitle("Total")
         end
 
         number xMin = chart:GetXAxisMinimum()
@@ -145,7 +160,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         number yMin = chart:GetYAxisMinimum()
         number yMax = chart:GetYAxisMaximum()
 
-        // If everything is numerical
+        // If everything is numerical - regression is possible
         if numericalXData and numericalYData
             Summarize xSum
             dfx:Calculate(xSum)
@@ -190,11 +205,21 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                             if(seriesFactor:HasKey(factor:GetAsText(j)))
                                 seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
                                 point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
+                                
+                                if regressionFactor:HasKey(factor:GetAsText(j))
+                                    regressionFactor:GetValue(factor:GetAsText(j)):Get(0):Add(cast(text, x))
+                                    regressionFactor:GetValue(factor:GetAsText(j)):Get(1):Add(cast(text, y))
+                                end
                             end
                         else
                             if(seriesFactor:HasKey(dfy:GetHeader()))
                                 seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
                                 point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
+
+                                if regressionFactor:HasKey(dfy:GetHeader())
+                                    regressionFactor:GetValue(dfy:GetHeader()):Get(0):Add(cast(text, x))
+                                    regressionFactor:GetValue(dfy:GetHeader()):Get(1):Add(cast(text, y))
+                                end
                             end
                         end
                         chart:Add(point)
@@ -204,6 +229,40 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 i = i + 1
             end
 
+            // Compute the regression lines for each series (they may not be shown)
+            Array<text> regKeyArray = regressionFactor:CopyToKeyArray()
+            i = 0
+            repeat while i < regKeyArray:GetSize()
+                DataFrameColumn indepVals = regressionFactor:GetValue(regKeyArray:Get(i)):Get(0)
+                DataFrameColumn depVals = regressionFactor:GetValue(regKeyArray:Get(i)):Get(1)
+                if indepVals:GetSize() < 3 or depVals:GetSize() < 3
+                    output "Linear regression was not computable for " + regKeyArray:Get(i)
+                else
+                    RegressionLine regLine
+                    DataFrame regressionFrame
+                    regressionFrame:SetColumns(regressionFactor:GetValue(regKeyArray:Get(i)))
+                    if useFactor
+                        regLine:SetIndependentVariable(chart:GetXAxisTitle())
+                        regLine:SetDependentVariable(chart:GetYAxisTitle())
+                    else
+                        regLine:SetIndependentVariable(regressionFactor:GetValue(regKeyArray:Get(i)):Get(0):GetHeader())
+                        regLine:SetDependentVariable(regressionFactor:GetValue(regKeyArray:Get(i)):Get(1):GetHeader())
+                        if columns > 2
+                            regLine:NamedAfterSeries(true)
+                        end
+                    end
+                    Regression regression 
+                    regression:AddFactor(0) //the independent variable
+                    regression:AddColumn(1) //the dependent variable
+                    regressionFrame:Calculate(regression)
+                    regLine:SetRegression(regression)
+                    if seriesFactor:HasKey(regKeyArray:Get(i))
+                        regLine:SetSeries(seriesFactor:GetValue(regKeyArray:Get(i)))
+                        seriesFactor:GetValue(regKeyArray:Get(i)):SetRegressionLine(regLine)
+                    end
+                end
+                i = i + 1
+            end 
 
         // If x data is non-numerical and y data is numerical
         elseif not numericalXData and numericalYData

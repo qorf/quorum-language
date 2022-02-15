@@ -202,5 +202,9 @@ class BarChartLayout is SharedBarChartLayout
                 i = i + 1
             end
         end
+
+        if chart:IsShowingLinearRegression()
+            LayoutRegressionLines(chart, chartAreaContainer)
+        end
     end
 end

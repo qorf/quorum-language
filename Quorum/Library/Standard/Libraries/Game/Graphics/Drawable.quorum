@@ -1265,13 +1265,6 @@ class Drawable is TextureRegion, Item2D
         SetColor(color)
     end
 
-    action LoadLine(integer x, integer y, integer density, Color color)
-        Texture temp
-        temp:LoadLine(x, y, density, color)
-        Load(temp)
-        SetColor(color)
-    end
-
     /*
     This action will create a new Texture with a hollow black rectangle with
     the given width and height. This texture is then loaded into the Drawable.

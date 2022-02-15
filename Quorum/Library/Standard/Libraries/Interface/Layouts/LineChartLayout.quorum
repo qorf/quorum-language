@@ -116,5 +116,8 @@ class LineChartLayout is TwoVariableChartLayout
             i = i + 1
         end
 
+        if chart:IsShowingLinearRegression()
+            LayoutRegressionLines(chart, chartAreaContainer)
+        end
     end
 end
