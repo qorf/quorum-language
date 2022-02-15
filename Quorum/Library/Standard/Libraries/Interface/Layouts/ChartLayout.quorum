@@ -65,6 +65,19 @@ class ChartLayout is Layout
                     integer titleY = cast(integer, containerHeight- titleAreaHeight/2 - titleLabel:GetHeight()/2)
                     titleLabel:SetPosition(titleX, titleY)
                 end
+
+                // Title
+                if chart:IsShowingSubtitle()
+                    ControlLabel subtitleLabel = chart:GetSubtitleLabel()
+                    if subtitleLabel:GetDefaultLayoutProperties():NeedsRendering()
+                        subtitleLabel:LoadGraphics(subtitleLabel:GetDefaultLayoutProperties())
+                    end
+                    number subtitleAreaWidth = chart:GetChartArea():GetWidth()
+                    number subtitleAreaHeight = containerHeight*chart:GetSubtitleAreaHeightPercent()
+                    integer subtitleX = originPointX + cast(integer, subtitleAreaWidth/2 - subtitleLabel:GetWidth()/2)
+                    integer subtitleY = cast(integer, containerHeight- subtitleAreaHeight/2 - subtitleLabel:GetHeight()/2 - containerHeight*chart:GetTitleAreaHeightPercent())
+                    subtitleLabel:SetPosition(subtitleX, subtitleY)
+                end
                 
                 //Get Panel Containers
                 HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()

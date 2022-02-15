@@ -29,6 +29,7 @@ class ChartWriter
     private number fontSize = 12
 
     Label chartTitle
+    Label chartSubtitle
     Label xAxisLabel
     Label yAxisLabel
     Rectangle xAxis
@@ -142,10 +143,19 @@ class ChartWriter
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
-        AddXLabels(chartCanvas, chart)
-        AddYLabels(chartCanvas, chart)
+        if chart:IsShowingXAxis()
+            AddXLabels(chartCanvas, chart)
+        end
+        if chart:IsShowingYAxis()
+            AddYLabels(chartCanvas, chart)
+        end
         AddAxes(chartCanvas, chart)
-        AddChartTitle(chartCanvas, chart)
+        if chart:IsShowingTitle()
+            AddChartTitle(chartCanvas, chart)
+        end
+        if chart:IsShowingSubtitle()
+            AddChartSubtitle(chartCanvas, chart)
+        end
         AddChartContent(chartCanvas, chart)
         if chart:IsShowingLegend()
             AddLegend(chartCanvas, chart)
@@ -206,7 +216,12 @@ class ChartWriter
             AddYLabels(chartCanvas, chart)
         end
         AddAxes(chartCanvas, chart)
-        AddChartTitle(chartCanvas, chart)
+        if chart:IsShowingTitle()
+            AddChartTitle(chartCanvas, chart)
+        end
+        if chart:IsShowingSubtitle()
+            AddChartSubtitle(chartCanvas, chart)
+        end
         AddChartContent(chartCanvas, chart)
         if chart:IsShowingLegend()
             AddLegend(chartCanvas, chart)
@@ -620,6 +635,21 @@ class ChartWriter
         chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
         chartTitle:SetTabIndex(-1)
         canvas:Add(chartTitle)
+    end
+
+    /*
+        This action adds a chart subtitle to the canvas
+    */
+    private action AddChartSubtitle(ScalableVectorGraphics canvas, Chart chart)
+        
+        chartSubtitle:SetText(chart:GetSubtitle())
+        chartSubtitle:SetTextAnchor("left")
+        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()))
+        chartSubtitle:SetFontSize(chart:GetSubtitleLabel():GetFontSize() + "px")
+        chartSubtitle:SetFontFamily("Arial")
+        chartSubtitle:SetID(canvas:GetID() + "-" + chartSubtitle:GetHashCode())
+        chartSubtitle:SetTabIndex(-1)
+        canvas:Add(chartSubtitle)
     end
 
     /*

@@ -86,15 +86,15 @@ class Chart is Control
     private integer titlefontsize = 0
     private boolean titleFontSizeOverride = false
     private boolean allFontSizeOverride = false
-//    private text titleLocation = "center" // - not implemented yet
+//    private text titleLocation = "center" 
 
-//    // Subtitle Area Components - not implemented yet
-//    private number subtitleAreaHeightPercent = 0.025
-//    private ControlLabel subtitle = undefined
-//    private text subtitleText = "Chart Subtitle"
-//    private boolean showSubtitle = true 
-//    private integer subtitlefontsize = 0
-//    private boolean subtitleFontSizeOverride = false
+    // Subtitle Area Components - not implemented yet
+    private number subtitleAreaHeightPercent = 0
+    private ControlLabel subtitle = undefined
+    private text subtitleText = "Subtitle"
+    private boolean showSubtitle = false
+    private integer subtitlefontsize = 0
+    private boolean subtitleFontSizeOverride = false
 //    private text subtitleLocation = "center"
 
     // Chart Area Components
@@ -226,6 +226,16 @@ class Chart is Control
                 ControlLabel newLabel
                 SetTitleLabel(newLabel)
                 newLabel:SetText(titleText)
+                Add(newLabel)
+            end
+        end
+
+        if IsShowingSubtitle()
+            subtitleAreaHeightPercent = 0.05
+            if GetSubtitleLabel() = undefined
+                ControlLabel newLabel
+                SetSubtitleLabel(newLabel)
+                newLabel:SetText(subtitleText)
                 Add(newLabel)
             end
         end
@@ -765,9 +775,14 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
+
+    /* 
+        Label for the chart title
+    */
     action GetTitleLabel returns ControlLabel
         return title
     end
+
     private action SetTitleLabel(ControlLabel label)
         me:title = label
     end
@@ -805,6 +820,53 @@ class Chart is Control
         return titleAreaHeightPercent
     end
     
+    /* 
+        Label for the chart subtitle
+    */
+    action GetSubtitleLabel returns ControlLabel
+        return subtitle
+    end
+
+    private action SetSubtitleLabel(ControlLabel label)
+        me:subtitle = label
+    end
+
+    /*
+        Sets the title of the chart
+    */
+    action SetSubtitle(text name)
+        subtitleText = name
+        if name not= ""
+            showSubtitle = true
+        end
+    end
+    /*
+        Attribute: Returns the title of the chart
+    */
+    action GetSubtitle returns text
+        return subtitleText
+    end
+    /*
+        When true the chart title will be visible
+    */
+    action ShowSubtitle(boolean show)
+        showSubtitle = show
+    end
+    /*
+        Attribute: Returns true if the chart title is showing
+    */
+    action IsShowingSubtitle() returns boolean
+        return showSubtitle
+    end
+    /*
+        Attribute: Returns percent of screen height alloted for the title
+        This is handled automatically so users don't need to use this
+        action directly.
+    */
+    action GetSubtitleAreaHeightPercent returns number
+        return subtitleAreaHeightPercent
+    end
+
     /*
         Set the title for the X-Axis of the Chart.
     */
@@ -1286,6 +1348,24 @@ class Chart is Control
             end
         end
 
+        // If the sub title font size is manually set then we can try to accomodate the title area percent
+        // This has to be done before the axis panels because they use subtitleAreaHeightPercent in their calculations.
+        if IsShowingSubtitle()
+            if GetSubtitleLabel() not= undefined
+                if subtitleFontSizeOverride
+                    integer fontsize = subtitlefontsize
+                    if fontsize = 0
+                        fontsize = cast(integer, GetFontSize()*0.75)
+                    end
+                    GetSubtitleLabel():SetFontSize(fontsize)
+                    number newTitleAreaHeightPercent = GetSubtitleLabel():GetHeight()/GetHeight()
+                    if newTitleAreaHeightPercent > subtitleAreaHeightPercent
+                        subtitleAreaHeightPercent = newTitleAreaHeightPercent
+                    end
+                end
+            end
+        end
+
         //This is where all the font sizes and axis padding will be set
         AdjustForXAxis()
         AdjustForYAxis()
@@ -1300,6 +1380,19 @@ class Chart is Control
                 if GetTitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
                     fontsize = cast(integer, GetTitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetTitleLabel():GetWidth()))
                     GetTitleLabel():SetFontSize(fontsize)
+                end
+            end
+        end
+
+        // If any default font sizing ended up being too large; try to adjust.
+        // If the title font size is default the title area percent will be 10% of the height
+        if IsShowingSubtitle() and GetSubtitleLabel() not= undefined
+            if not subtitleFontSizeOverride
+                integer fontsize = cast(integer, GetHeight()*(subtitleAreaHeightPercent/2))
+                GetSubtitleLabel():SetFontSize(fontsize)
+                if GetSubtitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
+                    fontsize = cast(integer, GetSubtitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetSubtitleLabel():GetWidth()))
+                    GetSubtitleLabel():SetFontSize(fontsize)
                 end
             end
         end
@@ -1401,7 +1494,7 @@ class Chart is Control
             horizontalPanelHeightPercent = 0.05
         end
         horizontalPanel:SetSize(GetWidth()*horizontalPanelWidthPercent, GetHeight()*horizontalPanelHeightPercent)
-        verticalPanelHeightPercent = 1-horizontalPanelHeightPercent-titleAreaHeightPercent
+        verticalPanelHeightPercent = 1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)
         legendPanelHeightPercent = verticalPanelHeightPercent
     end
 
@@ -1437,7 +1530,7 @@ class Chart is Control
             end
 
             if verticalPanel:GetLabelCount() > 0
-                integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-titleAreaHeightPercent))/verticalPanel:GetLabelCount())
+                integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
                 end
@@ -1587,7 +1680,7 @@ class Chart is Control
                 end
     
                 legendPanelHeightPercent = minimumHeightSpace / GetHeight()
-                number remainingChartAreaHeight = math:Round(1 - legendPanelHeightPercent - horizontalPanelHeightPercent - titleAreaHeightPercent, 2) // 0.10 for title padding
+                number remainingChartAreaHeight = math:Round(1 - legendPanelHeightPercent - horizontalPanelHeightPercent - (titleAreaHeightPercent+subtitleAreaHeightPercent), 2) // 0.10 for title padding
                 SetChartAreaHeightPercent(remainingChartAreaHeight)
                 verticalPanel:SetHeight(remainingChartAreaHeight*GetHeight())
 
@@ -1608,12 +1701,18 @@ class Chart is Control
     action SetFontSize(integer size)
         allFontSizeOverride = true
         titleFontSizeOverride = true
+        subtitleFontSizeOverride = true
         parent:Control:SetFontSize(size)
     end
 
     action SetTitleFontSize(integer size)
         titleFontSizeOverride = true
         titlefontsize = size
+    end
+
+    action SetSubtitleFontSize(integer size)
+        subtitleFontSizeOverride = true
+        subtitlefontsize = size
     end
 
     action SetXTitleFontSize(integer size)
