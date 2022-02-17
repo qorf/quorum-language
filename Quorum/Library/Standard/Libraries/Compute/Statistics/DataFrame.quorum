@@ -787,8 +787,6 @@ class DataFrame
         control of the columns for this particular data frame. We suggest not using 
         these values directly unless required by an application.
 
-        Attribute: Parameter columns The new columns.
-
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
@@ -801,6 +799,32 @@ class DataFrame
     action GetColumns returns Array<DataFrameColumn>
         return me:columns
     end
+
+    /*
+        This action gets the headers in the DataFrame. This allows
+        the user to get all of the names at once as copies.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        Array<text> col = frame:GetHeaders()
+    */
+    action GetHeaders returns Array<text>
+        Array<DataFrameColumn> columns = GetColumns()
+        Array<text> headers
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = columns:Get(i)
+            headers:Add(column:GetHeader())
+            i = i + 1
+        end
+        return headers
+    end
+
     /*
         This action returns the number of columns in the data frame. This value
         is not related to the number of rows in any particular column.
