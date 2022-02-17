@@ -7,6 +7,23 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
+
+    const setBounds = (element, item) => {
+        if (global_InstanceOf(item,"Libraries.Interface.Item2D")) {
+            let item2D = global_CheckCast(item, "Libraries.Interface.Item2D");
+            let x = item2D.GetScreenX();
+            let y = item2D.GetScreenY();
+            if (!(isNaN(x) || isNaN(y))) {
+                // TODO: adjust coordinates for items with accessible parents
+                element.style.position = "absolute";
+                element.style.overflow = "hidden";
+                element.style.left = `${x}px`;
+                element.style.bottom = `${y}px`;
+                element.style.width = `${item2D.GetWidth()}px`;
+                element.style.height = `${item2D.GetHeight()}px`;
+            }
+        }
+    };
     
 //    system action NameChanged(Item item)
 
@@ -28,6 +45,17 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             element.setAttribute("aria-description", item.GetDescription());
         }
         console.log("Description Changed");
+    };
+    
+//    system action BoundsChanged(Item item)
+
+    this.BoundsChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            setBounds(element, item);
+        }
+        console.log("Bounds Changed");
     };
     
 //    system action TextFieldUpdatePassword(TextField field)
@@ -467,6 +495,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 control.Activate();
             });
         }
+
+        setBounds(para, item);
 
         //add element to a parent if need be or directly to canvas
         if (parent != undefined) {

@@ -27,6 +27,11 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
             currentIDECanvas_$Global_ = id;
             canvas = document.getElementById(id);
         }
+
+        // This doesn't affect the position of the canvas, but it enables
+        // accessibility elements to be positioned relative to the canvas.
+        canvas.style.position = "relative";
+        canvas.style.overflow = "hidden";
     };
     
     this.GetCanvas = function()
