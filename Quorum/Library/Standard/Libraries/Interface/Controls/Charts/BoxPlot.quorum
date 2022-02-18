@@ -451,17 +451,24 @@ class BoxPlot is Chart
         Appends a plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
-        if maxValue < group:GetMaxValue()
+        if plotGroups:GetSize() = 0
             maxValue = group:GetMaxValue()
-        end
-        if minValue > group:GetMinValue()
             minValue = group:GetMinValue()
-        end
-        if maxOutlierValue < group:GetMaxOutlierValue()
             maxOutlierValue = group:GetMaxOutlierValue()
-        end
-        if minOutlierValue > group:GetMinOutlierValue()
             minOutlierValue = group:GetMinOutlierValue()
+        else
+            if maxValue < group:GetMaxValue()
+                maxValue = group:GetMaxValue()
+            end
+            if minValue > group:GetMinValue()
+                minValue = group:GetMinValue()
+            end
+            if maxOutlierValue < group:GetMaxOutlierValue()
+                maxOutlierValue = group:GetMaxOutlierValue()
+            end
+            if minOutlierValue > group:GetMinOutlierValue()
+                minOutlierValue = group:GetMinOutlierValue()
+            end
         end
         plotGroups:Add(group)
         if group:GetSize() > 1

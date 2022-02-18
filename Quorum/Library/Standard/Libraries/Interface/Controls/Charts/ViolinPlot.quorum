@@ -459,11 +459,16 @@ class ViolinPlot is Chart
     Appends a new plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
-        if maxValue < group:GetMaxOutlierValue()
+        if plotGroups:GetSize() = 0
             maxValue = group:GetMaxOutlierValue()
-        end
-        if minValue > group:GetMinOutlierValue()
-            minValue = group:GetMinOutlierValue()
+            minValue = group:GetMinOutlierValue()        
+        else
+            if maxValue < group:GetMaxOutlierValue()
+                maxValue = group:GetMaxOutlierValue()
+            end
+            if minValue > group:GetMinOutlierValue()
+                minValue = group:GetMinOutlierValue()
+            end
         end
         plotGroups:Add(group)
         if group:GetSize() > 1
