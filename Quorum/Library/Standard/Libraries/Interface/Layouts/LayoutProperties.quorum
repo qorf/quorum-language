@@ -161,6 +161,22 @@ class LayoutProperties
     boolean setHeight = false
 
     /*
+    Values indicating where a Control should be located in a grid.
+    Used by layouts like the GridLayout, and ignored by other layouts
+    (such as Manual or Flow layouts).
+    */
+    integer gridX = 0
+    integer gridY = 0
+
+    /*
+    How many cells tall or wide an element is within a grid.
+    Used by layouts like the GridLayout, and ignored by other layouts
+    (such as Manual or Flow layouts).
+    */
+    integer gridWidth = 1
+    integer gridHeight = 1
+
+    /*
     Boolean indicating whether the Control which uses this should re-render its
     graphical content. This can happen when a graphical component changes, like
     changing the Font, or if the properties are used for the first time.
@@ -627,4 +643,47 @@ class LayoutProperties
             return parent:Object:Compare(object)
         end
     end
+
+    action GetGridX returns integer
+        return gridX
+    end
+
+    action SetGridX(integer gridX)
+        me:gridX = gridX
+    end
+
+    action GetGridY returns integer
+        return gridY
+    end
+
+    action SetGridY(integer gridY)
+        me:gridY = gridY
+    end
+
+    action SetGridPosition(integer gridX, integer gridY)
+        me:gridX = gridX
+        me:gridY = gridY
+    end
+
+    action GetGridWidth returns integer
+        return gridWidth
+    end
+
+    action SetGridWidth(integer gridWidth)
+        me:gridWidth = gridWidth
+    end
+
+    action GetGridHeight returns integer
+        return gridHeight
+    end
+
+    action SetGridHeight(integer gridHeight)
+        me:gridHeight = gridHeight
+    end
+
+    action SetGridSize(integer gridWidth, integer gridHeight)
+        me:gridWidth = gridWidth
+        me:gridHeight = gridHeight
+    end
+
 end
