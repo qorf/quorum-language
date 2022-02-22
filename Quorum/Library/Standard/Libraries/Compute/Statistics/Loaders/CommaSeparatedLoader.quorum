@@ -10,6 +10,11 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Data.Formats.SeparatedValue
+use Libraries.System.DateTime
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Compute.Statistics.DateTimeParsers.AmericanDateParser
+use Libraries.Compute.Statistics.DateTimeParsers.DefaultDateParser
+use Libraries.Compute.Statistics.DateTimeParsers.TimestampParser
 
 /*
     This class can load data into a DataFrame from a comma separated value file.
@@ -137,6 +142,33 @@ class CommaSeparatedLoader is DataFrameLoader
         check
             boolean val = cast(boolean, value)
             BooleanColumn column
+            return column
+        detect e
+        end
+
+        check
+            DefaultDateParser parser
+            DateTime val = parser:Parse(value)
+            DateTimeColumn column
+            column:SetParser(parser)
+            return column
+        detect e
+        end
+
+        check
+            AmericanDateParser parser
+            DateTime val = parser:Parse(value)
+            DateTimeColumn column
+            column:SetParser(parser)
+            return column
+        detect e
+        end
+
+        check
+            TimestampParser parser
+            DateTime val = parser:Parse(value)
+            DateTimeColumn column
+            column:SetParser(parser)
             return column
         detect e
         end

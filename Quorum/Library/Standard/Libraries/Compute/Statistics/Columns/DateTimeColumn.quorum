@@ -45,6 +45,10 @@ class DateTimeColumn is DataFrameColumn
         end
     end
 
+    action IsDateTimeColumn returns boolean
+        return true
+    end
+
     action SetParser(DateTimeColumnParser parser)
         me:parser = parser
     end
@@ -91,6 +95,14 @@ class DateTimeColumn is DataFrameColumn
         DateTime time
         time:SetEpochTime(value)
         rows:Set(index, time)
+    end
+
+    action GetAsDateTime(integer index) returns DateTime
+        DateTime value = parser:Parse(GetAsText(index))
+        if value = undefined
+            alert("Cannot convert value at position " + index + " to DateTime.")
+        end
+        return value
     end
 
     action SetSize(integer size)

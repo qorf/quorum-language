@@ -5,8 +5,10 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.System.DateTime
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -131,6 +133,17 @@ class DataFrameColumn
     end
 
     /*
+        This action detects whether this column ultimately stores dates/times inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these values however they see fit.
+        
+        Attribute: Returns true if this column stores dates/times
+    */
+    action IsDateTimeColumn returns boolean
+        return false
+    end
+
+    /*
         Regardless of the type of the column, this action attempts
         to convert the item at the index to a number. 
 
@@ -168,6 +181,16 @@ class DataFrameColumn
     */
     action GetAsInteger(integer index) returns integer
         alert("Cannot convert value at position " + index + " to an integer.")
+    end
+
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to a date time. 
+
+        Attrribute: Parameter index the item to be converted
+    */
+    action GetAsDateTime(integer index) returns DateTime
+        alert("Cannot convert value at position " + index + " to DateTime.")
     end
 
     /*

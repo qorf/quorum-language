@@ -250,18 +250,6 @@ class ChartWriter
     end
 
     /*
-        These actions are used to offset the start of the tick placement
-        if the chart has added white space on either side of the chart area.
-    */
-    action SetPaddedChartOffset(number paddedChartOffset)
-        me:paddedChartOffset = paddedChartOffset
-    end
-
-    action GetPaddedChartOffset() returns number
-        return paddedChartOffset
-    end
-
-    /*
         This action sets the position (percentage) of the chart area.
     */
     action SetChartAreaPosition(number x, number y)
