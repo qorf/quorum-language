@@ -284,6 +284,10 @@ class Chart is Control
         horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
         verticalPanel:SetMinimum(temp)
 
+        temp = horizontalPanel:GetPaddingOffset()
+        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
+        verticalPanel:SetPaddingOffset(temp)
+
         DateTime tempdate = horizontalPanel:GetMaximumDate()
         horizontalPanel:SetMaximumDate(verticalPanel:GetMaximumDate())
         verticalPanel:SetMaximumDate(tempdate)
@@ -303,10 +307,6 @@ class Chart is Control
         integer tempint = horizontalPanel:GetTickCount()
         horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
         verticalPanel:SetTickCount(tempint)
-
-        tempint = horizontalPanel:GetPaddingOffset()
-        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
-        verticalPanel:SetPaddingOffset(tempint)
 
         boolean tempflag = horizontalPanel:GetOverrideDefaultTickCount()
         horizontalPanel:OverrideDefaultTickCount(verticalPanel:GetOverrideDefaultTickCount())
@@ -618,20 +618,20 @@ class Chart is Control
         paddedChartOffset = offset
     end
 
-    action GetYAxisPaddedOffset returns integer
-        return verticalPanel:GetPaddingOffset()
+    action SetYAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            verticalPanel:SetPaddingOffset(percent)
+        else
+            output "Percent can be between 0 and 1"
+        end
     end
 
-    action SetYAxisPaddedOffset(integer offset)
-        verticalPanel:SetPaddingOffset(offset)
-    end
-
-    action GetXAxisPaddedOffset returns integer
-        return horizontalPanel:GetPaddingOffset()
-    end
-
-    action SetXAxisPaddedOffset(integer offset)
-        horizontalPanel:SetPaddingOffset(offset)
+    action SetXAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            horizontalPanel:SetPaddingOffset(percent)
+        else
+            output "Percent can be between 0 and 1"
+        end
     end
 
     /*

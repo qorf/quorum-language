@@ -225,14 +225,15 @@ class ChartLayout is Layout
             chartHeight = chart:GetSubChartAreas():Get(0):GetHeight()
         end 
 
-        originPointY = mainVerticalContainer:GetPaddingOffset()
+        integer paddingOffset = cast(integer, mainVerticalContainer:GetPaddingOffset()*verticalContainer:GetHeight())
+        originPointY = paddingOffset
         if usingGrouping
             groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetHeight())/2.0
             originPointY = originPointY + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetHeight())
             chart:HideAllYGridLines()
         else
-            scaleDivWidth = (chartHeight - 2*mainVerticalContainer:GetPaddingOffset()) / (ticks:GetSize()-1)
+            scaleDivWidth = (chartHeight - 2*paddingOffset) / (ticks:GetSize()-1)
         end
         minorScaleDivWidth = scaleDivWidth/mainVerticalContainer:GetMinorGridlineCount()
 
@@ -290,7 +291,7 @@ class ChartLayout is Layout
                 Drawable majorLine
                 if chart:IsShowingMajorYGridLines() and startIndex < lines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the x-axis
-                        if not chart:IsShowingXAxis() or mainVerticalContainer:GetPaddingOffset() not= 0
+                        if not chart:IsShowingXAxis() or paddingOffset not= 0
                             majorLine = lines:Get(startIndex)
                         end
                     else
@@ -328,7 +329,7 @@ class ChartLayout is Layout
         if mainVerticalContainer:ShowTicks()
             originPointX = originPointX - tickWidth
         end
-        originPointY = mainVerticalContainer:GetPaddingOffset()
+        originPointY = paddingOffset
         if usingGrouping
             originPointY = originPointY + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             if mainVerticalContainer:ShowGroupBrackets()
@@ -414,14 +415,15 @@ class ChartLayout is Layout
             chartHeight = chart:GetSubChartAreas():Get(0):GetHeight()
         end 
 
-        originPointX = mainHorizontalContainer:GetPaddingOffset()
+        integer paddingOffset = cast(integer, mainHorizontalContainer:GetPaddingOffset()*horizontalContainer:GetWidth())
+        originPointX = paddingOffset
         if usingGrouping
             groupOffset = cast(number, chart:GetGroupPanels():Get(0):GetWidth())/2.0
             originPointX = originPointX + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
             scaleDivWidth = cast(number, chart:GetGroupPanels():Get(0):GetWidth())
             chart:HideAllXGridLines()
         else
-            scaleDivWidth = (chartWidth - 2*mainHorizontalContainer:GetPaddingOffset()) / (ticks:GetSize()-1)
+            scaleDivWidth = (chartWidth - 2*paddingOffset) / (ticks:GetSize()-1)
         end
         minorScaleDivWidth = scaleDivWidth/mainHorizontalContainer:GetMinorGridlineCount()
 
@@ -478,7 +480,7 @@ class ChartLayout is Layout
                 Drawable majorLine
                 if chart:IsShowingMajorXGridLines() and startIndex < lines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the y-axis
-                        if not chart:IsShowingYAxis() or mainHorizontalContainer:GetPaddingOffset() not= 0
+                        if not chart:IsShowingYAxis() or paddingOffset not= 0
                             majorLine = lines:Get(startIndex)
                         end
                     else
@@ -510,7 +512,7 @@ class ChartLayout is Layout
         end
 
         // This code represents the labels on the X axis 
-        originPointX = mainHorizontalContainer:GetPaddingOffset()
+        originPointX = paddingOffset
         if usingGrouping
             originPointX = originPointX + cast(integer, groupOffset) + chart:GetPaddedChartOffset()
         end
@@ -810,8 +812,10 @@ class ChartLayout is Layout
 
     private action LayoutRegressionLines(Chart chart, Control chartAreaContainer)
         if chart:IsShowingLinearRegression()
-            number width = chartAreaContainer:GetWidth() - 2*chart:GetHorizontalPanel():GetPaddingOffset()
-            number height = chartAreaContainer:GetHeight() - 2*chart:GetVerticalPanel():GetPaddingOffset()
+            integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+            integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+            number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
+            number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
             number xMin = chart:GetXAxisMinimum()
             number xMax = chart:GetXAxisMaximum()
             number yMin = chart:GetYAxisMinimum()
@@ -840,8 +844,8 @@ class ChartLayout is Layout
                             val = line:CalculateDependentValue(xMin)
                             percentY = (val - yMin) / (yMax - yMin)
                         end
-                        x1 = cast(integer, percentX * width) + chart:GetHorizontalPanel():GetPaddingOffset()
-                        y1 = cast(integer, percentY * height) + chart:GetVerticalPanel():GetPaddingOffset()
+                        x1 = cast(integer, percentX * width) + xAxisPaddingOffset
+                        y1 = cast(integer, percentY * height) + yAxisPaddingOffset
     
 
                         // Ending position for line
@@ -853,8 +857,8 @@ class ChartLayout is Layout
                             val = line:CalculateDependentValue(xMax)
                             percentY = (val - yMin) / (yMax - yMin)
                         end
-                        x2 = cast(integer, percentX * width) + chart:GetHorizontalPanel():GetPaddingOffset()
-                        y2 = cast(integer, percentY * height) + chart:GetVerticalPanel():GetPaddingOffset()
+                        x2 = cast(integer, percentX * width) + xAxisPaddingOffset
+                        y2 = cast(integer, percentY * height) + yAxisPaddingOffset
         
                         // Pythagorean Theorem
                         number sideA = math:AbsoluteValue(x2 - x1) * math:AbsoluteValue(x2 - x1)

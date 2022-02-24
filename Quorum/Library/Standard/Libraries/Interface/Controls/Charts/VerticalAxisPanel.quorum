@@ -59,8 +59,8 @@ class VerticalAxisPanel is Control
     ChartOptions options
     Math math
     private integer numberOfSections = 1
-    private integer paddingOffset = -1
-    private integer defaultPaddingOffset = 0
+    private number paddingOffsetPercent = -1
+    private number defaultPaddingOffsetPercent = 0
     private boolean blockPaddingOffset = false
     private boolean appendPercent = false
 
@@ -387,7 +387,7 @@ class VerticalAxisPanel is Control
         labelCount = 0
 
         if not blockPaddingOffset
-            defaultPaddingOffset = cast(integer, chart:GetHeight()/((tickCount*numberOfSections) + 2))
+            defaultPaddingOffsetPercent = 0.5/tickCount
         end
         
         integer k = 0
@@ -682,8 +682,6 @@ class VerticalAxisPanel is Control
                 else
                     minValue = minValue - (scaleWidth + modResult)
                 end
-            else
-                paddingOffset = 10 //If the min value lands directly on the axis set the offset
             end
             min = minValue
 
@@ -1244,26 +1242,20 @@ class VerticalAxisPanel is Control
         me:numberOfSections = numberOfSections
     end
 
-    action SetPaddingOffset(integer paddingOffset)
-        if paddingOffset > -1
-            me:paddingOffset = paddingOffset
+    action SetPaddingOffset(number paddingOffset)
+        if paddingOffset >= 0
+            me:paddingOffsetPercent = paddingOffset
         end
     end
 
-    action SetDefaultPaddingOffset(integer paddingOffset)
-        if paddingOffset > 0
-            defaultPaddingOffset = paddingOffset
-        end
-    end
-
-    action GetPaddingOffset returns integer
+    action GetPaddingOffset returns number
         if blockPaddingOffset
             return 0
         else
-            if paddingOffset > -1
-                return paddingOffset
+            if paddingOffsetPercent >= 0
+                return paddingOffsetPercent
             else
-                return defaultPaddingOffset
+                return defaultPaddingOffsetPercent
             end
         end
     end
