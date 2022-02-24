@@ -42,8 +42,30 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             let item2D = global_CheckCast(item, "Libraries.Interface.Item2D");
             let x = item2D.GetScreenX();
             let y = item2D.GetScreenY();
+
             if (!(isNaN(x) || isNaN(y))) {
-                // TODO: adjust coordinates for items with accessible parents
+                // Find the nearest ancestor element that corresponds to an item.
+                // If there is one, we need to adjust this element's position
+                // to be relative to that ancestor.
+                let ancestor = element.parentElement;
+                while (ancestor && (ancestor !== root)) {
+                    let ancestorId = ancestor.id;
+                    if (ancestorId && elementList[ancestorId]) {
+                        let ancestorItem = elementList[ancestorId];
+                        if (global_InstanceOf(ancestorItem,"Libraries.Interface.Item2D")) {
+                            let ancestorItem2D = global_CheckCast(ancestorItem, "Libraries.Interface.Item2D");
+                            let ancestorX = ancestorItem2D.GetScreenX();
+                            let ancestorY = ancestorItem2D.GetScreenY();
+                            if (!(isNaN(ancestorX) || isNaN(ancestorY))) {
+                                x -= ancestorX;
+                                y -= ancestorY;
+                                break;
+                            }
+                        }
+                    }
+                    ancestor = ancestor.parentElement;
+                }
+
                 element.style.position = "absolute";
                 element.style.left = `${x}px`;
                 element.style.bottom = `${y}px`;
@@ -536,8 +558,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             });
         }
 
-        setBounds(para, item);
-
         //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
@@ -548,6 +568,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             root.appendChild(para);
             console.log(item.GetName(), " has been added.");
         }
+
+        // Set the element's bounds after we've added it, so setBounds can assume
+        // the element's parent is already set.
+        setBounds(para, item);
 };
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
