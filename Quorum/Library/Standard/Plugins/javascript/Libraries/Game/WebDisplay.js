@@ -29,6 +29,9 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         }
         container = document.getElementById(id);
 
+        container.setAttribute("tabindex", "0");
+        container.setAttribute("role", "application");
+
         canvas = document.createElement("canvas");
         canvas.setAttribute("aria-hidden", "true");
         canvas.style.outline = "none";
