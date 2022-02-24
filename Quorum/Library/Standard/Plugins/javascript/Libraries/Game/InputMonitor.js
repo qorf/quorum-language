@@ -2,7 +2,7 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
 {
     this.IsKeyPressed$quorum_integer = function(keyCode)
     {
-        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
+        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsFocused())
             return plugins_quorum_Libraries_Game_WebInput_.pressedKeys[keyCode] === true;
 
         return false;
@@ -10,7 +10,7 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
     
     this.IsMouseButtonPressed$quorum_integer = function(buttonCode)
     {
-        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
+        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsFocused())
         {
             var buttons = plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons;
             switch (buttonCode)
@@ -55,7 +55,7 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
     
     this.IsClicked = function()
     {
-        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsCanvasFocused())
+        if (plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.IsFocused())
             return plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons > 0;
     };
     
