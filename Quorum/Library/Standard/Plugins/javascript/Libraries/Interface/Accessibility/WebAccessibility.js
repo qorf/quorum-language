@@ -7,6 +7,76 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
+    let root = null;
+
+    const getOrCreateRoot = () => {
+        if (!root) {
+            let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
+            root = document.createElement("div");
+
+            root.style.position = "absolute";
+            root.style.left = 0;
+            root.style.bottom = 0;
+            root.style.width = "100%";
+            root.style.height = "100%";
+            // Ensure that bugs in the positioning of shadow elements
+            // don't affect the visible layout.
+            root.style.overflow = "hidden";
+
+            // The following style settings come from Flutter Web.
+            // Make all semantics transparent. We use `filter` instead of `opacity`
+            // attribute because `filter` is stronger. `opacity` does not apply to
+            // some elements, particularly on iOS, such as the slider thumb and track.
+            // We use transparency instead of "visibility:hidden" or "display:none"
+            // so that a screen reader does not ignore these elements.
+            root.style.filter = "opacity(0%)";
+            // Make text explicitly transparent to signal to the browser that no
+            // rasterization needs to be done.
+            root.style.color = "rgba(0,0,0,0)";
+
+            container.appendChild(root);
+        }
+
+        return root;
+    };
+
+    const setBounds = (element, item) => {
+        if (global_InstanceOf(item,"Libraries.Interface.Item2D")) {
+            let item2D = global_CheckCast(item, "Libraries.Interface.Item2D");
+            let x = item2D.GetScreenX();
+            let y = item2D.GetScreenY();
+
+            if (!(isNaN(x) || isNaN(y))) {
+                // Find the nearest ancestor element that corresponds to an item.
+                // If there is one, we need to adjust this element's position
+                // to be relative to that ancestor.
+                let ancestor = element.parentElement;
+                while (ancestor && (ancestor !== root)) {
+                    let ancestorId = ancestor.id;
+                    if (ancestorId && elementList[ancestorId]) {
+                        let ancestorItem = elementList[ancestorId];
+                        if (global_InstanceOf(ancestorItem,"Libraries.Interface.Item2D")) {
+                            let ancestorItem2D = global_CheckCast(ancestorItem, "Libraries.Interface.Item2D");
+                            let ancestorX = ancestorItem2D.GetScreenX();
+                            let ancestorY = ancestorItem2D.GetScreenY();
+                            if (!(isNaN(ancestorX) || isNaN(ancestorY))) {
+                                x -= ancestorX;
+                                y -= ancestorY;
+                                break;
+                            }
+                        }
+                    }
+                    ancestor = ancestor.parentElement;
+                }
+
+                element.style.position = "absolute";
+                element.style.left = `${x}px`;
+                element.style.bottom = `${y}px`;
+                element.style.width = `${item2D.GetWidth()}px`;
+                element.style.height = `${item2D.GetHeight()}px`;
+            }
+        }
+    };
     
 //    system action NameChanged(Item item)
 
@@ -28,6 +98,17 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             element.setAttribute("aria-description", item.GetDescription());
         }
         console.log("Description Changed");
+    };
+    
+//    system action BoundsChanged(Item item)
+
+    this.BoundsChanged$quorum_Libraries_Interface_Item = function(item) {
+        var id = item.GetHashCode();
+        if( elementList[id] != null ) {
+            var element = document.getElementById(id);
+            setBounds(element, item);
+        }
+        console.log("Bounds Changed");
     };
     
 //    system action TextFieldUpdatePassword(TextField field)
@@ -79,7 +160,14 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     this.Select$quorum_Libraries_Interface_Item = function(item) {
         console.log(item.GetName() + " selected");
         var id = item.GetHashCode();
-        var element = document.getElementById(currentIDECanvas_$Global_);
+        // Look for the nearest focusable element.
+        let element = document.getElementById(id);
+        while (element) {
+            if (element.hasAttribute("tabindex")) {
+                break;
+            }
+            element = element.parentElement;
+        }
         element.setAttribute("aria-activedescendant", id);
     };
 
@@ -300,9 +388,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 let tablist = document.createElement(elementType);
                 tablist.id = id + "-tablist";
                 tablist.role = "tablist";
-                //probably shouldn't be attached to the tab panel so adding directly to canvas
-                let canvas = document.getElementById(currentIDECanvas_$Global_);
-                canvas.appendChild(tablist);
+                //probably shouldn't be attached to the tab panel so adding directly to the root
+                let root = getOrCreateRoot();
+                root.appendChild(tablist);
                 break;
             //TABLE
             case 15:
@@ -464,20 +552,29 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 if (event.target !== para) {
                     return; // ignore bubbled events
                 }
+                // If this is an actual pointer event and not a programmatic
+                // activation by an AT, ignore it.
+                if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event)) {
+                    return;
+                }
                 control.Activate();
             });
         }
 
-        //add element to a parent if need be or directly to canvas
+        //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
             parentElement.appendChild(para);
             console.log(item.GetName(), " has been added to a parent.");
         } else {
-            var canvas = document.getElementById(currentIDECanvas_$Global_);
-            canvas.appendChild(para);
+            let root = getOrCreateRoot();
+            root.appendChild(para);
             console.log(item.GetName(), " has been added.");
         }
+
+        // Set the element's bounds after we've added it, so setBounds can assume
+        // the element's parent is already set.
+        setBounds(para, item);
 };
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
@@ -590,10 +687,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 //    system action Shutdown
     this.Shutdown = function() {
         console.log("Shutdown");
-        //dispose of the children
-        var canvas = document.getElementById(currentIDECanvas_$Global_);
-        while (canvas.firstChild) {
-            canvas.firstChild.remove()
+        //dispose of the shadow DOM tree
+        if (root) {
+            root.remove();
+            root = null;
         }
         elementList.length = 0;
         currentFocus = null;

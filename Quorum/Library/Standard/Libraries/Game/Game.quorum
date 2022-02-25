@@ -1881,7 +1881,7 @@ class Game
 
         action Main
             WebConfiguration configuration
-            configuration:canvasID = "game-canvas"
+            configuration:containerID = "game-container"
             configuration:capFramesPerSecond = true
             configuration:framesPerSecondLimit = 45
             SetConfiguration(configuration)
@@ -4580,14 +4580,14 @@ class Game
     end
 
     /*
-    The SetWebCanvasName action determines which canvas to use on a webpage.
-    When the game runs, it will be displayed on the designated canvas. If no
-    canvas name is given, the engine will attempt to find a canvas with the
-    default name, "QuorumGraphicsCanvas". If the engine can't find a canvas with
-    the set name, it will not run. This action has no effect if called inside a
+    The SetWebContainerID action determines which container to use on a webpage.
+    When the game runs, it will be displayed in the designated container. If no
+    container ID is given, the engine will attempt to find a container with the
+    default ID, "QuorumUIContainer". If the engine can't find a container with
+    the set ID, it will not run. This action has no effect if called inside a
     game that isn't being run online.
 
-    Attribute: Parameter name The name of the canvas to display graphics on.
+    Attribute: Parameter id The ID of the canvas to display the game in.
     
     Attribute: Example
 
@@ -4597,14 +4597,14 @@ class Game
     class Main is Game
 
         action Main
-            SetWebCanvasName("myCanvas")
+            SetWebContainerID("myContainer")
             StartGame()
         end
     end
     */
-    action SetWebCanvasName(text name)
+    action SetWebContainerID(text id)
         WebConfiguration config = GetWebConfiguration()
-        config:canvasID = name
+        config:containerID = id
     end
 
     /*
