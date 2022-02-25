@@ -622,7 +622,7 @@ class Chart is Control
         if percent >= 0  and percent <= 1
             verticalPanel:SetPaddingOffset(percent)
         else
-            output "Percent can be between 0 and 1"
+            alert("Percent can be between 0 and 1")
         end
     end
 
@@ -630,7 +630,7 @@ class Chart is Control
         if percent >= 0  and percent <= 1
             horizontalPanel:SetPaddingOffset(percent)
         else
-            output "Percent can be between 0 and 1"
+            alert("Percent can be between 0 and 1")
         end
     end
 

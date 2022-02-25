@@ -124,19 +124,39 @@ class DateTimeColumn is DataFrameColumn
         rows:Set(right, rows:Get(left))
     end
 
+//    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+//        DateTimeColumn column
+//        column:SetHeader(GetHeader())
+//
+//        i = rowStart
+//        repeat while i < rowEnd
+//            DateTime value = rows:Get(i)
+//            if value = undefined
+//                column:rows:Add(undefined)
+//            else
+//                DateTime value2
+//                value2:SetEpochTime(value:GetEpochTime())
+//                column:rows:Add(value2)
+//            end
+//            i = i + 1
+//        end
+//
+//        return column
+//    end
+
     action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
         DateTimeColumn column
+        column:SetParser(GetParser())
         column:SetHeader(GetHeader())
 
         i = rowStart
         repeat while i < rowEnd
-            DateTime value = rows:Get(i)
+            text value = parser:ToText(rows:Get(i))
             if value = undefined
                 column:rows:Add(undefined)
             else
-                DateTime value2
-                value2:SetEpochTime(value:GetEpochTime())
-                column:rows:Add(value2)
+                text value2 = value
+                column:Add(value2)
             end
             i = i + 1
         end
