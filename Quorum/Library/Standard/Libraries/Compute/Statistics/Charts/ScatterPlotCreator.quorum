@@ -67,7 +67,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         ScatterPlot chart
         // Start with booleans for dates and numbers as true, they will be marked false if the data does not comply
-        boolean textFactor = false      // This is when a factor is used but it's not a number or date/time
         boolean dateXData = true        
         boolean dateYData = true
         boolean dateFactor = false      // Factor is date/time. We need to know this for sorting the labels.
@@ -83,7 +82,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         HashTable<text, number> yLabels         //Used for text data
         HashTable<DateTime, text> textForDate   //Used to change a date for it's original text
 
-        Array<text> textFactorKeys
         Array<number> numericalFactorKeys
         Array<DateTime> dateFactorKeys
         Vector xVector
@@ -101,15 +99,16 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 repeat while i < dates:GetSize()
                     if not dates:IsUndefined(i)
                         DateTime date = dates:GetAsDateTime(i)
-                        dateFactorKeys:Add(date)
-                        textForDate:Add(date, dates:GetAsText(i)) 
+                        if not textForDate:HasKey(date)
+                            dateFactorKeys:Add(date)
+                            textForDate:Add(date, dates:GetAsText(i)) 
+                        end
                     end
                     i = i + 1
                 end
+
             elseif factor:IsNumberColumn()
                 numericalFactor = true
-            else
-                textFactor = true
             end
 
             integer i = 0 
@@ -125,16 +124,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         regColumns:Add(column1)
                         regColumns:Add(column2)
                         regressionFactor:Add(factor:GetAsText(i), regColumns)
-                    end
 
-                    if numericalFactor
-                        numericalFactorKeys:Add(factor:GetAsNumber(i))
-                    else
-                        textFactorKeys:Add(factor:GetAsText(i))
+                        if numericalFactor
+                            numericalFactorKeys:Add(factor:GetAsNumber(i))
+                        end
                     end
                 end
                 i = i + 1  
-            end                 
+            end               
         end
 
         // The first column will default to the x-axis (independent variable)
@@ -463,13 +460,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = 0
             repeat while i < dateFactorKeys:GetSize()
                 seriesList:Add(seriesFactor:GetValue(textForDate:GetValue(dateFactorKeys:Get(i))))
-                i = i + 1
-            end
-        elseif textFactor
-            textFactorKeys:Sort()
-            i = 0
-            repeat while i < numericalFactorKeys:GetSize()
-                seriesList:Add(seriesFactor:GetValue(textFactorKeys:Get(i)))
                 i = i + 1
             end
         else // defaultFactor (not useFactor)
