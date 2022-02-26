@@ -8,36 +8,105 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     let root = null;
+    let entryButton = null;
+    let blurDelayedCall = null;
 
-    const getOrCreateRoot = () => {
-        if (!root) {
-            let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
-            root = document.createElement("div");
+    const addBlurListener = function(element) {
+        element.addEventListener("blur", () => {
+            // Delay processing of this event until the next event cycle,
+            // in case focus is being moved to another accessibility element.
+            if (blurDelayedCall === null) {
+              blurDelayedCall = setTimeout(() => {
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+                        return;
+                    }
+                    blurDelayedCall = null;
+                    entryButton.hidden = false;
+                    root.hidden = true;
+                });
+            }
+        });
+    };
 
-            root.style.position = "absolute";
-            root.style.left = 0;
-            root.style.bottom = 0;
-            root.style.width = "100%";
-            root.style.height = "100%";
-            // Ensure that bugs in the positioning of shadow elements
-            // don't affect the visible layout.
-            root.style.overflow = "hidden";
+    this.Setup = function() {
+        let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
 
-            // The following style settings come from Flutter Web.
-            // Make all semantics transparent. We use `filter` instead of `opacity`
-            // attribute because `filter` is stronger. `opacity` does not apply to
-            // some elements, particularly on iOS, such as the slider thumb and track.
-            // We use transparency instead of "visibility:hidden" or "display:none"
-            // so that a screen reader does not ignore these elements.
-            root.style.filter = "opacity(0%)";
-            // Make text explicitly transparent to signal to the browser that no
-            // rasterization needs to be done.
-            root.style.color = "rgba(0,0,0,0)";
+        root = document.createElement("div");
+        root.setAttribute("aria-label", "Application");
+        root.setAttribute("tabindex", "-1");
+        root.setAttribute("role", "dialog");
+        root.hidden = true;
 
-            container.appendChild(root);
-        }
+        root.style.position = "absolute";
+        root.style.left = 0;
+        root.style.bottom = 0;
+        root.style.width = "100%";
+        root.style.height = "100%";
+        // Ensure that bugs in the positioning of shadow elements
+        // don't affect the visible layout.
+        root.style.overflow = "hidden";
 
+        // The following style settings come from Flutter Web.
+        // Make all semantics transparent. We use `filter` instead of `opacity`
+        // attribute because `filter` is stronger. `opacity` does not apply to
+        // some elements, particularly on iOS, such as the slider thumb and track.
+        // We use transparency instead of "visibility:hidden" or "display:none"
+        // so that a screen reader does not ignore these elements.
+        root.style.filter = "opacity(0%)";
+        // Make text explicitly transparent to signal to the browser that no
+        // rasterization needs to be done.
+        root.style.color = "rgba(0,0,0,0)";
+
+        addBlurListener(root);
+
+        container.appendChild(root);
+
+        entryButton = document.createElement("button");
+        entryButton.setAttribute("aria-label", "Enter Application");
+
+        entryButton.style.position = "absolute";
+        entryButton.style.left = 0;
+        entryButton.style.bottom = 0;
+        entryButton.style.width = "100%";
+        entryButton.style.height = "100%";
+
+        // The rationales for the following styles are the same as for the root.
+        entryButton.style.filter = "opacity(0%)";
+        entryButton.style.color = "rgba(0,0,0,0)";
+
+        entryButton.addEventListener("click", (event) => {
+            // If this is an actual pointer event and not a programmatic
+            // activation by an AT, ignore it.
+            if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event)) {
+                return;
+            }
+            plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
+        });
+
+        container.appendChild(entryButton);
+    };
+
+    this.GetRoot = function() {
         return root;
+    };
+
+    this.InternalTakeFocus = function() {
+        let element;
+        if (currentFocus) {
+            let id = currentFocus.GetHashCode();
+            element = document.getElementById(id);
+        } else {
+            element = root;
+        }
+        root.hidden = false;
+        element.focus();
+        entryButton.hidden = true;
+    };
+
+    this.InternalReleaseFocus = function() {
+        entryButton.hidden = false;
+        entryButton.focus();
+        root.hidden = true;
     };
 
     const setBounds = (element, item) => {
@@ -223,8 +292,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        var element = document.getElementById(id);
-        element.focus();
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+            let element = document.getElementById(id);
+            element.focus();
+        }
         
     };
 //    system action NativeAdd(Item item)
@@ -389,7 +460,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 tablist.id = id + "-tablist";
                 tablist.role = "tablist";
                 //probably shouldn't be attached to the tab panel so adding directly to the root
-                let root = getOrCreateRoot();
                 root.appendChild(tablist);
                 break;
             //TABLE
@@ -537,13 +607,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");
             para.addEventListener("focus", (event) => {
-                if (event.target !== para) {
-                    return; // ignore bubbled events
+                if (blurDelayedCall !== null) {
+                    clearTimeout(blurDelayedCall);
+                    blurDelayedCall = null;
                 }
                 if (currentFocus !== para) {
                     item.Focus();
                 }
             });
+            addBlurListener(para);
         }
 
         if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
@@ -567,7 +639,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             parentElement.appendChild(para);
             console.log(item.GetName(), " has been added to a parent.");
         } else {
-            let root = getOrCreateRoot();
             root.appendChild(para);
             console.log(item.GetName(), " has been added.");
         }
