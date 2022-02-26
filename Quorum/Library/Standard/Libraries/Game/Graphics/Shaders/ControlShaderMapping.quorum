@@ -1,0 +1,140 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Item2D
+
+class ControlShaderMapping is ShaderMapping
+
+    ShaderProgram program = undefined
+    GameStateManager manager
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
+        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+        program:SetShaderInput("u_texture", 0)
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        number leftBorder = 0
+        number topBorder = 0
+        number rightBorder = 0
+        number bottomBorder = 0
+
+        number bottomLeftRounding = 0
+        number bottomRightRounding = 0
+        number topRightRounding = 0
+        number topLeftRounding = 0
+
+        number borderThickness = 0
+        Color borderColor = undefined
+
+        number aspectRatio = drawable:GetWidth() / drawable:GetHeight()
+
+        /*
+        We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
+        1. The drawable's shader data
+        2. If the drawable itself is a Control
+        3. If the drawable is a view, see if the view is attached to a Control
+        */
+        if drawable:GetShaderData() is LayoutProperties
+            LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
+            
+            if properties:HasLeftBorder()
+                leftBorder = 1.0 / aspectRatio
+            end
+            if properties:HasTopBorder()
+                topBorder = 1.0
+            end
+            if properties:HasRightBorder()
+                rightBorder = 1.0 / aspectRatio
+            end
+            if properties:HasBottomBorder()
+                bottomBorder = 1.0
+            end
+
+            bottomLeftRounding = properties:GetBottomLeftRounding()
+            bottomRightRounding = properties:GetBottomRightRounding()
+            topRightRounding = properties:GetTopRightRounding()
+            topLeftRounding = properties:GetTopLeftRounding()
+
+            borderThickness = properties:GetBorderThickness()
+            if properties:GetBorderColor() not= undefined
+                borderColor = properties:GetBorderColor():GetBottomLeft()
+            end
+        else
+            Control control = undefined
+
+            if drawable:GetShaderData() is Control
+                control = cast(Control, drawable:GetShaderData())
+            elseif drawable is Control
+                control = cast(Control, cast(Object, drawable))
+            elseif drawable is View2D
+                View2D view = cast(View2D, cast(Object, drawable))
+                Item2D item = view:GetItem()
+                if item is Control
+                    control = cast(Control, item)
+                end
+            end
+
+            if control not= undefined
+                if control:HasLeftBorder()
+                    leftBorder = 1.0 / aspectRatio
+                end
+                if control:HasTopBorder()
+                    topBorder = 1.0
+                end
+                if control:HasRightBorder()
+                    rightBorder = 1.0 / aspectRatio
+                end
+                if control:HasBottomBorder()
+                    bottomBorder = 1.0
+                end
+    
+                bottomLeftRounding = control:GetBottomLeftRounding()
+                bottomRightRounding = control:GetBottomRightRounding()
+                topRightRounding = control:GetTopRightRounding()
+                topLeftRounding = control:GetTopLeftRounding()
+    
+                borderThickness = control:GetBorderThickness()
+                if control:GetBorderColor() not= undefined
+                    borderColor = control:GetBorderColor():GetBottomLeft()
+                end
+            end
+        end
+
+        program:SetShaderInput("u_enabledBorders", leftBorder, topBorder, rightBorder, bottomBorder)
+        program:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
+        program:SetShaderInput("u_borderThickness", borderThickness / drawable:GetHeight())
+
+        if borderColor not= undefined
+            program:SetShaderInput("u_borderColor", borderColor:GetRed(), borderColor:GetGreen(), borderColor:GetBlue(), borderColor:GetAlpha())
+        else
+            program:SetShaderInput("u_borderColor", 0.0, 0.0, 0.0, 1.0)
+        end
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
+
+end

@@ -116,6 +116,11 @@ class LayoutProperties
     number bottomPadding = 0
     number topPadding = 0
 
+    number topLeftRounding = 0
+    number topRightRounding = 0
+    number bottomLeftRounding = 0
+    number bottomRightRounding = 0
+
     // Bitwise operations are used for the border styling bitmask.
     BitwiseOperations bits
     
@@ -627,4 +632,55 @@ class LayoutProperties
             return parent:Object:Compare(object)
         end
     end
+
+    /*
+    This action sets how much rounding to apply to the four corners of a rectangular control. 
+    The expected values are between 0 and 1, where 0 indicates no rounding, and 1 indicates
+    full rounding. (If all four corners are set to have full rounding, the result will appear
+    to be a circle.)
+
+    Attribute: Parameter bottomLeft The rounding value to be applied to the bottom left corner (between 0 and 1).
+    Attribute: Parameter bottomRight The rounding value to be applied to the bottom right corner (between 0 and 1).
+    Attribute: Parameter topLeft The rounding value to be applied to the top left corner (between 0 and 1).
+    Attribute: Parameter topRight The rounding value to be applied to the top right corner (between 0 and 1).
+    */
+    action SetCornerRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
+        bottomLeftRounding = bottomLeft
+        bottomRightRounding = bottomRight
+        topLeftRounding = topLeft
+        topRightRounding = topRight
+    end
+
+    action GetTopLeftRounding returns number
+        return topLeftRounding
+    end
+
+    action SetTopLeftRounding(number topLeftRounding)
+        me:topLeftRounding = topLeftRounding
+    end
+
+    action GetTopRightRounding returns number
+        return topRightRounding
+    end
+
+    action SetTopRightRounding(number topRightRounding)
+        me:topRightRounding = topRightRounding
+    end
+
+    action GetBottomLeftRounding returns number
+        return bottomLeftRounding
+    end
+
+    action SetBottomLeftRounding(number bottomLeftRounding)
+        me:bottomLeftRounding = bottomLeftRounding
+    end
+
+    action GetBottomRightRounding returns number
+        return bottomRightRounding
+    end
+
+    action SetBottomRightRounding(number bottomRightRounding)
+        me:bottomRightRounding = bottomRightRounding
+    end
+
 end
