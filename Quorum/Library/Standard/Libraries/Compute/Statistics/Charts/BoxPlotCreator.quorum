@@ -16,6 +16,7 @@ use Libraries.Interface.Controls.Charts.Plot
 use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 
 /*
     This class is used to create a box plot of data in a DataFrame.
@@ -160,20 +161,51 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Per " + frame:GetColumn(GetFactor(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
-        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
         HashTable<text, HashTable<text, Vector>> dataFactor 
-        HashTable<number, text> numberForText
-        boolean numerical = false
+        boolean dateFactor = false
+        boolean numericalFactor = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
         chart:SetXAxisTitle(factor:GetHeader())
-        if factor:IsNumberColumn()
-            numerical = true
+
+        Array <text> groupNames 
+        if factor:IsDateTimeColumn()
+            dateFactor = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, false))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not groupFactor:HasKey(dates:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(dates:GetAsText(i))
+                        groupNames:Add(dates:GetAsText(i))
+                        groupFactor:Add(dates:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
+        else
+            if factor:IsNumberColumn()
+                numericalFactor = true
+            end
+            DataFrameColumn labels = factor:Copy(true, false)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not groupFactor:HasKey(labels:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(labels:GetAsText(i))
+                        groupNames:Add(labels:GetAsText(i))
+                        groupFactor:Add(labels:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
         end
 
         integer i = 0
@@ -182,14 +214,6 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 if not dataFactor:HasKey(factor:GetAsText(i))
                     HashTable<text, Vector> dataSet
                     dataFactor:Add(factor:GetAsText(i), dataSet)
-                end
-                if not groupFactor:HasKey(factor:GetAsText(i))
-                    PlotGroup group
-                    group:SetName(factor:GetAsText(i))
-                    groupFactor:Add(factor:GetAsText(i), group)
-                    if numerical
-                        numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
-                    end
                 end
                 integer j = 0
                 repeat while j < columns
@@ -263,15 +287,14 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
 
         // Fill the plot groups
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
         number largest = 0
         number smallest = 0
         i = 0
-        repeat while i < groupKeyArray:GetSize()
+        repeat while i < groupNames:GetSize()
             integer j = 0
             repeat while j < seriesKeyArray:GetSize()
                 Plot plot
-                Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
+                Vector dataset = dataFactor:GetValue(groupNames:Get(i)):GetValue(seriesKeyArray:Get(j))
                 if dataset not= undefined
                     dataset:Sort()
                     plot:SetData(dataset)
@@ -291,8 +314,8 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                         seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
                         plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
                     end
-                    if groupFactor:HasKey(groupKeyArray:Get(i))
-                        groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
                     end
                 end
                 j = j + 1
@@ -300,50 +323,18 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = i + 1  
         end
 
-        // Sort the plot groups within the chart
-        if numerical
-            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < numberKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
-                if CheckIfInteger(numberKeyArray:Get(i))
-                    group:SetName(cast(text, cast(integer, numberKeyArray:Get(i))))
-                    groupNames:Add(cast(text, cast(integer, numberKeyArray:Get(i))))
-                else
-                    groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
-                end
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-       else
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < groupKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-            groupNames = groupKeyArray
-        end  
+        i = 0
+        repeat while i < groupNames:GetSize()
+            PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
+            chart:AddPlotGroup(group)
+            i = i + 1
+        end
 
         SetScale(chart, smallest, largest, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
         chart:SetSeriesList(seriesList)
-        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor)
         return chart
-    end
-
-    private action CheckIfInteger(number value) returns boolean
-        return (cast(integer, value) = value)
     end
 
     private action SetScale(BoxPlot chart, number ymin, number ymax, number xmin, number xmax)

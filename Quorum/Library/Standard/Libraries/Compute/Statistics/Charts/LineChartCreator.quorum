@@ -73,7 +73,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         boolean defaultFactor = false   // Uses each row as a factor
         boolean textFactor = false      // Uses a unique text entry as a factor
         boolean numericalFactor = false // Uses a unique number/integer entry as a factor
-        boolean dateFactor = false      // Uses unique date/time as a factor
+        boolean dateFactor = false      // Uses unique date/time as a factor  
 
         HashTable<text, Array<ChartPoint>> groupFactor
         HashTable<text, Series> seriesFactor
@@ -83,8 +83,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
      
         number xMin = 0.0   
         number xMax = 0.0
-        DateTime dateMin = undefined
-        DateTime dateMax = undefined
+        DateTime xdateMin = undefined
+        DateTime xdateMax = undefined
 
         DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
         if useFactor
@@ -105,14 +105,14 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     end
                     i = i + 1
                 end   
-                DataFrame newFrame = frame:Copy()
-                newFrame:Sort(factor:GetHeader())
-                DateTimeColumn dates = cast(DateTimeColumn, newFrame:GetColumn(factor:GetHeader()))
+                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, false))
                 if dates:GetSize() > 0
                     xMin = 0 
                     xMax = dates:Get(i-1):GetDayDifference(dates:Get(0))
-                    dateMin = dates:Get(0)
-                    dateMax = dates:Get(dates:GetSize()-1)
+                    xdateMin = dates:Get(0)
+                    xdateMax = dates:Get(dates:GetSize()-1)
+                    chart:GetHorizontalPanel():SetMinimumDate(xdateMin)
+                    chart:GetHorizontalPanel():SetMaximumDate(xdateMax)  
                 end          
 
             // NUMBER-INTEGER
@@ -167,10 +167,11 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if not column:IsNumberColumn()
-                alert("LineChartCreator does not support text columns.")
+            if not column:IsNumberColumn() 
+                alert("LineChartCreator does not support non-numerical columns.")
                 return undefined
             end
+
             if not seriesFactor:HasKey(column:GetHeader())
                 ChartLine newline
                 newline:SetName(column:GetHeader()) 
@@ -234,8 +235,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     integer j = 0
                     repeat while j < points:GetSize()
                         ChartPoint point = points:Get(j)
-                        if dateForText:HasKey(groupKeyArray:Get(i)) and dateMin not= undefined
-                            number x = dateForText:GetValue(groupKeyArray:Get(i)):GetDayDifference(dateMin)
+                        if dateForText:HasKey(groupKeyArray:Get(i)) and xdateMin not= undefined
+                            number x = dateForText:GetValue(groupKeyArray:Get(i)):GetDayDifference(xdateMin)
                             point:SetValueX(x)
                         end
                         j = j + 1
@@ -243,8 +244,6 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end  
-            chart:GetHorizontalPanel():SetMinimumDate(dateMin)
-            chart:GetHorizontalPanel():SetMaximumDate(dateMax)  
 
         elseif numericalFactor
             Array<text> groupKeyArray = groupFactor:CopyToKeyArray()

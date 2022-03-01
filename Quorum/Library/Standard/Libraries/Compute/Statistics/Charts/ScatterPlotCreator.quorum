@@ -92,9 +92,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             factor = frame:GetColumn(GetFactor(0))
             if factor:IsDateTimeColumn()
                 dateFactor = true
-                DataFrame newFrame = frame:Copy()
-                newFrame:Sort(factor:GetHeader())
-                DateTimeColumn dates = cast(DateTimeColumn, newFrame:GetColumn(factor:GetHeader()))
+                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, true))
                 integer i = 0 
                 repeat while i < dates:GetSize()
                     if not dates:IsUndefined(i)
@@ -214,9 +212,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             xMax = xSum:GetMaximum()
 
         elseif dateXData
-            DataFrame newFrame = frame:Copy()
-            newFrame:Sort(dfx:GetHeader())
-            DataFrameColumn column = newFrame:GetColumn(dfx:GetHeader())
+            DateTimeColumn column = cast(DateTimeColumn, frame:GetColumn(dfx:GetHeader()):Copy(true, false))
             if column:GetSize() > 0
                 xdateMin = column:GetAsDateTime(0)
                 xdateMax = column:GetAsDateTime(column:GetSize()-1)
@@ -229,9 +225,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
 
         else //textXData
-            DataFrame newFrame = frame:Copy()
-            newFrame:Sort(dfx:GetHeader())
-            DataFrameColumn column = newFrame:GetColumn(dfx:GetHeader())
+            DataFrameColumn column = frame:GetColumn(dfx:GetHeader()):Copy(true, false)
             Array<text> xLabelTextArray
             i = 0
             repeat while i < column:GetSize()
@@ -273,17 +267,14 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
 
         elseif dateYData
-            DataFrame newFrame = frame:Copy()
-            newFrame:Sort(frame:GetColumn(GetColumn(1)):GetHeader())
-            DataFrameColumn column = newFrame:GetColumn(frame:GetColumn(GetColumn(1)):GetHeader())
+            DateTimeColumn column = cast(DateTimeColumn, frame:GetColumn(frame:GetColumn(GetColumn(1)):GetHeader()):Copy(true, false))
             if column:GetSize() > 0
                 ydateMin = column:GetAsDateTime(0)
                 ydateMax = column:GetAsDateTime(column:GetSize()-1)
             end
             i = 1 
             repeat while i < columns
-                newFrame:Sort(frame:GetColumn(GetColumn(i)):GetHeader())
-                column = newFrame:GetColumn(frame:GetColumn(GetColumn(i)):GetHeader())
+                column = cast(DateTimeColumn, frame:GetColumn(frame:GetColumn(GetColumn(i)):GetHeader()):Copy(true, false))
                 if column:GetSize() > 0
                     if column:GetAsDateTime(0):IsBefore(ydateMin)
                         ydateMin = column:GetAsDateTime(0)
