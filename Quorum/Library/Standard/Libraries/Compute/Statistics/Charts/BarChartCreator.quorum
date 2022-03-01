@@ -146,7 +146,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         i = 0 
         repeat while i < groupNames:GetSize()
             text name = groupNames:Get(i)
-            output name
             integer value = hash:GetValue(groupNames:Get(i))
             BarGroup group
             group:SetName(name)
@@ -510,7 +509,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 text name = factor1:GetAsText(i)+" "+factor2:GetAsText(i)
                 number valueForName = column:GetAsNumber(i)
                 
-                output name
                 if not barFactor:HasKey(name)
                     Bar innerBar
                     innerBar:SetName(factor2:GetAsText(i))
