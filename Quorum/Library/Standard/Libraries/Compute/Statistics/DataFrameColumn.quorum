@@ -452,6 +452,14 @@ class DataFrameColumn
         return undefinedSize
     end
 
+    /*  
+        This action returns a boolean on if the column is undefined.
+        Attribute: Returns true if the undefined size is equal to the size. Meaning every row is undefined.
+    */
+    action IsUndefined returns boolean
+        return (GetSize() = GetUndefinedSize())
+    end
+
     /*
         This action returns a HashTable with AsText key values and counts of the items in the column.
         Attribute: Returns a HashTable with the count for each item in the column.

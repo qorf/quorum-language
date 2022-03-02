@@ -18,7 +18,7 @@ class NumberColumn is DataFrameColumn
     Array<Number> rows
 
     action Add(text value)
-        if value = undefined
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now

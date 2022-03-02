@@ -43,7 +43,7 @@ use Libraries.System.File
 class ViolinPlot is Chart
     //bandWidth is a scale option for distribution graph
     //the bigger the value, the flatter the distribution graph will be
-    private integer bandWidth = 0
+    private number bandWidth = 0
 
 
     UnivariateAction windowingAction = undefined
@@ -430,14 +430,25 @@ class ViolinPlot is Chart
     /*
         This sets the inteval size to calculate the normal distributions
     */
-    action SetBandWidth(integer value)
-        bandWidth = value
+    action SetBandWidth(number value)
+        number limit = GetYAxisMaximum()
+        if GetHorizontalFlag()
+            limit = GetXAxisMaximum()
+        end
+        if value > 0 
+            if value < limit
+                bandWidth = value
+            else
+                bandWidth = limit
+            end
+        end
+
     end
 
     /*
         This returns the inteval size to calculate the normal distributions
     */
-    action GetBandWidth returns integer
+    action GetBandWidth returns number
         return bandWidth
     end
 

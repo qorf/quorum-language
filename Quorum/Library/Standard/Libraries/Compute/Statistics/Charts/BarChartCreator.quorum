@@ -30,7 +30,7 @@ use Libraries.Compute.Statistics.Columns.DateTimeColumn
     the system counts the number of items for each point. If a factor and a column are given,
     the factor is the X-axis and the column is the Y-axis.
 
-    Attribute: Author Andreas Stefik and Gabriel Contreras
+    Attribute: Authors Andreas Stefik, Gabriel Contreras, Hannah Williams, Tim Kluthe
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -72,7 +72,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             return CreateChartByCount(factor, useSorting) // Create bars by count
 
         elseif columns > 0 and factors = 1
-            return CreateChart(frame, useSorting)
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsUndefined() // If the factor is undefined don't use a factor
+                return CreateChartBySum(frame, useSorting)
+            else
+                return CreateChart(frame, useSorting)
+            end
 
         elseif columns = 1 and factors = 2
             //Make a copy of the frame so it can be sorted without altering the original
@@ -112,14 +117,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if column:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(sort, false))
+            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(sort, true))
             integer i = 0 
             repeat while i < dates:GetSize()
-                if hash:HasKey(dates:GetAsText(i))
-                    hash:Add(dates:GetAsText(i), hash:GetValue(dates:GetAsText(i)) + 1)
-                else
-                    groupNames:Add(dates:GetAsText(i))
-                    hash:Add(dates:GetAsText(i), 1)
+                if not dates:IsUndefined(i)
+                    if not hash:HasKey(dates:GetAsText(i))
+                        hash:Add(dates:GetAsText(i), 0)
+                        groupNames:Add(dates:GetAsText(i))
+                    end
                 end
                 i = i + 1
             end
@@ -127,17 +132,27 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if column:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = column:Copy(sort, false)
+            DataFrameColumn labels = column:Copy(sort, true)
             integer i = 0 
             repeat while i < labels:GetSize()
-                if hash:HasKey(labels:GetAsText(i))
-                    hash:Add(labels:GetAsText(i), hash:GetValue(labels:GetAsText(i)) + 1)
-                else
-                    groupNames:Add(labels:GetAsText(i))
-                    hash:Add(labels:GetAsText(i), 1)
+                if not labels:IsUndefined(i)
+                    if not hash:HasKey(labels:GetAsText(i))
+                        hash:Add(labels:GetAsText(i), 0)
+                        groupNames:Add(labels:GetAsText(i))
+                    end
                 end
                 i = i + 1
             end
+        end
+
+        i = 0 
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i)
+                if hash:HasKey(column:GetAsText(i))
+                    hash:Add(column:GetAsText(i), hash:GetValue(column:GetAsText(i)) + 1)
+                end
+            end
+            i = i + 1
         end
 
         integer yMin = 0
@@ -287,7 +302,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if factor:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(sort, false))
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(sort, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -304,7 +319,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = factor:Copy(sort, false)
+            DataFrameColumn labels = factor:Copy(sort, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -436,7 +451,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if factor1:IsDateTimeColumn()
             dateFactor1 = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(sort, false))
+            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(sort, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -453,7 +468,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor1:IsNumberColumn()
                 numericalFactor1 = true
             end
-            DataFrameColumn labels = factor1:Copy(sort, false)
+            DataFrameColumn labels = factor1:Copy(sort, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -471,7 +486,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> seriesNames 
         if factor2:IsDateTimeColumn()
             dateFactor2 = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(sort, false))
+            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(sort, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -488,7 +503,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor2:IsNumberColumn()
                 numericalFactor2 = true
             end
-            DataFrameColumn labels = factor2:Copy(sort, false)
+            DataFrameColumn labels = factor2:Copy(sort, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)

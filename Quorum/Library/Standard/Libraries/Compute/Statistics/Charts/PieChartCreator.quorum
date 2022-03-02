@@ -54,7 +54,12 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         elseif columns > 1 and factors = 0 
             return CreateChartBySum(frame)
         elseif columns >= 1 and factors = 1
-            return CreateChart(frame) //perhaps make side by side pie charts?? 
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsUndefined() // If the factor is undefined don't use a factor
+                return CreateChartBySum(frame)
+            else
+                return CreateChart(frame) //perhaps make side by side pie charts?? 
+            end
         else
             alert("PieChartCreator does not support the number of column/factors that were selected")
         end
@@ -80,14 +85,14 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> seriesNames 
         if column:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(true, false))
+            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
-                if hash:HasKey(dates:GetAsText(i))
-                    hash:Add(dates:GetAsText(i), hash:GetValue(dates:GetAsText(i)) + 1)
-                else
-                    seriesNames:Add(dates:GetAsText(i))
-                    hash:Add(dates:GetAsText(i), 1)
+                if not dates:IsUndefined(i)
+                    if not hash:HasKey(dates:GetAsText(i))
+                        hash:Add(dates:GetAsText(i), 0)
+                        seriesNames:Add(dates:GetAsText(i))
+                    end
                 end
                 i = i + 1
             end
@@ -95,17 +100,27 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if column:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = column:Copy(true, false)
+            DataFrameColumn labels = column:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
-                if hash:HasKey(labels:GetAsText(i))
-                    hash:Add(labels:GetAsText(i), hash:GetValue(labels:GetAsText(i)) + 1)
-                else
-                    seriesNames:Add(labels:GetAsText(i))
-                    hash:Add(labels:GetAsText(i), 1)
+                if not labels:IsUndefined(i)
+                    if not hash:HasKey(labels:GetAsText(i))
+                        hash:Add(labels:GetAsText(i), 0)
+                        seriesNames:Add(labels:GetAsText(i))
+                    end
                 end
                 i = i + 1
             end
+        end
+
+        i = 0 
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i)
+                if hash:HasKey(column:GetAsText(i))
+                    hash:Add(column:GetAsText(i), hash:GetValue(column:GetAsText(i)) + 1)
+                end
+            end
+            i = i + 1
         end
 
         Array <Series> seriesList
@@ -215,7 +230,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> seriesNames 
         if factor:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, false))
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -232,7 +247,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = factor:Copy(true, false)
+            DataFrameColumn labels = factor:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)

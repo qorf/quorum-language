@@ -96,16 +96,18 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 dateFactor = true
                 integer i = 0
                 repeat while i < factor:GetSize()
-                    if not dateForText:HasKey(factor:GetAsText(i))
-                        dateForText:Add(factor:GetAsText(i), factor:GetAsDateTime(i))
-                    end
-                    if not groupFactor:HasKey(factor:GetAsText(i))
-                        Array <ChartPoint> arr
-                        groupFactor:Add(factor:GetAsText(i), arr)
+                    if not factor:IsUndefined(i)
+                        if not dateForText:HasKey(factor:GetAsText(i))
+                            dateForText:Add(factor:GetAsText(i), factor:GetAsDateTime(i))
+                        end
+                        if not groupFactor:HasKey(factor:GetAsText(i))
+                            Array <ChartPoint> arr
+                            groupFactor:Add(factor:GetAsText(i), arr)
+                        end
                     end
                     i = i + 1
                 end   
-                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, false))
+                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, true))
                 if dates:GetSize() > 0
                     xMin = 0 
                     xMax = dates:Get(i-1):GetDayDifference(dates:Get(0))
@@ -120,9 +122,11 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 numericalFactor = true
                 integer i = 0
                 repeat while i < factor:GetSize()
-                    if not groupFactor:HasKey(factor:GetAsText(i))
-                        Array <ChartPoint> arr
-                        groupFactor:Add(factor:GetAsText(i), arr)
+                    if not factor:IsUndefined(i)
+                        if not groupFactor:HasKey(factor:GetAsText(i))
+                            Array <ChartPoint> arr
+                            groupFactor:Add(factor:GetAsText(i), arr)
+                        end
                     end
                     i = i + 1
                 end  
@@ -136,9 +140,11 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 textFactor = true
                 integer i = 0
                 repeat while i < factor:GetSize()
-                    if not groupFactor:HasKey(factor:GetAsText(i))
-                        Array <ChartPoint> arr
-                        groupFactor:Add(factor:GetAsText(i), arr)
+                    if not factor:IsUndefined(i)
+                        if not groupFactor:HasKey(factor:GetAsText(i))
+                            Array <ChartPoint> arr
+                            groupFactor:Add(factor:GetAsText(i), arr)
+                        end
                     end
                     i = i + 1
                 end 

@@ -28,7 +28,7 @@ class DateTimeColumn is DataFrameColumn
     end
 
     action Add(text value)
-        if value = undefined
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
@@ -42,6 +42,15 @@ class DateTimeColumn is DataFrameColumn
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             alert(value + " failed to parse")
+        end
+    end
+
+    action Add(DateTime value)
+        if value not= undefined
+            rows:Add(value)
+        else
+            rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
         end
     end
 
