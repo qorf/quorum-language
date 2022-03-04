@@ -19,6 +19,7 @@ class ExceptionTester
     action Test
         path = passPath
         CastErrorCausingCastError()
+        CastTextToBoolean()
         CatchCastAlertException()
         CatchCastErrorFromOtherMethod()
         CatchCastException()
@@ -147,6 +148,17 @@ class ExceptionTester
         Array<text> results
         File main
         main:SetPath(path + "CastErrorCausingCastError.quorum")
+        files:Add(main)
+        results:Add(0, "caught")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action CastTextToBoolean
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CastTextToBoolean.quorum")
         files:Add(main)
         results:Add(0, "caught")
         suite:Test(files, results)
