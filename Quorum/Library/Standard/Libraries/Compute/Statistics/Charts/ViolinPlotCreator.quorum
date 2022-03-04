@@ -21,14 +21,16 @@ use Libraries.Compute.Statistics.Calculations.InterQuartileRange
 use Libraries.Interface.Controls.Charts.Legend
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
-    This class is used to create a Violin Chart from columns(at most 3) of data in a DataFrame.
+    This class is used to create a Violin Chart from columns/factor of data in a DataFrame.
     It combines a box and whisker graph and a normal distribution graph. The max value on 
     y-axis is based on the max value of all columns. X-axis is devided equally to holds at most 3 
     violin chart with labels of each column.
 
-    Attribute: Author Silafu Yiliyaer, Hannah Williams
+    Attribute: Authors Silafu Yiliyaer, Hannah Williams
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -52,10 +54,7 @@ use Libraries.Containers.HashTable
 */
 class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
     private integer bandWidth = 0
-    //y axis tick number, by defalut is 5
-    private integer yTicks = 5
     UnivariateAction window = undefined
-
     Comparison comparison = undefined
 
     action Create(DataFrame frame) returns Chart
@@ -63,7 +62,12 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         if GetColumnSize() > 0 and GetFactorSize() = 0
             return CreateChartWithoutFactor(frame)
         elseif GetColumnSize() > 0 and GetFactorSize() = 1
-            return CreateChartWithFactor(frame)
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsUndefined() // If the factor is undefined don't use a factor
+                return CreateChartWithoutFactor(frame)
+            else
+                return CreateChartWithFactor(frame)
+            end
         else
             alert("ViolinPlotCreator does not support the number of column/factors that were selected.")
             alert("Please include at least one numerical column. Violin Plots can support at most one factor.")
@@ -88,49 +92,60 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         HashTable<text, PlotGroup> groupFactor
         boolean numericalGroupName = false
 
-        number largest = 0
-        number smallest = 0
+        number yMax = 0
+        number yMin = 0
 
         integer i = 0
         repeat while i < GetColumnSize()
-            DataFrameColumn columnFrame = frame:GetColumn(GetColumn(i))
-            if columnFrame = undefined and columnFrame:CanConvertToVector()
-                alert("Could not find column number " + GetColumn(i))
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsUndefined()
+                if not column:CanConvertToVector()
+                    alert("Could not covert values in " + GetColumn(i) + " to vector")
+                end
+                
+                NumberColumn newColumn
+                if column:GetUndefinedSize() > 0
+                    newColumn = RemoveUndefinedValues(cast(NumberColumn, column:Copy()))
+                else
+                    newColumn = cast(NumberColumn, column:Copy())
+                end
+                Vector dataset = newColumn:ConvertToVector()
+                dataset:Sort()                
+                
+                if dataset:GetSize() > 0
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
+                    end
+                end
+    
+                Plot plot
+                plot:SetData(dataset)
+                plot:SetInfo(Calculations(newColumn, dataset))
+                plot:SetName(column:GetHeader())
+    
+                if not seriesFactor:HasKey(column:GetHeader())
+                    Series series
+                    series:SetName(column:GetHeader())
+                    series:AddItem(plot:GetIcon())
+                    series:AddItem(plot)
+                    plot:SetSeries(series)
+                    seriesFactor:Add(column:GetHeader(), series)
+    
+                    PlotGroup group
+                    group:SetName(column:GetHeader())
+                    group:AddPlot(plot)
+                    groupFactor:Add(column:GetHeader(), group)
+                end
+                i = i + 1 
             end
-            if columnFrame:CanConvertToVector() = false
-                alert("Could not covert values in " + GetColumn(i)+ " to vector")
-            end
-            //convert to vector, do the calculation
-            Summarize sum
-            sum:Calculate(columnFrame)
-            if largest < sum:GetMaximum()
-                largest = sum:GetMaximum()
-            end
-            if smallest > sum:GetMinimum()
-                smallest = sum:GetMinimum()
-            end
-
-            Plot plot
-            Vector dataset = columnFrame:ConvertToVector()
-            dataset:Sort()
-            plot:SetData(dataset)
-            plot:SetInfo(Calculations(dataset))
-            plot:SetName(columnFrame:GetHeader())
-
-            if(not seriesFactor:HasKey(columnFrame:GetHeader()))
-                Series series
-                series:SetName(columnFrame:GetHeader())
-                series:AddItem(plot:GetIcon())
-                series:AddItem(plot)
-                plot:SetSeries(series)
-                seriesFactor:Add(columnFrame:GetHeader(), series)
-
-                PlotGroup group
-                group:SetName(columnFrame:GetHeader())
-                group:AddPlot(plot)
-                groupFactor:Add(columnFrame:GetHeader(), group)
-            end
-            i=i+1 
         end
 
         // Sort and add
@@ -154,7 +169,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             chart:SetWindowingAction(window)
         end
 
-        SetScale(chart, smallest, largest, 0, columnNames:GetSize())
+        SetScale(chart, yMin, yMax, 0, columnNames:GetSize())
         chart:OverrideXLabelsWithText(columnNames)
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
@@ -170,57 +185,57 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
-        Array<text> groupNames
-        HashTable<text, Series> seriesFactor //The series of plots within the panel
+        HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
-        HashTable<text, HashTable<text, Vector>> dataFactor 
-        HashTable<number, text> numberForText
-        boolean numerical = false
+        HashTable<text, NumberColumn> dataFactor 
+        boolean dateFactor = false
+        boolean numericalFactor = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
         chart:SetXAxisTitle(factor:GetHeader())
-        if factor:IsNumberColumn()
-            numerical = true
-        end
 
-        integer i = 0
-        repeat while i < factor:GetSize()
-            if not dataFactor:HasKey(factor:GetAsText(i))
-                HashTable<text, Vector> dataSet
-                dataFactor:Add(factor:GetAsText(i), dataSet)
-            end
-            if not groupFactor:HasKey(factor:GetAsText(i))
-                PlotGroup group
-                group:SetName(factor:GetAsText(i))
-                groupFactor:Add(factor:GetAsText(i), group)
-                if numerical
-                    numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
-                end
-            end
-            integer j = 0
-            repeat while j < columns
-                DataFrameColumn column = frame:GetColumn(GetColumn(j))
-                if dataFactor:HasKey(factor:GetAsText(j))
-                    if not dataFactor:GetValue(factor:GetAsText(j)):HasKey(column:GetHeader())
-                        dataFactor:GetValue(factor:GetAsText(j)):Add(column:GetHeader(), undefined)
+        Array <text> groupNames 
+        if factor:IsDateTimeColumn()
+            dateFactor = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not groupFactor:HasKey(dates:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(dates:GetAsText(i))
+                        groupNames:Add(dates:GetAsText(i))
+                        groupFactor:Add(dates:GetAsText(i), group)
                     end
                 end
-                j = j + 1
+                i = i + 1
             end
-            i = i + 1
+        else
+            if factor:IsNumberColumn()
+                numericalFactor = true
+            end
+            DataFrameColumn labels = factor:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not groupFactor:HasKey(labels:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(labels:GetAsText(i))
+                        groupNames:Add(labels:GetAsText(i))
+                        groupFactor:Add(labels:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
         end
-
 
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column = undefined and column:CanConvertToVector()
-                alert("Could not find column number " + GetColumn(i))
-            end
             if column:CanConvertToVector() = false
                 alert("Could not covert values in " + GetColumn(i)+ " to vector")
             end
-            if  not seriesFactor:HasKey(column:GetHeader())
+            if not seriesFactor:HasKey(column:GetHeader())
                 Series series
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
@@ -230,22 +245,13 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 if not factor:IsUndefined(j) and not column:IsUndefined(j)
                     number value = column:GetAsNumber(j)
                     
-                    if dataFactor:GetValue(factor:GetAsText(j)):GetValue(column:GetHeader()) not= undefined
-                        Vector vector = dataFactor:GetValue(factor:GetAsText(j)):GetValue(column:GetHeader())
-                        Vector copy
-                        copy:SetSize(vector:GetSize()+1)
-                        k = 0
-                        repeat while k < vector:GetSize()
-                            copy:Set(k, vector:Get(k))
-                            k = k + 1
-                        end
-                        copy:Set(k, value)
-                        dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), copy)
+                    text dataKey = factor:GetAsText(j) + " " + column:GetHeader()
+                    if not dataFactor:HasKey(dataKey)
+                        NumberColumn newColumn
+                        newColumn:Add(value)
+                        dataFactor:Add(dataKey, newColumn)
                     else
-                        Vector vector
-                        vector:SetSize(1)
-                        vector:Set(0,value)
-                        dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), vector)
+                        dataFactor:GetValue(dataKey):Add(value)
                     end
                 end
                 j = j + 1
@@ -267,92 +273,68 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1
         end
 
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
-        number largest = 0
-        number smallest = 0
+        // Fill the plot groups
+        number yMax = 0
+        number yMin = 0
         i = 0
-        repeat while i < groupKeyArray:GetSize()
+        repeat while i < groupNames:GetSize()
             integer j = 0
             repeat while j < seriesKeyArray:GetSize()
-                Plot plot
-                Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
-                if dataset not= undefined
-                    dataset:Sort()
-                    plot:SetData(dataset)
-                    plot:SetInfo(Calculations(dataset))
-                    plot:SetName(seriesKeyArray:Get(j))
-        
-                    if largest < dataset:Get(dataset:GetSize()-1) //Find largest value to scale y axis
-                        largest = dataset:Get(dataset:GetSize()-1)
-                    end
-
-                    if smallest > dataset:Get(0) //Find smallest value to scale y axis
-                        smallest = dataset:Get(0)
-                    end        
-
-                    if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
-                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
-                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
-                        plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
-                    end
-                    if groupFactor:HasKey(groupKeyArray:Get(i))
-                        groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
+                text dataKey = groupNames:Get(i) + " " + seriesKeyArray:Get(j)
+                NumberColumn column = dataFactor:GetValue(dataKey)
+                
+                Vector dataset = column:ConvertToVector()
+                dataset:Sort()            
+                
+                if dataset:GetSize() > 0
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
                     end
                 end
+    
+                Plot plot
+                plot:SetData(dataset)
+                plot:SetInfo(Calculations(column, dataset))
+                plot:SetName(column:GetHeader())
+                if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
+                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
+                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
+                    plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
+                end
+                if groupFactor:HasKey(groupNames:Get(i))
+                    groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
+                end
+
                 j = j + 1
             end
             i = i + 1  
         end
 
-        // Sort the plot groups within the chart
-        if numerical
-            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < numberKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
-                if CheckIfInteger(numberKeyArray:Get(i))
-                    group:SetName(cast(text, cast(integer, numberKeyArray:Get(i))))
-                    groupNames:Add(cast(text, cast(integer, numberKeyArray:Get(i))))
-                else
-                    groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
-                end
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-       else
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < groupKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-            groupNames = groupKeyArray
-        end  
+        i = 0
+        repeat while i < groupNames:GetSize()
+            PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
+            chart:AddPlotGroup(group)
+            i = i + 1
+        end
 
         //Use the default windowing action (Kernel) if undefined
         if window not= undefined
             chart:SetWindowingAction(window)
         end
 
-        SetScale(chart, smallest, largest, 0, groupNames:GetSize())
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
         chart:SetSeriesList(seriesList)
-        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor)
         return chart
-    end
-
-    private action CheckIfInteger(number value) returns boolean
-        return (cast(integer, value) = value)
     end
 
     private action SetScale(ViolinPlot chart, number ymin, number ymax, number xmin, number xmax)
@@ -362,46 +344,73 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         chart:GetHorizontalPanel():SetMaximum(xmax)
     end
 
+    private action RemoveUndefinedValues(NumberColumn column) returns NumberColumn
+        NumberColumn newColumn
+        integer i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i)
+                newColumn:Add(column:GetAsNumber(i))
+            end
+            i = i + 1
+        end
+        return newColumn
+    end
+
     /*
     This action returns the five number summary of a dataset as an array, in the order median, lower quartile, upper quartile, smallest, largest. 
     It also excludes outliers in the set as smallest and largest.
     */
-    action Calculations(Vector dataset) returns Array<number>
+    action Calculations(NumberColumn column, Vector dataset) returns Array<number>
+        Array<number> myData
         Array <number> outliers
     
-        number median = GetMedian(dataset,0,dataset:GetSize()-1)
-        integer medianIndex = 0
-        integer lowerMedianIndex = 0
-        integer upperMedianIndex = 0
+        number median = 0
         number lowerQuartile = 0
         number upperQuartile = 0
-        //Calculating what needs to be sent to GetMedian is slightly different depending on even or odd data sets.
-        if dataset:GetSize() mod 2 = 0
-            lowerMedianIndex = (dataset:GetSize()-1)/2
-            upperMedianIndex = dataset:GetSize()/2
-            lowerQuartile = GetMedian(dataset,0,lowerMedianIndex)
-            upperQuartile = GetMedian(dataset,upperMedianIndex,dataset:GetSize()-1)
-        else
-            medianIndex = (dataset:GetSize()-1)/2
-            lowerQuartile = GetMedian(dataset,0,medianIndex)
-            upperQuartile = GetMedian(dataset,medianIndex,dataset:GetSize()-1)
-        end
 
-        //We want to exclude outliers from the data as our high and low values.
-        number iqr = upperQuartile-lowerQuartile
-        number lowerRange = lowerQuartile - iqr*1.5
-        number upperRange = upperQuartile + iqr*1.5
         integer lastIndex = dataset:GetSize()-1
         number largest = dataset:Get(lastIndex)
         number smallest = dataset:Get(0)
 
+        if dataset:GetSize() > 3
+            Calculate(column)
+            median = GetMedian()
+            lowerQuartile = GetBottomMedian()
+            upperQuartile = GetTopMedian()
+        else // If the vector has 3 or less values then the IQR Class calculation won't work.
+            median = GetMedian(dataset,0,lastIndex)
+            integer medianIndex = 0
+            integer lowerMedianIndex = 0
+            integer upperMedianIndex = 0
+            //Calculating what needs to be sent to GetMedian is slightly different depending on even or odd data sets.
+            if dataset:GetSize() mod 2 = 0
+                lowerMedianIndex = (lastIndex)/2
+                upperMedianIndex = dataset:GetSize()/2
+                lowerQuartile = GetMedian(dataset,0,lowerMedianIndex)
+                upperQuartile = GetMedian(dataset,upperMedianIndex,lastIndex)
+            else
+                medianIndex = (lastIndex)/2
+                lowerQuartile = GetMedian(dataset,0,medianIndex)
+                upperQuartile = GetMedian(dataset,medianIndex,lastIndex)
+            end
+        end
+
+        //We want to exclude outliers from the data as our high and low values.
+        iqr = upperQuartile-lowerQuartile
+        lowerRange = lowerQuartile - iqr*1.5
+        upperRange = upperQuartile + iqr*1.5
+
         // Add the lower outliers to be plotted as points
         integer index = 0
-        boolean bottomGlitch = false // For some reason if there are bottom outliers then it adds them twice :(
         repeat while index < dataset:GetSize()
             if dataset:Get(index) < lowerRange
-                outliers:Add(dataset:Get(index))
-                bottomGlitch = true
+                if index > 0
+                    if not (dataset:Get(index) = dataset:Get(index-1)) //Skip duplicates since we only need one point to show an outlier
+                        outliers:Add(dataset:Get(index))
+                    end
+                else
+                    outliers:Add(dataset:Get(index))
+                end
             else
                 smallest = dataset:Get(index)
                 index = index + dataset:GetSize() + 1 //Skip the rest
@@ -410,10 +419,16 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         end
 
         // Add the upper outliers to be plotted as points
-        index = dataset:GetSize()-1
+        index = lastIndex
         repeat while index > 0
             if dataset:Get(index) > upperRange
-                outliers:Add(dataset:Get(index))
+                if index < lastIndex
+                    if not (dataset:Get(index) = dataset:Get(index+1)) //Skip duplicates since we only need one point to show an outlier
+                        outliers:Add(dataset:Get(index))
+                    end
+                else
+                    outliers:Add(dataset:Get(index))
+                end
             else
                 largest = dataset:Get(index)
                 index = index - dataset:GetSize() - 1 //Skip the rest
@@ -421,7 +436,6 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             index = index - 1
         end
         
-        Array<number> myData
         myData:Add(median)
         myData:Add(lowerQuartile)
         myData:Add(upperQuartile)
@@ -431,11 +445,9 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         integer i = 0
         repeat while i < outliers:GetSize()
             myData:Add(outliers:Get(i))
-            if bottomGlitch //to skip repeat glitch
-                i = i + 1
-            end
             i = i + 1
         end
+        Empty()
         return myData
     end
 

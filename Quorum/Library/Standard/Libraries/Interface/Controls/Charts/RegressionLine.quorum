@@ -1,0 +1,185 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Vector
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Containers.Array
+
+class RegressionLine is Drawable
+    private Regression regression = undefined
+    private Series series = undefined
+    private Math math
+    private Icon icon 
+    private ControlLabel equation
+    private ControlLabel rsquared
+    private text equationText = ""
+    private text rsquaredText = ""
+    private integer lineDensity = 4     
+    private text dependentVariable = ""
+    private Array<text> independentVariables    // This would be used when we have multi-variate regression
+    private boolean nameAfterSeries = false
+
+    on create
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action GetRegression returns Regression
+        return regression
+    end
+
+    action SetRegression(Regression regression)
+        me:regression = regression
+    end
+
+    action SetIcon(Icon icon)
+        me:icon = icon
+    end
+
+    action GetIcon returns Icon
+        return icon
+    end
+
+    action GetLabel() returns ControlLabel
+        return equation
+    end
+
+    action GetEquationLabel() returns ControlLabel
+        return equation
+    end
+
+    action GetRSquaredLabel() returns ControlLabel
+        return rsquared
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    action SetLineDensity(integer lineDensity)
+        me:lineDensity = lineDensity
+    end
+
+    action GetLineDensity returns integer
+        return lineDensity
+    end
+
+    action SetVariableNames(text yAxisTitle, text xAxisTitle, boolean isHorizontal, boolean orientationChanged)
+        if isHorizontal or (not isHorizontal and not orientationChanged)
+            if xAxisTitle = ""
+                SetIndependentVariable("x")
+            else
+                SetIndependentVariable(xAxisTitle)
+            end
+            if NamedAfterSeries() and yAxisTitle = ""
+                SetDependentVariableWithSeries()
+            else
+                if yAxisTitle = ""
+                    SetDependentVariable("y")
+                else
+                    SetDependentVariable(yAxisTitle)
+                end
+            end
+        else
+            if yAxisTitle = ""
+                SetIndependentVariable("y")
+            else
+                SetIndependentVariable(yAxisTitle)
+            end
+            if NamedAfterSeries() and xAxisTitle = ""
+                SetDependentVariableWithSeries()
+            else
+                if xAxisTitle = ""
+                    SetDependentVariable("x")
+                else
+                    SetDependentVariable(xAxisTitle)
+                end
+            end
+        end
+        GenerateEquation()
+    end
+
+    action SetDependentVariable(text dependentVariable)
+        me:dependentVariable = dependentVariable
+    end
+
+    action SetDependentVariableWithSeries()
+        if series not= undefined
+            me:dependentVariable = series:GetName()
+        end
+    end
+
+    action NamedAfterSeries(boolean nameAfterSeries)
+        me:nameAfterSeries = nameAfterSeries
+    end
+
+    action NamedAfterSeries returns boolean
+        return nameAfterSeries
+    end
+
+    action SetIndependentVariable(text independentVariable)
+        independentVariables:Empty()
+        independentVariables:Add(independentVariable)
+    end
+
+    action SetIndependentVariables(Array<text> independentVariables)
+        if independentVariables:GetSize() not= regression:GetCoefficients():GetSize()
+            me:independentVariables:Empty()
+            integer i = 0
+            repeat while i < regression:GetCoefficients():GetSize()
+                text var = "x"+(i+1)
+                me:independentVariables:Add(var)
+                i = i + 1
+            end
+        else
+            me:independentVariables = independentVariables
+        end
+    end
+
+    // Gives dependentVariable = (m*independentVariable) + b 
+    action GenerateEquation()
+        Math math
+        Vector beta = regression:GetCoefficients()
+        if beta:GetSize() > 1 and independentVariables:GetSize() > 0
+            equationText = dependentVariable + " = " + math:Round(beta:Get(1),2) + "*" + independentVariables:Get(0)
+            integer i = 2
+            repeat while i < beta:GetSize() and (i-1) < independentVariables:GetSize()
+                if math:Round(beta:Get(i),2) < 0
+                    equationText = equationText + math:Round(beta:Get(i),2) + "*" + independentVariables:Get(i-1)
+                else
+                    equationText = equationText + "+ " + math:Round(beta:Get(i),2) + "*" + independentVariables:Get(i-1)
+                end
+                i = i + 1
+            end
+            if math:Round(beta:Get(0),2) < 0
+                equationText = equationText + math:Round(beta:Get(0),2)
+            else
+                equationText = equationText + " + " + math:Round(beta:Get(0),2)
+            end
+        end
+        rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
+
+        equation:SetText(equationText)
+        equation:SetName(equationText)
+
+        rsquared:SetText(rsquaredText)
+        rsquared:SetName(rsquaredText)
+    end 
+
+    // Equation is (dependent(y)) = m * (independent(x)) + b
+    action CalculateDependentValue(number independent) returns number
+        number dependent = 0
+        Vector beta = regression:GetCoefficients()
+        if beta:GetSize() > 1
+            dependent = beta:Get(1)*independent + beta:Get(0)
+        end
+        return dependent
+    end
+end

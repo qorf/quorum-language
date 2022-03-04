@@ -82,6 +82,8 @@ class Histogram is SharedBarChartParent
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        // Default settings specific to histogram
+        RegressionCapable(false)
         ShowAllTicks()
         SetDefaultOrientationToVertical()
         SetDefaultSeparation(true)

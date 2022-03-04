@@ -381,8 +381,9 @@ class BoxPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():LostSelection()
+//                temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -423,8 +424,9 @@ class BoxPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():GainedSelection()
+//                temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
             else
                 parent:Chart:GainedSelection(ci)
             end            
@@ -449,17 +451,24 @@ class BoxPlot is Chart
         Appends a plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
-        if maxValue < group:GetMaxValue()
+        if plotGroups:GetSize() = 0
             maxValue = group:GetMaxValue()
-        end
-        if minValue > group:GetMinValue()
             minValue = group:GetMinValue()
-        end
-        if maxOutlierValue < group:GetMaxOutlierValue()
             maxOutlierValue = group:GetMaxOutlierValue()
-        end
-        if minOutlierValue > group:GetMinOutlierValue()
             minOutlierValue = group:GetMinOutlierValue()
+        else
+            if maxValue < group:GetMaxValue()
+                maxValue = group:GetMaxValue()
+            end
+            if minValue > group:GetMinValue()
+                minValue = group:GetMinValue()
+            end
+            if maxOutlierValue < group:GetMaxOutlierValue()
+                maxOutlierValue = group:GetMaxOutlierValue()
+            end
+            if minOutlierValue > group:GetMinOutlierValue()
+                minOutlierValue = group:GetMinOutlierValue()
+            end
         end
         plotGroups:Add(group)
         if group:GetSize() > 1

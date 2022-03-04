@@ -756,6 +756,8 @@ public class AccessibilityManager
         DescriptionChangedNative(nativePointer, item.GetDescription());
     }
     
+    public void BoundsChanged(Item_ item) {}
+    
     public boolean OnButtonActivation(Button_ button)
     {
         if (ITEM_MAP.containsKey(button) == false)

@@ -457,8 +457,10 @@ shared class CompilerErrorCodes
     public constant integer QUORUM_BYTECODE_EXIT_ACTION_CALL_NO_CLASS = 247
     public constant integer QUORUM_BYTECODE_EXIT_ACTION_MISSING_RETURN = 248
 
+    public constant integer PARSER_ACTION_CALL_PERIOD = 249
+
     /* The highest value + 1 */
-    private constant integer HIGHEST = QUORUM_BYTECODE_EXIT_ACTION_MISSING_RETURN + 1
+    private constant integer HIGHEST = PARSER_ACTION_CALL_PERIOD + 1
 
     action IsValid(integer code) returns boolean
         if code < 0

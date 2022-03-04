@@ -28,7 +28,7 @@ class DateTimeColumn is DataFrameColumn
     end
 
     action Add(text value)
-        if value = undefined
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
@@ -43,6 +43,19 @@ class DateTimeColumn is DataFrameColumn
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             alert(value + " failed to parse")
         end
+    end
+
+    action Add(DateTime value)
+        if value not= undefined
+            rows:Add(value)
+        else
+            rows:Add(undefined)
+            parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+        end
+    end
+
+    action IsDateTimeColumn returns boolean
+        return true
     end
 
     action SetParser(DateTimeColumnParser parser)
@@ -93,6 +106,14 @@ class DateTimeColumn is DataFrameColumn
         rows:Set(index, time)
     end
 
+    action GetAsDateTime(integer index) returns DateTime
+        DateTime value = parser:Parse(GetAsText(index))
+        if value = undefined
+            alert("Cannot convert value at position " + index + " to DateTime.")
+        end
+        return value
+    end
+
     action SetSize(integer size)
         rows:SetSize(size)
     end
@@ -114,6 +135,7 @@ class DateTimeColumn is DataFrameColumn
 
     action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
         DateTimeColumn column
+        column:SetParser(GetParser())
         column:SetHeader(GetHeader())
 
         i = rowStart
@@ -138,6 +160,7 @@ class DateTimeColumn is DataFrameColumn
 
     action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
         DateTimeColumn column
+        column:SetParser(GetParser())
         column:SetHeader(GetHeader())
 
         Array<DateTime> newRows
