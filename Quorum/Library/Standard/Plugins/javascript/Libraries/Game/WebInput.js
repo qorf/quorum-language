@@ -77,9 +77,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
             {
-                if (event.code === "Escape" && plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
+                if (event.code === "Escape")
                 {
-                    // If we trap focus inside the canvas, give the user a way
+                    // Since we trap focus inside the canvas, give the user a way
                     // to get out. Do this in the key up handler to ensure
                     // Quorum gets the key up event for Escape, even though
                     // the canvas is about to lose focus.
@@ -581,11 +581,8 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
-                if (event.code !== "Tab" || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
-                {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
+                event.stopPropagation();
+                event.preventDefault();
             }
             else
             {
@@ -990,11 +987,8 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
-                if (event.keyCode !== 9 || plugins_quorum_Libraries_Game_WebInput_.keepTabFocus())
-                {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
+                event.stopPropagation();
+                event.preventDefault();
             }
             
             if (createTextEvent && pressed)
@@ -1129,11 +1123,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
             }
             
             return quorumEvent;
-        };
-    
-        plugins_quorum_Libraries_Game_WebInput_.keepTabFocus = function()
-        {
-            return plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__keepTabFocus_();
         };
         
         plugins_quorum_Libraries_Game_WebInput_.disableContextMenu = function()
