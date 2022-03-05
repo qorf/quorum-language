@@ -30,9 +30,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
     this.Setup = function() {
         let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
+        let title = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__title_();
 
         root = document.createElement("div");
-        root.setAttribute("aria-label", "Application");
+        root.setAttribute("aria-label", title);
         root.setAttribute("tabindex", "-1");
         root.setAttribute("role", "dialog");
         root.hidden = true;
@@ -62,7 +63,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         container.appendChild(root);
 
         entryButton = document.createElement("button");
-        entryButton.setAttribute("aria-label", "Enter Application");
+        entryButton.setAttribute("aria-label", title);
 
         entryButton.style.position = "absolute";
         entryButton.style.left = 0;
