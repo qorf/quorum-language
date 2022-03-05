@@ -16,7 +16,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             // Delay processing of this event until the next event cycle,
             // in case focus is being moved to another accessibility element.
             if (blurDelayedCall === null) {
-              blurDelayedCall = setTimeout(() => {
+                blurDelayedCall = setTimeout(() => {
                     if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
                         return;
                     }

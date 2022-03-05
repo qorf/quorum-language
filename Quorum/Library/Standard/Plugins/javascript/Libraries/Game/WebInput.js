@@ -24,10 +24,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     accessibilityRoot = accessibility.plugin_.GetRoot();
                 }
             }
-            let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
             let element = document.activeElement;
             while (element) {
-                if ((element === accessibilityRoot) || (element === canvas)) {
+                if (element === accessibilityRoot) {
                     return true;
                 }
                 element = element.parentElement;
