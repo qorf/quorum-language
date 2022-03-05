@@ -107,8 +107,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas = function(event)
         {
             var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-            var rect = canvas.getBoundingClientRect();
-            return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+            return event.target === canvas;
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
@@ -121,6 +120,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
              */
             if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
+                console.log(`mousedown ${event.clientX} ${event.clientY} ${event.target.tagName} ${event.target.id}`);
                 event.stopPropagation();
                 event.preventDefault();
                 plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
@@ -139,6 +139,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
             {
+                console.log(`mouseup ${event.clientX} ${event.clientY} ${event.target.tagName} ${event.target.id}`);
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }

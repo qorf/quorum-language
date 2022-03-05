@@ -30,6 +30,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
     this.Setup = function() {
         let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
+        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
         let title = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__title_();
 
         root = document.createElement("div");
@@ -60,7 +61,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
         addBlurListener(root);
 
-        container.appendChild(root);
+        // Accessibility elements must be inserted before the canvas, to ensure
+        // that real mouse events get routed to the canvas while simulated
+        // mouse events get routed to the accessibility elements.
+        container.insertBefore(root, canvas);
 
         entryButton = document.createElement("button");
         entryButton.setAttribute("aria-label", title);
@@ -76,15 +80,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         entryButton.style.color = "rgba(0,0,0,0)";
 
         entryButton.addEventListener("click", (event) => {
-            // If this is an actual pointer event and not a programmatic
-            // activation by an AT, ignore it.
-            if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event)) {
-                return;
-            }
             plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
         });
 
-        container.appendChild(entryButton);
+        // Like the accessibility root, this element must be inserted before
+        // the canvas.
+        container.insertBefore(entryButton, canvas);
     };
 
     this.GetRoot = function() {
@@ -624,11 +625,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             para.addEventListener("click", (event) => {
                 if (event.target !== para) {
                     return; // ignore bubbled events
-                }
-                // If this is an actual pointer event and not a programmatic
-                // activation by an AT, ignore it.
-                if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event)) {
-                    return;
                 }
                 control.Activate();
             });
