@@ -8,7 +8,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     let root = null;
-    let entryButton = null;
+    let focusButton = null;
     let blurDelayedCall = null;
 
     const addBlurListener = function(element) {
@@ -21,7 +21,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
                         return;
                     }
                     blurDelayedCall = null;
-                    entryButton.hidden = false;
+                    focusButton.hidden = false;
                     root.hidden = true;
                 });
             }
@@ -31,7 +31,24 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     this.Setup = function() {
         let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
         let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-        let title = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__title_();
+        let config = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration();
+
+        let title = config.Get_Libraries_Game_WebConfiguration__title_();
+        if (title == null) {
+            title = container.dataset.title;
+            if (title == null) {
+                title = "Game";
+            }
+        }
+
+        let focusButtonName = config.Get_Libraries_Game_WebConfiguration__focusButtonName_();
+        if (focusButtonName == null) {
+            focusButtonName = container.dataset.focusButtonName;
+            if (focusButtonName == null) {
+                // Revisit this if Quorum gets localization support.
+                focusButtonName = `Enter ${title}`;
+            }
+        }
 
         root = document.createElement("div");
         root.setAttribute("aria-label", title);
@@ -67,26 +84,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         // mouse events get routed to the accessibility elements.
         container.insertBefore(root, canvas);
 
-        entryButton = document.createElement("button");
-        entryButton.setAttribute("aria-label", title);
+        focusButton = document.createElement("button");
+        focusButton.setAttribute("aria-label", focusButtonName);
 
-        entryButton.style.position = "absolute";
-        entryButton.style.left = 0;
-        entryButton.style.bottom = 0;
-        entryButton.style.width = "100%";
-        entryButton.style.height = "100%";
+        focusButton.style.position = "absolute";
+        focusButton.style.left = 0;
+        focusButton.style.bottom = 0;
+        focusButton.style.width = "100%";
+        focusButton.style.height = "100%";
 
         // The rationales for the following styles are the same as for the root.
-        entryButton.style.filter = "opacity(0%)";
-        entryButton.style.color = "rgba(0,0,0,0)";
+        focusButton.style.filter = "opacity(0%)";
+        focusButton.style.color = "rgba(0,0,0,0)";
 
-        entryButton.addEventListener("click", (event) => {
+        focusButton.addEventListener("click", (event) => {
             plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
         });
 
         // Like the accessibility root, this element must be inserted before
         // the canvas.
-        container.insertBefore(entryButton, canvas);
+        container.insertBefore(focusButton, canvas);
     };
 
     this.GetRoot = function() {
@@ -103,12 +120,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         }
         root.hidden = false;
         element.focus();
-        entryButton.hidden = true;
+        focusButton.hidden = true;
     };
 
     this.InternalReleaseFocus = function() {
-        entryButton.hidden = false;
-        entryButton.focus();
+        focusButton.hidden = false;
+        focusButton.focus();
         root.hidden = true;
     };
 
