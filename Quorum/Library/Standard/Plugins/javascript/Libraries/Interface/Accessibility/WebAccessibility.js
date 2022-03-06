@@ -37,6 +37,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         root.setAttribute("aria-label", title);
         root.setAttribute("tabindex", "-1");
         root.setAttribute("role", "dialog");
+        root.setAttribute("aria-modal", true);
         root.hidden = true;
 
         root.style.position = "absolute";
