@@ -45,7 +45,14 @@ class WebConfiguration is ApplicationConfiguration
     */
     public number multipleKeyPressTimer = 0.5
 
-    /* The title of the application. */
-    public text title = "Game"
+    /* The title of the application. If undefined, defaults to "Game". */
+    public text title = undefined
+
+    /*
+    The name of the button that assistive technology users will press
+    to move focus into the application. If undefined, defaults to
+    "Enter " followed by the title.
+    */
+    public text focusButtonName = undefined
 
 end
