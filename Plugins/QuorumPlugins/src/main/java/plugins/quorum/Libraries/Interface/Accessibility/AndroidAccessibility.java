@@ -25,6 +25,8 @@ public class AndroidAccessibility {
 
     public void  DescriptionChanged(Item_ item) {}
 
+    public void  BoundsChanged(Item_ item) {}
+
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
     public void  Update() {}

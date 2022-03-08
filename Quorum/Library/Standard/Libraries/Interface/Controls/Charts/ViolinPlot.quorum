@@ -43,7 +43,7 @@ use Libraries.System.File
 class ViolinPlot is Chart
     //bandWidth is a scale option for distribution graph
     //the bigger the value, the flatter the distribution graph will be
-    private integer bandWidth = 0
+    private number bandWidth = 0
 
 
     UnivariateAction windowingAction = undefined
@@ -361,8 +361,9 @@ class ViolinPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():LostSelection()
+//                temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -403,8 +404,9 @@ class ViolinPlot is Chart
                     end
                     i = i + 2
                 end
-                temp:GetLabel():GainedSelection()
+//                temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
             else
                 parent:Chart:GainedSelection(ci)
             end           
@@ -428,14 +430,25 @@ class ViolinPlot is Chart
     /*
         This sets the inteval size to calculate the normal distributions
     */
-    action SetBandWidth(integer value)
-        bandWidth = value
+    action SetBandWidth(number value)
+        number limit = GetYAxisMaximum()
+        if GetHorizontalFlag()
+            limit = GetXAxisMaximum()
+        end
+        if value > 0 
+            if value < limit
+                bandWidth = value
+            else
+                bandWidth = limit
+            end
+        end
+
     end
 
     /*
         This returns the inteval size to calculate the normal distributions
     */
-    action GetBandWidth returns integer
+    action GetBandWidth returns number
         return bandWidth
     end
 
@@ -457,11 +470,16 @@ class ViolinPlot is Chart
     Appends a new plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
-        if maxValue < group:GetMaxOutlierValue()
+        if plotGroups:GetSize() = 0
             maxValue = group:GetMaxOutlierValue()
-        end
-        if minValue > group:GetMinOutlierValue()
-            minValue = group:GetMinOutlierValue()
+            minValue = group:GetMinOutlierValue()        
+        else
+            if maxValue < group:GetMaxOutlierValue()
+                maxValue = group:GetMaxOutlierValue()
+            end
+            if minValue > group:GetMinOutlierValue()
+                minValue = group:GetMinOutlierValue()
+            end
         end
         plotGroups:Add(group)
         if group:GetSize() > 1

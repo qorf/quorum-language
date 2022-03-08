@@ -5,6 +5,12 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.RegressionLine
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Font
 
 /*
 The Series class is a data structure that stores information for each 
@@ -30,11 +36,29 @@ end
 */
 
 class Series is Drawable
-    ControlLabel name
-    text textName = ""
-    Icon icon
-    Color color
-    Array<Drawable> items
+    private ControlLabel name
+    private text textName = ""
+    private Icon icon
+    private Icon entryBox
+    private Color color
+    private Array<Drawable> items
+    private RegressionLine regressionline = undefined
+    private boolean showValue = false
+    private boolean showPercent = false
+    private number seriesValue = 0
+    private number seriesValuePercent = 0
+
+    // Standard entry in the legend
+    /*************************************
+    SeriesIcon NameOfSeries    
+    **************************************/
+
+    // Showing all options
+    /*************************************
+    SeriesIcon  NameOfSeries     (Value) (%)
+    LineIcon    RegressionEquation                    
+                RegressionRSquared
+    ***************************************/
 
     action GetName() returns text
         return name:GetName()
@@ -45,7 +69,7 @@ class Series is Drawable
     end
 
     action SetName(text name)
-        textName = name
+        textName = name        
         me:name:SetName(name)
         me:name:SetText(name)
     end
@@ -66,6 +90,10 @@ class Series is Drawable
         me:icon = icon
     end
 
+    action GetEntryBox returns Icon
+        return entryBox
+    end
+
     action GetColor() returns Color
         return color
     end
@@ -75,7 +103,6 @@ class Series is Drawable
     end
 
     action AddItem(Drawable item)
-        
         items:Add(item)
     end
 
@@ -87,4 +114,11 @@ class Series is Drawable
         return items:GetSize()
     end
 
+    action SetRegressionLine(RegressionLine regressionline)
+        me:regressionline = regressionline
+    end
+    
+    action GetRegressionLine returns RegressionLine
+        return regressionline
+    end
 end

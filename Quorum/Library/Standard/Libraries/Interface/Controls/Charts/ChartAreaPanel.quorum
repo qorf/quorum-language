@@ -10,31 +10,13 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.ColorGroup
 
 /*
-    This class represents the horizontal axis panel area on the charts.
+    This class represents the chart area sub panels within splitbyfactor charts.
     This class is not meant to be accessed by the user directly.
     All of its actions and components should only be controlled by the user
     through the Chart class.
 
 
     Attribute: Hannah Williams
-
-    Attribute: Example
-
-    use Libraries.Interface.Controls.Charts
-    use Libraries.Game.Game
-
-    class Main is Game
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            BarChart chart
-            Color color
-            chart:SetChartAreaBorderColor(color:Black())
-            Add(chart)
-        end
-    end
 */
 
 class ChartAreaPanel is Control

@@ -5,9 +5,9 @@ use Libraries.Game.ApplicationConfiguration
 class WebConfiguration is ApplicationConfiguration
 
     /*
-    The ID of the canvas to use for rendering the Game.
+    The ID of the pre-existing element that contains the UI.
     */
-    public text canvasID = "QuorumGraphicsCanvas"
+    public text containerID = "QuorumUIContainer"
 
     /*
     Whether or not the Game should be limited to the given number of frames per
@@ -38,7 +38,7 @@ class WebConfiguration is ApplicationConfiguration
     presses the Tab key, the window will lose focus. If it is true, the window
     will keep the focus even if the user presses Tab.
     */
-    public boolean keepTabFocus = false
+    public boolean keepTabFocus = true
 
     /*
     The maximum number of seconds allowed between each mouse click before the

@@ -52,6 +52,10 @@ class Summarize is DataFrameColumnCalculation
         repeat while i < column:GetSize()
             if not column:IsUndefined(i)
                 number value = column:GetAsNumber(i)
+                if i = 0
+                    minimum = value
+                    maximum = value
+                end
                 sum = sum + value
                 sumOfSquares = sumOfSquares + (value * value)
                 if value < minimum
