@@ -1,32 +1,38 @@
 package Libraries.Data.Formats.ScalableVectorGraphics
+
 use Libraries.Containers.Array
 use Libraries.Containers.Support.Pair
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 
 /*
-    The Polygon class is an implementation of the polygon shape in the SVG standard. The 
-    polyline is used to make closed shapes using a set of points. The last point will connect 
+    The MultiplePolygon class is an implementation of the path to make a polygon in the SVG standard. The 
+    path is used to make closed shapes using a set of points. The last point will connect 
     to the first point closing the shape, Note that when using a set
     of points the points are pairs of absolute coordinates. Like other ScalableVectorGraphicsObjects 
-    the polygon class inherits global attributes but it also has its own attributes.
+    the MultiplePolygon class inherits global attributes but it also has its own attributes.
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Hannah Williams
 
     Attribute: Example
 
     Libraries.Data.Formats.ScalableVectorGraphics.all
+
+    MultiplePolygon myMulti
 
     Polygon myShape
     myShape:AddPoint(100,100)
     myShape:AddPoint(50,25)
     myShape:AddPoint(50,75)
     myShape:AddPoint(100,0)
-    myShape:SetFill("none")
-    myShape:SetStroke("black")
+
+    myMulti:AddPolygon(myShape)
+    myMulti:SetFill("none")
+    myMulti:SetStroke("black")
 
 */
-class Polygon is ScalableVectorGraphicsObject
-    constant text objectName = "polygon"
-    private Array<Pair<number>> points
+class MultiplePolygon is ScalableVectorGraphicsObject
+    constant text objectName = "path"
+    private Array<Polygon> polygons
 
 
     /*
@@ -45,15 +51,25 @@ class Polygon is ScalableVectorGraphicsObject
 
         result = "<" + objectName 
         result = result + GlobalAttributesToText()
-        if points:IsEmpty() = false
-            result = result + " points=" + dq
-            integer i = 0
-            repeat while i < points:GetSize()
-                result = result + points:Get(i):GetFirstValue() + "," + points:Get(i):GetSecondValue() + " "
-                i = i + 1
+        result = result + " d=" + dq + "M"
+        integer j = 0
+        repeat while j < polygons:GetSize()
+            Array<Pair<number>> points = polygons:Get(j):GetPoints()
+            if points:IsEmpty() = false
+                integer i = 0
+                repeat while i < points:GetSize()
+                    result = result + points:Get(i):GetFirstValue() + "," + points:Get(i):GetSecondValue() + " "
+                    i = i + 1
+                end
+                if j < polygons:GetSize() - 1
+                    result = result + "z M "
+                else
+                    result = result + "z"
+                end
             end
-            result = result + dq
+            j = j + 1
         end
+        result = result + dq
         if GetTitle() not= "" or GetDescription() not= ""
             result = result + ">" + newLine
             if GetTitle() not= ""
@@ -73,11 +89,9 @@ class Polygon is ScalableVectorGraphicsObject
     end
 
     /*
-        This action adds a point with a given x and y to the list of points that construct the polygon.
-        Note that these points must be absolute coordinates. 
+        This action adds a polygon to the polygon array.
 
-        Attribute: Parameter x The x position of the point.
-        Attribute: Parameter y The y position of the point.
+        Attribute: Parameter polygon. The Polygon to be added.
 
         Attribute: Example
 
@@ -85,29 +99,26 @@ class Polygon is ScalableVectorGraphicsObject
 
         Polygon polygon
         polygon:AddPoint(50,50)
+
+        MultiplePolygon myMulti
+        myMulti:AddPolygon(polygon)
     */
-    action AddPoint(number x, number y)
-        Pair<number> point
-        point:Set(x, y)
-        points:Add(point)
-    end
-    
-    action GetPoints() returns Array<Pair<number>>
-        return points
+    action AddPolygon(Polygon polygon)
+        polygons:Add(polygon)
     end
 
     /*
-        This action empties the list of points that construct the polygon.
+        This action empties the array of Polygons that construct the MultiPolygon.
 
         Attribute: Example
 
         Libraries.Data.Formats.ScalableVectorGraphics.all
 
-        Polygon polygon
-        polygon:Empty()
+        MultiplePolygon myMulti
+        myMulti:Empty()
     */
     action Empty
-        points:Empty()
+        polygons:Empty()
     end
 
 end

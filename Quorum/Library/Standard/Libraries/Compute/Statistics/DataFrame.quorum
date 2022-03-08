@@ -58,6 +58,8 @@ use Libraries.Interface.Controls.Charts.BoxPlot
 use Libraries.Compute.Statistics.Charts.PieChartCreator
 use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Interface.Controls.Charts.GeoMap
+use Libraries.Compute.Statistics.Charts.GeoMapCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2812,6 +2814,59 @@ class DataFrame
             alert("Donut hole percent can be a number between 0 and 1")
         end
         return chart
+    end
+
+    /*
+        This action creates a GeoMap from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.GeoMap
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        GeoMap chart = frame:GeoMap()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action GeoMap returns GeoMap
+        GeoMapCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(GeoMap, CreateChart(creator))
+    end
+
+    /*
+        This action creates a GeoMap from the current selection in the DataFrame using a custom map
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.GeoMap
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        GeoMap chart = frame:GeoMap("filePathToBoundaryData")
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action GeoMap(text mapBoundaryFilePath) returns GeoMap
+        GeoMapCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+        creator:SetMapDataFilePath(mapBoundaryFilePath)
+
+        return cast(GeoMap, CreateChart(creator))
     end
 
     /*

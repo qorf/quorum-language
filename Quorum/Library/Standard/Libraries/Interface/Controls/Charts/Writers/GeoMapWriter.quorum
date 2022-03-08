@@ -1,0 +1,140 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
+use Libraries.Data.Formats.ScalableVectorGraphics.MultiplePolygon
+use Libraries.Web.Page.ListItem
+
+/*
+    The GeoMapWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author 472 Geo-Map Team
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.GeoMap
+    use Libraries.Interface.Controls.Charts.GeoMapWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    GeoMap chart = frame:BarChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    BarChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
+
+class GeoMapWriter is ChartWriter
+    action WriteOutChart(GeoMap chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(GeoMap chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(GeoMap chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
+
+    action WriteOutChart(GeoMap chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
+    end
+
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        GeoMap map
+        map = cast(GeoMap, chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area")
+        end
+    end
+
+    /*
+        This action adds the content of the GeoMap
+    */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        GeoMap map
+        map = cast(GeoMap, chart)
+        AddRegions(canvas, map)
+    end
+
+    /*
+        This action adds the content of the GeoMap to the SVG
+    */
+
+    private action AddRegions(ScalableVectorGraphics canvas, GeoMap chart)
+        
+        Array<Region> regions = chart:GetRegions()
+
+        integer i = 0
+        repeat while i < regions:GetSize()
+            if regions:Get(i):GetSubRegions():GetSize() = 1
+                Polygon tempRegion
+                integer k = 0
+                repeat while k < regions:Get(i):GetSubRegions():Get(0):GetPoints():GetSize()
+                    number x = regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetFirstValue()
+                    number y = regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetSecondValue()
+                    number fixy = canvas:GetHeight()-y //This flips the y coord because svg goes top down.
+                    tempRegion:AddPoint(x, fixy)
+                    k = k + 1
+                end
+                tempRegion:SetTitle(regions:Get(i):GetName())
+                tempRegion:SetFill(regions:Get(i):GetColor())
+                tempRegion:SetAriaDescription(regions:Get(i):GetDescription())
+                tempRegion:SetAriaLabel(regions:Get(i):GetName() + ", " + regions:Get(i):GetDescription())
+                tempRegion:SetRole("region")
+//                tempRegion:SetStroke(chart:GetRegionBorderColor())
+//                tempRegion:SetStrokeWidth(chart:GetRegionBorderWidth())
+                tempRegion:SetTabIndex(i+1)
+                canvas:Add(tempRegion) 
+            end
+            if regions:Get(i):GetSubRegions():GetSize() > 1 // We need a way to store multiple polygons in one svg focusable region
+                MultiplePolygon tempRegion
+                integer j = 0
+                repeat while j < regions:Get(i):GetSubRegions():GetSize()
+                    Polygon polygon
+                    integer k = 0
+                    repeat while k < regions:Get(i):GetSubRegions():Get(j):GetPoints():GetSize()
+                        number x = regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetFirstValue()
+                        number y = regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetSecondValue()
+                        number fixy = canvas:GetHeight()-y //This flips the y coord because svg goes top down.
+                        polygon:AddPoint(x, fixy)
+                        k = k + 1
+                    end 
+                    tempRegion:AddPolygon(polygon)
+                    j = j + 1
+                end
+                tempRegion:SetTitle(regions:Get(i):GetName())
+                tempRegion:SetFill(regions:Get(i):GetColor())
+                tempRegion:SetAriaDescription(regions:Get(i):GetDescription())
+                tempRegion:SetAriaLabel(regions:Get(i):GetName() + ", " + regions:Get(i):GetDescription())
+                tempRegion:SetRole("region")
+//                tempRegion:SetStroke(chart:GetRegionBorderColor())
+//                tempRegion:SetStrokeWidth(chart:GetRegionBorderWidth())
+                tempRegion:SetTabIndex(i+1)
+                canvas:Add(tempRegion) 
+            end 
+            i = i + 1
+        end
+    end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        
+    end
+end

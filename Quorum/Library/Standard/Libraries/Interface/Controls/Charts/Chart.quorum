@@ -254,9 +254,9 @@ class Chart is Control
         end
 
         legend:ApplySeriesColor()
+        legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
-            legend:LoadLegend(me, properties)
             Add(legend)
         end
 
@@ -2161,7 +2161,7 @@ class Chart is Control
     action Display(boolean exit)
         ChartDisplay game
         game:SetExitOnStart(exit)
-        game:SetScreenSize(2000,1000) //Default size.
+        game:SetScreenSize(1200,1000) //Default size.
         game:SetChart(me)
         game:StartGame()
     end

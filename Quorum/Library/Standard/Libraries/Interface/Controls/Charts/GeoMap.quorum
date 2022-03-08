@@ -1,0 +1,997 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Interface.Controls.Support.FirstLetterNavigator
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.GeoMapLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Gradient
+use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Compute.Math
+use Libraries.Interface.Selections.ChartSelection
+use Libraries.Game.Graphics.Drawable
+
+
+/*
+    The GeoMap class is Chart object that inherits from Chart and like other
+    UI elements it is added to the Game class. The GeoMap is used to represent
+    geographical data across a defined map.
+
+    Attribute: Author 472 Geo-Map Team
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts.GeoMap
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            GeoMap chart
+            Add(chart)
+        end
+    end
+*/
+
+class GeoMap is Chart, FirstLetterNavigator
+
+    public constant text USA = "../Data/Map Boundary Data/boundaryData.csv"
+
+    // SeriesList, regions, and regionTable are all initialized/populated by GeoMapCreator
+    private Series missingSeries = undefined
+    private Color missingDataColor = undefined
+    private Color previousColor = undefined
+
+    private Array <Region> regions
+    private Array <text> regionNames
+    private HashTable<text, Region> regionTable
+    private boolean alphabeticalOrder = true
+
+    private Array<number> binFloors
+    private Array <ChartItem> chartItems
+    private number manualBinStart = 0
+    private boolean overrideBinStart = false
+    private text numberFormat = "default"
+
+    boolean useNumericalData = false
+    number maxValue = 0 
+    number minValue = 0 
+
+    // If Using Number Data 
+    number binWidth = -1
+    boolean binWidthOverride = false
+    integer binCount = 0
+    boolean binCountOverride = false
+    boolean decimalScale = false
+
+    boolean isLoaded = false
+
+    private integer regionBorderWidth = 0
+    private Color regionBorderColor = undefined
+
+    number ratioWidth = 0
+    number ratioHeight = 0
+    Drawable MapAnchor
+
+    //---CONSTANTS---
+    //prevent unreasonably too many bins in Legend that can cause hanging or funky graphical issues
+    public constant integer MAX_BIN_COUNT = 16
+
+    on create
+        GeoMapLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:MAINTAIN_ASPECT_RATIO)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        Font font = GetDefaultFont()
+        properties:SetFont(font)
+        properties:SetFontSize(GetDefaultFontSize())
+
+        Color color
+        Gradient gradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        gradient:Set(gray, gray, lightGray, lightGray)
+
+        properties:SetBackgroundColor(gradient)
+        properties:SetBorderColor(color:Black())
+        properties:SetBorderThickness(2)
+        SetName("Geo Map")
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+
+        SetMissingDataColor(color:Gray())
+        SetRegionBorderColor(color:Black())
+        SetDefaultOrientationToVertical()
+        ShowXAxis(false)
+        ShowYAxis(false)
+        GetVerticalPanel():BlockPaddingOffset(true)
+        GetHorizontalPanel():BlockPaddingOffset(true)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        parent:Chart:LoadGraphics(properties)
+
+        LoadChartAreaItems()
+    end
+    
+    private action LoadChartAreaItems()
+        ChartAreaPanel chartArea
+        LoadRegionsArray()
+
+        ApplyMissingSeriesColor()
+        // Loop through all states and set their properties 
+        integer i = 0
+        repeat while i < regions:GetSize()
+            Region region = regions:Get(i)
+
+            if not region:GetHasValue()
+                region:SetDescription("has no data.")
+            else
+                if region:GetTextValue() not= undefined // If using text values
+                    region:SetDescription(GetLegend():GetName() + " " + region:GetTextValue())
+                else // If using number values
+                    if CheckIfInteger(region:GetNumberValue()) 
+                        region:SetDescription(GetLegend():GetName() + " of " + cast(integer, region:GetNumberValue()))
+                    else
+                        region:SetDescription(GetLegend():GetName() + " of " + region:GetNumberValue())
+                    end
+                end
+            end
+            region:SetFocusable(true)
+            region:SetAccessibilityCode(parent:Item:ITEM)
+            region:SetNextFocus(GetNextFocus())
+            region:SetPreviousFocus(GetPreviousFocus())
+            i = i + 1 
+        end
+        chartArea:Add(MapAnchor)
+    end
+
+    private action LoadRegionsArray()
+        regions:Empty()
+        integer i = 0
+        repeat while i < regionNames:GetSize()
+            if regionTable:HasKey(regionNames:Get(i))
+                Region region = regionTable:GetValue(regionNames:Get(i))
+                regions:Add(region)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        DisposeDrawables
+        Empties drawables from the chart area.
+    */
+    action DisposeDrawables()
+        parent:Chart:DisposeDrawables()
+
+        GetChartArea():Empty()
+    end
+
+    /*
+        ApplyMissingSeriesColor
+        This applies a color to all the regions that weren't 
+        included in the dataset but are in the map/regionTable
+    */
+    private action ApplyMissingSeriesColor()
+        if missingSeries not= undefined 
+            missingSeries:SetColor(missingDataColor)
+            integer j = 0
+            repeat while j < missingSeries:GetSize()
+                missingSeries:GetItemAt(j):SetColor(missingSeries:GetColor())
+                j = j + 1
+            end
+        end
+    end
+
+    action GenerateSummary returns text
+        // ADD SUMMARY
+        return ""
+    end
+
+    action GenerateInfoTree
+        if GetDefaultLayoutProperties():NeedsRendering()
+            return now //we haven't loaded graphics yet, so bail.
+        end
+
+        ChartItem xAxis
+        ChartItem yAxis
+        ChartItem chartArea //not to be confused with panels
+        ChartItem summary = GetInfoTreeRoot()
+        // The chart area is the child unless y-axis is showing.
+        summary:SetDisplayName(GenerateSummary())
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
+        summary:SetContainer(me)
+        summary:SetFocusTarget(me)
+        chartArea:SetDisplayName("Map Area")
+        chartArea:SetFocusTarget(me:GetChartArea())
+        chartArea:SetParent(summary)
+        chartArea:SetContainer(me)
+        me:GetChartArea():SetDescription("GeoMap")
+    
+        // If any of these are not showing the tree will skip them in the navigation        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingXAxis()
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+        if IsShowingLegend()
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end
+
+        chartItems:Empty()
+
+        if regions:GetSize() > 0
+
+            ChartItem first
+            ChartItem last
+            first:SetFocusTarget(regions:Get(0))
+            first:SetDisplayName(regions:Get(0):GetName())
+            first:SetParent(chartArea)
+            first:SetContainer(me)
+            chartItems:Add(first)
+            
+            chartArea:SetChild(first)
+            integer j = 1
+            ChartItem prev = first
+            repeat while j < regions:GetSize()
+                ChartItem node
+                last = node
+                node:SetFocusTarget(regions:Get(j))
+                node:SetDisplayName(regions:Get(j):GetName())
+                node:SetParent(chartArea)
+                node:SetContainer(me)
+                chartItems:Add(node)
+
+                prev:SetNext(node)
+                node:SetPrevious(prev)
+
+                prev = node
+                j = j + 1
+            end
+            chartArea:SetLastChild(last)
+        end
+
+        ChartSelection selection = GetSelection()
+        selection:Set(summary)
+    end
+
+    /*
+        LostSelection is a supplemental action to the parent Chart's LostSelection.
+        Any items specific to only this type of chart or if an item needs different highlighting
+        instructions than that of the parent class, it will have their LostSelection defined here.
+
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
+    */
+    action LostSelection(ChartItem item)
+        if item = undefined
+            return now
+        end
+        Item target = item:GetFocusTarget()
+        if target not= undefined
+            if target is Series
+                Series temp = cast(Series, target)
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Region tempReg = cast(Region, temp:GetItemAt(i))
+                    tempReg:SetColor(previousColor)
+                    i = i + 1
+                end
+//                temp:GetLabel():LostSelection()
+                temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
+            elseif target is Region
+                Region temp = cast(Region, target)
+                temp:SetColor(previousColor)
+            else
+                parent:Chart:LostSelection(item)
+            end
+        end
+    end
+
+    /* 
+        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        Any items specific to only this type of chart or if an item needs different highlighting
+        instructions than that of the parent class, it will have their GainedSelection defined here.
+
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
+    */
+    action GainedSelection(ChartItem item)
+        if item = undefined
+            return now
+        end
+        Item target = item:GetFocusTarget()
+        if target not= undefined
+            target:Focus()
+            if target is Series
+                Series temp = cast(Series, target)
+                previousColor = temp:GetColor()
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Region tempReg = cast(Region, temp:GetItemAt(i))
+                    tempReg:SetColor(GetHighlightColor())
+                    i = i + 1
+                end
+//                temp:GetLabel():GainedSelection()
+                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
+            elseif target is Region
+                Region temp = cast(Region, target)
+                previousColor = temp:GetColor()
+                temp:SetColor(GetHighlightColor())
+            else
+                parent:Chart:GainedSelection(item)
+            end         
+        end
+    end
+
+    action ConvertToScalableVectorGraphics returns text
+        GeoMapWriter writer
+        return writer:WriteOutChart(me)
+       return ""
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            GeoMapWriter chartWriter
+            chartWriter:WriteOutChart(me,file)
+        end
+    end
+    
+    action Resize
+        parent:Chart:Resize()
+    end
+
+    /*
+        Returns maximum number of allowed bins (entries in Legend).
+    */
+    action GetMaxBinCount() returns integer
+        return MAX_BIN_COUNT
+    end//action
+
+    /*  Creates and populates an array of Series of Regions. 
+        Uses Freedman-Diaconis rule to determine bin size.
+        function is 'static' like in C++, so it can be cut-paste somewhere else.
+
+        Attribute: Author Richard Osborn
+    */  
+    action CreateSeries(boolean numericalData) returns Array <Series>
+        Array <Series> list
+        if numericalData
+            list = CreateNumberSeries()
+        else
+            list = CreateTextSeries()
+        end
+        return list
+    end
+
+    /*  
+        Creates and populates an array of Series of Regions.
+
+        Attribute: Author Richard Osborn
+    */  
+    action CreateNumberSeries() returns Array <Series>
+        MakeBins()
+        Series missing
+        missing:SetColor(missingDataColor)
+
+        Array <Series> seriesList
+        if(binFloors = undefined)
+            output "Error! Bin Floor Array is undefined!"
+        else
+            integer numberOfBins = binFloors:GetSize()
+    
+            //create a series entry for each bin
+            integer i = 0
+            repeat while seriesList:GetSize() < numberOfBins-1// The last element in binFloors is the max
+                Series newSeries
+                text minText = ""
+                text maxText = ""
+                text format = ""
+                number div = 1
+                
+                if numberFormat not= "default"
+                    if numberFormat = "thousand"
+                        format = " thousand"
+                        div = 1000.0
+                    elseif numberFormat = "million"
+                        format = " million"
+                        div = 1000000.0
+                    elseif numberFormat = "billion"
+                        format = " billion"
+                        div = 1000000000.0
+                    end
+
+                    if CheckIfInteger((binFloors:Get(i)/div)) 
+                        minText = cast(text, cast(integer, (binFloors:Get(i)/div)))
+                    else
+                        minText = BetterNumberToText((binFloors:Get(i)/div))
+                    end
+    
+                    if CheckIfInteger((binFloors:Get(i + 1)/div))
+                        maxText = cast(text, cast(integer, (binFloors:Get(i + 1)/div)))
+                    else
+                        maxText = BetterNumberToText((binFloors:Get(i + 1)/div))
+                    end
+                else
+                    if CheckIfInteger(binFloors:Get(i)) 
+                        minText = cast(text, cast(integer, binFloors:Get(i)))
+                    else
+                        minText = BetterNumberToText(binFloors:Get(i))
+                    end
+    
+                    if CheckIfInteger(binFloors:Get(i + 1))
+                        maxText = cast(text, cast(integer, binFloors:Get(i + 1)))
+                    else
+                        maxText = BetterNumberToText(binFloors:Get(i + 1))
+                    end
+                end
+                newSeries:SetName(minText + " to " + maxText + format) // The text that will appear in the legend for this series
+                seriesList:Add(newSeries)
+                i = i + 1
+            end
+        
+            //add Regions to their appropriate Series
+            n = 0 
+            integer seriesIndex = 0    
+            integer seriesListLength = seriesList:GetSize()
+    
+            repeat while n < regionNames:GetSize() //look at every region and place in Series
+                if regionTable:HasKey(regionNames:Get(n))
+                    Region region = regionTable:GetValue(regionNames:Get(n))
+                    if region:GetHasValue()
+                        number regionValue = region:GetNumberValue()
+                        seriesIndex = 0 //reset inner index
+            
+                        //find appropriate Series based on floor of each bin
+                        repeat while  (seriesIndex < numberOfBins - 1) and (binFloors:Get(seriesIndex) <= regionValue)
+                            seriesIndex = seriesIndex + 1
+                        end
+                        
+                        if seriesIndex > 0 and seriesIndex < seriesListLength + 1
+                            Series series = seriesList:Get(seriesIndex - 1)
+                            series:AddItem(region) //add to list of drawables
+                        else
+                            region:SetColor(missingDataColor)
+                            missing:AddItem(region)
+                        end
+                    else
+                        region:SetColor(missingDataColor)
+                        missing:AddItem(region)
+                    end
+                end
+                n = n + 1
+            end 
+        end
+        SetMissingSeries(missing)
+        return seriesList
+    end 
+
+    /*  
+        Creates and populates an array of Series of Regions according to given region data. 
+
+        Attribute: Author Benjamin Lee
+    */  
+    action CreateTextSeries returns Array <Series>
+        // make a hash table with the textValue as the key and the Series of regions as the value
+        HashTable<text, Series> hashTable
+        // iterate through the regionTable and update the hash table with groupings
+        Series missing
+        missing:SetColor(missingDataColor)
+        
+        hashTable:Add("Missing value", missing)
+
+        Iterator<text> keys = regionTable:GetKeyIterator()
+        repeat while keys:HasNext()
+            Region currentRegion = regionTable:GetValue(keys:Next())
+
+            if (currentRegion:GetHasValue()) and currentRegion:GetTextValue() not= undefined
+                text regionValue = currentRegion:GetTextValue()
+                // if the Series for the group doesn't exist, make it
+                if not hashTable:HasKey(regionValue)
+                    Series series
+                    series:SetName(regionValue)
+                    hashTable:Add(regionValue, series)
+                end
+
+                // add the region to the Series
+                hashTable:GetValue(regionValue):AddItem(currentRegion)
+            else
+                hashTable:GetValue("Missing value"):AddItem(currentRegion)
+            end
+        end
+        
+        Array <Series> seriesList
+        Array<text> keyArray = hashTable:CopyToKeyArray()
+        keyArray:Sort()
+        
+        integer i = 0
+        repeat while i < keyArray:GetSize()
+            if keyArray:Get(i) not= "Missing value"
+                seriesList:Add(hashTable:GetValue(keyArray:Get(i)))
+            end
+        end
+        
+        SetMissingSeries(missing)
+        return seriesList
+    end
+
+    /*  
+        By Default, sets the binFloors using Freedman-Diaconis rule to determine bin size.
+        Otherwise makes bins according to user specifications
+
+        Attribute: Author Richard Osborn, Benjamin Lee, Hannah Williams
+    */ 
+    private action MakeBins()
+        Math math
+        number max = maxValue
+        number min = minValue
+        number range = maxValue - minValue
+
+        // Take range and divide it amongst bins and round up to get the default bin width
+        if binCountOverride //Bin count override supercedes bin width override
+            if max < 2.5
+                decimalScale = true
+                binWidth = math:Round(range / cast(number, binCount),3)
+                if math:Round(max mod binWidth, 3) = min
+                    binWidth = math:Round(range / cast(number, binCount-1),3)
+                end
+                max = math:Round(binWidth * binCount + min, 3)
+            else
+                min = math:Floor(min)
+                max = math:Ceiling(max)
+                range = max - min
+                binWidth = math:Ceiling(range / cast(number, binCount))
+                if math:Round(max mod binWidth,3) = min
+                    binWidth = math:Ceiling(range / cast(number, binCount-1))
+                end
+                max = math:Round(binWidth * binCount + min, 3)
+            end
+        else
+            if binWidthOverride
+                if max < 2.5
+                    decimalScale = true
+                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                    max = math:Round(binWidth * binCount + min, 3)
+                else
+                    if not decimalScale 
+                        min = math:Floor(min)
+                        max = math:Ceiling(max)
+                        range = max - min
+                    end
+                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                end
+            else
+                //Default binwidth and bincount
+                binCount = cast(integer, math:Ceiling(math:SquareRoot(regionTable:GetSize())))
+                if max < 2.5
+                    decimalScale = true
+                    binWidth = math:Round(range / cast(number, binCount),1)
+                    binCount = cast(integer, math:Ceiling(range / binWidth))
+                else
+                    min = math:Floor(min)
+                    max = math:Ceiling(max)
+                    range = max - min
+                    binWidth = math:Ceiling(range  / cast(number, binCount))
+                    binCount = cast(integer, math:Ceiling(range / binWidth))+1
+                    if max = maxValue and (max mod binWidth = 0)
+                        max = max + binWidth
+                    end
+                end
+            end
+        end
+
+        if binCount > MAX_BIN_COUNT
+            alert("This results in over " + MAX_BIN_COUNT + " bins, please change bin width/bin count.")
+        end
+
+        Array<integer> count
+        binFloors:Empty()
+
+        n = 0
+        number floor = min // Starts at minimum value
+        repeat while n < binCount
+            binFloors:Add(floor)
+            floor = math:Round(floor + binWidth, 3)
+            n = n + 1
+        end  
+    end
+
+    action SetBinWidth(integer width) 
+        if UseNumericalData()
+            if width > 0 and binWidth not= width and width < (maxValue-minValue)
+                binWidth = cast(number, width)
+                binWidthOverride = true
+                SetSeriesList(CreateNumberSeries())
+            end
+        end
+    end
+
+    action SetBinWidth(number width)
+        if UseNumericalData() 
+            if width > 0 and binWidth not= width and width < (maxValue-minValue)
+                binWidth = width
+                binWidthOverride = true
+                decimalScale = true
+                SetSeriesList(CreateNumberSeries())
+            end
+        end
+    end
+
+    action SetBinCount(integer count)
+        if UseNumericalData() 
+            binCountOverride = true
+            binCount = count
+            SetSeriesList(CreateNumberSeries())
+        end
+    end
+
+    action SetDecimalScale(boolean decimalScale)
+        me:decimalScale = decimalScale
+    end
+
+    action SetBinStart(number start)
+        minValue = start
+    end
+
+    action SetMissingSeries(Series missingSeries)
+        me:missingSeries = missingSeries
+    end
+
+    action GetMissingSeries returns Series  
+        return missingSeries
+    end  
+
+    action GetMissingDataColor() returns Color
+        return missingDataColor
+    end
+
+    action SetMissingDataColor(Color color)
+        missingDataColor = color
+    end
+
+    action SetMaxValue(number maxValue)
+        me:maxValue = maxValue
+    end
+    
+    action GetMaxValue returns number
+        return maxValue
+    end  
+
+    action SetMinValue(number minValue)
+        me:minValue = minValue
+    end
+
+    action GetMinValue returns number
+        return minValue
+    end  
+
+    action UseNumericalData(boolean useNumericalData)
+        me:useNumericalData = useNumericalData
+    end
+
+    action UseNumericalData returns boolean
+        return useNumericalData
+    end
+
+
+//    action SetRegionWithMinNumValue(text regionWithMinNumValue)
+//        me:regionWithMinNumValue = regionWithMinNumValue
+//    end
+//
+//    action GetRegionWithMinNumValue returns text
+//        return regionWithMinNumValue
+//    end  
+//
+//    action SetRegionWithMaxNumValue(text regionWithMaxNumValue)
+//        me:regionWithMaxNumValue = regionWithMaxNumValue
+//    end
+//
+//    action GetRegionWithMaxNumValue returns text
+//        return regionWithMaxNumValue
+//    end  
+//
+
+    action SetNumberFormat(text format)
+        text newFormat = format:ToLowerCase()
+        if newFormat = "thousand"
+            numberFormat = newFormat
+        elseif newFormat = "million"
+            numberFormat = newFormat
+        elseif newFormat = "billion"
+            numberFormat = newFormat
+        else
+            numberFormat = "default"
+            alert("Number format options are (thousand, million, billion) please choose one of those.")
+        end
+    end
+
+    /*
+    This action selects an item using first letter navigation. The incoming letters
+    should be lower case only.
+    */
+    action SelectByFirstLetters(text firstLetters)
+        integer counter = 0
+        repeat while counter < chartItems:GetSize()
+            ChartItem result = chartItems:Get(counter)
+            if result:GetDisplayName():ToLowerCase():StartsWith(firstLetters)
+                // If we've found a valid result and we've already found the original selection,
+                // we've found our desired item. Select it and return.
+                Select(result)
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+
+    /*
+        Attribute: Author Richard Osborn
+        Parameter: num Real number to convert to text. Must be within range of Integer [2147483647, -2147483648]
+
+        Quorum automatically converts numbers greater than 999999 into scientific notation 9.999999E7
+        Sometimes this is behaviour is undesirable and the literal values is desired.
+
+    */
+    private action BetterNumberToText(number num) returns text
+        //validation
+        Integer int
+        if(num > int:GetMaximumValue() or num < int:GetMinimumValue())
+            text outText = cast(text, num)
+            output "Warning! num is out of bounds of Integer type: " + outText 
+                + ". Please keep within range of [" + int:GetMaximumValue() + ", " + int:GetMinimumValue() + "]."
+            return outText
+        end //if
+
+        //handle sign
+        text signText = ""
+        if(num < 0)
+            num = -num
+            signText = "-"
+        end //if
+
+        //separate into integer and fraction
+        integer intPart = cast(integer, num)
+        number fracPart = num - intPart
+
+        //cast for more control over export
+        text fracText = cast(text, fracPart)
+        text intText = cast(text, intPart)
+
+        //combine outputs
+        return signText + intText + fracText:GetSubtext(1) //remove leading 0 from fraction
+
+    end //action
+
+    /*
+        Attribute: Author Richard Osborn
+        Parameter: num Real number to convert to text. Must be within range of Integer [2147483647, -2147483648]
+        Parameter: decimalPlaces The approximate number of decimal places to round to (subject to loss of precision).
+
+        Quorum automatically converts numbers greater than 999999 into scientific notation 9.999999E7
+        Sometimes this is behaviour is undesirable and the literal values is desired.
+    */
+    action BetterNumberToText(number num, integer decimalPlaces) returns text
+        //validation
+        Integer int
+        if(num > int:GetMaximumValue() or num < int:GetMinimumValue())
+            text outText = cast(text, num)
+            output "Warning! num is out of bounds of Integer type: " + outText 
+                + ". Please keep within range of [" + int:GetMaximumValue() + ", " + int:GetMinimumValue() + "]."
+            return outText
+        end //if
+
+        //handle sign
+        text signText = ""
+        if(num < 0)
+            num = -num
+            signText = "-"
+        end //if
+
+        //separate into integer and fraction
+        Math math
+        integer intPart = cast(integer, num)
+        number fracPart = num - intPart
+        fracPart = math:Round(fracPart, decimalPlaces, true)
+
+        //cast for more control over export
+        text fracText = cast(text, fracPart)
+        text intText = cast(text, intPart)
+
+        //combine outputs
+        return signText + intText + fracText:GetSubtext(1) //remove leading 0 from fraction
+
+    end 
+
+    /*  
+        This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display
+        MapDisplay game
+        game:SetScreenSize(1500,800) //Default size.
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display(integer width, integer height)
+        MapDisplay game
+        game:SetScreenSize(width,height)
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+    action Display(boolean exit)
+        MapDisplay game
+        game:SetExitOnStart(exit)
+        game:SetScreenSize(2000,1000) //Default size.
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+    action Display(integer width, integer height, boolean exit)
+        MapDisplay game
+        game:SetExitOnStart(exit)
+        game:SetScreenSize(width,height)
+        game:SetChart(me)
+        game:StartGame()
+    end
+
+    action SetAspectRatio(number width, number height)
+        ratioWidth = width
+        ratioHeight = height
+    end
+
+    action GetAspectRatioWidth returns number
+        return ratioWidth
+    end
+
+    action GetAspectRatioHeight returns number
+        return ratioHeight
+    end
+
+    action GetIsLoaded returns boolean
+            return isLoaded
+    end
+    action SetIsLoaded (boolean done)
+            isLoaded = done
+    end
+//    
+//    action SelectChild
+//        ChartSelection selection = GetSelection()
+//        ChartItem selected = selection:GetChartItem()
+//        if selected = undefined
+//            return now
+//        end
+//
+//        /* Justin Cook 11/22/2021:
+//            Reimplemented SelectChild, but with self selection if no child
+//             this is used for down and enter
+//             If no child, reselect myself to play current value again
+//             next is undefined means no children, so I reset current selection
+//             current selection is then reslected and reread
+//             we know something is selected, otherwise we would have returned by now
+//        */
+//
+//        ChartItem next = selected:GetChildItem()
+//        if next = undefined
+//            selection:Set(selected)
+//        else
+//            selection:Set(next)
+//        end
+//
+//    end // SelectChild
+//
+    /*
+        Gets the region border outline width
+    */
+    action GetRegionBorderWidth() returns integer
+        return me:regionBorderWidth
+    end
+
+    /*
+        Sets the region border outline width
+    */
+    action SetRegionBorderWidth(integer width)
+        me:regionBorderWidth = width
+    end
+
+    /*
+        Gets the region border outline color
+    */
+    action GetRegionBorderColor() returns Color
+        return me:regionBorderColor
+    end
+
+    /*
+        Sets the region border outline color
+    */
+    action SetRegionBorderColor(Color color)
+        me:regionBorderColor = color
+    end
+
+    /*
+        Attribute: Bailee Miller
+        Addition to adjust screen reader when presenting a number value. For instance for a population of 2000.0 
+        instead of the screen reader saying " 2000 point 0" will read "2000"
+    */
+    action CheckIfInteger(number value) returns boolean
+        integer integerValue = cast(integer, value)
+        return integerValue = value
+    end
+
+    /*
+        Sets an array of all the region names
+    */
+    action SetRegionNames(Array <text> regionNames)
+        me:regionNames = regionNames
+    end
+
+    /*
+        Sets a hashtable of all the regions associated by it's text name or acronym.
+    */
+    action SetRegionTable(HashTable <text, Region> regionTable)
+        me:regionTable = regionTable
+    end
+
+    /*
+        Returns the region array
+    */
+    action GetRegions returns Array <Region>
+        return regions
+    end
+
+    /*
+        This anchor will be used to place the map, after maintaining the aspect ratio.
+    */
+    action GetMapAnchor returns Drawable
+        return MapAnchor
+    end
+
+end // class

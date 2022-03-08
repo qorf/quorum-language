@@ -1,0 +1,70 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+
+//****************************************
+//data structure that holds information about a drawable and the portion of the map it takes up.
+//****************************************
+class Region is Drawable
+    private text regionID = "" //NV for Nevada
+    private Array<SubRegion> subRegions //region bounds. usually length 1, unless it's on the coast and has islands.
+    private number numberValue = 0.0
+    private text textValue = undefined
+    private boolean hasValue = false
+
+
+    action GetRegionID returns text
+        return regionID
+    end
+
+    action SetRegionID(text regionID)
+        me:regionID = regionID
+    end
+
+    action GetSubRegions returns Array<SubRegion>
+        return subRegions
+    end
+
+    action SetSubRegions(Array<SubRegion> subRegions)
+        me:subRegions = subRegions
+    end
+
+    action GetTextValue returns text
+        return textValue
+    end
+
+    action SetTextValue(text textValue)
+        me:textValue = textValue
+    end
+
+    action GetNumberValue returns number
+        return numberValue
+    end
+
+    action SetNumberValue(number numberValue)        
+        me:numberValue = numberValue
+    end
+
+    action SetHasValue(boolean boolValue)
+        me:hasValue = boolValue
+    end
+
+    action GetHasValue returns boolean
+        return hasValue
+    end
+
+    action SetColor(Color color)
+        ColorSubRegions(color)
+        parent:Drawable:SetColor(color)
+    end
+
+    private action ColorSubRegions(Color color)
+        integer i = 0
+        repeat while i < subRegions:GetSize()
+            subRegions:Get(i):SetColor(color)
+            i = i + 1
+        end
+    end
+end 
