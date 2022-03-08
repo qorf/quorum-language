@@ -47,8 +47,9 @@ class ControlShaderMapping is ShaderMapping
 
         number borderThickness = 0
         Color borderColor = undefined
+        ColorGroup backgroundColor = undefined
 
-        number aspectRatio = drawable:GetWidth() / drawable:GetHeight()
+        number aspectRatio = (drawable:GetWidth() * drawable:GetScaleX()) / (drawable:GetHeight() * drawable:GetScaleY())
 
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
@@ -81,6 +82,7 @@ class ControlShaderMapping is ShaderMapping
             if properties:GetBorderColor() not= undefined
                 borderColor = properties:GetBorderColor():GetBottomLeft()
             end
+            backgroundColor = properties:GetBackgroundColor()
         else
             Control control = undefined
 
@@ -116,15 +118,42 @@ class ControlShaderMapping is ShaderMapping
                 topLeftRounding = control:GetTopLeftRounding()
     
                 borderThickness = control:GetBorderThickness()
+
+                /*
+                Determine what color the control should be, based on how the user is interacting with it.
+                We check a hierarchy of potential events, falling through to the next case if the event
+                wasn't fulfilled or if there was no color assigned to that event.
+                */
+                if control:IsRenderingMouseDown()
+                    backgroundColor = control:GetMouseDownColor()
+                end
+
+                if backgroundColor = undefined and control:IsRenderingMouseOver()
+                    backgroundColor = control:GetMouseOverColor()
+                end
+
+                if backgroundColor = undefined and control:IsRenderingSelection()
+                    backgroundColor = control:GetSelectionColor()
+                end
+
+                if backgroundColor = undefined
+                    backgroundColor = control:GetBackgroundColor()
+                end
+
+                // Get the border color, if there is one.
                 if control:GetBorderColor() not= undefined
                     borderColor = control:GetBorderColor():GetBottomLeft()
                 end
             end
         end
 
+        if backgroundColor not= undefined
+            drawable:GetDrawableShape():SetColor(backgroundColor)
+        end
+
         program:SetShaderInput("u_enabledBorders", leftBorder, topBorder, rightBorder, bottomBorder)
         program:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
-        program:SetShaderInput("u_borderThickness", borderThickness / drawable:GetHeight())
+        program:SetShaderInput("u_borderThickness", borderThickness / (drawable:GetHeight() * drawable:GetScaleY()))
 
         if borderColor not= undefined
             program:SetShaderInput("u_borderColor", borderColor:GetRed(), borderColor:GetGreen(), borderColor:GetBlue(), borderColor:GetAlpha())

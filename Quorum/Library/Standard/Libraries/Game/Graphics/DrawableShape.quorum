@@ -353,29 +353,72 @@ class DrawableShape
     end
 
     action SetColor(number colorCode)
+        // We'll only update the mesh if at least one of the values actually changed.
+        boolean valuesChanged = false
+
         integer i = COLOR_OFFSET
         repeat while i < vertices:GetSize()
-            vertices:Set(i, colorCode)
+            if vertices:Get(i) not= colorCode
+                valuesChanged = true
+                vertices:Set(i, colorCode)
+            end
             i = i + VERTEX_SIZE
         end
 
-        if needsUpdate = false
+        if valuesChanged and needsUpdate = false
             UpdateMeshVertices()
         end
     end
 
     action SetColor(ColorGroup group)
+        if group = undefined
+            return now
+        end
+
         if group is Color
             SetColor(cast(Color, group))
             return now
         end
 
-        Array<Color> array
-        array:Add(group:GetBottomLeft())
-        array:Add(group:GetTopLeft())
-        array:Add(group:GetTopRight())
-        array:Add(group:GetBottomRight())
-        SetColor(array)
+        // A ColorGroup has four colors. If the shape doesn't have 4 vertices, it's an error.
+        if vertices:GetSize() / VERTEX_SIZE not= 4
+            alert("I cannot apply this group of 4 colors to this shape because there are " + (vertices:GetSize() / VERTEX_SIZE) + " vertices. The number of colors and vertices must match.")
+        end
+
+        // We'll only update the mesh if at least one of the values actually changed.
+        boolean valuesChanged = false
+
+        integer index = COLOR_OFFSET
+        number colorCode = group:GetBottomLeft():EncodeColorAsNumber()
+        if vertices:Get(index) not= colorCode
+            valuesChanged = true
+            vertices:Set(index, colorCode)
+        end
+
+        index = index + VERTEX_SIZE
+        colorCode = group:GetTopLeft():EncodeColorAsNumber()
+        if vertices:Get(index) not= colorCode
+            valuesChanged = true
+            vertices:Set(index, colorCode)
+        end
+
+        index = index + VERTEX_SIZE
+        colorCode = group:GetTopRight():EncodeColorAsNumber()
+        if vertices:Get(index) not= colorCode
+            valuesChanged = true
+            vertices:Set(index, colorCode)
+        end
+
+        index = index + VERTEX_SIZE
+        colorCode = group:GetBottomRight():EncodeColorAsNumber()
+        if vertices:Get(index) not= colorCode
+            valuesChanged = true
+            vertices:Set(index, colorCode)
+        end
+
+        if valuesChanged and needsUpdate = false
+            UpdateMeshVertices()
+        end
     end
 
     action SetColor(Array<Color> colors)
@@ -383,17 +426,24 @@ class DrawableShape
             alert("I was asked to apply " + colors:GetSize() + " colors to " + (vertices:GetSize() / VERTEX_SIZE) + " vertices, but I can't do that. The number of colors and vertices must match.")
         end
 
+        // We'll only update the mesh if at least one of the values actually changed.
+        boolean valuesChanged = false
+
         integer i = 0
         integer index = COLOR_OFFSET
         repeat while index < vertices:GetSize()
             number colorCode = colors:Get(i):EncodeColorAsNumber()
-            vertices:Set(index, colorCode)
+
+            if vertices:Get(index) not= colorCode
+                valuesChanged = true
+                vertices:Set(index, colorCode)
+            end
 
             i = i + 1
             index = index + VERTEX_SIZE
         end
 
-        if needsUpdate = false
+        if valuesChanged and needsUpdate = false
             UpdateMeshVertices()
         end
     end

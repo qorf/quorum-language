@@ -42,6 +42,7 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Palettes.ColorPalette
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -190,6 +191,7 @@ use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
+use Libraries.Interface.Palettes.BasicPalette
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -225,6 +227,7 @@ class Game
     FocusManager focusManager
     Accessibility accessibility = undefined
     EditManager editManager
+    ColorPalette colorPalette = undefined
 
     public boolean exitRequested = false
 
@@ -255,6 +258,11 @@ class Game
 
     // Used to save to and load from scene files.
     SceneManager sceneManager = undefined
+
+    on create
+        BasicPalette palette
+        colorPalette = palette
+    end
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -5357,6 +5365,14 @@ class Game
 
     action SetFirstLetterNavigationTime(number firstLetterNavigationTime)
         me:firstLetterNavigationTime = firstLetterNavigationTime
+    end
+
+    action GetColorPalette returns ColorPalette
+        return colorPalette
+    end
+
+    action SetColorPalette(ColorPalette colorPalette)
+        me:colorPalette = colorPalette
     end
 
 end

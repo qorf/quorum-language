@@ -19,6 +19,10 @@ use Libraries.Interface.Views.ControlView
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Views.DrawableView
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderProgram
 
 class Button is Control
 
@@ -42,14 +46,7 @@ class Button is Control
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
+        
         properties:SetBorderThickness(2)
         SetName("Button")
 
@@ -255,17 +252,32 @@ class Button is Control
 
         if font not= undefined and labelText not= ""
             if view = undefined
-                LabelBoxView labelBoxView
-                if background = undefined
-                    background = color:CustomColor(0, 0, 0, 0)
-                end
-                if border = undefined
-                    border = color:CustomColor(0, 0, 0, 0)
-                end
+//                LabelBoxView labelBoxView
+//                if background = undefined
+//                    background = color:CustomColor(0, 0, 0, 0)
+//                end
+//                if border = undefined
+//                    border = color:CustomColor(0, 0, 0, 0)
+//                end
+//
+//                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
+//                labelBoxView:Initialize(background, border)
+//                view = labelBoxView
+                DrawableView newView
+                view = newView
+                newView:LoadFilledRectangle(2, 2, color:White())
+                newView:UpdateSize(GetWidth(), GetHeight())
 
-                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
-                labelBoxView:Initialize(background, border)
-                view = labelBoxView
+                ShaderManager manager
+                ShaderProgram program = undefined
+                if manager:HasShaderProgram("Control Shader Program")
+                    program = manager:GetShaderProgram("Control Shader Program")
+                else
+                    ControlShaderProgram controlShader
+                    controlShader:Compile()
+                    program = controlShader
+                end
+                newView:SetShaderProgram(program)
                 SetView2D(view)
             end
 

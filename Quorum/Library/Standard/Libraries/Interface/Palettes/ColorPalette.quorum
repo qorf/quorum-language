@@ -1,0 +1,680 @@
+package Libraries.Interface.Palettes
+
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class ColorPalette
+
+    ColorGroup backgroundColor = undefined
+    ColorGroup foregroundColor = undefined
+    ColorGroup fontColor = undefined
+    ColorGroup borderColor = undefined
+    ColorGroup focusColor = undefined
+    ColorGroup mouseOverColor = undefined
+    ColorGroup mouseOverFontColor = undefined
+    ColorGroup mouseDownColor = undefined
+    ColorGroup mouseDownFontColor = undefined
+    ColorGroup selectionColor = undefined
+    ColorGroup selectionBorderColor = undefined
+    ColorGroup unfocusedSelectionColor = undefined
+    ColorGroup selectionFontColor = undefined
+    ColorGroup glowColor = undefined
+    ColorGroup mouseOverGlowColor = undefined
+    ColorGroup mouseDownGlowColor = undefined
+    ColorGroup iconColor = undefined
+
+    public constant text BUTTON = "Button"
+
+    HashTable<text, ColorPalette> controlPalettes
+
+    action HasControlPalette(text name) returns boolean
+        return controlPalettes:HasKey(name)
+    end
+
+    action GetControlPalette(text name) returns ColorPalette
+        if HasControlPalette(name)
+            return controlPalettes:GetValue(name)
+        else
+            return undefined
+        end
+    end
+
+    action SetControlPalette(text name, ColorPalette palette)
+        controlPalettes:Set(name, palette)
+    end
+
+    action Copy returns ColorPalette
+        ColorPalette new
+        new:SetBackgroundColor(backgroundColor)
+        new:SetForegroundColor(foregroundColor)
+        new:SetFontColor(fontColor)
+        new:SetBorderColor(borderColor)
+        new:SetMouseOverColor(mouseOverColor)
+        new:SetMouseOverFontColor(mouseOverFontColor)
+        new:SetMouseDownColor(mouseDownColor)
+        new:SetMouseDownFontColor(mouseDownFontColor)
+        new:SetSelectionColor(selectionColor)
+        new:SetUnfocusedSelectionColor(unfocusedSelectionColor)
+        new:SetSelectionFontColor(selectionFontColor)
+        new:SetGlowColor(glowColor)
+        new:SetMouseOverGlowColor(mouseOverGlowColor)
+        new:SetMouseDownGlowColor(mouseDownGlowColor)
+        new:SetIconColor(iconColor)
+
+        Iterator<text> iterator = controlPalettes:GetKeyIterator()
+        repeat while iterator:HasNext()
+            text key = iterator:Next()
+            new:SetControlPalette(key, controlPalettes:GetValue(key))
+        end
+
+        return new
+    end
+
+    action CopyControlPalette(text paletteName) returns ColorPalette
+        if controlPalettes:HasKey(paletteName)
+            return controlPalettes:GetValue(paletteName):Copy()
+        end
+        return undefined
+    end
+
+        action SetBackgroundColor(ColorGroup value)
+        backgroundColor = value
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return backgroundColor
+    end
+
+    action SetBackgroundColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetBackgroundColor(value)
+    end
+
+    action GetBackgroundColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetBackgroundColor()
+        end
+    end
+
+    action SetForegroundColor(ColorGroup value)
+        foregroundColor = value
+    end
+
+    action GetForegroundColor returns ColorGroup
+        return foregroundColor
+    end
+
+    action SetForegroundColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetForegroundColor(value)
+    end
+
+    action GetForegroundColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetForegroundColor()
+        end
+    end
+
+    action SetFontColor(ColorGroup value)
+        fontColor = value
+    end
+
+    action GetFontColor returns ColorGroup
+        return fontColor
+    end
+
+    action SetFontColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetFontColor(value)
+    end
+
+    action GetFontColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetFontColor()
+        end
+    end
+
+    action SetBorderColor(ColorGroup value)
+        borderColor = value
+    end
+
+    action GetBorderColor returns ColorGroup
+        return borderColor
+    end
+
+    action SetBorderColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetBorderColor(value)
+    end
+
+    action GetBorderColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetBorderColor()
+        end
+    end
+
+    action SetFocusColor(ColorGroup value)
+        focusColor = value
+    end
+
+    action GetFocusColor returns ColorGroup
+        return focusColor
+    end
+
+    action SetFocusColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetFocusColor(value)
+    end
+
+    action GetFocusColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetFocusColor()
+        end
+    end
+
+    action SetMouseOverColor(ColorGroup value)
+        mouseOverColor = value
+    end
+
+    action GetMouseOverColor returns ColorGroup
+        return mouseOverColor
+    end
+
+    action SetMouseOverColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseOverColor(value)
+    end
+
+    action GetMouseOverColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseOverColor()
+        end
+    end
+
+    action SetMouseOverFontColor(ColorGroup value)
+        mouseOverFontColor = value
+    end
+
+    action GetMouseOverFontColor returns ColorGroup
+        return mouseOverFontColor
+    end
+
+    action SetMouseOverFontColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseOverFontColor(value)
+    end
+
+    action GetMouseOverFontColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseOverFontColor()
+        end
+    end
+
+    action SetMouseDownColor(ColorGroup value)
+        mouseDownColor = value
+    end
+
+    action GetMouseDownColor returns ColorGroup
+        return mouseDownColor
+    end
+
+    action SetMouseDownColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseDownColor(value)
+    end
+
+    action GetMouseDownColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseDownColor()
+        end
+    end
+
+    action SetMouseDownFontColor(ColorGroup value)
+        mouseDownFontColor = value
+    end
+
+    action GetMouseDownFontColor returns ColorGroup
+        return mouseDownFontColor
+    end
+
+    action SetMouseDownFontColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseDownFontColor(value)
+    end
+
+    action GetMouseDownFontColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseDownFontColor()
+        end
+    end
+
+    action SetSelectionColor(ColorGroup value)
+        selectionColor = value
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return selectionColor
+    end
+
+    action SetSelectionColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetSelectionColor(value)
+    end
+
+    action GetSelectionColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetSelectionColor()
+        end
+    end
+
+    action SetSelectionBorderColor(ColorGroup value)
+        selectionBorderColor = value
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        return selectionBorderColor
+    end
+
+    action SetSelectionBorderColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetSelectionBorderColor(value)
+    end
+
+    action GetSelectionBorderColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetSelectionBorderColor()
+        end
+    end
+
+    action SetUnfocusedSelectionColor(ColorGroup value)
+        unfocusedSelectionColor = value
+    end
+
+    action GetUnfocusedSelectionColor returns ColorGroup
+        return unfocusedSelectionColor
+    end
+
+    action SetUnfocusedSelectionColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetUnfocusedSelectionColor(value)
+    end
+
+    action GetUnfocusedSelectionColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetUnfocusedSelectionColor()
+        end
+    end
+
+    action SetSelectionFontColor(ColorGroup value)
+        selectionFontColor = value
+    end
+
+    action GetSelectionFontColor returns ColorGroup
+        return selectionFontColor
+    end
+
+    action SetSelectionFontColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetSelectionFontColor(value)
+    end
+
+    action GetSelectionFontColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetSelectionFontColor()
+        end
+    end
+
+    action SetGlowColor(ColorGroup value)
+        glowColor = value
+    end
+
+    action GetGlowColor returns ColorGroup
+        return glowColor
+    end
+
+    action SetGlowColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetGlowColor(value)
+    end
+
+    action GetGlowColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetGlowColor()
+        end
+    end
+
+    action SetMouseOverGlowColor(ColorGroup value)
+        mouseOverGlowColor = value
+    end
+
+    action GetMouseOverGlowColor returns ColorGroup
+        return mouseOverGlowColor
+    end
+
+    action SetMouseOverGlowColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseOverGlowColor(value)
+    end
+
+    action GetMouseOverGlowColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseOverGlowColor()
+        end
+    end
+
+    action SetMouseDownGlowColor(ColorGroup value)
+        mouseDownGlowColor = value
+    end
+
+    action GetMouseDownGlowColor returns ColorGroup
+        return mouseDownGlowColor
+    end
+
+    action SetMouseDownGlowColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetMouseDownGlowColor(value)
+    end
+
+    action GetMouseDownGlowColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseDownGlowColor()
+        end
+    end
+
+    action SetIconColor(ColorGroup value)
+        iconColor = value
+    end
+
+    action GetIconColor returns ColorGroup
+        return iconColor
+    end
+
+    action SetIconColor(text controlType, ColorGroup value)
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            ColorPalette newPalette
+            palette = newPalette
+            SetControlPalette(controlType, palette)
+        end
+        palette:SetIconColor(value)
+    end
+
+    action GetIconColor(text controlType) returns ColorGroup
+        ColorPalette palette = GetControlPalette(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetIconColor()
+        end
+    end
+
+    action SetButtonBackgroundColor(ColorGroup value)
+        SetBackgroundColor(BUTTON, value)
+    end
+
+    action GetButtonBackgroundColor returns ColorGroup
+        return GetBackgroundColor(BUTTON)
+    end
+
+    action SetButtonForegroundColor(ColorGroup value)
+        SetForegroundColor(BUTTON, value)
+    end
+
+    action GetButtonForegroundColor returns ColorGroup
+        return GetForegroundColor(BUTTON)
+    end
+
+    action SetButtonFontColor(ColorGroup value)
+        SetFontColor(BUTTON, value)
+    end
+
+    action GetButtonFontColor returns ColorGroup
+        return GetFontColor(BUTTON)
+    end
+
+    action SetButtonBorderColor(ColorGroup value)
+        SetBorderColor(BUTTON, value)
+    end
+
+    action GetButtonBorderColor returns ColorGroup
+        return GetBorderColor(BUTTON)
+    end
+
+    action SetButtonFocusColor(ColorGroup value)
+        SetFocusColor(BUTTON, value)
+    end
+
+    action GetButtonFocusColor returns ColorGroup
+        return GetFocusColor(BUTTON)
+    end
+
+    action SetButtonMouseOverColor(ColorGroup value)
+        SetMouseOverColor(BUTTON, value)
+    end
+
+    action GetButtonMouseOverColor returns ColorGroup
+        return GetMouseOverColor(BUTTON)
+    end
+
+    action SetButtonMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(BUTTON, value)
+    end
+
+    action GetButtonMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(BUTTON)
+    end
+
+    action SetButtonMouseDownColor(ColorGroup value)
+        SetMouseDownColor(BUTTON, value)
+    end
+
+    action GetButtonMouseDownColor returns ColorGroup
+        return GetMouseDownColor(BUTTON)
+    end
+
+    action SetButtonMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(BUTTON, value)
+    end
+
+    action GetButtonMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(BUTTON)
+    end
+
+    action SetButtonSelectionColor(ColorGroup value)
+        SetSelectionColor(BUTTON, value)
+    end
+
+    action GetButtonSelectionColor returns ColorGroup
+        return GetSelectionColor(BUTTON)
+    end
+
+    action SetButtonSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(BUTTON, value)
+    end
+
+    action GetButtonSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(BUTTON)
+    end
+
+    action SetButtonUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(BUTTON, value)
+    end
+
+    action GetButtonUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(BUTTON)
+    end
+
+    action SetButtonSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(BUTTON, value)
+    end
+
+    action GetButtonSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(BUTTON)
+    end
+
+    action SetButtonGlowColor(ColorGroup value)
+        SetGlowColor(BUTTON, value)
+    end
+
+    action GetButtonGlowColor returns ColorGroup
+        return GetGlowColor(BUTTON)
+    end
+
+    action SetButtonMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(BUTTON, value)
+    end
+
+    action GetButtonMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(BUTTON)
+    end
+
+    action SetButtonMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(BUTTON, value)
+    end
+
+    action GetButtonMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(BUTTON)
+    end
+
+    action SetButtonIconColor(ColorGroup value)
+        SetIconColor(BUTTON, value)
+    end
+
+    action GetButtonIconColor returns ColorGroup
+        return GetIconColor(BUTTON)
+    end
+
+    action CopyButtonPalette returns ColorPalette
+        return CopyControlPalette(BUTTON)
+    end
+
+end

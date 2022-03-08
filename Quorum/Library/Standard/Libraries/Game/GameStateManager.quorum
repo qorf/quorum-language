@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Item
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Palettes.ColorPalette
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -185,4 +186,23 @@ shared class GameStateManager
     will occur.
     */
     system action GetMainThreadName returns text
+
+    /*
+
+    */
+    action GetColorPalette returns ColorPalette
+        if GetGame() not= undefined
+            return GetGame():GetColorPalette()
+        end
+        return undefined
+    end
+
+    /*
+
+    */
+    action SetColorPalette(ColorPalette palette)
+        if GetGame() not= undefined
+            GetGame():SetColorPalette(palette)
+        end
+    end
 end

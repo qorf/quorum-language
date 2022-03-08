@@ -2759,6 +2759,11 @@ class Item2D is Item
     action SetLayer(Layer2D parentLayer)
         layer = parentLayer
 
+        if visualView is Item2D
+            Item2D view = cast(Item2D, cast(Object, visualView))
+            view:SetLayer(parentLayer)
+        end
+
         integer i = 0
         repeat children:GetSize() times
             children:Get(i):SetLayer(parentLayer)

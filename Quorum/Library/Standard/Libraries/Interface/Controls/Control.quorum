@@ -111,6 +111,11 @@ class Control is Item2D
     // associated selection.
     Array<SelectionListener> selectionListeners
 
+    // Booleans used to indicate if this Control has been interacted with in a way that needs special rendering by the Control shader.
+    boolean renderMouseOver = false
+    boolean renderMouseDown = false
+    boolean renderSelected = false
+
     /*
         This action obtains the Input Table from this control, copies it, 
         assigns it a group name, sets the control to use the new input table,
@@ -149,6 +154,7 @@ class Control is Item2D
     end
 
     action ClickedMouse
+        renderMouseDown = true
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:ClickedMouse()
@@ -156,6 +162,7 @@ class Control is Item2D
     end
 
     action ReleasedMouse
+        renderMouseDown = false
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:ReleasedMouse()
@@ -163,6 +170,7 @@ class Control is Item2D
     end
 
     action BeginMouseOver
+        renderMouseOver = true
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:BeginMouseOver()
@@ -170,6 +178,7 @@ class Control is Item2D
     end
 
     action EndMouseOver
+        renderMouseOver = false
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:EndMouseOver()
@@ -177,6 +186,7 @@ class Control is Item2D
     end
 
     action GainedSelection
+        renderSelected = true
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:GainedSelection()
@@ -184,10 +194,32 @@ class Control is Item2D
     end
 
     action LostSelection
+        renderSelected = false
         if GetView2D() is ControlView
             ControlView content = cast(ControlView, GetView2D())
             content:LostSelection()
         end
+    end
+
+    /*
+
+    */
+    action IsRenderingMouseOver returns boolean
+        return renderMouseOver
+    end
+
+    /*
+
+    */
+    action IsRenderingMouseDown returns boolean
+        return renderMouseDown
+    end
+
+    /*
+
+    */
+    action IsRenderingSelection returns boolean
+        return renderSelected
     end
 
     /*
@@ -612,20 +644,6 @@ class Control is Item2D
     end
 
     /*
-
-    */
-    action SetIconColor(ColorGroup color)
-        defaultProperties:SetIconColor(color)
-    end
-
-    /*
-
-    */
-    action GetIconColor returns ColorGroup
-        return defaultProperties:GetIconColor()
-    end
-
-    /*
     This action sets the Font to be used by this Control. How this Font is used
     varies between Controls, and in some cases the Control will ignore it 
     entirely (for example, ScrollPanes), but typically this sets the font that's
@@ -667,102 +685,140 @@ class Control is Item2D
         return defaultProperties:GetFontSize()
     end
 
-    /*
-
-    */
-    action SetBackgroundColor(ColorGroup color)
-        defaultProperties:SetBackgroundColor(color)
+    action SetBackgroundColor(ColorGroup value)
+        defaultProperties:SetBackgroundColor(value)
     end
 
-    /*
-
-    */
     action GetBackgroundColor returns ColorGroup
         return defaultProperties:GetBackgroundColor()
     end
 
-    /*
-
-    */
-    action SetSelectionColor(ColorGroup color)
-        defaultProperties:SetSelectionColor(color)
+    action SetForegroundColor(ColorGroup value)
+        defaultProperties:SetForegroundColor(value)
     end
 
-    /*
-
-    */
-    action GetSelectionColor returns ColorGroup
-        return defaultProperties:GetSelectionColor()
+    action GetForegroundColor returns ColorGroup
+        return defaultProperties:GetForegroundColor()
     end
 
-    /*
-
-    */
-    action SetFontColor(Color color)
-        defaultProperties:SetFontColor(color)
+    action SetFontColor(Color value)
+        defaultProperties:SetFontColor(value)
     end
 
-    /*
-
-    */
     action GetFontColor returns Color
         return defaultProperties:GetFontColor()
     end
 
-    /*
-
-    */
-    action SetSelectionFontColor(Color color)
-        defaultProperties:SetSelectionFontColor(color)
+    action SetBorderColor(ColorGroup value)
+        defaultProperties:SetBorderColor(value)
     end
 
-    /*
-
-    */
-    action GetSelectionFontColor returns Color
-        return defaultProperties:GetSelectionFontColor()
-    end
-
-    /*
-
-    */
-    action SetUnfocusedSelectionColor(ColorGroup color)
-        defaultProperties:SetUnfocusedSelectionColor(color)
-    end
-
-    /*
-
-    */
-    action GetUnfocusedSelectionColor returns ColorGroup
-        return defaultProperties:GetUnfocusedSelectionColor()
-    end
-
-    /*
-
-    */
-    action SetBorderColor(ColorGroup color)
-        defaultProperties:SetBorderColor(color)
-    end
-
-    /*
-    
-    */
     action GetBorderColor returns ColorGroup
         return defaultProperties:GetBorderColor()
     end
 
-    /*
-
-    */
-    action SetSelectionBorderColor(ColorGroup color)
-        defaultProperties:SetSelectionBorderColor(color)
+    action SetFocusColor(ColorGroup value)
+        defaultProperties:SetFocusColor(value)
     end
 
-    /*
+    action GetFocusColor returns ColorGroup
+        return defaultProperties:GetFocusColor()
+    end
 
-    */
+    action SetMouseOverColor(ColorGroup value)
+        defaultProperties:SetMouseOverColor(value)
+    end
+
+    action GetMouseOverColor returns ColorGroup
+        return defaultProperties:GetMouseOverColor()
+    end
+
+    action SetMouseOverFontColor(Color value)
+        defaultProperties:SetMouseOverFontColor(value)
+    end
+
+    action GetMouseOverFontColor returns Color
+        return defaultProperties:GetMouseOverFontColor()
+    end
+
+    action SetMouseDownColor(ColorGroup value)
+        defaultProperties:SetMouseDownColor(value)
+    end
+
+    action GetMouseDownColor returns ColorGroup
+        return defaultProperties:GetMouseDownColor()
+    end
+
+    action SetMouseDownFontColor(Color value)
+        defaultProperties:SetMouseDownFontColor(value)
+    end
+
+    action GetMouseDownFontColor returns Color
+        return defaultProperties:GetMouseDownFontColor()
+    end
+
+    action SetSelectionColor(ColorGroup value)
+        defaultProperties:SetSelectionColor(value)
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return defaultProperties:GetSelectionColor()
+    end
+
+    action SetSelectionBorderColor(ColorGroup value)
+        defaultProperties:SetSelectionBorderColor(value)
+    end
+
     action GetSelectionBorderColor returns ColorGroup
         return defaultProperties:GetSelectionBorderColor()
+    end
+
+    action SetUnfocusedSelectionColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionColor(value)
+    end
+
+    action GetUnfocusedSelectionColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionColor()
+    end
+
+    action SetSelectionFontColor(Color value)
+        defaultProperties:SetSelectionFontColor(value)
+    end
+
+    action GetSelectionFontColor returns Color
+        return defaultProperties:GetSelectionFontColor()
+    end
+
+    action SetGlowColor(ColorGroup value)
+        defaultProperties:SetGlowColor(value)
+    end
+
+    action GetGlowColor returns ColorGroup
+        return defaultProperties:GetGlowColor()
+    end
+
+    action SetMouseOverGlowColor(ColorGroup value)
+        defaultProperties:SetMouseOverGlowColor(value)
+    end
+
+    action GetMouseOverGlowColor returns ColorGroup
+        return defaultProperties:GetMouseOverGlowColor()
+    end
+
+    action SetMouseDownGlowColor(ColorGroup value)
+        defaultProperties:SetMouseDownGlowColor(value)
+    end
+
+    action GetMouseDownGlowColor returns ColorGroup
+        return defaultProperties:GetMouseDownGlowColor()
+    end
+
+    action SetIconColor(ColorGroup value)
+        defaultProperties:SetIconColor(value)
+    end
+
+    action GetIconColor returns ColorGroup
+        return defaultProperties:GetIconColor()
     end
 
     /*
@@ -780,7 +836,7 @@ class Control is Item2D
     end
 
     action SetBorderStyle(integer style)
-        borderStyle = style
+        defaultProperties:SetBorderStyle(style)
     end
 
     action GetBorderStyle returns integer
