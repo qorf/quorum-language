@@ -456,20 +456,21 @@ class ChartWriter
         i = 0
         repeat while i < subChartAreas:GetSize()
             ChartAreaPanel currentSubChartArea = subChartAreas:Get(i)
-
-            Rectangle svgSubChartArea
-
-            svgSubChartArea:SetFill("white")
-            svgSubChartArea:SetStyle("stroke:black;stroke-width:4")
-            svgSubChartArea:SetSize(currentSubChartArea:GetWidth(),currentSubChartArea:GetHeight())
-            svgSubChartArea:SetPosition(currentSubChartArea:GetGlobalX(), TranslatePositionY(currentSubChartArea)  - currentSubChartArea:GetHeight())
-            svgSubChartArea:SetID(canvas:GetID() + "-" + svgSubChartArea:GetHashCode())
-            svgSubChartArea:SetTabIndex(-1)
-            if HasAccessibility()
-                svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
+            if currentSubChartArea:GetIsShowing()
+                Rectangle svgSubChartArea
+    
+                svgSubChartArea:SetFill("white")
+                svgSubChartArea:SetStyle("stroke:black;stroke-width:4")
+                svgSubChartArea:SetSize(currentSubChartArea:GetWidth(),currentSubChartArea:GetHeight())
+                svgSubChartArea:SetPosition(currentSubChartArea:GetGlobalX(), TranslatePositionY(currentSubChartArea)  - currentSubChartArea:GetHeight())
+                svgSubChartArea:SetID(canvas:GetID() + "-" + svgSubChartArea:GetHashCode())
+                svgSubChartArea:SetTabIndex(-1)
+                if HasAccessibility()
+                    svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
+                end
+                me:subChartAreas:Add(svgSubChartArea)
+                canvas:Add(svgSubChartArea)
             end
-            me:subChartAreas:Add(svgSubChartArea)
-            canvas:Add(svgSubChartArea)
             i = i + 1
         end
     end
@@ -1274,7 +1275,7 @@ class ChartWriter
             chartAreaItem:Add(subChartAreaUL)
 
             i = 0
-            repeat while i < chart:GetSubChartAreas():GetSize()
+            repeat while i < subChartAreas:GetSize()
                 ListItem subChartAreaItem
                 subChartAreaItem:SetIdentifier(subChartAreas:Get(i):GetID() + "-nav")
                 subChartAreaItem:AddAttribute("role","treeitem")
