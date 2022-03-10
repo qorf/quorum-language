@@ -148,6 +148,7 @@ class PieChartWriter is ChartWriter
             end
             slice:SetFill(chart:GetSlices():Get(i):GetColor())
             slice:SetID(canvas:GetID() + "-" + chart:GetSlices():Get(i):GetHashCode())
+			slice:SetStyleClass("quorum-chart-wedge")
             slice:SetTabIndex(-1)
             if HasAccessibility()
                 slice:SetAriaLabel(chart:GetSlices():Get(i):GetName() + chart:GetSlices():Get(i):GetDescription())

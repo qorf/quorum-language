@@ -76,7 +76,7 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
             result = result + " height=" + dq + height + dq
         end
         if viewBox not= ""
-            result = result + viewBox
+            result = result + " viewBox=" + dq + viewBox + dq
         end
         if isTopLevel = false
             result = result + " x=" +dq+ x +dq+" y=" +dq+ y +dq
@@ -156,7 +156,7 @@ class ScalableVectorGraphics is ScalableVectorGraphicsObject
             result = result + " height=" + dq + height + dq
         end
         if viewBox not= ""
-            result = result + viewBox
+            result = result + " viewBox=" + dq + viewBox + dq
         end
         if isTopLevel = false
             result = result + " x=" +dq+ x +dq+" y=" +dq+ y +dq

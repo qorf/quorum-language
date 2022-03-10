@@ -430,16 +430,18 @@ class VerticalAxisPanel is Control
                 if overrideLabels = undefined
                     if appendPercent
                         label:SetText(scaleText + "%")
+						label:SetName(scaleText + "%")
                     else
                         label:SetText(scaleText)
+						label:SetName(scaleText)
                     end
                     label:SetDescription(" label. ")
                 else
                     scaleText = overrideLabels:Get((cast(integer, i*intervaloverride) mod overrideLabels:GetSize()))
+					label:SetText(scaleText)
+					label:SetName(scaleText)
                     label:SetDescription(", " + (i+1) + " of " + tickCount + " labels.")
                 end
-                label:SetText(scaleText)
-                label:SetName(scaleText)
                 number labelHeight = label:GetHeight()
                 number labelWidth = label:GetWidth()
                 if labelWidth > longestLabel:GetWidth()
