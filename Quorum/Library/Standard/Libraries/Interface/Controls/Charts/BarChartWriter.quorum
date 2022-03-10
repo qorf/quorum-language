@@ -112,7 +112,7 @@ class BarChartWriter is ChartWriter
                     barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
                     barGroup:SetFill(transparent)
                     barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
-					barGroup:SetStyleClass("quorum-chart-rect")
+                    barGroup:SetStyleClass("quorum-chart-rect")
                     barGroup:SetTabIndex(-1)
                     if HasAccessibility()
                         barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
@@ -132,7 +132,7 @@ class BarChartWriter is ChartWriter
                     bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
                     bar:SetFill(currentBar:GetIcon():GetColor())
                     bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
-					bar:SetStyleClass("quorum-chart-rect")
+                    bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
@@ -159,7 +159,7 @@ class BarChartWriter is ChartWriter
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
                     bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
-					bar:SetStyleClass("quorum-chart-rect")
+                    bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
@@ -184,7 +184,7 @@ class BarChartWriter is ChartWriter
     
             UnorderedList barGroupsUL
             barGroupsUL:AddAttribute("role","group")
-			barGroupsUL:AddClassAttribute("quorum-chart-group")
+            barGroupsUL:AddClassAttribute("quorum-chart-group")
             chartAreaItem:AddNestedTag(barGroupsUL)
             
             UnorderedList currentGrouping = barGroupsUL
@@ -194,7 +194,7 @@ class BarChartWriter is ChartWriter
                     ListItem barGroupNav 
                     barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
                     barGroupNav:AddAttribute("role","treeitem")
-					barGroupNav:AddClassAttribute("quorum-chart-treeitem")
+                    barGroupNav:AddClassAttribute("quorum-chart-treeitem")
                     barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
                     barGroupNav:AddAttribute("aria-expanded","false")
                     barGroupNav:SetTabIndex("-1")
@@ -203,7 +203,7 @@ class BarChartWriter is ChartWriter
                     
                     UnorderedList barsUL
                     barsUL:AddAttribute("role","group")
-					barsUL:AddClassAttribute("quorum-chart-group")
+                    barsUL:AddClassAttribute("quorum-chart-group")
                     barGroupNav:AddNestedTag(barsUL)
                     currentGrouping = barsUL
                 end
@@ -213,7 +213,7 @@ class BarChartWriter is ChartWriter
                     ListItem barNav 
                     barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
                     barNav:AddAttribute("role","treeitem")
-					barNav:AddClassAttribute("quorum-chart-treeitem")
+                    barNav:AddClassAttribute("quorum-chart-treeitem")
                     barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
                     barNav:SetTabIndex("-1")
                     currentGrouping:Add(barNav)
@@ -225,7 +225,7 @@ class BarChartWriter is ChartWriter
         else
             UnorderedList subChartAreaItemsUL
             subChartAreaItemsUL:AddAttribute("role","group")
-			subChartAreaItemsUL:AddClassAttribute("quorum-chart-group")
+            subChartAreaItemsUL:AddClassAttribute("quorum-chart-group")
             chartAreaItem:AddNestedTag(subChartAreaItemsUL)
 
             i = 0
@@ -234,7 +234,7 @@ class BarChartWriter is ChartWriter
                 ListItem barNav 
                 barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode() + "-nav")
                 barNav:AddAttribute("role","treeitem")
-				barNav:AddClassAttribute("quorum-chart-treeitem")
+                barNav:AddClassAttribute("quorum-chart-treeitem")
                 barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode())
                 barNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(barNav)

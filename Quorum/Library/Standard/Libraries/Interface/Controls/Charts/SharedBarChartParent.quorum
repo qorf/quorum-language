@@ -248,9 +248,9 @@ class SharedBarChartParent is Chart
             barGroups:Sort(comparison)
             Array <text> labels = GetUpdatedLabels()
             if GetHorizontalFlag()
-                GetVerticalPanel():SetOverrideLabels(labels)
+                GetVerticalPanel():SetTextLabels(labels)
             else
-                GetHorizontalPanel():SetOverrideLabels(labels)
+                GetHorizontalPanel():SetTextLabels(labels)
             end
         end
     end

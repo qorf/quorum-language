@@ -58,6 +58,8 @@ use Libraries.Interface.Controls.Charts.BoxPlot
 use Libraries.Compute.Statistics.Charts.PieChartCreator
 use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Interface.Controls.Charts.GeoMap
+use Libraries.Compute.Statistics.Charts.GeoMapCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -787,8 +789,6 @@ class DataFrame
         control of the columns for this particular data frame. We suggest not using 
         these values directly unless required by an application.
 
-        Attribute: Parameter columns The new columns.
-
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
@@ -801,6 +801,32 @@ class DataFrame
     action GetColumns returns Array<DataFrameColumn>
         return me:columns
     end
+
+    /*
+        This action gets the headers in the DataFrame. This allows
+        the user to get all of the names at once as copies.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        Array<text> col = frame:GetHeaders()
+    */
+    action GetHeaders returns Array<text>
+        Array<DataFrameColumn> columns = GetColumns()
+        Array<text> headers
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = columns:Get(i)
+            headers:Add(column:GetHeader())
+            i = i + 1
+        end
+        return headers
+    end
+
     /*
         This action returns the number of columns in the data frame. This value
         is not related to the number of rows in any particular column.
@@ -2788,6 +2814,59 @@ class DataFrame
             alert("Donut hole percent can be a number between 0 and 1")
         end
         return chart
+    end
+
+    /*
+        This action creates a GeoMap from the current selection in the DataFrame.
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.GeoMap
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        GeoMap chart = frame:GeoMap()
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action GeoMap returns GeoMap
+        GeoMapCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(GeoMap, CreateChart(creator))
+    end
+
+    /*
+        This action creates a GeoMap from the current selection in the DataFrame using a custom map
+        By default, it uses all columns as separate values in the selection as the chart area. 
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.GeoMap
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        GeoMap chart = frame:GeoMap("filePathToBoundaryData")
+        chart:SetTitle("My Awesome Title")
+        chart:Display()
+    */
+    action GeoMap(text mapBoundaryFilePath) returns GeoMap
+        GeoMapCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+        creator:SetMapDataFilePath(mapBoundaryFilePath)
+
+        return cast(GeoMap, CreateChart(creator))
     end
 
     /*

@@ -25,7 +25,15 @@ function global_Add_Shared_Class(key, value) {
     return value;
 }
 
-
+function global_cast_text_to_boolean(value) {
+	if(value == "true") {
+    		return true;
+	} else if (value == "false") {
+   		return false;
+	} else {
+		throw "Error: Cast Error: An error occurred while casting";
+	}
+}
 
 function global_number_converter_(value) {
     var result = value % 1 == 0 ? value.toFixed(1) : value;

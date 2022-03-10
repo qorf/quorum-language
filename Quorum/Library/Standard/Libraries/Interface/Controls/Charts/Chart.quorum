@@ -21,6 +21,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.ChartDisplay
 use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.System.DateTime
 
 /*
 
@@ -253,9 +254,9 @@ class Chart is Control
         end
 
         legend:ApplySeriesColor()
+        legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
-            legend:LoadLegend(me, properties)
             Add(legend)
         end
 
@@ -283,9 +284,21 @@ class Chart is Control
         horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
         verticalPanel:SetMinimum(temp)
 
-        Array <text> templabels = horizontalPanel:GetOverrideLabels()
-        horizontalPanel:SetOverrideLabels(verticalPanel:GetOverrideLabels())
-        verticalPanel:SetOverrideLabels(templabels)
+        temp = horizontalPanel:GetPaddingOffset()
+        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
+        verticalPanel:SetPaddingOffset(temp)
+
+        DateTime tempdate = horizontalPanel:GetMaximumDate()
+        horizontalPanel:SetMaximumDate(verticalPanel:GetMaximumDate())
+        verticalPanel:SetMaximumDate(tempdate)
+
+        tempdate = horizontalPanel:GetMinimumDate()
+        horizontalPanel:SetMinimumDate(verticalPanel:GetMinimumDate())
+        verticalPanel:SetMinimumDate(tempdate)
+
+        Array <text> templabels = horizontalPanel:GetTextLabels()
+        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
+        verticalPanel:SetTextLabels(templabels)
 
         temp = horizontalPanel:GetTickInterval()
         horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
@@ -594,16 +607,31 @@ class Chart is Control
     end
 
     /*
-    These actions are used to offset the start of the tick placement
-    if the chart has added white space on either side of the chart area.
-
-    Attribute: Sets/Returns the pixel offset. 
+        These actions are used to offset the start of the tick placement
+        if the chart has added white space on either side of the chart area.
     */
     action GetPaddedChartOffset returns integer
         return paddedChartOffset
     end
+
     action SetPaddedChartOffset(integer offset)
         paddedChartOffset = offset
+    end
+
+    action SetYAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            verticalPanel:SetPaddingOffset(percent)
+        else
+            alert("Percent can be between 0 and 1")
+        end
+    end
+
+    action SetXAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            horizontalPanel:SetPaddingOffset(percent)
+        else
+            alert("Percent can be between 0 and 1")
+        end
     end
 
     /*
@@ -730,11 +758,11 @@ class Chart is Control
     action directly.
     */
     action OverrideXLabelsWithText(Array<text> labels)
-        horizontalPanel:SetOverrideLabels(labels)
+        horizontalPanel:SetTextLabels(labels)
     end
 
     action OverrideYLabelsWithText(Array<text> labels)
-        verticalPanel:SetOverrideLabels(labels)
+        verticalPanel:SetTextLabels(labels)
     end
 
     action GetYLabels returns Array<ControlLabel>
@@ -2133,7 +2161,7 @@ class Chart is Control
     action Display(boolean exit)
         ChartDisplay game
         game:SetExitOnStart(exit)
-        game:SetScreenSize(2000,1000) //Default size.
+        game:SetScreenSize(1200,1000) //Default size.
         game:SetChart(me)
         game:StartGame()
     end

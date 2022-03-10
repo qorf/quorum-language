@@ -18,9 +18,11 @@ class ScatterPlotLayout is TwoVariableChartLayout
         if points = undefined
             return now
         end
-        
-        number width = chartAreaContainer:GetWidth() - 2*chart:GetHorizontalPanel():GetPaddingOffset()
-        number height = chartAreaContainer:GetHeight() - 2*chart:GetVerticalPanel():GetPaddingOffset()
+
+        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+        number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
+        number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
         number xMin = chart:GetXAxisMinimum()
         number xMax = chart:GetXAxisMaximum()
         number yMin = chart:GetYAxisMinimum()
@@ -43,8 +45,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
             point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
             point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
-            integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + chart:GetHorizontalPanel():GetPaddingOffset()
-            integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + chart:GetVerticalPanel():GetPaddingOffset()
+            integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + xAxisPaddingOffset
+            integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
             point:SetPosition(x, y)
             i = i + 1
         end
