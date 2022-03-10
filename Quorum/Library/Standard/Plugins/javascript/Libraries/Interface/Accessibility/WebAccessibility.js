@@ -521,15 +521,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //LIST
             case 18:
-                role = "list";
+                role = "listbox";
                 break;
             //LIST_ITEM
             case 19:
-                role = "listitem";
+                role = "option";
                 if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
                     let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
-                    para.innerHTML = listItem.GetText();
-                    itemName = listItem.GetText();
+                    para.textContent = listItem.GetText();
+                    itemName = null;
                     //attach to proper parent
                     let parentList = listItem.GetList();
                     if (parentList != undefined) {
@@ -621,7 +621,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
 
         para.setAttribute("role",role);
-        para.setAttribute("aria-label", itemName);
+        if (itemName != null) {
+            para.setAttribute("aria-label", itemName);
+        }
         para.setAttribute("aria-description", item.GetDescription())
 
         if (item.IsFocusable()) {
@@ -638,7 +640,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             addBlurListener(para);
         }
 
-        if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
+        if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
+            let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
+            para.addEventListener("click", (event) => {
+                if (event.target !== para) {
+                    return; // ignore bubbled events
+                }
+                listItem.Select();
+            });
+        } else if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
             let control = global_CheckCast(item, "Libraries.Interface.Controls.Control");
             para.addEventListener("click", (event) => {
                 if (event.target !== para) {
