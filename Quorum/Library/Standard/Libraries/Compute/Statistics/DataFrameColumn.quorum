@@ -9,6 +9,7 @@ use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.System.DateTime
+use Libraries.Containers.Support.Comparison
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -42,6 +43,7 @@ class DataFrameColumn
     /* This is the name of the column. */
     text header = ""
     integer undefinedSize = 0
+    Comparison comparison = undefined
     
     /*
         This gets the header for this column.
@@ -502,5 +504,21 @@ class DataFrameColumn
     */
     action GetUndefinedText returns text
         return "undefined"
+    end
+
+    /*
+        We can get the comparison used by the sorting routines. By default, this is undefined.
+        When undefined, alphabetical sorting is used.
+    */
+    action GetSortComparison returns Comparison
+        return comparison
+    end
+
+    /*
+        We can manually set a comparison, which is then passed to the 
+        default sorting routines if sorting occurs.
+    */
+    action SetSortComparison(Comparison comparison)
+        me:comparison = comparison
     end
 end
