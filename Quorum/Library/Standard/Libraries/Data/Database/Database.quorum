@@ -290,6 +290,27 @@ class Database
     end
 
 /*
+    This action closes the active connection to the database. If there are any uncommited changes
+    they will be commited.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:IsConnected()
+
+    db:Close()
+
+    output db:IsConnected()
+*/
+    action GetLastInsertedID returns integer
+        return strategy:GetLastInsertedID()
+    end
+
+/*
     This takes an Update query and sends it to the database and returns the result.
     An Update allows for changing the data in rows that already exist on the database.
     For more information and how to do an Update look into the documentation of the 
@@ -434,6 +455,14 @@ class Database
     db:DropTable(drop)
 */
     action DropTable(DropTable drop)
+        // if there is no table then don't send a query
+        RefreshMeta()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        DatabaseTable table = meta:GetTable(drop:GetTable())
+        if table = undefined
+            return now
+        end
+
         SetMeta(drop)
         strategy:DropTable(drop)
         RefreshMeta()
