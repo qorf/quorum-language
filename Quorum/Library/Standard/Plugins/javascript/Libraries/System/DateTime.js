@@ -131,22 +131,82 @@ function plugins_quorum_Libraries_System_DateTime_() {
     // as expected or even on different browsers 
     this.ParseTimestamp$quorum_text = function (value) {
         this.now = false;
-        this.date = Date.parse(value);
+        value = value.trim();
+        value = value.replace(' ', 'T');
+        this.date = new Date(Date.parse(value));
+        if(isNaN(this.date))
+        {
+            let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a timestamp.");
+            throw exceptionInstance_;
+        }
+       	// check further
+        let originalDate = value.substring(0,10);
+        let arr = originalDate.split('-');
+        if(arr.length != 3)
+        {
+        	let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a timestamp.");
+            throw exceptionInstance_;
+        }
+        let originalTime = value.substring(11,20);
+        arr = originalTime.split(':');
+        if(arr.length != 3)
+        {
+        	let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a timestamp.");
+            throw exceptionInstance_;
+        }
     };
 
     this.ParseDate$quorum_text = function (value) {
         this.now = false;
-        this.date = Date.parse(value);
+        value = value.trim();
+        this.date = new Date(Date.parse(value));
+
+        if(isNaN(this.date))
+        {
+            let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
+            throw exceptionInstance_;
+        }
+        // check further
+        let arr = value.split('-');
+        if(arr.length != 3 && value.length != 10)
+        {
+        	let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
+            throw exceptionInstance_;
+        }
     };
 
     this.ParseAmericanDate$quorum_text = function (value) {
         this.now = false;
-        this.date = Date.parse(value);
+        value = value.trim();
+        this.date = new Date(Date.parse(value));
+
+        if(isNaN(this.date))
+        {
+            let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
+            throw exceptionInstance_;
+        }
+        // check further
+        let arr = value.split('/');
+        if(arr.length != 3 && value.length > 10)
+        {
+            let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+            exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
+            throw exceptionInstance_;
+        }
     };
 
     this.ParseTime$quorum_text = function (value, keepDate) {
         this.now = false;
         // Not supported
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Quorum running in Javascript does not support parsing a time alone.");
+        throw exceptionInstance_;
     };
 
     this.IsBefore$quorum_Libraries_System_DateTime_ = function (value) {

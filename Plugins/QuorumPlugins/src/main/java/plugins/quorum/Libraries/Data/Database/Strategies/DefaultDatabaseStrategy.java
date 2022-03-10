@@ -34,6 +34,7 @@ import quorum.Libraries.Containers.Array_;
 public class DefaultDatabaseStrategy {
     public java.lang.Object me_ = null;
     Connection connection = null;
+    int lastInsertedID = -1;
     
     public void ConnectNative(String value) throws SQLException {
         connection = DriverManager.getConnection(value);
@@ -117,9 +118,15 @@ public class DefaultDatabaseStrategy {
 
     public int InsertNative(Insert_ query) throws SQLException {
         String sql = query.ConvertToStructuredQueryLanguage();
-        PreparedStatement statement = connection.prepareStatement(sql);
+        PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         statement = SetParameters(statement, ((Query_)query).GetPreparedParameters());
         int rowsAffected = statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
+            lastInsertedID = rs.getInt(1);
+        } else {
+            lastInsertedID = -1;
+        }
         statement.close();
         return rowsAffected;
     }
@@ -131,6 +138,10 @@ public class DefaultDatabaseStrategy {
         int rowsAffected = statement.executeUpdate();
         statement.close();
         return rowsAffected;
+    }
+
+    public int GetLastInsertedIDNative() {
+        return lastInsertedID;
     }
 
     public int DeleteNative(Delete_ query) throws SQLException {
