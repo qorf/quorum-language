@@ -29,9 +29,6 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         }
         container = document.getElementById(id);
 
-        container.setAttribute("tabindex", "0");
-        container.setAttribute("role", "application");
-
         canvas = document.createElement("canvas");
         canvas.setAttribute("aria-hidden", "true");
         canvas.style.outline = "none";
@@ -51,18 +48,6 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     this.GetContainer = function()
     {
         return container;
-    };
-    
-    this.IsFocused = function()
-    {
-        let element = document.activeElement;
-        while (element) {
-            if (element === container) {
-                return true;
-            }
-            element = element.parentElement;
-        }
-        return false;
     };
     
     this.SetDisplayMode$quorum_integer$quorum_integer$quorum_boolean = function(width, height, fullscreen)

@@ -8,36 +8,125 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var currentFocus = null;
     let root = null;
+    let focusButton = null;
+    let blurDelayedCall = null;
 
-    const getOrCreateRoot = () => {
-        if (!root) {
-            let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
-            root = document.createElement("div");
+    const addBlurListener = function(element) {
+        element.addEventListener("blur", () => {
+            // Delay processing of this event until the next event cycle,
+            // in case focus is being moved to another accessibility element.
+            if (blurDelayedCall === null) {
+                blurDelayedCall = setTimeout(() => {
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+                        return;
+                    }
+                    blurDelayedCall = null;
+                    focusButton.hidden = false;
+                    root.hidden = true;
+                });
+            }
+        });
+    };
 
-            root.style.position = "absolute";
-            root.style.left = 0;
-            root.style.bottom = 0;
-            root.style.width = "100%";
-            root.style.height = "100%";
-            // Ensure that bugs in the positioning of shadow elements
-            // don't affect the visible layout.
-            root.style.overflow = "hidden";
+    this.Setup = function() {
+        let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
+        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+        let config = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration();
 
-            // The following style settings come from Flutter Web.
-            // Make all semantics transparent. We use `filter` instead of `opacity`
-            // attribute because `filter` is stronger. `opacity` does not apply to
-            // some elements, particularly on iOS, such as the slider thumb and track.
-            // We use transparency instead of "visibility:hidden" or "display:none"
-            // so that a screen reader does not ignore these elements.
-            root.style.filter = "opacity(0%)";
-            // Make text explicitly transparent to signal to the browser that no
-            // rasterization needs to be done.
-            root.style.color = "rgba(0,0,0,0)";
-
-            container.appendChild(root);
+        let title = config.Get_Libraries_Game_WebConfiguration__title_();
+        if (title == null) {
+            title = container.dataset.title;
+            if (title == null) {
+                title = "Game";
+            }
         }
 
+        let focusButtonName = config.Get_Libraries_Game_WebConfiguration__focusButtonName_();
+        if (focusButtonName == null) {
+            focusButtonName = container.dataset.focusButtonName;
+            if (focusButtonName == null) {
+                // Revisit this if Quorum gets localization support.
+                focusButtonName = `Enter ${title}`;
+            }
+        }
+
+        root = document.createElement("div");
+        root.setAttribute("aria-label", title);
+        root.setAttribute("tabindex", "-1");
+        root.setAttribute("role", "dialog");
+        root.setAttribute("aria-modal", true);
+        root.hidden = true;
+
+        root.style.position = "absolute";
+        root.style.left = 0;
+        root.style.bottom = 0;
+        root.style.width = "100%";
+        root.style.height = "100%";
+        // Ensure that bugs in the positioning of shadow elements
+        // don't affect the visible layout.
+        root.style.overflow = "hidden";
+
+        // The following style settings come from Flutter Web.
+        // Make all semantics transparent. We use `filter` instead of `opacity`
+        // attribute because `filter` is stronger. `opacity` does not apply to
+        // some elements, particularly on iOS, such as the slider thumb and track.
+        // We use transparency instead of "visibility:hidden" or "display:none"
+        // so that a screen reader does not ignore these elements.
+        root.style.filter = "opacity(0%)";
+        // Make text explicitly transparent to signal to the browser that no
+        // rasterization needs to be done.
+        root.style.color = "rgba(0,0,0,0)";
+
+        addBlurListener(root);
+
+        // Accessibility elements must be inserted before the canvas, to ensure
+        // that real mouse events get routed to the canvas while simulated
+        // mouse events get routed to the accessibility elements.
+        container.insertBefore(root, canvas);
+
+        focusButton = document.createElement("button");
+        focusButton.setAttribute("aria-label", focusButtonName);
+
+        focusButton.style.position = "absolute";
+        focusButton.style.left = 0;
+        focusButton.style.bottom = 0;
+        focusButton.style.width = "100%";
+        focusButton.style.height = "100%";
+
+        // The rationales for the following styles are the same as for the root.
+        focusButton.style.filter = "opacity(0%)";
+        focusButton.style.color = "rgba(0,0,0,0)";
+
+        focusButton.addEventListener("click", (event) => {
+            plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
+        });
+
+        // Like the accessibility root, this element must be inserted before
+        // the canvas.
+        container.insertBefore(focusButton, canvas);
+    };
+
+    this.GetRoot = function() {
         return root;
+    };
+
+    this.InternalTakeFocus = function() {
+        let element;
+        if (currentFocus) {
+            let id = currentFocus.GetHashCode();
+            element = document.getElementById(id);
+        } else {
+            element = root;
+        }
+        root.hidden = false;
+        element.focus();
+        focusButton.hidden = true;
+    };
+
+    this.InternalReleaseFocus = function() {
+        focusButton.hidden = false;
+        focusButton.focus();
+        root.hidden = true;
     };
 
     const setBounds = (element, item) => {
@@ -223,8 +312,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        var element = document.getElementById(id);
-        element.focus();
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+            let element = document.getElementById(id);
+            element.focus();
+        }
         
     };
 //    system action NativeAdd(Item item)
@@ -389,7 +480,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 tablist.id = id + "-tablist";
                 tablist.role = "tablist";
                 //probably shouldn't be attached to the tab panel so adding directly to the root
-                let root = getOrCreateRoot();
                 root.appendChild(tablist);
                 break;
             //TABLE
@@ -537,13 +627,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");
             para.addEventListener("focus", (event) => {
-                if (event.target !== para) {
-                    return; // ignore bubbled events
+                if (blurDelayedCall !== null) {
+                    clearTimeout(blurDelayedCall);
+                    blurDelayedCall = null;
                 }
                 if (currentFocus !== para) {
                     item.Focus();
                 }
             });
+            addBlurListener(para);
         }
 
         if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
@@ -551,11 +643,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             para.addEventListener("click", (event) => {
                 if (event.target !== para) {
                     return; // ignore bubbled events
-                }
-                // If this is an actual pointer event and not a programmatic
-                // activation by an AT, ignore it.
-                if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event)) {
-                    return;
                 }
                 control.Activate();
             });
@@ -567,7 +654,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             parentElement.appendChild(para);
             console.log(item.GetName(), " has been added to a parent.");
         } else {
-            let root = getOrCreateRoot();
             root.appendChild(para);
             console.log(item.GetName(), " has been added.");
         }
