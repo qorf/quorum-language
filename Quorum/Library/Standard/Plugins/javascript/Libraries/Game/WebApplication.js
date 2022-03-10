@@ -51,6 +51,12 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             return;
         }
         
+        let accessibility = game.GetAccessibility();
+        if (accessibility)
+        {
+            accessibility.plugin_.Setup();
+        }
+        
         game.InitializeLayers();
         game.CreateGame();
         
