@@ -3008,9 +3008,11 @@ class Game
     end
 
     /*
-    This action sets the name of the game displayed at the top of the window. 
-    The default name is "Game". This action should be called before calling
-    StartGame(). This will have no effect on non-Desktop platforms.
+    This action sets the name of the game. The default name is "Game".
+    This action should be called before calling StartGame().
+    On desktop platforms, this name is displayed at the top of the window.
+    On the web, it is only used for accessibility. This action currently has
+    no effect on other platforms.
 
     Attribute: Parameter name The name to display on the Game window.
 
@@ -3028,6 +3030,7 @@ class Game
     */
     action SetGameName(text name)
         desktopConfig:title = name
+        webConfig:title = name
     end
 
     /*

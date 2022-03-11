@@ -112,6 +112,7 @@ class ScatterPlotWriter is ChartWriter
             region:SetPosition(currentRegion:GetGlobalX(), TranslatePositionY(currentRegion) - currentRegion:GetHeight()) 
             region:SetFill(transparent)
             region:SetID(canvas:GetID() + "-" + currentRegion:GetHashCode())
+            region:SetStyleClass("quorum-chart-region")
             region:SetTabIndex(-1)
             if HasAccessibility()
                 region:SetAriaLabel(currentRegion:GetName() + currentRegion:GetDescription())
@@ -129,6 +130,7 @@ class ScatterPlotWriter is ChartWriter
             point:SetPosition(currentPoint:GetGlobalX(), TranslatePositionY(currentPoint)) 
             point:SetFill(currentPoint:GetColor())
             point:SetID(canvas:GetID() + "-" + currentPoint:GetSeries():GetHashCode() + "-" + currentPoint:GetHashCode())
+            point:SetStyleClass("quorum-chart-circle")
             point:SetTabIndex(-1)
             if HasAccessibility()
                 point:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
@@ -195,6 +197,7 @@ class ScatterPlotWriter is ChartWriter
     action AddRegionLayerAccessibily(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
+        groupUL:AddClassAttribute("quorum-chart-group")
         chartListItem:AddNestedTag(groupUL)
 
         Icon region = cast(Icon, firstItem:GetFocusTarget())
@@ -202,6 +205,7 @@ class ScatterPlotWriter is ChartWriter
         ListItem firstRegionNav
         firstRegionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
         firstRegionNav:AddAttribute("role","treeitem")
+        firstRegionNav:AddClassAttribute("quorum-chart-treeitem")
         firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
         firstRegionNav:AddAttribute("aria-expanded","false")
         firstRegionNav:SetTabIndex("-1")
@@ -221,6 +225,7 @@ class ScatterPlotWriter is ChartWriter
             ListItem regionNav
             regionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
             regionNav:AddAttribute("role","treeitem")
+            regionNav:AddClassAttribute("quorum-chart-treeitem")
             regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
             regionNav:AddAttribute("aria-expanded","false")
             regionNav:SetTabIndex("-1")
@@ -241,6 +246,7 @@ class ScatterPlotWriter is ChartWriter
     action AddPointsAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
+        groupUL:AddClassAttribute("quorum-chart-group")
         chartListItem:AddNestedTag(groupUL)
 
         ChartPoint point = cast(ChartPoint, firstItem:GetFocusTarget())
@@ -248,6 +254,7 @@ class ScatterPlotWriter is ChartWriter
         ListItem firstPointNav
         firstPointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
         firstPointNav:AddAttribute("role","treeitem")
+        firstPointNav:AddClassAttribute("quorum-chart-treeitem")
         firstPointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
         firstPointNav:AddAttribute("aria-expanded","false")
         firstPointNav:SetTabIndex("-1")
@@ -259,6 +266,7 @@ class ScatterPlotWriter is ChartWriter
             ListItem pointNav
             pointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
             pointNav:AddAttribute("role","treeitem")
+            pointNav:AddClassAttribute("quorum-chart-treeitem")
             pointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
             pointNav:AddAttribute("aria-expanded","false")
             pointNav:SetTabIndex("-1")

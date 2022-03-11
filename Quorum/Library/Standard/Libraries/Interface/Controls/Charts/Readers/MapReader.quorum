@@ -1,0 +1,224 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.System.File
+use Libraries.System.FileReader
+
+/*
+    This class is used to reads a csv that describes the map region boundaries.
+    This reader also finds the min/max for the map. It stores the result in a text 
+    array of the region names, and a hashtable with an entry for each region.
+    The delimiters can be set manually for the csv being read in.
+    An example of the csv accepted with the default delimiters:
+    e.g.
+        ID,Name,Coordinates
+        NV,Nevada,956 153|-3 -1;0 2;
+
+    Attribute: Author Richard Osborn
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Charts.MapReader
+
+    MapReader mapReader
+    mapReader:Read(mapDataFilePath)
+*/
+class MapReader
+
+    //parse options
+    public text entryDelimiter = ","//csv separator
+    public text xyDelimiter = " "//separates x and y coords
+    public text vertexDelimiter = ";" //separates (x,y) pairs
+    public text boundaryDelimiter = "|"//that separates each whole polygon-shaped boundary
+
+    private number minXValue = 0.0
+    private number maxXValue = 0.0
+
+    private number minYValue = 0.0
+    private number maxYValue = 0.0
+
+    //map properties
+    private HashTable<text, Region> regionHashTable
+    private Array<Region> regions
+
+    public action GetRegionTable returns HashTable<text, Region>
+        return regionHashTable
+    end//end GetRegionTable()
+
+    public action GetRegionNames returns Array<text>
+        Array<text> names = regionHashTable:CopyToKeyArray()
+        names:Sort()
+        return names
+    end
+
+    /* For easier accessing of individual Regions, 
+        map "Nevada" to index of Nevada Region in Array 
+    */
+    private action PopulateRegionHashTable()
+        regionHashTable:Empty()
+        Iterator<Region> regionIterator = regions:GetIterator()
+        repeat while regionIterator:HasNext()
+            Region workingRegion = regionIterator:Next()
+            text regionKey = workingRegion:GetName()
+            regionHashTable:Add(regionKey, workingRegion)
+        end //end foreach region in regions
+    end //end action
+
+    //create and populate 50 (51?) regions on map of US
+    //once this is called successfully, can GetRegionTable or GetRegionsArray
+    public action Read(text filePath)
+        
+        //create file object (not read directly)
+        File csvFile
+        csvFile:SetPath(filePath)
+
+        //create file reader (which handles ReadLine behaviour)
+        FileReader reader
+        reader:OpenForRead(csvFile)
+
+        //loop processing variables
+        text lineEater = reader:ReadLine() // consume header line
+        integer i = 0 //substring start
+        integer j = 0 //substring end
+
+        boolean gotFirstCoordinates = false
+
+        //read CSV file
+        //while not end of file
+        repeat while not reader:IsAtEndOfFile()
+             // consume data for one state
+            lineEater = reader:ReadLine()
+            if(lineEater:GetSize() > 0)
+                Region workingRegion
+                i = 0
+                j = 0
+    
+                //get ID and name
+                repeat while lineEater:GetCharacter(j) not= entryDelimiter
+                j = j + 1
+                end
+    
+                //check if found ID
+                if(j = 2)
+                    workingRegion:SetRegionID(lineEater:GetSubtext(i, j)) //"NV"
+                else
+                    workingRegion:SetName(lineEater:GetSubtext(i, j)) //"Nevada"
+                end
+    
+                //got either ID or name, now get other
+                j = j + 1
+                    i = j //set start
+                repeat while lineEater:GetCharacter(j) not= entryDelimiter
+                    j = j + 1
+                end
+    
+                //check if got ID ("NV")
+                if(j - i = 2)
+                    workingRegion:SetRegionID(lineEater:GetSubtext(i, j)) //"NV"
+                else
+                    workingRegion:SetName(lineEater:GetSubtext(i, j)) //"Nevada"
+                end
+                
+                //parse boundaries
+                i = j + 1 //start at first char of first coordinate
+                text allBoundaryText = lineEater:GetSubtext(i, lineEater:GetSize()) //
+                Array<text> boundaryTexts = Split(allBoundaryText, boundaryDelimiter) //each string now represents a polygon
+    
+                //for each polygon, get vertices
+                Iterator<text> boundariesIterator = boundaryTexts:GetIterator()
+                repeat while boundariesIterator:HasNext()//some regions have islands, so some have more than just 1
+                    text workingText = boundariesIterator:Next()
+                    Array<text> verticesTexts = Split(workingText, vertexDelimiter) //now have text for each x y pair
+                    
+                    //iterate through each vertex
+                    SubRegion regionPolygon
+                    Iterator<text> verticesIterator = verticesTexts:GetIterator()
+                    repeat while verticesIterator:HasNext()
+                        text vertexText = verticesIterator:Next()
+                        Array<text> coordTexts = vertexText:Split(xyDelimiter) //should be size 2
+                        number xCoord = 0.0
+                        number yCoord = 0.0 
+            
+                        //validate
+                        if(coordTexts:GetSize() not= 2)
+                            output "coords length not 2! What am I doing with my life?" //panic!
+                        end
+                    
+                        //parse coords
+                        xCoord = coordTexts:Get(0):ParseNumber()
+                        yCoord = coordTexts:Get(1):ParseNumber()
+
+                        if gotFirstCoordinates
+                            if xCoord < me:minXValue
+                                me:minXValue = xCoord
+                            end
+                            if xCoord > me:maxXValue
+                                me:maxXValue = xCoord
+                            end
+                            if yCoord < me:minYValue
+                                me:minYValue = yCoord
+                            end
+                            if yCoord > me:maxYValue
+                                me:maxYValue = yCoord
+                            end
+                        else
+                            me:minXValue = xCoord
+                            me:maxXValue = xCoord
+                            me:minYValue = yCoord
+                            me:maxYValue = yCoord
+
+                            gotFirstCoordinates = true
+                        end
+    
+                        //assign to data structures
+                        regionPolygon:AddPoint(xCoord,yCoord)
+    
+                    end//vertices loop
+                    workingRegion:GetSubRegions():Add(regionPolygon)
+                    
+                end//boundaries loop
+                regions:Add(workingRegion)
+            end//if line has content
+
+        end //file loop
+        PopulateRegionHashTable() //map names to indices for easier access
+    end//Read()
+
+    //Needed because Quorum's text:Split() has a bug where it splits into single-character arrays regardless of delimiter
+    private action Split(text givenText, text charDelineator) returns Array<text> 
+        Array<text> substrings
+
+        integer i = 0
+        integer j = 1
+        integer len = givenText:GetSize()
+        
+        repeat while j < len
+            repeat while (j < len and givenText:GetCharacter(j) not= charDelineator)
+                j = j + 1
+            end
+            text subStr = givenText:GetSubtext(i, j)
+            substrings:Add(subStr)
+            j = j + 1
+            i = j
+        end
+
+        return substrings
+    end //Split()
+
+    action GetMinXValue returns number
+        return minXValue
+    end
+
+    action GetMaxXValue returns number
+        return maxXValue
+    end
+
+    action GetMinYValue returns number
+        return minYValue
+    end
+
+    action GetMaxYValue returns number
+        return maxYValue
+    end
+
+end//class

@@ -22,6 +22,7 @@ class Parameter
     private constant text BIG_INTEGER_TYPE = "BIG_INTEGER"
 
     text type = undefined
+    text function = undefined
 
     text expression = undefined
     Type expressionType = undefined
@@ -103,6 +104,21 @@ class Parameter
     /* Returns the name of type of this parameter */
     action GetType returns text
         return type
+    end
+    /*
+        Sets the function that this parameter will be inside of. Not called by the user the actual
+        functions being called will be set internally
+    */
+    action SetFunction(text function)
+        me:function = function
+    end
+
+    /*
+        Returns the function that this parameter will be inside of. Not called by the user the actual
+        functions being called will used to build the sql string.
+    */
+    action GetFunction returns text
+        return function
     end
 
     // For every type supported here there is an action to set the type,

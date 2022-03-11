@@ -449,7 +449,7 @@ class VerticalAxisPanel is Control
                         // I have to add then subtract days as a hack since I cannot copy DateTime objects.
                         minDate:AddDays(cast(integer, scaleNum))
                         scaleText = minDate:GetMonth() + "/" + minDate:GetDayOfMonth() + "/" + minDate:GetYear()
-                        minDate:SubtractDays(cast(integer, scaleNum))                     
+                        minDate:SubtractDays(cast(integer, scaleNum))  
                     end
                 else
                     scaleText = textLabels:Get((cast(integer, i*intervaloverride) mod textLabels:GetSize()))

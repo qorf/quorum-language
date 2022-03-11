@@ -7,6 +7,7 @@ use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.BigIntegerColumn
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 
 /*
     This class is used to take a QueryResult from a query such as a Find and take the data from a result
@@ -46,7 +47,7 @@ class QueryResultToDataFrameConverter
         if constants:IsText(type)
             TextColumn column
             return column
-        elseif constants:IsInteger(type)
+        elseif constants:IsInteger(type) 
             IntegerColumn column
             return column
         elseif constants:IsNumber(type)
@@ -57,6 +58,9 @@ class QueryResultToDataFrameConverter
             return column
         elseif constants:IsInteger64(type)
             BigIntegerColumn column
+            return column
+        elseif constants:IsDateTime(type)
+            DateTimeColumn column
             return column
         end
         return undefined

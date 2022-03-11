@@ -1,0 +1,38 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Containers.Support.Pair
+
+/*
+    This class is intended to hold a SubRegion of a Region.
+    i.e. Hawaii has multiple islands, all of which are individual polygons, but within one entity.
+*/
+
+class SubRegion is Drawable
+    Array<Pair<number>> points
+
+    /*
+        This action adds a point with a given x and y to the list of points that construct the polygon.
+        Note that these points must be absolute coordinates. 
+
+        Attribute: Parameter x The x position of the point.
+        Attribute: Parameter y The y position of the point.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        SubRegion region
+        region:AddPoint(50,50)
+    */
+    action AddPoint(number x, number y)
+        Pair<number> point
+        point:Set(x, y)
+        points:Add(point)
+    end
+
+    action GetPoints returns Array<Pair<number>>
+        return points
+    end
+end
