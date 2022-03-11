@@ -1,23 +1,17 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Compute.Vector
-use Libraries.Interface.Controls.Charts.all
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Vector
+use Libraries.Containers.Array
 use Libraries.Containers.HashTable
-use Libraries.Interface.Controls.Charts.PlotGroup
-use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Interface.Controls.Icon
-use Libraries.Containers.Support.Comparison
-use Libraries.Compute.Statistics.Columns.DateTimeColumn
-use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
     This class is used to create a box plot of data in a DataFrame.
@@ -56,7 +50,6 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 */
 
 class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
-    Comparison comparison = undefined
 
     action Create(DataFrame frame) returns Chart
         //If there are no factors to map to, each column will be map at its own x-tick
@@ -79,7 +72,6 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
     action CreateChartWithoutFactor(DataFrame frame) returns Chart
         BoxPlot chart
-        ChartOptions options
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
@@ -88,7 +80,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
-        Array<text> columnNames
+        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
         boolean numericalGroupName = false
@@ -134,6 +126,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
     
                 if not seriesFactor:HasKey(column:GetHeader())
                     Series series
+                    groupNames:Add(column:GetHeader())
                     series:SetName(column:GetHeader())
                     series:AddItem(plot:GetIcon())
                     series:AddItem(plot)
@@ -149,24 +142,17 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             end
         end
 
-        // Sort and add
+        // Add the groups and series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            chart:AddPlotGroup(groupFactor:GetValue(seriesKeyArray:Get(i)))
-            columnNames:Add(seriesKeyArray:Get(i)) 
+        repeat while i < groupNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(groupNames:Get(i)))
+            chart:AddPlotGroup(groupFactor:GetValue(groupNames:Get(i)))
             i = i + 1
         end
 
-        SetScale(chart, yMin, yMax, 0, columnNames:GetSize())
-        chart:OverrideXLabelsWithText(columnNames)
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
@@ -225,6 +211,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             end
         end
 
+        Array <text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -233,6 +220,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             end
             if not seriesFactor:HasKey(column:GetHeader())
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
             end
@@ -255,28 +243,14 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = i + 1
         end
 
-        // Sort and add the series
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
-
         // Fill the plot groups
         number yMax = 0
         number yMin = 0
         i = 0
         repeat while i < groupNames:GetSize()
             integer j = 0
-            repeat while j < seriesKeyArray:GetSize()
-                text dataKey = groupNames:Get(i) + " " + seriesKeyArray:Get(j)
+            repeat while j < seriesNames:GetSize()
+                text dataKey = groupNames:Get(i) + " " + seriesNames:Get(j)
                 NumberColumn column = dataFactor:GetValue(dataKey)
                 
                 Vector dataset = column:ConvertToVector()
@@ -300,10 +274,10 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 plot:SetData(dataset)
                 plot:SetInfo(Calculations(column, dataset))
                 plot:SetName(column:GetHeader())
-                if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
-                    plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
+                if(seriesFactor:HasKey(seriesNames:Get(j)))
+                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot:GetIcon())
+                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    plot:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
                 end
                 if groupFactor:HasKey(groupNames:Get(i))
                     groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
@@ -314,10 +288,19 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = i + 1  
         end
 
+        // Add the groups
         i = 0
         repeat while i < groupNames:GetSize()
             PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
             chart:AddPlotGroup(group)
+            i = i + 1
+        end
+
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
             i = i + 1
         end
 

@@ -1,36 +1,26 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Interface.Controls.Charts.BarChart
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Containers.Array
-use Libraries.Containers.HashTable
-use Libraries.Compute.Statistics.Charts.ColumnToTextArray
-use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Containers.Iterator
-use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Containers.Support.Comparison
-use Libraries.Interface.Controls.Charts.Bar
-use Libraries.Interface.Controls.Charts.BarGroup
-use Libraries.Interface.Controls.Charts.Series
-use Libraries.Interface.Controls.Charts.Legend
-use Libraries.Compute.Statistics.Columns.NumberColumn
-use Libraries.Compute.Statistics.Tests.Regression
-use Libraries.Interface.Controls.Charts.RegressionLine
-use Libraries.Compute.Statistics.Columns.DateTimeColumn
 
 /*
     This class is used to create a Bar Chart from columns of data in a DataFrame.
-    This creator is also capable of using columns and factors. If only one column is given, 
-    the system counts the number of items for each point. If a factor and a column are given,
-    the factor is the X-axis and the column is the Y-axis.
+    There are four ways to make a bar chart from the data frame using this class:
+        1. One factor or one text-column: Each unique item will have its own bar using its frequency as the value.
+        2. One or more columns without a factor: Each column will have its own bar using its sum as the value.
+        3. One or more columns with a factor: The values associated with each factor will be in one bar group, containing a bar for each column.
+        4. One column with two factors: The values associated with both factors will get one bar, they will be grouped by factor1 and colored by factor2.
 
     Attribute: Authors Andreas Stefik, Gabriel Contreras, Hannah Williams, Tim Kluthe
+
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -49,8 +39,6 @@ use Libraries.Compute.Statistics.Columns.DateTimeColumn
     chart:Display(2000,1000)
 */
 class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    Comparison comparison = undefined
-    boolean useSorting = true
 
     action Create(DataFrame frame) returns Chart
         integer columns = GetColumnSize()
@@ -59,24 +47,24 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         if columns = 1 and factors = 0
             DataFrameColumn column = frame:GetColumn(GetColumn(0))
             if column:IsNumberColumn()
-                return CreateChartBySum(frame, useSorting) // Create bars by sum of column
+                return CreateChartBySum(frame) // Create bars by sum of column
             else
-                return CreateChartByCount(column, useSorting) // Create bars by count
+                return CreateChartByCount(column) // Create bars by count
             end
 
         elseif columns > 1 and factors = 0
-            return CreateChartBySum(frame, useSorting) // Create bars by sum of each column
+            return CreateChartBySum(frame) // Create bars by sum of each column
 
         elseif columns = 0 and factors = 1
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
-            return CreateChartByCount(factor, useSorting) // Create bars by count
+            return CreateChartByCount(factor) // Create bars by count
 
         elseif columns > 0 and factors = 1
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
             if factor:IsUndefined() // If the factor is undefined don't use a factor
-                return CreateChartBySum(frame, useSorting)
+                return CreateChartBySum(frame)
             else
-                return CreateChart(frame, useSorting)
+                return CreateChart(frame)
             end
 
         elseif columns = 1 and factors = 2
@@ -86,7 +74,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             DataFrameColumn factor1 = copyFrame:GetColumn(GetFactor(0))
             DataFrameColumn factor2 = copyFrame:GetColumn(GetFactor(1))
             DataFrameColumn column = copyFrame:GetColumn(GetColumn(0))
-            return CreateChart(factor1, factor2, column, useSorting)
+            return CreateChart(factor1, factor2, column)
 
         else
             alert("BarChartCreator does not support the number of column/factors that were selected")
@@ -94,12 +82,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return undefined
     end
 
-    action Create(DataFrame frame, boolean sort) returns Chart
-        useSorting = sort
-        return Create(frame)
-    end
-
-    private action CreateChartByCount(DataFrameColumn column, boolean sort) returns BarChart
+    private action CreateChartByCount(DataFrameColumn column) returns BarChart
         BarChart chart
 
         boolean dateFactor = false
@@ -117,7 +100,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if column:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(sort, true))
+            DateTimeColumn dates = cast(DateTimeColumn, column:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -132,7 +115,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if column:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = column:Copy(sort, true)
+            DataFrameColumn labels = column:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -188,13 +171,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    action CreateChartBySum(DataFrame frame, boolean sort) returns Chart
+    action CreateChartBySum(DataFrame frame) returns Chart
         BarChart chart
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         chart:SetXAxisTitle("Group")
 
+        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, BarGroup> groupFactor
         boolean numericalGroupName = false
@@ -209,20 +193,18 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 alert("BarChartCreator does not support multiple columns when a text column is used. Text columns can be used alone or used as a factor.")
                 return undefined
             end
-            number sum = 0.0
-            integer j = 0
-            repeat while j < column:GetSize()
-                if not column:IsUndefined(j)
-                    sum = sum + column:GetAsNumber(j)         
-                end
-                j = j + 1
+
+            Summarize sum
+            sum:Calculate(column)
+            if sum:GetSum() > yMax
+                yMax = sum:GetSum()
             end
-            if sum > yMax
-                yMax = sum
-            end
+
             Bar bar
-            bar:SetValue(sum)
+            bar:SetValue(sum:GetSum())
             bar:SetName(column:GetHeader())
+
+            groupNames:Add(column:GetHeader())            
             if not seriesFactor:HasKey(column:GetHeader())
                 Series series
                 series:SetName(column:GetHeader())
@@ -239,34 +221,12 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        // Add Groups
-        Array<text> groupNames = groupFactor:CopyToKeyArray()
-        if sort
-            if comparison = undefined
-                groupNames:Sort()
-            else
-                groupNames:Sort(comparison)
-            end
-        end
+        // Add the groups and series
+        Array <Series> seriesList
         i = 0
         repeat while i < groupNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(groupNames:Get(i)))
             chart:AddBarGroup(groupFactor:GetValue(groupNames:Get(i)))
-            i = i + 1
-        end
-
-        // Add Series
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if sort 
-            if comparison = undefined
-                seriesKeyArray:Sort()
-            else
-                seriesKeyArray:Sort(comparison)
-            end
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
             i = i + 1
         end
 
@@ -277,7 +237,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    private action CreateChart(DataFrame frame, boolean sort) returns BarChart
+    private action CreateChart(DataFrame frame) returns BarChart
         BarChart chart
         integer columns = GetColumnSize()
         
@@ -302,7 +262,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if factor:IsDateTimeColumn()
             dateFactor = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(sort, true))
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -319,7 +279,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor:IsNumberColumn()
                 numericalFactor = true
             end
-            DataFrameColumn labels = factor:Copy(sort, true)
+            DataFrameColumn labels = factor:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -334,6 +294,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
         end
 
+        Array<text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -343,6 +304,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             if(not seriesFactor:HasKey(column:GetHeader()))
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
             end
@@ -379,21 +341,6 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = i + 1
         end
-        // Sort and add the series
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if sort
-            if comparison = undefined
-                seriesKeyArray:Sort()
-            else
-                seriesKeyArray:Sort(comparison)
-            end
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
 
         // Sort the bars within each group to match series legend display
         Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
@@ -402,8 +349,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             BarGroup group
             group:SetName(groupKeyArray:Get(i))
             integer j = 0
-            repeat while j < seriesKeyArray:GetSize()
-                text barKey = groupKeyArray:Get(i) + " " + seriesKeyArray:Get(j)
+            repeat while j < seriesNames:GetSize()
+                text barKey = groupKeyArray:Get(i) + " " + seriesNames:Get(j)
                 group:AddBar(barFactor:GetValue(barKey))
                 j = j + 1
             end
@@ -411,13 +358,21 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-
+        // Add the groups
         i = 0
         repeat while i < groupNames:GetSize()
             BarGroup group = groupFactor:GetValue(groupNames:Get(i))
             chart:AddBarGroup(group)
             i = i + 1
         end   
+
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
 
         SetScale(chart, min, max, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
@@ -426,7 +381,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         return chart
     end
 
-    private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column, boolean sort) returns BarChart
+    private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BarChart
         BarChart chart
         if not column:IsNumberColumn()
             alert("BarChartCreator does not support non-numerical columns used with factors.")
@@ -451,7 +406,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> groupNames 
         if factor1:IsDateTimeColumn()
             dateFactor1 = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(sort, true))
+            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -468,7 +423,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor1:IsNumberColumn()
                 numericalFactor1 = true
             end
-            DataFrameColumn labels = factor1:Copy(sort, true)
+            DataFrameColumn labels = factor1:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -486,7 +441,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         Array <text> seriesNames 
         if factor2:IsDateTimeColumn()
             dateFactor2 = true
-            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(sort, true))
+            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(true, true))
             integer i = 0 
             repeat while i < dates:GetSize()
                 if not dates:IsUndefined(i)
@@ -503,7 +458,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if factor2:IsNumberColumn()
                 numericalFactor2 = true
             end
-            DataFrameColumn labels = factor2:Copy(sort, true)
+            DataFrameColumn labels = factor2:Copy(true, true)
             integer i = 0 
             repeat while i < labels:GetSize()
                 if not labels:IsUndefined(i)
@@ -553,13 +508,14 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
+        // Add the groups
         i = 0
         repeat while i < groupNames:GetSize()
             chart:AddBarGroup(groupFactor:GetValue(groupNames:Get(i)))
             i = i + 1
         end
 
-
+        // Add the series
         Array <Series> seriesList
         i = 0
         repeat while i < seriesNames:GetSize()

@@ -181,7 +181,11 @@ class NumberColumn is DataFrameColumn
         end
 
         if sort
-            newRows:Sort()
+            if GetSortComparison() not= undefined
+                newRows:Sort(GetSortComparison())
+            else
+                newRows:Sort()
+            end
         end
         column:rows = newRows
 
@@ -199,12 +203,12 @@ class NumberColumn is DataFrameColumn
     private action CalculateValueCount(Array<Number> values) returns HashTable<number,integer>
         HashTable<number, integer> hash
         i = 0
-        repeat while i < rows:GetSize()
-            if rows:Get(i) not= undefined
-                if hash:HasKey(rows:Get(i))
-                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+        repeat while i < values:GetSize()
+            if values:Get(i) not= undefined
+                if hash:HasKey(values:Get(i))
+                    hash:Add(values:Get(i), hash:GetValue(values:Get(i)) + 1)
                 else
-                    hash:Add(rows:Get(i), 1)
+                    hash:Add(values:Get(i), 1)
                 end
             end
             i = i + 1

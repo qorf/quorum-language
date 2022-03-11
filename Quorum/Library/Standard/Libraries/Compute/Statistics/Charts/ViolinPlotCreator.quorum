@@ -1,28 +1,18 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Compute.Math
-use Libraries.Compute.Vector
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Inputs.ColumnInput
-use Libraries.Interface.Controls.Charts.ViolinPlot
-use Libraries.Compute.Statistics.Analysis.UnivariateAction
-use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Containers.Support.Comparison
-use Libraries.Interface.Controls.Charts.PlotGroup
-use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
 use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Interface.Controls.Charts.Legend
-use Libraries.Interface.Controls.Charts.Series
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Analysis.UnivariateAction
+use Libraries.Compute.Vector
+use Libraries.Containers.Array
 use Libraries.Containers.HashTable
-use Libraries.Compute.Statistics.Columns.DateTimeColumn
-use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
     This class is used to create a Violin Chart from columns/factor of data in a DataFrame.
@@ -53,9 +43,7 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
     chart:SetBandWidth(10)
 */
 class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
-    private integer bandWidth = 0
     UnivariateAction window = undefined
-    Comparison comparison = undefined
 
     action Create(DataFrame frame) returns Chart
         //If there are no factors to map to, each column will be map at its own x-tick
@@ -78,16 +66,15 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
     action CreateChartWithoutFactor(DataFrame frame) returns Chart
         ViolinPlot chart
-        ChartOptions options
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         chart:SetXAxisTitle("Group")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
-        Array<text> columnNames
+        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
         boolean numericalGroupName = false
@@ -105,7 +92,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 
                 NumberColumn newColumn
                 if column:GetUndefinedSize() > 0
-                    newColumn = RemoveUndefinedValues(cast(NumberColumn, column:Copy()))
+                    newColumn = RemoveUndefinedValues(cast(NumberColumn, column:Copy(true, false)))
                 else
                     newColumn = cast(NumberColumn, column:Copy())
                 end
@@ -133,6 +120,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
     
                 if not seriesFactor:HasKey(column:GetHeader())
                     Series series
+                    groupNames:Add(column:GetHeader())
                     series:SetName(column:GetHeader())
                     series:AddItem(plot:GetIcon())
                     series:AddItem(plot)
@@ -148,29 +136,22 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             end
         end
 
-        // Sort and add
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            chart:AddPlotGroup(groupFactor:GetValue(seriesKeyArray:Get(i)))
-            columnNames:Add(seriesKeyArray:Get(i)) 
-            i = i + 1
-        end
-
         //Use the default windowing action (Kernel) if undefined
         if window not= undefined
             chart:SetWindowingAction(window)
         end
 
-        SetScale(chart, yMin, yMax, 0, columnNames:GetSize())
-        chart:OverrideXLabelsWithText(columnNames)
+        // Add the groups and series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < groupNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(groupNames:Get(i)))
+            chart:AddPlotGroup(groupFactor:GetValue(groupNames:Get(i)))
+            i = i + 1
+        end
+
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
@@ -182,7 +163,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
         HashTable<text, Series> seriesFactor
@@ -229,6 +210,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             end
         end
 
+        Array <text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -237,6 +219,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             end
             if not seriesFactor:HasKey(column:GetHeader())
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
             end
@@ -259,28 +242,14 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1
         end
 
-        // Sort and add the series
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
-        i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            i = i + 1
-        end
-
         // Fill the plot groups
         number yMax = 0
         number yMin = 0
         i = 0
         repeat while i < groupNames:GetSize()
             integer j = 0
-            repeat while j < seriesKeyArray:GetSize()
-                text dataKey = groupNames:Get(i) + " " + seriesKeyArray:Get(j)
+            repeat while j < seriesNames:GetSize()
+                text dataKey = groupNames:Get(i) + " " + seriesNames:Get(j)
                 NumberColumn column = dataFactor:GetValue(dataKey)
                 
                 Vector dataset = column:ConvertToVector()
@@ -304,10 +273,10 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 plot:SetData(dataset)
                 plot:SetInfo(Calculations(column, dataset))
                 plot:SetName(column:GetHeader())
-                if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
-                    seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
-                    plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
+                if(seriesFactor:HasKey(seriesNames:Get(j)))
+                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot:GetIcon())
+                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    plot:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
                 end
                 if groupFactor:HasKey(groupNames:Get(i))
                     groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
@@ -318,6 +287,12 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1  
         end
 
+        //Use the default windowing action (Kernel) if undefined
+        if window not= undefined
+            chart:SetWindowingAction(window)
+        end
+
+        // Add the groups
         i = 0
         repeat while i < groupNames:GetSize()
             PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
@@ -325,9 +300,12 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
             i = i + 1
         end
 
-        //Use the default windowing action (Kernel) if undefined
-        if window not= undefined
-            chart:SetWindowingAction(window)
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
         end
 
         SetScale(chart, yMin, yMax, 0, groupNames:GetSize())

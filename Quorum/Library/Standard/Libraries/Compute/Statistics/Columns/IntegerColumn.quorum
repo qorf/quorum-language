@@ -184,7 +184,11 @@ class IntegerColumn is DataFrameColumn
         end
 
         if sort
-            newRows:Sort()
+            if GetSortComparison() not= undefined
+                newRows:Sort(GetSortComparison())
+            else
+                newRows:Sort()
+            end
         end
         column:rows = newRows
 
