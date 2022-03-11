@@ -3,6 +3,9 @@ package Libraries.Interface.Palettes
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 
+/*
+    This is the default set of options for a light mode style color approach. 
+*/
 class LightModeOptions is ColorPalette
     on create
         Color color
@@ -36,12 +39,7 @@ class LightModeOptions is ColorPalette
         SetCellBackgroundColor(color:White())
 
         // Checkbox specific colors.
-//        SetCheckboxBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
-//        SetCheckboxSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
-//        SetCheckboxBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
-//        SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
-//        SetCheckboxAccentColor(color:White())
-        SetCheckboxBackgroundColor(color:Teal())
+        SetCheckboxBackgroundColor(color:White())
         SetCheckboxSelectionColor(color:CustomColor(79.0 / MAX, 158.0 / MAX, 227.0 / MAX, 1))
         SetCheckboxBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
         SetCheckboxSelectionBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
@@ -94,5 +92,11 @@ class LightModeOptions is ColorPalette
         //color:CustomColor(105.0 / MAX, 257.0 / MAX, 249.0 / MAX, 1)
         //mouse menu font color
         //color:White()
+
+        //textbox
+        //background color
+        //color:White()
+        //font color
+        //color:Black()
     end
 end
