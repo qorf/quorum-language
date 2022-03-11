@@ -1,0 +1,98 @@
+package Libraries.Interface.Palettes
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+
+class LightModeOptions is ColorPalette
+    on create
+        Color color
+        constant number MAX = 255.0
+        SetFontColor(color:Black())
+        SetSelectionFontColor(color:White())
+        SetSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetBorderColor(color:Black())
+        SetIconColor(color:White())
+
+        Gradient backgroundGradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(242.0 / MAX, 242.0 / MAX, 242.0 / MAX, 1)
+        backgroundGradient:Set(lightGray, lightGray, lightGray, lightGray)
+        SetBackgroundColor(backgroundGradient)
+
+        Gradient mouseOverGradient
+        Color mouseOver = color:CustomColor(235.0 / MAX, 230.0 / MAX, 237.0 / MAX, 1)
+        mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
+        SetMouseOverColor(mouseOverGradient)
+
+        // Button specific colors.
+        SetButtonMouseDownColor(color:CustomColor(222.0 / MAX, 217.0 / MAX, 224.0 / MAX, 1))
+
+        //Accept button (Ok style button) background
+        //color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1)
+        //accept button font
+        //color:White()
+
+        // Cell specific colors.
+        SetCellBackgroundColor(color:White())
+
+        // Checkbox specific colors.
+//        SetCheckboxBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
+//        SetCheckboxSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+//        SetCheckboxBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
+//        SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
+//        SetCheckboxAccentColor(color:White())
+        SetCheckboxBackgroundColor(color:Teal())
+        SetCheckboxSelectionColor(color:CustomColor(79.0 / MAX, 158.0 / MAX, 227.0 / MAX, 1))
+        SetCheckboxBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
+        SetCheckboxSelectionBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
+        SetCheckboxAccentColor(color:White())
+
+        // ScrollPane specific colors.
+        SetScrollPaneBackgroundColor(lightGray)
+        SetScrollPaneForegroundColor(color:CustomColor(252.0 / MAX, 251.0 / MAX, 251.0 / MAX, 1))
+        SetScrollPaneAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
+
+        // TabBar specific colors.
+        SetTabBarBackgroundColor(lightGray)
+        SetTabBarBorderColor(color:Black())
+
+        //TABS
+
+        //Tab Background Color
+        //color:White()
+        //Selected Tab font color
+        //color:Black()
+
+        //Selected Tab Background Color
+        //color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1)
+        //Selected Tab font color
+        //color:White()
+
+
+        //TREES
+        //Item Font
+        //color:Black()
+        //item background
+        //lightGray
+
+        //highlighted, but not selected item
+        //color:CustomColor(204.0 / MAX, 199.0 / MAX, 206.0 / MAX, 1)
+        //highlight, but not selected item font
+        //color:Black()
+
+        //highlighted item
+        //color:CustomColor(96.0 / MAX, 151.0 / MAX, 247.0 / MAX, 1)
+        //highlighted item font
+        //color:White()
+
+        //arrow color in tree
+        //color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1)
+
+
+        //MENUS
+        //menu mouse over
+        //color:CustomColor(105.0 / MAX, 257.0 / MAX, 249.0 / MAX, 1)
+        //mouse menu font color
+        //color:White()
+    end
+end
