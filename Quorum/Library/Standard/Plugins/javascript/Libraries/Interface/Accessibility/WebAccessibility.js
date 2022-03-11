@@ -335,7 +335,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
         //default role
-        let role = "region";
+        let role = null;
 
         /* Creating Item Element Tag with Attributes */
         var parent = undefined; // used if item needs to be added to group
@@ -346,6 +346,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //ITEM or CUSTOM
             case 0:
             case 1:
+                role = "img";
                 para.setAttribute("aria-roledescription","");
                 break;
             //CHECKBOX
@@ -620,7 +621,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             }
         }
 
-        para.setAttribute("role",role);
+        if (role != null) {
+            para.setAttribute("role",role);
+        }
         if (itemName != null) {
             para.setAttribute("aria-label", itemName);
         }
