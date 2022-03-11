@@ -685,6 +685,14 @@ class Control is Item2D
         return defaultProperties:GetFontSize()
     end
 
+    action SetPaletteKey(text key)
+        defaultProperties:SetPaletteKey(key)
+    end
+
+    action GetPaletteKey returns text
+        return defaultProperties:GetPaletteKey()
+    end
+
     action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
@@ -819,6 +827,14 @@ class Control is Item2D
 
     action GetIconColor returns ColorGroup
         return defaultProperties:GetIconColor()
+    end
+
+    action SetAccentColor(ColorGroup value)
+        defaultProperties:SetAccentColor(value)
+    end
+
+    action GetAccentColor returns ColorGroup
+        return defaultProperties:GetAccentColor()
     end
 
     /*

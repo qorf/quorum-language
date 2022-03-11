@@ -1,61 +1,26 @@
 package Libraries.Interface.Views
 
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 
-class ControlShaderView is DrawableView, ControlView
-
-    boolean mouseOver = false
-    boolean mouseDown = false
-    boolean selected = false
+class ControlShaderView is DrawableView
 
     action Initialize
         Color color
         color:SetColor(1, 1, 1, 1)
         LoadFilledRectangle(2, 2, color)
-    end
 
-    action BeginMouseOver
-        mouseOver = true
+        ShaderManager manager
+        ShaderProgram program = undefined
+        if manager:HasShaderProgram("Control Shader Program")
+            program = manager:GetShaderProgram("Control Shader Program")
+        else
+            ControlShaderProgram controlShader
+            controlShader:Compile()
+            program = controlShader
+        end
+        SetShaderProgram(program)
     end
-
-    action EndMouseOver
-        mouseOver = false
-    end
-
-    action ClickedMouse
-        mouseDown = true
-    end
-
-    action ReleasedMouse
-        mouseDown = false
-    end
-
-    action GainedSelection
-        selected = true
-    end
-
-    action LostSelection
-        selected = false
-    end
-
-    action IsMouseOver returns boolean
-        return mouseOver
-    end
-
-    action IsMouseDown returns boolean
-        return mouseDown
-    end
-
-    action IsSelected returns boolean
-        return selected
-    end
-
-    action Copy returns ControlView
-        ControlShaderView view
-        view:mouseOver = mouseOver
-        view:mouseDown = mouseDown
-        view:selected = selected
-        return view
-    end
-
 end

@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Views.ControlShaderView
 
 class Cell is Control
     text value = ""
@@ -27,10 +28,12 @@ class Cell is Control
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetPaletteKey("Cell")
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:STANDARD)
 
         properties:SetPercentageWidth(1)
+        properties:SetBorderThickness(1)
 
         Font font = GetDefaultFont()
         if font not= undefined
@@ -60,10 +63,13 @@ class Cell is Control
         parent:Control:LoadGraphics(properties)
 
         if GetView2D() = undefined
-            LabelBoxView view
-            Color color
-            view:Initialize(color:White(), color:Black())
-            view:SetBorderThickness(1)
+            ControlShaderView view
+            view:Initialize()
+
+//            LabelBoxView view
+//            Color color
+//            view:Initialize(color:White(), color:Black())
+//            view:SetBorderThickness(1)
 
             SetView2D(view)
         end
@@ -78,14 +84,14 @@ class Cell is Control
             sheetProperties = sheet:GetDefaultLayoutProperties()
         end
 
-        if properties not= undefined and properties:GetBackgroundColor() not= undefined
-            backgroundColor = properties:GetBackgroundColor()
-        elseif sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
-            backgroundColor = sheetProperties:GetBackgroundColor()
-        else
-            Color color
-            backgroundColor = color:White()
-        end
+//        if properties not= undefined and properties:GetBackgroundColor() not= undefined
+//            backgroundColor = properties:GetBackgroundColor()
+//        elseif sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
+//            backgroundColor = sheetProperties:GetBackgroundColor()
+//        else
+//            Color color
+//            backgroundColor = color:White()
+//        end
 
         if properties not= undefined and properties:GetFontColor() not= undefined
             textColor = properties:GetFontColor()
@@ -96,10 +102,10 @@ class Cell is Control
             textColor = color:Black()
         end
 
-        if GetView2D() is LabelBoxView
-            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
-            labelBox:SetBackgroundColor(backgroundColor)
-        end
+//        if GetView2D() is LabelBoxView
+//            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
+//            labelBox:SetBackgroundColor(backgroundColor)
+//        end
 
         label:SetColor(textColor)
         label:SetLeftPadding(DEFAULT_PADDING)

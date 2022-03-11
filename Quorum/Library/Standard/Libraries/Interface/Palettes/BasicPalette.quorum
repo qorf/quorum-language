@@ -9,6 +9,8 @@ class BasicPalette is ColorPalette
         Color color
 
         SetFontColor(color:Black())
+        SetSelectionFontColor(color:White())
+        SetSelectionColor(color:Blue())
         SetBorderColor(color:Black())
         SetIconColor(color:White())
 
@@ -24,7 +26,33 @@ class BasicPalette is ColorPalette
         mouseOverGradient:Set(mouseOverBottom, mouseOverBottom, mouseOverTop, mouseOverTop)
         SetMouseOverColor(mouseOverGradient)
 
-        SetMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+        // Button specific colors.
+        SetButtonMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+
+        // Cell specific colors.
+        SetCellBackgroundColor(color:White())
+
+        // Checkbox specific colors.
+//        SetCheckboxBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
+//        SetCheckboxSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+//        SetCheckboxBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
+//        SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
+//        SetCheckboxAccentColor(color:White())
+        SetCheckboxBackgroundColor(color:Teal())
+        SetCheckboxSelectionColor(color:Red())
+        SetCheckboxBorderColor(color:Cyan())
+        SetCheckboxSelectionBorderColor(color:Pink())
+        SetCheckboxAccentColor(color:Orange())
+
+        // ScrollPane specific colors.
+        SetScrollPaneBackgroundColor(color:White())
+        SetScrollPaneForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetScrollPaneAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        // TabBar specific colors.
+        SetTabBarBackgroundColor(color:DarkGray())
+        SetTabBarBorderColor(color:Black())
+
     end
 
 

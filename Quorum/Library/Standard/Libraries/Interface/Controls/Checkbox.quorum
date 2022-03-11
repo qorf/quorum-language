@@ -17,7 +17,6 @@ class Checkbox is ToggleButton
 
     Icon buttonIcon
     Label label
-    Color checkColor
 
     on create
         // The layout should already be present, courtesy of our inheritance of Button.
@@ -28,20 +27,6 @@ class Checkbox is ToggleButton
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
-        
-        Color color
-        Color white = color:White()
-        Color gray = color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1)
-        Gradient background
-        background:Set(white, white, gray, gray)
-        Color selection = color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1) 
-        Color border = color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1)
-        Color selectionBorder = color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1)
-
-        properties:SetBackgroundColor(background)
-        properties:SetSelectionColor(selection)
-        properties:SetBorderColor(border)
-        properties:SetSelectionBorderColor(selectionBorder)
         properties:SetBorderThickness(2)
 
         // The properties already contain a loaded Font from the Button constructor.
@@ -59,7 +44,8 @@ class Checkbox is ToggleButton
         Add(buttonIcon)
         Add(label)
 
-        checkColor = color:White()
+        SetPaletteKey("Checkbox")
+        buttonIcon:SetPaletteKey("Checkbox")
 
         SetAccessibilityCode(parent:Item:CHECKBOX)
     end
@@ -132,10 +118,8 @@ class Checkbox is ToggleButton
 
         if buttonView = undefined
             CheckboxView checkboxView
-            checkboxView:SetCheckColor(checkColor)
-            checkboxView:Initialize(label:GetLineHeight() / 2, properties)
+            checkboxView:Initialize(properties)
             buttonIcon:SetView2D(checkboxView)
-            checkboxView:SetToggleState(parent:ToggleButton:toggled)
         end
 
         boolean toggleState = parent:ToggleButton:toggled
@@ -143,18 +127,11 @@ class Checkbox is ToggleButton
             ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
             content:SetToggleState(toggleState)
         end
-    end
 
-    /*
-    This action sets the color of the checkmark in the Checkbox.
-    */
-    action SetCheckColor(Color color)
-        checkColor = color
-
-        View2D buttonView = buttonIcon:GetView2D()
-        if buttonView is CheckboxView
-            CheckboxView checkView = cast(CheckboxView, buttonView)
-            checkView:SetCheckColor(checkColor)
+        if buttonIcon:GetView2D() is CheckboxView
+            CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
+            content:SetCheckColor(buttonIcon:GetAccentColor())
         end
     end
+
 end

@@ -23,6 +23,7 @@ use Libraries.Interface.Views.DrawableView
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Interface.Views.ControlShaderView
 
 class Button is Control
 
@@ -40,6 +41,7 @@ class Button is Control
         SetLayout(flowLayout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetPaletteKey("Button")
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
         Font font = GetDefaultFont()
@@ -252,32 +254,9 @@ class Button is Control
 
         if font not= undefined and labelText not= ""
             if view = undefined
-//                LabelBoxView labelBoxView
-//                if background = undefined
-//                    background = color:CustomColor(0, 0, 0, 0)
-//                end
-//                if border = undefined
-//                    border = color:CustomColor(0, 0, 0, 0)
-//                end
-//
-//                labelBoxView:SetBorderThickness(cast(integer, borderThickness))
-//                labelBoxView:Initialize(background, border)
-//                view = labelBoxView
-                DrawableView newView
+                ControlShaderView newView
+                newView:Initialize()
                 view = newView
-                newView:LoadFilledRectangle(2, 2, color:White())
-                newView:UpdateSize(GetWidth(), GetHeight())
-
-                ShaderManager manager
-                ShaderProgram program = undefined
-                if manager:HasShaderProgram("Control Shader Program")
-                    program = manager:GetShaderProgram("Control Shader Program")
-                else
-                    ControlShaderProgram controlShader
-                    controlShader:Compile()
-                    program = controlShader
-                end
-                newView:SetShaderProgram(program)
                 SetView2D(view)
             end
 
@@ -317,6 +296,7 @@ class Button is Control
                 label:SetSize(properties:GetFontSize())
                 label:SetText(labelText)
                 label:SetFontColor(properties:GetFontColor())
+                label:SetPositionOnBaseLine(false)
                 Add(label)
             end
         elseif iconTexture not= undefined

@@ -132,8 +132,11 @@ class ControlShaderMapping is ShaderMapping
                     backgroundColor = control:GetMouseOverColor()
                 end
 
-                if backgroundColor = undefined and control:IsRenderingSelection()
-                    backgroundColor = control:GetSelectionColor()
+                if control:IsRenderingSelection()
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetSelectionColor()
+                    end
+                    borderColor = control:GetBorderColor():GetBottomLeft()
                 end
 
                 if backgroundColor = undefined
@@ -141,7 +144,7 @@ class ControlShaderMapping is ShaderMapping
                 end
 
                 // Get the border color, if there is one.
-                if control:GetBorderColor() not= undefined
+                if borderColor = undefined
                     borderColor = control:GetBorderColor():GetBottomLeft()
                 end
             end

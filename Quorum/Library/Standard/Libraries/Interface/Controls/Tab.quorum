@@ -61,6 +61,8 @@ class Tab is Button
         defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
+        defaultProperties:SetTopLeftRounding(0.1)
+        defaultProperties:SetTopRightRounding(0.1)
 
         Font font = GetDefaultFont()
         if font not= undefined

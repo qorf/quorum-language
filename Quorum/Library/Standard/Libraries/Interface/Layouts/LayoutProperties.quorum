@@ -617,7 +617,7 @@ class LayoutProperties
         me:bottomRightRounding = bottomRightRounding
     end
 
-        action SetBackgroundColor(ColorGroup value)
+    action SetBackgroundColor(ColorGroup value)
         if palette = undefined
             palette = NewPalette()
         end
@@ -1006,6 +1006,37 @@ class LayoutProperties
         end
 
         return default:GetIconColor()
+    end
+
+    action SetAccentColor(ColorGroup value)
+        if palette = undefined
+            palette = NewPalette()
+        end
+
+        palette:SetAccentColor(value)
+        needsRendering = true
+    end
+
+    action GetAccentColor returns ColorGroup
+        if palette not= undefined and palette:GetAccentColor() not= undefined
+            return palette:GetAccentColor()
+        end
+
+        ColorPalette default = manager:GetColorPalette()
+        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        if controlPalette not= undefined and controlPalette:GetAccentColor() not= undefined
+            return controlPalette:GetAccentColor()
+        end
+
+        return default:GetAccentColor()
+    end
+
+    action GetPaletteKey returns text
+        return paletteKey
+    end
+
+    action SetPaletteKey(text paletteKey)
+        me:paletteKey = paletteKey
     end
 
 end
