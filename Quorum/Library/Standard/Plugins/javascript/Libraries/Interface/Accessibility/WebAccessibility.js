@@ -346,7 +346,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //ITEM or CUSTOM
             case 0:
             case 1:
-                role = "img";
+                if (item.IsFocusable()) {
+                    role = "application";
+                } else {
+                    role = "img";
+                }
                 para.setAttribute("aria-roledescription","");
                 break;
             //CHECKBOX
