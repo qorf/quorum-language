@@ -75,6 +75,13 @@ public:
 				retVal->vt = VT_I4;
 				break;
 
+			case UIA_LocalizedControlTypePropertyId:
+			{
+				auto roleDescription = m_control->GetRoleDescription();
+				SetBstrPropertyValueIfNotEmpty(retVal, roleDescription.c_str());
+				break;
+			}
+
 			case UIA_HasKeyboardFocusPropertyId:
 				retVal->boolVal = m_control->HasUiaFocus() ? VARIANT_TRUE : VARIANT_FALSE;
 				retVal->vt = VT_BOOL;

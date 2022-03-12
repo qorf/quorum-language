@@ -63,6 +63,7 @@ class Item
     public constant integer GROUP = 25
 
     private integer accessibilityCode = NOT_ACCESSIBLE
+    private text accessibilityRoleDescription = undefined
 
     text name = "Unnamed"
     text description = ""
@@ -1098,6 +1099,35 @@ class Item
     */
     action SetAccessibilityCode(integer newAccessibilityCode)
         accessibilityCode = newAccessibilityCode
+    end
+
+    /*
+        This action returns the custom accessibility role description
+        for this item, if any.
+    */
+    action GetAccessibilityRoleDescription() returns text
+        return accessibilityRoleDescription
+    end
+
+    /*
+        This action sets a custom accessibility role description for this item.
+        This should only be done if there is not a standard accessibility code
+        for the type of item being implemented. If the item behaves very
+        similarly to a standard control type, then set the accessibility
+        code to that standard type while also setting the role description.
+        For example, if implementing an item that extends Control,
+        is keyboard focusable, and responds to activation via both mouse
+        clicks and the Space key, like a button, but it shouldn't be
+        described as a button, then set the accessibility code to BUTTON
+        and the custom role description to whatever is appropriate.
+        If there isn't a suitable accessibility code, or if in doubt,
+        set the accessibility code to CUSTOM.
+        
+        Attribute: Parameter newRoleDescription the new custom role description for this Item.
+                                                  
+    */
+    action SetAccessibilityRoleDescription(text newRoleDescription)
+        accessibilityRoleDescription = newRoleDescription
     end
 
     /*
