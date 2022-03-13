@@ -152,6 +152,7 @@ struct JClass_Item
 	jclass me;
 	jmethodID GetName;
 	jmethodID GetDescription;
+    jmethodID GetAccessibilityRoleDescription;
 };
 struct JClass_ProgressBar
 {

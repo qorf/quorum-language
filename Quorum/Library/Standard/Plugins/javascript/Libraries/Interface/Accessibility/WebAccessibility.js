@@ -335,7 +335,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
         //default role
-        let role = "region";
+        let role = null;
+        let roleDescription = item.GetAccessibilityRoleDescription();
 
         /* Creating Item Element Tag with Attributes */
         var parent = undefined; // used if item needs to be added to group
@@ -346,7 +347,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //ITEM or CUSTOM
             case 0:
             case 1:
-                para.setAttribute("aria-roledescription","");
+                if (item.IsFocusable()) {
+                    role = "application";
+                } else {
+                    role = "img";
+                }
+                // If a custom role description isn't provided, an empty string
+                // will indicate that while assistive technologies should treat
+                // this item like an application, e.g. by switching into
+                // focus mode, it's not really an application, but we don't know
+                // what it is.
+                if (roleDescription == null) {
+                    roleDescription = "";
+                }
                 break;
             //CHECKBOX
             case 2:
@@ -620,7 +633,12 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             }
         }
 
-        para.setAttribute("role",role);
+        if (role != null) {
+            para.setAttribute("role",role);
+        }
+        if (roleDescription != null) {
+            para.setAttribute("aria-roledescription", roleDescription);
+        }
         if (itemName != null) {
             para.setAttribute("aria-label", itemName);
         }
