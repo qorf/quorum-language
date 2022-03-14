@@ -42,7 +42,6 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Accessibility
-use Libraries.Interface.Palettes.ColorPalette
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -191,7 +190,8 @@ use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
-use Libraries.Interface.Palettes.BasicPalette
+use Libraries.Interface.InterfaceOptions.InterfaceOptions
+use Libraries.Interface.InterfaceOptions.BasicOptions
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -227,7 +227,7 @@ class Game
     FocusManager focusManager
     Accessibility accessibility = undefined
     EditManager editManager
-    ColorPalette colorPalette = undefined
+    InterfaceOptions interfaceOptions = undefined
 
     public boolean exitRequested = false
 
@@ -260,8 +260,8 @@ class Game
     SceneManager sceneManager = undefined
 
     on create
-        BasicPalette palette
-        colorPalette = palette
+        BasicOptions options
+        interfaceOptions = options
     end
 
     /* This allows us to know if collisions are on or off for the layer. */
@@ -5370,12 +5370,11 @@ class Game
         me:firstLetterNavigationTime = firstLetterNavigationTime
     end
 
-    action GetColorPalette returns ColorPalette
-        return colorPalette
+    action SetInterfaceOptions(InterfaceOptions options)
+        interfaceOptions = options
     end
 
-    action SetColorPalette(ColorPalette colorPalette)
-        me:colorPalette = colorPalette
+    action GetInterfaceOptions returns InterfaceOptions
+        return interfaceOptions
     end
-
 end

@@ -8,7 +8,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Views.View2D
 use Libraries.Compute.BitwiseOperations
-use Libraries.Interface.Palettes.ColorPalette
+use Libraries.Interface.InterfaceOptions.InterfaceOptions
 use Libraries.Game.GameStateManager
 
 class LayoutProperties 
@@ -160,8 +160,8 @@ class LayoutProperties
     /*
     These variables hold on to the ColorPalette and its related components.
     */
-    ColorPalette palette = undefined
-    text paletteKey = ""
+    InterfaceOptions options = undefined
+    text optionsKey = ""
     GameStateManager manager
 
     /*
@@ -172,8 +172,8 @@ class LayoutProperties
     boolean needsRendering = true
 
 
-    private action NewPalette returns ColorPalette
-        ColorPalette new
+    private action NewInterfaceOptions returns InterfaceOptions
+        InterfaceOptions new
         return new
     end
 
@@ -617,22 +617,30 @@ class LayoutProperties
         me:bottomRightRounding = bottomRightRounding
     end
 
-    action SetBackgroundColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+    action GetInterfaceOptionsKey returns text
+        return optionsKey
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        optionsKey = key
+    end
+
+        action SetBackgroundColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetBackgroundColor(value)
+        options:SetBackgroundColor(value)
         needsRendering = true
     end
 
     action GetBackgroundColor returns ColorGroup
-        if palette not= undefined and palette:GetBackgroundColor() not= undefined
-            return palette:GetBackgroundColor()
+        if options not= undefined and options:GetBackgroundColor() not= undefined
+            return options:GetBackgroundColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetBackgroundColor() not= undefined
             return controlPalette:GetBackgroundColor()
         end
@@ -641,21 +649,21 @@ class LayoutProperties
     end
 
     action SetForegroundColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetForegroundColor(value)
+        options:SetForegroundColor(value)
         needsRendering = true
     end
 
     action GetForegroundColor returns ColorGroup
-        if palette not= undefined and palette:GetForegroundColor() not= undefined
-            return palette:GetForegroundColor()
+        if options not= undefined and options:GetForegroundColor() not= undefined
+            return options:GetForegroundColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetForegroundColor() not= undefined
             return controlPalette:GetForegroundColor()
         end
@@ -664,21 +672,21 @@ class LayoutProperties
     end
 
     action SetFontColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetFontColor(value)
+        options:SetFontColor(value)
         needsRendering = true
     end
 
     action GetFontColor returns Color
-        if palette not= undefined and palette:GetFontColor() not= undefined
-            return palette:GetFontColor():GetBottomLeft()
+        if options not= undefined and options:GetFontColor() not= undefined
+            return options:GetFontColor():GetBottomLeft()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFontColor() not= undefined
             return controlPalette:GetFontColor():GetBottomLeft()
         end
@@ -687,21 +695,21 @@ class LayoutProperties
     end
 
     action SetBorderColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetBorderColor(value)
+        options:SetBorderColor(value)
         needsRendering = true
     end
 
     action GetBorderColor returns ColorGroup
-        if palette not= undefined and palette:GetBorderColor() not= undefined
-            return palette:GetBorderColor()
+        if options not= undefined and options:GetBorderColor() not= undefined
+            return options:GetBorderColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetBorderColor() not= undefined
             return controlPalette:GetBorderColor()
         end
@@ -710,21 +718,21 @@ class LayoutProperties
     end
 
     action SetFocusColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetFocusColor(value)
+        options:SetFocusColor(value)
         needsRendering = true
     end
 
     action GetFocusColor returns ColorGroup
-        if palette not= undefined and palette:GetFocusColor() not= undefined
-            return palette:GetFocusColor()
+        if options not= undefined and options:GetFocusColor() not= undefined
+            return options:GetFocusColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFocusColor() not= undefined
             return controlPalette:GetFocusColor()
         end
@@ -733,21 +741,21 @@ class LayoutProperties
     end
 
     action SetMouseOverColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseOverColor(value)
+        options:SetMouseOverColor(value)
         needsRendering = true
     end
 
     action GetMouseOverColor returns ColorGroup
-        if palette not= undefined and palette:GetMouseOverColor() not= undefined
-            return palette:GetMouseOverColor()
+        if options not= undefined and options:GetMouseOverColor() not= undefined
+            return options:GetMouseOverColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseOverColor() not= undefined
             return controlPalette:GetMouseOverColor()
         end
@@ -756,21 +764,21 @@ class LayoutProperties
     end
 
     action SetMouseOverFontColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseOverFontColor(value)
+        options:SetMouseOverFontColor(value)
         needsRendering = true
     end
 
     action GetMouseOverFontColor returns Color
-        if palette not= undefined and palette:GetMouseOverFontColor() not= undefined
-            return palette:GetMouseOverFontColor():GetBottomLeft()
+        if options not= undefined and options:GetMouseOverFontColor() not= undefined
+            return options:GetMouseOverFontColor():GetBottomLeft()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseOverFontColor() not= undefined
             return controlPalette:GetMouseOverFontColor():GetBottomLeft()
         end
@@ -779,21 +787,21 @@ class LayoutProperties
     end
 
     action SetMouseDownColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseDownColor(value)
+        options:SetMouseDownColor(value)
         needsRendering = true
     end
 
     action GetMouseDownColor returns ColorGroup
-        if palette not= undefined and palette:GetMouseDownColor() not= undefined
-            return palette:GetMouseDownColor()
+        if options not= undefined and options:GetMouseDownColor() not= undefined
+            return options:GetMouseDownColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseDownColor() not= undefined
             return controlPalette:GetMouseDownColor()
         end
@@ -802,21 +810,21 @@ class LayoutProperties
     end
 
     action SetMouseDownFontColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseDownFontColor(value)
+        options:SetMouseDownFontColor(value)
         needsRendering = true
     end
 
     action GetMouseDownFontColor returns Color
-        if palette not= undefined and palette:GetMouseDownFontColor() not= undefined
-            return palette:GetMouseDownFontColor():GetBottomLeft()
+        if options not= undefined and options:GetMouseDownFontColor() not= undefined
+            return options:GetMouseDownFontColor():GetBottomLeft()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseDownFontColor() not= undefined
             return controlPalette:GetMouseDownFontColor():GetBottomLeft()
         end
@@ -825,21 +833,21 @@ class LayoutProperties
     end
 
     action SetSelectionColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetSelectionColor(value)
+        options:SetSelectionColor(value)
         needsRendering = true
     end
 
     action GetSelectionColor returns ColorGroup
-        if palette not= undefined and palette:GetSelectionColor() not= undefined
-            return palette:GetSelectionColor()
+        if options not= undefined and options:GetSelectionColor() not= undefined
+            return options:GetSelectionColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionColor() not= undefined
             return controlPalette:GetSelectionColor()
         end
@@ -848,21 +856,21 @@ class LayoutProperties
     end
 
     action SetSelectionBorderColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetSelectionBorderColor(value)
+        options:SetSelectionBorderColor(value)
         needsRendering = true
     end
 
     action GetSelectionBorderColor returns ColorGroup
-        if palette not= undefined and palette:GetSelectionBorderColor() not= undefined
-            return palette:GetSelectionBorderColor()
+        if options not= undefined and options:GetSelectionBorderColor() not= undefined
+            return options:GetSelectionBorderColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionBorderColor() not= undefined
             return controlPalette:GetSelectionBorderColor()
         end
@@ -871,21 +879,21 @@ class LayoutProperties
     end
 
     action SetUnfocusedSelectionColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetUnfocusedSelectionColor(value)
+        options:SetUnfocusedSelectionColor(value)
         needsRendering = true
     end
 
     action GetUnfocusedSelectionColor returns ColorGroup
-        if palette not= undefined and palette:GetUnfocusedSelectionColor() not= undefined
-            return palette:GetUnfocusedSelectionColor()
+        if options not= undefined and options:GetUnfocusedSelectionColor() not= undefined
+            return options:GetUnfocusedSelectionColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetUnfocusedSelectionColor() not= undefined
             return controlPalette:GetUnfocusedSelectionColor()
         end
@@ -894,21 +902,21 @@ class LayoutProperties
     end
 
     action SetSelectionFontColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetSelectionFontColor(value)
+        options:SetSelectionFontColor(value)
         needsRendering = true
     end
 
     action GetSelectionFontColor returns Color
-        if palette not= undefined and palette:GetSelectionFontColor() not= undefined
-            return palette:GetSelectionFontColor():GetBottomLeft()
+        if options not= undefined and options:GetSelectionFontColor() not= undefined
+            return options:GetSelectionFontColor():GetBottomLeft()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionFontColor() not= undefined
             return controlPalette:GetSelectionFontColor():GetBottomLeft()
         end
@@ -917,21 +925,21 @@ class LayoutProperties
     end
 
     action SetGlowColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetGlowColor(value)
+        options:SetGlowColor(value)
         needsRendering = true
     end
 
     action GetGlowColor returns ColorGroup
-        if palette not= undefined and palette:GetGlowColor() not= undefined
-            return palette:GetGlowColor()
+        if options not= undefined and options:GetGlowColor() not= undefined
+            return options:GetGlowColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetGlowColor() not= undefined
             return controlPalette:GetGlowColor()
         end
@@ -940,21 +948,21 @@ class LayoutProperties
     end
 
     action SetMouseOverGlowColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseOverGlowColor(value)
+        options:SetMouseOverGlowColor(value)
         needsRendering = true
     end
 
     action GetMouseOverGlowColor returns ColorGroup
-        if palette not= undefined and palette:GetMouseOverGlowColor() not= undefined
-            return palette:GetMouseOverGlowColor()
+        if options not= undefined and options:GetMouseOverGlowColor() not= undefined
+            return options:GetMouseOverGlowColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseOverGlowColor() not= undefined
             return controlPalette:GetMouseOverGlowColor()
         end
@@ -963,21 +971,21 @@ class LayoutProperties
     end
 
     action SetMouseDownGlowColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetMouseDownGlowColor(value)
+        options:SetMouseDownGlowColor(value)
         needsRendering = true
     end
 
     action GetMouseDownGlowColor returns ColorGroup
-        if palette not= undefined and palette:GetMouseDownGlowColor() not= undefined
-            return palette:GetMouseDownGlowColor()
+        if options not= undefined and options:GetMouseDownGlowColor() not= undefined
+            return options:GetMouseDownGlowColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseDownGlowColor() not= undefined
             return controlPalette:GetMouseDownGlowColor()
         end
@@ -986,21 +994,21 @@ class LayoutProperties
     end
 
     action SetIconColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetIconColor(value)
+        options:SetIconColor(value)
         needsRendering = true
     end
 
     action GetIconColor returns ColorGroup
-        if palette not= undefined and palette:GetIconColor() not= undefined
-            return palette:GetIconColor()
+        if options not= undefined and options:GetIconColor() not= undefined
+            return options:GetIconColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetIconColor() not= undefined
             return controlPalette:GetIconColor()
         end
@@ -1009,34 +1017,26 @@ class LayoutProperties
     end
 
     action SetAccentColor(ColorGroup value)
-        if palette = undefined
-            palette = NewPalette()
+        if options = undefined
+            options = NewInterfaceOptions()
         end
 
-        palette:SetAccentColor(value)
+        options:SetAccentColor(value)
         needsRendering = true
     end
 
     action GetAccentColor returns ColorGroup
-        if palette not= undefined and palette:GetAccentColor() not= undefined
-            return palette:GetAccentColor()
+        if options not= undefined and options:GetAccentColor() not= undefined
+            return options:GetAccentColor()
         end
 
-        ColorPalette default = manager:GetColorPalette()
-        ColorPalette controlPalette = default:GetControlPalette(paletteKey)
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetAccentColor() not= undefined
             return controlPalette:GetAccentColor()
         end
 
         return default:GetAccentColor()
-    end
-
-    action GetPaletteKey returns text
-        return paletteKey
-    end
-
-    action SetPaletteKey(text paletteKey)
-        me:paletteKey = paletteKey
     end
 
 end

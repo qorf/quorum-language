@@ -1,109 +1,114 @@
-package Libraries.Interface.Palettes
+package Libraries.Interface.InterfaceOptions
 
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 
-class ColorPalette
+class InterfaceOptions
 
-    ColorGroup backgroundColor = undefined
-    ColorGroup foregroundColor = undefined
-    ColorGroup fontColor = undefined
-    ColorGroup borderColor = undefined
-    ColorGroup focusColor = undefined
-    ColorGroup mouseOverColor = undefined
-    ColorGroup mouseOverFontColor = undefined
-    ColorGroup mouseDownColor = undefined
-    ColorGroup mouseDownFontColor = undefined
-    ColorGroup selectionColor = undefined
-    ColorGroup selectionBorderColor = undefined
-    ColorGroup unfocusedSelectionColor = undefined
-    ColorGroup selectionFontColor = undefined
-    ColorGroup glowColor = undefined
-    ColorGroup mouseOverGlowColor = undefined
-    ColorGroup mouseDownGlowColor = undefined
-    ColorGroup iconColor = undefined
-    ColorGroup accentColor = undefined
+    // Key values for color properties.
+    public constant text BACKGROUND_COLOR = "backgroundColor"
+    public constant text FOREGROUND_COLOR = "foregroundColor"
+    public constant text FONT_COLOR = "fontColor"
+    public constant text BORDER_COLOR = "borderColor"
+    public constant text FOCUS_COLOR = "focusColor"
+    public constant text MOUSE_OVER_COLOR = "mouseOverColor"
+    public constant text MOUSE_OVER_FONT_COLOR = "mouseOverFontColor"
+    public constant text MOUSE_DOWN_COLOR = "mouseDownColor"
+    public constant text MOUSE_DOWN_FONT_COLOR = "mouseDownFontColor"
+    public constant text SELECTION_COLOR = "selectionColor"
+    public constant text SELECTION_BORDER_COLOR = "selectionBorderColor"
+    public constant text UNFOCUSED_SELECTION_COLOR = "unfocusedSelectionColor"
+    public constant text SELECTION_FONT_COLOR = "selectionFontColor"
+    public constant text GLOW_COLOR = "glowColor"
+    public constant text MOUSE_OVER_GLOW_COLOR = "mouseOverGlowColor"
+    public constant text MOUSE_DOWN_GLOW_COLOR = "mouseDownGlowColor"
+    public constant text ICON_COLOR = "iconColor"
+    public constant text ACCENT_COLOR = "accentColor"
 
+    // Key values for default interface options.
     public constant text BUTTON = "Button"
     public constant text CELL = "Cell"
     public constant text CHECKBOX = "Checkbox"
     public constant text SCROLL_PANE = "ScrollPane"
     public constant text TAB_BAR = "TabBar"
 
-    HashTable<text, ColorPalette> controlPalettes
+    // HashTables for color properties and interface options.
+    HashTable<text, ColorGroup> colorProperties
+    HashTable<text, InterfaceOptions> interfaceOptions
 
-    action HasControlPalette(text name) returns boolean
-        return controlPalettes:HasKey(name)
+    action HasInterfaceOptions(text name) returns boolean
+        return interfaceOptions:HasKey(name)
     end
 
-    action GetControlPalette(text name) returns ColorPalette
-        if HasControlPalette(name)
-            return controlPalettes:GetValue(name)
+    action GetInterfaceOptions(text name) returns InterfaceOptions
+        if HasInterfaceOptions(name)
+            return interfaceOptions:GetValue(name)
         else
             return undefined
         end
     end
 
-    action SetControlPalette(text name, ColorPalette palette)
-        controlPalettes:Set(name, palette)
+    action SetInterfaceOptions(text name, InterfaceOptions palette)
+        interfaceOptions:Set(name, palette)
     end
 
-    action Copy returns ColorPalette
-        ColorPalette new
-        new:SetBackgroundColor(backgroundColor)
-        new:SetForegroundColor(foregroundColor)
-        new:SetFontColor(fontColor)
-        new:SetBorderColor(borderColor)
-        new:SetMouseOverColor(mouseOverColor)
-        new:SetMouseOverFontColor(mouseOverFontColor)
-        new:SetMouseDownColor(mouseDownColor)
-        new:SetMouseDownFontColor(mouseDownFontColor)
-        new:SetSelectionColor(selectionColor)
-        new:SetUnfocusedSelectionColor(unfocusedSelectionColor)
-        new:SetSelectionFontColor(selectionFontColor)
-        new:SetGlowColor(glowColor)
-        new:SetMouseOverGlowColor(mouseOverGlowColor)
-        new:SetMouseDownGlowColor(mouseDownGlowColor)
-        new:SetIconColor(iconColor)
-        new:SetAccentColor(accentColor)
+    action GetColorProperty(text key) returns ColorGroup
+        if colorProperties:HasKey(key)
+            return colorProperties:GetValue(key)
+        else
+            return undefined
+        end
+    end
 
-        Iterator<text> iterator = controlPalettes:GetKeyIterator()
-        repeat while iterator:HasNext()
-            text key = iterator:Next()
-            new:SetControlPalette(key, controlPalettes:GetValue(key))
+    action SetColorProperty(text key, ColorGroup color)
+        colorProperties:Set(key, color)
+    end
+
+    action CopyInterfaceOptions(text key) returns InterfaceOptions
+        if interfaceOptions:HasKey(key)
+            return interfaceOptions:GetValue(key):Copy()
+        end
+        return undefined
+    end
+
+    action Copy returns InterfaceOptions
+        InterfaceOptions new
+        Iterator<text> propertyIterator = colorProperties:GetKeyIterator()
+        repeat while propertyIterator:HasNext()
+            text key = propertyIterator:Next()
+            new:SetColorProperty(key, colorProperties:GetValue(key))
+        end
+
+        Iterator<text> controlIterator = interfaceOptions:GetKeyIterator()
+        repeat while controlIterator:HasNext()
+            text key = controlIterator:Next()
+            new:SetInterfaceOptions(key, interfaceOptions:GetValue(key))
         end
 
         return new
     end
 
-    action CopyControlPalette(text paletteName) returns ColorPalette
-        if controlPalettes:HasKey(paletteName)
-            return controlPalettes:GetValue(paletteName):Copy()
-        end
-        return undefined
-    end
-
     action SetBackgroundColor(ColorGroup value)
-        backgroundColor = value
+        SetColorProperty(BACKGROUND_COLOR, value)
     end
 
     action GetBackgroundColor returns ColorGroup
-        return backgroundColor
+        return GetColorProperty(BACKGROUND_COLOR)
     end
 
     action SetBackgroundColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetBackgroundColor(value)
     end
 
     action GetBackgroundColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -112,25 +117,25 @@ class ColorPalette
     end
 
     action SetForegroundColor(ColorGroup value)
-        foregroundColor = value
+        SetColorProperty(FOREGROUND_COLOR, value)
     end
 
     action GetForegroundColor returns ColorGroup
-        return foregroundColor
+        return GetColorProperty(FOREGROUND_COLOR)
     end
 
     action SetForegroundColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetForegroundColor(value)
     end
 
     action GetForegroundColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -139,25 +144,25 @@ class ColorPalette
     end
 
     action SetFontColor(ColorGroup value)
-        fontColor = value
+        SetColorProperty(FONT_COLOR, value)
     end
 
     action GetFontColor returns ColorGroup
-        return fontColor
+        return GetColorProperty(FONT_COLOR)
     end
 
     action SetFontColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetFontColor(value)
     end
 
     action GetFontColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -166,25 +171,25 @@ class ColorPalette
     end
 
     action SetBorderColor(ColorGroup value)
-        borderColor = value
+        SetColorProperty(BORDER_COLOR, value)
     end
 
     action GetBorderColor returns ColorGroup
-        return borderColor
+        return GetColorProperty(BORDER_COLOR)
     end
 
     action SetBorderColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetBorderColor(value)
     end
 
     action GetBorderColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -193,25 +198,25 @@ class ColorPalette
     end
 
     action SetFocusColor(ColorGroup value)
-        focusColor = value
+        SetColorProperty(FOCUS_COLOR, value)
     end
 
     action GetFocusColor returns ColorGroup
-        return focusColor
+        return GetColorProperty(FOCUS_COLOR)
     end
 
     action SetFocusColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetFocusColor(value)
     end
 
     action GetFocusColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -220,25 +225,25 @@ class ColorPalette
     end
 
     action SetMouseOverColor(ColorGroup value)
-        mouseOverColor = value
+        SetColorProperty(MOUSE_OVER_COLOR, value)
     end
 
     action GetMouseOverColor returns ColorGroup
-        return mouseOverColor
+        return GetColorProperty(MOUSE_OVER_COLOR)
     end
 
     action SetMouseOverColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseOverColor(value)
     end
 
     action GetMouseOverColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -247,25 +252,25 @@ class ColorPalette
     end
 
     action SetMouseOverFontColor(ColorGroup value)
-        mouseOverFontColor = value
+        SetColorProperty(MOUSE_OVER_FONT_COLOR, value)
     end
 
     action GetMouseOverFontColor returns ColorGroup
-        return mouseOverFontColor
+        return GetColorProperty(MOUSE_OVER_FONT_COLOR)
     end
 
     action SetMouseOverFontColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseOverFontColor(value)
     end
 
     action GetMouseOverFontColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -274,25 +279,25 @@ class ColorPalette
     end
 
     action SetMouseDownColor(ColorGroup value)
-        mouseDownColor = value
+        SetColorProperty(MOUSE_DOWN_COLOR, value)
     end
 
     action GetMouseDownColor returns ColorGroup
-        return mouseDownColor
+        return GetColorProperty(MOUSE_DOWN_COLOR)
     end
 
     action SetMouseDownColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseDownColor(value)
     end
 
     action GetMouseDownColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -301,25 +306,25 @@ class ColorPalette
     end
 
     action SetMouseDownFontColor(ColorGroup value)
-        mouseDownFontColor = value
+        SetColorProperty(MOUSE_DOWN_FONT_COLOR, value)
     end
 
     action GetMouseDownFontColor returns ColorGroup
-        return mouseDownFontColor
+        return GetColorProperty(MOUSE_DOWN_FONT_COLOR)
     end
 
     action SetMouseDownFontColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseDownFontColor(value)
     end
 
     action GetMouseDownFontColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -328,25 +333,25 @@ class ColorPalette
     end
 
     action SetSelectionColor(ColorGroup value)
-        selectionColor = value
+        SetColorProperty(SELECTION_COLOR, value)
     end
 
     action GetSelectionColor returns ColorGroup
-        return selectionColor
+        return GetColorProperty(SELECTION_COLOR)
     end
 
     action SetSelectionColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetSelectionColor(value)
     end
 
     action GetSelectionColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -355,25 +360,25 @@ class ColorPalette
     end
 
     action SetSelectionBorderColor(ColorGroup value)
-        selectionBorderColor = value
+        SetColorProperty(SELECTION_BORDER_COLOR, value)
     end
 
     action GetSelectionBorderColor returns ColorGroup
-        return selectionBorderColor
+        return GetColorProperty(SELECTION_BORDER_COLOR)
     end
 
     action SetSelectionBorderColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetSelectionBorderColor(value)
     end
 
     action GetSelectionBorderColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -382,25 +387,25 @@ class ColorPalette
     end
 
     action SetUnfocusedSelectionColor(ColorGroup value)
-        unfocusedSelectionColor = value
+        SetColorProperty(UNFOCUSED_SELECTION_COLOR, value)
     end
 
     action GetUnfocusedSelectionColor returns ColorGroup
-        return unfocusedSelectionColor
+        return GetColorProperty(UNFOCUSED_SELECTION_COLOR)
     end
 
     action SetUnfocusedSelectionColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetUnfocusedSelectionColor(value)
     end
 
     action GetUnfocusedSelectionColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -409,25 +414,25 @@ class ColorPalette
     end
 
     action SetSelectionFontColor(ColorGroup value)
-        selectionFontColor = value
+        SetColorProperty(SELECTION_FONT_COLOR, value)
     end
 
     action GetSelectionFontColor returns ColorGroup
-        return selectionFontColor
+        return GetColorProperty(SELECTION_FONT_COLOR)
     end
 
     action SetSelectionFontColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetSelectionFontColor(value)
     end
 
     action GetSelectionFontColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -436,25 +441,25 @@ class ColorPalette
     end
 
     action SetGlowColor(ColorGroup value)
-        glowColor = value
+        SetColorProperty(GLOW_COLOR, value)
     end
 
     action GetGlowColor returns ColorGroup
-        return glowColor
+        return GetColorProperty(GLOW_COLOR)
     end
 
     action SetGlowColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetGlowColor(value)
     end
 
     action GetGlowColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -463,25 +468,25 @@ class ColorPalette
     end
 
     action SetMouseOverGlowColor(ColorGroup value)
-        mouseOverGlowColor = value
+        SetColorProperty(MOUSE_OVER_GLOW_COLOR, value)
     end
 
     action GetMouseOverGlowColor returns ColorGroup
-        return mouseOverGlowColor
+        return GetColorProperty(MOUSE_OVER_GLOW_COLOR)
     end
 
     action SetMouseOverGlowColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseOverGlowColor(value)
     end
 
     action GetMouseOverGlowColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -490,25 +495,25 @@ class ColorPalette
     end
 
     action SetMouseDownGlowColor(ColorGroup value)
-        mouseDownGlowColor = value
+        SetColorProperty(MOUSE_DOWN_GLOW_COLOR, value)
     end
 
     action GetMouseDownGlowColor returns ColorGroup
-        return mouseDownGlowColor
+        return GetColorProperty(MOUSE_DOWN_GLOW_COLOR)
     end
 
     action SetMouseDownGlowColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetMouseDownGlowColor(value)
     end
 
     action GetMouseDownGlowColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -517,25 +522,25 @@ class ColorPalette
     end
 
     action SetIconColor(ColorGroup value)
-        iconColor = value
+        SetColorProperty(ICON_COLOR, value)
     end
 
     action GetIconColor returns ColorGroup
-        return iconColor
+        return GetColorProperty(ICON_COLOR)
     end
 
     action SetIconColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetIconColor(value)
     end
 
     action GetIconColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -544,25 +549,25 @@ class ColorPalette
     end
 
     action SetAccentColor(ColorGroup value)
-        accentColor = value
+        SetColorProperty(ACCENT_COLOR, value)
     end
 
     action GetAccentColor returns ColorGroup
-        return accentColor
+        return GetColorProperty(ACCENT_COLOR)
     end
 
     action SetAccentColor(text controlType, ColorGroup value)
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
-            ColorPalette newPalette
+            InterfaceOptions newPalette
             palette = newPalette
-            SetControlPalette(controlType, palette)
+            SetInterfaceOptions(controlType, palette)
         end
         palette:SetAccentColor(value)
     end
 
     action GetAccentColor(text controlType) returns ColorGroup
-        ColorPalette palette = GetControlPalette(controlType)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
         if palette = undefined
             return undefined
         else
@@ -714,8 +719,8 @@ class ColorPalette
         return GetAccentColor(BUTTON)
     end
 
-    action CopyButtonPalette returns ColorPalette
-        return CopyControlPalette(BUTTON)
+    action CopyButtonInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(BUTTON)
     end
 
     action SetCellBackgroundColor(ColorGroup value)
@@ -862,8 +867,8 @@ class ColorPalette
         return GetAccentColor(CELL)
     end
 
-    action CopyCellPalette returns ColorPalette
-        return CopyControlPalette(CELL)
+    action CopyCellInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(CELL)
     end
 
     action SetCheckboxBackgroundColor(ColorGroup value)
@@ -1010,8 +1015,8 @@ class ColorPalette
         return GetAccentColor(CHECKBOX)
     end
 
-    action CopyCheckboxPalette returns ColorPalette
-        return CopyControlPalette(CHECKBOX)
+    action CopyCheckboxInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(CHECKBOX)
     end
 
     action SetScrollPaneBackgroundColor(ColorGroup value)
@@ -1158,8 +1163,8 @@ class ColorPalette
         return GetAccentColor(SCROLL_PANE)
     end
 
-    action CopyScrollPanePalette returns ColorPalette
-        return CopyControlPalette(SCROLL_PANE)
+    action CopyScrollPaneInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(SCROLL_PANE)
     end
 
     action SetTabBarBackgroundColor(ColorGroup value)
@@ -1306,8 +1311,8 @@ class ColorPalette
         return GetAccentColor(TAB_BAR)
     end
 
-    action CopyTabBarPalette returns ColorPalette
-        return CopyControlPalette(TAB_BAR)
-    end
+    action CopyTabBarInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TAB_BAR)
+    end    
 
 end
