@@ -8,7 +8,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Views.View2D
 use Libraries.Compute.BitwiseOperations
-use Libraries.Interface.InterfaceOptions.InterfaceOptions
+use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Game.GameStateManager
 
 class LayoutProperties 
@@ -680,18 +680,18 @@ class LayoutProperties
         needsRendering = true
     end
 
-    action GetFontColor returns Color
+    action GetFontColor returns ColorGroup
         if options not= undefined and options:GetFontColor() not= undefined
-            return options:GetFontColor():GetBottomLeft()
+            return options:GetFontColor()
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFontColor() not= undefined
-            return controlPalette:GetFontColor():GetBottomLeft()
+            return controlPalette:GetFontColor()
         end
 
-        return default:GetFontColor():GetBottomLeft()
+        return default:GetFontColor()
     end
 
     action SetBorderColor(ColorGroup value)
@@ -772,18 +772,18 @@ class LayoutProperties
         needsRendering = true
     end
 
-    action GetMouseOverFontColor returns Color
+    action GetMouseOverFontColor returns ColorGroup
         if options not= undefined and options:GetMouseOverFontColor() not= undefined
-            return options:GetMouseOverFontColor():GetBottomLeft()
+            return options:GetMouseOverFontColor()
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseOverFontColor() not= undefined
-            return controlPalette:GetMouseOverFontColor():GetBottomLeft()
+            return controlPalette:GetMouseOverFontColor()
         end
 
-        return default:GetMouseOverFontColor():GetBottomLeft()
+        return default:GetMouseOverFontColor()
     end
 
     action SetMouseDownColor(ColorGroup value)
@@ -818,18 +818,18 @@ class LayoutProperties
         needsRendering = true
     end
 
-    action GetMouseDownFontColor returns Color
+    action GetMouseDownFontColor returns ColorGroup
         if options not= undefined and options:GetMouseDownFontColor() not= undefined
-            return options:GetMouseDownFontColor():GetBottomLeft()
+            return options:GetMouseDownFontColor()
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetMouseDownFontColor() not= undefined
-            return controlPalette:GetMouseDownFontColor():GetBottomLeft()
+            return controlPalette:GetMouseDownFontColor()
         end
 
-        return default:GetMouseDownFontColor():GetBottomLeft()
+        return default:GetMouseDownFontColor()
     end
 
     action SetSelectionColor(ColorGroup value)
@@ -901,6 +901,29 @@ class LayoutProperties
         return default:GetUnfocusedSelectionColor()
     end
 
+    action SetUnfocusedSelectionBorderColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetUnfocusedSelectionBorderColor(value)
+        needsRendering = true
+    end
+
+    action GetUnfocusedSelectionBorderColor returns ColorGroup
+        if options not= undefined and options:GetUnfocusedSelectionBorderColor() not= undefined
+            return options:GetUnfocusedSelectionBorderColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetUnfocusedSelectionBorderColor() not= undefined
+            return controlPalette:GetUnfocusedSelectionBorderColor()
+        end
+
+        return default:GetUnfocusedSelectionBorderColor()
+    end
+
     action SetSelectionFontColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -910,18 +933,41 @@ class LayoutProperties
         needsRendering = true
     end
 
-    action GetSelectionFontColor returns Color
+    action GetSelectionFontColor returns ColorGroup
         if options not= undefined and options:GetSelectionFontColor() not= undefined
-            return options:GetSelectionFontColor():GetBottomLeft()
+            return options:GetSelectionFontColor()
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionFontColor() not= undefined
-            return controlPalette:GetSelectionFontColor():GetBottomLeft()
+            return controlPalette:GetSelectionFontColor()
         end
 
-        return default:GetSelectionFontColor():GetBottomLeft()
+        return default:GetSelectionFontColor()
+    end
+
+    action SetUnfocusedSelectionFontColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetUnfocusedSelectionFontColor(value)
+        needsRendering = true
+    end
+
+    action GetUnfocusedSelectionFontColor returns ColorGroup
+        if options not= undefined and options:GetUnfocusedSelectionFontColor() not= undefined
+            return options:GetUnfocusedSelectionFontColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetUnfocusedSelectionFontColor() not= undefined
+            return controlPalette:GetUnfocusedSelectionFontColor()
+        end
+
+        return default:GetUnfocusedSelectionFontColor()
     end
 
     action SetGlowColor(ColorGroup value)

@@ -13,6 +13,8 @@ use Libraries.Interface.Views.View2D
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Views.ToggleView
 
 class ControlShaderMapping is ShaderMapping
 
@@ -46,10 +48,12 @@ class ControlShaderMapping is ShaderMapping
         number topLeftRounding = 0
 
         number borderThickness = 0
-        Color borderColor = undefined
+        ColorGroup borderColor = undefined
         ColorGroup backgroundColor = undefined
 
         number aspectRatio = (drawable:GetWidth() * drawable:GetScaleX()) / (drawable:GetHeight() * drawable:GetScaleY())
+
+        boolean selected = false
 
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
@@ -96,6 +100,10 @@ class ControlShaderMapping is ShaderMapping
                 if item is Control
                     control = cast(Control, item)
                 end
+                if view is ToggleView
+                    ToggleView toggle = cast(ToggleView, view)
+                    selected = toggle:GetToggleState()
+                end
             end
 
             if control not= undefined
@@ -132,11 +140,22 @@ class ControlShaderMapping is ShaderMapping
                     backgroundColor = control:GetMouseOverColor()
                 end
 
-                if control:IsRenderingSelection()
+                if control:IsRenderingSelection() or selected
+                    if control:IsRenderingFocus() = false
+                        if backgroundColor = undefined
+                            backgroundColor = control:GetUnfocusedSelectionColor()
+                        end
+                        if borderColor = undefined
+                            borderColor = control:GetUnfocusedSelectionBorderColor()
+                        end
+                    end
+
                     if backgroundColor = undefined
                         backgroundColor = control:GetSelectionColor()
                     end
-                    borderColor = control:GetBorderColor():GetBottomLeft()
+                    if borderColor = undefined
+                        borderColor = control:GetSelectionBorderColor()
+                    end
                 end
 
                 if backgroundColor = undefined
@@ -144,8 +163,8 @@ class ControlShaderMapping is ShaderMapping
                 end
 
                 // Get the border color, if there is one.
-                if borderColor = undefined
-                    borderColor = control:GetBorderColor():GetBottomLeft()
+                if borderColor = undefined and control:GetBorderColor() not= undefined
+                    borderColor = control:GetBorderColor()
                 end
             end
         end
@@ -159,7 +178,8 @@ class ControlShaderMapping is ShaderMapping
         program:SetShaderInput("u_borderThickness", borderThickness / (drawable:GetHeight() * drawable:GetScaleY()))
 
         if borderColor not= undefined
-            program:SetShaderInput("u_borderColor", borderColor:GetRed(), borderColor:GetGreen(), borderColor:GetBlue(), borderColor:GetAlpha())
+            Color border = borderColor:GetBottomLeft()
+            program:SetShaderInput("u_borderColor", border:GetRed(), border:GetGreen(), border:GetBlue(), border:GetAlpha())
         else
             program:SetShaderInput("u_borderColor", 0.0, 0.0, 0.0, 1.0)
         end

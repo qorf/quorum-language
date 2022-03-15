@@ -132,6 +132,8 @@ class Checkbox is ToggleButton
             CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
             content:SetCheckColor(buttonIcon:GetAccentColor())
         end
+
+        buttonIcon:SetBorderThickness(GetBorderThickness())
     end
 
 end

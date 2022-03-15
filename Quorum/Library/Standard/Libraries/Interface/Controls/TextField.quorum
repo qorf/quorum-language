@@ -56,7 +56,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     Drawable caret
     integer caretThickness = 1
-    Color caretColor = characterColor:Black()
+    ColorGroup caretColor = characterColor:Black()
 
     // How far the first character in the view has slid to the left to show text that extends past the end of the TextField.
     number horizontalOffset = 0.0
@@ -219,7 +219,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         Color color
 
-        Color fontColor = properties:GetFontColor()
+        ColorGroup fontColor = properties:GetFontColor()
         if fontColor = undefined
             fontColor = color:Black()
         end
@@ -248,8 +248,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
-        Color fontColor = currentProperties:GetFontColor()
-        Color selectedFontColor = currentProperties:GetSelectionFontColor()
+        ColorGroup fontColor = currentProperties:GetFontColor()
+        ColorGroup selectedFontColor = currentProperties:GetSelectionFontColor()
 
         if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
             font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))

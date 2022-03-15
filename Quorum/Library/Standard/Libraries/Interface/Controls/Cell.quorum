@@ -65,33 +65,18 @@ class Cell is Control
         if GetView2D() = undefined
             ControlShaderView view
             view:Initialize()
-
-//            LabelBoxView view
-//            Color color
-//            view:Initialize(color:White(), color:Black())
-//            view:SetBorderThickness(1)
-
             SetView2D(view)
         end
 
         View2D view = GetView2D()
         ColorGroup backgroundColor = undefined
-        Color textColor = undefined
+        ColorGroup textColor = undefined
         Spreadsheet sheet = GetSpreadsheet()
         LayoutProperties sheetProperties = undefined
 
         if sheet not= undefined
             sheetProperties = sheet:GetDefaultLayoutProperties()
         end
-
-//        if properties not= undefined and properties:GetBackgroundColor() not= undefined
-//            backgroundColor = properties:GetBackgroundColor()
-//        elseif sheetProperties not= undefined and sheetProperties:GetBackgroundColor() not= undefined
-//            backgroundColor = sheetProperties:GetBackgroundColor()
-//        else
-//            Color color
-//            backgroundColor = color:White()
-//        end
 
         if properties not= undefined and properties:GetFontColor() not= undefined
             textColor = properties:GetFontColor()
@@ -101,11 +86,6 @@ class Cell is Control
             Color color
             textColor = color:Black()
         end
-
-//        if GetView2D() is LabelBoxView
-//            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
-//            labelBox:SetBackgroundColor(backgroundColor)
-//        end
 
         label:SetColor(textColor)
         label:SetLeftPadding(DEFAULT_PADDING)
@@ -134,7 +114,7 @@ class Cell is Control
         end
 
         ColorGroup backgroundColor = undefined
-        Color textColor = undefined
+        ColorGroup textColor = undefined
 
         if properties not= undefined and properties:GetSelectionColor() not= undefined
             backgroundColor = properties:GetSelectionColor()
@@ -173,7 +153,7 @@ class Cell is Control
         end
 
         ColorGroup backgroundColor = undefined
-        Color textColor = undefined
+        ColorGroup textColor = undefined
 
         if properties not= undefined and properties:GetBackgroundColor() not= undefined
             backgroundColor = properties:GetBackgroundColor()

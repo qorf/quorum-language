@@ -223,6 +223,13 @@ class Control is Item2D
     end
 
     /*
+
+    */
+    action IsRenderingFocus returns boolean
+        return IsFocused()
+    end
+
+    /*
         This action returns a default behavior for this paricular control. Some
         controls do nothing by default, like a TextBox that responds to different kinds
         of input. Others, however, have default behaviors, like a Button or a MenuItem. 
@@ -709,11 +716,11 @@ class Control is Item2D
         return defaultProperties:GetForegroundColor()
     end
 
-    action SetFontColor(Color value)
+    action SetFontColor(ColorGroup value)
         defaultProperties:SetFontColor(value)
     end
 
-    action GetFontColor returns Color
+    action GetFontColor returns ColorGroup
         return defaultProperties:GetFontColor()
     end
 
@@ -741,11 +748,11 @@ class Control is Item2D
         return defaultProperties:GetMouseOverColor()
     end
 
-    action SetMouseOverFontColor(Color value)
+    action SetMouseOverFontColor(ColorGroup value)
         defaultProperties:SetMouseOverFontColor(value)
     end
 
-    action GetMouseOverFontColor returns Color
+    action GetMouseOverFontColor returns ColorGroup
         return defaultProperties:GetMouseOverFontColor()
     end
 
@@ -757,11 +764,11 @@ class Control is Item2D
         return defaultProperties:GetMouseDownColor()
     end
 
-    action SetMouseDownFontColor(Color value)
+    action SetMouseDownFontColor(ColorGroup value)
         defaultProperties:SetMouseDownFontColor(value)
     end
 
-    action GetMouseDownFontColor returns Color
+    action GetMouseDownFontColor returns ColorGroup
         return defaultProperties:GetMouseDownFontColor()
     end
 
@@ -789,12 +796,28 @@ class Control is Item2D
         return defaultProperties:GetUnfocusedSelectionColor()
     end
 
-    action SetSelectionFontColor(Color value)
+    action SetUnfocusedSelectionBorderColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionBorderColor(value)
+    end
+
+    action GetUnfocusedSelectionBorderColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionBorderColor()
+    end
+
+    action SetSelectionFontColor(ColorGroup value)
         defaultProperties:SetSelectionFontColor(value)
     end
 
-    action GetSelectionFontColor returns Color
+    action GetSelectionFontColor returns ColorGroup
         return defaultProperties:GetSelectionFontColor()
+    end
+
+    action SetUnfocusedSelectionFontColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionFontColor(value)
+    end
+
+    action GetUnfocusedSelectionFontColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionFontColor()
     end
 
     action SetGlowColor(ColorGroup value)

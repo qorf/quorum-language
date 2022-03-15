@@ -82,7 +82,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     number scrollRegionWidth = -1
 
     integer caretThickness = 1
-    Color caretColor = characterColor:Black()
+    ColorGroup caretColor = characterColor:Black()
 
     /*
     Whether the caret is active or not. This does not necessarily mean the caret
@@ -373,7 +373,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         verticalControl:SetView2D(verticalControlView)
         horizontalControl:SetView2D(horizontalControlView)
 
-        Color fontColor = properties:GetFontColor()
+        ColorGroup fontColor = properties:GetFontColor()
         if fontColor = undefined
             fontColor = color:Black()
         end
@@ -607,8 +607,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             x = startX
 
             repeat size times
-                Color fontColor = currentProperties:GetFontColor()
-                Color selectedFontColor = currentProperties:GetSelectionFontColor()
+                ColorGroup fontColor = currentProperties:GetFontColor()
+                ColorGroup selectedFontColor = currentProperties:GetSelectionFontColor()
                 
                 stylesToApply:Empty()
 
@@ -719,7 +719,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
-        Color fontColor = currentProperties:GetFontColor()
+        ColorGroup fontColor = currentProperties:GetFontColor()
 
         integer lineHeight = font:GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
