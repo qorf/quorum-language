@@ -28,9 +28,9 @@ class LightModeOptions is InterfaceOptions
         SetMouseOverColor(mouseOverGradient)
 
         // Button specific colors.
-        SetButtonMouseDownColor(color:CustomColor(222.0 / MAX, 217.0 / MAX, 224.0 / MAX, 1))
-        SetButtonFontColor(color:CustomColor(110.0 / MAX, 110.0 / MAX, 110.0 / MAX, 1))
-        SetButtonBackgroundColor(color:CustomColor(242.0 / MAX, 242.0 / MAX, 242.0 / MAX, 1))
+        SetButtonMouseDownColor(color:CustomColor(223.0 / MAX, 223.0 / MAX, 223.0 / MAX, 1))
+        SetButtonFontColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 1))
+        SetButtonBackgroundColor(color:CustomColor(255.0 / MAX, 255.0 / MAX, 255.0 / MAX, 1))
 
         //Accept button (Ok style button) background
         //color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1)
@@ -57,7 +57,7 @@ class LightModeOptions is InterfaceOptions
         SetTabBarBorderColor(color:Black())
 
         //TABS
-
+        
         //Tab Background Color
         //color:White()
         //Selected Tab font color
@@ -70,12 +70,8 @@ class LightModeOptions is InterfaceOptions
 
 
         //TREES
-        //Item Font
-        //color:Black()
-        //item background
-        //lightGray
-
-        //highlighted, but not selected item
+        SetUnfocusedSelectionFontColor(color:White())
+        SetUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
         //color:CustomColor(204.0 / MAX, 199.0 / MAX, 206.0 / MAX, 1)
         //highlight, but not selected item font
         //color:Black()
@@ -86,6 +82,7 @@ class LightModeOptions is InterfaceOptions
         //color:White()
 
         //arrow color in tree
+        //SetTreeAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
         //color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1)
 
 
@@ -94,6 +91,9 @@ class LightModeOptions is InterfaceOptions
         //color:CustomColor(105.0 / MAX, 257.0 / MAX, 249.0 / MAX, 1)
         //mouse menu font color
         //color:White()
+        SetMenuItemBackgroundColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
 
         //textbox
         //background color
