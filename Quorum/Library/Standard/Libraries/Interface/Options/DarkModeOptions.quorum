@@ -12,7 +12,8 @@ class DarkModeOptions is InterfaceOptions
         constant number MAX = 255.0
         SetFontColor(color:White())
         SetSelectionFontColor(color:White())
-        SetSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        Color defaultSelectionColor = color:CustomColor(47.0 / MAX, 91.0 / MAX, 187.0 / MAX, 1)
+        SetSelectionColor(defaultSelectionColor)
         SetBorderColor(color:CustomColor(122.0 / MAX, 124.0 / MAX, 126.0 / MAX, 1))
         SetIconColor(color:White()) //TODO
 
@@ -22,7 +23,7 @@ class DarkModeOptions is InterfaceOptions
         SetBackgroundColor(backgroundGradient)
 
         Gradient mouseOverGradient
-        Color mouseOver = color:CustomColor(235.0 / MAX, 230.0 / MAX, 237.0 / MAX, 1)
+        Color mouseOver = color:CustomColor(76.0 / MAX, 80.0 / MAX, 82.0 / MAX, 1)
         mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
         SetMouseOverColor(mouseOverGradient)
 
@@ -71,6 +72,11 @@ class DarkModeOptions is InterfaceOptions
 
 
         //TREES
+        SetControlLabelUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+        SetControlLabelUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
+
+        //The arrow to the tree uses the accent color.
+        //SetTreeAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
         //Item Font
         //color:CustomColor(176.0 / MAX, 176.0 / MAX, 176.0 / MAX, 1)
         //item background
@@ -91,6 +97,9 @@ class DarkModeOptions is InterfaceOptions
 
 
         //MENUS
+        SetMenuItemBackgroundColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemSelectionColor(defaultSelectionColor)
         //menu mouse over
         //color:CustomColor(47.0 / MAX, 91.0 / MAX, 187.0 / MAX, 1)
         //mouse menu font color
@@ -99,8 +108,8 @@ class DarkModeOptions is InterfaceOptions
 
         //textbox
         //background color
-        //color:CustomColor(41.0 / MAX, 42.0 / MAX, 47.0 / MAX, 1)
+        //color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
         //font color
-        //color:CustomColor(223.0 / MAX, 223.0 / MAX, 224.0 / MAX, 1)
+        //color:CustomColor(164.0 / MAX, 177.0 / MAX, 192.0 / MAX, 1)
     end
 end
