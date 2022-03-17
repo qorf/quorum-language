@@ -46,7 +46,24 @@ class InterfaceOptions
     // HashTables for color properties and interface options.
     HashTable<text, ColorGroup> colorProperties
     HashTable<text, InterfaceOptions> interfaceOptions
+    HashTable<text, text> customProperty
 
+    action HasCustomProperty(text name) returns boolean
+        return customProperty:HasKey(name)
+    end
+
+    action GetCustomProperty(text name) returns text
+        if HasCustomProperty(name)
+            return customProperty:GetValue(name)
+        else
+            return undefined
+        end
+    end
+
+    action SetCustomProperty(text name, text value)
+        customProperty:Set(name, value)
+    end
+    
     action HasInterfaceOptions(text name) returns boolean
         return interfaceOptions:HasKey(name)
     end

@@ -12,7 +12,8 @@ class LightModeOptions is InterfaceOptions
         constant number MAX = 255.0
         SetFontColor(color:Black())
         SetSelectionFontColor(color:White())
-        SetSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        Color defaultSelectionColor = color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1)
+        SetSelectionColor(defaultSelectionColor)
         SetBorderColor(color:Black())
         SetIconColor(color:White())
 
@@ -23,7 +24,7 @@ class LightModeOptions is InterfaceOptions
         SetBackgroundColor(backgroundGradient)
 
         Gradient mouseOverGradient
-        Color mouseOver = color:CustomColor(235.0 / MAX, 230.0 / MAX, 237.0 / MAX, 1)
+        Color mouseOver = color:CustomColor(224.0 / MAX, 220.0 / MAX, 224.0 / MAX, 1)
         mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
         SetMouseOverColor(mouseOverGradient)
 
@@ -70,30 +71,19 @@ class LightModeOptions is InterfaceOptions
 
 
         //TREES
-        SetUnfocusedSelectionFontColor(color:White())
-        SetUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
-        //color:CustomColor(204.0 / MAX, 199.0 / MAX, 206.0 / MAX, 1)
-        //highlight, but not selected item font
-        //color:Black()
+        //Trees use the control label to represent their selection when
+        //they do not have the focus. 
+        SetControlLabelUnfocusedSelectionFontColor(color:Black())
+        SetControlLabelUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
 
-        //highlighted item
-        //color:CustomColor(96.0 / MAX, 151.0 / MAX, 247.0 / MAX, 1)
-        //highlighted item font
-        //color:White()
-
-        //arrow color in tree
+        //The arrow to the tree uses the accent color.
         //SetTreeAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
-        //color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1)
 
 
         //MENUS
-        //menu mouse over
-        //color:CustomColor(105.0 / MAX, 257.0 / MAX, 249.0 / MAX, 1)
-        //mouse menu font color
-        //color:White()
         SetMenuItemBackgroundColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
         SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
-        SetMenuItemSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetMenuItemSelectionColor(defaultSelectionColor)
 
         //textbox
         //background color
