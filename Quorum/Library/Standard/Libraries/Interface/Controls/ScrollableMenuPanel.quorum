@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Views.ControlShaderView
 
 class ScrollableMenuPanel is MenuPanelBlueprint
 
@@ -30,6 +31,7 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
         SetName("Scroll Menu Panel")
         SetInputGroup("ScrollableMenuPanel")
+        SetInterfaceOptionsKey("ScrollPane")
 
         scrollBar:SetName("Scroll Bar")
         scrollControl:SetName("Scroll Control")
@@ -280,16 +282,19 @@ class ScrollableMenuPanel is MenuPanelBlueprint
 
     action LoadGraphics(LayoutProperties properties)
         if scrollGraphicsLoaded = false
-            Color color
-            DrawableView scrollBarView
-            DrawableView scrollControlView
+            ControlShaderView scrollBarView
+            ControlShaderView scrollControlView
 
-            scrollBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-            scrollControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
+            scrollBarView:Initialize()
+            scrollControlView:Initialize()
 
             scrollBar:SetView2D(scrollBarView)
             scrollControl:SetView2D(scrollControlView)
         end
+
+        scrollBar:SetBackgroundColor(GetForegroundColor())
+        scrollControl:SetBackgroundColor(GetAccentColor())
+
         scrollGraphicsLoaded = true
         parent:Control:LoadGraphics(properties)
     end

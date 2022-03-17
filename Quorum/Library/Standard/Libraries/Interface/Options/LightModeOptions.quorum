@@ -53,21 +53,22 @@ class LightModeOptions is InterfaceOptions
         SetScrollPaneForegroundColor(color:CustomColor(252.0 / MAX, 251.0 / MAX, 251.0 / MAX, 1))
         SetScrollPaneAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
 
+        // ProgressBar specific colors.
+        SetProgressBarBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetProgressBarBorderColor(color:Black())
+        SetProgressBarForegroundColor(color:CustomColor(0.282, 0.4, 0.706, 1))
+
         // TabBar specific colors.
         SetTabBarBackgroundColor(lightGray)
         SetTabBarBorderColor(color:Black())
 
         //TABS
-        
-        //Tab Background Color
-        //color:White()
-        //Selected Tab font color
-        //color:Black()
-
-        //Selected Tab Background Color
-        //color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1)
-        //Selected Tab font color
-        //color:White()
+        SetTabBackgroundColor(color:White())
+        SetTabFontColor(color:Black())
+        SetTabSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetTabSelectionFontColor(color:White())
+        SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
+        SetTabAccentColor(color:White())
 
 
         //TREES
@@ -77,7 +78,7 @@ class LightModeOptions is InterfaceOptions
         SetTreeItemUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
 
         //The arrow to the tree uses the accent color.
-        //SetTreeAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
+        SetTreeItemAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
 
 
         //MENUS
@@ -85,10 +86,23 @@ class LightModeOptions is InterfaceOptions
         SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
         SetMenuItemSelectionColor(defaultSelectionColor)
 
-        //textbox
-        //background color
-        //color:White()
-        //font color
-        //color:Black()
+        //TEXTBOX
+        SetTextBoxBackgroundColor(color:White())
+        SetTextBoxFontColor(color:Black())
+        SetTextBoxForegroundColor(color:CustomColor(252.0 / MAX, 251.0 / MAX, 251.0 / MAX, 1))
+        SetTextBoxAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
+        SetTextBoxIconColor(GetTextBoxFontColor())
+
+        //TEXT FIELD
+        SetTextFieldBackgroundColor(color:White())
+        SetTextFieldFontColor(color:Black())
+        SetTextFieldIconColor(GetTextFieldFontColor())
+
+        // TreeTableCell specific colors.
+        SetTreeTableCellBackgroundColor(color:Pink())
+        SetTreeTableCellSelectionColor(color:Orange())
+        SetTreeTableCellFontColor(color:Red())
+        SetTreeTableCellSelectionFontColor(color:Purple())
+        SetTreeTableCellBorderColor(color:White())
     end
 end

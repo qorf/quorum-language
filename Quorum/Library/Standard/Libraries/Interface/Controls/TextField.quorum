@@ -26,6 +26,7 @@ use Libraries.Containers.Support.Pair
 use Libraries.System.File
 use Libraries.Compute.Math
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Views.ControlShaderView
 
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -42,13 +43,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     Font font = undefined
 
     /*
-    The color of characters. For future iterations, this will be replaced by an
-    iterable structure, along with information indicating at what line and
-    character positions the font changes.
-    */
-    Color characterColor
-
-    /*
     An array of lines which are visible on the screen, where each line is
     composed of an array of drawables representing each character on the line.
     */
@@ -56,7 +50,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     Drawable caret
     integer caretThickness = 1
-    ColorGroup caretColor = characterColor:Black()
 
     // How far the first character in the view has slid to the left to show text that extends past the end of the TextField.
     number horizontalOffset = 0.0
@@ -86,11 +79,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     number caretX = 0
 
     TextFieldSelection selection
-
-    /*
-    The color of the selection highlight.
-    */
-    ColorGroup selectionColor = undefined
 
     /*
     The texture used for the selection higlight. Initialized as a 1x1 white texture.
@@ -125,6 +113,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     on create
         SetName("Text Field")
+        SetInterfaceOptionsKey("TextField")
         SetInputGroup("TextField")
         SetFocusable(true)
         AddFocusListener(me)
@@ -146,19 +135,19 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         backgroundLayout:SetPercentageWidth(1)
         backgroundLayout:SetPercentageHeight(1)
 
-        Color color
 
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-        defaultProperties:SetFontColor(color:Black())
         defaultProperties:SetFont(font)
         defaultProperties:SetFontSize(font:GetSize())
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:STANDARD)
-        defaultProperties:SetBackgroundColor(color:White())
-        defaultProperties:SetSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
-        defaultProperties:SetSelectionFontColor(color:Black())
 
         HideCaret()
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        background:SetInterfaceOptionsKey(key)
     end
 
     /*
@@ -212,26 +201,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         ColorGroup backgroundColor = properties:GetBackgroundColor()
 
         if backgroundColor not= undefined
-            DrawableView backgroundView
-            backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
+            ControlShaderView backgroundView
+            backgroundView:Initialize()
             background:SetView2D(backgroundView)
         end
 
-        Color color
-
-        ColorGroup fontColor = properties:GetFontColor()
-        if fontColor = undefined
-            fontColor = color:Black()
-        end
-
-        caretColor = fontColor
-
-        ColorGroup highlightColor = properties:GetSelectionColor()
-        if highlightColor = undefined
-            highlightColor = color:CustomColor(0.75, 0.75, 1, 1)
-        end
-
-        selectionColor = highlightColor
+        caret:SetColor(GetIconColor())
 
         GetLineDrawables()
     end
@@ -248,8 +223,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
-        ColorGroup fontColor = currentProperties:GetFontColor()
-        ColorGroup selectedFontColor = currentProperties:GetSelectionFontColor()
+        ColorGroup fontColor = GetFontColor()
+        ColorGroup selectedFontColor = GetSelectionFontColor()
+        ColorGroup selectionColor = GetSelectionColor()
 
         if font:GetSize() not= cast(integer, (currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
             font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
@@ -327,7 +303,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         caret:SetSize(thickness, font:GetLineHeight())
-        caret:SetColor(caretColor)
+        caret:SetColor(GetIconColor())
     end
 
     /*

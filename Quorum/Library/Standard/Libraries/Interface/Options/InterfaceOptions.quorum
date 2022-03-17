@@ -36,12 +36,15 @@ class InterfaceOptions
     public constant text MENU_BAR = "MenuBar"
     public constant text MENU_ITEM = "MenuItem"
     public constant text MENU_PANEL = "MenuPanel"
+    public constant text PROGRESS_BAR = "ProgressBar"
     public constant text SCROLL_PANE = "ScrollPane"
     public constant text TAB = "Tab"
     public constant text TAB_BAR = "TabBar"
     public constant text TEXT_BOX = "TextBox"
+    public constant text TEXT_FIELD = "TextField"
     public constant text TOOL_BAR = "ToolBar"
     public constant text TREE_ITEM = "TreeItem"
+    public constant text TREE_TABLE_CELL = "TreeTableCell"
 
     // HashTables for color properties and interface options.
     HashTable<text, ColorGroup> colorProperties
@@ -63,7 +66,7 @@ class InterfaceOptions
     action SetCustomProperty(text name, text value)
         customProperty:Set(name, value)
     end
-    
+
     action HasInterfaceOptions(text name) returns boolean
         return interfaceOptions:HasKey(name)
     end
@@ -1804,6 +1807,170 @@ class InterfaceOptions
         return CopyInterfaceOptions(MENU_PANEL)
     end
 
+    action SetProgressBarBackgroundColor(ColorGroup value)
+        SetBackgroundColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBackgroundColor returns ColorGroup
+        return GetBackgroundColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarForegroundColor(ColorGroup value)
+        SetForegroundColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarForegroundColor returns ColorGroup
+        return GetForegroundColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarFontColor(ColorGroup value)
+        SetFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarFontColor returns ColorGroup
+        return GetFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarBorderColor(ColorGroup value)
+        SetBorderColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBorderColor returns ColorGroup
+        return GetBorderColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarFocusColor(ColorGroup value)
+        SetFocusColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarFocusColor returns ColorGroup
+        return GetFocusColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseOverColor(ColorGroup value)
+        SetMouseOverColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseOverColor returns ColorGroup
+        return GetMouseOverColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseDownColor(ColorGroup value)
+        SetMouseDownColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseDownColor returns ColorGroup
+        return GetMouseDownColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarSelectionColor(ColorGroup value)
+        SetSelectionColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarSelectionColor returns ColorGroup
+        return GetSelectionColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarGlowColor(ColorGroup value)
+        SetGlowColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarGlowColor returns ColorGroup
+        return GetGlowColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarIconColor(ColorGroup value)
+        SetIconColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarIconColor returns ColorGroup
+        return GetIconColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarAccentColor(ColorGroup value)
+        SetAccentColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarAccentColor returns ColorGroup
+        return GetAccentColor(PROGRESS_BAR)
+    end
+
+    action CopyProgressBarInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(PROGRESS_BAR)
+    end
+
     action SetScrollPaneBackgroundColor(ColorGroup value)
         SetBackgroundColor(SCROLL_PANE, value)
     end
@@ -2460,6 +2627,170 @@ class InterfaceOptions
         return CopyInterfaceOptions(TEXT_BOX)
     end
 
+    action SetTextFieldBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldForegroundColor(ColorGroup value)
+        SetForegroundColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldForegroundColor returns ColorGroup
+        return GetForegroundColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldFontColor(ColorGroup value)
+        SetFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldFontColor returns ColorGroup
+        return GetFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldBorderColor(ColorGroup value)
+        SetBorderColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBorderColor returns ColorGroup
+        return GetBorderColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldFocusColor(ColorGroup value)
+        SetFocusColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldFocusColor returns ColorGroup
+        return GetFocusColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldSelectionColor(ColorGroup value)
+        SetSelectionColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldSelectionColor returns ColorGroup
+        return GetSelectionColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldGlowColor(ColorGroup value)
+        SetGlowColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldGlowColor returns ColorGroup
+        return GetGlowColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldIconColor(ColorGroup value)
+        SetIconColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldIconColor returns ColorGroup
+        return GetIconColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldAccentColor(ColorGroup value)
+        SetAccentColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldAccentColor returns ColorGroup
+        return GetAccentColor(TEXT_FIELD)
+    end
+
+    action CopyTextFieldInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TEXT_FIELD)
+    end
+
     action SetToolBarBackgroundColor(ColorGroup value)
         SetBackgroundColor(TOOL_BAR, value)
     end
@@ -2786,6 +3117,170 @@ class InterfaceOptions
 
     action CopyTreeItemInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TREE_ITEM)
+    end
+
+    action SetTreeTableCellBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellForegroundColor(ColorGroup value)
+        SetForegroundColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellForegroundColor returns ColorGroup
+        return GetForegroundColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellFontColor(ColorGroup value)
+        SetFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellFontColor returns ColorGroup
+        return GetFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellBorderColor(ColorGroup value)
+        SetBorderColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBorderColor returns ColorGroup
+        return GetBorderColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellFocusColor(ColorGroup value)
+        SetFocusColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellFocusColor returns ColorGroup
+        return GetFocusColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellSelectionColor(ColorGroup value)
+        SetSelectionColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellSelectionColor returns ColorGroup
+        return GetSelectionColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellGlowColor(ColorGroup value)
+        SetGlowColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellGlowColor returns ColorGroup
+        return GetGlowColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellIconColor(ColorGroup value)
+        SetIconColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellIconColor returns ColorGroup
+        return GetIconColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellAccentColor(ColorGroup value)
+        SetAccentColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellAccentColor returns ColorGroup
+        return GetAccentColor(TREE_TABLE_CELL)
+    end
+
+    action CopyTreeTableCellInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TREE_TABLE_CELL)
     end
 
 end

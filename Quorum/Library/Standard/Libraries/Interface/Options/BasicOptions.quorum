@@ -61,6 +61,11 @@ class BasicOptions is InterfaceOptions
         // MenuPanel specific colors.
         SetMenuPanelBackgroundColor(color:CustomColor(0.85, 0.85, 0.9, 1))
 
+        // ProgressBar specific colors.
+        SetProgressBarBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetProgressBarBorderColor(color:Black())
+        SetProgressBarForegroundColor(color:CustomColor(0.282, 0.4, 0.706, 1))
+
         // ScrollPane specific colors.
         SetScrollPaneBackgroundColor(color:White())
         SetScrollPaneForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
@@ -86,6 +91,13 @@ class BasicOptions is InterfaceOptions
         SetTextBoxAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
         SetTextBoxIconColor(GetTextBoxFontColor())
 
+        // TextField specific colors.
+        SetTextFieldBackgroundColor(color:White())
+        SetTextFieldFontColor(color:Black())
+        SetTextFieldSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
+        SetTextFieldSelectionFontColor(GetTextBoxFontColor())
+        SetTextFieldIconColor(GetTextBoxFontColor())
+
         // ToolBar specific colors.
         Gradient toolBarGradient
         toolBarGradient:Set(color:LightGray(), color:LightGray(), color:White(), color:White())
@@ -98,6 +110,13 @@ class BasicOptions is InterfaceOptions
         SetTreeItemUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
         SetTreeItemUnfocusedSelectionFontColor(color:Black())
         SetTreeItemAccentColor(color:CustomColor(140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 1.0))
+
+        // TreeTableCell specific colors.
+        SetTreeTableCellBackgroundColor(color:Pink())
+        SetTreeTableCellSelectionColor(color:Orange())
+        SetTreeTableCellFontColor(color:Red())
+        SetTreeTableCellSelectionFontColor(color:Purple())
+        SetTreeTableCellBorderColor(color:White())
     end
 
 
