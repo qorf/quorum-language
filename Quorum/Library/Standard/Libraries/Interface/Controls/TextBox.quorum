@@ -34,6 +34,7 @@ use Libraries.Interface.Controls.TextStyles.TextStyle
 use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Game
 use Libraries.Game.Shapes.Rectangle
+use Libraries.Interface.Views.ControlShaderView
 
 class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
 
@@ -48,13 +49,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     character positions the font changes.
     */
     Font font = undefined
-
-    /*
-    The color of characters. For future iterations, this will be replaced by an
-    iterable structure, along with information indicating at what line and
-    character positions the font changes.
-    */
-    Color characterColor
 
     /*
     The first line that's visible at the current position of the scroll track. A
@@ -82,7 +76,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     number scrollRegionWidth = -1
 
     integer caretThickness = 1
-    ColorGroup caretColor = characterColor:Black()
 
     /*
     Whether the caret is active or not. This does not necessarily mean the caret
@@ -110,11 +103,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     GameStateManager gameStateManager
     TextBoxSelection selection
-
-    /*
-    The color of the selection highlight.
-    */
-    ColorGroup selectionColor = undefined
 
     /*
     The texture used for the selection higlight. Initialized as a 1x1 white texture.
@@ -200,6 +188,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
+        SetInterfaceOptionsKey("TextBox")
         SetFocusable(true)
         AddFocusListener(me)
         SetClipping(true)
@@ -230,14 +219,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         backgroundLayout:SetPercentageWidth(1)
         backgroundLayout:SetPercentageHeight(1)
 
-        Color color
-
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-        defaultProperties:SetFontColor(color:Black())
         defaultProperties:SetFont(font)
-        defaultProperties:SetBackgroundColor(color:White())
-        defaultProperties:SetSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
-        defaultProperties:SetSelectionFontColor(color:Black())
 
         verticalBar:SetName("Vertical Scroll Track")
         verticalControl:SetName("Vertical Scroll Control")
@@ -308,6 +291,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         editManager = game:GetEditManager()
     end
 
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        background:SetInterfaceOptionsKey(key)
+    end
+
     /*
     The GetLeftCharacterPadding action returns how much padding has been added
     to the TextBox in between the gutters (or the left side of the TextBox, if
@@ -342,54 +330,43 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             selectionTexture:LoadFilledRectangle(1, 1)
         end
 
-        ColorGroup backgroundColor = properties:GetBackgroundColor()
-
-        if backgroundColor not= undefined
-            DrawableView backgroundView
+        if background:GetView2D() = undefined
+            ControlShaderView backgroundView
             backgroundView:SetName("TextBox Background View")
-            backgroundView:LoadFilledRectangle(1, 1, backgroundColor)
+            backgroundView:Initialize()
             background:SetView2D(backgroundView)
         end
 
-        Color color
-
-        DrawableView verticalBarView
-        DrawableView horizontalBarView
-        DrawableView verticalControlView
-        DrawableView horizontalControlView
-
-        verticalBarView:SetName("TextBox Vertical Bar View")
-        horizontalBarView:SetName("TextBox Horizontal Bar View")
-        verticalControlView:SetName("TextBox Vertical Control View")
-        horizontalControlView:SetName("TextBox Horizontal ControlView")
-
-        verticalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        horizontalBarView:LoadFilledRectangle(1, 1, color:CustomColor(0.9, 0.9, 0.9, 1))
-        verticalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-        horizontalControlView:LoadFilledRectangle(1, 1, color:CustomColor(0.75, 0.75, 0.75, 1))
-
-        verticalBar:SetView2D(verticalBarView)
-        horizontalBar:SetView2D(horizontalBarView)
-        verticalControl:SetView2D(verticalControlView)
-        horizontalControl:SetView2D(horizontalControlView)
-
-        ColorGroup fontColor = properties:GetFontColor()
-        if fontColor = undefined
-            fontColor = color:Black()
+        // If the bars haven't had views loaded, do that now.
+        if verticalBar:GetView2D() = undefined
+            ControlShaderView verticalBarView
+            ControlShaderView horizontalBarView
+            ControlShaderView verticalControlView
+            ControlShaderView horizontalControlView
+    
+            verticalBarView:SetName("TextBox Vertical Bar View")
+            horizontalBarView:SetName("TextBox Horizontal Bar View")
+            verticalControlView:SetName("TextBox Vertical Control View")
+            horizontalControlView:SetName("TextBox Horizontal ControlView")
+    
+            verticalBarView:Initialize()
+            horizontalBarView:Initialize()
+            verticalControlView:Initialize()
+            horizontalControlView:Initialize()
+    
+            verticalBar:SetView2D(verticalBarView)
+            horizontalBar:SetView2D(horizontalBarView)
+            verticalControl:SetView2D(verticalControlView)
+            horizontalControl:SetView2D(horizontalControlView)
         end
 
-        caretColor = fontColor
+        verticalBar:SetBackgroundColor(GetForegroundColor())
+        horizontalBar:SetBackgroundColor(GetForegroundColor())
+        verticalControl:SetBackgroundColor(GetAccentColor())
+        horizontalControl:SetBackgroundColor(GetAccentColor())
 
-        ColorGroup highlightColor = properties:GetSelectionColor()
-        if highlightColor = undefined
-            highlightColor = color:CustomColor(0.75, 0.75, 1, 1)
-        end
-
-        selectionColor = highlightColor
-
-        // The font produces characters in white, which can later be set to any
-        // color in GetLineDrawables().
-        // font:SetColor(color:White())
+        Drawable caret = background:GetCaret()
+        caret:SetColor(GetIconColor())
 
         parent:Control:LoadGraphics(properties)
 
@@ -607,8 +584,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             x = startX
 
             repeat size times
-                ColorGroup fontColor = currentProperties:GetFontColor()
-                ColorGroup selectedFontColor = currentProperties:GetSelectionFontColor()
+                ColorGroup fontColor = GetFontColor()
+                ColorGroup selectedFontColor = GetSelectionFontColor()
                 
                 stylesToApply:Empty()
 
@@ -678,7 +655,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     highlight:SetName("TextBox Highlight")
                     highlight:Load(selectionTexture)
                     highlight:SetSize(glyph:horizontalAdvance, lineHeight)
-                    highlight:SetColor(selectionColor)
+                    highlight:SetColor(GetSelectionColor())
 
                     highlight:SetPosition(x, drawableY)
                     background:AddSelectionDrawable(highlight)
@@ -718,8 +695,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        LayoutProperties currentProperties = GetCurrentLayoutProperties()
-        ColorGroup fontColor = currentProperties:GetFontColor()
+        ColorGroup fontColor = GetFontColor()
 
         integer lineHeight = font:GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
@@ -859,7 +835,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         caret:SetSize(thickness, font:GetLineHeight())
-        caret:SetColor(caretColor)
+        caret:SetColor(GetIconColor())
     end
 
     /*
@@ -1032,7 +1008,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Drawable highlight = background:GetDrawable()
             highlight:SetName("TextBox Highlight")
             highlight:Load(selectionTexture)
-            highlight:SetColor(selectionColor)
+            highlight:SetColor(GetSelectionColor())
 
             Array<Drawable> lineDrawables = background:GetLine(firstLine)
             if lineDrawables = undefined

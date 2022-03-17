@@ -39,11 +39,10 @@ class BasicOptions is InterfaceOptions
         SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
         SetCheckboxAccentColor(color:White())
 
-        // ControlLabel specific colors.
-        SetControlLabelBackgroundColor(color:CustomColor(1, 1, 1, 0))
-        SetControlLabelSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
-        SetControlLabelUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
-        SetControlLabelUnfocusedSelectionFontColor(color:Black())
+        // Gutter specific colors.
+        SetGutterBackgroundColor(color:CustomColor(233.0/255.0, 232.0/255.0, 226.0/255.0, 1))
+        SetGutterBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
+        SetGutterFontColor(color:Black())
 
         // MenuBar specific colors.
         Gradient menuBarGradient
@@ -67,15 +66,38 @@ class BasicOptions is InterfaceOptions
         SetScrollPaneForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
         SetScrollPaneAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
 
+        // Tab specific colors.
+        SetTabSelectionColor(color:White())
+        SetTabForegroundColor(color:CustomColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0))
+        SetTabAccentColor(color:White())
+        SetTabBorderColor(color:Black())
+        SetTabMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+
         // TabBar specific colors.
         SetTabBarBackgroundColor(color:DarkGray())
         SetTabBarBorderColor(color:Black())
+
+        // TextBox specific colors.
+        SetTextBoxBackgroundColor(color:White())
+        SetTextBoxFontColor(color:Black())
+        SetTextBoxSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
+        SetTextBoxSelectionFontColor(GetTextBoxFontColor())
+        SetTextBoxForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetTextBoxAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
+        SetTextBoxIconColor(GetTextBoxFontColor())
 
         // ToolBar specific colors.
         Gradient toolBarGradient
         toolBarGradient:Set(color:LightGray(), color:LightGray(), color:White(), color:White())
         SetToolBarBackgroundColor(toolBarGradient)
         SetToolBarBorderColor(color:Black())
+
+        // TreeItem specific colors.
+        SetTreeItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetTreeItemSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeItemUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeItemUnfocusedSelectionFontColor(color:Black())
+        SetTreeItemAccentColor(color:CustomColor(140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 1.0))
     end
 
 

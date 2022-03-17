@@ -169,6 +169,12 @@ class DefaultTreeItemContent is TreeItemContent
             Add(expandButton)
         end
 
+        expandButton:SetBackgroundColor(GetAccentColor())
+        if expandButton:GetView2D() is DefaultTreeMenuView
+            DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+            defaultView:SetColor(GetAccentColor())
+        end
+
         if icon = undefined
             Icon newIcon
             icon = newIcon
@@ -206,6 +212,7 @@ class DefaultTreeItemContent is TreeItemContent
         if label = undefined
             ControlLabel newLabel
             label = newLabel
+            label:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
             label:SetHorizontalMargins(4)
 
             LayoutProperties labelProperties = label:GetDefaultLayoutProperties()

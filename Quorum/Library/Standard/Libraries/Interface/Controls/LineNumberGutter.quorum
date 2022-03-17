@@ -47,6 +47,7 @@ class LineNumberGutter is Gutter
             label:SetSize(fontSize)
             label:SetText("" + (startLine + counter + 1))
             label:SetPosition(width - label:GetWidth() - rightPadding, y)
+            label:SetColor(GetFontColor())
             Add(label)
 
             y = y - lineHeight

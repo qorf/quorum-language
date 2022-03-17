@@ -42,6 +42,7 @@ class TreeItem is Control
 
     on create
         SetInputGroup("TreeItem")
+        SetInterfaceOptionsKey("TreeItem")
 
         LayoutProperties treeItemProperties = GetDefaultLayoutProperties()
         treeItemProperties:SetHorizontalLayoutMode(treeItemProperties:FIT_CONTENTS)
@@ -53,6 +54,13 @@ class TreeItem is Control
         panelProperties = panel:GetDefaultLayoutProperties()
 
         SetAccessibilityCode(parent:Item:TREE_ITEM)
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        if contents not= undefined
+            contents:SetInterfaceOptionsKey(key)
+        end
     end
 
     action GetDefaultFontName returns text
@@ -232,6 +240,7 @@ class TreeItem is Control
         end
 
         contents = content
+        content:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         content:SetTreeItem(me)
         parent:Item2D:Add(0, contents)
     end

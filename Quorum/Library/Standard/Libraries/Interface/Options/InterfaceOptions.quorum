@@ -32,13 +32,16 @@ class InterfaceOptions
     public constant text BUTTON = "Button"
     public constant text CELL = "Cell"
     public constant text CHECKBOX = "Checkbox"
-    public constant text CONTROL_LABEL = "ControlLabel"
+    public constant text GUTTER = "Gutter"
     public constant text MENU_BAR = "MenuBar"
     public constant text MENU_ITEM = "MenuItem"
     public constant text MENU_PANEL = "MenuPanel"
     public constant text SCROLL_PANE = "ScrollPane"
+    public constant text TAB = "Tab"
     public constant text TAB_BAR = "TabBar"
+    public constant text TEXT_BOX = "TextBox"
     public constant text TOOL_BAR = "ToolBar"
+    public constant text TREE_ITEM = "TreeItem"
 
     // HashTables for color properties and interface options.
     HashTable<text, ColorGroup> colorProperties
@@ -1128,168 +1131,168 @@ class InterfaceOptions
         return CopyInterfaceOptions(CHECKBOX)
     end
 
-    action SetControlLabelBackgroundColor(ColorGroup value)
-        SetBackgroundColor(CONTROL_LABEL, value)
+    action SetGutterBackgroundColor(ColorGroup value)
+        SetBackgroundColor(GUTTER, value)
     end
 
-    action GetControlLabelBackgroundColor returns ColorGroup
-        return GetBackgroundColor(CONTROL_LABEL)
+    action GetGutterBackgroundColor returns ColorGroup
+        return GetBackgroundColor(GUTTER)
     end
 
-    action SetControlLabelForegroundColor(ColorGroup value)
-        SetForegroundColor(CONTROL_LABEL, value)
+    action SetGutterForegroundColor(ColorGroup value)
+        SetForegroundColor(GUTTER, value)
     end
 
-    action GetControlLabelForegroundColor returns ColorGroup
-        return GetForegroundColor(CONTROL_LABEL)
+    action GetGutterForegroundColor returns ColorGroup
+        return GetForegroundColor(GUTTER)
     end
 
-    action SetControlLabelFontColor(ColorGroup value)
-        SetFontColor(CONTROL_LABEL, value)
+    action SetGutterFontColor(ColorGroup value)
+        SetFontColor(GUTTER, value)
     end
 
-    action GetControlLabelFontColor returns ColorGroup
-        return GetFontColor(CONTROL_LABEL)
+    action GetGutterFontColor returns ColorGroup
+        return GetFontColor(GUTTER)
     end
 
-    action SetControlLabelBorderColor(ColorGroup value)
-        SetBorderColor(CONTROL_LABEL, value)
+    action SetGutterBorderColor(ColorGroup value)
+        SetBorderColor(GUTTER, value)
     end
 
-    action GetControlLabelBorderColor returns ColorGroup
-        return GetBorderColor(CONTROL_LABEL)
+    action GetGutterBorderColor returns ColorGroup
+        return GetBorderColor(GUTTER)
     end
 
-    action SetControlLabelFocusColor(ColorGroup value)
-        SetFocusColor(CONTROL_LABEL, value)
+    action SetGutterFocusColor(ColorGroup value)
+        SetFocusColor(GUTTER, value)
     end
 
-    action GetControlLabelFocusColor returns ColorGroup
-        return GetFocusColor(CONTROL_LABEL)
+    action GetGutterFocusColor returns ColorGroup
+        return GetFocusColor(GUTTER)
     end
 
-    action SetControlLabelMouseOverColor(ColorGroup value)
-        SetMouseOverColor(CONTROL_LABEL, value)
+    action SetGutterMouseOverColor(ColorGroup value)
+        SetMouseOverColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseOverColor returns ColorGroup
-        return GetMouseOverColor(CONTROL_LABEL)
+    action GetGutterMouseOverColor returns ColorGroup
+        return GetMouseOverColor(GUTTER)
     end
 
-    action SetControlLabelMouseOverFontColor(ColorGroup value)
-        SetMouseOverFontColor(CONTROL_LABEL, value)
+    action SetGutterMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseOverFontColor returns ColorGroup
-        return GetMouseOverFontColor(CONTROL_LABEL)
+    action GetGutterMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(GUTTER)
     end
 
-    action SetControlLabelMouseDownColor(ColorGroup value)
-        SetMouseDownColor(CONTROL_LABEL, value)
+    action SetGutterMouseDownColor(ColorGroup value)
+        SetMouseDownColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseDownColor returns ColorGroup
-        return GetMouseDownColor(CONTROL_LABEL)
+    action GetGutterMouseDownColor returns ColorGroup
+        return GetMouseDownColor(GUTTER)
     end
 
-    action SetControlLabelMouseDownFontColor(ColorGroup value)
-        SetMouseDownFontColor(CONTROL_LABEL, value)
+    action SetGutterMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseDownFontColor returns ColorGroup
-        return GetMouseDownFontColor(CONTROL_LABEL)
+    action GetGutterMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(GUTTER)
     end
 
-    action SetControlLabelSelectionColor(ColorGroup value)
-        SetSelectionColor(CONTROL_LABEL, value)
+    action SetGutterSelectionColor(ColorGroup value)
+        SetSelectionColor(GUTTER, value)
     end
 
-    action GetControlLabelSelectionColor returns ColorGroup
-        return GetSelectionColor(CONTROL_LABEL)
+    action GetGutterSelectionColor returns ColorGroup
+        return GetSelectionColor(GUTTER)
     end
 
-    action SetControlLabelSelectionBorderColor(ColorGroup value)
-        SetSelectionBorderColor(CONTROL_LABEL, value)
+    action SetGutterSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(GUTTER, value)
     end
 
-    action GetControlLabelSelectionBorderColor returns ColorGroup
-        return GetSelectionBorderColor(CONTROL_LABEL)
+    action GetGutterSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(GUTTER)
     end
 
-    action SetControlLabelUnfocusedSelectionColor(ColorGroup value)
-        SetUnfocusedSelectionColor(CONTROL_LABEL, value)
+    action SetGutterUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(GUTTER, value)
     end
 
-    action GetControlLabelUnfocusedSelectionColor returns ColorGroup
-        return GetUnfocusedSelectionColor(CONTROL_LABEL)
+    action GetGutterUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(GUTTER)
     end
 
-    action SetControlLabelUnfocusedSelectionBorderColor(ColorGroup value)
-        SetUnfocusedSelectionBorderColor(CONTROL_LABEL, value)
+    action SetGutterUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(GUTTER, value)
     end
 
-    action GetControlLabelUnfocusedSelectionBorderColor returns ColorGroup
-        return GetUnfocusedSelectionBorderColor(CONTROL_LABEL)
+    action GetGutterUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(GUTTER)
     end
 
-    action SetControlLabelSelectionFontColor(ColorGroup value)
-        SetSelectionFontColor(CONTROL_LABEL, value)
+    action SetGutterSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(GUTTER, value)
     end
 
-    action GetControlLabelSelectionFontColor returns ColorGroup
-        return GetSelectionFontColor(CONTROL_LABEL)
+    action GetGutterSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(GUTTER)
     end
 
-    action SetControlLabelUnfocusedSelectionFontColor(ColorGroup value)
-        SetUnfocusedSelectionFontColor(CONTROL_LABEL, value)
+    action SetGutterUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(GUTTER, value)
     end
 
-    action GetControlLabelUnfocusedSelectionFontColor returns ColorGroup
-        return GetUnfocusedSelectionFontColor(CONTROL_LABEL)
+    action GetGutterUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(GUTTER)
     end
 
-    action SetControlLabelGlowColor(ColorGroup value)
-        SetGlowColor(CONTROL_LABEL, value)
+    action SetGutterGlowColor(ColorGroup value)
+        SetGlowColor(GUTTER, value)
     end
 
-    action GetControlLabelGlowColor returns ColorGroup
-        return GetGlowColor(CONTROL_LABEL)
+    action GetGutterGlowColor returns ColorGroup
+        return GetGlowColor(GUTTER)
     end
 
-    action SetControlLabelMouseOverGlowColor(ColorGroup value)
-        SetMouseOverGlowColor(CONTROL_LABEL, value)
+    action SetGutterMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseOverGlowColor returns ColorGroup
-        return GetMouseOverGlowColor(CONTROL_LABEL)
+    action GetGutterMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(GUTTER)
     end
 
-    action SetControlLabelMouseDownGlowColor(ColorGroup value)
-        SetMouseDownGlowColor(CONTROL_LABEL, value)
+    action SetGutterMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(GUTTER, value)
     end
 
-    action GetControlLabelMouseDownGlowColor returns ColorGroup
-        return GetMouseDownGlowColor(CONTROL_LABEL)
+    action GetGutterMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(GUTTER)
     end
 
-    action SetControlLabelIconColor(ColorGroup value)
-        SetIconColor(CONTROL_LABEL, value)
+    action SetGutterIconColor(ColorGroup value)
+        SetIconColor(GUTTER, value)
     end
 
-    action GetControlLabelIconColor returns ColorGroup
-        return GetIconColor(CONTROL_LABEL)
+    action GetGutterIconColor returns ColorGroup
+        return GetIconColor(GUTTER)
     end
 
-    action SetControlLabelAccentColor(ColorGroup value)
-        SetAccentColor(CONTROL_LABEL, value)
+    action SetGutterAccentColor(ColorGroup value)
+        SetAccentColor(GUTTER, value)
     end
 
-    action GetControlLabelAccentColor returns ColorGroup
-        return GetAccentColor(CONTROL_LABEL)
+    action GetGutterAccentColor returns ColorGroup
+        return GetAccentColor(GUTTER)
     end
 
-    action CopyControlLabelInterfaceOptions returns InterfaceOptions
-        return CopyInterfaceOptions(CONTROL_LABEL)
+    action CopyGutterInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(GUTTER)
     end
 
     action SetMenuBarBackgroundColor(ColorGroup value)
@@ -1948,6 +1951,170 @@ class InterfaceOptions
         return CopyInterfaceOptions(SCROLL_PANE)
     end
 
+    action SetTabBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TAB, value)
+    end
+
+    action GetTabBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TAB)
+    end
+
+    action SetTabForegroundColor(ColorGroup value)
+        SetForegroundColor(TAB, value)
+    end
+
+    action GetTabForegroundColor returns ColorGroup
+        return GetForegroundColor(TAB)
+    end
+
+    action SetTabFontColor(ColorGroup value)
+        SetFontColor(TAB, value)
+    end
+
+    action GetTabFontColor returns ColorGroup
+        return GetFontColor(TAB)
+    end
+
+    action SetTabBorderColor(ColorGroup value)
+        SetBorderColor(TAB, value)
+    end
+
+    action GetTabBorderColor returns ColorGroup
+        return GetBorderColor(TAB)
+    end
+
+    action SetTabFocusColor(ColorGroup value)
+        SetFocusColor(TAB, value)
+    end
+
+    action GetTabFocusColor returns ColorGroup
+        return GetFocusColor(TAB)
+    end
+
+    action SetTabMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TAB, value)
+    end
+
+    action GetTabMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TAB)
+    end
+
+    action SetTabMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TAB, value)
+    end
+
+    action GetTabMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TAB)
+    end
+
+    action SetTabMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TAB, value)
+    end
+
+    action GetTabMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TAB)
+    end
+
+    action SetTabMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TAB, value)
+    end
+
+    action GetTabMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TAB)
+    end
+
+    action SetTabSelectionColor(ColorGroup value)
+        SetSelectionColor(TAB, value)
+    end
+
+    action GetTabSelectionColor returns ColorGroup
+        return GetSelectionColor(TAB)
+    end
+
+    action SetTabSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TAB, value)
+    end
+
+    action GetTabSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TAB)
+    end
+
+    action SetTabUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TAB, value)
+    end
+
+    action GetTabUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TAB)
+    end
+
+    action SetTabUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TAB, value)
+    end
+
+    action GetTabUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TAB)
+    end
+
+    action SetTabSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TAB, value)
+    end
+
+    action GetTabSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TAB)
+    end
+
+    action SetTabUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TAB, value)
+    end
+
+    action GetTabUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TAB)
+    end
+
+    action SetTabGlowColor(ColorGroup value)
+        SetGlowColor(TAB, value)
+    end
+
+    action GetTabGlowColor returns ColorGroup
+        return GetGlowColor(TAB)
+    end
+
+    action SetTabMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TAB, value)
+    end
+
+    action GetTabMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TAB)
+    end
+
+    action SetTabMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TAB, value)
+    end
+
+    action GetTabMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TAB)
+    end
+
+    action SetTabIconColor(ColorGroup value)
+        SetIconColor(TAB, value)
+    end
+
+    action GetTabIconColor returns ColorGroup
+        return GetIconColor(TAB)
+    end
+
+    action SetTabAccentColor(ColorGroup value)
+        SetAccentColor(TAB, value)
+    end
+
+    action GetTabAccentColor returns ColorGroup
+        return GetAccentColor(TAB)
+    end
+
+    action CopyTabInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TAB)
+    end
+
     action SetTabBarBackgroundColor(ColorGroup value)
         SetBackgroundColor(TAB_BAR, value)
     end
@@ -2112,6 +2279,170 @@ class InterfaceOptions
         return CopyInterfaceOptions(TAB_BAR)
     end
 
+    action SetTextBoxBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TEXT_BOX)
+    end
+
+    action SetTextBoxForegroundColor(ColorGroup value)
+        SetForegroundColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxForegroundColor returns ColorGroup
+        return GetForegroundColor(TEXT_BOX)
+    end
+
+    action SetTextBoxFontColor(ColorGroup value)
+        SetFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxFontColor returns ColorGroup
+        return GetFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxBorderColor(ColorGroup value)
+        SetBorderColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBorderColor returns ColorGroup
+        return GetBorderColor(TEXT_BOX)
+    end
+
+    action SetTextBoxFocusColor(ColorGroup value)
+        SetFocusColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxFocusColor returns ColorGroup
+        return GetFocusColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxSelectionColor(ColorGroup value)
+        SetSelectionColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxSelectionColor returns ColorGroup
+        return GetSelectionColor(TEXT_BOX)
+    end
+
+    action SetTextBoxSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TEXT_BOX)
+    end
+
+    action SetTextBoxUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TEXT_BOX)
+    end
+
+    action SetTextBoxUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TEXT_BOX)
+    end
+
+    action SetTextBoxSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxGlowColor(ColorGroup value)
+        SetGlowColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxGlowColor returns ColorGroup
+        return GetGlowColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TEXT_BOX)
+    end
+
+    action SetTextBoxMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TEXT_BOX)
+    end
+
+    action SetTextBoxIconColor(ColorGroup value)
+        SetIconColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxIconColor returns ColorGroup
+        return GetIconColor(TEXT_BOX)
+    end
+
+    action SetTextBoxAccentColor(ColorGroup value)
+        SetAccentColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxAccentColor returns ColorGroup
+        return GetAccentColor(TEXT_BOX)
+    end
+
+    action CopyTextBoxInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TEXT_BOX)
+    end
+
     action SetToolBarBackgroundColor(ColorGroup value)
         SetBackgroundColor(TOOL_BAR, value)
     end
@@ -2274,6 +2605,170 @@ class InterfaceOptions
 
     action CopyToolBarInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TOOL_BAR)
+    end
+
+    action SetTreeItemBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TREE_ITEM)
+    end
+
+    action SetTreeItemForegroundColor(ColorGroup value)
+        SetForegroundColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemForegroundColor returns ColorGroup
+        return GetForegroundColor(TREE_ITEM)
+    end
+
+    action SetTreeItemFontColor(ColorGroup value)
+        SetFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemFontColor returns ColorGroup
+        return GetFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemBorderColor(ColorGroup value)
+        SetBorderColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBorderColor returns ColorGroup
+        return GetBorderColor(TREE_ITEM)
+    end
+
+    action SetTreeItemFocusColor(ColorGroup value)
+        SetFocusColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemFocusColor returns ColorGroup
+        return GetFocusColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemSelectionColor(ColorGroup value)
+        SetSelectionColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemSelectionColor returns ColorGroup
+        return GetSelectionColor(TREE_ITEM)
+    end
+
+    action SetTreeItemSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TREE_ITEM)
+    end
+
+    action SetTreeItemUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TREE_ITEM)
+    end
+
+    action SetTreeItemUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TREE_ITEM)
+    end
+
+    action SetTreeItemSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemGlowColor(ColorGroup value)
+        SetGlowColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemGlowColor returns ColorGroup
+        return GetGlowColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TREE_ITEM)
+    end
+
+    action SetTreeItemMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TREE_ITEM)
+    end
+
+    action SetTreeItemIconColor(ColorGroup value)
+        SetIconColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemIconColor returns ColorGroup
+        return GetIconColor(TREE_ITEM)
+    end
+
+    action SetTreeItemAccentColor(ColorGroup value)
+        SetAccentColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemAccentColor returns ColorGroup
+        return GetAccentColor(TREE_ITEM)
+    end
+
+    action CopyTreeItemInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TREE_ITEM)
     end
 
 end
