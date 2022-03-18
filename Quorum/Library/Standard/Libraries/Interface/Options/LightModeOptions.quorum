@@ -13,13 +13,14 @@ class LightModeOptions is InterfaceOptions
         SetFontColor(color:Black())
         SetSelectionFontColor(color:White())
         Color defaultSelectionColor = color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1)
+        //Color defaultSelectionColor = color:CustomColor(87.0 / MAX, 145.0 / MAX, 245.0 / MAX, 1)
         SetSelectionColor(defaultSelectionColor)
         SetBorderColor(color:Black())
         SetIconColor(color:White())
 
         Gradient backgroundGradient
         Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(242.0 / MAX, 242.0 / MAX, 242.0 / MAX, 1)
+        Color lightGray = color:CustomColor(234.0 / MAX, 234.0 / MAX, 234.0 / MAX, 1)
         backgroundGradient:Set(lightGray, lightGray, lightGray, lightGray)
         SetBackgroundColor(backgroundGradient)
 
@@ -31,7 +32,7 @@ class LightModeOptions is InterfaceOptions
         // Button specific colors.
         SetButtonMouseDownColor(color:CustomColor(223.0 / MAX, 223.0 / MAX, 223.0 / MAX, 1))
         SetButtonFontColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 1))
-        SetButtonBackgroundColor(color:CustomColor(255.0 / MAX, 255.0 / MAX, 255.0 / MAX, 1))
+        SetButtonBackgroundColor(lightGray)
 
         //Accept button (Ok style button) background
         //color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1)
@@ -63,11 +64,11 @@ class LightModeOptions is InterfaceOptions
         SetTabBarBorderColor(color:Black())
 
         //TABS
-        SetTabBackgroundColor(color:White())
+        SetTabBackgroundColor(color:CustomColor(229.0 / MAX, 229.0 / MAX, 229.0 / MAX, 1))
         SetTabFontColor(color:Black())
-        SetTabSelectionColor(color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetTabSelectionColor(defaultSelectionColor)
         SetTabSelectionFontColor(color:White())
-        SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
+        SetTabForegroundColor(color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1))
         SetTabAccentColor(color:White())
         SetTabUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
         SetTabUnfocusedSelectionFontColor(color:Black())
@@ -108,5 +109,9 @@ class LightModeOptions is InterfaceOptions
         SetTreeTableCellBorderColor(color:Black())
         SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
         SetTreeTableCellUnfocusedSelectionFontColor(color:Black())
+
+        SetGutterBackgroundColor(color:CustomColor(229.0/255.0, 229.0/255.0, 229.0/255.0, 1))
+        SetGutterBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
+        SetGutterFontColor(color:Black())
     end
 end
