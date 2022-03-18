@@ -69,6 +69,8 @@ class LightModeOptions is InterfaceOptions
         SetTabSelectionFontColor(color:White())
         SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetTabAccentColor(color:White())
+        SetTabUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
+        SetTabUnfocusedSelectionFontColor(color:Black())
 
 
         //TREES
@@ -99,10 +101,12 @@ class LightModeOptions is InterfaceOptions
         SetTextFieldIconColor(GetTextFieldFontColor())
 
         // TreeTableCell specific colors.
-        SetTreeTableCellBackgroundColor(color:Pink())
-        SetTreeTableCellSelectionColor(color:Orange())
-        SetTreeTableCellFontColor(color:Red())
-        SetTreeTableCellSelectionFontColor(color:Purple())
-        SetTreeTableCellBorderColor(color:White())
+        SetTreeTableCellBackgroundColor(color:White())
+        SetTreeTableCellSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeTableCellFontColor(color:Black())
+        SetTreeTableCellSelectionFontColor(color:White())
+        SetTreeTableCellBorderColor(color:Black())
+        SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeTableCellUnfocusedSelectionFontColor(color:Black())
     end
 end

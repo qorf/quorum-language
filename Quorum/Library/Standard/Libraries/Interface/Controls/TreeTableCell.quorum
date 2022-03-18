@@ -162,10 +162,32 @@ class TreeTableCell is Control
                 expandButton:Show()
             end
 
-            expandButton:SetBackgroundColor(GetAccentColor())
-            if expandButton:GetView2D() is DefaultTreeMenuView
-                DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
-                defaultView:SetColor(GetAccentColor())
+            if GetAccentColor() not= undefined
+                expandButton:SetBackgroundColor(GetAccentColor())
+                if expandButton:GetView2D() is DefaultTreeMenuView
+                    DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                    defaultView:SetColor(GetAccentColor())
+                end
+            elseif IsRenderingSelection()
+                if IsRenderingFocus()
+                    expandButton:SetBackgroundColor(GetSelectionFontColor())
+                    if expandButton:GetView2D() is DefaultTreeMenuView
+                        DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                        defaultView:SetColor(GetSelectionFontColor())
+                    end
+                else
+                    expandButton:SetBackgroundColor(GetUnfocusedSelectionFontColor())
+                    if expandButton:GetView2D() is DefaultTreeMenuView
+                        DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                        defaultView:SetColor(GetUnfocusedSelectionFontColor())
+                    end
+                end
+            else
+                expandButton:SetBackgroundColor(GetFontColor())
+                if expandButton:GetView2D() is DefaultTreeMenuView
+                    DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                    defaultView:SetColor(GetFontColor())
+                end
             end
 
             LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
@@ -184,80 +206,28 @@ class TreeTableCell is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
-//        TreeTable table = GetTreeTable()
-//        LayoutProperties tableProperties = undefined
-//        LayoutProperties properties = GetDefaultLayoutProperties()
-//
-//        if table not= undefined
-//            tableProperties = table:GetDefaultLayoutProperties()
-//        end
-//
-//        ColorGroup backgroundColor = undefined
-//        ColorGroup textColor = undefined
-//
-//        if properties not= undefined and properties:GetSelectionColor() not= undefined
-//            backgroundColor = properties:GetSelectionColor()
-//        elseif tableProperties not= undefined and tableProperties:GetSelectionColor() not= undefined
-//            backgroundColor = tableProperties:GetSelectionColor()
-//        else
-//            Color color
-//            backgroundColor = color:Blue()
-//        end
-//
-//        if properties not= undefined and properties:GetSelectionFontColor() not= undefined
-//            textColor = properties:GetSelectionFontColor()
-//        elseif tableProperties not= undefined and tableProperties:GetSelectionFontColor() not= undefined
-//            textColor = tableProperties:GetSelectionFontColor()
-//        else
-//            Color color
-//            textColor = color:White()
-//        end
-//
-//        if GetView2D() is LabelBoxView
-//            LabelBoxView view = cast(LabelBoxView, GetView2D())
-//            view:SetBackgroundColor(backgroundColor)
-//        end
 
         label:SetColor(GetSelectionFontColor())
+        if GetAccentColor() = undefined
+            expandButton:SetBackgroundColor(GetSelectionFontColor())
+            if expandButton:GetView2D() is DefaultTreeMenuView
+                DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                defaultView:SetColor(GetSelectionFontColor())
+            end
+        end
     end
 
     action LostSelection
         parent:Control:LostSelection()
-//        TreeTable table = GetTreeTable()
-//        LayoutProperties tableProperties = undefined
-//        LayoutProperties properties = GetDefaultLayoutProperties()
-//
-//        if table not= undefined
-//            tableProperties = table:GetDefaultLayoutProperties()
-//        end
-//
-//        ColorGroup backgroundColor = undefined
-//        ColorGroup textColor = undefined
-//
-//        if properties not= undefined and properties:GetBackgroundColor() not= undefined
-//            backgroundColor = properties:GetBackgroundColor()
-//        elseif tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
-//            backgroundColor = tableProperties:GetBackgroundColor()
-//        else
-//            Color color
-//            backgroundColor = color:White()
-//        end
-//
-//        if properties not= undefined and properties:GetFontColor() not= undefined
-//            textColor = properties:GetFontColor()
-//        elseif tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
-//            textColor = tableProperties:GetFontColor()
-//        else
-//            Color color
-//            textColor = color:Black()
-//        end
-//
-//        if GetView2D() is LabelBoxView
-//            LabelBoxView view = cast(LabelBoxView, GetView2D())
-//            view:SetBackgroundColor(backgroundColor)
-//        end
 
         label:SetColor(GetFontColor())
+        if GetAccentColor() = undefined
+            expandButton:SetBackgroundColor(GetFontColor())
+            if expandButton:GetView2D() is DefaultTreeMenuView
+                DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                defaultView:SetColor(GetFontColor())
+            end
+        end
     end
 
     /*
@@ -282,6 +252,11 @@ class TreeTableCell is Control
 
     action IsRenderingSelection returns boolean
         return IsSelected()
+    end
+
+    action IsRenderingFocus returns boolean
+        TreeTable table = GetTreeTable()
+        return table not= undefined and table:IsRenderingFocus()
     end
 
     /*

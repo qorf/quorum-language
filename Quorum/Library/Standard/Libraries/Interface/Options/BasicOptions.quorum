@@ -72,11 +72,13 @@ class BasicOptions is InterfaceOptions
         SetScrollPaneAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
 
         // Tab specific colors.
-        SetTabSelectionColor(color:White())
+        SetTabSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
         SetTabForegroundColor(color:CustomColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0))
         SetTabAccentColor(color:White())
         SetTabBorderColor(color:Black())
         SetTabMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+        SetTabUnfocusedSelectionFontColor(color:Black())
+        SetTabUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
 
         // TabBar specific colors.
         SetTabBarBackgroundColor(color:DarkGray())
@@ -112,11 +114,13 @@ class BasicOptions is InterfaceOptions
         SetTreeItemAccentColor(color:CustomColor(140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 1.0))
 
         // TreeTableCell specific colors.
-        SetTreeTableCellBackgroundColor(color:Pink())
-        SetTreeTableCellSelectionColor(color:Orange())
-        SetTreeTableCellFontColor(color:Red())
-        SetTreeTableCellSelectionFontColor(color:Purple())
-        SetTreeTableCellBorderColor(color:White())
+        SetTreeTableCellBackgroundColor(color:White())
+        SetTreeTableCellSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeTableCellFontColor(color:Black())
+        SetTreeTableCellSelectionFontColor(color:White())
+        SetTreeTableCellBorderColor(color:Black())
+        SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeTableCellUnfocusedSelectionFontColor(color:Black())
     end
 
 

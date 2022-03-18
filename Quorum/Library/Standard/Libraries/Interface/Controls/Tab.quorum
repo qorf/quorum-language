@@ -21,6 +21,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.GameStateManager
 
 class Tab is Button
     TabPane container = undefined
@@ -47,6 +48,11 @@ class Tab is Button
     // The last colors used to generate the "X" texture for the default close button.
     Color closeForeground = undefined
     Color closeAccent = undefined
+
+    GameStateManager manager
+    // Values used to track if the Tab or an item related to it is focused.
+    boolean renderFocus = false
+    Item lastKnownFocus = undefined
 
     on create
         SetInterfaceOptionsKey("Tab")
@@ -214,10 +220,51 @@ class Tab is Button
         else
             OnToggleOff()
         end
+
+        SetLabelRenderColor()
+    end
+
+    private action SetLabelRenderColor
+        if IsRenderingSelection()
+            if IsRenderingFocus()
+                label:SetColor(GetSelectionFontColor())
+            else
+                label:SetColor(GetUnfocusedSelectionFontColor())
+            end
+        else
+            label:SetColor(GetFontColor())
+        end
     end
 
     action IsRenderingSelection returns boolean
         return toggled
+    end
+
+    action IsRenderingFocus returns boolean
+        if manager:GetFocus() not= lastKnownFocus
+            renderFocus = CalculateRenderFocus()
+            SetLabelRenderColor()
+        end
+
+        return renderFocus
+    end
+
+    private action CalculateRenderFocus returns boolean
+        lastKnownFocus = manager:GetFocus()
+
+        if lastKnownFocus is Item2D
+            Item2D focus = cast(Item2D, lastKnownFocus)
+            repeat while focus not= undefined
+                if focus:Equals(me) or focus = relatedItem or focus = focusTarget
+                    return true
+                end
+                focus = focus:GetParent()
+            end
+        else
+            return false
+        end
+
+        return false
     end
 
     action IsActivated returns boolean
@@ -370,6 +417,8 @@ class Tab is Button
             closeButton:SetIcon(closeIcon)
         end
         
+        SetLabelRenderColor()
+
         parent:Control:LoadGraphics(properties)
     end
 

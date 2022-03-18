@@ -70,6 +70,8 @@ class DarkModeOptions is InterfaceOptions
         SetTabSelectionFontColor(color:White())
         SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetTabAccentColor(color:White())
+        SetTabUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+        SetTabUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
 
         //TREES
         SetTreeItemUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
@@ -102,10 +104,10 @@ class DarkModeOptions is InterfaceOptions
         SetTextFieldIconColor(GetTextBoxFontColor())
 
         // TreeTableCell specific colors.
-        SetTreeTableCellBackgroundColor(color:Pink())
-        SetTreeTableCellSelectionColor(color:Orange())
-        SetTreeTableCellFontColor(color:Red())
-        SetTreeTableCellSelectionFontColor(color:Purple())
-        SetTreeTableCellBorderColor(color:White())
+        SetTreeTableCellSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
+        SetTreeTableCellFontColor(color:CustomColor(176.0 / MAX, 176.0 / MAX, 176.0 / MAX, 1))
+        SetTreeTableCellSelectionFontColor(color:White())
+        SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
+        SetTreeTableCellUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
     end
 end
