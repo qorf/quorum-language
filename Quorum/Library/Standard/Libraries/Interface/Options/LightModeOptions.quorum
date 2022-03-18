@@ -50,8 +50,9 @@ class LightModeOptions is InterfaceOptions
         SetCheckboxAccentColor(color:White())
 
         // ScrollPane specific colors.
+        Color sidePanel = color:CustomColor(244.0 / MAX, 243.0 / MAX, 243.0 / MAX, 1)
         SetScrollPaneBackgroundColor(lightGray)
-        SetScrollPaneForegroundColor(color:CustomColor(252.0 / MAX, 251.0 / MAX, 251.0 / MAX, 1))
+        SetScrollPaneForegroundColor(sidePanel)
         SetScrollPaneAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
 
         // ProgressBar specific colors.
@@ -68,7 +69,7 @@ class LightModeOptions is InterfaceOptions
         SetRadioButtonSelectionFontColor(color:Black())
 
         // TabBar specific colors.
-        SetTabBarBackgroundColor(lightGray)
+        SetTabBarBackgroundColor(color:CustomColor(224.0 / MAX, 224.0 / MAX, 224.0 / MAX, 1))
         SetTabBarBorderColor(color:Black())
 
         //TABS
@@ -100,7 +101,7 @@ class LightModeOptions is InterfaceOptions
         //TEXTBOX
         SetTextBoxBackgroundColor(color:White())
         SetTextBoxFontColor(color:Black())
-        SetTextBoxForegroundColor(color:CustomColor(252.0 / MAX, 251.0 / MAX, 251.0 / MAX, 1))
+        SetTextBoxForegroundColor(sidePanel)
         SetTextBoxAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
         SetTextBoxIconColor(GetTextBoxFontColor())
 
