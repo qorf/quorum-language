@@ -15,8 +15,9 @@ class DarkModeOptions is InterfaceOptions
         Color defaultSelectionColor = color:CustomColor(47.0 / MAX, 91.0 / MAX, 187.0 / MAX, 1)
         SetSelectionColor(defaultSelectionColor)
         SetBorderColor(color:CustomColor(122.0 / MAX, 124.0 / MAX, 126.0 / MAX, 1))
-        SetIconColor(color:White()) //TODO
+        SetIconColor(color:White())
 
+        Color commonFontColor = color:CustomColor(186.0 / MAX, 197.0 / MAX, 210.0 / MAX, 1)
         Gradient backgroundGradient
         Color darkGray = color:CustomColor(60.0 / MAX, 63.0 / MAX, 65.0 / MAX, 1)
         backgroundGradient:Set(darkGray, darkGray, darkGray, darkGray)
@@ -64,22 +65,22 @@ class DarkModeOptions is InterfaceOptions
         SetTabBarBorderColor(color:CustomColor(50.0 / MAX, 50.0 / MAX, 50.0 / MAX, 1))
 
         //TABS
-        SetTabBackgroundColor(color:CustomColor(72.0 / MAX, 78.0 / MAX, 84.0 / MAX, 1))
-        SetTabFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+        SetTabBarBackgroundColor(color:CustomColor(80.0 / MAX, 83.0 / MAX, 85.0 / MAX, 1))
+        SetTabFontColor(commonFontColor)
         SetTabSelectionColor(color:CustomColor(58.0 / MAX, 81.0 / MAX, 113.0 / MAX, 1))
         SetTabSelectionFontColor(color:White())
         SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetTabAccentColor(color:White())
-        SetTabUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+        SetTabUnfocusedSelectionFontColor(commonFontColor)
         SetTabUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
 
         //TREES
-        SetTreeItemUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+        SetTreeItemUnfocusedSelectionFontColor(commonFontColor)
         SetTreeItemUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
 
         //The arrow to the tree uses the accent color.
         SetTreeItemAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
-        SetTreeItemFontColor(color:CustomColor(176.0 / MAX, 176.0 / MAX, 176.0 / MAX, 1))
+        SetTreeItemFontColor(commonFontColor)
         SetTreeItemSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
         SetTreeItemSelectionFontColor(color:White())
 
@@ -88,26 +89,31 @@ class DarkModeOptions is InterfaceOptions
         SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
         SetMenuItemSelectionColor(defaultSelectionColor)
         SetMenuItemMouseOverColor(color:CustomColor(47.0 / MAX, 91.0 / MAX, 187.0 / MAX, 1))
-        SetMenuItemFontColor(color:White())
+        SetMenuItemFontColor(commonFontColor)
 
 
         //TEXTBOX
         SetTextBoxBackgroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
-        SetTextBoxFontColor(color:CustomColor(164.0 / MAX, 177.0 / MAX, 192.0 / MAX, 1))
+        SetTextBoxFontColor(commonFontColor)
         SetTextBoxForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))
         SetTextBoxAccentColor(color:CustomColor(154.0 / MAX, 155.0 / MAX, 157.0 / MAX, 1))
         SetTextBoxIconColor(GetTextBoxFontColor())
 
         //TEXT FIELD
         SetTextFieldBackgroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
-        SetTextFieldFontColor(color:CustomColor(164.0 / MAX, 177.0 / MAX, 192.0 / MAX, 1))
+        SetTextFieldFontColor(commonFontColor)
         SetTextFieldIconColor(GetTextBoxFontColor())
 
         // TreeTableCell specific colors.
         SetTreeTableCellSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
-        SetTreeTableCellFontColor(color:CustomColor(176.0 / MAX, 176.0 / MAX, 176.0 / MAX, 1))
+        SetTreeTableCellFontColor(commonFontColor)
         SetTreeTableCellSelectionFontColor(color:White())
         SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
         SetTreeTableCellUnfocusedSelectionFontColor(color:CustomColor(187.0 / MAX, 187.0 / MAX, 187.0 / MAX, 1))
+
+        //Gutter defaults
+        SetGutterBackgroundColor(color:CustomColor(50.0/MAX, 53.0/MAX, 55.0/MAX, 1))
+        SetGutterFontColor(color:CustomColor(177.0/MAX, 177.0/MAX, 177.0/MAX, 1))
+        SetTabBackgroundColor(color:CustomColor(52.0 / MAX, 58.0 / MAX, 64.0 / MAX, 1))
     end
 end
