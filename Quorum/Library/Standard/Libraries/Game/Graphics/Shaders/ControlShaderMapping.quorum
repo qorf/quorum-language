@@ -162,8 +162,8 @@ class ControlShaderMapping is ShaderMapping
                     backgroundColor = control:GetBackgroundColor()
                 end
 
-                // Get the border color, if there is one.
-                if borderColor = undefined and control:GetBorderColor() not= undefined
+                // Get the border color, as well.
+                if borderColor = undefined
                     borderColor = control:GetBorderColor()
                 end
             end

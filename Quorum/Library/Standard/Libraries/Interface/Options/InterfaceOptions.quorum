@@ -37,6 +37,7 @@ class InterfaceOptions
     public constant text MENU_ITEM = "MenuItem"
     public constant text MENU_PANEL = "MenuPanel"
     public constant text PROGRESS_BAR = "ProgressBar"
+    public constant text RADIO_BUTTON = "RadioButton"
     public constant text SCROLL_PANE = "ScrollPane"
     public constant text TAB = "Tab"
     public constant text TAB_BAR = "TabBar"
@@ -1969,6 +1970,170 @@ class InterfaceOptions
 
     action CopyProgressBarInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(PROGRESS_BAR)
+    end
+
+    action SetRadioButtonBackgroundColor(ColorGroup value)
+        SetBackgroundColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBackgroundColor returns ColorGroup
+        return GetBackgroundColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonForegroundColor(ColorGroup value)
+        SetForegroundColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonForegroundColor returns ColorGroup
+        return GetForegroundColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonFontColor(ColorGroup value)
+        SetFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonFontColor returns ColorGroup
+        return GetFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonBorderColor(ColorGroup value)
+        SetBorderColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBorderColor returns ColorGroup
+        return GetBorderColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonFocusColor(ColorGroup value)
+        SetFocusColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonFocusColor returns ColorGroup
+        return GetFocusColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseOverColor(ColorGroup value)
+        SetMouseOverColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseOverColor returns ColorGroup
+        return GetMouseOverColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseDownColor(ColorGroup value)
+        SetMouseDownColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseDownColor returns ColorGroup
+        return GetMouseDownColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonSelectionColor(ColorGroup value)
+        SetSelectionColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonSelectionColor returns ColorGroup
+        return GetSelectionColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonGlowColor(ColorGroup value)
+        SetGlowColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonGlowColor returns ColorGroup
+        return GetGlowColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonIconColor(ColorGroup value)
+        SetIconColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonIconColor returns ColorGroup
+        return GetIconColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonAccentColor(ColorGroup value)
+        SetAccentColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonAccentColor returns ColorGroup
+        return GetAccentColor(RADIO_BUTTON)
+    end
+
+    action CopyRadioButtonInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(RADIO_BUTTON)
     end
 
     action SetScrollPaneBackgroundColor(ColorGroup value)

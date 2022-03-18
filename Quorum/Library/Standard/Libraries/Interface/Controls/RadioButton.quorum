@@ -29,21 +29,8 @@ class RadioButton is ToggleButton
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         properties:SetVerticalLayoutMode(properties:FIT_FONT)
-        
-        Color color
-        Color white = color:White()
-        Color gray = color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1)
-        Gradient background
-        background:Set(white, white, gray, gray)
-        Color selection = color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1) 
-        Color border = color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1)
-        Color selectionBorder = color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1)
 
-        properties:SetBackgroundColor(background)
-        properties:SetSelectionColor(selection)
-        properties:SetBorderColor(border)
-        properties:SetSelectionBorderColor(selectionBorder)
-        properties:SetBorderThickness(2)
+        buttonIcon:SetBorderThickness(2)
 
         // The properties already contain a loaded Font from the Button constructor.
         label:SetFont(properties:GetFont())
@@ -63,6 +50,15 @@ class RadioButton is ToggleButton
         AllowToggleOff(false)
 
         SetAccessibilityCode(parent:Item:RADIO_BUTTON)
+
+        SetInterfaceOptionsKey("RadioButton")
+        buttonIcon:SetName("RadioButton Icon")
+        buttonIcon:SetCornerRounding(1, 1, 1, 1)
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        buttonIcon:SetInterfaceOptionsKey(key)
     end
 
     action SetToggleState(boolean toggleState)
@@ -85,6 +81,12 @@ class RadioButton is ToggleButton
         if buttonIcon:GetView2D() is ToggleView
             ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
             content:SetToggleState(toggleState)
+        end
+
+        if toggleState
+            label:SetColor(GetSelectionFontColor())
+        else
+            label:SetColor(GetFontColor())
         end
 
         Behavior behavior = GetActivationBehavior()
@@ -150,9 +152,15 @@ class RadioButton is ToggleButton
             label:SetText(properties:GetLabelText())
         end
 
+        if IsRenderingSelection()
+            label:SetColor(GetSelectionFontColor())
+        else
+            label:SetColor(GetFontColor())
+        end
+
         if buttonView = undefined
             RadioButtonView radioView
-            radioView:Initialize(label:GetLineHeight() / 2, properties)
+            radioView:Initialize()
             buttonIcon:SetView2D(radioView)
         end
 

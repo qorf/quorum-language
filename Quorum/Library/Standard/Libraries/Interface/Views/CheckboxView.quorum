@@ -23,16 +23,9 @@ class CheckboxView is ToggleView, ControlShaderView
     action Initialize(LayoutProperties properties)
         parent:ControlShaderView:Initialize()
 
-//        baseColor = properties:GetBackgroundColor()
-//        selectColor = properties:GetSelectionColor()
-//        borderColor = properties:GetBorderColor()
-//        selectBorderColor = properties:GetSelectionBorderColor()
-
         borderThickness = properties:GetBorderThickness()
 
-//        LoadFilledRectangle(size, size, borderColor)
         center:Load(CreateCheckTexture())
-//        center:SetColor(properties:GetAccentColor())
         center:SetSize(center:GetWidth() - 2 * borderThickness, center:GetHeight() - 2 * borderThickness)
         center:SetPosition(borderThickness, borderThickness)
 
