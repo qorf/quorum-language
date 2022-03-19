@@ -390,6 +390,25 @@ class Database
         return meta
     end
 
+/*
+    Returns the true if the Database has a specified table
+
+    Attribute: Returns Returns true if the table exists on the database false otherwise.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:HasTable("myTable")
+*/
+    action HasTable(text table) returns boolean
+        RefreshMeta()
+        return meta:HasTable(table)
+    end
+
     /* INTERNAL
         Queries need meta data in order to check if the query is valid such as if a column exists.
         This action is called to set the tmeta data on a query before the text of the query is generated.
