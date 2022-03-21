@@ -17,14 +17,25 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Views.ControlShaderView
 
 class Dialog is Control
     Behavior defaultBehavior = undefined
     
+    GameStateManager manager
+    boolean isModal = false
+    boolean showTopBar = true
+
+    Control topBar
+
     on create
         SetName("Dialog")
         SetInputGroup("Dialog")
+        SetInterfaceOptionsKey("Dialog")
         
+        topBar:SetBorderThickness(1)
+        topBar:SetInterfaceOptionsKey("DialogBar")
+
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
@@ -35,12 +46,6 @@ class Dialog is Control
         SetAccessibilityCode(parent:Item:DIALOG)
         parent:Item:visible = false
     end
-
-    GameStateManager manager
-    boolean isModal = false
-    boolean showTopBar = true
-
-    Control topBar
 
     /*
         This action gets a default behavior for a hypothetical "ok" style button
@@ -84,18 +89,18 @@ class Dialog is Control
 
         if showTopBar and GetChildren():Get(0):Equals(topBar) = false
             Control bar = topBar
-            LabelBoxView barView
+            ControlShaderView barView
+            barView:Initialize()
 
-            Color color
-            Gradient gradient
-            Color gray = color:CustomColor(0.82, 0.82, 0.82, 1)
-            Color lightGray = color:CustomColor(0.93, 0.93, 0.93, 1)
-            gradient:Set(gray, gray, lightGray, lightGray)
+//            Color color
+//            Gradient gradient
+//            Color gray = color:CustomColor(0.82, 0.82, 0.82, 1)
+//            Color lightGray = color:CustomColor(0.93, 0.93, 0.93, 1)
+//            gradient:Set(gray, gray, lightGray, lightGray)
             
-            barView:Initialize(gradient, color:Black())
-            barView:SetBorderThickness(1)
+//            barView:Initialize(gradient, color:Black())
             // Top, bottom, left, and right borders
-            barView:SetBorderStyle(barView:ALL)
+//            barView:SetBorderStyle(barView:ALL)
             bar:SetView2D(barView)
 
             Label nameLabel
@@ -108,10 +113,13 @@ class Dialog is Control
             // Bar will use manual layout for now, which doesn't respect these.
 //            barProperties:SetHorizontalLayoutMode(barProperties:STANDARD)
 //            barProperties:SetVerticalLayoutMode(barProperties:FIT_FONT)
+
+            // Because we're using a manual layout, we need to set a concrete value. This should change in the future.
+            number barHeight = 20
+
             barProperties:SetFont(font)
             barProperties:SetPercentageWidth(1.0)
-//            barProperties:SetPixelWidth(200)
-            barProperties:SetPixelHeight(20)
+            barProperties:SetPixelHeight(barHeight)
 
             ManualLayout manualLayout
             bar:SetLayout(manualLayout)
@@ -124,6 +132,7 @@ class Dialog is Control
             labelProperties:SetPixelY(4)
 
             nameLabel:SetText(GetName())
+            nameLabel:SetFontColor(topBar:GetFontColor())
             bar:Add(nameLabel)
 
             Button closeButton
@@ -132,22 +141,21 @@ class Dialog is Control
             closeButton:SetBehavior(hideBehavior)
 
             Icon closeIcon
-            Color white = color:White()
-            Texture theX = GenerateX(20, 4, 2, white)
+            Texture theX = GenerateX(100, 20, 10, topBar:GetForegroundColor():GetBottomLeft(), topBar:GetAccentColor():GetBottomLeft())
             closeIcon:Load(theX)
-            closeIcon:SetColor(white)
             closeButton:SetIcon(closeIcon)
 
             LayoutProperties buttonProperties = closeButton:GetDefaultLayoutProperties()
             buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
             buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
-            buttonProperties:SetPixelHeight(20)
-            buttonProperties:SetPixelWidth(20)
+            buttonProperties:SetPixelHeight(barHeight)
+            buttonProperties:SetPixelWidth(barHeight)
             buttonProperties:SetPercentageOriginX(1.0)
             buttonProperties:SetPercentageX(1)
-            buttonProperties:SetPercentageOriginY(1.0)
-            buttonProperties:SetPercentageY(1)
-            buttonProperties:SetIconColor(white)
+            buttonProperties:SetPercentageY(0)
+//            buttonProperties:SetPercentageOriginY(1.0)
+//            buttonProperties:SetPercentageY(1)
+//            buttonProperties:SetIconColor(white)
             buttonProperties:SetFont(undefined)
 
             closeButton:SetName("Close")
@@ -169,14 +177,11 @@ class Dialog is Control
     /*
     This action generates the texture used for the close button in the Dialog.
     */
-    private action GenerateX(integer size, integer buffer, integer width, Color color) returns Texture
+    private action GenerateX(integer size, integer buffer, integer width, Color background, Color accent) returns Texture
         PixelMap map
         Format format
         format:SetValue(format:RGBA8888)
         map:CreatePixelMap(size, size, format)
-        
-        Color background
-        background:SetColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0)
 
         map:FillRectangle(1, 1, size - 2, size - 2, background)
         map:DrawRectangle(0, 0, size, size, background)
@@ -184,17 +189,17 @@ class Dialog is Control
         integer x = buffer
         integer y = buffer
         repeat while x < size - buffer
-            map:SetPixel(x, y, color)
-            map:SetPixel(x, size - y - 1, color)
+            map:SetPixel(x, y, accent)
+            map:SetPixel(x, size - y - 1, accent)
 
             integer theWidth = 1
             repeat while theWidth < width
                 if y + theWidth < size - buffer
-                    map:SetPixel(x, y + theWidth, color)
+                    map:SetPixel(x, y + theWidth, accent)
                 end
 
                 if x + theWidth < size - buffer
-                    map:SetPixel(x + theWidth, y, color)
+                    map:SetPixel(x + theWidth, y, accent)
                 end
                 theWidth = theWidth + 1
             end
@@ -202,11 +207,11 @@ class Dialog is Control
             theWidth = 1
             repeat while theWidth < width
                 if x + theWidth < size - buffer
-                    map:SetPixel(x + theWidth, size - y - 1, color)
+                    map:SetPixel(x + theWidth, size - y - 1, accent)
                 end
 
                 if size  - buffer- y - theWidth - 1 >= 0
-                    map:SetPixel(x, size - y - theWidth - 1, color)
+                    map:SetPixel(x, size - y - theWidth - 1, accent)
                 end
                 theWidth = theWidth + 1
             end

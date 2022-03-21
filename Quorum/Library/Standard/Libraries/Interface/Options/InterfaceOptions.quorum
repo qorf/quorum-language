@@ -32,7 +32,13 @@ class InterfaceOptions
     public constant text BUTTON = "Button"
     public constant text CELL = "Cell"
     public constant text CHECKBOX = "Checkbox"
+    public constant text DIALOG = "Dialog"
+    public constant text DIALOG_BAR = "DialogBar"
+    public constant text DIALOG_ACCEPT_BUTTON = "DialogAcceptButton"
     public constant text GUTTER = "Gutter"
+    public constant text LABEL = "Label"
+    public constant text LIST = "List"
+    public constant text LIST_ITEM = "ListItem"
     public constant text MENU_BAR = "MenuBar"
     public constant text MENU_ITEM = "MenuItem"
     public constant text MENU_PANEL = "MenuPanel"
@@ -1152,6 +1158,498 @@ class InterfaceOptions
         return CopyInterfaceOptions(CHECKBOX)
     end
 
+    action SetDialogBackgroundColor(ColorGroup value)
+        SetBackgroundColor(DIALOG, value)
+    end
+
+    action GetDialogBackgroundColor returns ColorGroup
+        return GetBackgroundColor(DIALOG)
+    end
+
+    action SetDialogForegroundColor(ColorGroup value)
+        SetForegroundColor(DIALOG, value)
+    end
+
+    action GetDialogForegroundColor returns ColorGroup
+        return GetForegroundColor(DIALOG)
+    end
+
+    action SetDialogFontColor(ColorGroup value)
+        SetFontColor(DIALOG, value)
+    end
+
+    action GetDialogFontColor returns ColorGroup
+        return GetFontColor(DIALOG)
+    end
+
+    action SetDialogBorderColor(ColorGroup value)
+        SetBorderColor(DIALOG, value)
+    end
+
+    action GetDialogBorderColor returns ColorGroup
+        return GetBorderColor(DIALOG)
+    end
+
+    action SetDialogFocusColor(ColorGroup value)
+        SetFocusColor(DIALOG, value)
+    end
+
+    action GetDialogFocusColor returns ColorGroup
+        return GetFocusColor(DIALOG)
+    end
+
+    action SetDialogMouseOverColor(ColorGroup value)
+        SetMouseOverColor(DIALOG, value)
+    end
+
+    action GetDialogMouseOverColor returns ColorGroup
+        return GetMouseOverColor(DIALOG)
+    end
+
+    action SetDialogMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(DIALOG, value)
+    end
+
+    action GetDialogMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(DIALOG)
+    end
+
+    action SetDialogMouseDownColor(ColorGroup value)
+        SetMouseDownColor(DIALOG, value)
+    end
+
+    action GetDialogMouseDownColor returns ColorGroup
+        return GetMouseDownColor(DIALOG)
+    end
+
+    action SetDialogMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(DIALOG, value)
+    end
+
+    action GetDialogMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(DIALOG)
+    end
+
+    action SetDialogSelectionColor(ColorGroup value)
+        SetSelectionColor(DIALOG, value)
+    end
+
+    action GetDialogSelectionColor returns ColorGroup
+        return GetSelectionColor(DIALOG)
+    end
+
+    action SetDialogSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(DIALOG, value)
+    end
+
+    action GetDialogSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(DIALOG)
+    end
+
+    action SetDialogUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(DIALOG, value)
+    end
+
+    action GetDialogUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(DIALOG)
+    end
+
+    action SetDialogUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(DIALOG, value)
+    end
+
+    action GetDialogUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(DIALOG)
+    end
+
+    action SetDialogSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(DIALOG, value)
+    end
+
+    action GetDialogSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(DIALOG)
+    end
+
+    action SetDialogUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(DIALOG, value)
+    end
+
+    action GetDialogUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(DIALOG)
+    end
+
+    action SetDialogGlowColor(ColorGroup value)
+        SetGlowColor(DIALOG, value)
+    end
+
+    action GetDialogGlowColor returns ColorGroup
+        return GetGlowColor(DIALOG)
+    end
+
+    action SetDialogMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(DIALOG, value)
+    end
+
+    action GetDialogMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(DIALOG)
+    end
+
+    action SetDialogMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(DIALOG, value)
+    end
+
+    action GetDialogMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(DIALOG)
+    end
+
+    action SetDialogIconColor(ColorGroup value)
+        SetIconColor(DIALOG, value)
+    end
+
+    action GetDialogIconColor returns ColorGroup
+        return GetIconColor(DIALOG)
+    end
+
+    action SetDialogAccentColor(ColorGroup value)
+        SetAccentColor(DIALOG, value)
+    end
+
+    action GetDialogAccentColor returns ColorGroup
+        return GetAccentColor(DIALOG)
+    end
+
+    action CopyDialogInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(DIALOG)
+    end
+
+    action SetDialogBarBackgroundColor(ColorGroup value)
+        SetBackgroundColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBackgroundColor returns ColorGroup
+        return GetBackgroundColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarForegroundColor(ColorGroup value)
+        SetForegroundColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarForegroundColor returns ColorGroup
+        return GetForegroundColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarFontColor(ColorGroup value)
+        SetFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarFontColor returns ColorGroup
+        return GetFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarBorderColor(ColorGroup value)
+        SetBorderColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBorderColor returns ColorGroup
+        return GetBorderColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarFocusColor(ColorGroup value)
+        SetFocusColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarFocusColor returns ColorGroup
+        return GetFocusColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseOverColor(ColorGroup value)
+        SetMouseOverColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseOverColor returns ColorGroup
+        return GetMouseOverColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseDownColor(ColorGroup value)
+        SetMouseDownColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseDownColor returns ColorGroup
+        return GetMouseDownColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarSelectionColor(ColorGroup value)
+        SetSelectionColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarSelectionColor returns ColorGroup
+        return GetSelectionColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarGlowColor(ColorGroup value)
+        SetGlowColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarGlowColor returns ColorGroup
+        return GetGlowColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarIconColor(ColorGroup value)
+        SetIconColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarIconColor returns ColorGroup
+        return GetIconColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarAccentColor(ColorGroup value)
+        SetAccentColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarAccentColor returns ColorGroup
+        return GetAccentColor(DIALOG_BAR)
+    end
+
+    action CopyDialogBarInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(DIALOG_BAR)
+    end
+
+    action SetDialogAcceptButtonBackgroundColor(ColorGroup value)
+        SetBackgroundColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBackgroundColor returns ColorGroup
+        return GetBackgroundColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonForegroundColor(ColorGroup value)
+        SetForegroundColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonForegroundColor returns ColorGroup
+        return GetForegroundColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonFontColor(ColorGroup value)
+        SetFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonFontColor returns ColorGroup
+        return GetFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonBorderColor(ColorGroup value)
+        SetBorderColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBorderColor returns ColorGroup
+        return GetBorderColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonFocusColor(ColorGroup value)
+        SetFocusColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonFocusColor returns ColorGroup
+        return GetFocusColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseOverColor(ColorGroup value)
+        SetMouseOverColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseOverColor returns ColorGroup
+        return GetMouseOverColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseDownColor(ColorGroup value)
+        SetMouseDownColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseDownColor returns ColorGroup
+        return GetMouseDownColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonSelectionColor(ColorGroup value)
+        SetSelectionColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonSelectionColor returns ColorGroup
+        return GetSelectionColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonGlowColor(ColorGroup value)
+        SetGlowColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonGlowColor returns ColorGroup
+        return GetGlowColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonIconColor(ColorGroup value)
+        SetIconColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonIconColor returns ColorGroup
+        return GetIconColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonAccentColor(ColorGroup value)
+        SetAccentColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonAccentColor returns ColorGroup
+        return GetAccentColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action CopyDialogAcceptButtonInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(DIALOG_ACCEPT_BUTTON)
+    end
+
     action SetGutterBackgroundColor(ColorGroup value)
         SetBackgroundColor(GUTTER, value)
     end
@@ -1314,6 +1812,498 @@ class InterfaceOptions
 
     action CopyGutterInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(GUTTER)
+    end
+
+    action SetLabelBackgroundColor(ColorGroup value)
+        SetBackgroundColor(LABEL, value)
+    end
+
+    action GetLabelBackgroundColor returns ColorGroup
+        return GetBackgroundColor(LABEL)
+    end
+
+    action SetLabelForegroundColor(ColorGroup value)
+        SetForegroundColor(LABEL, value)
+    end
+
+    action GetLabelForegroundColor returns ColorGroup
+        return GetForegroundColor(LABEL)
+    end
+
+    action SetLabelFontColor(ColorGroup value)
+        SetFontColor(LABEL, value)
+    end
+
+    action GetLabelFontColor returns ColorGroup
+        return GetFontColor(LABEL)
+    end
+
+    action SetLabelBorderColor(ColorGroup value)
+        SetBorderColor(LABEL, value)
+    end
+
+    action GetLabelBorderColor returns ColorGroup
+        return GetBorderColor(LABEL)
+    end
+
+    action SetLabelFocusColor(ColorGroup value)
+        SetFocusColor(LABEL, value)
+    end
+
+    action GetLabelFocusColor returns ColorGroup
+        return GetFocusColor(LABEL)
+    end
+
+    action SetLabelMouseOverColor(ColorGroup value)
+        SetMouseOverColor(LABEL, value)
+    end
+
+    action GetLabelMouseOverColor returns ColorGroup
+        return GetMouseOverColor(LABEL)
+    end
+
+    action SetLabelMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(LABEL, value)
+    end
+
+    action GetLabelMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(LABEL)
+    end
+
+    action SetLabelMouseDownColor(ColorGroup value)
+        SetMouseDownColor(LABEL, value)
+    end
+
+    action GetLabelMouseDownColor returns ColorGroup
+        return GetMouseDownColor(LABEL)
+    end
+
+    action SetLabelMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(LABEL, value)
+    end
+
+    action GetLabelMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(LABEL)
+    end
+
+    action SetLabelSelectionColor(ColorGroup value)
+        SetSelectionColor(LABEL, value)
+    end
+
+    action GetLabelSelectionColor returns ColorGroup
+        return GetSelectionColor(LABEL)
+    end
+
+    action SetLabelSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(LABEL, value)
+    end
+
+    action GetLabelSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(LABEL)
+    end
+
+    action SetLabelUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(LABEL, value)
+    end
+
+    action GetLabelUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(LABEL)
+    end
+
+    action SetLabelUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(LABEL, value)
+    end
+
+    action GetLabelUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(LABEL)
+    end
+
+    action SetLabelSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(LABEL, value)
+    end
+
+    action GetLabelSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(LABEL)
+    end
+
+    action SetLabelUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(LABEL, value)
+    end
+
+    action GetLabelUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(LABEL)
+    end
+
+    action SetLabelGlowColor(ColorGroup value)
+        SetGlowColor(LABEL, value)
+    end
+
+    action GetLabelGlowColor returns ColorGroup
+        return GetGlowColor(LABEL)
+    end
+
+    action SetLabelMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(LABEL, value)
+    end
+
+    action GetLabelMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(LABEL)
+    end
+
+    action SetLabelMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(LABEL, value)
+    end
+
+    action GetLabelMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(LABEL)
+    end
+
+    action SetLabelIconColor(ColorGroup value)
+        SetIconColor(LABEL, value)
+    end
+
+    action GetLabelIconColor returns ColorGroup
+        return GetIconColor(LABEL)
+    end
+
+    action SetLabelAccentColor(ColorGroup value)
+        SetAccentColor(LABEL, value)
+    end
+
+    action GetLabelAccentColor returns ColorGroup
+        return GetAccentColor(LABEL)
+    end
+
+    action CopyLabelInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(LABEL)
+    end
+
+    action SetListBackgroundColor(ColorGroup value)
+        SetBackgroundColor(LIST, value)
+    end
+
+    action GetListBackgroundColor returns ColorGroup
+        return GetBackgroundColor(LIST)
+    end
+
+    action SetListForegroundColor(ColorGroup value)
+        SetForegroundColor(LIST, value)
+    end
+
+    action GetListForegroundColor returns ColorGroup
+        return GetForegroundColor(LIST)
+    end
+
+    action SetListFontColor(ColorGroup value)
+        SetFontColor(LIST, value)
+    end
+
+    action GetListFontColor returns ColorGroup
+        return GetFontColor(LIST)
+    end
+
+    action SetListBorderColor(ColorGroup value)
+        SetBorderColor(LIST, value)
+    end
+
+    action GetListBorderColor returns ColorGroup
+        return GetBorderColor(LIST)
+    end
+
+    action SetListFocusColor(ColorGroup value)
+        SetFocusColor(LIST, value)
+    end
+
+    action GetListFocusColor returns ColorGroup
+        return GetFocusColor(LIST)
+    end
+
+    action SetListMouseOverColor(ColorGroup value)
+        SetMouseOverColor(LIST, value)
+    end
+
+    action GetListMouseOverColor returns ColorGroup
+        return GetMouseOverColor(LIST)
+    end
+
+    action SetListMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(LIST, value)
+    end
+
+    action GetListMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(LIST)
+    end
+
+    action SetListMouseDownColor(ColorGroup value)
+        SetMouseDownColor(LIST, value)
+    end
+
+    action GetListMouseDownColor returns ColorGroup
+        return GetMouseDownColor(LIST)
+    end
+
+    action SetListMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(LIST, value)
+    end
+
+    action GetListMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(LIST)
+    end
+
+    action SetListSelectionColor(ColorGroup value)
+        SetSelectionColor(LIST, value)
+    end
+
+    action GetListSelectionColor returns ColorGroup
+        return GetSelectionColor(LIST)
+    end
+
+    action SetListSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(LIST, value)
+    end
+
+    action GetListSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(LIST)
+    end
+
+    action SetListUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(LIST, value)
+    end
+
+    action GetListUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(LIST)
+    end
+
+    action SetListUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(LIST, value)
+    end
+
+    action GetListUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(LIST)
+    end
+
+    action SetListSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(LIST, value)
+    end
+
+    action GetListSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(LIST)
+    end
+
+    action SetListUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(LIST, value)
+    end
+
+    action GetListUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(LIST)
+    end
+
+    action SetListGlowColor(ColorGroup value)
+        SetGlowColor(LIST, value)
+    end
+
+    action GetListGlowColor returns ColorGroup
+        return GetGlowColor(LIST)
+    end
+
+    action SetListMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(LIST, value)
+    end
+
+    action GetListMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(LIST)
+    end
+
+    action SetListMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(LIST, value)
+    end
+
+    action GetListMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(LIST)
+    end
+
+    action SetListIconColor(ColorGroup value)
+        SetIconColor(LIST, value)
+    end
+
+    action GetListIconColor returns ColorGroup
+        return GetIconColor(LIST)
+    end
+
+    action SetListAccentColor(ColorGroup value)
+        SetAccentColor(LIST, value)
+    end
+
+    action GetListAccentColor returns ColorGroup
+        return GetAccentColor(LIST)
+    end
+
+    action CopyListInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(LIST)
+    end
+
+    action SetListItemBackgroundColor(ColorGroup value)
+        SetBackgroundColor(LIST_ITEM, value)
+    end
+
+    action GetListItemBackgroundColor returns ColorGroup
+        return GetBackgroundColor(LIST_ITEM)
+    end
+
+    action SetListItemForegroundColor(ColorGroup value)
+        SetForegroundColor(LIST_ITEM, value)
+    end
+
+    action GetListItemForegroundColor returns ColorGroup
+        return GetForegroundColor(LIST_ITEM)
+    end
+
+    action SetListItemFontColor(ColorGroup value)
+        SetFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemFontColor returns ColorGroup
+        return GetFontColor(LIST_ITEM)
+    end
+
+    action SetListItemBorderColor(ColorGroup value)
+        SetBorderColor(LIST_ITEM, value)
+    end
+
+    action GetListItemBorderColor returns ColorGroup
+        return GetBorderColor(LIST_ITEM)
+    end
+
+    action SetListItemFocusColor(ColorGroup value)
+        SetFocusColor(LIST_ITEM, value)
+    end
+
+    action GetListItemFocusColor returns ColorGroup
+        return GetFocusColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseOverColor(ColorGroup value)
+        SetMouseOverColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseOverColor returns ColorGroup
+        return GetMouseOverColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseDownColor(ColorGroup value)
+        SetMouseDownColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseDownColor returns ColorGroup
+        return GetMouseDownColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(LIST_ITEM)
+    end
+
+    action SetListItemSelectionColor(ColorGroup value)
+        SetSelectionColor(LIST_ITEM, value)
+    end
+
+    action GetListItemSelectionColor returns ColorGroup
+        return GetSelectionColor(LIST_ITEM)
+    end
+
+    action SetListItemSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(LIST_ITEM, value)
+    end
+
+    action GetListItemSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(LIST_ITEM)
+    end
+
+    action SetListItemUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(LIST_ITEM, value)
+    end
+
+    action GetListItemUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(LIST_ITEM)
+    end
+
+    action SetListItemUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(LIST_ITEM, value)
+    end
+
+    action GetListItemUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(LIST_ITEM)
+    end
+
+    action SetListItemSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(LIST_ITEM)
+    end
+
+    action SetListItemUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(LIST_ITEM)
+    end
+
+    action SetListItemGlowColor(ColorGroup value)
+        SetGlowColor(LIST_ITEM, value)
+    end
+
+    action GetListItemGlowColor returns ColorGroup
+        return GetGlowColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(LIST_ITEM)
+    end
+
+    action SetListItemMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(LIST_ITEM)
+    end
+
+    action SetListItemIconColor(ColorGroup value)
+        SetIconColor(LIST_ITEM, value)
+    end
+
+    action GetListItemIconColor returns ColorGroup
+        return GetIconColor(LIST_ITEM)
+    end
+
+    action SetListItemAccentColor(ColorGroup value)
+        SetAccentColor(LIST_ITEM, value)
+    end
+
+    action GetListItemAccentColor returns ColorGroup
+        return GetAccentColor(LIST_ITEM)
+    end
+
+    action CopyListItemInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(LIST_ITEM)
     end
 
     action SetMenuBarBackgroundColor(ColorGroup value)

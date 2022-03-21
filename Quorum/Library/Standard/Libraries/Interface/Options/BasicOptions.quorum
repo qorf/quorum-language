@@ -39,10 +39,46 @@ class BasicOptions is InterfaceOptions
         SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
         SetCheckboxAccentColor(color:White())
 
+        // Dialog specific colors.
+        SetDialogBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+
+        // Dialog bar specific colors.
+        Gradient dialogBarGradient
+        dialogBarGradient:Set(color:CustomColor(0.82, 0.82, 0.82, 1), color:CustomColor(0.82, 0.82, 0.82, 1), color:CustomColor(0.93, 0.93, 0.93, 1), color:CustomColor(0.93, 0.93, 0.93, 1))
+        SetDialogBarBackgroundColor(dialogBarGradient)
+        SetDialogBarBorderColor(color:Black())
+        SetDialogBarForegroundColor(color:CustomColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0))
+        SetDialogBarAccentColor(color:White())
+        SetDialogBarFontColor(color:Black())
+
+        // Dialog accept button colors.
+        Gradient okayGradient
+        Color gradientTop = color:CustomColor(0.85, 0.85, 1, 1)
+        Color gradientBottom = color:CustomColor(0.75, 0.75, 0.9, 1)
+        okayGradient:Set(gradientBottom, gradientBottom, gradientTop, gradientTop)
+        SetDialogAcceptButtonBackgroundColor(okayGradient)
+        
+        Gradient okayMouseOver
+        okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))
+        SetDialogAcceptButtonMouseOverColor(okayMouseOver)
+        SetDialogAcceptButtonMouseDownColor(color:CustomColor(0.58, 0.58, 0.68, 1))
+
         // Gutter specific colors.
         SetGutterBackgroundColor(color:CustomColor(233.0/255.0, 232.0/255.0, 226.0/255.0, 1))
         SetGutterBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
         SetGutterFontColor(color:Black())
+
+        // List specific colors.
+        SetListBackgroundColor(color:White())
+        SetListBorderColor(color:Black())
+
+        // ListItem specific colors.
+        SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetListItemBorderColor(color:Black())
+        SetListItemSelectionColor(color:CustomColor(9/255.0, 80/255.0, 208/255.0, 1))
+        SetListItemSelectionBorderColor(color:Black())
+        SetListItemFontColor(color:Black())
+        SetListItemSelectionFontColor(color:White())
 
         // MenuBar specific colors.
         Gradient menuBarGradient
