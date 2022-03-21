@@ -1093,6 +1093,24 @@ class Control is Item2D
     end
 
     /*
+    This action requests that this Control (as well as all of its descendents)
+    should reload their graphics during the next Update.
+    */
+    action RequestReloadGraphics
+        defaultProperties:SetRenderingFlag(true)
+
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            if children:Get(counter) is Control
+                Control control = cast(Control, children:Get(counter))
+                control:RequestReloadGraphics()
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
     This action is used to indicate that the Control no longer needs to be laid
     out. This is called internally by the system as needed, and shouldn't be
     necessary for most users.

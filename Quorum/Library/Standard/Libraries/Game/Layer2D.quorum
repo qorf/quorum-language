@@ -2808,6 +2808,15 @@ class Layer2D is Layer
         return interfaceScale
     end
 
+    action ReloadControlGraphics
+        integer counter = 0
+        repeat while counter < controls:GetSize()
+            controls:Get(counter):RequestReloadGraphics()
+            counter = counter + 1
+        end
+        shouldLayout = true
+    end
+
     /*
 
     */

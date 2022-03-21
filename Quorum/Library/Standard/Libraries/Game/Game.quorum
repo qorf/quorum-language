@@ -5372,6 +5372,15 @@ class Game
 
     action SetInterfaceOptions(InterfaceOptions options)
         interfaceOptions = options
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            if layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                layer2D:ReloadControlGraphics()
+            end
+            counter = counter + 1
+        end
     end
 
     action GetInterfaceOptions returns InterfaceOptions
