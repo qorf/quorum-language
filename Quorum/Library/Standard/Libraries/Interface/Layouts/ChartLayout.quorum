@@ -846,7 +846,8 @@ class ChartLayout is Layout
                         end
                         x1 = cast(integer, percentX * width) + xAxisPaddingOffset
                         y1 = cast(integer, percentY * height) + yAxisPaddingOffset
-    
+                        line:SetX1(x1)
+                        line:SetY1(y1)
 
                         // Ending position for line
                         if chart:GetVerticalFlag()  
@@ -859,6 +860,8 @@ class ChartLayout is Layout
                         end
                         x2 = cast(integer, percentX * width) + xAxisPaddingOffset
                         y2 = cast(integer, percentY * height) + yAxisPaddingOffset
+                        line:SetX2(x2)
+                        line:SetY2(y2)
         
                         // Pythagorean Theorem
                         number sideA = math:AbsoluteValue(x2 - x1) * math:AbsoluteValue(x2 - x1)

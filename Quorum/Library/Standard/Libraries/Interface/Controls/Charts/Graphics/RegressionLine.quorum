@@ -21,6 +21,10 @@ class RegressionLine is Drawable
     private text dependentVariable = ""
     private Array<text> independentVariables    // This would be used when we have multi-variate regression
     private boolean nameAfterSeries = false
+    integer x1 = 0
+    integer y1 = 0
+    integer x2 = 0
+    integer y2 = 0
 
     on create
         SetFocusable(true)
@@ -181,5 +185,37 @@ class RegressionLine is Drawable
             dependent = beta:Get(1)*independent + beta:Get(0)
         end
         return dependent
+    end
+
+    action SetX1(integer x1)
+        me:x1 = x1
+    end
+
+    action GetX1 returns integer
+        return x1
+    end
+
+    action SetY1(integer y1)
+        me:y1 = y1
+    end
+
+    action GetY1 returns integer
+        return y1
+    end
+
+    action SetX2(integer x2)
+        me:x2 = x2
+    end
+
+    action GetX2 returns integer
+        return x2
+    end
+
+    action SetY2(integer y2)
+        me:y2 = y2
+    end
+
+    action GetY2 returns integer
+        return y2
     end
 end
