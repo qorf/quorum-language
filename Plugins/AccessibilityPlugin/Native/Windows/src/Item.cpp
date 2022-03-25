@@ -93,6 +93,25 @@ const WCHAR* Item::GetName()
 	return m_ControlName.c_str();
 }
 
+std::wstring Item::GetRoleDescription()
+{
+	auto env = GetJNIEnv();
+	if (env)
+	{
+		jstring jDescription = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_Item.GetAccessibilityRoleDescription));
+
+		if (jDescription)
+		{
+			auto nativeDescription = env->GetStringUTFChars(jDescription, 0);
+			auto wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+			env->ReleaseStringUTFChars(jDescription, nativeDescription);
+			return wDescription;
+		}
+	}
+
+	return L"";
+}
+
 void Item::SetDescription(_In_ std::wstring description)
 {
 	VARIANT oldDescription, newDescription;

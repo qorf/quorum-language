@@ -376,6 +376,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	//env->GetMethodID(JavaClass_TextBox.me, "GetText", "()Ljava/lang/String;");
 	JavaClass_Item.GetName = env->GetMethodID(JavaClass_Item.me, "GetName", "()Ljava/lang/String;");
 	JavaClass_Item.GetDescription = env->GetMethodID(JavaClass_Item.me, "GetDescription", "()Ljava/lang/String;");
+	JavaClass_Item.GetAccessibilityRoleDescription = env->GetMethodID(JavaClass_Item.me, "GetAccessibilityRoleDescription", "()Ljava/lang/String;");
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 	#pragma endregion
