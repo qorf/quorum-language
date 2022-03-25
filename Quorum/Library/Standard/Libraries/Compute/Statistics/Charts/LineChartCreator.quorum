@@ -86,6 +86,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         DateTime xdateMin = undefined
         DateTime xdateMax = undefined
 
+        Array<text> groupNames
         DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
         if useFactor
             factor = frame:GetColumn(GetFactor(0))
@@ -138,16 +139,16 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             // TEXT
             else //if factor:IsTextColumn()
                 textFactor = true
-                integer i = 0
-                repeat while i < factor:GetSize()
-                    if not factor:IsUndefined(i)
-                        if not groupFactor:HasKey(factor:GetAsText(i))
-                            Array <ChartPoint> arr
-                            groupFactor:Add(factor:GetAsText(i), arr)
-                        end
+                DataFrameColumn labels = factor:Copy(true, true)
+                integer i = 0 
+                repeat while i < labels:GetSize()
+                    if not labels:IsUndefined(i)
+                        groupNames:Add(labels:GetAsText(i))
+                        Array <ChartPoint> arr
+                        groupFactor:Add(labels:GetAsText(i), arr)
                     end
                     i = i + 1
-                end 
+                end
                 xMin = 0
                 xMax = groupFactor:GetSize()
             end
@@ -170,6 +171,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         number yMin = 0.0   
         number yMax = 0.0
 
+        Array<text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -184,6 +186,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 lineFactor:Add(column:GetHeader(), newline)
                 
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 series:AddItem(newline)
                 newline:SetSeries(series)
@@ -269,16 +272,10 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end  
 
         elseif textFactor
-            Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
-            end
             i = 0
-            repeat while i < groupKeyArray:GetSize()
-                if groupFactor:HasKey(groupKeyArray:Get(i))
-                    Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
+            repeat while i < groupNames:GetSize()
+                if groupFactor:HasKey(groupNames:Get(i))
+                    Array <ChartPoint> points = groupFactor:GetValue(groupNames:Get(i))
                     integer j = 0
                     repeat while j < points:GetSize()
                         ChartPoint point = points:Get(j)
@@ -289,7 +286,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end  
-            chart:OverrideXLabelsWithText(groupKeyArray)
+            chart:OverrideXLabelsWithText(groupNames)
 
         else // defaultFactor
             Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
@@ -311,22 +308,16 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         // Series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
-            chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            lineFactor:GetValue(seriesNames:Get(i)):SortPoints()
+            chart:AddChartLine(lineFactor:GetValue(seriesNames:Get(i)))
             if not textFactor
                 Array<DataFrameColumn> regColumns 
                 NumberColumn column1 //independent
                 NumberColumn column2 //dependent
-                ChartLine line = lineFactor:GetValue(seriesKeyArray:Get(i))
+                ChartLine line = lineFactor:GetValue(seriesNames:Get(i))
                 integer j = 0
                 repeat while j < line:GetPoints():GetSize()
                     column1:Add(cast(text, line:GetPoints():Get(j):GetValueX()))
@@ -334,13 +325,13 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     j = j + 1
                 end
                 if line:GetPoints():GetSize() < 3
-                    output "Linear regression was not computable for " + seriesKeyArray:Get(i)
+                    output "Linear regression was not computable for " + seriesNames:Get(i)
                 else
                     regColumns:Add(column1)
                     regColumns:Add(column2)
                     RegressionLine regLine
                     regLine:SetIndependentVariable(chart:GetXAxisTitle())
-                    regLine:SetDependentVariable(seriesKeyArray:Get(i))
+                    regLine:SetDependentVariable(seriesNames:Get(i))
                     regLine:NamedAfterSeries(true)
                     DataFrame regressionFrame
                     regressionFrame:SetColumns(regColumns)
@@ -349,8 +340,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     regression:AddColumn(1) //the dependent variable
                     regressionFrame:Calculate(regression)
                     regLine:SetRegression(regression)
-                    regLine:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-                    seriesFactor:GetValue(seriesKeyArray:Get(i)):SetRegressionLine(regLine)
+                    regLine:SetSeries(seriesFactor:GetValue(seriesNames:Get(i)))
+                    seriesFactor:GetValue(seriesNames:Get(i)):SetRegressionLine(regLine)
                 end
             end
             i = i + 1

@@ -1,33 +1,26 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Interface.Controls.Charts.BarChart
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Containers.Array
-use Libraries.Containers.HashTable
-use Libraries.Interface.Controls.Charts.Histogram
-use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Compute.Math
-use Libraries.Interface.Controls.Charts.BarGroup
-use Libraries.Interface.Controls.Charts.Bar
-use Libraries.Interface.Controls.Charts.Series
-use Libraries.Interface.Controls.Charts.Legend
 use Libraries.Compute.Statistics.Inputs.ColumnInput
-use Libraries.Compute.Statistics.Charts.ColumnToTextArray
-use Libraries.Compute.Statistics.Charts.ColumnToNumberArray
-use Libraries.Containers.Support.Comparison
 use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
 
 /*
-    This class is used to create a histogram for use in an application. By default, it uses 
-    the Freedman-Diaconis rule for bin widths, which provides a reasonable looking histogram
+    This class is used to create a Histogram from columns of data in a DataFrame.
+    There is one way to make a histogram from the data frame using this class:
+        1. One or more numerical columns: Default will create bin widths based on Freedman-Diaconis rule for bin widths.
+
+    By default, it uses the Freedman-Diaconis rule for bin widths, which provides a reasonable looking histogram
     in most cases. More information can be found at:
 
     https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
 
-    Attribute: Author Andreas Stefik
+    Attribute: Author Andreas Stefik, Hannah Williams
+
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -54,8 +47,6 @@ use Libraries.Compute.Statistics.Inputs.FactorInput
 class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
     number binWidthOverride = -1
     boolean decimalScale = false
-
-    Comparison comparison = undefined
     
     action Create(DataFrame frame) returns Chart
         Histogram chart
@@ -65,8 +56,6 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         chart:SetYAxisTitle("Frequency")
         chart:SetXAxisTitle("Range")
-        HashTable <text, Series> seriesFactor
-        HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
         number min = 10000000.0
         number max = 0.0

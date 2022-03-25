@@ -175,7 +175,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             var element = document.getElementById(id);
             element.setAttribute("aria-label", item.GetName());
         }
-        console.log("Name Changed");
+        //console.log("Name Changed");
     };
 
 //    system action DescriptionChanged(Item item)
@@ -186,7 +186,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             var element = document.getElementById(id);
             element.setAttribute("aria-description", item.GetDescription());
         }
-        console.log("Description Changed");
+        //console.log("Description Changed");
     };
     
 //    system action BoundsChanged(Item item)
@@ -197,13 +197,13 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             var element = document.getElementById(id);
             setBounds(element, item);
         }
-        console.log("Bounds Changed");
+        //console.log("Bounds Changed");
     };
     
 //    system action TextFieldUpdatePassword(TextField field)
 
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
-        console.log("Text field updated Changed");
+        //console.log("Text field updated Changed");
     };
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
@@ -223,14 +223,14 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     
     element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
 
-    console.log("TextField Selection Changed");
+    //console.log("TextField Selection Changed");
 }
     
 //    system action Update
 //this is handled in Quorum for now might be added back if need be
     this.Update = function() {
         //removed
-        //console.log("Update called");
+        ////console.log("Update called");
     };
     
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
@@ -241,13 +241,13 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
             let element = document.getElementById(progressbarID);
             element.setAttribute("aria-valuenow", event.GetNewValue());
         }
-        console.log("Progress bar updated");
+        //console.log("Progress bar updated");
     };
 
 //    system action Select(Item item)
 
     this.Select$quorum_Libraries_Interface_Item = function(item) {
-        console.log(item.GetName() + " selected");
+        //console.log(item.GetName() + " selected");
         var id = item.GetHashCode();
         // Look for the nearest focusable element.
         let element = document.getElementById(id);
@@ -263,7 +263,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
 //    system action SelectionChanged(SelectionEvent event)
     // REMOVED for now as it was easier to handle Quorum side
     this.SelectionChanged$quorum_Libraries_Interface_Events_SelectionEvent = function(event) {
-        console.log("Selection Changed");
+        //console.log("Selection Changed");
     };
     
 //    system action ButtonActivated(Button button)
@@ -275,7 +275,7 @@ this.ButtonActivated$quorum_Libraries_Interface_Controls_Button = function(butto
         // not sure what we should be doing instead
         //element.setAttribute('aria-pressed', "true");
     }
-    console.log("Button Activated");
+    //console.log("Button Activated");
 };
 
 //    system action ToggleButtonToggled(ToggleButton button)    
@@ -285,15 +285,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var element = document.getElementById(id);
         element.setAttribute("aria-checked", button.GetToggleState())
     }
-    console.log("Toggled Buttoned");
+    //console.log("Toggled Buttoned");
 };
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
-        console.log("Focus Changed");
+        //console.log("Focus Changed");
         var item = event.GetNewFocus();
         if(item == null) {
-            console.log("Tried to focus nothing");
+            //console.log("Tried to focus nothing");
             return;
         }
         // if not accessible focus the parent
@@ -680,10 +680,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
             parentElement.appendChild(para);
-            console.log(item.GetName(), " has been added to a parent.");
+            //console.log(item.GetName(), " has been added to a parent.");
         } else {
             root.appendChild(para);
-            console.log(item.GetName(), " has been added.");
+            //console.log(item.GetName(), " has been added.");
         }
 
         // Set the element's bounds after we've added it, so setBounds can assume
@@ -701,13 +701,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (element != null) { //if the parent was removed then this would come up null
             element.remove();
         }
-        console.log(elementList[id], " has been removed.");
+        //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)
     this.MenuChanged$quorum_Libraries_Interface_Events_MenuChangeEvent = function(event) {
-        console.log("Menu Changed");
+        //console.log("Menu Changed");
         var menuItemID = event.GetMenuItem().GetHashCode();
         if (elementList[menuItemID] != null) {
             var element = document.getElementById(menuItemID);
@@ -721,7 +721,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action TreeChanged(TreeChangeEvent event)
     this.TreeChanged$quorum_Libraries_Interface_Events_TreeChangeEvent = function(event) {
-        console.log("Tree Changed");
+        //console.log("Tree Changed");
         var treeItemID = event.GetTreeItem().GetHashCode();
         if (elementList[treeItemID] != null) {
             var element = document.getElementById(treeItemID);
@@ -735,7 +735,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action TreeTableChanged(TreeTableChangeEvent event)
     this.TreeTableChanged$quorum_Libraries_Interface_Events_TreeTableChangeEvent = function(event) {
-        console.log("TreeTable Changed");
+        //console.log("TreeTable Changed");
         let cells = event.GetTreeTableCells();
         for(let i = 0; i< cells.GetSize(); i++) {
             let cell = cells.Get$quorum_integer(i).GetHashCode();
@@ -753,7 +753,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action ControlActivated(ControlActivationEvent event)
     this.ControlActivated$quorum_Libraries_Interface_Events_ControlActivationEvent = function(event) {
-        console.log("Control Activated");
+        //console.log("Control Activated");
     };
     
 //    system action TextChanged(TextChangeEvent event)
@@ -766,7 +766,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var id = textbox.GetHashCode();
             var element = document.getElementById(id);
             element.innerHTML = text;
-            console.log("TextBox text Changed");
+            //console.log("TextBox text Changed");
         }
         else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
         {
@@ -775,32 +775,32 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var id = textfield.GetHashCode();
             var element = document.getElementById(id);
             element.value = text;
-            console.log("TextField Text Changed");
+            //console.log("TextField Text Changed");
         }
         else {
-            console.log("Text Changed");
+            //console.log("Text Changed");
         }
         
     };
     
 //    system action WindowFocusChanged(WindowFocusEvent event)
     this.WindowFocusChanged$quorum_Libraries_Interface_Events_WindowFocusEvent = function(event) {
-        console.log("Window Focused");
+        //console.log("Window Focused");
     };
     
 //    system action Notify(Item item, text value)
     this.Notify$quorum_Libraries_Interface_Item$text = function(item, value) {
-        console.log("Notify call");
+        //console.log("Notify call");
     };
     
 //    system action Notify(Item item, text value, integer notificationType)
     this.Notify$quorum_Libraries_Interface_Events_Item$text$integer = function(item, value, notificationType) {
-        console.log("Notify call 2");
+        //console.log("Notify call 2");
     };
     
 //    system action Shutdown
     this.Shutdown = function() {
-        console.log("Shutdown");
+        //console.log("Shutdown");
         //dispose of the shadow DOM tree
         if (root) {
             root.remove();
@@ -820,7 +820,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.InvokeButton$quorum_Libraries_Interface_Item = function(item) {
         var buttonId = this.id;
         var button = elementList[buttonId];
-        console.log(button.GetName(), "has been clicked.");
+        //console.log(button.GetName(), "has been clicked.");
         
         var mouseEvent = new quorum_Libraries_Interface_Events_MouseEvent_();     //Creates MouseEvent variable
         mouseEvent.SetSource$quorum_Libraries_Interface_Item(button);                 //sets the Source for the mouseEvent to the quorum_FakeButton_ item
@@ -839,15 +839,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if(toggle.GetAccessibilityCode() == 2){     //checkboxes
             if (this.checked == true){
                 toggle.ActivateFakeCheckbox$quorum_Libraries_Interface_Events_MouseEvent(mouseEvent);
-                console.log(toggle.GetName(), "has been checked.");
+                //console.log(toggle.GetName(), "has been checked.");
             }
             else if (this.checked == false){
                 toggle.DeactivateFakeCheckbox$quorum_Libraries_Interface_Events_MouseEvent(mouseEvent);
-                console.log(toggle.GetName(), "has been unchecked.");
+                //console.log(toggle.GetName(), "has been unchecked.");
             }
         }
         else if (toggle.GetAccessibilityCode() == 3){   //radio buttons work on traversing radio button options within the group
-            console.log("radio buttons");
+            //console.log("radio buttons");
         }
 
     };

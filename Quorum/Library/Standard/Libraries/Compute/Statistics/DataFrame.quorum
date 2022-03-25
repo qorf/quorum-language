@@ -2540,34 +2540,6 @@ class DataFrame
 
         return cast(BarChart, CreateChart(creator))
     end
-
-    /*
-        This action creates a BarChart from the current column selection in the DataFrame
-        with an option to turn sorting off for the factors. By default, it uses the first 
-        column in the selection as the x-axis and the second column as the y-axis. This 
-        can be reversed by changing the selection order.
-
-        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
-    
-        Attribute: Example
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Interface.Controls.Charts.BarChart
-        
-        DataFrame frame
-        frame:Load("Data.csv")
-        frame:SetSelectedColumnRange(0,1)
-        BarChart chart = frame:BarChart(false)
-        chart:SetTitle("My Awesome Title")
-        chart:SetXAxisTitle("Time")
-        chart:Display()
-    */
-    action BarChart(boolean sort) returns BarChart
-        BarChartCreator creator
-        selection:CopyTo(cast(ColumnInput, creator))
-        selection:CopyTo(cast(FactorInput, creator))
-
-        return cast(BarChart, CreateChart(creator,sort))
-    end
     
     /*
         This action returns a text based representation of the data frame at a particular row.

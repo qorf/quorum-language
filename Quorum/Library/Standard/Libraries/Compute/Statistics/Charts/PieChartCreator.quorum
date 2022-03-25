@@ -1,27 +1,22 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Compute.Statistics.Calculations.Summarize
-
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
-use Libraries.Containers.Support.Comparison
-
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Interface.Controls.Charts.PieChart
-use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.Graphics.Wedge
-use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
 
 /*
     This class is used to create a Pie Chart from columns of data in a DataFrame.
     There are three ways to make a pie chart from the data frame using this class:
         1. One column or one factor: Each unique item will have its own wedge using its frequency as the value.
-        2. More than one column without a factor: Each column will have its own wedge using its sum as the value. 
+        2. Two or more columns without a factor: Each column will have its own wedge using its sum as the value. 
         3. One or more columns with a factor: Sum of all values associated with each factor will be in one wedge.
     
     Attribute: Author Hannah Williams
@@ -39,7 +34,6 @@ use Libraries.Compute.Statistics.Columns.DateTimeColumn
     chart:Display(1200,1000)
 */
 class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    Comparison comparison = undefined
 
     action Create(DataFrame frame) returns Chart
         integer columns = GetColumnSize()
@@ -158,6 +152,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         PieChart chart
         integer columns = GetColumnSize()
 
+        Array<text> seriesNames
         HashTable<text, Wedge> sliceFactor
 
         integer i = 0
@@ -173,10 +168,10 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
             Summarize sum
             sum:Calculate(column)
-            sum:GetSum()
 
             if not sliceFactor:HasKey(column:GetHeader())
                 Wedge slice
+                seriesNames:Add(column:GetHeader())
                 slice:SetName(column:GetHeader())
                 slice:SetValue(sum:GetSum())
                 sliceFactor:Add(column:GetHeader(), slice)
@@ -184,21 +179,15 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             i = i + 1
         end
 
-        // Sort and add the series
+        // Add the series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = sliceFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
+        repeat while i < seriesNames:GetSize()
             Series series
-            series:SetName(seriesKeyArray:Get(i))
-            series:AddItem(sliceFactor:GetValue(seriesKeyArray:Get(i)))
+            series:SetName(seriesNames:Get(i))
+            series:AddItem(sliceFactor:GetValue(seriesNames:Get(i)))
             seriesList:Add(series)
-            chart:AddSlice(sliceFactor:GetValue(seriesKeyArray:Get(i)))
+            chart:AddSlice(sliceFactor:GetValue(seriesNames:Get(i)))
             i = i + 1
         end
 

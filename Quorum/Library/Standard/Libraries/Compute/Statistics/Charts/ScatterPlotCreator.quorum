@@ -1,31 +1,28 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Interface.Controls.Charts.ScatterPlot
-use Libraries.Compute.Vector
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Interface.Controls.Charts.Series
-use Libraries.Interface.Controls.Charts.Legend
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Comparison
-use Libraries.Compute.Statistics.Tests.Regression
-use Libraries.Interface.Controls.Charts.RegressionLine
-use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Vector
 use Libraries.System.DateTime
-use Libraries.Compute.Statistics.Columns.DateTimeColumn
+use Libraries.Compute.Statistics.Tests.Regression
 
 /*
-    This class is used to create a scatter plot for use in an application.
+    This class is used to create a Scatter Plot from columns of data in a DataFrame.
+    There are 2 ways to make a bar chart from the data frame using this class:
+        1. Two columns and one factor: By default, first column is x-axis (independent), second column is y-axis (dependent), colored by factor.
+        2. Two or more column: By default, first column is x-axis (independent), and all other columns are used on y-axis (dependent), colored by y-axis columns.
 
-    Attribute: Author Andreas Stefik, William Allee
+    Attribute: Author Andreas Stefik, William Allee, Hannah Williams
+
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -46,8 +43,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     number xAxisMaximum = 1
     number yAxisMinimum = 0
     number yAxisMaximum = 1
-    Comparison comparison = undefined
-    ChartOptions options
 
     action Create(DataFrame frame) returns Chart
         integer columns = GetColumnSize()
@@ -80,7 +75,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         boolean numericalFactor = false // Factor is number. We need to know this for sorting the labels.
         integer columns = GetColumnSize()
 
-        
+        Array<text> seriesNames
         HashTable<text, Series> seriesFactor
         HashTable<text, Array<DataFrameColumn>> regressionFactor //Used for regression lines
         HashTable<text, number> xLabels         //Used for text data
@@ -103,15 +98,25 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     if not dates:IsUndefined(i)
                         DateTime date = dates:GetAsDateTime(i)
                         if not textForDate:HasKey(date)
+                            seriesNames:Add(dates:GetAsText(i))
                             dateFactorKeys:Add(date)
                             textForDate:Add(date, dates:GetAsText(i)) 
                         end
                     end
                     i = i + 1
                 end
-
-            elseif factor:IsNumberColumn()
-                numericalFactor = true
+            else
+                if factor:IsNumberColumn()
+                    numericalFactor = true
+                end
+                DataFrameColumn labels = factor:Copy(true, true)
+                integer i = 0 
+                repeat while i < labels:GetSize()
+                    if not labels:IsUndefined(i)
+                        seriesNames:Add(labels:GetAsText(i))
+                    end
+                    i = i + 1
+                end
             end
 
             integer i = 0 
@@ -176,6 +181,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             if not useFactor
                 if(not seriesFactor:HasKey(dfy:GetHeader()))
                     Series series
+                    seriesNames:Add(dfy:GetHeader())
                     series:SetName(dfy:GetHeader())
                     seriesFactor:Add(dfy:GetHeader(), series)
                     Array<DataFrameColumn> regColumns
@@ -298,9 +304,13 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
 
         else //textYData
+            Comparison comparison = undefined
             i = 1
             repeat while i < columns
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+                if dfy:GetSortComparison() not= undefined
+                    comparison = dfy:GetSortComparison()
+                end
                 integer j = 0
                 repeat while j < dfy:GetSize()
                     if not dfy:IsUndefined(j)
@@ -312,6 +322,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end
+
             //Sort the y labels
             Array<text> yLabelTextArray = yLabels:CopyToKeyArray()
             if comparison = undefined
@@ -444,33 +455,11 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         // Sort and add the series
         Array <Series> seriesList
-        if numericalFactor
-            numericalFactorKeys:Sort()
-            i = 0
-            repeat while i < numericalFactorKeys:GetSize()
-                seriesList:Add(seriesFactor:GetValue(cast(text, numericalFactorKeys:Get(i))))
-                i = i + 1
-            end
-        elseif dateFactor
-            dateFactorKeys:Sort()
-            i = 0
-            repeat while i < dateFactorKeys:GetSize()
-                seriesList:Add(seriesFactor:GetValue(textForDate:GetValue(dateFactorKeys:Get(i))))
-                i = i + 1
-            end
-        else // defaultFactor (not useFactor)
-            Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-            if comparison = undefined
-                seriesKeyArray:Sort()
-            else
-                seriesKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < seriesKeyArray:GetSize()
-                seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-                i = i + 1
-            end
-        end 
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
 
         if useFactor
             chart:SetLegendTitle(factor:GetHeader())
