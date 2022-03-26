@@ -28,6 +28,18 @@ class InterfaceOptions
     public constant text ICON_COLOR = "iconColor"
     public constant text ACCENT_COLOR = "accentColor"
 
+    // Key values for number properties.
+    public constant text BORDER_THICKNESS = "borderThickness"
+    public constant text TOP_LEFT_ROUNDING = "topLeftRounding"
+    public constant text TOP_RIGHT_ROUNDING = "topRightRounding"
+    public constant text BOTTOM_LEFT_ROUNDING = "bottomLeftRounding"
+    public constant text BOTTOM_RIGHT_ROUNDING = "bottomRightRounding"
+    public constant text SHADOW_X = "shadowX"
+    public constant text SHADOW_Y = "shadowY"
+    public constant text SHADOW_WIDTH = "shadowWidth"
+    public constant text SHADOW_HEIGHT = "shadowHeight"
+    public constant text SHADOW_EDGE_FADE = "shadowEdgeFade"
+
     // Key values for default interface options.
     public constant text BUTTON = "Button"
     public constant text CELL = "Cell"
@@ -53,10 +65,15 @@ class InterfaceOptions
     public constant text TREE_ITEM = "TreeItem"
     public constant text TREE_TABLE_CELL = "TreeTableCell"
 
-    // HashTables for color properties and interface options.
+    // HashTables for color & number properties and interface options.
     HashTable<text, ColorGroup> colorProperties
+    HashTable<text, number> numberProperties
     HashTable<text, InterfaceOptions> interfaceOptions
     HashTable<text, text> customProperty
+
+    // The dummy number only exists so we can set the constant NaN value.
+    number dummyNumber = 0
+    public constant number NOT_A_NUMBER = dummyNumber:GetNotANumberValue()
 
     action HasCustomProperty(text name) returns boolean
         return customProperty:HasKey(name)
@@ -102,6 +119,23 @@ class InterfaceOptions
         colorProperties:Set(key, color)
     end
 
+    action GetNumberProperty(text key) returns number
+        if numberProperties:HasKey(key)
+            return numberProperties:GetValue(key)
+        else
+            // For missing color values we return undefined, but for numbers we return NaN instead.
+            return NOT_A_NUMBER
+        end
+    end
+
+    action SetNumberProperty(text key, number value)
+        numberProperties:Set(key, value)
+    end
+
+    action HasNumberProperty(text key) returns boolean
+        return GetNumberProperty(key):IsNotANumber() = false
+    end
+
     action CopyInterfaceOptions(text key) returns InterfaceOptions
         if interfaceOptions:HasKey(key)
             return interfaceOptions:GetValue(key):Copy()
@@ -115,6 +149,12 @@ class InterfaceOptions
         repeat while propertyIterator:HasNext()
             text key = propertyIterator:Next()
             new:SetColorProperty(key, colorProperties:GetValue(key))
+        end
+
+        Iterator<text> numberIterator = numberProperties:GetKeyIterator()
+        repeat while numberIterator:HasNext()
+            text key = numberIterator:Next()
+            new:SetNumberProperty(key, numberProperties:GetValue(key))
         end
 
         Iterator<text> controlIterator = interfaceOptions:GetKeyIterator()
@@ -666,6 +706,356 @@ class InterfaceOptions
         end
     end
 
+    action SetBorderThickness(number value)
+        SetNumberProperty(BORDER_THICKNESS, value)
+    end
+
+    action GetBorderThickness returns number
+        return GetNumberProperty(BORDER_THICKNESS)
+    end
+
+    action HasBorderThickness returns boolean
+        return GetNumberProperty(BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetBorderThickness(value)
+    end
+
+    action GetBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetBorderThickness()
+        end
+    end
+
+    action HasBorderThickness(text controlType) returns boolean
+        return GetBorderThickness(controlType):IsNotANumber() = false
+    end
+
+    action SetTopLeftRounding(number value)
+        SetNumberProperty(TOP_LEFT_ROUNDING, value)
+    end
+
+    action GetTopLeftRounding returns number
+        return GetNumberProperty(TOP_LEFT_ROUNDING)
+    end
+
+    action HasTopLeftRounding returns boolean
+        return GetNumberProperty(TOP_LEFT_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetTopLeftRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetTopLeftRounding(value)
+    end
+
+    action GetTopLeftRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetTopLeftRounding()
+        end
+    end
+
+    action HasTopLeftRounding(text controlType) returns boolean
+        return GetTopLeftRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetTopRightRounding(number value)
+        SetNumberProperty(TOP_RIGHT_ROUNDING, value)
+    end
+
+    action GetTopRightRounding returns number
+        return GetNumberProperty(TOP_RIGHT_ROUNDING)
+    end
+
+    action HasTopRightRounding returns boolean
+        return GetNumberProperty(TOP_RIGHT_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetTopRightRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetTopRightRounding(value)
+    end
+
+    action GetTopRightRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetTopRightRounding()
+        end
+    end
+
+    action HasTopRightRounding(text controlType) returns boolean
+        return GetTopRightRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetBottomLeftRounding(number value)
+        SetNumberProperty(BOTTOM_LEFT_ROUNDING, value)
+    end
+
+    action GetBottomLeftRounding returns number
+        return GetNumberProperty(BOTTOM_LEFT_ROUNDING)
+    end
+
+    action HasBottomLeftRounding returns boolean
+        return GetNumberProperty(BOTTOM_LEFT_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetBottomLeftRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetBottomLeftRounding(value)
+    end
+
+    action GetBottomLeftRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetBottomLeftRounding()
+        end
+    end
+
+    action HasBottomLeftRounding(text controlType) returns boolean
+        return GetBottomLeftRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetBottomRightRounding(number value)
+        SetNumberProperty(BOTTOM_RIGHT_ROUNDING, value)
+    end
+
+    action GetBottomRightRounding returns number
+        return GetNumberProperty(BOTTOM_RIGHT_ROUNDING)
+    end
+
+    action HasBottomRightRounding returns boolean
+        return GetNumberProperty(BOTTOM_RIGHT_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetBottomRightRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetBottomRightRounding(value)
+    end
+
+    action GetBottomRightRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetBottomRightRounding()
+        end
+    end
+
+    action HasBottomRightRounding(text controlType) returns boolean
+        return GetBottomRightRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetShadowX(number value)
+        SetNumberProperty(SHADOW_X, value)
+    end
+
+    action GetShadowX returns number
+        return GetNumberProperty(SHADOW_X)
+    end
+
+    action HasShadowX returns boolean
+        return GetNumberProperty(SHADOW_X):IsNotANumber() = false
+    end
+
+    action SetShadowX(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowX(value)
+    end
+
+    action GetShadowX(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetShadowX()
+        end
+    end
+
+    action HasShadowX(text controlType) returns boolean
+        return GetShadowX(controlType):IsNotANumber() = false
+    end
+
+    action SetShadowY(number value)
+        SetNumberProperty(SHADOW_Y, value)
+    end
+
+    action GetShadowY returns number
+        return GetNumberProperty(SHADOW_Y)
+    end
+
+    action HasShadowY returns boolean
+        return GetNumberProperty(SHADOW_Y):IsNotANumber() = false
+    end
+
+    action SetShadowY(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowY(value)
+    end
+
+    action GetShadowY(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetShadowY()
+        end
+    end
+
+    action HasShadowY(text controlType) returns boolean
+        return GetShadowY(controlType):IsNotANumber() = false
+    end
+
+    action SetShadowWidth(number value)
+        SetNumberProperty(SHADOW_WIDTH, value)
+    end
+
+    action GetShadowWidth returns number
+        return GetNumberProperty(SHADOW_WIDTH)
+    end
+
+    action HasShadowWidth returns boolean
+        return GetNumberProperty(SHADOW_WIDTH):IsNotANumber() = false
+    end
+
+    action SetShadowWidth(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowWidth(value)
+    end
+
+    action GetShadowWidth(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetShadowWidth()
+        end
+    end
+
+    action HasShadowWidth(text controlType) returns boolean
+        return GetShadowWidth(controlType):IsNotANumber() = false
+    end
+
+    action SetShadowHeight(number value)
+        SetNumberProperty(SHADOW_HEIGHT, value)
+    end
+
+    action GetShadowHeight returns number
+        return GetNumberProperty(SHADOW_HEIGHT)
+    end
+
+    action HasShadowHeight returns boolean
+        return GetNumberProperty(SHADOW_HEIGHT):IsNotANumber() = false
+    end
+
+    action SetShadowHeight(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowHeight(value)
+    end
+
+    action GetShadowHeight(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetShadowHeight()
+        end
+    end
+
+    action HasShadowHeight(text controlType) returns boolean
+        return GetShadowHeight(controlType):IsNotANumber() = false
+    end
+
+    action SetShadowEdgeFade(number value)
+        SetNumberProperty(SHADOW_EDGE_FADE, value)
+    end
+
+    action GetShadowEdgeFade returns number
+        return GetNumberProperty(SHADOW_EDGE_FADE)
+    end
+
+    action HasShadowEdgeFade returns boolean
+        return GetNumberProperty(SHADOW_EDGE_FADE):IsNotANumber() = false
+    end
+
+    action SetShadowEdgeFade(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowEdgeFade(value)
+    end
+
+    action GetShadowEdgeFade(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetShadowEdgeFade()
+        end
+    end
+
+    action HasShadowEdgeFade(text controlType) returns boolean
+        return GetShadowEdgeFade(controlType):IsNotANumber() = false
+    end
+
     action SetButtonBackgroundColor(ColorGroup value)
         SetBackgroundColor(BUTTON, value)
     end
@@ -824,6 +1214,126 @@ class InterfaceOptions
 
     action GetButtonAccentColor returns ColorGroup
         return GetAccentColor(BUTTON)
+    end
+
+    action SetButtonBorderThickness(number value)
+        SetBorderThickness(BUTTON, value)
+    end
+
+    action GetButtonBorderThickness returns number
+        return GetBorderThickness(BUTTON)
+    end
+
+    action HasButtonBorderThickness returns boolean
+        return GetBorderThickness(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonTopLeftRounding(number value)
+        SetTopLeftRounding(BUTTON, value)
+    end
+
+    action GetButtonTopLeftRounding returns number
+        return GetTopLeftRounding(BUTTON)
+    end
+
+    action HasButtonTopLeftRounding returns boolean
+        return GetTopLeftRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonTopRightRounding(number value)
+        SetTopRightRounding(BUTTON, value)
+    end
+
+    action GetButtonTopRightRounding returns number
+        return GetTopRightRounding(BUTTON)
+    end
+
+    action HasButtonTopRightRounding returns boolean
+        return GetTopRightRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonBottomLeftRounding(number value)
+        SetBottomLeftRounding(BUTTON, value)
+    end
+
+    action GetButtonBottomLeftRounding returns number
+        return GetBottomLeftRounding(BUTTON)
+    end
+
+    action HasButtonBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonBottomRightRounding(number value)
+        SetBottomRightRounding(BUTTON, value)
+    end
+
+    action GetButtonBottomRightRounding returns number
+        return GetBottomRightRounding(BUTTON)
+    end
+
+    action HasButtonBottomRightRounding returns boolean
+        return GetBottomRightRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonShadowX(number value)
+        SetShadowX(BUTTON, value)
+    end
+
+    action GetButtonShadowX returns number
+        return GetShadowX(BUTTON)
+    end
+
+    action HasButtonShadowX returns boolean
+        return GetShadowX(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonShadowY(number value)
+        SetShadowY(BUTTON, value)
+    end
+
+    action GetButtonShadowY returns number
+        return GetShadowY(BUTTON)
+    end
+
+    action HasButtonShadowY returns boolean
+        return GetShadowY(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonShadowWidth(number value)
+        SetShadowWidth(BUTTON, value)
+    end
+
+    action GetButtonShadowWidth returns number
+        return GetShadowWidth(BUTTON)
+    end
+
+    action HasButtonShadowWidth returns boolean
+        return GetShadowWidth(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonShadowHeight(number value)
+        SetShadowHeight(BUTTON, value)
+    end
+
+    action GetButtonShadowHeight returns number
+        return GetShadowHeight(BUTTON)
+    end
+
+    action HasButtonShadowHeight returns boolean
+        return GetShadowHeight(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonShadowEdgeFade(number value)
+        SetShadowEdgeFade(BUTTON, value)
+    end
+
+    action GetButtonShadowEdgeFade returns number
+        return GetShadowEdgeFade(BUTTON)
+    end
+
+    action HasButtonShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(BUTTON):IsNotANumber() = false
     end
 
     action CopyButtonInterfaceOptions returns InterfaceOptions
@@ -990,6 +1500,126 @@ class InterfaceOptions
         return GetAccentColor(CELL)
     end
 
+    action SetCellBorderThickness(number value)
+        SetBorderThickness(CELL, value)
+    end
+
+    action GetCellBorderThickness returns number
+        return GetBorderThickness(CELL)
+    end
+
+    action HasCellBorderThickness returns boolean
+        return GetBorderThickness(CELL):IsNotANumber() = false
+    end
+
+    action SetCellTopLeftRounding(number value)
+        SetTopLeftRounding(CELL, value)
+    end
+
+    action GetCellTopLeftRounding returns number
+        return GetTopLeftRounding(CELL)
+    end
+
+    action HasCellTopLeftRounding returns boolean
+        return GetTopLeftRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellTopRightRounding(number value)
+        SetTopRightRounding(CELL, value)
+    end
+
+    action GetCellTopRightRounding returns number
+        return GetTopRightRounding(CELL)
+    end
+
+    action HasCellTopRightRounding returns boolean
+        return GetTopRightRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellBottomLeftRounding(number value)
+        SetBottomLeftRounding(CELL, value)
+    end
+
+    action GetCellBottomLeftRounding returns number
+        return GetBottomLeftRounding(CELL)
+    end
+
+    action HasCellBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellBottomRightRounding(number value)
+        SetBottomRightRounding(CELL, value)
+    end
+
+    action GetCellBottomRightRounding returns number
+        return GetBottomRightRounding(CELL)
+    end
+
+    action HasCellBottomRightRounding returns boolean
+        return GetBottomRightRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellShadowX(number value)
+        SetShadowX(CELL, value)
+    end
+
+    action GetCellShadowX returns number
+        return GetShadowX(CELL)
+    end
+
+    action HasCellShadowX returns boolean
+        return GetShadowX(CELL):IsNotANumber() = false
+    end
+
+    action SetCellShadowY(number value)
+        SetShadowY(CELL, value)
+    end
+
+    action GetCellShadowY returns number
+        return GetShadowY(CELL)
+    end
+
+    action HasCellShadowY returns boolean
+        return GetShadowY(CELL):IsNotANumber() = false
+    end
+
+    action SetCellShadowWidth(number value)
+        SetShadowWidth(CELL, value)
+    end
+
+    action GetCellShadowWidth returns number
+        return GetShadowWidth(CELL)
+    end
+
+    action HasCellShadowWidth returns boolean
+        return GetShadowWidth(CELL):IsNotANumber() = false
+    end
+
+    action SetCellShadowHeight(number value)
+        SetShadowHeight(CELL, value)
+    end
+
+    action GetCellShadowHeight returns number
+        return GetShadowHeight(CELL)
+    end
+
+    action HasCellShadowHeight returns boolean
+        return GetShadowHeight(CELL):IsNotANumber() = false
+    end
+
+    action SetCellShadowEdgeFade(number value)
+        SetShadowEdgeFade(CELL, value)
+    end
+
+    action GetCellShadowEdgeFade returns number
+        return GetShadowEdgeFade(CELL)
+    end
+
+    action HasCellShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(CELL):IsNotANumber() = false
+    end
+
     action CopyCellInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(CELL)
     end
@@ -1152,6 +1782,126 @@ class InterfaceOptions
 
     action GetCheckboxAccentColor returns ColorGroup
         return GetAccentColor(CHECKBOX)
+    end
+
+    action SetCheckboxBorderThickness(number value)
+        SetBorderThickness(CHECKBOX, value)
+    end
+
+    action GetCheckboxBorderThickness returns number
+        return GetBorderThickness(CHECKBOX)
+    end
+
+    action HasCheckboxBorderThickness returns boolean
+        return GetBorderThickness(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxTopLeftRounding(number value)
+        SetTopLeftRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxTopLeftRounding returns number
+        return GetTopLeftRounding(CHECKBOX)
+    end
+
+    action HasCheckboxTopLeftRounding returns boolean
+        return GetTopLeftRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxTopRightRounding(number value)
+        SetTopRightRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxTopRightRounding returns number
+        return GetTopRightRounding(CHECKBOX)
+    end
+
+    action HasCheckboxTopRightRounding returns boolean
+        return GetTopRightRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxBottomLeftRounding(number value)
+        SetBottomLeftRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxBottomLeftRounding returns number
+        return GetBottomLeftRounding(CHECKBOX)
+    end
+
+    action HasCheckboxBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxBottomRightRounding(number value)
+        SetBottomRightRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxBottomRightRounding returns number
+        return GetBottomRightRounding(CHECKBOX)
+    end
+
+    action HasCheckboxBottomRightRounding returns boolean
+        return GetBottomRightRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxShadowX(number value)
+        SetShadowX(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowX returns number
+        return GetShadowX(CHECKBOX)
+    end
+
+    action HasCheckboxShadowX returns boolean
+        return GetShadowX(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxShadowY(number value)
+        SetShadowY(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowY returns number
+        return GetShadowY(CHECKBOX)
+    end
+
+    action HasCheckboxShadowY returns boolean
+        return GetShadowY(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxShadowWidth(number value)
+        SetShadowWidth(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowWidth returns number
+        return GetShadowWidth(CHECKBOX)
+    end
+
+    action HasCheckboxShadowWidth returns boolean
+        return GetShadowWidth(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxShadowHeight(number value)
+        SetShadowHeight(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowHeight returns number
+        return GetShadowHeight(CHECKBOX)
+    end
+
+    action HasCheckboxShadowHeight returns boolean
+        return GetShadowHeight(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxShadowEdgeFade(number value)
+        SetShadowEdgeFade(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowEdgeFade returns number
+        return GetShadowEdgeFade(CHECKBOX)
+    end
+
+    action HasCheckboxShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(CHECKBOX):IsNotANumber() = false
     end
 
     action CopyCheckboxInterfaceOptions returns InterfaceOptions
@@ -1318,6 +2068,126 @@ class InterfaceOptions
         return GetAccentColor(DIALOG)
     end
 
+    action SetDialogBorderThickness(number value)
+        SetBorderThickness(DIALOG, value)
+    end
+
+    action GetDialogBorderThickness returns number
+        return GetBorderThickness(DIALOG)
+    end
+
+    action HasDialogBorderThickness returns boolean
+        return GetBorderThickness(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogTopLeftRounding(number value)
+        SetTopLeftRounding(DIALOG, value)
+    end
+
+    action GetDialogTopLeftRounding returns number
+        return GetTopLeftRounding(DIALOG)
+    end
+
+    action HasDialogTopLeftRounding returns boolean
+        return GetTopLeftRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogTopRightRounding(number value)
+        SetTopRightRounding(DIALOG, value)
+    end
+
+    action GetDialogTopRightRounding returns number
+        return GetTopRightRounding(DIALOG)
+    end
+
+    action HasDialogTopRightRounding returns boolean
+        return GetTopRightRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogBottomLeftRounding(number value)
+        SetBottomLeftRounding(DIALOG, value)
+    end
+
+    action GetDialogBottomLeftRounding returns number
+        return GetBottomLeftRounding(DIALOG)
+    end
+
+    action HasDialogBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogBottomRightRounding(number value)
+        SetBottomRightRounding(DIALOG, value)
+    end
+
+    action GetDialogBottomRightRounding returns number
+        return GetBottomRightRounding(DIALOG)
+    end
+
+    action HasDialogBottomRightRounding returns boolean
+        return GetBottomRightRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogShadowX(number value)
+        SetShadowX(DIALOG, value)
+    end
+
+    action GetDialogShadowX returns number
+        return GetShadowX(DIALOG)
+    end
+
+    action HasDialogShadowX returns boolean
+        return GetShadowX(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogShadowY(number value)
+        SetShadowY(DIALOG, value)
+    end
+
+    action GetDialogShadowY returns number
+        return GetShadowY(DIALOG)
+    end
+
+    action HasDialogShadowY returns boolean
+        return GetShadowY(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogShadowWidth(number value)
+        SetShadowWidth(DIALOG, value)
+    end
+
+    action GetDialogShadowWidth returns number
+        return GetShadowWidth(DIALOG)
+    end
+
+    action HasDialogShadowWidth returns boolean
+        return GetShadowWidth(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogShadowHeight(number value)
+        SetShadowHeight(DIALOG, value)
+    end
+
+    action GetDialogShadowHeight returns number
+        return GetShadowHeight(DIALOG)
+    end
+
+    action HasDialogShadowHeight returns boolean
+        return GetShadowHeight(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogShadowEdgeFade(number value)
+        SetShadowEdgeFade(DIALOG, value)
+    end
+
+    action GetDialogShadowEdgeFade returns number
+        return GetShadowEdgeFade(DIALOG)
+    end
+
+    action HasDialogShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(DIALOG):IsNotANumber() = false
+    end
+
     action CopyDialogInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(DIALOG)
     end
@@ -1480,6 +2350,126 @@ class InterfaceOptions
 
     action GetDialogBarAccentColor returns ColorGroup
         return GetAccentColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarBorderThickness(number value)
+        SetBorderThickness(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBorderThickness returns number
+        return GetBorderThickness(DIALOG_BAR)
+    end
+
+    action HasDialogBarBorderThickness returns boolean
+        return GetBorderThickness(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarTopLeftRounding(number value)
+        SetTopLeftRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarTopLeftRounding returns number
+        return GetTopLeftRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarTopLeftRounding returns boolean
+        return GetTopLeftRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarTopRightRounding(number value)
+        SetTopRightRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarTopRightRounding returns number
+        return GetTopRightRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarTopRightRounding returns boolean
+        return GetTopRightRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarBottomLeftRounding(number value)
+        SetBottomLeftRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBottomLeftRounding returns number
+        return GetBottomLeftRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarBottomRightRounding(number value)
+        SetBottomRightRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBottomRightRounding returns number
+        return GetBottomRightRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarBottomRightRounding returns boolean
+        return GetBottomRightRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarShadowX(number value)
+        SetShadowX(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowX returns number
+        return GetShadowX(DIALOG_BAR)
+    end
+
+    action HasDialogBarShadowX returns boolean
+        return GetShadowX(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarShadowY(number value)
+        SetShadowY(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowY returns number
+        return GetShadowY(DIALOG_BAR)
+    end
+
+    action HasDialogBarShadowY returns boolean
+        return GetShadowY(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarShadowWidth(number value)
+        SetShadowWidth(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowWidth returns number
+        return GetShadowWidth(DIALOG_BAR)
+    end
+
+    action HasDialogBarShadowWidth returns boolean
+        return GetShadowWidth(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarShadowHeight(number value)
+        SetShadowHeight(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowHeight returns number
+        return GetShadowHeight(DIALOG_BAR)
+    end
+
+    action HasDialogBarShadowHeight returns boolean
+        return GetShadowHeight(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarShadowEdgeFade(number value)
+        SetShadowEdgeFade(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowEdgeFade returns number
+        return GetShadowEdgeFade(DIALOG_BAR)
+    end
+
+    action HasDialogBarShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(DIALOG_BAR):IsNotANumber() = false
     end
 
     action CopyDialogBarInterfaceOptions returns InterfaceOptions
@@ -1646,6 +2636,126 @@ class InterfaceOptions
         return GetAccentColor(DIALOG_ACCEPT_BUTTON)
     end
 
+    action SetDialogAcceptButtonBorderThickness(number value)
+        SetBorderThickness(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBorderThickness returns number
+        return GetBorderThickness(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonBorderThickness returns boolean
+        return GetBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonTopLeftRounding(number value)
+        SetTopLeftRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonTopLeftRounding returns number
+        return GetTopLeftRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonTopLeftRounding returns boolean
+        return GetTopLeftRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonTopRightRounding(number value)
+        SetTopRightRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonTopRightRounding returns number
+        return GetTopRightRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonTopRightRounding returns boolean
+        return GetTopRightRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonBottomLeftRounding(number value)
+        SetBottomLeftRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBottomLeftRounding returns number
+        return GetBottomLeftRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonBottomRightRounding(number value)
+        SetBottomRightRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBottomRightRounding returns number
+        return GetBottomRightRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonBottomRightRounding returns boolean
+        return GetBottomRightRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonShadowX(number value)
+        SetShadowX(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowX returns number
+        return GetShadowX(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonShadowX returns boolean
+        return GetShadowX(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonShadowY(number value)
+        SetShadowY(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowY returns number
+        return GetShadowY(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonShadowY returns boolean
+        return GetShadowY(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonShadowWidth(number value)
+        SetShadowWidth(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowWidth returns number
+        return GetShadowWidth(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonShadowWidth returns boolean
+        return GetShadowWidth(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonShadowHeight(number value)
+        SetShadowHeight(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowHeight returns number
+        return GetShadowHeight(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonShadowHeight returns boolean
+        return GetShadowHeight(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonShadowEdgeFade(number value)
+        SetShadowEdgeFade(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowEdgeFade returns number
+        return GetShadowEdgeFade(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
     action CopyDialogAcceptButtonInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(DIALOG_ACCEPT_BUTTON)
     end
@@ -1808,6 +2918,126 @@ class InterfaceOptions
 
     action GetGutterAccentColor returns ColorGroup
         return GetAccentColor(GUTTER)
+    end
+
+    action SetGutterBorderThickness(number value)
+        SetBorderThickness(GUTTER, value)
+    end
+
+    action GetGutterBorderThickness returns number
+        return GetBorderThickness(GUTTER)
+    end
+
+    action HasGutterBorderThickness returns boolean
+        return GetBorderThickness(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterTopLeftRounding(number value)
+        SetTopLeftRounding(GUTTER, value)
+    end
+
+    action GetGutterTopLeftRounding returns number
+        return GetTopLeftRounding(GUTTER)
+    end
+
+    action HasGutterTopLeftRounding returns boolean
+        return GetTopLeftRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterTopRightRounding(number value)
+        SetTopRightRounding(GUTTER, value)
+    end
+
+    action GetGutterTopRightRounding returns number
+        return GetTopRightRounding(GUTTER)
+    end
+
+    action HasGutterTopRightRounding returns boolean
+        return GetTopRightRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterBottomLeftRounding(number value)
+        SetBottomLeftRounding(GUTTER, value)
+    end
+
+    action GetGutterBottomLeftRounding returns number
+        return GetBottomLeftRounding(GUTTER)
+    end
+
+    action HasGutterBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterBottomRightRounding(number value)
+        SetBottomRightRounding(GUTTER, value)
+    end
+
+    action GetGutterBottomRightRounding returns number
+        return GetBottomRightRounding(GUTTER)
+    end
+
+    action HasGutterBottomRightRounding returns boolean
+        return GetBottomRightRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterShadowX(number value)
+        SetShadowX(GUTTER, value)
+    end
+
+    action GetGutterShadowX returns number
+        return GetShadowX(GUTTER)
+    end
+
+    action HasGutterShadowX returns boolean
+        return GetShadowX(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterShadowY(number value)
+        SetShadowY(GUTTER, value)
+    end
+
+    action GetGutterShadowY returns number
+        return GetShadowY(GUTTER)
+    end
+
+    action HasGutterShadowY returns boolean
+        return GetShadowY(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterShadowWidth(number value)
+        SetShadowWidth(GUTTER, value)
+    end
+
+    action GetGutterShadowWidth returns number
+        return GetShadowWidth(GUTTER)
+    end
+
+    action HasGutterShadowWidth returns boolean
+        return GetShadowWidth(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterShadowHeight(number value)
+        SetShadowHeight(GUTTER, value)
+    end
+
+    action GetGutterShadowHeight returns number
+        return GetShadowHeight(GUTTER)
+    end
+
+    action HasGutterShadowHeight returns boolean
+        return GetShadowHeight(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterShadowEdgeFade(number value)
+        SetShadowEdgeFade(GUTTER, value)
+    end
+
+    action GetGutterShadowEdgeFade returns number
+        return GetShadowEdgeFade(GUTTER)
+    end
+
+    action HasGutterShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(GUTTER):IsNotANumber() = false
     end
 
     action CopyGutterInterfaceOptions returns InterfaceOptions
@@ -1974,6 +3204,126 @@ class InterfaceOptions
         return GetAccentColor(LABEL)
     end
 
+    action SetLabelBorderThickness(number value)
+        SetBorderThickness(LABEL, value)
+    end
+
+    action GetLabelBorderThickness returns number
+        return GetBorderThickness(LABEL)
+    end
+
+    action HasLabelBorderThickness returns boolean
+        return GetBorderThickness(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelTopLeftRounding(number value)
+        SetTopLeftRounding(LABEL, value)
+    end
+
+    action GetLabelTopLeftRounding returns number
+        return GetTopLeftRounding(LABEL)
+    end
+
+    action HasLabelTopLeftRounding returns boolean
+        return GetTopLeftRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelTopRightRounding(number value)
+        SetTopRightRounding(LABEL, value)
+    end
+
+    action GetLabelTopRightRounding returns number
+        return GetTopRightRounding(LABEL)
+    end
+
+    action HasLabelTopRightRounding returns boolean
+        return GetTopRightRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelBottomLeftRounding(number value)
+        SetBottomLeftRounding(LABEL, value)
+    end
+
+    action GetLabelBottomLeftRounding returns number
+        return GetBottomLeftRounding(LABEL)
+    end
+
+    action HasLabelBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelBottomRightRounding(number value)
+        SetBottomRightRounding(LABEL, value)
+    end
+
+    action GetLabelBottomRightRounding returns number
+        return GetBottomRightRounding(LABEL)
+    end
+
+    action HasLabelBottomRightRounding returns boolean
+        return GetBottomRightRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelShadowX(number value)
+        SetShadowX(LABEL, value)
+    end
+
+    action GetLabelShadowX returns number
+        return GetShadowX(LABEL)
+    end
+
+    action HasLabelShadowX returns boolean
+        return GetShadowX(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelShadowY(number value)
+        SetShadowY(LABEL, value)
+    end
+
+    action GetLabelShadowY returns number
+        return GetShadowY(LABEL)
+    end
+
+    action HasLabelShadowY returns boolean
+        return GetShadowY(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelShadowWidth(number value)
+        SetShadowWidth(LABEL, value)
+    end
+
+    action GetLabelShadowWidth returns number
+        return GetShadowWidth(LABEL)
+    end
+
+    action HasLabelShadowWidth returns boolean
+        return GetShadowWidth(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelShadowHeight(number value)
+        SetShadowHeight(LABEL, value)
+    end
+
+    action GetLabelShadowHeight returns number
+        return GetShadowHeight(LABEL)
+    end
+
+    action HasLabelShadowHeight returns boolean
+        return GetShadowHeight(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelShadowEdgeFade(number value)
+        SetShadowEdgeFade(LABEL, value)
+    end
+
+    action GetLabelShadowEdgeFade returns number
+        return GetShadowEdgeFade(LABEL)
+    end
+
+    action HasLabelShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(LABEL):IsNotANumber() = false
+    end
+
     action CopyLabelInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(LABEL)
     end
@@ -2136,6 +3486,126 @@ class InterfaceOptions
 
     action GetListAccentColor returns ColorGroup
         return GetAccentColor(LIST)
+    end
+
+    action SetListBorderThickness(number value)
+        SetBorderThickness(LIST, value)
+    end
+
+    action GetListBorderThickness returns number
+        return GetBorderThickness(LIST)
+    end
+
+    action HasListBorderThickness returns boolean
+        return GetBorderThickness(LIST):IsNotANumber() = false
+    end
+
+    action SetListTopLeftRounding(number value)
+        SetTopLeftRounding(LIST, value)
+    end
+
+    action GetListTopLeftRounding returns number
+        return GetTopLeftRounding(LIST)
+    end
+
+    action HasListTopLeftRounding returns boolean
+        return GetTopLeftRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListTopRightRounding(number value)
+        SetTopRightRounding(LIST, value)
+    end
+
+    action GetListTopRightRounding returns number
+        return GetTopRightRounding(LIST)
+    end
+
+    action HasListTopRightRounding returns boolean
+        return GetTopRightRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListBottomLeftRounding(number value)
+        SetBottomLeftRounding(LIST, value)
+    end
+
+    action GetListBottomLeftRounding returns number
+        return GetBottomLeftRounding(LIST)
+    end
+
+    action HasListBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListBottomRightRounding(number value)
+        SetBottomRightRounding(LIST, value)
+    end
+
+    action GetListBottomRightRounding returns number
+        return GetBottomRightRounding(LIST)
+    end
+
+    action HasListBottomRightRounding returns boolean
+        return GetBottomRightRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListShadowX(number value)
+        SetShadowX(LIST, value)
+    end
+
+    action GetListShadowX returns number
+        return GetShadowX(LIST)
+    end
+
+    action HasListShadowX returns boolean
+        return GetShadowX(LIST):IsNotANumber() = false
+    end
+
+    action SetListShadowY(number value)
+        SetShadowY(LIST, value)
+    end
+
+    action GetListShadowY returns number
+        return GetShadowY(LIST)
+    end
+
+    action HasListShadowY returns boolean
+        return GetShadowY(LIST):IsNotANumber() = false
+    end
+
+    action SetListShadowWidth(number value)
+        SetShadowWidth(LIST, value)
+    end
+
+    action GetListShadowWidth returns number
+        return GetShadowWidth(LIST)
+    end
+
+    action HasListShadowWidth returns boolean
+        return GetShadowWidth(LIST):IsNotANumber() = false
+    end
+
+    action SetListShadowHeight(number value)
+        SetShadowHeight(LIST, value)
+    end
+
+    action GetListShadowHeight returns number
+        return GetShadowHeight(LIST)
+    end
+
+    action HasListShadowHeight returns boolean
+        return GetShadowHeight(LIST):IsNotANumber() = false
+    end
+
+    action SetListShadowEdgeFade(number value)
+        SetShadowEdgeFade(LIST, value)
+    end
+
+    action GetListShadowEdgeFade returns number
+        return GetShadowEdgeFade(LIST)
+    end
+
+    action HasListShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(LIST):IsNotANumber() = false
     end
 
     action CopyListInterfaceOptions returns InterfaceOptions
@@ -2302,6 +3772,126 @@ class InterfaceOptions
         return GetAccentColor(LIST_ITEM)
     end
 
+    action SetListItemBorderThickness(number value)
+        SetBorderThickness(LIST_ITEM, value)
+    end
+
+    action GetListItemBorderThickness returns number
+        return GetBorderThickness(LIST_ITEM)
+    end
+
+    action HasListItemBorderThickness returns boolean
+        return GetBorderThickness(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemTopLeftRounding(number value)
+        SetTopLeftRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemTopLeftRounding returns number
+        return GetTopLeftRounding(LIST_ITEM)
+    end
+
+    action HasListItemTopLeftRounding returns boolean
+        return GetTopLeftRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemTopRightRounding(number value)
+        SetTopRightRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemTopRightRounding returns number
+        return GetTopRightRounding(LIST_ITEM)
+    end
+
+    action HasListItemTopRightRounding returns boolean
+        return GetTopRightRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemBottomLeftRounding(number value)
+        SetBottomLeftRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemBottomLeftRounding returns number
+        return GetBottomLeftRounding(LIST_ITEM)
+    end
+
+    action HasListItemBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemBottomRightRounding(number value)
+        SetBottomRightRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemBottomRightRounding returns number
+        return GetBottomRightRounding(LIST_ITEM)
+    end
+
+    action HasListItemBottomRightRounding returns boolean
+        return GetBottomRightRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemShadowX(number value)
+        SetShadowX(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowX returns number
+        return GetShadowX(LIST_ITEM)
+    end
+
+    action HasListItemShadowX returns boolean
+        return GetShadowX(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemShadowY(number value)
+        SetShadowY(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowY returns number
+        return GetShadowY(LIST_ITEM)
+    end
+
+    action HasListItemShadowY returns boolean
+        return GetShadowY(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemShadowWidth(number value)
+        SetShadowWidth(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowWidth returns number
+        return GetShadowWidth(LIST_ITEM)
+    end
+
+    action HasListItemShadowWidth returns boolean
+        return GetShadowWidth(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemShadowHeight(number value)
+        SetShadowHeight(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowHeight returns number
+        return GetShadowHeight(LIST_ITEM)
+    end
+
+    action HasListItemShadowHeight returns boolean
+        return GetShadowHeight(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemShadowEdgeFade(number value)
+        SetShadowEdgeFade(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowEdgeFade returns number
+        return GetShadowEdgeFade(LIST_ITEM)
+    end
+
+    action HasListItemShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(LIST_ITEM):IsNotANumber() = false
+    end
+
     action CopyListItemInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(LIST_ITEM)
     end
@@ -2464,6 +4054,126 @@ class InterfaceOptions
 
     action GetMenuBarAccentColor returns ColorGroup
         return GetAccentColor(MENU_BAR)
+    end
+
+    action SetMenuBarBorderThickness(number value)
+        SetBorderThickness(MENU_BAR, value)
+    end
+
+    action GetMenuBarBorderThickness returns number
+        return GetBorderThickness(MENU_BAR)
+    end
+
+    action HasMenuBarBorderThickness returns boolean
+        return GetBorderThickness(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarTopLeftRounding(number value)
+        SetTopLeftRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarTopLeftRounding returns number
+        return GetTopLeftRounding(MENU_BAR)
+    end
+
+    action HasMenuBarTopLeftRounding returns boolean
+        return GetTopLeftRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarTopRightRounding(number value)
+        SetTopRightRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarTopRightRounding returns number
+        return GetTopRightRounding(MENU_BAR)
+    end
+
+    action HasMenuBarTopRightRounding returns boolean
+        return GetTopRightRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarBottomLeftRounding(number value)
+        SetBottomLeftRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarBottomLeftRounding returns number
+        return GetBottomLeftRounding(MENU_BAR)
+    end
+
+    action HasMenuBarBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarBottomRightRounding(number value)
+        SetBottomRightRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarBottomRightRounding returns number
+        return GetBottomRightRounding(MENU_BAR)
+    end
+
+    action HasMenuBarBottomRightRounding returns boolean
+        return GetBottomRightRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarShadowX(number value)
+        SetShadowX(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowX returns number
+        return GetShadowX(MENU_BAR)
+    end
+
+    action HasMenuBarShadowX returns boolean
+        return GetShadowX(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarShadowY(number value)
+        SetShadowY(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowY returns number
+        return GetShadowY(MENU_BAR)
+    end
+
+    action HasMenuBarShadowY returns boolean
+        return GetShadowY(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarShadowWidth(number value)
+        SetShadowWidth(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowWidth returns number
+        return GetShadowWidth(MENU_BAR)
+    end
+
+    action HasMenuBarShadowWidth returns boolean
+        return GetShadowWidth(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarShadowHeight(number value)
+        SetShadowHeight(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowHeight returns number
+        return GetShadowHeight(MENU_BAR)
+    end
+
+    action HasMenuBarShadowHeight returns boolean
+        return GetShadowHeight(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarShadowEdgeFade(number value)
+        SetShadowEdgeFade(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowEdgeFade returns number
+        return GetShadowEdgeFade(MENU_BAR)
+    end
+
+    action HasMenuBarShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(MENU_BAR):IsNotANumber() = false
     end
 
     action CopyMenuBarInterfaceOptions returns InterfaceOptions
@@ -2630,6 +4340,126 @@ class InterfaceOptions
         return GetAccentColor(MENU_ITEM)
     end
 
+    action SetMenuItemBorderThickness(number value)
+        SetBorderThickness(MENU_ITEM, value)
+    end
+
+    action GetMenuItemBorderThickness returns number
+        return GetBorderThickness(MENU_ITEM)
+    end
+
+    action HasMenuItemBorderThickness returns boolean
+        return GetBorderThickness(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemTopLeftRounding(number value)
+        SetTopLeftRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemTopLeftRounding returns number
+        return GetTopLeftRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemTopLeftRounding returns boolean
+        return GetTopLeftRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemTopRightRounding(number value)
+        SetTopRightRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemTopRightRounding returns number
+        return GetTopRightRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemTopRightRounding returns boolean
+        return GetTopRightRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemBottomLeftRounding(number value)
+        SetBottomLeftRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemBottomLeftRounding returns number
+        return GetBottomLeftRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemBottomRightRounding(number value)
+        SetBottomRightRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemBottomRightRounding returns number
+        return GetBottomRightRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemBottomRightRounding returns boolean
+        return GetBottomRightRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemShadowX(number value)
+        SetShadowX(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowX returns number
+        return GetShadowX(MENU_ITEM)
+    end
+
+    action HasMenuItemShadowX returns boolean
+        return GetShadowX(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemShadowY(number value)
+        SetShadowY(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowY returns number
+        return GetShadowY(MENU_ITEM)
+    end
+
+    action HasMenuItemShadowY returns boolean
+        return GetShadowY(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemShadowWidth(number value)
+        SetShadowWidth(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowWidth returns number
+        return GetShadowWidth(MENU_ITEM)
+    end
+
+    action HasMenuItemShadowWidth returns boolean
+        return GetShadowWidth(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemShadowHeight(number value)
+        SetShadowHeight(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowHeight returns number
+        return GetShadowHeight(MENU_ITEM)
+    end
+
+    action HasMenuItemShadowHeight returns boolean
+        return GetShadowHeight(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemShadowEdgeFade(number value)
+        SetShadowEdgeFade(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowEdgeFade returns number
+        return GetShadowEdgeFade(MENU_ITEM)
+    end
+
+    action HasMenuItemShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(MENU_ITEM):IsNotANumber() = false
+    end
+
     action CopyMenuItemInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(MENU_ITEM)
     end
@@ -2792,6 +4622,126 @@ class InterfaceOptions
 
     action GetMenuPanelAccentColor returns ColorGroup
         return GetAccentColor(MENU_PANEL)
+    end
+
+    action SetMenuPanelBorderThickness(number value)
+        SetBorderThickness(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelBorderThickness returns number
+        return GetBorderThickness(MENU_PANEL)
+    end
+
+    action HasMenuPanelBorderThickness returns boolean
+        return GetBorderThickness(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelTopLeftRounding(number value)
+        SetTopLeftRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelTopLeftRounding returns number
+        return GetTopLeftRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelTopLeftRounding returns boolean
+        return GetTopLeftRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelTopRightRounding(number value)
+        SetTopRightRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelTopRightRounding returns number
+        return GetTopRightRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelTopRightRounding returns boolean
+        return GetTopRightRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelBottomLeftRounding(number value)
+        SetBottomLeftRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelBottomLeftRounding returns number
+        return GetBottomLeftRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelBottomRightRounding(number value)
+        SetBottomRightRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelBottomRightRounding returns number
+        return GetBottomRightRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelBottomRightRounding returns boolean
+        return GetBottomRightRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelShadowX(number value)
+        SetShadowX(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowX returns number
+        return GetShadowX(MENU_PANEL)
+    end
+
+    action HasMenuPanelShadowX returns boolean
+        return GetShadowX(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelShadowY(number value)
+        SetShadowY(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowY returns number
+        return GetShadowY(MENU_PANEL)
+    end
+
+    action HasMenuPanelShadowY returns boolean
+        return GetShadowY(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelShadowWidth(number value)
+        SetShadowWidth(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowWidth returns number
+        return GetShadowWidth(MENU_PANEL)
+    end
+
+    action HasMenuPanelShadowWidth returns boolean
+        return GetShadowWidth(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelShadowHeight(number value)
+        SetShadowHeight(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowHeight returns number
+        return GetShadowHeight(MENU_PANEL)
+    end
+
+    action HasMenuPanelShadowHeight returns boolean
+        return GetShadowHeight(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelShadowEdgeFade(number value)
+        SetShadowEdgeFade(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowEdgeFade returns number
+        return GetShadowEdgeFade(MENU_PANEL)
+    end
+
+    action HasMenuPanelShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(MENU_PANEL):IsNotANumber() = false
     end
 
     action CopyMenuPanelInterfaceOptions returns InterfaceOptions
@@ -2958,6 +4908,126 @@ class InterfaceOptions
         return GetAccentColor(PROGRESS_BAR)
     end
 
+    action SetProgressBarBorderThickness(number value)
+        SetBorderThickness(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBorderThickness returns number
+        return GetBorderThickness(PROGRESS_BAR)
+    end
+
+    action HasProgressBarBorderThickness returns boolean
+        return GetBorderThickness(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarTopLeftRounding(number value)
+        SetTopLeftRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarTopLeftRounding returns number
+        return GetTopLeftRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarTopLeftRounding returns boolean
+        return GetTopLeftRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarTopRightRounding(number value)
+        SetTopRightRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarTopRightRounding returns number
+        return GetTopRightRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarTopRightRounding returns boolean
+        return GetTopRightRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarBottomLeftRounding(number value)
+        SetBottomLeftRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBottomLeftRounding returns number
+        return GetBottomLeftRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarBottomRightRounding(number value)
+        SetBottomRightRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBottomRightRounding returns number
+        return GetBottomRightRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarBottomRightRounding returns boolean
+        return GetBottomRightRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarShadowX(number value)
+        SetShadowX(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowX returns number
+        return GetShadowX(PROGRESS_BAR)
+    end
+
+    action HasProgressBarShadowX returns boolean
+        return GetShadowX(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarShadowY(number value)
+        SetShadowY(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowY returns number
+        return GetShadowY(PROGRESS_BAR)
+    end
+
+    action HasProgressBarShadowY returns boolean
+        return GetShadowY(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarShadowWidth(number value)
+        SetShadowWidth(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowWidth returns number
+        return GetShadowWidth(PROGRESS_BAR)
+    end
+
+    action HasProgressBarShadowWidth returns boolean
+        return GetShadowWidth(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarShadowHeight(number value)
+        SetShadowHeight(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowHeight returns number
+        return GetShadowHeight(PROGRESS_BAR)
+    end
+
+    action HasProgressBarShadowHeight returns boolean
+        return GetShadowHeight(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarShadowEdgeFade(number value)
+        SetShadowEdgeFade(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowEdgeFade returns number
+        return GetShadowEdgeFade(PROGRESS_BAR)
+    end
+
+    action HasProgressBarShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(PROGRESS_BAR):IsNotANumber() = false
+    end
+
     action CopyProgressBarInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(PROGRESS_BAR)
     end
@@ -3120,6 +5190,126 @@ class InterfaceOptions
 
     action GetRadioButtonAccentColor returns ColorGroup
         return GetAccentColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonBorderThickness(number value)
+        SetBorderThickness(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBorderThickness returns number
+        return GetBorderThickness(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonBorderThickness returns boolean
+        return GetBorderThickness(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonTopLeftRounding(number value)
+        SetTopLeftRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonTopLeftRounding returns number
+        return GetTopLeftRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonTopLeftRounding returns boolean
+        return GetTopLeftRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonTopRightRounding(number value)
+        SetTopRightRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonTopRightRounding returns number
+        return GetTopRightRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonTopRightRounding returns boolean
+        return GetTopRightRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonBottomLeftRounding(number value)
+        SetBottomLeftRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBottomLeftRounding returns number
+        return GetBottomLeftRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonBottomRightRounding(number value)
+        SetBottomRightRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBottomRightRounding returns number
+        return GetBottomRightRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonBottomRightRounding returns boolean
+        return GetBottomRightRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonShadowX(number value)
+        SetShadowX(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowX returns number
+        return GetShadowX(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonShadowX returns boolean
+        return GetShadowX(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonShadowY(number value)
+        SetShadowY(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowY returns number
+        return GetShadowY(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonShadowY returns boolean
+        return GetShadowY(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonShadowWidth(number value)
+        SetShadowWidth(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowWidth returns number
+        return GetShadowWidth(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonShadowWidth returns boolean
+        return GetShadowWidth(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonShadowHeight(number value)
+        SetShadowHeight(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowHeight returns number
+        return GetShadowHeight(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonShadowHeight returns boolean
+        return GetShadowHeight(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonShadowEdgeFade(number value)
+        SetShadowEdgeFade(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowEdgeFade returns number
+        return GetShadowEdgeFade(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(RADIO_BUTTON):IsNotANumber() = false
     end
 
     action CopyRadioButtonInterfaceOptions returns InterfaceOptions
@@ -3286,6 +5476,126 @@ class InterfaceOptions
         return GetAccentColor(SCROLL_PANE)
     end
 
+    action SetScrollPaneBorderThickness(number value)
+        SetBorderThickness(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneBorderThickness returns number
+        return GetBorderThickness(SCROLL_PANE)
+    end
+
+    action HasScrollPaneBorderThickness returns boolean
+        return GetBorderThickness(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneTopLeftRounding(number value)
+        SetTopLeftRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneTopLeftRounding returns number
+        return GetTopLeftRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneTopLeftRounding returns boolean
+        return GetTopLeftRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneTopRightRounding(number value)
+        SetTopRightRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneTopRightRounding returns number
+        return GetTopRightRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneTopRightRounding returns boolean
+        return GetTopRightRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneBottomLeftRounding(number value)
+        SetBottomLeftRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneBottomLeftRounding returns number
+        return GetBottomLeftRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneBottomRightRounding(number value)
+        SetBottomRightRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneBottomRightRounding returns number
+        return GetBottomRightRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneBottomRightRounding returns boolean
+        return GetBottomRightRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneShadowX(number value)
+        SetShadowX(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowX returns number
+        return GetShadowX(SCROLL_PANE)
+    end
+
+    action HasScrollPaneShadowX returns boolean
+        return GetShadowX(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneShadowY(number value)
+        SetShadowY(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowY returns number
+        return GetShadowY(SCROLL_PANE)
+    end
+
+    action HasScrollPaneShadowY returns boolean
+        return GetShadowY(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneShadowWidth(number value)
+        SetShadowWidth(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowWidth returns number
+        return GetShadowWidth(SCROLL_PANE)
+    end
+
+    action HasScrollPaneShadowWidth returns boolean
+        return GetShadowWidth(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneShadowHeight(number value)
+        SetShadowHeight(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowHeight returns number
+        return GetShadowHeight(SCROLL_PANE)
+    end
+
+    action HasScrollPaneShadowHeight returns boolean
+        return GetShadowHeight(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneShadowEdgeFade(number value)
+        SetShadowEdgeFade(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowEdgeFade returns number
+        return GetShadowEdgeFade(SCROLL_PANE)
+    end
+
+    action HasScrollPaneShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(SCROLL_PANE):IsNotANumber() = false
+    end
+
     action CopyScrollPaneInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(SCROLL_PANE)
     end
@@ -3448,6 +5758,126 @@ class InterfaceOptions
 
     action GetTabAccentColor returns ColorGroup
         return GetAccentColor(TAB)
+    end
+
+    action SetTabBorderThickness(number value)
+        SetBorderThickness(TAB, value)
+    end
+
+    action GetTabBorderThickness returns number
+        return GetBorderThickness(TAB)
+    end
+
+    action HasTabBorderThickness returns boolean
+        return GetBorderThickness(TAB):IsNotANumber() = false
+    end
+
+    action SetTabTopLeftRounding(number value)
+        SetTopLeftRounding(TAB, value)
+    end
+
+    action GetTabTopLeftRounding returns number
+        return GetTopLeftRounding(TAB)
+    end
+
+    action HasTabTopLeftRounding returns boolean
+        return GetTopLeftRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabTopRightRounding(number value)
+        SetTopRightRounding(TAB, value)
+    end
+
+    action GetTabTopRightRounding returns number
+        return GetTopRightRounding(TAB)
+    end
+
+    action HasTabTopRightRounding returns boolean
+        return GetTopRightRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabBottomLeftRounding(number value)
+        SetBottomLeftRounding(TAB, value)
+    end
+
+    action GetTabBottomLeftRounding returns number
+        return GetBottomLeftRounding(TAB)
+    end
+
+    action HasTabBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabBottomRightRounding(number value)
+        SetBottomRightRounding(TAB, value)
+    end
+
+    action GetTabBottomRightRounding returns number
+        return GetBottomRightRounding(TAB)
+    end
+
+    action HasTabBottomRightRounding returns boolean
+        return GetBottomRightRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabShadowX(number value)
+        SetShadowX(TAB, value)
+    end
+
+    action GetTabShadowX returns number
+        return GetShadowX(TAB)
+    end
+
+    action HasTabShadowX returns boolean
+        return GetShadowX(TAB):IsNotANumber() = false
+    end
+
+    action SetTabShadowY(number value)
+        SetShadowY(TAB, value)
+    end
+
+    action GetTabShadowY returns number
+        return GetShadowY(TAB)
+    end
+
+    action HasTabShadowY returns boolean
+        return GetShadowY(TAB):IsNotANumber() = false
+    end
+
+    action SetTabShadowWidth(number value)
+        SetShadowWidth(TAB, value)
+    end
+
+    action GetTabShadowWidth returns number
+        return GetShadowWidth(TAB)
+    end
+
+    action HasTabShadowWidth returns boolean
+        return GetShadowWidth(TAB):IsNotANumber() = false
+    end
+
+    action SetTabShadowHeight(number value)
+        SetShadowHeight(TAB, value)
+    end
+
+    action GetTabShadowHeight returns number
+        return GetShadowHeight(TAB)
+    end
+
+    action HasTabShadowHeight returns boolean
+        return GetShadowHeight(TAB):IsNotANumber() = false
+    end
+
+    action SetTabShadowEdgeFade(number value)
+        SetShadowEdgeFade(TAB, value)
+    end
+
+    action GetTabShadowEdgeFade returns number
+        return GetShadowEdgeFade(TAB)
+    end
+
+    action HasTabShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TAB):IsNotANumber() = false
     end
 
     action CopyTabInterfaceOptions returns InterfaceOptions
@@ -3614,6 +6044,126 @@ class InterfaceOptions
         return GetAccentColor(TAB_BAR)
     end
 
+    action SetTabBarBorderThickness(number value)
+        SetBorderThickness(TAB_BAR, value)
+    end
+
+    action GetTabBarBorderThickness returns number
+        return GetBorderThickness(TAB_BAR)
+    end
+
+    action HasTabBarBorderThickness returns boolean
+        return GetBorderThickness(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarTopLeftRounding(number value)
+        SetTopLeftRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarTopLeftRounding returns number
+        return GetTopLeftRounding(TAB_BAR)
+    end
+
+    action HasTabBarTopLeftRounding returns boolean
+        return GetTopLeftRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarTopRightRounding(number value)
+        SetTopRightRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarTopRightRounding returns number
+        return GetTopRightRounding(TAB_BAR)
+    end
+
+    action HasTabBarTopRightRounding returns boolean
+        return GetTopRightRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarBottomLeftRounding(number value)
+        SetBottomLeftRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarBottomLeftRounding returns number
+        return GetBottomLeftRounding(TAB_BAR)
+    end
+
+    action HasTabBarBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarBottomRightRounding(number value)
+        SetBottomRightRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarBottomRightRounding returns number
+        return GetBottomRightRounding(TAB_BAR)
+    end
+
+    action HasTabBarBottomRightRounding returns boolean
+        return GetBottomRightRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarShadowX(number value)
+        SetShadowX(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowX returns number
+        return GetShadowX(TAB_BAR)
+    end
+
+    action HasTabBarShadowX returns boolean
+        return GetShadowX(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarShadowY(number value)
+        SetShadowY(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowY returns number
+        return GetShadowY(TAB_BAR)
+    end
+
+    action HasTabBarShadowY returns boolean
+        return GetShadowY(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarShadowWidth(number value)
+        SetShadowWidth(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowWidth returns number
+        return GetShadowWidth(TAB_BAR)
+    end
+
+    action HasTabBarShadowWidth returns boolean
+        return GetShadowWidth(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarShadowHeight(number value)
+        SetShadowHeight(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowHeight returns number
+        return GetShadowHeight(TAB_BAR)
+    end
+
+    action HasTabBarShadowHeight returns boolean
+        return GetShadowHeight(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarShadowEdgeFade(number value)
+        SetShadowEdgeFade(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowEdgeFade returns number
+        return GetShadowEdgeFade(TAB_BAR)
+    end
+
+    action HasTabBarShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TAB_BAR):IsNotANumber() = false
+    end
+
     action CopyTabBarInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TAB_BAR)
     end
@@ -3776,6 +6326,126 @@ class InterfaceOptions
 
     action GetTextBoxAccentColor returns ColorGroup
         return GetAccentColor(TEXT_BOX)
+    end
+
+    action SetTextBoxBorderThickness(number value)
+        SetBorderThickness(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBorderThickness returns number
+        return GetBorderThickness(TEXT_BOX)
+    end
+
+    action HasTextBoxBorderThickness returns boolean
+        return GetBorderThickness(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxTopLeftRounding(number value)
+        SetTopLeftRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxTopLeftRounding returns number
+        return GetTopLeftRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxTopLeftRounding returns boolean
+        return GetTopLeftRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxTopRightRounding(number value)
+        SetTopRightRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxTopRightRounding returns number
+        return GetTopRightRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxTopRightRounding returns boolean
+        return GetTopRightRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxBottomLeftRounding(number value)
+        SetBottomLeftRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBottomLeftRounding returns number
+        return GetBottomLeftRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxBottomRightRounding(number value)
+        SetBottomRightRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBottomRightRounding returns number
+        return GetBottomRightRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxBottomRightRounding returns boolean
+        return GetBottomRightRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxShadowX(number value)
+        SetShadowX(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowX returns number
+        return GetShadowX(TEXT_BOX)
+    end
+
+    action HasTextBoxShadowX returns boolean
+        return GetShadowX(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxShadowY(number value)
+        SetShadowY(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowY returns number
+        return GetShadowY(TEXT_BOX)
+    end
+
+    action HasTextBoxShadowY returns boolean
+        return GetShadowY(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxShadowWidth(number value)
+        SetShadowWidth(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowWidth returns number
+        return GetShadowWidth(TEXT_BOX)
+    end
+
+    action HasTextBoxShadowWidth returns boolean
+        return GetShadowWidth(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxShadowHeight(number value)
+        SetShadowHeight(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowHeight returns number
+        return GetShadowHeight(TEXT_BOX)
+    end
+
+    action HasTextBoxShadowHeight returns boolean
+        return GetShadowHeight(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxShadowEdgeFade(number value)
+        SetShadowEdgeFade(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowEdgeFade returns number
+        return GetShadowEdgeFade(TEXT_BOX)
+    end
+
+    action HasTextBoxShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TEXT_BOX):IsNotANumber() = false
     end
 
     action CopyTextBoxInterfaceOptions returns InterfaceOptions
@@ -3942,6 +6612,126 @@ class InterfaceOptions
         return GetAccentColor(TEXT_FIELD)
     end
 
+    action SetTextFieldBorderThickness(number value)
+        SetBorderThickness(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBorderThickness returns number
+        return GetBorderThickness(TEXT_FIELD)
+    end
+
+    action HasTextFieldBorderThickness returns boolean
+        return GetBorderThickness(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldTopLeftRounding(number value)
+        SetTopLeftRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldTopLeftRounding returns number
+        return GetTopLeftRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldTopLeftRounding returns boolean
+        return GetTopLeftRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldTopRightRounding(number value)
+        SetTopRightRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldTopRightRounding returns number
+        return GetTopRightRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldTopRightRounding returns boolean
+        return GetTopRightRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldBottomLeftRounding(number value)
+        SetBottomLeftRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBottomLeftRounding returns number
+        return GetBottomLeftRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldBottomRightRounding(number value)
+        SetBottomRightRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBottomRightRounding returns number
+        return GetBottomRightRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldBottomRightRounding returns boolean
+        return GetBottomRightRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldShadowX(number value)
+        SetShadowX(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowX returns number
+        return GetShadowX(TEXT_FIELD)
+    end
+
+    action HasTextFieldShadowX returns boolean
+        return GetShadowX(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldShadowY(number value)
+        SetShadowY(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowY returns number
+        return GetShadowY(TEXT_FIELD)
+    end
+
+    action HasTextFieldShadowY returns boolean
+        return GetShadowY(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldShadowWidth(number value)
+        SetShadowWidth(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowWidth returns number
+        return GetShadowWidth(TEXT_FIELD)
+    end
+
+    action HasTextFieldShadowWidth returns boolean
+        return GetShadowWidth(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldShadowHeight(number value)
+        SetShadowHeight(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowHeight returns number
+        return GetShadowHeight(TEXT_FIELD)
+    end
+
+    action HasTextFieldShadowHeight returns boolean
+        return GetShadowHeight(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldShadowEdgeFade(number value)
+        SetShadowEdgeFade(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowEdgeFade returns number
+        return GetShadowEdgeFade(TEXT_FIELD)
+    end
+
+    action HasTextFieldShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TEXT_FIELD):IsNotANumber() = false
+    end
+
     action CopyTextFieldInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TEXT_FIELD)
     end
@@ -4104,6 +6894,126 @@ class InterfaceOptions
 
     action GetToolBarAccentColor returns ColorGroup
         return GetAccentColor(TOOL_BAR)
+    end
+
+    action SetToolBarBorderThickness(number value)
+        SetBorderThickness(TOOL_BAR, value)
+    end
+
+    action GetToolBarBorderThickness returns number
+        return GetBorderThickness(TOOL_BAR)
+    end
+
+    action HasToolBarBorderThickness returns boolean
+        return GetBorderThickness(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarTopLeftRounding(number value)
+        SetTopLeftRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarTopLeftRounding returns number
+        return GetTopLeftRounding(TOOL_BAR)
+    end
+
+    action HasToolBarTopLeftRounding returns boolean
+        return GetTopLeftRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarTopRightRounding(number value)
+        SetTopRightRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarTopRightRounding returns number
+        return GetTopRightRounding(TOOL_BAR)
+    end
+
+    action HasToolBarTopRightRounding returns boolean
+        return GetTopRightRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarBottomLeftRounding(number value)
+        SetBottomLeftRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarBottomLeftRounding returns number
+        return GetBottomLeftRounding(TOOL_BAR)
+    end
+
+    action HasToolBarBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarBottomRightRounding(number value)
+        SetBottomRightRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarBottomRightRounding returns number
+        return GetBottomRightRounding(TOOL_BAR)
+    end
+
+    action HasToolBarBottomRightRounding returns boolean
+        return GetBottomRightRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarShadowX(number value)
+        SetShadowX(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowX returns number
+        return GetShadowX(TOOL_BAR)
+    end
+
+    action HasToolBarShadowX returns boolean
+        return GetShadowX(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarShadowY(number value)
+        SetShadowY(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowY returns number
+        return GetShadowY(TOOL_BAR)
+    end
+
+    action HasToolBarShadowY returns boolean
+        return GetShadowY(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarShadowWidth(number value)
+        SetShadowWidth(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowWidth returns number
+        return GetShadowWidth(TOOL_BAR)
+    end
+
+    action HasToolBarShadowWidth returns boolean
+        return GetShadowWidth(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarShadowHeight(number value)
+        SetShadowHeight(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowHeight returns number
+        return GetShadowHeight(TOOL_BAR)
+    end
+
+    action HasToolBarShadowHeight returns boolean
+        return GetShadowHeight(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarShadowEdgeFade(number value)
+        SetShadowEdgeFade(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowEdgeFade returns number
+        return GetShadowEdgeFade(TOOL_BAR)
+    end
+
+    action HasToolBarShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TOOL_BAR):IsNotANumber() = false
     end
 
     action CopyToolBarInterfaceOptions returns InterfaceOptions
@@ -4270,6 +7180,126 @@ class InterfaceOptions
         return GetAccentColor(TREE_ITEM)
     end
 
+    action SetTreeItemBorderThickness(number value)
+        SetBorderThickness(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBorderThickness returns number
+        return GetBorderThickness(TREE_ITEM)
+    end
+
+    action HasTreeItemBorderThickness returns boolean
+        return GetBorderThickness(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemTopLeftRounding(number value)
+        SetTopLeftRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemTopLeftRounding returns number
+        return GetTopLeftRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemTopLeftRounding returns boolean
+        return GetTopLeftRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemTopRightRounding(number value)
+        SetTopRightRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemTopRightRounding returns number
+        return GetTopRightRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemTopRightRounding returns boolean
+        return GetTopRightRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemBottomLeftRounding(number value)
+        SetBottomLeftRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBottomLeftRounding returns number
+        return GetBottomLeftRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemBottomRightRounding(number value)
+        SetBottomRightRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBottomRightRounding returns number
+        return GetBottomRightRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemBottomRightRounding returns boolean
+        return GetBottomRightRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemShadowX(number value)
+        SetShadowX(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowX returns number
+        return GetShadowX(TREE_ITEM)
+    end
+
+    action HasTreeItemShadowX returns boolean
+        return GetShadowX(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemShadowY(number value)
+        SetShadowY(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowY returns number
+        return GetShadowY(TREE_ITEM)
+    end
+
+    action HasTreeItemShadowY returns boolean
+        return GetShadowY(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemShadowWidth(number value)
+        SetShadowWidth(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowWidth returns number
+        return GetShadowWidth(TREE_ITEM)
+    end
+
+    action HasTreeItemShadowWidth returns boolean
+        return GetShadowWidth(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemShadowHeight(number value)
+        SetShadowHeight(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowHeight returns number
+        return GetShadowHeight(TREE_ITEM)
+    end
+
+    action HasTreeItemShadowHeight returns boolean
+        return GetShadowHeight(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemShadowEdgeFade(number value)
+        SetShadowEdgeFade(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowEdgeFade returns number
+        return GetShadowEdgeFade(TREE_ITEM)
+    end
+
+    action HasTreeItemShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TREE_ITEM):IsNotANumber() = false
+    end
+
     action CopyTreeItemInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TREE_ITEM)
     end
@@ -4432,6 +7462,126 @@ class InterfaceOptions
 
     action GetTreeTableCellAccentColor returns ColorGroup
         return GetAccentColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellBorderThickness(number value)
+        SetBorderThickness(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBorderThickness returns number
+        return GetBorderThickness(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellBorderThickness returns boolean
+        return GetBorderThickness(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellTopLeftRounding(number value)
+        SetTopLeftRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellTopLeftRounding returns number
+        return GetTopLeftRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellTopLeftRounding returns boolean
+        return GetTopLeftRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellTopRightRounding(number value)
+        SetTopRightRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellTopRightRounding returns number
+        return GetTopRightRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellTopRightRounding returns boolean
+        return GetTopRightRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellBottomLeftRounding(number value)
+        SetBottomLeftRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBottomLeftRounding returns number
+        return GetBottomLeftRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellBottomRightRounding(number value)
+        SetBottomRightRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBottomRightRounding returns number
+        return GetBottomRightRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellBottomRightRounding returns boolean
+        return GetBottomRightRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellShadowX(number value)
+        SetShadowX(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowX returns number
+        return GetShadowX(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellShadowX returns boolean
+        return GetShadowX(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellShadowY(number value)
+        SetShadowY(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowY returns number
+        return GetShadowY(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellShadowY returns boolean
+        return GetShadowY(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellShadowWidth(number value)
+        SetShadowWidth(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowWidth returns number
+        return GetShadowWidth(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellShadowWidth returns boolean
+        return GetShadowWidth(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellShadowHeight(number value)
+        SetShadowHeight(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowHeight returns number
+        return GetShadowHeight(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellShadowHeight returns boolean
+        return GetShadowHeight(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellShadowEdgeFade(number value)
+        SetShadowEdgeFade(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowEdgeFade returns number
+        return GetShadowEdgeFade(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TREE_TABLE_CELL):IsNotANumber() = false
     end
 
     action CopyTreeTableCellInterfaceOptions returns InterfaceOptions

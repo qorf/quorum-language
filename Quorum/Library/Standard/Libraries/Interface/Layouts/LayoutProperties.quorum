@@ -118,15 +118,9 @@ class LayoutProperties
     number bottomPadding = 0
     number topPadding = 0
 
-    number topLeftRounding = 0
-    number topRightRounding = 0
-    number bottomLeftRounding = 0
-    number bottomRightRounding = 0
-
     // Bitwise operations are used for the border styling bitmask.
     BitwiseOperations bits
     
-    integer borderThickness = 0
     integer borderStyle = ALL
     
     Font font = undefined
@@ -417,15 +411,6 @@ class LayoutProperties
         return topPadding
     end
 
-    action SetBorderThickness(integer thickness)
-        borderThickness = thickness
-        needsRendering = true
-    end
-
-    action GetBorderThickness returns integer
-        return borderThickness
-    end
-
     action SetBorderStyle(integer style)
         borderStyle = style
     end
@@ -454,9 +439,6 @@ class LayoutProperties
         me:font = font
         if font not= undefined
             font:SetSize(cast(integer, baseFontSize * interfaceScale))
-//            if fontColor not= undefined
-//                font:SetColor(fontColor)
-//            end
         end
         needsRendering = true
     end
@@ -579,42 +561,10 @@ class LayoutProperties
     Attribute: Parameter topRight The rounding value to be applied to the top right corner (between 0 and 1).
     */
     action SetCornerRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
-        bottomLeftRounding = bottomLeft
-        bottomRightRounding = bottomRight
-        topLeftRounding = topLeft
-        topRightRounding = topRight
-    end
-
-    action GetTopLeftRounding returns number
-        return topLeftRounding
-    end
-
-    action SetTopLeftRounding(number topLeftRounding)
-        me:topLeftRounding = topLeftRounding
-    end
-
-    action GetTopRightRounding returns number
-        return topRightRounding
-    end
-
-    action SetTopRightRounding(number topRightRounding)
-        me:topRightRounding = topRightRounding
-    end
-
-    action GetBottomLeftRounding returns number
-        return bottomLeftRounding
-    end
-
-    action SetBottomLeftRounding(number bottomLeftRounding)
-        me:bottomLeftRounding = bottomLeftRounding
-    end
-
-    action GetBottomRightRounding returns number
-        return bottomRightRounding
-    end
-
-    action SetBottomRightRounding(number bottomRightRounding)
-        me:bottomRightRounding = bottomRightRounding
+        SetBottomLeftRounding(bottomLeft)
+        SetBottomRightRounding(bottomRight)
+        SetTopLeftRounding(topLeft)
+        SetTopRightRounding(topRight)
     end
 
     action GetInterfaceOptionsKey returns text
@@ -625,7 +575,7 @@ class LayoutProperties
         optionsKey = key
     end
 
-        action SetBackgroundColor(ColorGroup value)
+    action SetBackgroundColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
         end
@@ -1083,6 +1033,415 @@ class LayoutProperties
         end
 
         return default:GetAccentColor()
+    end
+
+    action SetBorderThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetBorderThickness(value)
+        needsRendering = true
+    end
+
+    action GetBorderThickness returns number
+        if options not= undefined and options:GetBorderThickness() not= options:NOT_A_NUMBER
+            return options:GetBorderThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBorderThickness()
+            return controlPalette:GetBorderThickness()
+        end
+
+        if default:HasBorderThickness()
+            return default:GetBorderThickness()
+        end
+        return 0
+    end
+
+    action HasBorderThickness returns boolean
+        if options not= undefined and options:HasBorderThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBorderThickness()
+            return true
+        end
+
+        return default:HasBorderThickness()
+    end
+
+
+    action SetTopLeftRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetTopLeftRounding(value)
+        needsRendering = true
+    end
+
+    action GetTopLeftRounding returns number
+        if options not= undefined and options:GetTopLeftRounding() not= options:NOT_A_NUMBER
+            return options:GetTopLeftRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopLeftRounding()
+            return controlPalette:GetTopLeftRounding()
+        end
+
+        if default:HasTopLeftRounding()
+            return default:GetTopLeftRounding()
+        end
+        return 0
+    end
+
+    action HasTopLeftRounding returns boolean
+        if options not= undefined and options:HasTopLeftRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopLeftRounding()
+            return true
+        end
+
+        return default:HasTopLeftRounding()
+    end
+
+
+    action SetTopRightRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetTopRightRounding(value)
+        needsRendering = true
+    end
+
+    action GetTopRightRounding returns number
+        if options not= undefined and options:GetTopRightRounding() not= options:NOT_A_NUMBER
+            return options:GetTopRightRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopRightRounding()
+            return controlPalette:GetTopRightRounding()
+        end
+
+        if default:HasTopRightRounding()
+            return default:GetTopRightRounding()
+        end
+        return 0
+    end
+
+    action HasTopRightRounding returns boolean
+        if options not= undefined and options:HasTopRightRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopRightRounding()
+            return true
+        end
+
+        return default:HasTopRightRounding()
+    end
+
+
+    action SetBottomLeftRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetBottomLeftRounding(value)
+        needsRendering = true
+    end
+
+    action GetBottomLeftRounding returns number
+        if options not= undefined and options:GetBottomLeftRounding() not= options:NOT_A_NUMBER
+            return options:GetBottomLeftRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomLeftRounding()
+            return controlPalette:GetBottomLeftRounding()
+        end
+
+        if default:HasBottomLeftRounding()
+            return default:GetBottomLeftRounding()
+        end
+        return 0
+    end
+
+    action HasBottomLeftRounding returns boolean
+        if options not= undefined and options:HasBottomLeftRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomLeftRounding()
+            return true
+        end
+
+        return default:HasBottomLeftRounding()
+    end
+
+
+    action SetBottomRightRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetBottomRightRounding(value)
+        needsRendering = true
+    end
+
+    action GetBottomRightRounding returns number
+        if options not= undefined and options:GetBottomRightRounding() not= options:NOT_A_NUMBER
+            return options:GetBottomRightRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomRightRounding()
+            return controlPalette:GetBottomRightRounding()
+        end
+
+        if default:HasBottomRightRounding()
+            return default:GetBottomRightRounding()
+        end
+        return 0
+    end
+
+    action HasBottomRightRounding returns boolean
+        if options not= undefined and options:HasBottomRightRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomRightRounding()
+            return true
+        end
+
+        return default:HasBottomRightRounding()
+    end
+
+
+    action SetShadowX(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowX(value)
+        needsRendering = true
+    end
+
+    action GetShadowX returns number
+        if options not= undefined and options:GetShadowX() not= options:NOT_A_NUMBER
+            return options:GetShadowX()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowX()
+            return controlPalette:GetShadowX()
+        end
+
+        if default:HasShadowX()
+            return default:GetShadowX()
+        end
+        return 0
+    end
+
+    action HasShadowX returns boolean
+        if options not= undefined and options:HasShadowX()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowX()
+            return true
+        end
+
+        return default:HasShadowX()
+    end
+
+
+    action SetShadowY(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowY(value)
+        needsRendering = true
+    end
+
+    action GetShadowY returns number
+        if options not= undefined and options:GetShadowY() not= options:NOT_A_NUMBER
+            return options:GetShadowY()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowY()
+            return controlPalette:GetShadowY()
+        end
+
+        if default:HasShadowY()
+            return default:GetShadowY()
+        end
+        return 0
+    end
+
+    action HasShadowY returns boolean
+        if options not= undefined and options:HasShadowY()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowY()
+            return true
+        end
+
+        return default:HasShadowY()
+    end
+
+
+    action SetShadowWidth(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowWidth(value)
+        needsRendering = true
+    end
+
+    action GetShadowWidth returns number
+        if options not= undefined and options:GetShadowWidth() not= options:NOT_A_NUMBER
+            return options:GetShadowWidth()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowWidth()
+            return controlPalette:GetShadowWidth()
+        end
+
+        if default:HasShadowWidth()
+            return default:GetShadowWidth()
+        end
+        return 0
+    end
+
+    action HasShadowWidth returns boolean
+        if options not= undefined and options:HasShadowWidth()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowWidth()
+            return true
+        end
+
+        return default:HasShadowWidth()
+    end
+
+
+    action SetShadowHeight(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowHeight(value)
+        needsRendering = true
+    end
+
+    action GetShadowHeight returns number
+        if options not= undefined and options:GetShadowHeight() not= options:NOT_A_NUMBER
+            return options:GetShadowHeight()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowHeight()
+            return controlPalette:GetShadowHeight()
+        end
+
+        if default:HasShadowHeight()
+            return default:GetShadowHeight()
+        end
+        return 0
+    end
+
+    action HasShadowHeight returns boolean
+        if options not= undefined and options:HasShadowHeight()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowHeight()
+            return true
+        end
+
+        return default:HasShadowHeight()
+    end
+
+
+    action SetShadowEdgeFade(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowEdgeFade(value)
+        needsRendering = true
+    end
+
+    action GetShadowEdgeFade returns number
+        if options not= undefined and options:GetShadowEdgeFade() not= options:NOT_A_NUMBER
+            return options:GetShadowEdgeFade()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowEdgeFade()
+            return controlPalette:GetShadowEdgeFade()
+        end
+
+        if default:HasShadowEdgeFade()
+            return default:GetShadowEdgeFade()
+        end
+        return 0
+    end
+
+    action HasShadowEdgeFade returns boolean
+        if options not= undefined and options:HasShadowEdgeFade()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasShadowEdgeFade()
+            return true
+        end
+
+        return default:HasShadowEdgeFade()
     end
 
 end

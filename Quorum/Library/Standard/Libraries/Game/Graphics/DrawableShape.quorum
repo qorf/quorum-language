@@ -738,6 +738,8 @@ class DrawableShape
     private action UpdateMeshVertices
         if mesh not= undefined
             mesh:GetVertexData():SetVertices(vertices)
+        elseif drawable not= undefined and drawable:GetMesh() not= undefined
+            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex(), vertices)
         end
     end
 

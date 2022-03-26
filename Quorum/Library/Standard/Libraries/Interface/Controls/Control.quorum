@@ -700,180 +700,6 @@ class Control is Item2D
         return defaultProperties:GetInterfaceOptionsKey()
     end
 
-    action SetBackgroundColor(ColorGroup value)
-        defaultProperties:SetBackgroundColor(value)
-    end
-
-    action GetBackgroundColor returns ColorGroup
-        return defaultProperties:GetBackgroundColor()
-    end
-
-    action SetForegroundColor(ColorGroup value)
-        defaultProperties:SetForegroundColor(value)
-    end
-
-    action GetForegroundColor returns ColorGroup
-        return defaultProperties:GetForegroundColor()
-    end
-
-    action SetFontColor(ColorGroup value)
-        defaultProperties:SetFontColor(value)
-    end
-
-    action GetFontColor returns ColorGroup
-        return defaultProperties:GetFontColor()
-    end
-
-    action SetBorderColor(ColorGroup value)
-        defaultProperties:SetBorderColor(value)
-    end
-
-    action GetBorderColor returns ColorGroup
-        return defaultProperties:GetBorderColor()
-    end
-
-    action SetFocusColor(ColorGroup value)
-        defaultProperties:SetFocusColor(value)
-    end
-
-    action GetFocusColor returns ColorGroup
-        return defaultProperties:GetFocusColor()
-    end
-
-    action SetMouseOverColor(ColorGroup value)
-        defaultProperties:SetMouseOverColor(value)
-    end
-
-    action GetMouseOverColor returns ColorGroup
-        return defaultProperties:GetMouseOverColor()
-    end
-
-    action SetMouseOverFontColor(ColorGroup value)
-        defaultProperties:SetMouseOverFontColor(value)
-    end
-
-    action GetMouseOverFontColor returns ColorGroup
-        return defaultProperties:GetMouseOverFontColor()
-    end
-
-    action SetMouseDownColor(ColorGroup value)
-        defaultProperties:SetMouseDownColor(value)
-    end
-
-    action GetMouseDownColor returns ColorGroup
-        return defaultProperties:GetMouseDownColor()
-    end
-
-    action SetMouseDownFontColor(ColorGroup value)
-        defaultProperties:SetMouseDownFontColor(value)
-    end
-
-    action GetMouseDownFontColor returns ColorGroup
-        return defaultProperties:GetMouseDownFontColor()
-    end
-
-    action SetSelectionColor(ColorGroup value)
-        defaultProperties:SetSelectionColor(value)
-    end
-
-    action GetSelectionColor returns ColorGroup
-        return defaultProperties:GetSelectionColor()
-    end
-
-    action SetSelectionBorderColor(ColorGroup value)
-        defaultProperties:SetSelectionBorderColor(value)
-    end
-
-    action GetSelectionBorderColor returns ColorGroup
-        return defaultProperties:GetSelectionBorderColor()
-    end
-
-    action SetUnfocusedSelectionColor(ColorGroup value)
-        defaultProperties:SetUnfocusedSelectionColor(value)
-    end
-
-    action GetUnfocusedSelectionColor returns ColorGroup
-        return defaultProperties:GetUnfocusedSelectionColor()
-    end
-
-    action SetUnfocusedSelectionBorderColor(ColorGroup value)
-        defaultProperties:SetUnfocusedSelectionBorderColor(value)
-    end
-
-    action GetUnfocusedSelectionBorderColor returns ColorGroup
-        return defaultProperties:GetUnfocusedSelectionBorderColor()
-    end
-
-    action SetSelectionFontColor(ColorGroup value)
-        defaultProperties:SetSelectionFontColor(value)
-    end
-
-    action GetSelectionFontColor returns ColorGroup
-        return defaultProperties:GetSelectionFontColor()
-    end
-
-    action SetUnfocusedSelectionFontColor(ColorGroup value)
-        defaultProperties:SetUnfocusedSelectionFontColor(value)
-    end
-
-    action GetUnfocusedSelectionFontColor returns ColorGroup
-        return defaultProperties:GetUnfocusedSelectionFontColor()
-    end
-
-    action SetGlowColor(ColorGroup value)
-        defaultProperties:SetGlowColor(value)
-    end
-
-    action GetGlowColor returns ColorGroup
-        return defaultProperties:GetGlowColor()
-    end
-
-    action SetMouseOverGlowColor(ColorGroup value)
-        defaultProperties:SetMouseOverGlowColor(value)
-    end
-
-    action GetMouseOverGlowColor returns ColorGroup
-        return defaultProperties:GetMouseOverGlowColor()
-    end
-
-    action SetMouseDownGlowColor(ColorGroup value)
-        defaultProperties:SetMouseDownGlowColor(value)
-    end
-
-    action GetMouseDownGlowColor returns ColorGroup
-        return defaultProperties:GetMouseDownGlowColor()
-    end
-
-    action SetIconColor(ColorGroup value)
-        defaultProperties:SetIconColor(value)
-    end
-
-    action GetIconColor returns ColorGroup
-        return defaultProperties:GetIconColor()
-    end
-
-    action SetAccentColor(ColorGroup value)
-        defaultProperties:SetAccentColor(value)
-    end
-
-    action GetAccentColor returns ColorGroup
-        return defaultProperties:GetAccentColor()
-    end
-
-    /*
-
-    */
-    action SetBorderThickness(integer thickness)
-        defaultProperties:SetBorderThickness(thickness)
-    end
-
-    /*
-
-    */
-    action GetBorderThickness returns integer
-        return defaultProperties:GetBorderThickness()
-    end
-
     action SetBorderStyle(integer style)
         defaultProperties:SetBorderStyle(style)
     end
@@ -911,38 +737,6 @@ class Control is Item2D
     */
     action SetCornerRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
         defaultProperties:SetCornerRounding(bottomLeft, bottomRight, topLeft, topRight)
-    end
-
-    action GetTopLeftRounding returns number
-        return defaultProperties:GetTopLeftRounding()
-    end
-
-    action SetTopLeftRounding(number topLeftRounding)
-        defaultProperties:SetTopLeftRounding(topLeftRounding)
-    end
-
-    action GetTopRightRounding returns number
-        return defaultProperties:GetTopRightRounding()
-    end
-
-    action SetTopRightRounding(number topRightRounding)
-        defaultProperties:SetTopRightRounding(topRightRounding)
-    end
-
-    action GetBottomLeftRounding returns number
-        return defaultProperties:GetBottomLeftRounding()
-    end
-
-    action SetBottomLeftRounding(number bottomLeftRounding)
-        defaultProperties:SetBottomLeftRounding(bottomLeftRounding)
-    end
-
-    action GetBottomRightRounding returns number
-        return defaultProperties:GetBottomRightRounding()
-    end
-
-    action SetBottomRightRounding(number bottomRightRounding)
-        defaultProperties:SetBottomRightRounding(bottomRightRounding)
     end
 
     /*
@@ -1222,4 +1016,285 @@ class Control is Item2D
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.
     end
+
+    action SetBackgroundColor(ColorGroup value)
+        defaultProperties:SetBackgroundColor(value)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return defaultProperties:GetBackgroundColor()
+    end
+
+    action SetForegroundColor(ColorGroup value)
+        defaultProperties:SetForegroundColor(value)
+    end
+
+    action GetForegroundColor returns ColorGroup
+        return defaultProperties:GetForegroundColor()
+    end
+
+    action SetFontColor(ColorGroup value)
+        defaultProperties:SetFontColor(value)
+    end
+
+    action GetFontColor returns ColorGroup
+        return defaultProperties:GetFontColor()
+    end
+
+    action SetBorderColor(ColorGroup value)
+        defaultProperties:SetBorderColor(value)
+    end
+
+    action GetBorderColor returns ColorGroup
+        return defaultProperties:GetBorderColor()
+    end
+
+    action SetFocusColor(ColorGroup value)
+        defaultProperties:SetFocusColor(value)
+    end
+
+    action GetFocusColor returns ColorGroup
+        return defaultProperties:GetFocusColor()
+    end
+
+    action SetMouseOverColor(ColorGroup value)
+        defaultProperties:SetMouseOverColor(value)
+    end
+
+    action GetMouseOverColor returns ColorGroup
+        return defaultProperties:GetMouseOverColor()
+    end
+
+    action SetMouseOverFontColor(ColorGroup value)
+        defaultProperties:SetMouseOverFontColor(value)
+    end
+
+    action GetMouseOverFontColor returns ColorGroup
+        return defaultProperties:GetMouseOverFontColor()
+    end
+
+    action SetMouseDownColor(ColorGroup value)
+        defaultProperties:SetMouseDownColor(value)
+    end
+
+    action GetMouseDownColor returns ColorGroup
+        return defaultProperties:GetMouseDownColor()
+    end
+
+    action SetMouseDownFontColor(ColorGroup value)
+        defaultProperties:SetMouseDownFontColor(value)
+    end
+
+    action GetMouseDownFontColor returns ColorGroup
+        return defaultProperties:GetMouseDownFontColor()
+    end
+
+    action SetSelectionColor(ColorGroup value)
+        defaultProperties:SetSelectionColor(value)
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return defaultProperties:GetSelectionColor()
+    end
+
+    action SetSelectionBorderColor(ColorGroup value)
+        defaultProperties:SetSelectionBorderColor(value)
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        return defaultProperties:GetSelectionBorderColor()
+    end
+
+    action SetUnfocusedSelectionColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionColor(value)
+    end
+
+    action GetUnfocusedSelectionColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionColor()
+    end
+
+    action SetUnfocusedSelectionBorderColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionBorderColor(value)
+    end
+
+    action GetUnfocusedSelectionBorderColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionBorderColor()
+    end
+
+    action SetSelectionFontColor(ColorGroup value)
+        defaultProperties:SetSelectionFontColor(value)
+    end
+
+    action GetSelectionFontColor returns ColorGroup
+        return defaultProperties:GetSelectionFontColor()
+    end
+
+    action SetUnfocusedSelectionFontColor(ColorGroup value)
+        defaultProperties:SetUnfocusedSelectionFontColor(value)
+    end
+
+    action GetUnfocusedSelectionFontColor returns ColorGroup
+        return defaultProperties:GetUnfocusedSelectionFontColor()
+    end
+
+    action SetGlowColor(ColorGroup value)
+        defaultProperties:SetGlowColor(value)
+    end
+
+    action GetGlowColor returns ColorGroup
+        return defaultProperties:GetGlowColor()
+    end
+
+    action SetMouseOverGlowColor(ColorGroup value)
+        defaultProperties:SetMouseOverGlowColor(value)
+    end
+
+    action GetMouseOverGlowColor returns ColorGroup
+        return defaultProperties:GetMouseOverGlowColor()
+    end
+
+    action SetMouseDownGlowColor(ColorGroup value)
+        defaultProperties:SetMouseDownGlowColor(value)
+    end
+
+    action GetMouseDownGlowColor returns ColorGroup
+        return defaultProperties:GetMouseDownGlowColor()
+    end
+
+    action SetIconColor(ColorGroup value)
+        defaultProperties:SetIconColor(value)
+    end
+
+    action GetIconColor returns ColorGroup
+        return defaultProperties:GetIconColor()
+    end
+
+    action SetAccentColor(ColorGroup value)
+        defaultProperties:SetAccentColor(value)
+    end
+
+    action GetAccentColor returns ColorGroup
+        return defaultProperties:GetAccentColor()
+    end
+
+    action SetBorderThickness(number value)
+        defaultProperties:SetBorderThickness(value)
+    end
+
+    action GetBorderThickness returns number
+        return defaultProperties:GetBorderThickness()
+    end
+
+    action HasBorderThickness returns boolean
+        return defaultProperties:HasBorderThickness()
+    end
+
+    action SetTopLeftRounding(number value)
+        defaultProperties:SetTopLeftRounding(value)
+    end
+
+    action GetTopLeftRounding returns number
+        return defaultProperties:GetTopLeftRounding()
+    end
+
+    action HasTopLeftRounding returns boolean
+        return defaultProperties:HasTopLeftRounding()
+    end
+
+    action SetTopRightRounding(number value)
+        defaultProperties:SetTopRightRounding(value)
+    end
+
+    action GetTopRightRounding returns number
+        return defaultProperties:GetTopRightRounding()
+    end
+
+    action HasTopRightRounding returns boolean
+        return defaultProperties:HasTopRightRounding()
+    end
+
+    action SetBottomLeftRounding(number value)
+        defaultProperties:SetBottomLeftRounding(value)
+    end
+
+    action GetBottomLeftRounding returns number
+        return defaultProperties:GetBottomLeftRounding()
+    end
+
+    action HasBottomLeftRounding returns boolean
+        return defaultProperties:HasBottomLeftRounding()
+    end
+
+    action SetBottomRightRounding(number value)
+        defaultProperties:SetBottomRightRounding(value)
+    end
+
+    action GetBottomRightRounding returns number
+        return defaultProperties:GetBottomRightRounding()
+    end
+
+    action HasBottomRightRounding returns boolean
+        return defaultProperties:HasBottomRightRounding()
+    end
+
+    action SetShadowX(number value)
+        defaultProperties:SetShadowX(value)
+    end
+
+    action GetShadowX returns number
+        return defaultProperties:GetShadowX()
+    end
+
+    action HasShadowX returns boolean
+        return defaultProperties:HasShadowX()
+    end
+
+    action SetShadowY(number value)
+        defaultProperties:SetShadowY(value)
+    end
+
+    action GetShadowY returns number
+        return defaultProperties:GetShadowY()
+    end
+
+    action HasShadowY returns boolean
+        return defaultProperties:HasShadowY()
+    end
+
+    action SetShadowWidth(number value)
+        defaultProperties:SetShadowWidth(value)
+    end
+
+    action GetShadowWidth returns number
+        return defaultProperties:GetShadowWidth()
+    end
+
+    action HasShadowWidth returns boolean
+        return defaultProperties:HasShadowWidth()
+    end
+
+    action SetShadowHeight(number value)
+        defaultProperties:SetShadowHeight(value)
+    end
+
+    action GetShadowHeight returns number
+        return defaultProperties:GetShadowHeight()
+    end
+
+    action HasShadowHeight returns boolean
+        return defaultProperties:HasShadowHeight()
+    end
+
+    action SetShadowEdgeFade(number value)
+        defaultProperties:SetShadowEdgeFade(value)
+    end
+
+    action GetShadowEdgeFade returns number
+        return defaultProperties:GetShadowEdgeFade()
+    end
+
+    action HasShadowEdgeFade returns boolean
+        return defaultProperties:HasShadowEdgeFade()
+    end
+
 end

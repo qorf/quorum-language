@@ -15,6 +15,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Views.ToggleView
+use Libraries.Interface.Controls.Tab
 
 class ControlShaderMapping is ShaderMapping
 
@@ -35,6 +36,8 @@ class ControlShaderMapping is ShaderMapping
         program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
         program:SetShaderInput("u_texture", 0)
     end
+
+    boolean debugOutput = false
 
     action MapInputs(ShaderProgram program, Drawable drawable)
         number leftBorder = 0
@@ -126,6 +129,10 @@ class ControlShaderMapping is ShaderMapping
                 topLeftRounding = control:GetTopLeftRounding()
     
                 borderThickness = control:GetBorderThickness()
+                if control is Tab and control:GetName() = "Errors"
+                    debugOutput = true
+                    output control:GetName() + " has thickness = " + control:HasBorderThickness() + ", thickness = " + control:GetBorderThickness() + ", sending " + borderThickness / (drawable:GetHeight() * drawable:GetScaleY())
+                end
 
                 /*
                 Determine what color the control should be, based on how the user is interacting with it.
@@ -179,6 +186,9 @@ class ControlShaderMapping is ShaderMapping
 
         if borderColor not= undefined
             Color border = borderColor:GetBottomLeft()
+            if debugOutput
+                output "Border color is " + border:GetRed() + ", " + border:GetGreen() + ", " + border:GetBlue() + ", " + border:GetAlpha()
+            end
             program:SetShaderInput("u_borderColor", border:GetRed(), border:GetGreen(), border:GetBlue(), border:GetAlpha())
         else
             program:SetShaderInput("u_borderColor", 0.0, 0.0, 0.0, 1.0)
