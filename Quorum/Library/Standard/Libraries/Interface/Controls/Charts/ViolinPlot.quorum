@@ -205,7 +205,7 @@ class ViolinPlot is Chart
 
                 if not HasGroups()
                     plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " box plots")
+                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violin plots")
                 end    
 
                 if IsSeparatedByFactor()
@@ -275,7 +275,7 @@ class ViolinPlot is Chart
             // Area covering entire group panel
             Icon panel
             panel:SetName(group:GetName() + " group, ")
-            panel:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
+            panel:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " violin plots.")
             panel:SetFocusable(true)
             panel:SetAccessibilityCode(0)
             chartArea:Add(panel)

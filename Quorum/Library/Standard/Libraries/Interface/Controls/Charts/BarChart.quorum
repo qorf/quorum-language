@@ -57,10 +57,9 @@ class BarChart is SharedBarChartParent
         SetAccessibilityCode(parent:Item:ITEM)
 
         // Default settings specific to bar chart
-        RegressionCapable(false)
-        SetDefaultSeparation(false)
-        SetDefaultShowBrackets(true)
         SetDefaultOrientationToVertical()
+        SeparationCapable(true)
+        SetDefaultShowBrackets(true)
         GetVerticalPanel():BlockPaddingOffset(true)
         GetHorizontalPanel():BlockPaddingOffset(true)
     end

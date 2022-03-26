@@ -1,0 +1,67 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+
+/*
+    PieBox is a Drawable that holds all the slices for a single pie chart.
+*/
+
+class PieBox is Drawable
+    Array<Wedge> slices
+    ChartAreaPanel chartArea = undefined
+    number totalValueOfBox = 0.0
+
+    action AddSlice(Wedge newSlice)
+        slices:Add(newSlice)
+        totalValueOfBox = totalValueOfBox + newSlice:GetValue()
+    end
+
+    action GetSlices returns Array<Wedge>
+        return slices
+    end
+
+    action Empty()
+        slices:Empty()
+        totalValueOfBox = 0.0
+    end
+
+    action GetSize() returns integer
+        return slices:GetSize()
+    end
+
+    action Get(integer i) returns Wedge
+        if i >= 0 and i < slices:GetSize()
+            return slices:Get(i)
+        else
+            return undefined
+        end
+    end
+
+    action Set(integer i, Wedge slice)
+        if i >= 0 and i < slices:GetSize()
+            slices:Set(i, slice)
+        end
+    end
+
+    action GetTotalValue() returns number
+        return totalValueOfBox
+    end
+
+    action SetTotalValue(number value)
+        totalValueOfBox = value
+    end
+
+    /*
+        A link to the parent chart area of this pie
+    */
+    action SetChartArea(ChartAreaPanel chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea returns ChartAreaPanel
+        return chartArea
+    end
+
+end

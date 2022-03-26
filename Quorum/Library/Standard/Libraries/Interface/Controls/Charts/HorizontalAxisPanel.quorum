@@ -94,6 +94,7 @@ class HorizontalAxisPanel is Control
     private integer tickWidth = 3
     private boolean showGroupBrackets = false
     private boolean showTicks = false
+    private Color axisColor
 
     // Range controls
     private number min = 0.0
@@ -122,6 +123,7 @@ class HorizontalAxisPanel is Control
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
         SetName("x axis")
+        axisColor = transparent:Copy() //Starts transparent, will be changed if axis is showing
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
@@ -186,7 +188,7 @@ class HorizontalAxisPanel is Control
             chartArea:SetPrevious(xAxis)   
         end   
         
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             // Labels
             ChartItem firstLabel
             firstLabel:SetContainer(chart)
@@ -211,9 +213,6 @@ class HorizontalAxisPanel is Control
             xAxis:SetLastChild(previousLabel)
         elseif chart:GetSubHorizontalPanels():GetSize() = 1
             Array<ControlLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
-            if textLabels not= undefined
-                chart:GetSubHorizontalPanels():Get(0):SetTextLabels(labels)
-            end
             SetDescription(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
             SetName(titleText + " axis, ")
             ChartItem firstLabel
@@ -239,9 +238,6 @@ class HorizontalAxisPanel is Control
             xAxis:SetLastChild(previousLabel)
         else
             //SubPanel axis
-            if textLabels not= undefined
-                chart:GetSubHorizontalPanels():Get(0):SetTextLabels(chart:GetSubHorizontalPanels():Get(0):GetLabels())
-            end
             ChartItem firstSubPanel
             xAxis:SetChild(firstSubPanel)
             firstSubPanel:SetParent(xAxis)
@@ -276,9 +272,6 @@ class HorizontalAxisPanel is Control
             i = 1
             ChartItem previousSubPanel = firstSubPanel
             repeat while i < chart:GetSubHorizontalPanels():GetSize()
-                if textLabels not= undefined
-                    chart:GetSubHorizontalPanels():Get(i):SetTextLabels(chart:GetSubHorizontalPanels():Get(i):GetLabels())
-                end
                 ChartItem currentSubPanel
                 currentSubPanel:SetContainer(chart)
                 currentSubPanel:SetParent(xAxis)
@@ -1188,6 +1181,14 @@ class HorizontalAxisPanel is Control
 
     action SetAxis(Drawable line)
         axis = line
+    end
+
+    action SetAxisColor(Color axisColor)
+        me:axisColor = axisColor
+    end
+
+    action GetAxisColor returns Color
+        return axisColor
     end
 
     action SetBrackets(Array <Drawable> brackets)

@@ -71,7 +71,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         chart:SetYAxisTitle("Total")
         chart:SetXAxisTitle("Group")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         Array<text> groupNames
@@ -163,7 +163,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         HashTable<text, Series> seriesFactor

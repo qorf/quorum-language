@@ -8,6 +8,7 @@ use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Controls.ControlLabel
 
 /*
     This class represents the chart area sub panels within splitbyfactor charts.
@@ -22,7 +23,7 @@ use Libraries.Game.Graphics.ColorGroup
 class ChartAreaPanel is Control
     private LayoutProperties properties = undefined
     private Series series = undefined
-    private text title = ""
+    private ControlLabel label = undefined
     private Array <Item> chartAreaItems
     private boolean isShowing = false
 
@@ -87,11 +88,11 @@ class ChartAreaPanel is Control
     end
 
     action GetTitleName returns text
-        return title
+        return GetName()
     end
 
     action SetTitleName(text name)
-        me:title = name
+        me:SetName(name)
     end
 
     action SetBorderColor(ColorGroup color)
@@ -100,5 +101,13 @@ class ChartAreaPanel is Control
 
     action SetBackgroundColor(ColorGroup color)
         properties:SetBackgroundColor(color)
+    end
+
+    action GetLabel returns ControlLabel
+        return label
+    end
+
+    action SetLabel(ControlLabel label)
+        me:label = label
     end
 end

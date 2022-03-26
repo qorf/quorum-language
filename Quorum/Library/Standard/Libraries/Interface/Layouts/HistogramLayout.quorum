@@ -47,7 +47,7 @@ class HistogramLayout is SharedBarChartLayout
     
             boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
             boolean stacked = chart:GetStackedFlag()
-            boolean separateByFactor = chart:IsSeparatedByFactor()
+            boolean separateBySeries = chart:IsSeparatedBySeries()
 
             if horizontal
                 currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
@@ -72,7 +72,7 @@ class HistogramLayout is SharedBarChartLayout
             if stacked
                 numberOfBars = numberOfGroups
             end
-            if separateByFactor
+            if separateBySeries
                 numberOfBars = numberOfGroups
                 stacked = false
             end
@@ -128,7 +128,7 @@ class HistogramLayout is SharedBarChartLayout
                         end
     
                         if horizontal
-                            if chart:HasGroups() and not (stacked or separateByFactor)
+                            if chart:HasGroups() and not (stacked or separateBySeries)
                                 currentBar:GetColor():SetAlpha(0.75)
                                 currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
                             else
@@ -136,7 +136,7 @@ class HistogramLayout is SharedBarChartLayout
                             end
                             currentBar:SetPosition(currentYPosition, cast(integer, currentXPosition + betweenGroupPadding))
                         else
-                            if chart:HasGroups() and not (stacked or separateByFactor)
+                            if chart:HasGroups() and not (stacked or separateBySeries)
                                 currentBar:GetColor():SetAlpha(0.75)
                                 currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
                             else
@@ -145,7 +145,7 @@ class HistogramLayout is SharedBarChartLayout
                             currentBar:SetPosition(cast(integer, currentXPosition + betweenGroupPadding), currentYPosition)
                         end
 
-                        if not separateByFactor
+                        if not separateBySeries
                             if stacked
                                 currentYPosition = currentYPosition + barHeight
                             end
@@ -159,7 +159,7 @@ class HistogramLayout is SharedBarChartLayout
 
                 groupWidth = barWidth + (betweenGroupPadding*2)
 
-                if stacked or separateByFactor
+                if stacked or separateBySeries
                     if horizontal 
                         newIcon:LoadRectangle(currentYPosition+2, groupWidth, transparent)
                         newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))

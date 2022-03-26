@@ -99,7 +99,7 @@ class TwoVariableChart is Chart
                 if IsSeparatedByFactor()
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
-                        if lines:Get(i):GetSeries() = GetSubChartAreas():Get(j):GetSeries()
+                        if lines:Get(i):GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
                             chartArea = GetSubChartAreas():Get(j)
                             chartArea:AddChartAreaItem(lines:Get(i))
                         end
@@ -153,7 +153,7 @@ class TwoVariableChart is Chart
                 if IsSeparatedByFactor()
                     integer k = 0
                     repeat while k < GetNumberOfChartAreas()
-                        if point:GetSeries() = GetSubChartAreas():Get(k):GetSeries()
+                        if point:GetSeries():GetName() = GetSubChartAreas():Get(k):GetSeries():GetName()
                             GetSubChartAreas():Get(k):Add(point)
                             GetSubChartAreas():Get(k):AddChartAreaItem(point)
                         end

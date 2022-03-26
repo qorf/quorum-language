@@ -67,7 +67,7 @@ class SharedBarChartParent is Chart
         end
 
         // If stacked, we need to adjust the maximum value to the full stack
-        if GetStackedFlag() and not IsSeparatedByFactor()
+        if GetStackedFlag() and not IsSeparatedBySeries()
             AdjustStacked()
         end
 
@@ -86,8 +86,7 @@ class SharedBarChartParent is Chart
         integer i = 0
         repeat while i < barGroups:GetSize()
             text groupname = barGroups:Get(i):GetName()
-            integer j = 0                 
-            if HasGroups() and not IsSeparatedByFactor()
+            if HasGroups() and not IsSeparatedBySeries()
                 Icon barGroupIcon = barGroups:Get(i):GetIcon() 
                 barGroupIcon:SetName(groupname + " group, ")
                 barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, has " + barGroups:Get(i):GetSize() + " bars.")
@@ -99,6 +98,7 @@ class SharedBarChartParent is Chart
             end
             GetGroupPanels():Add(barGroups:Get(i):GetIcon())
     
+            integer j = 0  
             repeat while j < barGroups:Get(i):GetSize()
                 //make bars
                 Bar bar = barGroups:Get(i):Get(j)
@@ -108,7 +108,7 @@ class SharedBarChartParent is Chart
                 text placement = (j + 1) + " of " + barGroups:Get(i):GetSize() + " bars inside " + groupname + " group."
                 if HasGroups()
                     temp:SetName(barname + " bar, ")
-                    if IsSeparatedByFactor()
+                    if IsSeparated()
                         placement = ""
                     end
                     temp:SetDescription(value + ", " + placement)
@@ -126,12 +126,19 @@ class SharedBarChartParent is Chart
                 temp:SetAccessibilityCode(parent:Item:ITEM)
                 temp:SetNextFocus(GetNextFocus())
                 temp:SetPreviousFocus(GetPreviousFocus())
-                if IsSeparatedByFactor()
+                if IsSeparated()
                     integer k = 0
                     repeat while k < GetNumberOfChartAreas()
-                        if bar:GetSeries() = GetSubChartAreas():Get(k):GetSeries()
-                            GetSubChartAreas():Get(k):Add(temp)
-                            GetSubChartAreas():Get(k):AddChartAreaItem(temp)
+                        if IsSeparatedBySeries()
+                            if bar:GetSeries():GetName() = GetSubChartAreas():Get(k):GetName()
+                                GetSubChartAreas():Get(k):Add(temp)
+                                GetSubChartAreas():Get(k):AddChartAreaItem(temp)
+                            end
+                        elseif IsSeparatedByFactor()
+                            if groupname = GetSubChartAreas():Get(k):GetName()
+                                GetSubChartAreas():Get(k):Add(temp)
+                                GetSubChartAreas():Get(k):AddChartAreaItem(temp)
+                            end
                         end
                         k = k + 1
                     end
@@ -149,6 +156,13 @@ class SharedBarChartParent is Chart
     end
 
     action AdjustStacked() 
+        if IsSeparatedByFactor()
+            if XAxisIsIndependent()
+                ShowXAxis(false)
+            else
+                ShowYAxis(false)
+            end
+        end
         integer i = 0
         repeat while i < barGroups:GetSize()
             number sum = 0
@@ -355,7 +369,7 @@ class SharedBarChartParent is Chart
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
-        if IsSeparatedByFactor()
+        if IsSeparated()
             integer subAreaCount = GetLegend():GetSeriesList():GetSize()
             ChartItem firstArea
             firstArea:SetContainer(me)
@@ -364,9 +378,8 @@ class SharedBarChartParent is Chart
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
-                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                 GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts.")
 
                 //Bars within SubChartArea
@@ -407,9 +420,8 @@ class SharedBarChartParent is Chart
                     previousArea:SetNext(nextArea)
                     nextArea:SetPrevious(previousArea)
                     previousArea = nextArea
-                    nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                    nextArea:SetDisplayName(chartSubArea:GetName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                    chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                     chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars, " + (i+1) + " of " + subAreaCount + " sub charts.")
 
                     //Bars within SubChartArea

@@ -128,17 +128,37 @@ class ChartLayout is Layout
                 end
                 
 
-                if chart:IsSeparatedByFactor()
+                if chart:IsSeparated()
                     integer verticalSections = verticalContainer:GetNumberOfSections()
                     integer horizontalSections = horizontalContainer:GetNumberOfSections()
                     integer tilePadding = 25
                     integer height = cast(integer, (chartAreaContainer:GetHeight()-tilePadding*(verticalSections-1))/verticalSections)
                     integer width = cast(integer, (chartAreaContainer:GetWidth()-tilePadding*(horizontalSections-1))/horizontalSections)
+                    integer labelArea = cast(integer, height*0.10)
+                    
+                    // Calculate the maximum font size for the sub chart labels.
+                    // This way they can be uniformly sized.
+                    integer fontSize = 0
+                    integer i = 0
+                    repeat while i < chart:GetSubChartAreas():GetSize()
+                        ControlLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
+                        if label not= undefined
+                            label:SetFontSize(cast(integer, labelArea*0.75))
+                            if label:GetWidth() > width
+                                integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
+                                label:SetFontSize(newSize)
+                            end
+                            fontSize = label:GetFontSize()
+                        end
+                        i = i + 1
+                    end
+
+                    // Layout the sub chart areas
                     integer x = 0
                     integer y = 0
-                    integer i = 0
                     integer j = 0
                     integer k = 0
+                    i = 0
                     repeat while i < chart:GetSubChartAreas():GetSize()
                         ChartAreaPanel subContainer = chart:GetSubChartAreas():Get(i)
                         if x + width > chartAreaContainer:GetWidth()
@@ -146,9 +166,20 @@ class ChartLayout is Layout
                             y = y + height + tilePadding
                         end
                         subContainer:SetPosition(x, y)
-                        subContainer:SetSize(width, height)
-                        subContainer:SetBorderColor(color:Black())
+                        subContainer:SetSize(width, height-labelArea)
+                        if chart:ShowSubChartAreaBorders()
+                            subContainer:SetBorderColor(color:Black())
+                        else
+                            color:SetColor(0,0,0,0)
+                            subContainer:SetBorderColor(color)
+                            subContainer:SetBackgroundColor(color)
+                        end
                         subContainer:LoadChartAreaView()
+                        if subContainer:GetLabel() not= undefined
+                            ControlLabel subchartLabel = subContainer:GetLabel()
+                            subchartLabel:SetFontSize(fontSize)
+                            subchartLabel:SetPosition(width/2-(subchartLabel:GetWidth()/2), subContainer:GetHeight()+labelArea/6)
+                        end
                         LayoutChartContent(chart, subContainer)
                         if y = 0 and k < horizontalContainer:GetNumberOfSections()
                             HorizontalAxisPanel subAxis = chart:GetSubHorizontalPanels():Get(k)
@@ -239,7 +270,7 @@ class ChartLayout is Layout
 
         Drawable axis = mainVerticalContainer:GetAxis()
         if axis not= undefined
-            axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight))
+            axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
             axis:SetPosition(0, 0) //This line is in the chart area.
         end
 
@@ -429,7 +460,7 @@ class ChartLayout is Layout
 
         Drawable axis = mainHorizontalContainer:GetAxis()
         if axis not= undefined
-            axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth)
+            axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth, mainHorizontalContainer:GetAxisColor())
             axis:SetPosition(0, 0)
         end
 
