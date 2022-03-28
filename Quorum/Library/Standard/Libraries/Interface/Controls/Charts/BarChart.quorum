@@ -19,20 +19,15 @@ use Libraries.System.File
 
     Attribute: Example
 
-    use Libraries.Interface.Controls.Charts
+    use Libraries.Compute.Statistics.DataFrame
     use Libraries.Interface.Controls.Charts.BarChart
-    use Libraries.Game.Game
-
-    class Main is Game
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            BarChart chart
-            Add(chart)
-        end
-    end
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    BarChart chart = frame:BarChart()
+    chart:SetTitle("My Awesome Title")
+    chart:Display()
 */
 class BarChart is SharedBarChartParent
     on create
@@ -62,7 +57,7 @@ class BarChart is SharedBarChartParent
         SetAccessibilityCode(parent:Item:ITEM)
 
         // Default settings specific to bar chart
-        RegressionCapable(true)
+        RegressionCapable(false)
         SetDefaultSeparation(false)
         SetDefaultShowBrackets(true)
         SetDefaultOrientationToVertical()

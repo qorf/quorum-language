@@ -335,7 +335,7 @@ class QueryExpressionListener is DefaultExpressionListener
         
                     type = column:GetType()
                     if type = undefined
-                        SendDefaultError(context, "Found the database table '" + name + 
+                        SendDefaultError(context, "Found the database table '" + table + 
                             "' and the column '" + name + "' but the type could not be determined")
                         return now
                     end

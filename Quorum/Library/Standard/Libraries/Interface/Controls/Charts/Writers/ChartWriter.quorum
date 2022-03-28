@@ -1188,6 +1188,25 @@ class ChartWriter
         integer i = 0
         Array<Series> seriesList = legend:GetSeriesList()
         repeat while i < seriesList:GetSize()
+//            Icon entryBox = seriesList:Get(i):GetEntryBox()
+//            if entryBox not= undefined and entryBox:IsShowing()
+//                Rectangle svgElementSeriesEntry
+//                
+//                svgElementSeriesEntry:SetWidth(entryBox:GetWidth())
+//                svgElementSeriesEntry:SetHeight(entryBox:GetHeight())
+//                svgElementSeriesEntry:SetPosition(entryBox:GetGlobalX(), TranslatePositionY(entryBox) - entryBox:GetHeight())
+//                svgElementSeriesEntry:SetFill(entryBox:GetColor())
+//                svgElementSeriesEntry:SetTabIndex(-1)
+//                svgElementSeriesEntry:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+//                svgElementSeriesEntry:SetStyleClass("quorum-chart-rect")
+//
+//                if HasAccessibility()
+//                    svgElementSeriesEntry:SetAriaLabel(seriesList:Get(i):GetLabel():GetDescription())
+//                end
+//
+//                canvas:Add(svgElementSeriesEntry)
+//            end
+
             Icon currentSeriesIcon = seriesList:Get(i):GetIcon()
             if currentSeriesIcon not= undefined and currentSeriesIcon:IsShowing()
                 Rectangle svgElementSeriesIcon
@@ -1209,13 +1228,12 @@ class ChartWriter
     
                 svgElementSeriesLabel:SetText(currentSeriesLabel:GetText())
                 svgElementSeriesLabel:SetTextAnchor("left")
-                svgElementSeriesLabel:SetPosition(currentSeriesLabel:GetGlobalX(), TranslatePositionY(currentSeriesLabel))  
-                //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
-                //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+                svgElementSeriesLabel:SetPosition(currentSeriesLabel:GetGlobalX(), TranslatePositionY(currentSeriesLabel))    
                 svgElementSeriesLabel:SetFontSize(currentSeriesLabel:GetFontSize() + "px")
                 svgElementSeriesLabel:SetFontFamily("Arial")
     
                 svgElementSeriesLabel:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+//                svgElementSeriesLabel:SetID(canvas:GetID() + "-" + currentSeriesLabel:GetHashCode())
                 svgElementSeriesLabel:SetStyleClass("quorum-chart-text")
                 svgElementSeriesLabel:SetTabIndex(-1)
                 
@@ -1224,6 +1242,61 @@ class ChartWriter
                 end
     
                 canvas:Add(svgElementSeriesLabel)
+            end
+
+            if legend:IsShowingRegression()
+                if seriesList:Get(i):GetRegressionLine() not= undefined
+                    Icon currentIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                    Rectangle svgElementRegIcon
+                    
+                    svgElementRegIcon:SetWidth(currentIcon:GetWidth())
+                    svgElementRegIcon:SetHeight(currentIcon:GetHeight())
+                    svgElementRegIcon:SetPosition(currentIcon:GetGlobalX(), TranslatePositionY(currentIcon) - currentIcon:GetHeight())
+                    svgElementRegIcon:SetFill(currentIcon:GetColor())
+                    svgElementRegIcon:SetTabIndex(-1)
+                    svgElementRegIcon:SetID(canvas:GetID() + "-" + currentIcon:GetHashCode())
+                    svgElementRegIcon:SetStyleClass("quorum-chart-rect")
+
+                    canvas:Add(svgElementRegIcon)
+
+                    //Regression equation
+                    ControlLabel currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                    Label svgElementRegLabel
+
+                    svgElementRegLabel:SetText(currentLabel:GetText())
+                    svgElementRegLabel:SetTextAnchor("left")
+                    svgElementRegLabel:SetPosition(currentLabel:GetGlobalX(), TranslatePositionY(currentLabel))
+                    svgElementRegLabel:SetFontSize(currentLabel:GetFontSize() + "px")
+                    svgElementRegLabel:SetFontFamily("Arial")
+                    svgElementRegLabel:SetTabIndex(-1)
+                    svgElementRegLabel:SetID(canvas:GetID() + "-" + currentLabel:GetHashCode())
+                    svgElementRegLabel:SetStyleClass("quorum-chart-text")
+    
+                    if HasAccessibility()
+                        svgElementRegLabel:SetAriaLabel(currentLabel:GetDescription())
+                    end
+
+                    canvas:Add(svgElementRegLabel)
+
+                    //R^2 equation
+                    ControlLabel currentRLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                    Label svgElementRLabel
+
+                    svgElementRLabel:SetText(currentRLabel:GetText())
+                    svgElementRLabel:SetTextAnchor("left")
+                    svgElementRLabel:SetPosition(currentRLabel:GetGlobalX(), TranslatePositionY(currentRLabel))
+                    svgElementRLabel:SetFontSize(currentRLabel:GetFontSize() + "px")
+                    svgElementRLabel:SetFontFamily("Arial")
+                    svgElementRLabel:SetTabIndex(-1)
+                    svgElementRLabel:SetID(canvas:GetID() + "-" + currentRLabel:GetHashCode())
+                    svgElementRLabel:SetStyleClass("quorum-chart-text")
+
+                    if HasAccessibility()
+                        svgElementRLabel:SetAriaLabel(currentRLabel:GetDescription())
+                    end
+
+                    canvas:Add(svgElementRLabel)
+                end
             end
 
             i = i + 1
@@ -1438,6 +1511,48 @@ class ChartWriter
             seriesItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + currentSeries:GetHashCode())
             seriesItem:SetTabIndex("-1")
             legendGroup:Add(seriesItem)
+
+            if chart:GetLegend():IsShowingRegression()
+                RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
+                if line not= undefined
+                    ListItem regEqItem 
+                    regEqItem:SetIdentifier(canvas:GetID() + "-" + line:GetEquationLabel():GetHashCode() + "-nav")
+                    regEqItem:AddAttribute("role","treeitem")
+                    regEqItem:AddClassAttribute("quorum-chart-treeitem")
+                    regEqItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + line:GetEquationLabel():GetHashCode())
+                    regEqItem:SetTabIndex("-1")
+                    legendGroup:Add(regEqItem)
+
+                    ListItem regR2Item 
+                    regR2Item:SetIdentifier(canvas:GetID() + "-" + line:GetRSquaredLabel():GetHashCode() + "-nav")
+                    regR2Item:AddAttribute("role","treeitem")
+                    regR2Item:AddClassAttribute("quorum-chart-treeitem")
+                    regR2Item:AddAttribute("aria-labelledby",canvas:GetID() + "-" + line:GetRSquaredLabel():GetHashCode())
+                    regR2Item:SetTabIndex("-1")
+                    legendGroup:Add(regR2Item)
+                end
+            end
+
+            i = i + 1
+        end
+    end
+
+    action AddRegressionLines(ScalableVectorGraphics canvas, Chart chart)
+        integer i = 0
+        repeat while i < chart:GetSeriesList():GetSize()
+            RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
+            if line not= undefined
+                Line svgElementRegLine
+                svgElementRegLine:SetFirstPoint(line:GetX1()+line:GetOffsetX(), svgHeight-(line:GetY1()+line:GetOffsetY()))
+                svgElementRegLine:SetSecondPoint(line:GetX2()+line:GetOffsetX(), svgHeight-(line:GetY2()+line:GetOffsetY()))
+                svgElementRegLine:SetStroke(line:GetColor())
+                svgElementRegLine:SetStrokeWidth(line:GetHeight())
+                svgElementRegLine:SetTabIndex(-1)
+                svgElementRegLine:SetID(canvas:GetID() + "-" + line:GetHashCode())
+                svgElementRegLine:SetStyleClass("quorum-chart-rect")
+
+                canvas:Add(svgElementRegLine)
+            end
             i = i + 1
         end
     end
