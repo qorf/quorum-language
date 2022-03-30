@@ -49,6 +49,7 @@ class ViolinPlot is Chart
 
     private integer numberOfPlots = 0
     Array<PlotGroup> plotGroups
+    boolean useFactor = false
 
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
@@ -90,6 +91,7 @@ class ViolinPlot is Chart
         NormalDistributionAction window
         windowingAction = window
 
+        SeparationCapable(true)
         SetDefaultShowBrackets(true)
         SetDefaultOrientationToVertical()
         GetVerticalPanel():BlockPaddingOffset(true)
@@ -130,104 +132,115 @@ class ViolinPlot is Chart
 
                 // Minimum Line 
                 Drawable minimumLine
-                minimumLine:SetName("Minimum")
-                minimumLine:SetDescription(" " + minimum + ".")
-                if CheckIfInteger(minimum)
-                    minimumLine:SetDescription(" " + cast(integer, minimum))
-                else
-                    minimumLine:SetDescription(" " + minimum)
-                end
                 minimumLine:SetFocusable(true)
                 minimumLine:SetAccessibilityCode(0)
+                minimumLine:SetName("Minimum")
+                minimumLine:SetDescription(" " + minimum)
+                if CheckIfInteger(minimum)
+                    minimumLine:SetDescription(" " + cast(integer, minimum))
+                end
+
                 // Lower Whisker Line
-                Drawable lowerWhisker
+                Drawable lowerWhisker // irrelevant 
+
                 // Interquartile Range Region Area
                 Drawable interQuartileRange
-                interQuartileRange:SetName("Interquartile range")
-                if CheckIfInteger(iqr)
-                    interQuartileRange:SetDescription(" " + cast(integer, iqr))
-                else
-                    interQuartileRange:SetDescription(" " + iqr)
-                end
                 interQuartileRange:SetFocusable(true)
                 interQuartileRange:SetAccessibilityCode(0)
+                interQuartileRange:SetName("Interquartile range")
+                interQuartileRange:SetDescription(" " + iqr)
+                if CheckIfInteger(iqr)
+                    interQuartileRange:SetDescription(" " + cast(integer, iqr))
+                end
+
                 // Right Side of IQR
-                Drawable rightBorder
+                Drawable rightBorder // irrelevant
                 // Left Side of IQR
-                Drawable leftBorder
+                Drawable leftBorder // irrelevant
+
                 // Lower Quartile Line Q1
                 Drawable firstQuartileLine
-                firstQuartileLine:SetName("1st Quartile")
-                if CheckIfInteger(firstQ)
-                    firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
-                else
-                    firstQuartileLine:SetDescription(" " + firstQ)
-                end
                 firstQuartileLine:SetFocusable(true)
                 firstQuartileLine:SetAccessibilityCode(0)
-                // Median Line (denser)
-                Drawable medianDot
-                medianDot:SetName("Median")
-                if CheckIfInteger(median)
-                    medianDot:SetDescription(" " + cast(integer, median))
-                else
-                    medianDot:SetDescription(" " + median)
+                firstQuartileLine:SetName("1st Quartile")
+                firstQuartileLine:SetDescription(" " + firstQ)
+                if CheckIfInteger(firstQ)
+                    firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
                 end
+
+                // Median Dot 
+                Drawable medianDot
                 medianDot:SetFocusable(true)
                 medianDot:SetAccessibilityCode(0)
+                medianDot:SetName("Median")
+                medianDot:SetDescription(" " + median)
+                if CheckIfInteger(median)
+                    medianDot:SetDescription(" " + cast(integer, median))
+                end
+
                 // Upper Quartile Line Q3
                 Drawable thirdQuartileLine
-                thirdQuartileLine:SetName("3rd Quartile")
-                if CheckIfInteger(thirdQ)
-                    thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
-                else
-                    thirdQuartileLine:SetDescription(" " + thirdQ)
-                end
                 thirdQuartileLine:SetFocusable(true)
                 thirdQuartileLine:SetAccessibilityCode(0)
+                thirdQuartileLine:SetName("3rd Quartile")
+                thirdQuartileLine:SetDescription(" " + thirdQ)
+                if CheckIfInteger(thirdQ)
+                    thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
+                end
+
                 // Upper Whisker Line
-                Drawable upperWhisker
+                Drawable upperWhisker // irrelevant
+
                 // Maximum Line
                 Drawable maximumLine
-                maximumLine:SetName("Maximum")
-                if CheckIfInteger(maximum)
-                    maximumLine:SetDescription(" " + cast(integer, maximum))
-                else
-                    maximumLine:SetDescription(" " + maximum)
-                end
                 maximumLine:SetFocusable(true)
                 maximumLine:SetAccessibilityCode(0)
+                maximumLine:SetName("Maximum")
+                maximumLine:SetDescription(" " + maximum)
+                if CheckIfInteger(maximum)
+                    maximumLine:SetDescription(" " + cast(integer, maximum))
+                end
+
                 // Plot Area Outline Panel
                 Icon plotArea
-                plotArea:SetName(group:Get(k):GetName() + " violin plot")
+                plotArea:SetName(plot:GetName() + ", ")
+                plotArea:SetDescription((k+1) + " of " + group:GetSize() + " violins")
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
 
                 if not HasGroups()
-                    plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violin plots")
+                    plotArea:SetName(plot:GetName() + ", ")
+                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violins")
                 end    
 
-                if IsSeparatedByFactor()
-                    plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violin plots")
+                if IsSeparated()
+                    if IsSeparatedByFactor()
+                        plotArea:SetName(plot:GetName() + ", ")
+                    elseif IsSeparatedBySeries()
+                        plotArea:SetName(group:GetName() + ", ")
+                    end
+                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violins")
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
-                        if plot:GetSeries() = GetSubChartAreas():Get(j):GetSeries()
-                            chartArea = GetSubChartAreas():Get(j)
-                            chartArea:AddChartAreaItem(plot)
+                        if IsSeparatedBySeries()
+                            if plot:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
+                        elseif IsSeparatedByFactor()
+                            if group:GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
                         end
                         j = j + 1
                     end
                 else
                     chartArea = GetChartArea()
                 end
-
-                // Voilin plot density map
-                Drawable denisty
     
                 // Add to chart
-                chartArea:Add(denisty)
+                chartArea:Add(plot) // This is to be the actual violin shape
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
@@ -243,18 +256,18 @@ class ViolinPlot is Chart
 
                 // Add to plot
                 /* Indices for items of individual violin plot
+                    PLOT ITSELF IS A DRAWABLE - VIOLIN SHAPE
                     0: PLOT AREA (ENTIRE REGION)
                     1: MINIMUM LINE
-                    2: LOWER WHISKER
+                    2: LOWER WHISKER //not used in violin
                     3: INTERQUARTILE RANGE
-                    4: RIGHT BORDER OF IQR
-                    5: LEFT BORDER OF IQR
+                    4: RIGHT BORDER OF IQR //not used in violin
+                    5: LEFT BORDER OF IQR //not used in violin
                     6: Q1 LINE
                     7: MEDIAN LINE
                     8: Q3 LINE
-                    9: UPPER WHISKER    
+                    9: UPPER WHISKER //not used in violin
                     10: MAXIMUM LINE 
-                    11: PIXEL DENSITY MAP
                 */
                 plot:AddItem(plotArea)
                 plot:AddItem(minimumLine)      
@@ -267,12 +280,11 @@ class ViolinPlot is Chart
                 plot:AddItem(thirdQuartileLine)
                 plot:AddItem(upperWhisker)
                 plot:AddItem(maximumLine)
-                plot:AddItem(denisty)
     
                 k = k + 1
             end
 
-            // Area covering entire group panel
+            // Area covering entire group panel - this may be skipped in the navigation.
             Icon panel
             panel:SetName(group:GetName() + " group, ")
             panel:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " violin plots.")
@@ -287,6 +299,37 @@ class ViolinPlot is Chart
 
     private action CheckIfInteger(number value) returns boolean
         return (cast(integer, value) = value)
+    end
+
+    /*
+        This action is supplemental to the parent class Chart's SeparateBySeries.
+        In the case where only columns are used (i.e. no factors) then we want each 
+        sub chart to contain one column's data, and for it to take up the entire area.
+        We would also remove the independent-axis since there is no need to keep it.
+    */
+    action SeparateBySeries(integer requestColumns)
+        if not useFactor
+            if XAxisIsIndependent()
+                ShowXAxis(false)
+            else
+                ShowYAxis(false)
+            end   
+        end
+        parent:Chart:SeparateBySeries(requestColumns)
+    end
+
+    action SeparateByFactor(integer requestColumns)
+        if useFactor
+            parent:Chart:SeparateByFactor(requestColumns)
+        end
+    end
+
+    action UseFactor(boolean useFactor)
+        me:useFactor = useFactor
+    end
+
+    action UsingFactor returns boolean
+        return useFactor
     end
 
     /*
@@ -343,29 +386,7 @@ class ViolinPlot is Chart
         Item target = ci:GetFocusTarget()
 
         if target not= undefined
-            if target is Series
-                Series temp = cast(Series, target)
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
-                    integer j = 1
-                    repeat while j < 11
-                        Drawable item = plot:GetPlotItems():Get(j)
-                        if j = 7
-                            item:SetColor(1,1,1,1)
-                        else
-                            item:SetColor(0,0,0,1)
-                        end
-                        j = j + 1
-                    end
-                    i = i + 2
-                end
-//                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
-                temp:GetEntryBox():SetColor(0,0,0,0)
-            else
-                parent:Chart:LostSelection(ci)
-            end
+            parent:Chart:LostSelection(ci)
         end
     end
 
@@ -389,26 +410,7 @@ class ViolinPlot is Chart
 
         if target not= undefined
             target:Focus()
-            if target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
-                    integer j = 1
-                    repeat while j < 11
-                        Drawable item = plot:GetPlotItems():Get(j)
-                        item:SetColor(GetHighlightColor())
-                        j = j + 1
-                    end
-                    i = i + 2
-                end
-//                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
-            else
-                parent:Chart:GainedSelection(ci)
-            end           
+            parent:Chart:GainedSelection(ci)          
         end
     end
     
@@ -605,9 +607,9 @@ class ViolinPlot is Chart
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
-        if IsSeparatedByFactor()
+        if IsSeparated()
             //Chart Areas
-            integer subAreaCount = GetLegend():GetSeriesList():GetSize()
+            integer subAreaCount = GetNumberOfVisibleChartAreas()
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
@@ -615,9 +617,9 @@ class ViolinPlot is Chart
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
-                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
+                
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                 GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
 
                 //Plots within Chart Areas
@@ -640,12 +642,13 @@ class ViolinPlot is Chart
                         
                         next_target:SetContainer(me)
                         next_target:SetDisplayName(items:Get(0):GetName()) 
-                        next_target:SetFocusTarget(items:Get(0))  
+                        next_target:SetFocusTarget(items:Get(0)) 
                         next_target:SetParent(firstArea)
                         prev_target = next_target    
+
                         ChartItem previous
                         integer target_index = 0
-                        integer index = 0
+                        integer index = 1
                         repeat while index < items:GetSize()
                             Drawable item = items:Get(index)
                             Drawable lastItem = items:Get(items:GetSize() - 1)
@@ -681,7 +684,7 @@ class ViolinPlot is Chart
             ChartItem previousArea = firstArea
             repeat while i < GetNumberOfChartAreas()
                 ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:GetIsShowing()
+                if chartSubArea:IsShowing()
                     ChartItem nextArea
                     nextArea:SetContainer(me)
                     nextArea:SetParent(chartArea)
@@ -689,9 +692,8 @@ class ViolinPlot is Chart
                     previousArea:SetNext(nextArea)
                     nextArea:SetPrevious(previousArea)
                     previousArea = nextArea
-                    nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                    nextArea:SetDisplayName(chartSubArea:GetName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                    chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                     chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
 
                     //Plots within Chart Areas
@@ -719,7 +721,7 @@ class ViolinPlot is Chart
                             prev_target = next_target      
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
                                 Drawable item = items:Get(index)
                                 Drawable lastItem = items:Get(items:GetSize() - 1)
@@ -784,7 +786,7 @@ class ViolinPlot is Chart
                             prev_target = next_target    
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
                                 Drawable item = items:Get(index)
                                 Drawable lastItem = items:Get(items:GetSize() - 1)
@@ -848,7 +850,7 @@ class ViolinPlot is Chart
                             prev_target = next_target      
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
                                 Drawable item = items:Get(index)
                                 Drawable lastItem = items:Get(items:GetSize() - 1)
@@ -901,7 +903,7 @@ class ViolinPlot is Chart
                     prev_target = next_target      
                     ChartItem previous
                     integer target_index = 0
-                    integer index = 0
+                    integer index = 1
                     repeat while index < items:GetSize()
                         Drawable item = items:Get(index)
                         Drawable lastItem = items:Get(items:GetSize() - 1)

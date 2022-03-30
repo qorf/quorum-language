@@ -463,7 +463,7 @@ class ChartWriter
         repeat while i < subChartAreas:GetSize()
             ChartAreaPanel currentSubChartArea = subChartAreas:Get(i)
 
-            if currentSubChartArea:GetIsShowing()
+            if currentSubChartArea:IsShowing()
                 Rectangle svgSubChartArea
     
                 svgSubChartArea:SetFill("white")

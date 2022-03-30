@@ -49,17 +49,6 @@ class ChartAreaPanel is Control
         return true
     end
 
-    action GetSeries returns Series
-        return series
-    end
-
-    action SetSeries(Series series)
-        me:series = series
-        if series not= undefined
-            name = series:GetTextName()
-        end
-    end
-
     action LoadChartAreaView 
         if properties:GetView2D() = undefined
             LabelBoxView view 
@@ -77,22 +66,6 @@ class ChartAreaPanel is Control
 
     action AddChartAreaItem(Item item)
         chartAreaItems:Add(item)
-    end
-
-    action GetIsShowing returns boolean
-        return isShowing
-    end
-
-    action SetIsShowing(boolean isShowing)
-        me:isShowing = isShowing
-    end
-
-    action GetTitleName returns text
-        return GetName()
-    end
-
-    action SetTitleName(text name)
-        me:SetName(name)
     end
 
     action SetBorderColor(ColorGroup color)

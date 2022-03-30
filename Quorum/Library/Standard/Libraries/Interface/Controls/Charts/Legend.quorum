@@ -62,7 +62,7 @@ class Legend is Control
 
         properties:SetBackgroundColor(color:White())
         properties:SetBorderColor(color:Black())
-        SetName("legend")
+        SetName("Legend")
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
@@ -78,10 +78,14 @@ class Legend is Control
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         ChartItem legendArea
-        legendArea:SetDisplayName("Legend")
+        legendArea:SetDisplayName(GetName())
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
-        me:SetDescription(" with " + seriesList:GetSize() + " series")
+        if GetName() = "Legend"
+            me:SetDescription(" with " + seriesList:GetSize() + " series")
+        else
+            me:SetDescription(" legend with " + seriesList:GetSize() + " series")
+        end
         legendArea:SetContainer(chart)
 
         if chart:IsShowingXAxis()
@@ -298,6 +302,7 @@ class Legend is Control
 
     action SetTitleText(text name)
         titleText = name
+        SetName(name)
     end    
 
     action GetTitleLabel() returns ControlLabel

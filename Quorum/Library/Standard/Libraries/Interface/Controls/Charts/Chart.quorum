@@ -226,9 +226,7 @@ class Chart is Control
                     verticalPanel:SetTextLabels(newLabels)
                     verticalPanel:SetTitleText(legend:GetTitleText())
                     verticalPanel:NumericalOverrideLabels(false) //Set to false since new labels may not be numerical anymore
-                end
-//            else if separateBySeries
-//                
+                end      
             end
             integer i = 0
             repeat while i < numberOfChartAreas
@@ -236,23 +234,25 @@ class Chart is Control
                 if separateByFactor
                     if i < factorList:GetSize()
                         subArea:SetName(factorList:Get(i))
-                        subArea:SetIsShowing(true)
                         ControlLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
                         chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
                     end
                 end
                 if separateBySeries 
                     if i < GetSeriesList():GetSize()
                         subArea:SetName(GetSeriesList():Get(i):GetName())
-                        subArea:SetIsShowing(true)
                         ControlLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
                         chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
                     end
                 end
 
@@ -504,6 +504,23 @@ class Chart is Control
     */
     action GetNumberOfChartAreas returns integer
         return numberOfChartAreas
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    private action GetNumberOfVisibleChartAreas returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < subChartAreas:GetSize()
+            if subChartAreas:Get(i):IsShowing()
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
     end
 
     /*

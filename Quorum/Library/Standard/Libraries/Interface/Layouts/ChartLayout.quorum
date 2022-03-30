@@ -269,8 +269,14 @@ class ChartLayout is Layout
         minorScaleDivWidth = scaleDivWidth/mainVerticalContainer:GetMinorGridlineCount()
 
         Drawable axis = mainVerticalContainer:GetAxis()
+        integer axisWidth = 0
         if axis not= undefined
-            axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
+            if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+                axis:LoadFilledRectangle(0, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
+            else
+                axisWidth = tickHeight
+                axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
+            end
             axis:SetPosition(0, 0) //This line is in the chart area.
         end
 
@@ -331,8 +337,8 @@ class ChartLayout is Layout
                 end                
                 
                 integer thin = cast(integer, tickHeight*0.75)
-                majorLine:SetPosition(tickHeight, cast(integer, tickY+(thin/2)))
-                majorLine:LoadFilledRectangle(cast(integer, chartWidth - tickHeight), thin, color:LightGray())
+                majorLine:SetPosition(axisWidth, cast(integer, tickY+(thin/2)))
+                majorLine:LoadFilledRectangle(cast(integer, chartWidth - axisWidth), thin, color:LightGray())
     
                 if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetHeight()/2)
@@ -340,8 +346,8 @@ class ChartLayout is Layout
     
                     repeat while j < ((startIndex)+1)*mainVerticalContainer:GetMinorGridlineCount() and minorY < axis:GetHeight()
                         Drawable minorLine = minorlines:Get(j)
-                        minorLine:SetPosition(tickHeight, cast(integer, minorY+thinner))
-                        minorLine:LoadFilledRectangle(cast(integer, chartWidth - tickHeight), thinner, color:LightGray())
+                        minorLine:SetPosition(axisWidth, cast(integer, minorY+thinner))
+                        minorLine:LoadFilledRectangle(cast(integer, chartWidth - axisWidth), thinner, color:LightGray())
                         j = j + 1
                         minorY = minorY + minorScaleDivWidth
                     end
@@ -459,8 +465,14 @@ class ChartLayout is Layout
         minorScaleDivWidth = scaleDivWidth/mainHorizontalContainer:GetMinorGridlineCount()
 
         Drawable axis = mainHorizontalContainer:GetAxis()
+        integer axisHeight = 0
         if axis not= undefined
-            axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth, mainHorizontalContainer:GetAxisColor())
+            if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+                axis:LoadFilledRectangle(cast(integer, chartWidth), 0, mainHorizontalContainer:GetAxisColor())
+            else
+                axisHeight = tickWidth
+                axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth, mainHorizontalContainer:GetAxisColor())
+            end
             axis:SetPosition(0, 0)
         end
 
@@ -519,8 +531,8 @@ class ChartLayout is Layout
                     end
                 end
                 integer thin = cast(integer, tickWidth*0.75)
-                majorLine:SetPosition(cast(integer, tickX+(thin/2)), tickWidth)
-                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight - tickWidth), color:LightGray())
+                majorLine:SetPosition(cast(integer, tickX+(thin/2)), axisHeight)
+                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight - axisHeight), color:LightGray())
     
                 if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetWidth()/2)
@@ -528,8 +540,8 @@ class ChartLayout is Layout
     
                     repeat while j < (startIndex+1)*mainHorizontalContainer:GetMinorGridlineCount() and minorX < axis:GetWidth()
                         Drawable minorLine = minorlines:Get(j)
-                        minorLine:SetPosition(cast(integer, minorX+thinner), tickWidth)
-                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight - tickWidth), color:LightGray())
+                        minorLine:SetPosition(cast(integer, minorX+thinner), axisHeight)
+                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight - axisHeight), color:LightGray())
                         j = j + 1
                         minorX = minorX + minorScaleDivWidth
                     end

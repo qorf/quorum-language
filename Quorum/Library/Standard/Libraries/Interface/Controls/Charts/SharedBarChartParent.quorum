@@ -370,7 +370,7 @@ class SharedBarChartParent is Chart
         end
 
         if IsSeparated()
-            integer subAreaCount = GetLegend():GetSeriesList():GetSize()
+            integer subAreaCount = GetNumberOfVisibleChartAreas()
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
@@ -412,7 +412,7 @@ class SharedBarChartParent is Chart
             ChartItem previousArea = firstArea
             repeat while i < GetNumberOfChartAreas()
                 ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:GetIsShowing()
+                if chartSubArea:IsShowing()
                     ChartItem nextArea
                     nextArea:SetContainer(me)
                     nextArea:SetParent(chartArea)

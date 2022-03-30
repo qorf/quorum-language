@@ -487,7 +487,11 @@ class HorizontalAxisPanel is Control
                         repeat while m < verticalSections
                             Drawable gridline
                             theMajorLines:Add(gridline)
-                            chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                            if chart:GetSubChartAreas():Get(m + k*verticalSections):IsShowing()
+                                chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                            else
+                                gridline:Hide()
+                            end
                             m = m + 1
                         end
                     end
@@ -509,7 +513,11 @@ class HorizontalAxisPanel is Control
                             repeat while j < minorlinecount
                                 Drawable gridline
                                 theMinorLines:Add(gridline)
-                                chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                                if chart:GetSubChartAreas():Get(m + k*verticalSections):IsShowing()
+                                    chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
+                                else
+                                    gridline:Hide()
+                                end
                                 j = j + 1
                             end
                             m = m + 1

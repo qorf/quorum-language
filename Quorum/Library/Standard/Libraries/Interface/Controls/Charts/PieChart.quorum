@@ -521,7 +521,7 @@ class PieChart is Chart
             ChartItem previousArea = firstArea
             repeat while i < GetNumberOfChartAreas()
                 ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:GetIsShowing()
+                if chartSubArea:IsShowing()
                     ChartItem nextArea
                     nextArea:SetContainer(me)
                     nextArea:SetParent(chartArea)

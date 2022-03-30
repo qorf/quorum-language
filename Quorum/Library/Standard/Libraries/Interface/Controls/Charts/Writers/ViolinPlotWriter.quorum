@@ -91,7 +91,7 @@ class ViolinPlotWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             Array <PlotGroup> plotGroups = chart:GetPlotGroups()
 
             integer i = 0
@@ -111,7 +111,6 @@ class ViolinPlotWriter is ChartWriter
                     end
                     GetGroupPanels():Add(plotGroup)
                     canvas:Add(plotGroup)
-    
                 end
 
                 integer k = 0
@@ -130,7 +129,6 @@ class ViolinPlotWriter is ChartWriter
                         8: Q3 LINE
                         9: UPPER WHISKER    
                         10: MAXIMUM LINE 
-                        11: PIXEL DENSITY MAP
                     */        
 
                     // LAYER ONE   
@@ -159,7 +157,7 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(plot:GetIcon():GetColor())
+                    violin:SetFill(plot:GetColor())
                     violin:SetTabIndex(-1)
                     violin:SetStroke("black")
                     violin:SetStrokeWidth(1)
@@ -228,7 +226,6 @@ class ViolinPlotWriter is ChartWriter
                         8: Q3 LINE
                         9: UPPER WHISKER    
                         10: MAXIMUM LINE 
-                        11: PIXEL DENSITY MAP
                     */    
 
                     // LAYER ONE   
@@ -254,7 +251,7 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(plot:GetIcon():GetColor())
+                    violin:SetFill(plot:GetColor())
                     violin:SetStroke("black")
                     violin:SetStrokeWidth(1)
                     violin:SetTabIndex(-1)
@@ -268,8 +265,8 @@ class ViolinPlotWriter is ChartWriter
                             number radius = items:Get(index):GetHeight()/2
                             medianDot:SetRadius(radius)
                             medianDot:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                            medianDot:SetFill("white")
-                            medianDot:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                            medianDot:SetFill(items:Get(index):GetColor())
+                            medianDot:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
                             medianDot:SetTabIndex(-1)
                             if HasAccessibility()
                                 medianDot:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
@@ -280,8 +277,8 @@ class ViolinPlotWriter is ChartWriter
                                 Rectangle plotLine
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill("black")
-                                plotLine:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetFill(items:Get(index):GetColor())
+                                plotLine:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
                                     plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
@@ -307,7 +304,7 @@ class ViolinPlotWriter is ChartWriter
         ViolinPlot violinPlot
         violinPlot = cast(ViolinPlot, chart)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             Array<PlotGroup> plotGroups = violinPlot:GetPlotGroups()
     
             UnorderedList plotGroupsUL
@@ -349,9 +346,9 @@ class ViolinPlotWriter is ChartWriter
                     plotNav:AddNestedTag(itemsUL)
 
                     k = 1
-                    repeat while k < 11 //plotGroups:Get(i):Get(j):GetPlotItems():GetSize()
+                    repeat while k < plot:GetPlotItems():GetSize()
                         // Add navigation for all parts.
-                        if k not= 2 and k not= 4 and k not= 5 and k not= 9 and k not= 11 // Skip the elements not included in the navigation
+                        if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                             ListItem itemNav 
                             itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
                             itemNav:AddAttribute("role","treeitem")
@@ -387,9 +384,9 @@ class ViolinPlotWriter is ChartWriter
                 plotNav:AddNestedTag(itemsUL)
 
                 k = 1
-                repeat while k < 11 //plotGroups:Get(i):Get(j):GetPlotItems():GetSize()
+                repeat while k < plot:GetPlotItems():GetSize()
                     // Add navigation for all parts.
-                    if k not= 2 and k not= 4 and k not= 5 and k not= 9 and k not= 11 // Skip the elements not included in the navigation
+                    if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                         ListItem itemNav 
                         itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
                         itemNav:AddAttribute("role","treeitem")

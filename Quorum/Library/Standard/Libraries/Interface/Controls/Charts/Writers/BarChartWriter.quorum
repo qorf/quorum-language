@@ -45,14 +45,6 @@ use Libraries.Interface.Controls.Icon
 
 class BarChartWriter is ChartWriter
 
-    private number outerEdgePadding = 0
-    private number betweenGroupPadding = 0
-    private number betweenBarPadding = 0
-    private number barWidthPercent = 0
-    private number barHeightPercent = 0
-    
-//    Array<Rectangle> bars
-
     action WriteOutChart(BarChart chart, integer svgWidth, integer svgHeight) returns text
         return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
     end
@@ -137,7 +129,6 @@ class BarChartWriter is ChartWriter
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
                     end
-//                    bars:Add(bar)
                     canvas:Add(bar)
     
                     j = j + 1
@@ -164,7 +155,6 @@ class BarChartWriter is ChartWriter
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                     end
-//                    bars:Add(bar)
                     canvas:Add(bar)
     
                     j = j + 1
