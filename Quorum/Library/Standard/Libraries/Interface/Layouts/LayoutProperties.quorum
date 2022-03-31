@@ -1035,6 +1035,29 @@ class LayoutProperties
         return default:GetAccentColor()
     end
 
+    action SetShadowColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetShadowColor(value)
+        needsRendering = true
+    end
+
+    action GetShadowColor returns ColorGroup
+        if options not= undefined and options:GetShadowColor() not= undefined
+            return options:GetShadowColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetShadowColor() not= undefined
+            return controlPalette:GetShadowColor()
+        end
+
+        return default:GetShadowColor()
+    end
+
     action SetBorderThickness(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1045,7 +1068,7 @@ class LayoutProperties
     end
 
     action GetBorderThickness returns number
-        if options not= undefined and options:GetBorderThickness() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetBorderThickness():IsNotANumber() = false
             return options:GetBorderThickness()
         end
 
@@ -1058,6 +1081,7 @@ class LayoutProperties
         if default:HasBorderThickness()
             return default:GetBorderThickness()
         end
+
         return 0
     end
 
@@ -1075,7 +1099,6 @@ class LayoutProperties
         return default:HasBorderThickness()
     end
 
-
     action SetTopLeftRounding(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1086,7 +1109,7 @@ class LayoutProperties
     end
 
     action GetTopLeftRounding returns number
-        if options not= undefined and options:GetTopLeftRounding() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetTopLeftRounding():IsNotANumber() = false
             return options:GetTopLeftRounding()
         end
 
@@ -1116,7 +1139,6 @@ class LayoutProperties
         return default:HasTopLeftRounding()
     end
 
-
     action SetTopRightRounding(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1127,7 +1149,7 @@ class LayoutProperties
     end
 
     action GetTopRightRounding returns number
-        if options not= undefined and options:GetTopRightRounding() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetTopRightRounding():IsNotANumber() = false
             return options:GetTopRightRounding()
         end
 
@@ -1157,7 +1179,6 @@ class LayoutProperties
         return default:HasTopRightRounding()
     end
 
-
     action SetBottomLeftRounding(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1168,7 +1189,7 @@ class LayoutProperties
     end
 
     action GetBottomLeftRounding returns number
-        if options not= undefined and options:GetBottomLeftRounding() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetBottomLeftRounding():IsNotANumber() = false
             return options:GetBottomLeftRounding()
         end
 
@@ -1198,7 +1219,6 @@ class LayoutProperties
         return default:HasBottomLeftRounding()
     end
 
-
     action SetBottomRightRounding(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1209,7 +1229,7 @@ class LayoutProperties
     end
 
     action GetBottomRightRounding returns number
-        if options not= undefined and options:GetBottomRightRounding() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetBottomRightRounding():IsNotANumber() = false
             return options:GetBottomRightRounding()
         end
 
@@ -1239,7 +1259,6 @@ class LayoutProperties
         return default:HasBottomRightRounding()
     end
 
-
     action SetShadowX(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1250,7 +1269,7 @@ class LayoutProperties
     end
 
     action GetShadowX returns number
-        if options not= undefined and options:GetShadowX() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetShadowX():IsNotANumber() = false
             return options:GetShadowX()
         end
 
@@ -1280,7 +1299,6 @@ class LayoutProperties
         return default:HasShadowX()
     end
 
-
     action SetShadowY(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1291,7 +1309,7 @@ class LayoutProperties
     end
 
     action GetShadowY returns number
-        if options not= undefined and options:GetShadowY() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetShadowY():IsNotANumber() = false
             return options:GetShadowY()
         end
 
@@ -1321,7 +1339,6 @@ class LayoutProperties
         return default:HasShadowY()
     end
 
-
     action SetShadowWidth(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1332,7 +1349,7 @@ class LayoutProperties
     end
 
     action GetShadowWidth returns number
-        if options not= undefined and options:GetShadowWidth() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetShadowWidth():IsNotANumber() = false
             return options:GetShadowWidth()
         end
 
@@ -1362,7 +1379,6 @@ class LayoutProperties
         return default:HasShadowWidth()
     end
 
-
     action SetShadowHeight(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1373,7 +1389,7 @@ class LayoutProperties
     end
 
     action GetShadowHeight returns number
-        if options not= undefined and options:GetShadowHeight() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetShadowHeight():IsNotANumber() = false
             return options:GetShadowHeight()
         end
 
@@ -1403,7 +1419,6 @@ class LayoutProperties
         return default:HasShadowHeight()
     end
 
-
     action SetShadowEdgeFade(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1414,7 +1429,7 @@ class LayoutProperties
     end
 
     action GetShadowEdgeFade returns number
-        if options not= undefined and options:GetShadowEdgeFade() not= options:NOT_A_NUMBER
+        if options not= undefined and options:GetShadowEdgeFade():IsNotANumber() = false
             return options:GetShadowEdgeFade()
         end
 

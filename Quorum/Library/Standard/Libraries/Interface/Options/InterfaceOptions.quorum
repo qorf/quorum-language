@@ -27,6 +27,7 @@ class InterfaceOptions
     public constant text MOUSE_DOWN_GLOW_COLOR = "mouseDownGlowColor"
     public constant text ICON_COLOR = "iconColor"
     public constant text ACCENT_COLOR = "accentColor"
+    public constant text SHADOW_COLOR = "shadowColor"
 
     // Key values for number properties.
     public constant text BORDER_THICKNESS = "borderThickness"
@@ -73,7 +74,7 @@ class InterfaceOptions
 
     // The dummy number only exists so we can set the constant NaN value.
     number dummyNumber = 0
-    public constant number NOT_A_NUMBER = dummyNumber:GetNotANumberValue()
+    constant number NOT_A_NUMBER = dummyNumber:GetNotANumberValue()
 
     action HasCustomProperty(text name) returns boolean
         return customProperty:HasKey(name)
@@ -706,6 +707,33 @@ class InterfaceOptions
         end
     end
 
+    action SetShadowColor(ColorGroup value)
+        SetColorProperty(SHADOW_COLOR, value)
+    end
+
+    action GetShadowColor returns ColorGroup
+        return GetColorProperty(SHADOW_COLOR)
+    end
+
+    action SetShadowColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetShadowColor(value)
+    end
+
+    action GetShadowColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetShadowColor()
+        end
+    end
+
     action SetBorderThickness(number value)
         SetNumberProperty(BORDER_THICKNESS, value)
     end
@@ -1216,6 +1244,14 @@ class InterfaceOptions
         return GetAccentColor(BUTTON)
     end
 
+    action SetButtonShadowColor(ColorGroup value)
+        SetShadowColor(BUTTON, value)
+    end
+
+    action GetButtonShadowColor returns ColorGroup
+        return GetShadowColor(BUTTON)
+    end
+
     action SetButtonBorderThickness(number value)
         SetBorderThickness(BUTTON, value)
     end
@@ -1498,6 +1534,14 @@ class InterfaceOptions
 
     action GetCellAccentColor returns ColorGroup
         return GetAccentColor(CELL)
+    end
+
+    action SetCellShadowColor(ColorGroup value)
+        SetShadowColor(CELL, value)
+    end
+
+    action GetCellShadowColor returns ColorGroup
+        return GetShadowColor(CELL)
     end
 
     action SetCellBorderThickness(number value)
@@ -1784,6 +1828,14 @@ class InterfaceOptions
         return GetAccentColor(CHECKBOX)
     end
 
+    action SetCheckboxShadowColor(ColorGroup value)
+        SetShadowColor(CHECKBOX, value)
+    end
+
+    action GetCheckboxShadowColor returns ColorGroup
+        return GetShadowColor(CHECKBOX)
+    end
+
     action SetCheckboxBorderThickness(number value)
         SetBorderThickness(CHECKBOX, value)
     end
@@ -2066,6 +2118,14 @@ class InterfaceOptions
 
     action GetDialogAccentColor returns ColorGroup
         return GetAccentColor(DIALOG)
+    end
+
+    action SetDialogShadowColor(ColorGroup value)
+        SetShadowColor(DIALOG, value)
+    end
+
+    action GetDialogShadowColor returns ColorGroup
+        return GetShadowColor(DIALOG)
     end
 
     action SetDialogBorderThickness(number value)
@@ -2352,6 +2412,14 @@ class InterfaceOptions
         return GetAccentColor(DIALOG_BAR)
     end
 
+    action SetDialogBarShadowColor(ColorGroup value)
+        SetShadowColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarShadowColor returns ColorGroup
+        return GetShadowColor(DIALOG_BAR)
+    end
+
     action SetDialogBarBorderThickness(number value)
         SetBorderThickness(DIALOG_BAR, value)
     end
@@ -2634,6 +2702,14 @@ class InterfaceOptions
 
     action GetDialogAcceptButtonAccentColor returns ColorGroup
         return GetAccentColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonShadowColor(ColorGroup value)
+        SetShadowColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonShadowColor returns ColorGroup
+        return GetShadowColor(DIALOG_ACCEPT_BUTTON)
     end
 
     action SetDialogAcceptButtonBorderThickness(number value)
@@ -2920,6 +2996,14 @@ class InterfaceOptions
         return GetAccentColor(GUTTER)
     end
 
+    action SetGutterShadowColor(ColorGroup value)
+        SetShadowColor(GUTTER, value)
+    end
+
+    action GetGutterShadowColor returns ColorGroup
+        return GetShadowColor(GUTTER)
+    end
+
     action SetGutterBorderThickness(number value)
         SetBorderThickness(GUTTER, value)
     end
@@ -3202,6 +3286,14 @@ class InterfaceOptions
 
     action GetLabelAccentColor returns ColorGroup
         return GetAccentColor(LABEL)
+    end
+
+    action SetLabelShadowColor(ColorGroup value)
+        SetShadowColor(LABEL, value)
+    end
+
+    action GetLabelShadowColor returns ColorGroup
+        return GetShadowColor(LABEL)
     end
 
     action SetLabelBorderThickness(number value)
@@ -3488,6 +3580,14 @@ class InterfaceOptions
         return GetAccentColor(LIST)
     end
 
+    action SetListShadowColor(ColorGroup value)
+        SetShadowColor(LIST, value)
+    end
+
+    action GetListShadowColor returns ColorGroup
+        return GetShadowColor(LIST)
+    end
+
     action SetListBorderThickness(number value)
         SetBorderThickness(LIST, value)
     end
@@ -3770,6 +3870,14 @@ class InterfaceOptions
 
     action GetListItemAccentColor returns ColorGroup
         return GetAccentColor(LIST_ITEM)
+    end
+
+    action SetListItemShadowColor(ColorGroup value)
+        SetShadowColor(LIST_ITEM, value)
+    end
+
+    action GetListItemShadowColor returns ColorGroup
+        return GetShadowColor(LIST_ITEM)
     end
 
     action SetListItemBorderThickness(number value)
@@ -4056,6 +4164,14 @@ class InterfaceOptions
         return GetAccentColor(MENU_BAR)
     end
 
+    action SetMenuBarShadowColor(ColorGroup value)
+        SetShadowColor(MENU_BAR, value)
+    end
+
+    action GetMenuBarShadowColor returns ColorGroup
+        return GetShadowColor(MENU_BAR)
+    end
+
     action SetMenuBarBorderThickness(number value)
         SetBorderThickness(MENU_BAR, value)
     end
@@ -4338,6 +4454,14 @@ class InterfaceOptions
 
     action GetMenuItemAccentColor returns ColorGroup
         return GetAccentColor(MENU_ITEM)
+    end
+
+    action SetMenuItemShadowColor(ColorGroup value)
+        SetShadowColor(MENU_ITEM, value)
+    end
+
+    action GetMenuItemShadowColor returns ColorGroup
+        return GetShadowColor(MENU_ITEM)
     end
 
     action SetMenuItemBorderThickness(number value)
@@ -4624,6 +4748,14 @@ class InterfaceOptions
         return GetAccentColor(MENU_PANEL)
     end
 
+    action SetMenuPanelShadowColor(ColorGroup value)
+        SetShadowColor(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelShadowColor returns ColorGroup
+        return GetShadowColor(MENU_PANEL)
+    end
+
     action SetMenuPanelBorderThickness(number value)
         SetBorderThickness(MENU_PANEL, value)
     end
@@ -4906,6 +5038,14 @@ class InterfaceOptions
 
     action GetProgressBarAccentColor returns ColorGroup
         return GetAccentColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarShadowColor(ColorGroup value)
+        SetShadowColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarShadowColor returns ColorGroup
+        return GetShadowColor(PROGRESS_BAR)
     end
 
     action SetProgressBarBorderThickness(number value)
@@ -5192,6 +5332,14 @@ class InterfaceOptions
         return GetAccentColor(RADIO_BUTTON)
     end
 
+    action SetRadioButtonShadowColor(ColorGroup value)
+        SetShadowColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonShadowColor returns ColorGroup
+        return GetShadowColor(RADIO_BUTTON)
+    end
+
     action SetRadioButtonBorderThickness(number value)
         SetBorderThickness(RADIO_BUTTON, value)
     end
@@ -5474,6 +5622,14 @@ class InterfaceOptions
 
     action GetScrollPaneAccentColor returns ColorGroup
         return GetAccentColor(SCROLL_PANE)
+    end
+
+    action SetScrollPaneShadowColor(ColorGroup value)
+        SetShadowColor(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneShadowColor returns ColorGroup
+        return GetShadowColor(SCROLL_PANE)
     end
 
     action SetScrollPaneBorderThickness(number value)
@@ -5760,6 +5916,14 @@ class InterfaceOptions
         return GetAccentColor(TAB)
     end
 
+    action SetTabShadowColor(ColorGroup value)
+        SetShadowColor(TAB, value)
+    end
+
+    action GetTabShadowColor returns ColorGroup
+        return GetShadowColor(TAB)
+    end
+
     action SetTabBorderThickness(number value)
         SetBorderThickness(TAB, value)
     end
@@ -6042,6 +6206,14 @@ class InterfaceOptions
 
     action GetTabBarAccentColor returns ColorGroup
         return GetAccentColor(TAB_BAR)
+    end
+
+    action SetTabBarShadowColor(ColorGroup value)
+        SetShadowColor(TAB_BAR, value)
+    end
+
+    action GetTabBarShadowColor returns ColorGroup
+        return GetShadowColor(TAB_BAR)
     end
 
     action SetTabBarBorderThickness(number value)
@@ -6328,6 +6500,14 @@ class InterfaceOptions
         return GetAccentColor(TEXT_BOX)
     end
 
+    action SetTextBoxShadowColor(ColorGroup value)
+        SetShadowColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxShadowColor returns ColorGroup
+        return GetShadowColor(TEXT_BOX)
+    end
+
     action SetTextBoxBorderThickness(number value)
         SetBorderThickness(TEXT_BOX, value)
     end
@@ -6610,6 +6790,14 @@ class InterfaceOptions
 
     action GetTextFieldAccentColor returns ColorGroup
         return GetAccentColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldShadowColor(ColorGroup value)
+        SetShadowColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldShadowColor returns ColorGroup
+        return GetShadowColor(TEXT_FIELD)
     end
 
     action SetTextFieldBorderThickness(number value)
@@ -6896,6 +7084,14 @@ class InterfaceOptions
         return GetAccentColor(TOOL_BAR)
     end
 
+    action SetToolBarShadowColor(ColorGroup value)
+        SetShadowColor(TOOL_BAR, value)
+    end
+
+    action GetToolBarShadowColor returns ColorGroup
+        return GetShadowColor(TOOL_BAR)
+    end
+
     action SetToolBarBorderThickness(number value)
         SetBorderThickness(TOOL_BAR, value)
     end
@@ -7180,6 +7376,14 @@ class InterfaceOptions
         return GetAccentColor(TREE_ITEM)
     end
 
+    action SetTreeItemShadowColor(ColorGroup value)
+        SetShadowColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemShadowColor returns ColorGroup
+        return GetShadowColor(TREE_ITEM)
+    end
+
     action SetTreeItemBorderThickness(number value)
         SetBorderThickness(TREE_ITEM, value)
     end
@@ -7462,6 +7666,14 @@ class InterfaceOptions
 
     action GetTreeTableCellAccentColor returns ColorGroup
         return GetAccentColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellShadowColor(ColorGroup value)
+        SetShadowColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellShadowColor returns ColorGroup
+        return GetShadowColor(TREE_TABLE_CELL)
     end
 
     action SetTreeTableCellBorderThickness(number value)

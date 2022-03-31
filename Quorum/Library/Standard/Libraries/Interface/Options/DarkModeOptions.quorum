@@ -28,6 +28,12 @@ class DarkModeOptions is InterfaceOptions
         mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
         SetMouseOverColor(mouseOverGradient)
 
+        // Default shadow values.
+        SetShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetShadowX(6)
+        SetShadowY(-6)
+        SetShadowEdgeFade(3)
+
         // Button specific colors.
         SetButtonMouseDownColor(color:CustomColor(222.0 / MAX, 217.0 / MAX, 224.0 / MAX, 1))
         SetButtonFontColor(color:CustomColor(175.0 / MAX, 177.0 / MAX, 179.0 / MAX, 1))
@@ -82,8 +88,8 @@ class DarkModeOptions is InterfaceOptions
         SetTabUnfocusedSelectionFontColor(commonFontColor)
         SetTabUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
 
-        SetTabTopLeftRounding(0.1)
-        SetTabTopRightRounding(0.1)
+        SetTabTopLeftRounding(0.5)
+        SetTabTopRightRounding(0.5)
 
         //TREES
         SetTreeItemUnfocusedSelectionFontColor(commonFontColor)
@@ -133,6 +139,14 @@ class DarkModeOptions is InterfaceOptions
         // ListItem specific colors.
         SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
         SetListItemFontColor(GetTextBoxFontColor())
+
+        // Dialog colors.
+        SetDialogShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetDialogShadowX(4)
+        SetDialogShadowY(-4)
+        SetDialogShadowWidth(8)
+        SetDialogShadowHeight(8)
+        SetDialogShadowEdgeFade(11)
 
         // Dialog bar specific colors.
         SetDialogBarBackgroundColor(darkGray)

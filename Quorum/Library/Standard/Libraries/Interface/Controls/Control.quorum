@@ -1177,6 +1177,14 @@ class Control is Item2D
         return defaultProperties:GetAccentColor()
     end
 
+    action SetShadowColor(ColorGroup value)
+        defaultProperties:SetShadowColor(value)
+    end
+
+    action GetShadowColor returns ColorGroup
+        return defaultProperties:GetShadowColor()
+    end
+
     action SetBorderThickness(number value)
         defaultProperties:SetBorderThickness(value)
     end

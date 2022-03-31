@@ -18,6 +18,7 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Views.DropShadowView
 
 class Dialog is Control
     Behavior defaultBehavior = undefined
@@ -91,16 +92,6 @@ class Dialog is Control
             Control bar = topBar
             ControlShaderView barView
             barView:Initialize()
-
-//            Color color
-//            Gradient gradient
-//            Color gray = color:CustomColor(0.82, 0.82, 0.82, 1)
-//            Color lightGray = color:CustomColor(0.93, 0.93, 0.93, 1)
-//            gradient:Set(gray, gray, lightGray, lightGray)
-            
-//            barView:Initialize(gradient, color:Black())
-            // Top, bottom, left, and right borders
-//            barView:SetBorderStyle(barView:ALL)
             bar:SetView2D(barView)
 
             Label nameLabel
@@ -153,9 +144,6 @@ class Dialog is Control
             buttonProperties:SetPercentageOriginX(1.0)
             buttonProperties:SetPercentageX(1)
             buttonProperties:SetPercentageY(0)
-//            buttonProperties:SetPercentageOriginY(1.0)
-//            buttonProperties:SetPercentageY(1)
-//            buttonProperties:SetIconColor(white)
             buttonProperties:SetFont(undefined)
 
             closeButton:SetName("Close")
@@ -318,6 +306,20 @@ class Dialog is Control
             layer:GetCamera():Update()
         end
         parent:Control:Resize()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if properties:GetView2D() not= undefined and properties:GetView2D() not= GetView2D()
+            SetView2D(properties:GetView2D())
+        end
+
+        if GetView2D() = undefined
+            DropShadowView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
     end
 
     /*

@@ -26,6 +26,12 @@ class BasicOptions is InterfaceOptions
         mouseOverGradient:Set(mouseOverBottom, mouseOverBottom, mouseOverTop, mouseOverTop)
         SetMouseOverColor(mouseOverGradient)
 
+        // Default shadow values.
+        SetShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetShadowX(6)
+        SetShadowY(-6)
+        SetShadowEdgeFade(3)
+
         // Button specific colors.
         SetButtonMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
 

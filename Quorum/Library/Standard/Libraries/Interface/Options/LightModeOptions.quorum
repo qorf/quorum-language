@@ -29,6 +29,12 @@ class LightModeOptions is InterfaceOptions
         mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
         SetMouseOverColor(mouseOverGradient)
 
+        // Default shadow values.
+        SetShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetShadowX(6)
+        SetShadowY(-6)
+        SetShadowEdgeFade(3)
+
         // Button specific colors.
         SetButtonMouseDownColor(color:CustomColor(223.0 / MAX, 223.0 / MAX, 223.0 / MAX, 1))
         SetButtonFontColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 1))
@@ -131,6 +137,12 @@ class LightModeOptions is InterfaceOptions
 
         // ListItem specific colors.
         SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+
+        // Dialog colors.
+        SetDialogShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetDialogShadowX(6)
+        SetDialogShadowY(-6)
+        SetDialogShadowEdgeFade(3)
 
         // Dialog bar specific colors.
         SetDialogBarBackgroundColor(color:CustomColor(224.0 / MAX, 224.0 / MAX, 224.0 / MAX, 1))
