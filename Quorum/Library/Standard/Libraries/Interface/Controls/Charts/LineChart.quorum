@@ -5,6 +5,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
+use Libraries.System.File
 
 /*
     The LineChart class is Chart object that inherits from TwoVariableChart and like other
@@ -94,6 +95,20 @@ class LineChart is TwoVariableChart
     action ConvertToScalableVectorGraphics returns text
         LineChartWriter writer
         return writer:WriteOutChart(me)
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            LineChartWriter chartWriter
+            chartWriter:WriteOutChart(me,file)
+        end
     end
 
 end

@@ -924,6 +924,7 @@ class TwoVariableChart is Chart
             Icon leftChunkRegion = NewRegionIcon(region:GetPercentageX(), 0, region:GetPercentageWidth() / 2.0, 1.0)
             leftChunkRegion:SetName("Left Chunk")
             chartArea:Add(leftChunkRegion)
+            regions:Add(leftChunkRegion)
             
             ChartItem leftChunkItem
             leftChunkItem:SetContainer(me)
@@ -934,6 +935,7 @@ class TwoVariableChart is Chart
             Icon rightChunkRegion = NewRegionIcon(region:GetPercentageX() + region:GetPercentageWidth() / 2.0, 0, region:GetPercentageWidth() / 2.0, 1.0)
             rightChunkRegion:SetName("Right Chunk")
             chartArea:Add(rightChunkRegion)
+            regions:Add(rightChunkRegion)
             
             ChartItem rightChunkItem
             rightChunkItem:SetContainer(me)
