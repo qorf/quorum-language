@@ -33,9 +33,6 @@ class Plot is Drawable
     Array <number> outliers
     Array <Drawable> items
     Series series
-    Icon icon
-    Color plotcolor
-    text name = ""
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
     Array<Pair<integer>> points
@@ -62,30 +59,6 @@ class Plot is Drawable
         10: MAXIMUM LINE 
         11+: OUTLIERS
     */
-
-    action SetName(text name)
-        me:name = name
-    end
-    
-    action GetName() returns text
-        return name
-    end
-
-    action SetColor(Color color)
-        plotcolor = color
-    end
-
-    action GetColor() returns Color
-        return plotcolor
-    end
-
-    action GetIcon() returns Icon
-        return icon
-    end
-
-    action SetIcon(Icon icon)
-        me:icon = icon
-    end
 
     action SetData(Vector vector)
         data = vector:Copy()

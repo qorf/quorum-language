@@ -128,7 +128,6 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                     Series series
                     groupNames:Add(column:GetHeader())
                     series:SetName(column:GetHeader())
-                    series:AddItem(plot:GetIcon())
                     series:AddItem(plot)
                     plot:SetSeries(series)
                     seriesFactor:Add(column:GetHeader(), series)
@@ -160,6 +159,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
 
     action CreateChartWithFactor(DataFrame frame) returns Chart
         BoxPlot chart
+        chart:UseFactor(true)
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
@@ -273,9 +273,8 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 Plot plot
                 plot:SetData(dataset)
                 plot:SetInfo(Calculations(column, dataset))
-                plot:SetName(column:GetHeader())
+                plot:SetName(seriesNames:Get(j))
                 if(seriesFactor:HasKey(seriesNames:Get(j)))
-                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot:GetIcon())
                     seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
                     plot:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
                 end

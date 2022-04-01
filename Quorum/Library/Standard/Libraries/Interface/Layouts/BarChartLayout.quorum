@@ -46,6 +46,7 @@ class BarChartLayout is SharedBarChartLayout
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
         boolean stacked = chart:GetStackedFlag()
+        boolean separateBySeries = chart:IsSeparatedBySeries()
         boolean separateByFactor = chart:IsSeparatedByFactor()
 
         if barGroups:GetSize() > 0
@@ -55,9 +56,16 @@ class BarChartLayout is SharedBarChartLayout
             if stacked
                 numberOfBars = numberOfGroups
             end
-            if separateByFactor
+            if separateBySeries
                 numberOfBars = numberOfGroups
                 stacked = false
+            elseif separateByFactor
+                numberOfGroups = 1
+                if stacked
+                    numberOfBars = 1
+                else
+                    numberOfBars = chart:GetSeriesList():GetSize()
+                end
             end
 
             if horizontal
@@ -109,6 +117,7 @@ class BarChartLayout is SharedBarChartLayout
             
             Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             currentXPosition = currentXPosition + outerEdgePadding
+            resetXPosition = currentXPosition
 
             // Tracking area of each bar group for group icon
             integer groupX = currentXPosition    // x-axis coordinate
@@ -158,7 +167,7 @@ class BarChartLayout is SharedBarChartLayout
                             currentBar:SetPosition(currentXPosition, currentYPosition)
                         end
 
-                        if not separateByFactor
+                        if not separateBySeries
                             if stacked
                                 currentYPosition = currentYPosition + barHeight
                             else
@@ -166,7 +175,7 @@ class BarChartLayout is SharedBarChartLayout
                             end
                         end
                     else
-                        if not stacked and not separateByFactor
+                        if not stacked and not separateBySeries
                             currentXPosition = currentXPosition + barWidth + betweenBarPadding
                         end
                     end
@@ -176,7 +185,7 @@ class BarChartLayout is SharedBarChartLayout
                 // Creating Bar Group Icon
                 Icon newIcon = currentGroup:GetIcon()
                 LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
-                if stacked or separateByFactor
+                if stacked or chart:IsSeparated() //separateBySeries
                     if horizontal 
                         newIcon:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
                         newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
@@ -184,7 +193,13 @@ class BarChartLayout is SharedBarChartLayout
                         newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition, transparent)
                         newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
                     end
-                    currentXPosition = currentXPosition + barWidth + betweenGroupPadding
+                    if separateByFactor
+                        currentXPosition = resetXPosition
+                        groupX = currentXPosition + (currentXPosition + barWidth + betweenGroupPadding)*(i+1)
+                    else
+                        currentXPosition = currentXPosition + barWidth + betweenGroupPadding
+                        groupX = currentXPosition
+                    end
                 else
                     groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
                     currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
@@ -195,16 +210,12 @@ class BarChartLayout is SharedBarChartLayout
                         newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight), transparent)
                         newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
                     end
+                    groupX = currentXPosition
                 end
                 currentYPosition = resetYPosition
                 groupHeight = 0
-                groupX = currentXPosition
                 i = i + 1
             end
-        end
-
-        if chart:IsShowingLinearRegression()
-            LayoutRegressionLines(chart, chartAreaContainer)
         end
     end
 end

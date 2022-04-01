@@ -128,17 +128,37 @@ class ChartLayout is Layout
                 end
                 
 
-                if chart:IsSeparatedByFactor()
+                if chart:IsSeparated()
                     integer verticalSections = verticalContainer:GetNumberOfSections()
                     integer horizontalSections = horizontalContainer:GetNumberOfSections()
                     integer tilePadding = 25
                     integer height = cast(integer, (chartAreaContainer:GetHeight()-tilePadding*(verticalSections-1))/verticalSections)
                     integer width = cast(integer, (chartAreaContainer:GetWidth()-tilePadding*(horizontalSections-1))/horizontalSections)
+                    integer labelArea = cast(integer, height*0.10)
+                    
+                    // Calculate the maximum font size for the sub chart labels.
+                    // This way they can be uniformly sized.
+                    integer fontSize = 0
+                    integer i = 0
+                    repeat while i < chart:GetSubChartAreas():GetSize()
+                        ControlLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
+                        if label not= undefined
+                            label:SetFontSize(cast(integer, labelArea*0.75))
+                            if label:GetWidth() > width
+                                integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
+                                label:SetFontSize(newSize)
+                            end
+                            fontSize = label:GetFontSize()
+                        end
+                        i = i + 1
+                    end
+
+                    // Layout the sub chart areas
                     integer x = 0
                     integer y = 0
-                    integer i = 0
                     integer j = 0
                     integer k = 0
+                    i = 0
                     repeat while i < chart:GetSubChartAreas():GetSize()
                         ChartAreaPanel subContainer = chart:GetSubChartAreas():Get(i)
                         if x + width > chartAreaContainer:GetWidth()
@@ -146,9 +166,20 @@ class ChartLayout is Layout
                             y = y + height + tilePadding
                         end
                         subContainer:SetPosition(x, y)
-                        subContainer:SetSize(width, height)
-                        subContainer:SetBorderColor(color:Black())
+                        subContainer:SetSize(width, height-labelArea)
+                        if chart:ShowSubChartAreaBorders()
+                            subContainer:SetBorderColor(color:Black())
+                        else
+                            color:SetColor(0,0,0,0)
+                            subContainer:SetBorderColor(color)
+                            subContainer:SetBackgroundColor(color)
+                        end
                         subContainer:LoadChartAreaView()
+                        if subContainer:GetLabel() not= undefined
+                            ControlLabel subchartLabel = subContainer:GetLabel()
+                            subchartLabel:SetFontSize(fontSize)
+                            subchartLabel:SetPosition(width/2-(subchartLabel:GetWidth()/2), subContainer:GetHeight()+labelArea/6)
+                        end
                         LayoutChartContent(chart, subContainer)
                         if y = 0 and k < horizontalContainer:GetNumberOfSections()
                             HorizontalAxisPanel subAxis = chart:GetSubHorizontalPanels():Get(k)
@@ -238,8 +269,14 @@ class ChartLayout is Layout
         minorScaleDivWidth = scaleDivWidth/mainVerticalContainer:GetMinorGridlineCount()
 
         Drawable axis = mainVerticalContainer:GetAxis()
+        integer axisWidth = 0
         if axis not= undefined
-            axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight))
+            if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+                axis:LoadFilledRectangle(0, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
+            else
+                axisWidth = tickHeight
+                axis:LoadFilledRectangle(tickHeight, cast(integer, chartHeight), mainVerticalContainer:GetAxisColor())
+            end
             axis:SetPosition(0, 0) //This line is in the chart area.
         end
 
@@ -300,8 +337,8 @@ class ChartLayout is Layout
                 end                
                 
                 integer thin = cast(integer, tickHeight*0.75)
-                majorLine:SetPosition(tickHeight, cast(integer, tickY+(thin/2)))
-                majorLine:LoadFilledRectangle(cast(integer, chartWidth - tickHeight), thin, color:LightGray())
+                majorLine:SetPosition(axisWidth, cast(integer, tickY+(thin/2)))
+                majorLine:LoadFilledRectangle(cast(integer, chartWidth - axisWidth), thin, color:LightGray())
     
                 if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetHeight()/2)
@@ -309,8 +346,8 @@ class ChartLayout is Layout
     
                     repeat while j < ((startIndex)+1)*mainVerticalContainer:GetMinorGridlineCount() and minorY < axis:GetHeight()
                         Drawable minorLine = minorlines:Get(j)
-                        minorLine:SetPosition(tickHeight, cast(integer, minorY+thinner))
-                        minorLine:LoadFilledRectangle(cast(integer, chartWidth - tickHeight), thinner, color:LightGray())
+                        minorLine:SetPosition(axisWidth, cast(integer, minorY+thinner))
+                        minorLine:LoadFilledRectangle(cast(integer, chartWidth - axisWidth), thinner, color:LightGray())
                         j = j + 1
                         minorY = minorY + minorScaleDivWidth
                     end
@@ -428,8 +465,14 @@ class ChartLayout is Layout
         minorScaleDivWidth = scaleDivWidth/mainHorizontalContainer:GetMinorGridlineCount()
 
         Drawable axis = mainHorizontalContainer:GetAxis()
+        integer axisHeight = 0
         if axis not= undefined
-            axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth)
+            if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+                axis:LoadFilledRectangle(cast(integer, chartWidth), 0, mainHorizontalContainer:GetAxisColor())
+            else
+                axisHeight = tickWidth
+                axis:LoadFilledRectangle(cast(integer, chartWidth), tickWidth, mainHorizontalContainer:GetAxisColor())
+            end
             axis:SetPosition(0, 0)
         end
 
@@ -488,8 +531,8 @@ class ChartLayout is Layout
                     end
                 end
                 integer thin = cast(integer, tickWidth*0.75)
-                majorLine:SetPosition(cast(integer, tickX+(thin/2)), tickWidth)
-                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight - tickWidth), color:LightGray())
+                majorLine:SetPosition(cast(integer, tickX+(thin/2)), axisHeight)
+                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight - axisHeight), color:LightGray())
     
                 if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetWidth()/2)
@@ -497,8 +540,8 @@ class ChartLayout is Layout
     
                     repeat while j < (startIndex+1)*mainHorizontalContainer:GetMinorGridlineCount() and minorX < axis:GetWidth()
                         Drawable minorLine = minorlines:Get(j)
-                        minorLine:SetPosition(cast(integer, minorX+thinner), tickWidth)
-                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight - tickWidth), color:LightGray())
+                        minorLine:SetPosition(cast(integer, minorX+thinner), axisHeight)
+                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight - axisHeight), color:LightGray())
                         j = j + 1
                         minorX = minorX + minorScaleDivWidth
                     end
