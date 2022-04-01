@@ -1,7 +1,6 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
-use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
@@ -10,6 +9,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Controls.Support.FirstLetterNavigator
+use Libraries.Interface.Views.ControlShaderView
 
 class List is Control, FirstLetterNavigator
 
@@ -27,9 +27,7 @@ class List is Control, FirstLetterNavigator
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:STANDARD)
 
-        Color color
-        properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:Black())
+        SetInterfaceOptionsKey("List")
 
         SetInputGroup("List")
 
@@ -179,10 +177,12 @@ class List is Control, FirstLetterNavigator
 
         if view not= undefined and view not= GetView2D()
             SetView2D(view)
-        elseif GetView2D() = undefined
-            LabelBoxView labelBox
-            labelBox:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
-            SetView2D(labelBox)
+        end
+
+        if GetView2D() = undefined
+            ControlShaderView newView
+            newView:Initialize()
+            SetView2D(newView)
         end
     end
 

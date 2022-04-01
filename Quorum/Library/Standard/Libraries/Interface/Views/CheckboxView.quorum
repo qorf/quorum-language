@@ -8,35 +8,25 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
 
-class CheckboxView is ToggleView, Drawable
+class CheckboxView is ToggleView, ControlShaderView
 
     boolean toggled = false
     Drawable center
-    integer borderThickness = 0
-
-    ColorGroup baseColor = undefined
-    ColorGroup selectColor = undefined
-    ColorGroup borderColor = undefined
-    ColorGroup selectBorderColor = undefined
-    Color checkColor
+    number borderThickness = 0
 
     on create
-        checkColor = checkColor:White()
         SetName("CheckboxView")
     end
 
-    action Initialize(integer size, LayoutProperties properties)
-        baseColor = properties:GetBackgroundColor()
-        selectColor = properties:GetSelectionColor()
-        borderColor = properties:GetBorderColor()
-        selectBorderColor = properties:GetSelectionBorderColor()
+    action Initialize(LayoutProperties properties)
+        parent:ControlShaderView:Initialize()
 
         borderThickness = properties:GetBorderThickness()
 
-        LoadFilledRectangle(size, size, borderColor)
         center:Load(CreateCheckTexture())
-        center:SetSize(size - 2 * borderThickness, size - 2 * borderThickness)
+        center:SetSize(center:GetWidth() - 2 * borderThickness, center:GetHeight() - 2 * borderThickness)
         center:SetPosition(borderThickness, borderThickness)
 
         center:Hide()
@@ -50,22 +40,20 @@ class CheckboxView is ToggleView, Drawable
         Format format
         format:SetValue(format:RGBA8888)
 
-        Color base = selectColor:GetBottomLeft()
+        Color transparent
+        transparent:SetColor(1, 1, 1, 0)
+        Color white = transparent:White()
 
         map:CreatePixelMap(50, 50, format)
-        map:Fill(base)
+        map:Fill(transparent)
         integer i = -2
         repeat while i < 3
-            map:DrawLine(10, 30 + i, 20, 40 + i, checkColor)
-            map:DrawLine(20, 40 + i, 40, 10 + i, checkColor)
+            map:DrawLine(10, 30 + i, 20, 40 + i, white)
+            map:DrawLine(20, 40 + i, 40, 10 + i, white)
             i = i + 1
         end
 
-        Color blur = checkColor:CustomColor(
-            (checkColor:GetRed() + base:GetRed()) / 2.0,
-            (checkColor:GetGreen() + base:GetGreen()) / 2.0,
-            (checkColor:GetBlue() + base:GetBlue()) / 2.0, 
-            1)
+        Color blur = transparent:CustomColor(1, 1, 1, 0.5)
         map:DrawLine(10, 30 - 3, 20, 40 - 3, blur)
         map:DrawLine(20, 40 - 3, 40, 10 - 3, blur)
         map:DrawLine(10, 30 + 3, 20, 40 + 3, blur)
@@ -76,28 +64,20 @@ class CheckboxView is ToggleView, Drawable
         return texture
     end
 
-    action SetCheckColor(Color color)
-        checkColor = color
-
-        Texture checkTexture = center:GetTexture()
-        if checkTexture not= undefined
-            checkTexture:Dispose()
-            center:Load(CreateCheckTexture())
-        end
+    action SetCheckColor(ColorGroup color)
+        center:SetColor(color)
     end
 
-    action GetCheckColor returns Color
-        return checkColor
+    action GetCheckColor returns ColorGroup
+        return center:GetColorGroup()
     end
 
     action SetToggleState(boolean selected)
         toggled = selected
         
         if toggled
-            SetColor(selectBorderColor)
             center:Show()
         else
-            SetColor(borderColor)
             center:Hide()
         end
     end
@@ -134,14 +114,11 @@ class CheckboxView is ToggleView, Drawable
     end
 
     action Copy returns ControlView
-        RadioButtonView view
-        LayoutProperties properties
-        properties:SetBackgroundColor(baseColor)
-        properties:SetBorderColor(borderColor)
-        properties:SetSelectionColor(selectColor)
-        properties:SetSelectionBorderColor(selectBorderColor)
-        properties:SetBorderThickness(borderThickness)
-        view:Initialize(cast(integer, GetWidth()/2), properties)
+        CheckboxView view
+        if GetItem() is Control
+            Control control = cast(Control, GetItem())
+            view:Initialize(control:GetDefaultLayoutProperties())
+        end
         return view
     end
 end

@@ -6,46 +6,20 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Layouts.LayoutProperties
 
-class RadioButtonView is ToggleView, Drawable
+class RadioButtonView is ToggleView, ControlShaderView
 
     boolean toggled = false
-    Drawable center
-    integer borderThickness = 0
-
-    ColorGroup baseColor = undefined
-    ColorGroup selectColor = undefined
-    ColorGroup borderColor = undefined
-    ColorGroup selectBorderColor = undefined
-
-    action Initialize(integer radius, LayoutProperties properties)
-        baseColor = properties:GetBackgroundColor()
-        selectColor = properties:GetSelectionColor()
-        borderColor = properties:GetBorderColor()
-        selectBorderColor = properties:GetSelectionBorderColor()
-
-        borderThickness = properties:GetBorderThickness()
-
-        LoadFilledCircle(radius, borderColor)
-        center:LoadFilledCircle(cast(integer, radius - borderThickness), baseColor)
-        center:SetPosition(borderThickness, borderThickness)
-
-        Add(center)
-    end
 
     action SetToggleState(boolean selected)
         toggled = selected
-        
-        if toggled
-            SetColor(selectBorderColor)
-            center:SetColor(selectColor)
-        else
-            SetColor(borderColor)
-            center:SetColor(baseColor)
-        end
     end
 
     action GetToggleState returns boolean
         return toggled
+    end
+
+    action IsRenderingSelection returns boolean
+        return GetToggleState()
     end
 
     action QueueForDrawing(Painter2D painter)
@@ -59,7 +33,6 @@ class RadioButtonView is ToggleView, Drawable
         end
 
         SetSize(width, height)
-        center:SetSize(width - 2 * borderThickness, height - 2 * borderThickness)
     end
 
     action UpdatePosition(number x, number y, number z)
@@ -77,13 +50,8 @@ class RadioButtonView is ToggleView, Drawable
 
     action Copy returns ControlView
         RadioButtonView view
-        LayoutProperties properties
-        properties:SetBackgroundColor(baseColor)
-        properties:SetBorderColor(borderColor)
-        properties:SetSelectionColor(selectColor)
-        properties:SetSelectionBorderColor(selectBorderColor)
-        properties:SetBorderThickness(borderThickness)
-        view:Initialize(cast(integer, GetWidth()/2), properties)
+        view:Initialize()
+        view:SetToggleState(toggled)
         return view
     end
 end

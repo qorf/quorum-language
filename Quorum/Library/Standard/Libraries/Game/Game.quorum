@@ -190,6 +190,8 @@ use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Options.BasicOptions
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -225,6 +227,7 @@ class Game
     FocusManager focusManager
     Accessibility accessibility = undefined
     EditManager editManager
+    InterfaceOptions interfaceOptions = undefined
 
     public boolean exitRequested = false
 
@@ -255,6 +258,11 @@ class Game
 
     // Used to save to and load from scene files.
     SceneManager sceneManager = undefined
+
+    on create
+        BasicOptions options
+        interfaceOptions = options
+    end
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -5362,4 +5370,71 @@ class Game
         me:firstLetterNavigationTime = firstLetterNavigationTime
     end
 
+    /*
+    This action sets the InterfaceOptions being used by the game, providing default colors and properties
+    for Controls. This affects all Controls currently in the game or that are added later.
+
+    Attribute: Parameter options The new InterfaceOptions to use for the Game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Options.DarkModeOptions
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // DarkModeOptions is one kind of InterfaceOptions we could use for our game.
+            // It will use darker colors to draw interface elements, like Buttons, by default.
+            DarkModeOptions options
+            SetInterfaceOptions(options)
+        end
+    end
+    */
+    action SetInterfaceOptions(InterfaceOptions options)
+        interfaceOptions = options
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            if layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                layer2D:ReloadControlGraphics()
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action returns the InterfaceOptions currently being used by the game. The InterfaceOptions
+    provide default colors and properties for Controls in the game.
+
+    Attribute: Returns The current InterfaceOptions in use by the game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Interface.Options.InterfaceOptions
+    
+    class Main is Game
+    
+        Color color
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            InterfaceOptions options = GetInterfaceOptions()
+    
+            // Once we have the options, we can modify them to adjust how our Controls appear by default.
+            options:SetButtonBackgroundColor(color:Pink())
+        end
+    end
+    */
+    action GetInterfaceOptions returns InterfaceOptions
+        return interfaceOptions
+    end
 end

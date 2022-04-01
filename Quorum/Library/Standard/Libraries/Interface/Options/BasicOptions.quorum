@@ -1,0 +1,184 @@
+package Libraries.Interface.Options
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+
+class BasicOptions is InterfaceOptions
+
+    on create
+        Color color
+
+        SetFontColor(color:Black())
+        SetSelectionFontColor(color:White())
+        SetSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
+        SetBorderColor(color:Black())
+        SetIconColor(color:White())
+
+        Gradient backgroundGradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
+        backgroundGradient:Set(gray, gray, lightGray, lightGray)
+        SetBackgroundColor(backgroundGradient)
+
+        Gradient mouseOverGradient
+        Color mouseOverTop = color:CustomColor(0.92, 0.92, 0.92, 1)
+        Color mouseOverBottom = color:CustomColor(0.81, 0.81, 0.81, 1)
+        mouseOverGradient:Set(mouseOverBottom, mouseOverBottom, mouseOverTop, mouseOverTop)
+        SetMouseOverColor(mouseOverGradient)
+
+        // Default shadow values.
+        SetShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetShadowX(6)
+        SetShadowY(-6)
+        SetShadowEdgeFade(3)
+
+        // Button specific colors.
+        SetButtonBorderThickness(2)
+        SetButtonMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+
+        // Cell specific colors.
+        SetCellBackgroundColor(color:White())
+
+        // Checkbox specific colors.
+        SetCheckboxBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
+        SetCheckboxSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+        SetCheckboxBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
+        SetCheckboxSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
+        SetCheckboxAccentColor(color:White())
+
+        // Dialog specific colors.
+        SetDialogBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+
+        // Dialog bar specific colors.
+        Gradient dialogBarGradient
+        dialogBarGradient:Set(color:CustomColor(0.82, 0.82, 0.82, 1), color:CustomColor(0.82, 0.82, 0.82, 1), color:CustomColor(0.93, 0.93, 0.93, 1), color:CustomColor(0.93, 0.93, 0.93, 1))
+        SetDialogBarBackgroundColor(dialogBarGradient)
+        SetDialogBarBorderColor(color:Black())
+        SetDialogBarForegroundColor(color:CustomColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0))
+        SetDialogBarAccentColor(color:White())
+        SetDialogBarFontColor(color:Black())
+
+        // Dialog accept button colors.
+        Gradient okayGradient
+        Color gradientTop = color:CustomColor(0.85, 0.85, 1, 1)
+        Color gradientBottom = color:CustomColor(0.75, 0.75, 0.9, 1)
+        okayGradient:Set(gradientBottom, gradientBottom, gradientTop, gradientTop)
+        SetDialogAcceptButtonBackgroundColor(okayGradient)
+        
+        Gradient okayMouseOver
+        okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))
+        SetDialogAcceptButtonMouseOverColor(okayMouseOver)
+        SetDialogAcceptButtonMouseDownColor(color:CustomColor(0.58, 0.58, 0.68, 1))
+
+        // Gutter specific colors.
+        SetGutterBackgroundColor(color:CustomColor(233.0/255.0, 232.0/255.0, 226.0/255.0, 1))
+        SetGutterBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
+        SetGutterFontColor(color:Black())
+
+        // List specific colors.
+        SetListBackgroundColor(color:White())
+        SetListBorderColor(color:Black())
+
+        // ListItem specific colors.
+        SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetListItemBorderColor(color:Black())
+        SetListItemSelectionColor(color:CustomColor(9/255.0, 80/255.0, 208/255.0, 1))
+        SetListItemSelectionBorderColor(color:Black())
+        SetListItemFontColor(color:Black())
+        SetListItemSelectionFontColor(color:White())
+
+        // MenuBar specific colors.
+        Gradient menuBarGradient
+        Color menuBarBottom = color:CustomColor(0.85, 0.85, 0.9, 1)
+        Color menuBarTop = color:CustomColor(0.9, 0.9, 0.9, 1)
+        menuBarGradient:Set(menuBarBottom, menuBarBottom, menuBarTop, menuBarTop)
+        SetMenuBarBackgroundColor(menuBarGradient)
+        SetMenuBarBorderColor(color:Black())
+
+        // MenuItem specific colors.
+        SetMenuItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetMenuItemBorderColor(color:CustomColor(1, 1, 1, 0))
+        SetMenuItemSelectionColor(color:CustomColor(0.25, 0.25, 1, 1))
+        SetMenuItemSelectionBorderColor(GetMenuItemSelectionColor())
+
+        // MenuPanel specific colors.
+        SetMenuPanelBackgroundColor(color:CustomColor(0.85, 0.85, 0.9, 1))
+
+        // ProgressBar specific colors.
+        SetProgressBarBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetProgressBarBorderColor(color:Black())
+        SetProgressBarForegroundColor(color:CustomColor(0.282, 0.4, 0.706, 1))
+
+        // RadioButton specific colors.
+        SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
+        SetRadioButtonBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
+        SetRadioButtonSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+        SetRadioButtonSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
+        SetRadioButtonFontColor(color:Black())
+        SetRadioButtonSelectionFontColor(color:Black())
+
+        SetRadioButtonBorderThickness(1)
+
+        // ScrollPane specific colors.
+        SetScrollPaneBackgroundColor(color:White())
+        SetScrollPaneForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetScrollPaneAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
+
+        // Tab specific colors.
+        SetTabSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTabForegroundColor(color:CustomColor(237.0 / 255.0, 113.0 / 255.0, 107.0 / 255.0, 1.0))
+        SetTabAccentColor(color:White())
+        SetTabBorderColor(color:Black())
+        SetTabMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
+        SetTabUnfocusedSelectionFontColor(color:Black())
+        SetTabUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+
+        SetTabBorderThickness(1)
+        SetTabTopLeftRounding(0.5)
+        SetTabTopRightRounding(0.5)
+
+        // TabBar specific colors.
+        SetTabBarBackgroundColor(color:DarkGray())
+        SetTabBarBorderColor(color:Black())
+
+        // TextBox specific colors.
+        SetTextBoxBackgroundColor(color:White())
+        SetTextBoxFontColor(color:Black())
+        SetTextBoxSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
+        SetTextBoxSelectionFontColor(GetTextBoxFontColor())
+        SetTextBoxForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetTextBoxAccentColor(color:CustomColor(0.75, 0.75, 0.75, 1))
+        SetTextBoxIconColor(GetTextBoxFontColor())
+
+        // TextField specific colors.
+        SetTextFieldBackgroundColor(color:White())
+        SetTextFieldFontColor(color:Black())
+        SetTextFieldSelectionColor(color:CustomColor(0.75, 0.75, 1, 1))
+        SetTextFieldSelectionFontColor(GetTextBoxFontColor())
+        SetTextFieldIconColor(GetTextBoxFontColor())
+
+        // ToolBar specific colors.
+        Gradient toolBarGradient
+        toolBarGradient:Set(color:LightGray(), color:LightGray(), color:White(), color:White())
+        SetToolBarBackgroundColor(toolBarGradient)
+        SetToolBarBorderColor(color:Black())
+
+        // TreeItem specific colors.
+        SetTreeItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetTreeItemSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeItemUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeItemUnfocusedSelectionFontColor(color:Black())
+        SetTreeItemAccentColor(color:CustomColor(140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 1.0))
+
+        // TreeTableCell specific colors.
+        SetTreeTableCellBackgroundColor(color:White())
+        SetTreeTableCellSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeTableCellFontColor(color:Black())
+        SetTreeTableCellSelectionFontColor(color:White())
+        SetTreeTableCellBorderColor(color:Black())
+        SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeTableCellUnfocusedSelectionFontColor(color:Black())
+    end
+
+
+end

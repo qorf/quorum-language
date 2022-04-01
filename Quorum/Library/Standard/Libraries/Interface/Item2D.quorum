@@ -2816,6 +2816,11 @@ class Item2D is Item
     action SetLayer(Layer2D parentLayer)
         layer = parentLayer
 
+        if visualView is Item2D
+            Item2D view = cast(Item2D, cast(Object, visualView))
+            view:SetLayer(parentLayer)
+        end
+
         integer i = 0
         repeat children:GetSize() times
             children:Get(i):SetLayer(parentLayer)
@@ -4651,11 +4656,13 @@ class Item2D is Item
 
     action SetView2D(View2D content)
         visualView = content
-        visualView:SetItem(me)
-        visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
-        visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
-        visualView:UpdateFlipping(flipX, flipY)
-        visualView:UpdateRotation(GetRotation())
+        if visualView not= undefined
+            visualView:SetItem(me)
+            visualView:UpdateSize(GetWidth() * GetScaleX(), GetHeight() * GetScaleY())
+            visualView:UpdatePosition(GetGlobalX(), GetGlobalY(), GetGlobalZ())
+            visualView:UpdateFlipping(flipX, flipY)
+            visualView:UpdateRotation(GetRotation())
+        end
     end
 
     action GetView2D returns View2D

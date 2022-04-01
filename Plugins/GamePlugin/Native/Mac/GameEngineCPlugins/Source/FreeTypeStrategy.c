@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTyp
 
 JNIEXPORT jobject JNICALL Java_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_LoadBitmap(JNIEnv * env, jobject jobj, jlongArray bitmapData, jchar sym, jlong faceHandle)
 {
-    char symbol = sym;
+    FT_ULong symbol = sym;
     
     FT_Face *face = (FT_Face*)faceHandle;
     

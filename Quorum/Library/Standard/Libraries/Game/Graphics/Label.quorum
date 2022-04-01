@@ -62,6 +62,7 @@ class Label is Control
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
         SetName("Label")
+        SetInterfaceOptionsKey("Label")
     end
 
 
@@ -404,7 +405,7 @@ class Label is Control
             end
         end
     */
-    action SetColor(Color color)
+    action SetColor(ColorGroup color)
         parent:Control:SetFontColor(color)
         ResetDrawableColors()
     end
@@ -417,7 +418,7 @@ class Label is Control
     end
 
     private action ResetDrawableColors
-        Color color = GetCurrentColor()
+        ColorGroup color = GetCurrentColor()
         Array<Item2D> children = GetChildren()
         integer counter = 0
         repeat while counter < children:GetSize()
@@ -429,7 +430,7 @@ class Label is Control
         end
     end
 
-    action SetFontColor(Color color)
+    action SetFontColor(ColorGroup color)
         SetColor(color)
     end
 
@@ -438,7 +439,7 @@ class Label is Control
     Always returns the font color stored in the layout properties, but this
     can be overridden by inheriting classes to use colors from other sources.
     */
-    private action GetCurrentColor returns Color
+    private action GetCurrentColor returns ColorGroup
         return GetFontColor()
     end
 
@@ -506,7 +507,7 @@ class Label is Control
             end
         end
     */
-    action GetColor returns Color
+    action GetColor returns ColorGroup
         return GetFontColor()
     end
 
@@ -727,7 +728,7 @@ class Label is Control
                 maxDescent = font:GetMaximumDescent()
             end
 
-            Color fontColor = GetCurrentColor()
+            ColorGroup fontColor = GetCurrentColor()
 
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
