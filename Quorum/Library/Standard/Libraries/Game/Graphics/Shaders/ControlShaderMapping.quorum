@@ -85,7 +85,7 @@ class ControlShaderMapping is ShaderMapping
             topRightRounding = properties:GetTopRightRounding()
             topLeftRounding = properties:GetTopLeftRounding()
 
-            borderThickness = (2.0 / height) * (properties:GetBorderThickness() * properties:GetInterfaceScale())
+            borderThickness = (1.0 / height) * (properties:GetBorderThickness() * properties:GetInterfaceScale())
             if properties:GetBorderColor() not= undefined
                 borderColor = properties:GetBorderColor():GetBottomLeft()
             end
@@ -128,7 +128,7 @@ class ControlShaderMapping is ShaderMapping
                 topRightRounding = control:GetTopRightRounding()
                 topLeftRounding = control:GetTopLeftRounding()
 
-                borderThickness = (2.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
 
                 /*
                 Determine what color the control should be, based on how the user is interacting with it.
@@ -161,6 +161,16 @@ class ControlShaderMapping is ShaderMapping
                     backgroundColor = control:GetMouseOverColor()
                 end
 
+                if control:IsFocused()
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetFocusColor()
+                    end
+
+                    if borderColor = undefined
+                        borderColor = control:GetFocusBorderColor()
+                    end
+                end
+
                 if backgroundColor = undefined
                     backgroundColor = control:GetBackgroundColor()
                 end
@@ -180,7 +190,7 @@ class ControlShaderMapping is ShaderMapping
         program:SetShaderInput("u_enabledBorders", leftBorder, topBorder, rightBorder, bottomBorder)
         program:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
         program:SetShaderInput("u_borderThickness", borderThickness)
-        program:SetShaderInput("u_antiAliasDistance", 2.0 / height)
+        program:SetShaderInput("u_antiAliasDistance", 1.0 / height)
 
         if borderColor not= undefined
             Color border = borderColor:GetBottomLeft()

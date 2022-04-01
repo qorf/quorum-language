@@ -4,6 +4,73 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 
+/*
+The InterfaceOptions class handles the default colors and properties for interface elements
+in a Game. Options can be set to provide default values for all elements, or values for all 
+elements of a particular type. The default values provided by the InterfaceOptions can still
+be overridden by individual elements.
+
+By default, some Controls have special uses for certain properties, which are listed below.
+
+Checkboxes use the background and border colors when toggled off, and use the selection color and selection border color when toggled on. Checkboxes will use the accent color for the "check mark" in a toggled checkbox.
+Dialogs use the shadow color, shadow x/y, shadow width/height, and shadow edge fade.
+OptionDialogs use the "DialogAcceptButton" properties by default to change the "OK" button.
+ProgressBars use the foreground color to draw the "filled" portion of a ProgressBar.
+RadioButtons use the background and border colors when toggled off, and use the selection color and selection border color when toggled on.
+ScrollPanes use the foreground color for the scroll track, and the accent color for the scroll control (the sliding bit).
+Tabs use the foreground color for the background of the "close" button, and the accent color for the "x" symbol on that button.
+TextBoxes use the foreground color and accent color for the scroll track and control, respectively, similar to ScrollPanes. The selection color and selection font color are used for selected regions of text, and the icon color is applied to the caret.
+TextFields use selection color and selection font color for selected regions of text, and the icon color is applied to the caret.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+
+    Color color
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        // Get the default options stored in the Game, then modify the button options.
+        InterfaceOptions options = GetInterfaceOptions()
+        options:SetButtonBackgroundColor(color:Pink())
+        options:SetButtonFontColor(color:Maroon())
+        options:SetButtonBorderThickness(1)
+
+        // Make a new set of custom options, which Controls can opt into using.
+        InterfaceOptions custom
+        custom:SetBackgroundColor(color:Cyan())
+        custom:SetFontColor(color:Teal())
+        custom:SetBorderColor(color:Blue())
+        custom:SetBorderThickness(2)
+
+        // Add the custom options to the Game's default options as a special palette with a custom name
+        options:SetInterfaceOptions("CustomOptions", custom)
+
+        // Add two buttons to the game so we can see some of the effects of changing the interface options.
+        FlowLayout layout
+        SetLayout(layout)
+
+        Button button1
+        button1:SetName("First")
+        Add(button1)
+
+        Button button2
+        button2:SetName("Second")
+        Add(button2)
+
+        // We'll make the second button use our custom options by setting its interface key.
+        button2:SetInterfaceOptionsKey("CustomOptions")
+    end
+end
+*/
 class InterfaceOptions
 
     // Key values for color properties.
@@ -12,6 +79,8 @@ class InterfaceOptions
     public constant text FONT_COLOR = "fontColor"
     public constant text BORDER_COLOR = "borderColor"
     public constant text FOCUS_COLOR = "focusColor"
+    public constant text FOCUS_FONT_COLOR = "focusFontColor"
+    public constant text FOCUS_BORDER_COLOR = "focusBorderColor"
     public constant text MOUSE_OVER_COLOR = "mouseOverColor"
     public constant text MOUSE_OVER_FONT_COLOR = "mouseOverFontColor"
     public constant text MOUSE_DOWN_COLOR = "mouseDownColor"
@@ -299,6 +368,60 @@ class InterfaceOptions
             return undefined
         else
             return palette:GetFocusColor()
+        end
+    end
+
+    action SetFocusFontColor(ColorGroup value)
+        SetColorProperty(FOCUS_FONT_COLOR, value)
+    end
+
+    action GetFocusFontColor returns ColorGroup
+        return GetColorProperty(FOCUS_FONT_COLOR)
+    end
+
+    action SetFocusFontColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetFocusFontColor(value)
+    end
+
+    action GetFocusFontColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetFocusFontColor()
+        end
+    end
+
+    action SetFocusBorderColor(ColorGroup value)
+        SetColorProperty(FOCUS_BORDER_COLOR, value)
+    end
+
+    action GetFocusBorderColor returns ColorGroup
+        return GetColorProperty(FOCUS_BORDER_COLOR)
+    end
+
+    action SetFocusBorderColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetFocusBorderColor(value)
+    end
+
+    action GetFocusBorderColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetFocusBorderColor()
         end
     end
 
@@ -1124,6 +1247,22 @@ class InterfaceOptions
         return GetFocusColor(BUTTON)
     end
 
+    action SetButtonFocusFontColor(ColorGroup value)
+        SetFocusFontColor(BUTTON, value)
+    end
+
+    action GetButtonFocusFontColor returns ColorGroup
+        return GetFocusFontColor(BUTTON)
+    end
+
+    action SetButtonFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(BUTTON, value)
+    end
+
+    action GetButtonFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(BUTTON)
+    end
+
     action SetButtonMouseOverColor(ColorGroup value)
         SetMouseOverColor(BUTTON, value)
     end
@@ -1414,6 +1553,22 @@ class InterfaceOptions
 
     action GetCellFocusColor returns ColorGroup
         return GetFocusColor(CELL)
+    end
+
+    action SetCellFocusFontColor(ColorGroup value)
+        SetFocusFontColor(CELL, value)
+    end
+
+    action GetCellFocusFontColor returns ColorGroup
+        return GetFocusFontColor(CELL)
+    end
+
+    action SetCellFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(CELL, value)
+    end
+
+    action GetCellFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(CELL)
     end
 
     action SetCellMouseOverColor(ColorGroup value)
@@ -1708,6 +1863,22 @@ class InterfaceOptions
         return GetFocusColor(CHECKBOX)
     end
 
+    action SetCheckboxFocusFontColor(ColorGroup value)
+        SetFocusFontColor(CHECKBOX, value)
+    end
+
+    action GetCheckboxFocusFontColor returns ColorGroup
+        return GetFocusFontColor(CHECKBOX)
+    end
+
+    action SetCheckboxFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(CHECKBOX, value)
+    end
+
+    action GetCheckboxFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(CHECKBOX)
+    end
+
     action SetCheckboxMouseOverColor(ColorGroup value)
         SetMouseOverColor(CHECKBOX, value)
     end
@@ -1998,6 +2169,22 @@ class InterfaceOptions
 
     action GetDialogFocusColor returns ColorGroup
         return GetFocusColor(DIALOG)
+    end
+
+    action SetDialogFocusFontColor(ColorGroup value)
+        SetFocusFontColor(DIALOG, value)
+    end
+
+    action GetDialogFocusFontColor returns ColorGroup
+        return GetFocusFontColor(DIALOG)
+    end
+
+    action SetDialogFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(DIALOG, value)
+    end
+
+    action GetDialogFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(DIALOG)
     end
 
     action SetDialogMouseOverColor(ColorGroup value)
@@ -2292,6 +2479,22 @@ class InterfaceOptions
         return GetFocusColor(DIALOG_BAR)
     end
 
+    action SetDialogBarFocusFontColor(ColorGroup value)
+        SetFocusFontColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarFocusFontColor returns ColorGroup
+        return GetFocusFontColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(DIALOG_BAR)
+    end
+
     action SetDialogBarMouseOverColor(ColorGroup value)
         SetMouseOverColor(DIALOG_BAR, value)
     end
@@ -2582,6 +2785,22 @@ class InterfaceOptions
 
     action GetDialogAcceptButtonFocusColor returns ColorGroup
         return GetFocusColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonFocusFontColor(ColorGroup value)
+        SetFocusFontColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonFocusFontColor returns ColorGroup
+        return GetFocusFontColor(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetDialogAcceptButtonFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(DIALOG_ACCEPT_BUTTON)
     end
 
     action SetDialogAcceptButtonMouseOverColor(ColorGroup value)
@@ -2876,6 +3095,22 @@ class InterfaceOptions
         return GetFocusColor(GUTTER)
     end
 
+    action SetGutterFocusFontColor(ColorGroup value)
+        SetFocusFontColor(GUTTER, value)
+    end
+
+    action GetGutterFocusFontColor returns ColorGroup
+        return GetFocusFontColor(GUTTER)
+    end
+
+    action SetGutterFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(GUTTER, value)
+    end
+
+    action GetGutterFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(GUTTER)
+    end
+
     action SetGutterMouseOverColor(ColorGroup value)
         SetMouseOverColor(GUTTER, value)
     end
@@ -3166,6 +3401,22 @@ class InterfaceOptions
 
     action GetLabelFocusColor returns ColorGroup
         return GetFocusColor(LABEL)
+    end
+
+    action SetLabelFocusFontColor(ColorGroup value)
+        SetFocusFontColor(LABEL, value)
+    end
+
+    action GetLabelFocusFontColor returns ColorGroup
+        return GetFocusFontColor(LABEL)
+    end
+
+    action SetLabelFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(LABEL, value)
+    end
+
+    action GetLabelFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(LABEL)
     end
 
     action SetLabelMouseOverColor(ColorGroup value)
@@ -3460,6 +3711,22 @@ class InterfaceOptions
         return GetFocusColor(LIST)
     end
 
+    action SetListFocusFontColor(ColorGroup value)
+        SetFocusFontColor(LIST, value)
+    end
+
+    action GetListFocusFontColor returns ColorGroup
+        return GetFocusFontColor(LIST)
+    end
+
+    action SetListFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(LIST, value)
+    end
+
+    action GetListFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(LIST)
+    end
+
     action SetListMouseOverColor(ColorGroup value)
         SetMouseOverColor(LIST, value)
     end
@@ -3750,6 +4017,22 @@ class InterfaceOptions
 
     action GetListItemFocusColor returns ColorGroup
         return GetFocusColor(LIST_ITEM)
+    end
+
+    action SetListItemFocusFontColor(ColorGroup value)
+        SetFocusFontColor(LIST_ITEM, value)
+    end
+
+    action GetListItemFocusFontColor returns ColorGroup
+        return GetFocusFontColor(LIST_ITEM)
+    end
+
+    action SetListItemFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(LIST_ITEM, value)
+    end
+
+    action GetListItemFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(LIST_ITEM)
     end
 
     action SetListItemMouseOverColor(ColorGroup value)
@@ -4044,6 +4327,22 @@ class InterfaceOptions
         return GetFocusColor(MENU_BAR)
     end
 
+    action SetMenuBarFocusFontColor(ColorGroup value)
+        SetFocusFontColor(MENU_BAR, value)
+    end
+
+    action GetMenuBarFocusFontColor returns ColorGroup
+        return GetFocusFontColor(MENU_BAR)
+    end
+
+    action SetMenuBarFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(MENU_BAR, value)
+    end
+
+    action GetMenuBarFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(MENU_BAR)
+    end
+
     action SetMenuBarMouseOverColor(ColorGroup value)
         SetMouseOverColor(MENU_BAR, value)
     end
@@ -4334,6 +4633,22 @@ class InterfaceOptions
 
     action GetMenuItemFocusColor returns ColorGroup
         return GetFocusColor(MENU_ITEM)
+    end
+
+    action SetMenuItemFocusFontColor(ColorGroup value)
+        SetFocusFontColor(MENU_ITEM, value)
+    end
+
+    action GetMenuItemFocusFontColor returns ColorGroup
+        return GetFocusFontColor(MENU_ITEM)
+    end
+
+    action SetMenuItemFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(MENU_ITEM, value)
+    end
+
+    action GetMenuItemFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(MENU_ITEM)
     end
 
     action SetMenuItemMouseOverColor(ColorGroup value)
@@ -4628,6 +4943,22 @@ class InterfaceOptions
         return GetFocusColor(MENU_PANEL)
     end
 
+    action SetMenuPanelFocusFontColor(ColorGroup value)
+        SetFocusFontColor(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelFocusFontColor returns ColorGroup
+        return GetFocusFontColor(MENU_PANEL)
+    end
+
+    action SetMenuPanelFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(MENU_PANEL)
+    end
+
     action SetMenuPanelMouseOverColor(ColorGroup value)
         SetMouseOverColor(MENU_PANEL, value)
     end
@@ -4918,6 +5249,22 @@ class InterfaceOptions
 
     action GetProgressBarFocusColor returns ColorGroup
         return GetFocusColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarFocusFontColor(ColorGroup value)
+        SetFocusFontColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarFocusFontColor returns ColorGroup
+        return GetFocusFontColor(PROGRESS_BAR)
+    end
+
+    action SetProgressBarFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(PROGRESS_BAR)
     end
 
     action SetProgressBarMouseOverColor(ColorGroup value)
@@ -5212,6 +5559,22 @@ class InterfaceOptions
         return GetFocusColor(RADIO_BUTTON)
     end
 
+    action SetRadioButtonFocusFontColor(ColorGroup value)
+        SetFocusFontColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonFocusFontColor returns ColorGroup
+        return GetFocusFontColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(RADIO_BUTTON)
+    end
+
     action SetRadioButtonMouseOverColor(ColorGroup value)
         SetMouseOverColor(RADIO_BUTTON, value)
     end
@@ -5502,6 +5865,22 @@ class InterfaceOptions
 
     action GetScrollPaneFocusColor returns ColorGroup
         return GetFocusColor(SCROLL_PANE)
+    end
+
+    action SetScrollPaneFocusFontColor(ColorGroup value)
+        SetFocusFontColor(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneFocusFontColor returns ColorGroup
+        return GetFocusFontColor(SCROLL_PANE)
+    end
+
+    action SetScrollPaneFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(SCROLL_PANE)
     end
 
     action SetScrollPaneMouseOverColor(ColorGroup value)
@@ -5796,6 +6175,22 @@ class InterfaceOptions
         return GetFocusColor(TAB)
     end
 
+    action SetTabFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TAB, value)
+    end
+
+    action GetTabFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TAB)
+    end
+
+    action SetTabFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TAB, value)
+    end
+
+    action GetTabFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TAB)
+    end
+
     action SetTabMouseOverColor(ColorGroup value)
         SetMouseOverColor(TAB, value)
     end
@@ -6086,6 +6481,22 @@ class InterfaceOptions
 
     action GetTabBarFocusColor returns ColorGroup
         return GetFocusColor(TAB_BAR)
+    end
+
+    action SetTabBarFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TAB_BAR, value)
+    end
+
+    action GetTabBarFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TAB_BAR)
+    end
+
+    action SetTabBarFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TAB_BAR, value)
+    end
+
+    action GetTabBarFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TAB_BAR)
     end
 
     action SetTabBarMouseOverColor(ColorGroup value)
@@ -6380,6 +6791,22 @@ class InterfaceOptions
         return GetFocusColor(TEXT_BOX)
     end
 
+    action SetTextBoxFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TEXT_BOX)
+    end
+
+    action SetTextBoxFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TEXT_BOX)
+    end
+
     action SetTextBoxMouseOverColor(ColorGroup value)
         SetMouseOverColor(TEXT_BOX, value)
     end
@@ -6670,6 +7097,22 @@ class InterfaceOptions
 
     action GetTextFieldFocusColor returns ColorGroup
         return GetFocusColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TEXT_FIELD)
+    end
+
+    action SetTextFieldFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TEXT_FIELD)
     end
 
     action SetTextFieldMouseOverColor(ColorGroup value)
@@ -6964,6 +7407,22 @@ class InterfaceOptions
         return GetFocusColor(TOOL_BAR)
     end
 
+    action SetToolBarFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TOOL_BAR, value)
+    end
+
+    action GetToolBarFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TOOL_BAR)
+    end
+
+    action SetToolBarFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TOOL_BAR, value)
+    end
+
+    action GetToolBarFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TOOL_BAR)
+    end
+
     action SetToolBarMouseOverColor(ColorGroup value)
         SetMouseOverColor(TOOL_BAR, value)
     end
@@ -7256,6 +7715,22 @@ class InterfaceOptions
         return GetFocusColor(TREE_ITEM)
     end
 
+    action SetTreeItemFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TREE_ITEM)
+    end
+
+    action SetTreeItemFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TREE_ITEM)
+    end
+
     action SetTreeItemMouseOverColor(ColorGroup value)
         SetMouseOverColor(TREE_ITEM, value)
     end
@@ -7546,6 +8021,22 @@ class InterfaceOptions
 
     action GetTreeTableCellFocusColor returns ColorGroup
         return GetFocusColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TREE_TABLE_CELL)
     end
 
     action SetTreeTableCellMouseOverColor(ColorGroup value)

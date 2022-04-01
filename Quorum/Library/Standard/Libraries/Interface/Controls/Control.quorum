@@ -1057,6 +1057,22 @@ class Control is Item2D
         return defaultProperties:GetFocusColor()
     end
 
+    action SetFocusFontColor(ColorGroup value)
+        defaultProperties:SetFocusFontColor(value)
+    end
+
+    action GetFocusFontColor returns ColorGroup
+        return defaultProperties:GetFocusFontColor()
+    end
+
+    action SetFocusBorderColor(ColorGroup value)
+        defaultProperties:SetFocusBorderColor(value)
+    end
+
+    action GetFocusBorderColor returns ColorGroup
+        return defaultProperties:GetFocusBorderColor()
+    end
+
     action SetMouseOverColor(ColorGroup value)
         defaultProperties:SetMouseOverColor(value)
     end

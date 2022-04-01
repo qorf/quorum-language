@@ -33,6 +33,7 @@ class BasicOptions is InterfaceOptions
         SetShadowEdgeFade(3)
 
         // Button specific colors.
+        SetButtonBorderThickness(2)
         SetButtonMouseDownColor(color:CustomColor(0.68, 0.68, 0.68, 1))
 
         // Cell specific colors.
@@ -116,6 +117,8 @@ class BasicOptions is InterfaceOptions
         SetRadioButtonFontColor(color:Black())
         SetRadioButtonSelectionFontColor(color:Black())
 
+        SetRadioButtonBorderThickness(1)
+
         // ScrollPane specific colors.
         SetScrollPaneBackgroundColor(color:White())
         SetScrollPaneForegroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
@@ -130,8 +133,9 @@ class BasicOptions is InterfaceOptions
         SetTabUnfocusedSelectionFontColor(color:Black())
         SetTabUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
 
-        SetTabTopLeftRounding(0.1)
-        SetTabTopRightRounding(0.1)
+        SetTabBorderThickness(1)
+        SetTabTopLeftRounding(0.5)
+        SetTabTopRightRounding(0.5)
 
         // TabBar specific colors.
         SetTabBarBackgroundColor(color:DarkGray())

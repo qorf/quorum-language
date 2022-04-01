@@ -35,16 +35,12 @@ class DarkModeOptions is InterfaceOptions
         SetShadowEdgeFade(3)
 
         // Button specific colors.
+        SetButtonBorderThickness(2)
+        SetButtonFocusColor(defaultSelectionColor)
+        SetButtonFocusFontColor(color:White())
         SetButtonMouseDownColor(color:CustomColor(222.0 / MAX, 217.0 / MAX, 224.0 / MAX, 1))
         SetButtonFontColor(color:CustomColor(175.0 / MAX, 177.0 / MAX, 179.0 / MAX, 1))
         SetButtonBackgroundColor(color:CustomColor(60.0 / MAX, 63.0 / MAX, 65.0 / MAX, 1))
-
-        //Accept button (Ok style button) background
-        //color:CustomColor(54.0/MAX, 88.0/MAX, 128.0/MAX, 1)
-        //accept button font
-        //color:CustomColor(187.0/MAX, 187.0/MAX, 187.0/MAX, 1)
-        //accept button border color
-        //color:CustomColor(187.0/MAX, 187.0/MAX, 187.0/MAX, 1)
 
         // Cell specific colors.
         SetCellBackgroundColor(color:White())
@@ -74,6 +70,8 @@ class DarkModeOptions is InterfaceOptions
         SetRadioButtonFontColor(commonFontColor)
         SetRadioButtonSelectionFontColor(commonFontColor)
 
+        SetRadioButtonBorderThickness(1)
+
         // TabBar specific colors.
         SetTabBarBackgroundColor(darkGray)
         SetTabBarBorderColor(color:CustomColor(50.0 / MAX, 50.0 / MAX, 50.0 / MAX, 1))
@@ -88,6 +86,7 @@ class DarkModeOptions is InterfaceOptions
         SetTabUnfocusedSelectionFontColor(commonFontColor)
         SetTabUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
 
+        SetTabBorderThickness(1)
         SetTabTopLeftRounding(0.5)
         SetTabTopRightRounding(0.5)
 
@@ -156,7 +155,9 @@ class DarkModeOptions is InterfaceOptions
         SetDialogBarFontColor(commonFontColor)
 
         // Dialog accept button colors.
-        SetDialogAcceptButtonBackgroundColor(color:CustomColor(50.0 / MAX, 53.0 / MAX, 85.0 / MAX, 1))
+        SetDialogAcceptButtonBackgroundColor(color:CustomColor(54.0/MAX, 88.0/MAX, 128.0/MAX, 1))
+        SetDialogAcceptButtonFontColor(color:CustomColor(187.0/MAX, 187.0/MAX, 187.0/MAX, 1))
+        SetDialogAcceptButtonBorderColor(color:CustomColor(187.0/MAX, 187.0/MAX, 187.0/MAX, 1))
         
         Gradient okayMouseOver
         okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))

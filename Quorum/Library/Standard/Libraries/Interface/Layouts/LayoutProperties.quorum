@@ -690,6 +690,52 @@ class LayoutProperties
         return default:GetFocusColor()
     end
 
+    action SetFocusFontColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFocusFontColor(value)
+        needsRendering = true
+    end
+
+    action GetFocusFontColor returns ColorGroup
+        if options not= undefined and options:GetFocusFontColor() not= undefined
+            return options:GetFocusFontColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetFocusFontColor() not= undefined
+            return controlPalette:GetFocusFontColor()
+        end
+
+        return default:GetFocusFontColor()
+    end
+
+    action SetFocusBorderColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFocusBorderColor(value)
+        needsRendering = true
+    end
+
+    action GetFocusBorderColor returns ColorGroup
+        if options not= undefined and options:GetFocusBorderColor() not= undefined
+            return options:GetFocusBorderColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetFocusBorderColor() not= undefined
+            return controlPalette:GetFocusBorderColor()
+        end
+
+        return default:GetFocusBorderColor()
+    end
+
     action SetMouseOverColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1081,7 +1127,6 @@ class LayoutProperties
         if default:HasBorderThickness()
             return default:GetBorderThickness()
         end
-
         return 0
     end
 

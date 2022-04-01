@@ -36,14 +36,12 @@ class LightModeOptions is InterfaceOptions
         SetShadowEdgeFade(3)
 
         // Button specific colors.
+        SetButtonBorderThickness(2)
+        SetButtonFocusColor(defaultSelectionColor)
+        SetButtonFocusFontColor(color:White())
         SetButtonMouseDownColor(color:CustomColor(223.0 / MAX, 223.0 / MAX, 223.0 / MAX, 1))
         SetButtonFontColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 1))
         SetButtonBackgroundColor(lightGray)
-
-        //Accept button (Ok style button) background
-        //color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1)
-        //accept button font
-        //color:White()
 
         // Cell specific colors.
         SetCellBackgroundColor(color:White())
@@ -74,6 +72,8 @@ class LightModeOptions is InterfaceOptions
         SetRadioButtonFontColor(color:Black())
         SetRadioButtonSelectionFontColor(color:Black())
 
+        SetRadioButtonBorderThickness(1)
+
         // TabBar specific colors.
         SetTabBarBackgroundColor(color:CustomColor(224.0 / MAX, 224.0 / MAX, 224.0 / MAX, 1))
         SetTabBarBorderColor(color:Black())
@@ -88,8 +88,9 @@ class LightModeOptions is InterfaceOptions
         SetTabUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
         SetTabUnfocusedSelectionFontColor(color:Black())
 
-        SetTabTopLeftRounding(0.1)
-        SetTabTopRightRounding(0.1)
+        SetTabBorderThickness(1)
+        SetTabTopLeftRounding(0.5)
+        SetTabTopRightRounding(0.5)
 
         //TREES
         //Trees use the control label to represent their selection when
@@ -152,11 +153,8 @@ class LightModeOptions is InterfaceOptions
         SetDialogBarFontColor(color:Black())
 
         // Dialog accept button colors.
-        Gradient okayGradient
-        Color gradientTop = color:CustomColor(0.85, 0.85, 1, 1)
-        Color gradientBottom = color:CustomColor(0.75, 0.75, 0.9, 1)
-        okayGradient:Set(gradientBottom, gradientBottom, gradientTop, gradientTop)
-        SetDialogAcceptButtonBackgroundColor(okayGradient)
+        SetDialogAcceptButtonBackgroundColor(color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1))
+        SetDialogAcceptButtonFontColor(color:White())
         
         Gradient okayMouseOver
         okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))

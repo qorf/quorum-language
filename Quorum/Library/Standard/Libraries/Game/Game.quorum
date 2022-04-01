@@ -5370,6 +5370,30 @@ class Game
         me:firstLetterNavigationTime = firstLetterNavigationTime
     end
 
+    /*
+    This action sets the InterfaceOptions being used by the game, providing default colors and properties
+    for Controls. This affects all Controls currently in the game or that are added later.
+
+    Attribute: Parameter options The new InterfaceOptions to use for the Game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Options.DarkModeOptions
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // DarkModeOptions is one kind of InterfaceOptions we could use for our game.
+            // It will use darker colors to draw interface elements, like Buttons, by default.
+            DarkModeOptions options
+            SetInterfaceOptions(options)
+        end
+    end
+    */
     action SetInterfaceOptions(InterfaceOptions options)
         interfaceOptions = options
         integer counter = 0
@@ -5383,6 +5407,33 @@ class Game
         end
     end
 
+    /*
+    This action returns the InterfaceOptions currently being used by the game. The InterfaceOptions
+    provide default colors and properties for Controls in the game.
+
+    Attribute: Returns The current InterfaceOptions in use by the game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Interface.Options.InterfaceOptions
+    
+    class Main is Game
+    
+        Color color
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            InterfaceOptions options = GetInterfaceOptions()
+    
+            // Once we have the options, we can modify them to adjust how our Controls appear by default.
+            options:SetButtonBackgroundColor(color:Pink())
+        end
+    end
+    */
     action GetInterfaceOptions returns InterfaceOptions
         return interfaceOptions
     end
