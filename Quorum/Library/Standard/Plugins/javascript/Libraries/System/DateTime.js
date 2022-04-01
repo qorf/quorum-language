@@ -7,21 +7,21 @@ function plugins_quorum_Libraries_System_DateTime_() {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getFullYear();
+        return this.date.getFullYear();
     };  
 
     this.GetMonth = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getMonth() + 1;
+        return this.date.getMonth() + 1;
     };  
     
     this.GetDayOfMonth = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getDate();
+        return this.date.getDate();
     };  
     
     this.GetDayOfWeek = function () {
@@ -30,7 +30,7 @@ function plugins_quorum_Libraries_System_DateTime_() {
         if(this.now) {
             this.date = new Date();
         }
-        let day = date.getDay();
+        let day = this.date.getDay();
         if(day == 0) {
             day = 7;
         }
@@ -41,28 +41,28 @@ function plugins_quorum_Libraries_System_DateTime_() {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getHour();
+        return this.date.getHour();
     };  
     
     this.GetMinute = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getMinute();
+        return this.date.getMinute();
     };  
     
     this.GetSecond = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getSecond();
+        return this.date.getSecond();
     };  
     
     this.GetTimeZone = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return date.getTimezoneOffset();
+        return this.date.getTimezoneOffset();
     };  
     
     this.IsDaylightSavings = function () {
@@ -172,7 +172,7 @@ function plugins_quorum_Libraries_System_DateTime_() {
         }
         // check further
         let arr = value.split('-');
-        if(arr.length != 3 && value.length != 10)
+        if(arr.length != 3 || value.length != 10)
         {
         	let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
             exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
@@ -193,7 +193,7 @@ function plugins_quorum_Libraries_System_DateTime_() {
         }
         // check further
         let arr = value.split('/');
-        if(arr.length != 3 && value.length > 10)
+        if(arr.length != 3)
         {
             let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
             exceptionInstance_.SetErrorMessage$quorum_text("Could not parse '"+value+"' as a date.");
@@ -210,11 +210,11 @@ function plugins_quorum_Libraries_System_DateTime_() {
     };
 
     this.IsBefore$quorum_Libraries_System_DateTime_ = function (value) {
-        return date < value.plugin_.date;
+        return this.date < value.plugin_.date;
     };
 
     this.IsAfter$quorum_Libraries_System_DateTime_ = function () {
-        return date > value.plugin_.date;
+        return this.date > value.plugin_.date;
     };
 
     // Math functions

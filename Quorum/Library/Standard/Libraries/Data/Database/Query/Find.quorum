@@ -437,6 +437,7 @@ class Find is Query
         target:SetName(name)
         target:SetTable(table)
         target:SetDistinct(ascending)
+        sorts:Add(target)
     end
     /*
         This action removes all sorts.

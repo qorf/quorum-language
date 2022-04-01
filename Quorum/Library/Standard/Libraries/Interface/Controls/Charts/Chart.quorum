@@ -78,6 +78,7 @@ class Chart is Control
     private boolean horizontalOrientation = false
     private boolean verticalOrientation = false
     private boolean orientationChanged = false
+    private boolean orientationCapable = true
 
     // Title Area Components
     private number titleAreaHeightPercent = 0.05
@@ -99,20 +100,27 @@ class Chart is Control
 //    private text subtitleLocation = "center"
 
     // Chart Area Components
-    private ChartAreaPanel chartArea
-    private Array <ChartAreaPanel> subChartAreas
     private Drawable background = undefined
+    private ChartAreaPanel chartArea
     private Array<Icon> groupPanels
     private integer paddedChartOffset = 0
     private integer numberOfChartAreas = 1
-    private boolean separateByFactor = false
-    private boolean defaultSeparation = false
-    private boolean overrideDefaultSeparation = false
-    private boolean regressionCapable = false
     private integer regLineDensity = 0
+    private Color regLineColor = undefined
+    private boolean regressionCapable = false
     private boolean hasGroups = false
     private boolean defaultShowBrackets = false
     private boolean overrideDefaultShowBrackets = false
+
+    // Chart Area Facetting
+    private Array <ChartAreaPanel> subChartAreas
+    private boolean separationCapable = true
+    private boolean separateByFactor = false
+    private boolean separateBySeries = false
+    private boolean defaultSeparateBySeries = false
+    private boolean defaultSeparateByFactor = false
+    private boolean overrideDefaultSeparation = false
+    private boolean showSubChartAreaBorders = true
 
     // X-Axis Components
     private HorizontalAxisPanel horizontalPanel
@@ -126,6 +134,7 @@ class Chart is Control
     private number horizontalPanelWidthPercent = 0.75
     private number horizontalPanelHeightPercent = 0.05
     private integer xLabelsRotation = 0
+    private boolean xAxisIsIndependent = true
 
     // Y-Axis Components
     private VerticalAxisPanel verticalPanel
@@ -183,7 +192,9 @@ class Chart is Control
         // Load background/border of chart area
         chartArea:LoadChartAreaView()
         
-        if defaultSeparation and not overrideDefaultSeparation
+        if defaultSeparateBySeries and not overrideDefaultSeparation
+            SeparateBySeries()
+        elseif defaultSeparateByFactor and not overrideDefaultSeparation
             SeparateByFactor()
         end
 
@@ -199,22 +210,62 @@ class Chart is Control
 
         // Load sub chart areas and sub axis panels
         if numberOfChartAreas > 1
+            Array<text> factorList = GetFactorList()
+            if separateByFactor
+                Array<text> newLabels
+                integer size = GetSeriesList():GetSize()
+                integer j = 0
+                repeat while j < size
+                    newLabels:Add(GetSeriesList():Get(j):GetName())
+                    j = j + 1
+                end
+                if xAxisIsIndependent
+                    horizontalPanel:SetTextLabels(newLabels)
+                    horizontalPanel:SetTitleText(legend:GetTitleText())
+                    horizontalPanel:NumericalOverrideLabels(false) //Set to false since new labels may not be numerical anymore
+                else
+                    verticalPanel:SetTextLabels(newLabels)
+                    verticalPanel:SetTitleText(legend:GetTitleText())
+                    verticalPanel:NumericalOverrideLabels(false) //Set to false since new labels may not be numerical anymore
+                end      
+            end
             integer i = 0
             repeat while i < numberOfChartAreas
                 ChartAreaPanel subArea
-                integer index = GetSeriesList():GetSize()-(i+1)
-                if separateByFactor and (index >= 0)
-                    subArea:SetSeries(GetSeriesList():Get(index))
-                    subArea:SetIsShowing(true)
-                    chartArea:Add(subArea)
+                if separateByFactor
+                    if i < factorList:GetSize()
+                        subArea:SetName(factorList:Get(i))
+                        ControlLabel newLabel
+                        newLabel:SetText(subArea:GetName())
+                        subArea:SetLabel(newLabel)
+                        subArea:Add(newLabel)
+                        chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
+                    end
                 end
+                if separateBySeries 
+                    if i < GetSeriesList():GetSize()
+                        subArea:SetName(GetSeriesList():Get(i):GetName())
+                        ControlLabel newLabel
+                        newLabel:SetText(subArea:GetName())
+                        subArea:SetLabel(newLabel)
+                        subArea:Add(newLabel)
+                        chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
+                    end
+                end
+
                 subChartAreas:Add(subArea)
                 if i < verticalPanel:GetNumberOfSections()
                     VerticalAxisPanel subYAxis
+                    subYAxis:SetName("Sub y-axis")
                     subVerticalPanels:Add(subYAxis)
                 end
                 if i < horizontalPanel:GetNumberOfSections()
                     HorizontalAxisPanel subXAxis
+                    subXAxis:SetName("Sub x-axis")
                     subHorizontalPanels:Add(subXAxis)
                 end
                 i = i + 1
@@ -243,12 +294,14 @@ class Chart is Control
 
         horizontalPanel:LoadAxis(me, properties)
         if IsShowingXAxis()
+            horizontalPanel:SetAxisColor(color:Black())
             horizontalPanelHeightPercent = 0.15
             Add(horizontalPanel)
         end
 
         verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
+            verticalPanel:SetAxisColor(color:Black())
             verticalPanelWidthPercent = 0.15
             Add(verticalPanel)
         end
@@ -343,6 +396,10 @@ class Chart is Control
         temptext = horizontalPanel:GetNumberFormat()
         horizontalPanel:SetNumberFormat(verticalPanel:GetNumberFormat())
         verticalPanel:SetNumberFormat(temptext)
+
+        if xAxisIsIndependent
+            xAxisIsIndependent = false
+        end
     end
 
     private action DisposeDrawables()
@@ -426,12 +483,45 @@ class Chart is Control
     end
 
     /*
+    This action allows user to show the borders around each sub chart area.
+    By default this setting is set to true in most cases (with the exception of pie charts).
+    */
+    action ShowSubChartAreaBorders(boolean showSubChartAreaBorders)
+        me:showSubChartAreaBorders = showSubChartAreaBorders
+    end
+
+    /*
+    This action allows user to show the borders around each sub chart area.
+    By default this setting is set to true.
+    */
+    action ShowSubChartAreaBorders returns boolean
+        return showSubChartAreaBorders
+    end
+
+    /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
     action GetNumberOfChartAreas returns integer
         return numberOfChartAreas
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    private action GetNumberOfVisibleChartAreas returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < subChartAreas:GetSize()
+            if subChartAreas:Get(i):IsShowing()
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
     end
 
     /*
@@ -641,6 +731,9 @@ class Chart is Control
 
     Attribute: Orientation controls
     */
+    private action OrientationCapable(boolean orientationCapable)
+        me:orientationCapable = orientationCapable
+    end
 
     private action SetDefaultOrientationToHorizontal
         verticalOrientation = false
@@ -653,18 +746,22 @@ class Chart is Control
     end
 
     action SetOrientationToHorizontal
-        if not orientationChanged and not horizontalOrientation
-            orientationChanged = true
-            horizontalOrientation = true
-            verticalOrientation = false
+        if orientationCapable
+            if not orientationChanged and not horizontalOrientation
+                orientationChanged = true
+                horizontalOrientation = true
+                verticalOrientation = false
+            end
         end
     end
 
     action SetOrientationToVertical
-        if not orientationChanged and not verticalOrientation
-            orientationChanged = true
-            horizontalOrientation = false
-            verticalOrientation = true
+        if orientationCapable
+            if not orientationChanged and not verticalOrientation
+                orientationChanged = true
+                horizontalOrientation = false
+                verticalOrientation = true
+            end
         end
     end
 
@@ -683,16 +780,18 @@ class Chart is Control
         Would result in the y-axis having the title "My Y title" and the x-axis having the title "My X title"
     */
     action FlipOrientation()
-        if not orientationChanged
-            orientationChanged = true
-            if verticalOrientation
-                verticalOrientation = false
-                horizontalOrientation = true
-            else
-                verticalOrientation = true
-                horizontalOrientation = false
+        if orientationCapable
+            if not orientationChanged
+                orientationChanged = true
+                if verticalOrientation
+                    verticalOrientation = false
+                    horizontalOrientation = true
+                else
+                    verticalOrientation = true
+                    horizontalOrientation = false
+                end
+                FlipAxisInfo()
             end
-            FlipAxisInfo()
         end
     end
 
@@ -708,50 +807,109 @@ class Chart is Control
         return verticalOrientation
     end
 
+    /*
+        SeparateByFactor will attempt to create faceted sub chart area panels. 
+        Each factor/group (independent variable) will get it's own panel.
+        Each sub area will contain all elements associated with that factor.
+    */
+    action SeparateByFactor(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
     action SeparateByFactor()
         SeparateByFactor(1)
     end
 
     action SeparateByFactor(integer requestedColumns)
-        integer numberOfFactors = GetSeriesList():GetSize()
-        boolean singleRow = false
-        if numberOfFactors > 1
-            if requestedColumns > 1
-                if requestedColumns > numberOfFactors
-                    horizontalPanel:SplitIntoSections(numberOfFactors)
-                    singleRow = true
-                else
-                    horizontalPanel:SplitIntoSections(requestedColumns)
+        if separationCapable and requestedColumns > 0
+            integer numberOfFacets = GetFactorList():GetSize()
+            boolean singleRow = false
+            if numberOfFacets > 1
+                if requestedColumns > 1
+                    if requestedColumns > numberOfFacets
+                        horizontalPanel:SplitIntoSections(numberOfFacets)
+                        singleRow = true
+                    else
+                        horizontalPanel:SplitIntoSections(requestedColumns)
+                    end
+                end
+                if not singleRow
+                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
                 end
             end
-            if not singleRow
-                verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFactors)/requestedColumns)))
+            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+            if numberOfChartAreas > 1
+                separateByFactor = true
             end
+            overrideDefaultSeparation = true
         end
-        numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
-        if numberOfChartAreas > 1
-            separateByFactor = true
-        end
-        overrideDefaultSeparation = true
     end
 
     action IsSeparatedByFactor returns boolean
         return separateByFactor
     end
 
-    action SeparateByFactor(boolean flag)
-        if flag = true
-            defaultSeparation = true
-        else
-            defaultSeparation = false
+    /*
+        SeparateBySeries will attempt to create faceted sub chart area panels 
+        Each series entry in the legend will get it's own chart area.
+        Each sub area will contain all elements associated with that series
+    */
+    action SeparateBySeries(boolean flag)
+        defaultSeparateBySeries = flag
+    end
+
+    action SeparateBySeries()
+        SeparateBySeries(1)
+    end
+
+    action SeparateBySeries(integer requestedColumns)
+        if separationCapable and requestedColumns > 0
+            integer numberOfFacets = GetSeriesList():GetSize()
+            boolean singleRow = false
+            if numberOfFacets > 1
+                if requestedColumns > 1
+                    if requestedColumns > numberOfFacets
+                        horizontalPanel:SplitIntoSections(numberOfFacets)
+                        singleRow = true
+                    else
+                        horizontalPanel:SplitIntoSections(requestedColumns)
+                    end
+                end
+                if not singleRow
+                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
+                end
+            end
+            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+            if numberOfChartAreas > 1
+                separateBySeries = true
+            end
+            overrideDefaultSeparation = true
         end
     end
 
-    private action SetDefaultSeparation(boolean flag)
-        defaultSeparation = flag
+    action IsSeparatedBySeries returns boolean
+        return separateBySeries
     end
 
+    action IsSeparated returns boolean
+        return (separateBySeries or separateByFactor)
+    end
 
+    private action SeparateSeriesByDefault(boolean flag)
+        defaultSeparateBySeries = flag
+    end
+
+    private action SeparateFactorByDefault(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
+    private action SeparationCapable(boolean separationCapable)
+        me:separationCapable = separationCapable
+    end
+
+    private action XAxisIsIndependent returns boolean
+        return xAxisIsIndependent
+    end
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -967,10 +1125,10 @@ class Chart is Control
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
                 line:SetColor(GetSeriesList():Get(i):GetColor())
-                if IsSeparatedByFactor()
+                if IsSeparatedBySeries()
                     integer k = 0
                     repeat while k < GetNumberOfChartAreas()
-                        if GetSeriesList():Get(i) = GetSubChartAreas():Get(k):GetSeries()
+                        if GetSeriesList():Get(i):GetName() = GetSubChartAreas():Get(k):GetName()
                             GetSubChartAreas():Get(k):Add(line)
                             GetSubChartAreas():Get(k):AddChartAreaItem(line)
                         end
@@ -1013,6 +1171,17 @@ class Chart is Control
 
     action GetRegressionLineDensity() returns integer
         return regLineDensity
+    end
+
+    /*
+        Set and get the regression line color.
+    */
+    action SetRegressionLineColor(Color color)
+        regLineColor = color
+    end
+
+    action GetRegressionLineColor() returns Color
+        return regLineColor
     end
 
     action ShowGroupBrackets(boolean flag)
@@ -1202,6 +1371,23 @@ class Chart is Control
     */
     action GetSeriesList returns Array<Series>
         return legend:GetSeriesList()
+    end
+
+    /*
+        Returns an array of all the factor/group labels 
+    */
+    action GetFactorList returns Array<text>
+        Array<text> list
+        if xAxisIsIndependent
+            if horizontalPanel:GetTextLabels() not= undefined
+                list = horizontalPanel:GetTextLabels()
+            end
+        else
+            if verticalPanel:GetTextLabels() not= undefined
+                list = verticalPanel:GetTextLabels()
+            end
+        end
+        return list
     end
 
     action AddSeries(Series series)

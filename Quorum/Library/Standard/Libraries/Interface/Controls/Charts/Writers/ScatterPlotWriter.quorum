@@ -140,7 +140,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
     
         ChartItem chartItem = scatterplot:GetChartAreaItem()
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             ChartItem firstItem = chartItem:GetChildItem()
 
             if firstItem not= undefined

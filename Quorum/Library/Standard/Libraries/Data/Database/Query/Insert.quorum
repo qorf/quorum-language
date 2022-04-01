@@ -185,6 +185,27 @@ class Insert is Query
     end
 
     /*
+        Add a column target that will be set to undefined.
+
+        Attribute: Parameter column The name of the column to set
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:AddUndefined("description")
+
+    */
+    action AddUndefined(text column)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetToUndefined()
+        AddValue(param)
+    end
+
+    /*
         Add a column target along with a value that will be hashed using SHA1.
 
         Attribute: Parameter column The name of the column to which the value will belong to

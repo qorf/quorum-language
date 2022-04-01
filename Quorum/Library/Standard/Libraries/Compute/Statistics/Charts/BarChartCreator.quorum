@@ -387,8 +387,8 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             alert("BarChartCreator does not support non-numerical columns used with factors.")
             return undefined
         end
-
-        chart:SetTitle(column:GetHeader())
+        
+        chart:SetLegendTitle(factor2:GetHeader())
         chart:SetXAxisTitle(factor1:GetHeader())
         chart:SetYAxisTitle(column:GetHeader())
 
@@ -473,29 +473,37 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
         end
 
+        // Create all bars (even the ones that will be empty)
+        // This is necessary to ensure correct data display as well as uniformity when the user customizes or navigates the chart.
+        i = 0
+        repeat while i < groupNames:GetSize()
+            j = 0
+            repeat while j < seriesNames:GetSize()  
+                text name = groupNames:Get(i)+" "+seriesNames:Get(j)
+                if not barFactor:HasKey(name)
+                    Bar innerBar
+                    innerBar:SetName(seriesNames:Get(j))
+                    innerBar:SetValue(0)
+                    barFactor:Add(name, innerBar)
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddBar(innerBar)
+                    end   
+                    if seriesFactor:HasKey(seriesNames:Get(j))
+                        seriesFactor:GetValue(seriesNames:Get(j)):AddItem(innerBar:GetIcon())
+                        innerBar:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
+                    end
+                end
+                j = j + 1
+            end 
+            i = i + 1
+        end         
+
         i = 0
         repeat while i < column:GetSize()
             if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
                 text name = factor1:GetAsText(i)+" "+factor2:GetAsText(i)
                 number valueForName = column:GetAsNumber(i)
-                
-                if not barFactor:HasKey(name)
-                    Bar innerBar
-                    innerBar:SetName(factor2:GetAsText(i))
-                    innerBar:SetValue(valueForName)
-                    barFactor:Add(name, innerBar)
-                    if groupFactor:HasKey(factor1:GetAsText(i))
-                        groupFactor:GetValue(factor1:GetAsText(i)):AddBar(innerBar)
-                    end    
-                    if seriesFactor:HasKey(factor2:GetAsText(i))
-                        seriesFactor:GetValue(factor2:GetAsText(i)):AddItem(innerBar:GetIcon())
-                        innerBar:SetSeries(seriesFactor:GetValue(factor2:GetAsText(i)))
-                    end 
-
-                    if valueForName > max
-                        max = valueForName
-                    end
-                else
+                if barFactor:HasKey(name)
                     number newValue = barFactor:GetValue(name):GetValue() + valueForName
                     barFactor:GetValue(name):SetValue(newValue)
 

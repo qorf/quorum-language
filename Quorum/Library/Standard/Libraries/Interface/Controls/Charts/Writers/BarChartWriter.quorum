@@ -45,14 +45,6 @@ use Libraries.Interface.Controls.Icon
 
 class BarChartWriter is ChartWriter
 
-    private number outerEdgePadding = 0
-    private number betweenGroupPadding = 0
-    private number betweenBarPadding = 0
-    private number barWidthPercent = 0
-    private number barHeightPercent = 0
-    
-    Array<Rectangle> bars
-
     action WriteOutChart(BarChart chart, integer svgWidth, integer svgHeight) returns text
         return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
     end
@@ -100,7 +92,7 @@ class BarChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             i = 0
             repeat while i < chart:GetBarGroups():GetSize()
                 BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
@@ -137,7 +129,6 @@ class BarChartWriter is ChartWriter
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
                     end
-                    bars:Add(bar)
                     canvas:Add(bar)
     
                     j = j + 1
@@ -158,13 +149,12 @@ class BarChartWriter is ChartWriter
                     bar:SetHeight(currentBar:GetHeight())
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
-                    bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetName():GetHashCode() + "-" + currentBar:GetHashCode())
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
                         bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                     end
-                    bars:Add(bar)
                     canvas:Add(bar)
     
                     j = j + 1
@@ -179,7 +169,7 @@ class BarChartWriter is ChartWriter
         BarChart barChart
         barChart = cast(BarChart, chart)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             Array<BarGroup> barGroups = barChart:GetBarGroups()
     
             UnorderedList barGroupsUL
@@ -232,10 +222,10 @@ class BarChartWriter is ChartWriter
             repeat while i < chartArea:GetChartAreaItems():GetSize()
                 Item bar = chartArea:GetChartAreaItems():Get(i)
                 ListItem barNav 
-                barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode() + "-nav")
+                barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetName():GetHashCode() + "-" + bar:GetHashCode() + "-nav")
                 barNav:AddAttribute("role","treeitem")
                 barNav:AddClassAttribute("quorum-chart-treeitem")
-                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetSeries():GetHashCode() + "-" + bar:GetHashCode())
+                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetName():GetHashCode() + "-" + bar:GetHashCode())
                 barNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(barNav)
 

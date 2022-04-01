@@ -21,7 +21,7 @@ use Libraries.Compute.Math
     This class determines the visual layout for the chart.
     
 
-    Attribute: Author Shyann Calhoun
+    Attribute: Author Shyann Calhoun, Hannah Williams
 
     Attribute: Example
 
@@ -63,8 +63,8 @@ class BoxPlotLayout is ChartLayout
 
         BoxPlot chart = cast(BoxPlot, control)
         Array <PlotGroup> plotGroups = chart:GetPlotGroups()
-        Color invis
-        invis:SetColor(0,0,0,0)
+        Color transparent
+        transparent:SetColor(0,0,0,0)
         number percent = 0.0
         number yMax = chart:GetYAxisMaximum()
         number yMin = chart:GetYAxisMinimum()
@@ -72,16 +72,26 @@ class BoxPlotLayout is ChartLayout
         number xMin = chart:GetXAxisMinimum()
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
+        boolean separateBySeries = chart:IsSeparatedBySeries()
         boolean separateByFactor = chart:IsSeparatedByFactor()
+        boolean useFactor = chart:UsingFactor()
 
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
-            integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/plotGroups:GetSize()
+            integer numberOfPanels = plotGroups:GetSize()
+            if separateByFactor
+                numberOfPanels = chart:GetSeriesList():GetSize()
+            end
+            if separateBySeries and not useFactor
+                numberOfPanels = 1
+            end
+
+            integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/numberOfPanels
             integer height = cast(integer, chartAreaContainer:GetHeight()) - cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
             number range = (yMax-yMin)
             number rangeMin = yMin
             if horizontal
-                panelwidth = cast(integer, chartAreaContainer:GetHeight())/plotGroups:GetSize()
+                panelwidth = cast(integer, chartAreaContainer:GetHeight())/numberOfPanels
                 height = cast(integer, chartAreaContainer:GetWidth()) - cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
                 range = (xMax-xMin)
                 rangeMin = xMin
@@ -95,27 +105,27 @@ class BoxPlotLayout is ChartLayout
                 //Give each group an alloted section  
                 integer startpanelw = panelwidth*i
                 //Outer box
-                group:GetItem():LoadRectangle(panelwidth,height,invis)
+                group:GetItem():LoadRectangle(panelwidth,height,transparent)
                 group:GetItem():SetPosition(startpanelw,0)
                 if horizontal
-                    group:GetItem():LoadRectangle(height,panelwidth,invis)
+                    group:GetItem():LoadRectangle(height,panelwidth,transparent)
                     group:GetItem():SetPosition(0,startpanelw)
                 end
 
                 if group:GetSize() > 0
-                    integer groups = plotGroups:GetSize()
-                    integer plots = group:GetSize()
+                    integer groupCount = plotGroups:GetSize()
+                    integer plotCount = group:GetSize()
 
-                    integer plotsPerPanel = plots
-                    if separateByFactor
+                    integer plotsPerPanel = plotCount
+                    if chart:IsSeparated()
                         plotsPerPanel = 1
-                    end 
+                    end
 
                     integer width = cast(integer, panelwidth/plotsPerPanel)
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
 
-                    number linePercent = (0.0025)*plotsPerPanel*groups
+                    number linePercent = (0.0025)*plotsPerPanel*groupCount
                     if linePercent > 0.05
                         linePercent = 0.05
                     end
@@ -128,7 +138,7 @@ class BoxPlotLayout is ChartLayout
                     line = halfline*2
 
                     integer k = 0
-                    repeat while k < plots
+                    repeat while k < plotCount
                         Plot plot = group:Get(k)
                         number median = plot:GetInfoAt(0)
                         number lowerQuartile = plot:GetInfoAt(1)
@@ -138,8 +148,14 @@ class BoxPlotLayout is ChartLayout
             
                         //Give each chart an alloted section  
                         integer startw = width*k + startpanelw
-                        if separateByFactor
-                            startw = startpanelw
+                        if separateBySeries
+                            if useFactor
+                                startw = startpanelw
+                            else
+                                startw = width*k
+                            end
+                        elseif separateByFactor
+                            startw = width*k
                         end
     
                         /* Indices for items of individual box plot
@@ -159,15 +175,14 @@ class BoxPlotLayout is ChartLayout
                         
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
                         Array<Drawable> item = plot:GetPlotItems()
-                        Color darkColor
-                        darkColor:SetColor(0,0,0,1)
-                        Color lightColor = plot:GetIcon():GetColor()
+                        Color lightColor = plot:GetColor()
+                        Color darkColor = lightColor:Black():Copy()
     
                         //Outer box
-                        item:Get(0):LoadRectangle(width,height,invis)
+                        item:Get(0):LoadRectangle(width,height,transparent)
                         item:Get(0):SetPosition(startw,0)
                         if horizontal
-                            item:Get(0):LoadRectangle(height,width,invis)
+                            item:Get(0):LoadRectangle(height,width,transparent)
                             item:Get(0):SetPosition(0,startw)
                         end
             
