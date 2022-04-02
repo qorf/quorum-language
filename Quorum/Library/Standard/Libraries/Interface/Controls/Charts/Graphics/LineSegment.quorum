@@ -28,4 +28,13 @@ class LineSegment is Drawable
     action SetPoint2(ChartPoint point)
         me:point2 = point
     end
+
+    /*
+    Sets/changes the color for this line segment.
+    */
+    action SetColor(Color lineColor)
+        point1:SetColor(lineColor)
+        point2:SetColor(lineColor)
+        parent:Drawable:SetColor(lineColor)
+    end
 end

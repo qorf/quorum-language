@@ -187,6 +187,16 @@ class RegressionLine is Drawable
         return dependent
     end
 
+    // Equation is (dependent(y)) = m * (independent(x)) + b
+    action CalculateIndependentValue(number dependent) returns number
+        number independent = 0
+        Vector beta = regression:GetCoefficients()
+        if beta:GetSize() = 2 // This should only be used if there is a single dependent variable
+            independent = (dependent - beta:Get(0))/(beta:Get(1))
+        end
+        return independent
+    end
+
     action SetX1(integer x1)
         me:x1 = x1
     end

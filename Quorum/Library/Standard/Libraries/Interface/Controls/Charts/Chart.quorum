@@ -106,6 +106,7 @@ class Chart is Control
     private integer paddedChartOffset = 0
     private integer numberOfChartAreas = 1
     private integer regLineDensity = 0
+    private Color regLineColor = undefined
     private boolean regressionCapable = false
     private boolean hasGroups = false
     private boolean defaultShowBrackets = false
@@ -113,7 +114,7 @@ class Chart is Control
 
     // Chart Area Facetting
     private Array <ChartAreaPanel> subChartAreas
-    private boolean separationCapable = false
+    private boolean separationCapable = true
     private boolean separateByFactor = false
     private boolean separateBySeries = false
     private boolean defaultSeparateBySeries = false
@@ -1170,6 +1171,17 @@ class Chart is Control
 
     action GetRegressionLineDensity() returns integer
         return regLineDensity
+    end
+
+    /*
+        Set and get the regression line color.
+    */
+    action SetRegressionLineColor(Color color)
+        regLineColor = color
+    end
+
+    action GetRegressionLineColor() returns Color
+        return regLineColor
     end
 
     action ShowGroupBrackets(boolean flag)
