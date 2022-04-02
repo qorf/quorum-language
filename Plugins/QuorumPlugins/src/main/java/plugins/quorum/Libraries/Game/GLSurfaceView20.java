@@ -23,10 +23,7 @@ import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
+import android.view.*;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -46,6 +43,9 @@ public class GLSurfaceView20 extends GLSurfaceView
     public int width;
     public int height;
     public boolean aspectRatio = false;
+
+    private final GestureDetector gestureDetector;
+    private final ScaleGestureDetector scaleDetector;
     
     public GLSurfaceView20(Context context, AndroidConfiguration config)
     {
@@ -54,6 +54,9 @@ public class GLSurfaceView20 extends GLSurfaceView
         height = config.targetHeight;
         aspectRatio = config.useAspectRatio;
         Initialize(true, 16, 0);
+
+        gestureDetector = new GestureDetector(context, new QuorumGestureTranslator());
+        scaleDetector = new ScaleGestureDetector(context, new QuorumScaleGestureTranslator());
     }
     
     public GLSurfaceView20(Context context, AndroidConfiguration config, boolean translucent, int depth, int stencil)
@@ -63,6 +66,9 @@ public class GLSurfaceView20 extends GLSurfaceView
         height = config.targetHeight;
         aspectRatio = config.useAspectRatio;
         Initialize(translucent, depth, stencil);
+
+        gestureDetector = new GestureDetector(context, new QuorumGestureTranslator());
+        scaleDetector = new ScaleGestureDetector(context, new QuorumScaleGestureTranslator());
     }
     
     @Override
@@ -70,6 +76,10 @@ public class GLSurfaceView20 extends GLSurfaceView
     {
         quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
         input.plugin_.AddEvent(event);
+
+        gestureDetector.onTouchEvent(event);
+        scaleDetector.onTouchEvent(event);
+
         return true;
     }
     
@@ -346,6 +356,80 @@ public class GLSurfaceView20 extends GLSurfaceView
                 }
             }
         }
+    }
 
+    private class QuorumGestureTranslator extends GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent event)
+        {
+            Log.d("TAG","onDown: ");
+
+            // don't return false here or else none of the other
+            // gestures will work
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e)
+        {
+            Log.i("TAG", "onDoubleTap: ");
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
+            Log.d("TAG", "onFling: ");
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e)
+        {
+            Log.i("TAG", "onLongPress: ");
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e)
+        {
+            Log.i("TAG", "onShowPress: ");
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
+        {
+            Log.i("TAG", "onScroll: ");
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e)
+        {
+            Log.i("TAG", "onSingleTapConfirmed: ");
+            return true;
+        }
+    }
+
+    private class QuorumScaleGestureTranslator extends ScaleGestureDetector.SimpleOnScaleGestureListener
+    {
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector)
+        {
+            Log.i("TAG", "onScaleBegin: ");
+            return true;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector)
+        {
+            Log.i("TAG", "onScale: ");
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector)
+        {
+            Log.i("TAG", "onScaleEnd: ");
+        }
     }
 }
