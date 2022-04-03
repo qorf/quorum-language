@@ -580,6 +580,8 @@ class TwoVariableChart is Chart
                 
                             Icon region = NewRegionIcon(0,0,1,1)
                             CreateChunks(GetSubChartAreas():Get(0), firstChartLineItem, region, line:GetPoints(), line:GetLines(), 0)
+
+                            firstArea:SetLastChild(firstChartLineItem)
                         end
                     end
                 end
@@ -615,6 +617,8 @@ class TwoVariableChart is Chart
                     
                                 Icon region = NewRegionIcon(0,0,1,1)
                                 CreateChunks(chartSubArea, firstChartLineItem, region, line:GetPoints(), line:GetLines(), 0)
+
+                                previousArea:SetLastChild(firstChartLineItem)
                             end
                         end
                     end

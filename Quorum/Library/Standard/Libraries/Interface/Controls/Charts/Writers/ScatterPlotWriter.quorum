@@ -117,10 +117,11 @@ class ScatterPlotWriter is ChartWriter
         i = 0
         repeat while i < chart:GetChartPoints():GetSize()
             ChartPoint currentPoint = chart:GetChartPoints():Get(i)
+            number radius = currentPoint:GetShape():GetRadius()
 
             Circle point
-            point:SetRadius(currentPoint:GetShape():GetRadius())
-            point:SetPosition(currentPoint:GetGlobalX(), TranslatePositionY(currentPoint)) 
+            point:SetRadius(radius)
+            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
             point:SetFill(currentPoint:GetColor())
             point:SetID(canvas:GetID() + "-" + currentPoint:GetSeries():GetHashCode() + "-" + currentPoint:GetHashCode())
             point:SetStyleClass("quorum-chart-circle")

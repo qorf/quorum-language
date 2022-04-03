@@ -911,6 +911,10 @@ class ChartLayout is Layout
                                 yVal = line:CalculateIndependentValue(xMax)
                                 xVal = line:CalculateDependentValue(yVal)
                             end
+                            if (xVal < xMin)
+                                yVal = line:CalculateIndependentValue(xMin)
+                                xVal = line:CalculateDependentValue(yVal)
+                            end
                             percentX = (xVal - xMin) / (xMax - xMin)
                             percentY = (yVal - yMin) / (yMax - yMin)
                         else
@@ -918,6 +922,10 @@ class ChartLayout is Layout
                             number yVal = line:CalculateDependentValue(xVal)
                             if (yVal > yMax)
                                 xVal = line:CalculateIndependentValue(yMax)
+                                yVal = line:CalculateDependentValue(xVal)
+                            end
+                            if (yVal < yMin)
+                                xVal = line:CalculateIndependentValue(yMin)
                                 yVal = line:CalculateDependentValue(xVal)
                             end
                             percentX = (xVal - xMin) / (xMax - xMin)
