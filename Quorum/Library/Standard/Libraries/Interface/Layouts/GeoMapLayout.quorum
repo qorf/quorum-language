@@ -52,10 +52,6 @@ class GeoMapLayout is ChartLayout
 
         mapAnchor:SetPosition(anchorX,anchorY)
 
-        if not chart:GetIsLoaded()
-            chartAreaContainer:Add(chart:GetMapAnchor())
-        end
-
         number xmin = chart:GetXAxisMinimum()
         number xmax = chart:GetXAxisMaximum()
         number ymin = chart:GetYAxisMinimum()
@@ -70,39 +66,23 @@ class GeoMapLayout is ChartLayout
                 
                 Color color = currentRegion:GetColor()
                 if color = undefined
-                    Color red
-                    color = red:Red():Copy()
+                    color = chart:GetMissingDataColor()
                 end
                 Array<number> vertices
                 Array<Color> colors
                 integer k = 0
                 repeat while k < points:GetSize()
-                    number x = (points:Get(k):GetFirstValue() - xmin) / (xmax - xmin) * anchorWidth
-                    number y = (points:Get(k):GetSecondValue() - ymin) / (ymax - ymin) * anchorHeight
+                    number x = ((points:Get(k):GetFirstValue() - xmin) / (xmax - xmin)) * anchorWidth
+                    number y = ((points:Get(k):GetSecondValue() - ymin) / (ymax - ymin)) * anchorHeight                  
                     vertices:Add(x)
                     vertices:Add(y)
-
                     colors:Add(color)
                     k = k + 1
                 end
-
-                
-                if currentRegion:GetSubRegions():GetSize() > 1 and j > 0
-                    SubRegion subRegion = currentRegion:GetSubRegions():Get(j-1)
-                    subRegion:LoadShape(vertices, colors)
-                    if not chart:GetIsLoaded()
-                        chart:GetMapAnchor():Add(subRegion)
-                    end
-                else
-                    currentRegion:LoadShape(vertices, colors)
-                    if not chart:GetIsLoaded()
-                        chart:GetMapAnchor():Add(currentRegion)
-                    end
-                end
+                currentRegion:GetSubRegions():Get(j):LoadShape(vertices, colors)
                 j = j + 1
             end    
             i = i + 1
         end 
-        chart:SetIsLoaded(true)
     end //action LayoutChartContent
 end //class

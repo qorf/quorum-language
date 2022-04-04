@@ -134,37 +134,46 @@ class LineChartWriter is ChartWriter
             end
             canvas:Add(tempChartLine)
 
-            integer j = 0
-            repeat while j < points:GetSize()
-                ChartPoint point = points:Get(j)
-
-                Circle tempPoint
-                tempPoint:SetRadius(point:GetShape():GetRadius())
-                tempPoint:SetPosition(point:GetGlobalX(), TranslatePositionY(point)) 
-                tempPoint:SetFill(point:GetColor())
-                tempPoint:SetID(canvas:GetID() + "-" + point:GetHashCode())
-                tempPoint:SetStyleClass("quorum-chart-circle")
-                tempPoint:SetTabIndex(-1)
-                if HasAccessibility()
-                    tempPoint:SetAriaLabel(point:GetName() + point:GetDescription())
-                end
-                tempChartLine:Add(tempPoint)
+            if line:GetPointsFlag()
+                integer j = 0
+                repeat while j < points:GetSize()
+                    ChartPoint point = points:Get(j)
+                    number radius = point:GetShape():GetRadius()
     
-                if j + 1 < points:GetSize()
-                    LineSegment lineSegment = lines:Get(j)
-                    Line tempLine
-                    tempLine:SetFirstPoint(point:GetGlobalX(), TranslatePositionY(point))
-                    point = points:Get(j+1)
-                    tempLine:SetSecondPoint(point:GetGlobalX(), TranslatePositionY(point))
-                    tempLine:SetStroke(lineSegment:GetColor())
-                    tempLine:SetID(canvas:GetID() + "-" + "-" + lineSegment:GetHashCode())
-                    tempLine:SetStyleClass("quorum-chart-linesegment")
-                    tempLine:SetTabIndex(-1)
+                    Circle tempPoint
+                    tempPoint:SetRadius(radius)
+                    tempPoint:SetPosition(point:GetGlobalX()+radius, TranslatePositionY(point)) 
+                    tempPoint:SetFill(point:GetColor())
+                    tempPoint:SetID(canvas:GetID() + "-" + point:GetHashCode())
+                    tempPoint:SetStyleClass("quorum-chart-circle")
+                    tempPoint:SetTabIndex(-1)
                     if HasAccessibility()
-                        tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
+                        tempPoint:SetAriaLabel(point:GetName() + point:GetDescription())
                     end
-                    tempChartLine:Add(tempLine)
+                    tempChartLine:Add(tempPoint)
+                    j = j + 1
                 end
+            end
+
+            integer j = 0
+            repeat while j < lines:GetSize()
+                LineSegment lineSegment = lines:Get(j)
+                ChartPoint firstPoint = lineSegment:GetPoint1()
+                ChartPoint secondPoint = lineSegment:GetPoint2()
+                number radius = firstPoint:GetShape():GetRadius()
+
+                Line tempLine
+                tempLine:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                tempLine:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                tempLine:SetStroke(lineSegment:GetColor())
+                tempLine:SetStrokeWidth(lineSegment:GetHeight())
+                tempLine:SetID(canvas:GetID() + "-" + "-" + lineSegment:GetHashCode())
+                tempLine:SetStyleClass("quorum-chart-linesegment")
+                tempLine:SetTabIndex(-1)
+                if HasAccessibility()
+                    tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
+                end
+                tempChartLine:Add(tempLine)
                 j = j + 1
             end
             i = i + 1

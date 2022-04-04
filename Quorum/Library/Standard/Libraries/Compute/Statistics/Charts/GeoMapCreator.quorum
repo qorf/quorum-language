@@ -14,10 +14,9 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Interface.Controls.Charts.Series
 
 /*
-    This class is used to create a GeoMapCreator from columns of data in a DataFrame.
-    This creator is also capable of using columns and factors. If only one column is given, 
-    the system counts the number of items for each point. If a factor and a column are given,
-    the factor is the X-axis and the column is the Y-axis.
+    This class is used to create a GeoMap Chart from columns of data in a DataFrame.
+    There is one way to make a geomap chart from the data frame using this class:
+        1. One factor (must be the region names to correspond with the map) AND one column of text or numerical data.
 
     Attribute: Author 472 GeoMap Team
     Attribute: Example
@@ -117,7 +116,6 @@ class GeoMapCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     i = i + 1
                 end
             end
-
             
             //pass data along to chart
             chart:UseNumericalData(numericalFlag)
@@ -132,7 +130,9 @@ class GeoMapCreator is DataFrameChartCreator, ColumnInput, FactorInput
             SetScale(chart, mapReader:GetMinYValue(), mapReader:GetMaxYValue(), mapReader:GetMinXValue(), mapReader:GetMaxXValue())
             chart:SetAspectRatio(mapReader:GetMaxXValue() - mapReader:GetMinXValue(), mapReader:GetMaxYValue() - mapReader:GetMinYValue())
             return chart
-        else
+        elseif columns > 1 and factors = 1
+            alert("Multiple columns are not supported yet.")
+        else            
             alert("GeoMapCreator does not support the number of column/factors that were selected")
         end
         
