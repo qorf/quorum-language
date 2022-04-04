@@ -82,6 +82,7 @@ class TabBar is Control
         if reselect
             if tabs:GetSize() > 0
                 index = index - 1
+
                 if index < 0
                     index = 0
                 end
@@ -92,6 +93,8 @@ class TabBar is Control
         else
             pane:Select(currentTab)
         end
+
+        tab:Dispose()
 
         Resize()
 
