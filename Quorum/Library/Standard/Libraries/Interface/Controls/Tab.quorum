@@ -223,6 +223,10 @@ class Tab is Button
     end
 
     private action SetLabelRenderColor
+        if label = undefined
+            return now
+        end
+
         if IsRenderingSelection()
             if IsRenderingFocus()
                 label:SetColor(GetSelectionFontColor())
