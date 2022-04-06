@@ -64,6 +64,7 @@ class JavaScriptObjectNotation
     private integer spaces = 4
     private boolean prettyPrint = false
     private boolean arrayItem = false
+    private boolean arrayObject = false
 
     private action HasKey() returns boolean
         return key not= ""
@@ -1372,6 +1373,64 @@ class JavaScriptObjectNotation
     end
 
     /*
+    This action returns true if a JavaScriptObjectNotation object is a parent object
+    of an array.
+
+    Attribute: Returns A boolean value based on whether or not the object is an array in disguise
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsUndefined()
+                i = i + 1
+            end
+       end
+    end
+    */
+    action IsArrayObject returns boolean
+        return arrayObject
+    end
+
+    /*
+    This action tells a JavaScriptObjectNotation object is a parent object
+    of an array.
+
+    Attribute: Returns A boolean value based on whether or not the object is an array in disguise
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:Add("item1", 1)
+            json:Add("item2", 2.2)
+            json:Add("item3", "three")
+
+            i = 0
+            repeat json:GetSize() times
+                output json:Get(i):IsUndefined()
+                i = i + 1
+            end
+       end
+    end
+    */
+    action SetArrayObject(boolean arrayObject)
+        me:arrayObject = arrayObject
+    end
+
+    /*
     This method will read in the contents of a file to a JavaScriptObjectNotation object.
 
     Attribute: Parameter file The file to read into the object.
@@ -1812,7 +1871,11 @@ class JavaScriptObjectNotation
                     result = result + space
                 end
                 if not IsArrayItem() or (IsArrayItem() and HasKey())
-                    result = result + dq + key + dq + ": {"
+                    if IsArrayObject()
+                        result = result + dq + key + dq + ": "
+                    else
+                        result = result + dq + key + dq + ": {"
+                    end
                 end
                 if IsPrettyPrint()
                     result = result + line
@@ -1883,7 +1946,9 @@ class JavaScriptObjectNotation
                     result = result + line + space
                 end
                 if not IsArrayItem() or (IsArrayItem() and HasKey())
-                    result = result + "}"
+                    if not IsArrayObject()
+                        result = result + "}"
+                    end
                 end
                 
             elseif IsArray() 

@@ -202,7 +202,21 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
         //this element is an array, so set it's type as array
         else 
             JavaScriptObjectNotation value = objects:Peek()
-            value:SetArray()
+            //if this value is not an array, set it to one. If this value
+            //is already an array, it means the object parent already was one and we have nesting.
+            //in this case, we need to push this on the stack
+            //if value:IsArray()
+
+            if not value:IsArray()
+               value:SetArrayObject(true)
+            end
+
+            JavaScriptObjectNotation newArray 
+            newArray:SetArray()
+            newArray:SetArrayItem(true)
+            value:Add(newArray)
+            objects:Push(newArray)
+            opStack:Push(inArray)//push on a second for the nesting
         end
 
         opStack:Push(inArray)
@@ -222,6 +236,7 @@ class JavaScriptObjectNotationDefaultListener is JavaScriptObjectNotationListene
     */
     action ExitArray
         opStack:Pop()
+        objects:Pop()
     end
 
     /*
