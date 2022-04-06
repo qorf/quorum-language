@@ -378,7 +378,8 @@ public class GLSurfaceView20 extends GLSurfaceView
         }
 
         @Override
-        public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
+        public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
+        {
             Log.d("TAG", "onFling: ");
             return true;
         }
