@@ -725,12 +725,6 @@ class MenuItem is Control
         panel:SetBorderThickness(properties:GetBorderThickness())
         panel:SetBorderStyle(properties:ALL - properties:TOP)
 
-        if panel:GetView2D() = undefined
-            ControlShaderView content
-            content:Initialize()
-            panel:SetView2D(content)
-        end
-
         if properties:GetIcon() not= undefined
             TextureRegion region = properties:GetIcon()
             if icon:GetTextureField() not= region:GetTextureField()

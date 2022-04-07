@@ -223,18 +223,6 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
-    action LoadGraphics(LayoutProperties properties)
-        Color color
-
-        if panel:GetView2D() = undefined
-            ControlShaderView content
-            content:Initialize()
-            panel:SetView2D(content)
-        end
-
-        parent:Control:LoadGraphics(properties)
-    end
-
     /*
     The PopupMenu listens for mouse clicks outside of the menu. If the user
     clicks outside the menu, the menu closes.
