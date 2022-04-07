@@ -2540,55 +2540,6 @@ class DataFrame
 
         return cast(BarChart, CreateChart(creator))
     end
-    
-    /*
-        This action returns a text based representation of the data frame at a particular row.
-
-        Attribute: Returns a text based representation, in comma separated format
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-
-        //Load a comma separated file
-        DataFrame frame
-        frame:Load("Data.csv")
-
-        //output the frame to the console
-        output frame:ToText(0)
-    */
-    action ToText(integer row) returns text
-        DataFrame frame = me
-        integer size = frame:GetSize() //number of columns
-
-        text currentRow = ""
-        text dq = currentRow:GetDoubleQuote()
-        text lf = currentRow:GetLineFeed()
-        
-        i = 0
-        repeat while i < frame:GetSize()
-            DataFrameColumn column = frame:GetColumn(i)
-            if row < column:GetSize()
-                text value = column:GetAsText(row)
-                if value not= undefined
-                    if not value:IsEmpty() and value:Contains(",")
-                        currentRow = currentRow + dq + value + dq
-                    else
-                        currentRow = currentRow + value
-                    end
-                end
-                hadRow = true
-            end
-        
-            
-            if i not= frame:GetSize() - 1
-                currentRow = currentRow + ","
-            end
-            i = i + 1
-        end
-
-        return currentRow
-    end
 
     /*
         This action creates a LineChart from the current column selection in the DataFrame.
@@ -2894,5 +2845,54 @@ class DataFrame
     action ToText returns text
         CommaSeparatedSaver saver
         return saver:ConvertToText(me)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10)
+    */
+    action ToText(integer rows) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Parameter header Whether or not to show the header from the frame
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10, false)
+    */
+    action ToText(integer rows, boolean header) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows, header)
     end
 end
