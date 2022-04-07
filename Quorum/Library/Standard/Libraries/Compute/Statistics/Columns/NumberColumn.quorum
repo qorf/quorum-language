@@ -6,6 +6,8 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Symbol.Type
 
 /*
     NumberColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -30,6 +32,32 @@ class NumberColumn is DataFrameColumn
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+        end
+    end
+
+    action AddAsResult(Result value)
+        if not IsResultCheckable(value) rows:Add(undefined) return now end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Add(value:numberValue)
+        elseif type:IsInteger()
+            rows:Add(value:integerValue)
+        else
+            rows:Add(undefined)
+        end
+    end
+
+    action SetAsResult(integer index, Result value)
+        if not IsResultCheckable(value) rows:Set(index, undefined) return now end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Set(index, value:numberValue)
+        elseif type:IsInteger()
+            rows:Set(index, value:integerValue)
+        else
+            rows:Set(index, undefined)
         end
     end
 
