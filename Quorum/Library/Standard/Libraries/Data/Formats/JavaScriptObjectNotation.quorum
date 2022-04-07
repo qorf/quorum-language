@@ -59,6 +59,7 @@ class JavaScriptObjectNotation
     private constant integer ARRAY = 6
     private constant integer OBJECT = 7
     private constant integer PARENT = 8
+    boolean hasKey = false
     private text key = ""
     private boolean object = false
     private integer spaces = 4
@@ -67,7 +68,7 @@ class JavaScriptObjectNotation
     private boolean arrayObject = false
 
     private action HasKey() returns boolean
-        return key not= ""
+        return hasKey
     end
 
     private action IsPrimitive() returns boolean
@@ -1373,8 +1374,11 @@ class JavaScriptObjectNotation
     end
 
     /*
-    This action returns true if a JavaScriptObjectNotation object is a parent object
-    of an array.
+    This action returns whether a JavaScriptObjectNotation object is a parent object
+    of an array. An object can be an ArrayObject, one which contains an array, and in this case 
+    one must be an object. However, one can be an object, but not an array object. This would
+    be the case if we were storing primitive values in an object. This flag must be set if
+    the object contains an array.
 
     Attribute: Returns A boolean value based on whether or not the object is an array in disguise
 
@@ -1385,16 +1389,18 @@ class JavaScriptObjectNotation
     class Main
         action Main
             JavaScriptObjectNotation json
-            json:Add("item1", 1)
-            json:Add("item2", 2.2)
-            json:Add("item3", "three")
-
-            i = 0
-            repeat json:GetSize() times
-                output json:Get(i):IsUndefined()
-                i = i + 1
-            end
-       end
+            json:SetObject()
+            json:SetKey("Item")
+        
+            JavaScriptObjectNotation array
+            array:SetArray()
+            array:Add(1)
+            array:Add(2)
+        
+            json:Add(array)
+            json:SetArrayObject(true)
+            output json:IsArrayObject()
+        end
     end
     */
     action IsArrayObject returns boolean
@@ -1402,10 +1408,13 @@ class JavaScriptObjectNotation
     end
 
     /*
-    This action tells a JavaScriptObjectNotation object is a parent object
-    of an array.
+    This action tells a JavaScriptObjectNotation object that it is a parent object
+    of an array. An object can be an ArrayObject, one which contains an array, and in this case 
+    one must be an object. However, one can be an object, but not an array object. This would
+    be the case if we were storing primitive values in an object. This flag must be set if
+    the object contains an array.
 
-    Attribute: Returns A boolean value based on whether or not the object is an array in disguise
+    Attribute: Parameter arrayObject A boolean value based on whether or not the object is an array in disguise
 
     Attribute: Example
 
@@ -1414,20 +1423,60 @@ class JavaScriptObjectNotation
     class Main
         action Main
             JavaScriptObjectNotation json
-            json:Add("item1", 1)
-            json:Add("item2", 2.2)
-            json:Add("item3", "three")
-
-            i = 0
-            repeat json:GetSize() times
-                output json:Get(i):IsUndefined()
-                i = i + 1
-            end
-       end
+            json:SetObject()
+            json:SetKey("Item")
+        
+            JavaScriptObjectNotation array
+            array:SetArray()
+            array:Add(1)
+            array:Add(2)
+        
+            json:Add(array)
+            json:SetArrayObject(true)
+            output json:ToText()
+        end
     end
     */
     action SetArrayObject(boolean arrayObject)
         me:arrayObject = arrayObject
+    end
+
+    /*
+    This action returns the array from an array object. If this object is not an array object, 
+    this throws an error. 
+
+    Attribute: Returns an array object. This throws an error if this is not an array object.
+
+    Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+        action Main
+            JavaScriptObjectNotation json
+            json:SetObject()
+            json:SetKey("Item")
+        
+            JavaScriptObjectNotation array
+            array:SetArray()
+            array:Add(1)
+            array:Add(2)
+        
+            json:Add(array)
+            json:SetArrayObject(true)
+
+            //in this case, val = array
+            JavaScriptObjectNotation val = json:GetArray()
+            output val:ToText()
+        end
+    end
+    */
+    action GetArray returns JavaScriptObjectNotation
+        if IsArrayObject()
+            return Get(0)
+        else 
+            alert("Cannot obtain an array from an object that does not contain an array.")
+        end
     end
 
     /*
@@ -1737,6 +1786,7 @@ class JavaScriptObjectNotation
 
     action SetKey(text key)
         me:key = key
+        hasKey = true
         if IsUndefined()
             SetObject()
         end
@@ -1804,12 +1854,6 @@ class JavaScriptObjectNotation
 
     action SetArray
         type = ARRAY
-        i = 0
-        repeat array:GetSize() times
-            JavaScriptObjectNotation child = array:Get(i)
-            child:SetArrayItem(true)
-            i = i + 1
-        end
     end
 
     private action GetSpaces(integer level) returns text
@@ -1860,7 +1904,11 @@ class JavaScriptObjectNotation
             if IsArray() 
                 result = result + dq + key + dq + ": [" 
             elseif HasKey()
-                result = result + dq + key + dq + ": {" 
+                if IsArrayObject()
+                    result = result + dq + key + dq + ": " 
+                else
+                    result = result + dq + key + dq + ": {" 
+                end
             end
             if IsPrettyPrint()
                result = result + line
@@ -1881,12 +1929,13 @@ class JavaScriptObjectNotation
                     result = result + line
                 end
             else
-                if HasKey() or not IsArrayItem()
+                if HasKey()// or not IsArrayItem()
                     if IsPrettyPrint()
                         result = result + space
                     end
                     result = result + dq + key + dq + ": "
                 end
+
                 if IsArray() 
                     result = result + "["
                 elseif IsText()
@@ -1938,7 +1987,9 @@ class JavaScriptObjectNotation
             end
             result = result + "}"
             if HasKey() and not IsArray()
-                result = result + "}"
+                if not IsArrayObject()
+                    result = result + "}"
+                end
             end
         else
             if IsObject()
