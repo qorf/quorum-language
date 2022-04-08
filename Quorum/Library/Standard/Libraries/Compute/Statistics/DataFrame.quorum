@@ -60,6 +60,7 @@ use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Interface.Controls.Charts.GeoMap
 use Libraries.Compute.Statistics.Charts.GeoMapCreator
+use Libraries.Compute.Statistics.Transforms.RemoveUndefinedRowsTransform
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2986,6 +2987,72 @@ class DataFrame
         CrossTab tab
         selection:CopyTo(cast(ColumnInput, tab))
         return Transform(tab)
+    end
+
+    /*
+        This action calculates the total number of rows in the data frame.
+        To do this, it traverses the columns, finds the column with the 
+        max row count, and returns that integer.
+
+        Attribute: Returns the row count of the column with the largest number of rows
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:CalculateMaximumRows()
+    */
+    action CalculateMaximumRows returns integer
+        max = 0
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn col = GetColumn(i)
+            if col:GetSize() > max
+                max = col:GetSize()
+            end
+            i = i + 1
+        end
+        return max
+    end
+
+    /*
+        This action removes undefined values from the DataFrame. This action creates a copy of 
+        the DataFrame, so it is not destructive. For this version, which does not take into account
+        selection, this action removes a row if any value, in any column, is undefined. 
+
+        Attribute: Returns a new DataFrame copy with all rows with undefined in any position removed
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:RemoveUndefinedRows():ToText()
+    */
+    action RemoveUndefinedRows returns DataFrame
+        RemoveUndefinedRowsTransform transform
+        return Transform(transform)
+    end
+
+    /*
+        This action removes undefined values from the DataFrame. This action creates a copy of 
+        the DataFrame, so it is not destructive. For this version, rows are removed only if the undefined
+        value was in a selected column. Selected factors are not taken into account.
+
+        Attribute: Returns a new DataFrame copy with all rows with undefined in any position removed
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:RemoveUndefinedRows():ToText()
+    */
+    action RemoveUndefinedRowsFromSelectedColumns returns DataFrame
+        RemoveUndefinedRowsTransform transform
+        transform:SetAccountForSelectedColumns(true)
+        return Transform(transform)
     end
 
     /*
