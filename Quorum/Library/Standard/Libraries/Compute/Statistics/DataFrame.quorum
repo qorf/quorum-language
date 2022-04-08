@@ -317,6 +317,139 @@ class DataFrame
         end
     end
 
+    /*
+        This action takes a Quorum expression text value and then creates a new column the DataFrame. The expression
+        follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group * 2
+        would take the value of Group, multiply it by 2, and then do that for each row. If a row is an invalid type,
+        an undefined value is placed at that position. 
+
+        The AddColumn(text, text) call is not destructive, meaning it adds to the DataFrame, but does not change
+        the original data. 
+
+        Attribute: column The name to give to the column that will be created. 
+        Attribute: source A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        frame:AddColumn("Group * 3")
+        output frame:ToText()
+    */
+    action AddColumn(text column, text source)
+        DataFrameColumn newColumn = CalculateColumn(source)
+        newColumn:SetHeader(column)
+        me:AddColumn(newColumn)
+    end
+
+    /*
+        This action takes a Quorum expression text value and then creates a new column without adding it to the DataFrame. The expression
+        follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group * 2
+        would take the value of Group, multiply it by 2, and then do that for each row. If a row is an invalid type,
+        an undefined value is placed at that position. The CalculateColumn(text) call is not destructive, meaning it does 
+        not change the original frame.
+
+        Attribute: column The name to give to the column that will be created. 
+        Attribute: source A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        DataFrameColumn col = frame:CalculateColumn("Group * 3")
+        output col:ToText()
+    */
+    action CalculateColumn(text source) returns DataFrameColumn
+        QuorumLexer luthor
+        CompilerErrorManager errors
+        luthor:SetCompilerErrorManager(errors)
+        luthor:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+
+        if expression = undefined or not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+    
+        //Now do semantic analysis on the thing and get it setup for runtime processing
+        DataFrameExpressionListener listener
+        listener:SetCompilerErrorManager(errors)
+        listener:SetDataFrame(me)
+        expression:Traverse(listener)
+        
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        //the top-most item on the stack is the final expression
+        Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
+
+        if stack:IsEmpty()
+            alert("The expression contained an unidentified error and could not be evaluated.")
+        end
+        QuorumOpcode op = stack:Pop()
+        Type columnType = op:GetType()
+
+        DataFrameColumn newColumn = undefined
+
+        //check the type of the column. If it is one we support, cool. If not, then bail.
+        if columnType:IsNumber() //for now bail
+            NumberColumn col
+            newColumn = col
+        elseif columnType:IsInteger()
+            IntegerColumn col
+            newColumn = col
+        elseif columnType:IsBoolean()
+            BooleanColumn col
+            newColumn = col
+        elseif columnType:IsText()
+            TextColumn col
+            newColumn = col
+        else 
+            alert("Only Number, Boolean, Integer, and Text columns are allowed in the current system. Your expression evaluates to " +
+                columnType:GetName() + ".")
+        end
+        
+        row = 0
+        Runtime runtime
+        boolean done = false
+        repeat while not done
+            //first check that all the variables in the list are there
+            //if there are zero variables, then just process the expression for now, even though technically it's a constant
+            boolean missingValue = SetupRuntime(listener, runtime, me, row)
+            
+            //if there are missing values, this row can't be evaluated
+            //so fill it with undefined values
+            if not missingValue
+                op:Evaluate(runtime)
+                if runtime:GetStackSize() = 0
+                    newColumn:Add(undefined)
+                else 
+                    Result result = runtime:PopFromStack()
+                    newColumn:AddAsResult(result)
+                end
+            end
+
+            row = row + 1
+            done = not HasAnotherRow(me, row)
+            runtime:GetCurrentBlock():Empty()
+        end
+
+        return newColumn
+    end
+
     private action SetupRuntime(DataFrameExpressionListener listener, Runtime runtime, DataFrame frame, integer row) returns boolean
         integer column = 0
         RuntimeBlock block = runtime:GetCurrentBlock()
@@ -892,6 +1025,35 @@ class DataFrame
         end
 
         return undefined
+    end
+
+    /*
+        This action returns whether or not there is a column named "header" in
+        its header row. If multiple columns have the same name, then this action returns true.
+
+
+        Attribute: Parameter header The column we want back.
+        Attribute: Returns A boolean of true if a column of this name exists
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        DataFrameColumn column = frame:GetColumn("Gender")
+    */
+    action HasColumn(text header) returns boolean
+        i = 0
+        repeat while i < columns:GetSize()
+            DataFrameColumn column = columns:Get(i)
+            if column not= undefined and column:GetHeader() = header
+                return true
+            end
+            i = i + 1
+        end
+
+        return false
     end
 
     /*
@@ -2540,55 +2702,6 @@ class DataFrame
 
         return cast(BarChart, CreateChart(creator))
     end
-    
-    /*
-        This action returns a text based representation of the data frame at a particular row.
-
-        Attribute: Returns a text based representation, in comma separated format
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-
-        //Load a comma separated file
-        DataFrame frame
-        frame:Load("Data.csv")
-
-        //output the frame to the console
-        output frame:ToText(0)
-    */
-    action ToText(integer row) returns text
-        DataFrame frame = me
-        integer size = frame:GetSize() //number of columns
-
-        text currentRow = ""
-        text dq = currentRow:GetDoubleQuote()
-        text lf = currentRow:GetLineFeed()
-        
-        i = 0
-        repeat while i < frame:GetSize()
-            DataFrameColumn column = frame:GetColumn(i)
-            if row < column:GetSize()
-                text value = column:GetAsText(row)
-                if value not= undefined
-                    if not value:IsEmpty() and value:Contains(",")
-                        currentRow = currentRow + dq + value + dq
-                    else
-                        currentRow = currentRow + value
-                    end
-                end
-                hadRow = true
-            end
-        
-            
-            if i not= frame:GetSize() - 1
-                currentRow = currentRow + ","
-            end
-            i = i + 1
-        end
-
-        return currentRow
-    end
 
     /*
         This action creates a LineChart from the current column selection in the DataFrame.
@@ -2894,5 +3007,54 @@ class DataFrame
     action ToText returns text
         CommaSeparatedSaver saver
         return saver:ConvertToText(me)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10)
+    */
+    action ToText(integer rows) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Parameter header Whether or not to show the header from the frame
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10, false)
+    */
+    action ToText(integer rows, boolean header) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows, header)
     end
 end
