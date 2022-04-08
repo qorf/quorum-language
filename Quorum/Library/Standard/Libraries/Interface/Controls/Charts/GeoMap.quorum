@@ -307,7 +307,7 @@ class GeoMap is Chart, FirstLetterNavigator
                     i = i + 1
                 end
 //                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is Region
                 Region temp = cast(Region, target)
@@ -347,7 +347,7 @@ class GeoMap is Chart, FirstLetterNavigator
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetHighlightColor())
                 temp:GetEntryBox():SetColor(GetHighlightColor())
             elseif target is Region
                 Region temp = cast(Region, target)

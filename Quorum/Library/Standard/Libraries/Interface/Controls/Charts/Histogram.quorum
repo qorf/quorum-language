@@ -12,6 +12,8 @@ use Libraries.Compute.Statistics.Calculations.InterQuartileRange
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.System.File
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 
 /*
     The Histogram class is Chart object that inherits from SharedBarChartParent and like other
@@ -307,7 +309,7 @@ class Histogram is SharedBarChartParent
                 end
                 // If bar is part of a series
                 if(seriesFactor:HasKey(column:GetHeader()))
-                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar)
                     bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
                 end
                 i = i + 1

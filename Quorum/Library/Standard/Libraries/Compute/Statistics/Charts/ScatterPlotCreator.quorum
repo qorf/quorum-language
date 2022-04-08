@@ -17,7 +17,7 @@ use Libraries.Compute.Statistics.Tests.Regression
 
 /*
     This class is used to create a Scatter Plot from columns of data in a DataFrame.
-    There are 2 ways to make a bar chart from the data frame using this class:
+    There are 2 ways to make a scatter plot from the data frame using this class:
         1. Two columns and one factor: By default, first column is x-axis (independent), second column is y-axis (dependent), colored by factor.
         2. Two or more column: By default, first column is x-axis (independent), and all other columns are used on y-axis (dependent), colored by y-axis columns.
 
@@ -463,6 +463,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
         if useFactor
             chart:SetLegendTitle(factor:GetHeader())
+            chart:SetFactorList(seriesNames)
         end
 
         chart:SetSeriesList(seriesList)

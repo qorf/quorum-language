@@ -1,0 +1,95 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.GroupPanel
+
+
+/*
+The ChartDrawable class is a parent data structure that stores information for each 
+indiviual shape drawn on the chart. 
+ChartDrawable holds a reference to a Series and Group to track which Series and Group it belongs to.
+ChartDrawable holds the manual color of the drawable to avoid automatic re-coloring by the series.
+ChartDrawable holds the annotation for the drawable.
+
+Attribute: Author Hannah Williams
+*/
+
+class ChartDrawable is Drawable    
+    ChartAreaPanel chartArea = undefined // If separated, this will correspond to the correct sub chart area
+    Series series = undefined
+    GroupPanel group = undefined
+    Color customColor = undefined
+    ControlLabel annotation = undefined
+    boolean showAnnotation = false
+
+    on create
+        // Color the item as gray in case it never gets added to a series.
+        Color color
+        SetColor(color:LightGray())
+    end
+
+    /*
+        Manual Color is used to override the series coloring if the user wants
+        to display a different color for only this item of the series/group.
+    */
+    action SetCustomColor(Color color)
+        me:customColor = color
+    end
+
+    action SetColor(Color color)
+        if customColor not= undefined
+            parent:Drawable:SetColor(customColor)
+        else
+            parent:Drawable:SetColor(color)
+        end
+    end
+
+    /*
+        Annotation is a control label that can be shown appended to this drawable
+        It can show things like a name, value, equation or custom text. 
+    */
+    action SetAnnotation(ControlLabel annotation)
+        me:annotation = annotation
+    end
+
+    action GetAnnotation returns ControlLabel
+        return annotation
+    end
+
+    action ShowAnnotation(boolean show)
+        showAnnotation = show
+    end
+
+    action ShowAnnotation returns boolean
+        return showAnnotation
+    end
+
+    /*
+        The series is the entry in the legend associated with this drawable.
+        Series is used to locate, name, and color the drawable unless manually colored.
+    */
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    /*
+        The group is the label on the chart associated with this drawable.
+        In most cases the groups are created by unique factors.
+        GroupPanel is used to position, locate, and name the drawable on the chart.
+    */
+    action SetGroup(GroupPanel group)
+        me:group = group
+    end
+
+    action GetGroup returns GroupPanel
+        return group
+    end
+end

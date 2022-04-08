@@ -17,6 +17,8 @@ use Libraries.Web.Page.UnorderedList
 use Libraries.Web.Page.ListItem
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 
 /*
     The BarChartWriter class is part of the set of writers that allow for Charts
@@ -99,15 +101,15 @@ class BarChartWriter is ChartWriter
     
                 if chart:HasGroups()
                     Rectangle barGroup
-                    barGroup:SetWidth(currentBarGroup:GetIcon():GetWidth())
-                    barGroup:SetHeight(currentBarGroup:GetIcon():GetHeight())
-                    barGroup:SetPosition(currentBarGroup:GetIcon():GetGlobalX(), TranslatePositionY(currentBarGroup:GetIcon()) - currentBarGroup:GetIcon():GetHeight()) 
+                    barGroup:SetWidth(currentBarGroup:GetWidth())
+                    barGroup:SetHeight(currentBarGroup:GetHeight())
+                    barGroup:SetPosition(currentBarGroup:GetGlobalX(), TranslatePositionY(currentBarGroup) - currentBarGroup:GetHeight()) 
                     barGroup:SetFill(transparent)
                     barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
                     barGroup:SetStyleClass("quorum-chart-rect")
                     barGroup:SetTabIndex(-1)
                     if HasAccessibility()
-                        barGroup:SetAriaLabel(currentBarGroup:GetIcon():GetName() + currentBarGroup:GetIcon():GetDescription())
+                        barGroup:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
                     end
                     GetGroupPanels():Add(barGroup)
                     canvas:Add(barGroup)
@@ -119,18 +121,34 @@ class BarChartWriter is ChartWriter
                     Bar currentBar = currentBarGroup:Get(j)
     
                     Rectangle bar
-                    bar:SetWidth(currentBar:GetIcon():GetWidth())
-                    bar:SetHeight(currentBar:GetIcon():GetHeight())
-                    bar:SetPosition(currentBar:GetIcon():GetGlobalX(), TranslatePositionY(currentBar:GetIcon()) - currentBar:GetIcon():GetHeight()) 
-                    bar:SetFill(currentBar:GetIcon():GetColor())
+                    bar:SetWidth(currentBar:GetWidth())
+                    bar:SetHeight(currentBar:GetHeight())
+                    bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                    bar:SetFill(currentBar:GetColor())
                     bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
-                        bar:SetAriaLabel(currentBar:GetIcon():GetName() + currentBar:GetIcon():GetDescription())
+                        bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                     end
                     canvas:Add(bar)
     
+                    if currentBar:ShowAnnotation() or chart:ShowAnnotations()
+                        ControlLabel label = currentBar:GetAnnotation()
+                        if label not= undefined
+                            Label labelSVG
+                            labelSVG:SetText(label:GetText())
+                            labelSVG:SetTextAnchor("left")
+                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                            labelSVG:SetFontFamily("Arial")
+                            labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                            labelSVG:SetStyleClass("quorum-chart-text")
+                            labelSVG:SetTabIndex(-1)
+                            canvas:Add(labelSVG)
+                        end
+                    end 
+
                     j = j + 1
                 end
     
@@ -141,9 +159,9 @@ class BarChartWriter is ChartWriter
             repeat while i < chart:GetSubChartAreas():GetSize()
                 j = 0
                 repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
-                    Icon currentBar
-                    currentBar = cast(Icon, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
-    
+                    Bar currentBar
+                    currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))   
+
                     Rectangle bar
                     bar:SetWidth(currentBar:GetWidth())
                     bar:SetHeight(currentBar:GetHeight())
@@ -156,6 +174,22 @@ class BarChartWriter is ChartWriter
                         bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                     end
                     canvas:Add(bar)
+
+                    if currentBar:ShowAnnotation() or chart:ShowAnnotations()
+                        ControlLabel label = currentBar:GetAnnotation()
+                        if label not= undefined
+                            Label labelSVG
+                            labelSVG:SetText(label:GetText())
+                            labelSVG:SetTextAnchor("left")
+                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                            labelSVG:SetFontFamily("Arial")
+                            labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                            labelSVG:SetStyleClass("quorum-chart-text")
+                            labelSVG:SetTabIndex(-1)
+                            canvas:Add(labelSVG)
+                        end
+                    end 
     
                     j = j + 1
                 end

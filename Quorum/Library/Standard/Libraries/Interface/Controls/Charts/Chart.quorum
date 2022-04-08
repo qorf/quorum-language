@@ -102,7 +102,7 @@ class Chart is Control
     // Chart Area Components
     private Drawable background = undefined
     private ChartAreaPanel chartArea
-    private Array<Icon> groupPanels
+    private Array<GroupPanel> groupPanels
     private integer paddedChartOffset = 0
     private integer numberOfChartAreas = 1
     private integer regLineDensity = 0
@@ -111,6 +111,7 @@ class Chart is Control
     private boolean hasGroups = false
     private boolean defaultShowBrackets = false
     private boolean overrideDefaultShowBrackets = false
+    private boolean showAnnotations = false
 
     // Chart Area Facetting
     private Array <ChartAreaPanel> subChartAreas
@@ -121,6 +122,7 @@ class Chart is Control
     private boolean defaultSeparateByFactor = false
     private boolean overrideDefaultSeparation = false
     private boolean showSubChartAreaBorders = true
+    private Array<text> factorList = undefined
 
     // X-Axis Components
     private HorizontalAxisPanel horizontalPanel
@@ -210,9 +212,8 @@ class Chart is Control
 
         // Load sub chart areas and sub axis panels
         if numberOfChartAreas > 1
-            Array<text> factorList = GetFactorList()
             if separateByFactor
-                Array<text> newLabels
+                Array<text> newLabels 
                 integer size = GetSeriesList():GetSize()
                 integer j = 0
                 repeat while j < size
@@ -233,8 +234,8 @@ class Chart is Control
             repeat while i < numberOfChartAreas
                 ChartAreaPanel subArea
                 if separateByFactor
-                    if i < factorList:GetSize()
-                        subArea:SetName(factorList:Get(i))
+                    if i < GetFactorList():GetSize()
+                        subArea:SetName(GetFactorList():Get(i))
                         ControlLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
@@ -529,8 +530,23 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetGroupPanels returns Array<Icon>
+    action GetGroupPanels returns Array<GroupPanel>
         return groupPanels
+    end
+
+    action AddGroupPanel(GroupPanel group)
+        groupPanels:Add(group)
+    end
+
+    /*
+    Attribute: True if all annotations for chart drawables are showing.
+    */
+    action ShowAnnotations returns boolean
+        return showAnnotations
+    end
+
+    action ShowAnnotations(boolean show)
+        showAnnotations = show
     end
 
     action GetChartAreaWidthPercent returns number
@@ -821,7 +837,7 @@ class Chart is Control
     end
 
     action SeparateByFactor(integer requestedColumns)
-        if separationCapable and requestedColumns > 0
+        if separationCapable and requestedColumns > 0 and GetFactorList() not= undefined
             integer numberOfFacets = GetFactorList():GetSize()
             boolean singleRow = false
             if numberOfFacets > 1
@@ -840,6 +856,7 @@ class Chart is Control
             numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
             if numberOfChartAreas > 1
                 separateByFactor = true
+                separateBySeries = false
             end
             overrideDefaultSeparation = true
         end
@@ -882,6 +899,7 @@ class Chart is Control
             numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
             if numberOfChartAreas > 1
                 separateBySeries = true
+                separateByFactor = false
             end
             overrideDefaultSeparation = true
         end
@@ -1373,29 +1391,23 @@ class Chart is Control
         return legend:GetSeriesList()
     end
 
-    /*
-        Returns an array of all the factor/group labels 
-    */
-    action GetFactorList returns Array<text>
-        Array<text> list
-        if xAxisIsIndependent
-            if horizontalPanel:GetTextLabels() not= undefined
-                list = horizontalPanel:GetTextLabels()
-            end
-        else
-            if verticalPanel:GetTextLabels() not= undefined
-                list = verticalPanel:GetTextLabels()
-            end
-        end
-        return list
+    action SetSeriesList(Array <Series> series)
+        legend:SetSeriesList(series)
     end
 
     action AddSeries(Series series)
         legend:GetSeriesList():Add(series)
     end
 
-    action SetSeriesList(Array <Series> series)
-        legend:SetSeriesList(series)
+    /*
+        Returns an array of all the factor/group labels 
+    */
+    action GetFactorList returns Array<text>
+        return factorList
+    end
+
+    action SetFactorList(Array <text> factorList)
+        me:factorList = factorList
     end
 
     action SetColorPaletteToCalm()
@@ -1987,7 +1999,7 @@ class Chart is Control
                     i = i + 1
                 end
 //                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
+                temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
@@ -2044,7 +2056,7 @@ class Chart is Control
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetHighlightColor())
                 temp:GetEntryBox():SetColor(GetHighlightColor())
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)

@@ -11,6 +11,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.Graphics.PieBox
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.System.File
 use Libraries.System.FileWriter
@@ -157,6 +158,22 @@ class PieChartWriter is ChartWriter
                     slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                 end
                 canvas:Add(slice)
+
+                if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
+                    ControlLabel label = pieBox:Get(i):GetAnnotation()
+                    if label not= undefined
+                        Label labelSVG
+                        labelSVG:SetText(label:GetText())
+                        labelSVG:SetTextAnchor("left")
+                        labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                        labelSVG:SetFontSize(label:GetFontSize() + "px")
+                        labelSVG:SetFontFamily("Arial")
+                        labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                        labelSVG:SetStyleClass("quorum-chart-text")
+                        labelSVG:SetTabIndex(-1)
+                        canvas:Add(labelSVG)
+                    end
+                end
                 i = i + 1
             end
         else
@@ -226,6 +243,22 @@ class PieChartWriter is ChartWriter
                         slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                     end
                     canvas:Add(slice)
+
+                    if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
+                        ControlLabel label = pieBox:Get(i):GetAnnotation()
+                        if label not= undefined
+                            Label labelSVG
+                            labelSVG:SetText(label:GetText())
+                            labelSVG:SetTextAnchor("left")
+                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                            labelSVG:SetFontFamily("Arial")
+                            labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                            labelSVG:SetStyleClass("quorum-chart-text")
+                            labelSVG:SetTabIndex(-1)
+                            canvas:Add(labelSVG)
+                        end
+                    end 
                     i = i + 1
                 end
                 index = index + 1

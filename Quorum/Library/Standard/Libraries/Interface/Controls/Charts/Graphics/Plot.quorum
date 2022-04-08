@@ -1,9 +1,8 @@
-package Libraries.Interface.Controls.Charts
+package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector
-use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Support.Pair
 
@@ -27,15 +26,16 @@ class Main
 end
 */
 
-class Plot is Drawable
-    Vector data
-    Array <number> info
-    Array <number> outliers
-    Array <Drawable> items
-    Series series
+class Plot is ChartDrawable
+    Vector data                 // All data for this plot
+    Array <number> info         // Summary values
+    Array <number> outliers     // Outlier values
+    Array <ChartDrawable> items // Drawable items on chart within this plot
+    Array<Pair<integer>> points // VIOLIN ONLY - Coordinates to draw violin shaped polygon
+    Icon plotArea
+
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
-    Array<Pair<integer>> points
 
     /* Indices info of individual plot values (info)
         0: MEDIAN
@@ -72,6 +72,13 @@ class Plot is Drawable
         return data
     end
 
+    action IsUndefined() returns boolean
+        if info:GetSize() = 0
+            return true
+        end
+        return false
+    end
+
     // Fill in plotting information and outliers.
     action SetInfo(Array<number> array)
         integer i = 0
@@ -83,20 +90,19 @@ class Plot is Drawable
             end
             i = i + 1
         end
+//        if GetPlotGroup() not= undefined
+//            GetPlotGroup():RecalculateGroupValues()
+//        end
     end
-    
-    action GetInfo() returns Array<number>
+
+    action GetInfo returns Array<number>
         return info
     end
-    
+
     action GetOutliers() returns Array<number>
         return outliers
     end
     
-    action AddInfo(number value)
-        info:Add(value)
-    end
-
     action GetInfoAt(integer index) returns number
         return info:Get(index)
     end
@@ -105,20 +111,12 @@ class Plot is Drawable
         return info:GetSize()
     end
 
-    action AddItem(Drawable item)
+    action AddItem(ChartDrawable item)
         items:Add(item)
     end
-    
-    action GetPlotItems() returns Array<Drawable> 
+
+    action GetPlotItems() returns Array<ChartDrawable> 
         return items
-    end
-
-    action GetSeries returns Series
-        return series
-    end
-
-    action SetSeries(Series series)
-        me:series = series
     end
 
     action GetMinOutlierValue returns number
@@ -129,8 +127,28 @@ class Plot is Drawable
         return maxOutlierValue
     end
 
+    /*
+        Array of points used to outline the violin shape in a violin plot chart.
+    */
     action GetPoints returns Array<Pair<integer>>
         return points
     end
 
+    /*
+        Icon surrounding single plot when focused on.    
+    */
+    action GetPlotArea returns Icon
+        return plotArea
+    end
+
+    action SetPlotArea(Icon plotArea)
+        me:plotArea = plotArea
+    end
+
+    /*
+        Link to the parent PlotGroup
+    */
+    action GetPlotGroup returns PlotGroup
+        return cast(PlotGroup, GetGroup())
+    end
 end

@@ -8,13 +8,14 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.ControlLabel
-use Libraries.Interface.Controls.Charts.Graphics.Wedge
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.PieChartLayout
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.File
 use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Charts.Graphics.PieBox
+use Libraries.Interface.Controls.Charts.Graphics.PieSlice
 
 /*
     The PieChart class is Chart object that inherits from Control and like other
@@ -51,6 +52,8 @@ use Libraries.Containers.HashTable
 class PieChart is Chart
     Array<PieBox> pieBoxes // used when chart is separated into sub charts
     number donutHolePercent = 0
+    boolean showPercentAnnotation = true // When annotations are showing, the slices will display a %
+    boolean showValueAnnotation = false // When annotations are showing, the slices will display value
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -89,6 +92,7 @@ class PieChart is Chart
         ShowSubChartAreaBorders(false)
         SeparationCapable(true)
         OrientationCapable(false)
+        ShowAnnotations(true) // Default shows % annotations
         ShowXAxis(false)
         ShowYAxis(false)
         HideAllGridLines()
@@ -123,26 +127,38 @@ class PieChart is Chart
                         pieBoxes:Get(j):SetChartArea(GetSubChartAreas():Get(k))
                         integer i = 0
                         repeat while i < pieBoxes:Get(j):GetSize()
-                            Wedge slice = pieBoxes:Get(j):Get(i)
+                            PieSlice slice = pieBoxes:Get(j):Get(i)
                             slice:SetFocusable(true)
                             slice:SetAccessibilityCode(parent:Item:ITEM)
                             slice:SetNextFocus(GetNextFocus())
                             slice:SetPreviousFocus(GetPreviousFocus())
                             number value = slice:GetValue()
-                            number percent = math:Round((slice:GetValue()/pieBoxes:Get(j):GetTotalValue()) * 100, 2)
-                            text description = " "
-                            if percent = cast(integer, percent)
-                                description = description + cast(integer, percent) + " percent , value of "
-                            else
-                                description = description + percent + " percent , value of "
+                            number percent = math:Round((slice:GetValue()/pieBoxes:Get(j):GetValue()) * 100, 2)
+
+                            text valueText = ""+value
+                            if CheckIfInteger(value)
+                                valueText = ""+cast(integer, value)
                             end
-                            if value = cast(integer, value)
-                                description = description + cast(integer, value) + ","
-                            else
-                                description = description + value + ","
+                            text percentText = ""+percent
+                            if CheckIfInteger(percent)
+                                percentText = ""+cast(integer, percent)
                             end
+                            text description = " "+percentText+" percent , value of "+valueText+","
                             slice:SetDescription(description)
                             GetSubChartAreas():Get(k):AddChartAreaItem(slice)
+
+                            if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
+                                ControlLabel sliceLabel
+                                if showPercentAnnotation
+                                    sliceLabel:SetText(percentText+"%")
+                                elseif showValueAnnotation
+                                    sliceLabel:SetText(valueText)
+                                else
+                                    sliceLabel:SetText("custom")
+                                end
+                                slice:SetAnnotation(sliceLabel)
+                                GetSubChartAreas():Get(k):Add(sliceLabel)
+                            end
                             i = i + 1
                         end
                     end
@@ -159,28 +175,60 @@ class PieChart is Chart
             pieBoxes:Get(0):SetChartArea(GetChartArea())
             integer i = 0
             repeat while i < pieBoxes:Get(0):GetSize()
-                Wedge slice = pieBoxes:Get(0):Get(i)
+                PieSlice slice = pieBoxes:Get(0):Get(i)
                 slice:SetFocusable(true)
                 slice:SetAccessibilityCode(parent:Item:ITEM)
                 slice:SetNextFocus(GetNextFocus())
                 slice:SetPreviousFocus(GetPreviousFocus())
                 number value = slice:GetValue()
-                number percent = math:Round((slice:GetValue()/pieBoxes:Get(0):GetTotalValue()) * 100, 2)
-                text description = " "
-                if percent = cast(integer, percent)
-                    description = description + cast(integer, percent) + " percent , value of "
-                else
-                    description = description + percent + " percent , value of "
+                number percent = math:Round((slice:GetValue()/pieBoxes:Get(0):GetValue()) * 100, 2)
+
+                text valueText = ""+value
+                if CheckIfInteger(value)
+                    valueText = ""+cast(integer, value)
                 end
-                if value = cast(integer, value)
-                    description = description + cast(integer, value)
-                else
-                    description = description + value
+                text percentText = ""+percent
+                if CheckIfInteger(percent)
+                    percentText = ""+cast(integer, percent)
                 end
+                text description = " "+percentText+" percent , value of "+valueText+","
                 slice:SetDescription(description)
+                
+                if slice:ShowAnnotation() or ShowAnnotations()
+                    ControlLabel sliceLabel
+                    if showPercentAnnotation
+                        sliceLabel:SetText(percentText+"%")
+                    elseif showValueAnnotation
+                        sliceLabel:SetText(valueText)
+                    else
+                        sliceLabel:SetText("custom")
+                    end
+                    slice:SetAnnotation(sliceLabel)
+                    GetChartArea():Add(sliceLabel)
+                end
                 i = i + 1
             end
         end
+    end
+
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
+    end
+
+    action ShowValueAnnotations(boolean show)
+        if show
+            showPercentAnnotation = false
+        end
+        showValueAnnotation = show
+        ShowAnnotations(show)
+    end
+
+    action ShowPercentAnnotations(boolean show)
+        if show
+            showValueAnnotation = false
+        end
+        showPercentAnnotation = show
+        ShowAnnotations(show)
     end
 
     /*
@@ -250,7 +298,7 @@ class PieChart is Chart
 
     private action MergePieBoxes
         PieBox newBox
-        HashTable<text, Wedge> sliceFactor
+        HashTable<text, PieSlice> sliceFactor
         integer i = 0 
         repeat while i < pieBoxes:GetSize()
             integer j = 0
@@ -259,7 +307,7 @@ class PieChart is Chart
                 number value = pieBoxes:Get(i):Get(j):GetValue()
                 Series series = pieBoxes:Get(i):Get(j):GetSeries()
                 if not sliceFactor:HasKey(name)
-                    Wedge slice
+                    PieSlice slice
                     slice:SetName(name)
                     slice:SetValue(value)
                     slice:SetSeries(series)
@@ -278,7 +326,6 @@ class PieChart is Chart
         repeat while i < GetSeriesList():GetSize()
             if sliceFactor:HasKey(GetSeriesList():Get(i):GetName())
                 newBox:AddSlice(sliceFactor:GetValue(GetSeriesList():Get(i):GetName()))
-                sliceFactor:GetValue(GetSeriesList():Get(i):GetName()):SetPieBox(newBox)
             end
             i = i + 1
         end
@@ -289,118 +336,281 @@ class PieChart is Chart
 
     // Makes pies based on the factors which are the entries in the legend.
     // Then we need to replace the legend entries with the new list
-    private action MakePieBoxes
-        HashTable<text, PieBox> boxFactor
-        HashTable<text, Series> seriesFactor
-        HashTable<text, Wedge> sliceFactor
-
-        Array<text> newSeriesNames
-        integer i = 0 
-        repeat while i < GetFactorList():GetSize()
-            Series series
-            text name = GetFactorList():Get(i)
-            series:SetName(name)
-            newSeriesNames:Add(name)
-            seriesFactor:Add(name, series)
-            i = i + 1
-        end
-
-        Array<text> newBoxNames
-        i = 0 
-        repeat while i < GetSeriesList():GetSize()
-            PieBox box
-            text name = GetSeriesList():Get(i):GetName()
-            box:SetName(name)
-            newBoxNames:Add(name)
-            boxFactor:Add(name, box)
-            i = i + 1
-        end
+    private action MakeSeriesPieBoxes
+        if pieBoxes:GetSize() = 1 
+            PieBox original = pieBoxes:Get(0)
+            Array<PieBox> newBoxes 
+            Array<PieSlice> slices = original:GetSlices()
     
-        i = 0 
-        repeat while i < pieBoxes:GetSize()
-            integer j = 0
-            repeat while j < pieBoxes:Get(i):GetSize()
-                text seriesName = pieBoxes:Get(i):Get(j):GetSeries():GetName()
-                text boxName = pieBoxes:Get(i):Get(j):GetPieBox():GetName()
-                text sliceName = seriesName+" "+boxName
-                number value = pieBoxes:Get(i):Get(j):GetValue()
-                if not sliceFactor:HasKey(sliceName)
-                    Wedge slice
-                    slice:SetName(boxName)
-                    slice:SetValue(value)
-                    sliceFactor:Add(sliceName, slice)
-                else
-                    number oldValue = sliceFactor:GetValue(sliceName):GetValue()
-                    sliceFactor:GetValue(sliceName):SetValue(oldValue + value)
-                end
-                j = j + 1
-            end
-            i = i + 1
-        end
-
-        i = 0
-        repeat while i < newBoxNames:GetSize()
-            j = 0
-            repeat while j < newSeriesNames:GetSize()  
-                text name = newBoxNames:Get(i)+" "+newSeriesNames:Get(j)
-                if sliceFactor:HasKey(name)
-                    if boxFactor:HasKey(newBoxNames:Get(i))
-                        boxFactor:GetValue(newBoxNames:Get(i)):AddSlice(sliceFactor:GetValue(name))
-                        sliceFactor:GetValue(name):SetPieBox(boxFactor:GetValue(newBoxNames:Get(i)))
-                    end   
-                    if seriesFactor:HasKey(newSeriesNames:Get(j))
-                        seriesFactor:GetValue(newSeriesNames:Get(j)):AddItem(sliceFactor:GetValue(name))
-                        sliceFactor:GetValue(name):SetSeries(seriesFactor:GetValue(newSeriesNames:Get(j)))
+            if GetColumnList() not= undefined
+                integer i = 0 
+                repeat while i < GetColumnList():GetSize()
+                    integer j = 0 
+                    repeat while j < slices:GetSize()
+                        if slices:Get(j):GetName() = GetColumnList():Get(i)
+                            PieBox newBox
+                            newBox:SetName(GetColumnList():Get(i))
+                            newBox:AddSlice(slices:Get(j))
+        
+                            PieSlice otherSlice
+                            otherSlice:SetValue(original:GetValue()-slices:Get(j):GetValue())
+                            newBox:AddSlice(otherSlice)
+        
+                            newBoxes:Add(newBox)
+                        end
+                        j = j + 1
                     end
+                    i = i + 1
                 end
-                j = j + 1
-            end 
-            i = i + 1
-        end  
+            end
+    
+            pieBoxes:Empty()
+            pieBoxes = newBoxes
+        else
+            HashTable<text, PieBox> boxFactor
+            HashTable<text, Series> seriesFactor
+            HashTable<text, PieSlice> sliceFactor
+    
+            Array<text> newSeriesNames
+            integer i = 0 
+            repeat while i < GetFactorList():GetSize()
+                Series series
+                text name = GetFactorList():Get(i)
+                series:SetName(name)
+                newSeriesNames:Add(name)
+                seriesFactor:Add(name, series)
+                i = i + 1
+            end
+    
+            Array<text> columnList
+            if GetHorizontalPanel():GetTextLabels() not= undefined
+                columnList = GetHorizontalPanel():GetTextLabels()
+            end
 
-        pieBoxes:Empty()
-        // Add the groups
-        i = 0
-        repeat while i < newBoxNames:GetSize()
-            pieBoxes:Add(boxFactor:GetValue(newBoxNames:Get(i)))
-            i = i + 1
-        end
-        OverrideXLabelsWithText(newBoxNames)
+            Array<text> newBoxNames
+            i = 0 
+            repeat while i < columnList:GetSize()
+                PieBox box
+                text name = columnList:Get(i)
+                box:SetName(name)
+                newBoxNames:Add(name)
+                boxFactor:Add(name, box)
+                i = i + 1
+            end
+            SetFactorList(newBoxNames)
+    
+            i = 0 
+            repeat while i < pieBoxes:GetSize()
+                integer j = 0
+                repeat while j < pieBoxes:Get(i):GetSize()
+                    text seriesName = pieBoxes:Get(i):Get(j):GetSeries():GetName()
+                    text boxName = pieBoxes:Get(i):Get(j):GetGroup():GetName()
+                    text sliceName = boxName+" "+seriesName
+                    number value = pieBoxes:Get(i):Get(j):GetValue()
+                    if not sliceFactor:HasKey(sliceName)
+                        PieSlice slice
+                        slice:SetName(boxName)
+                        slice:SetValue(value)
+                        sliceFactor:Add(sliceName, slice)
+                    else
+                        number oldValue = sliceFactor:GetValue(sliceName):GetValue()
+                        sliceFactor:GetValue(sliceName):SetValue(oldValue + value)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
 
-        // Add the series
-        Array <Series> seriesList
-        i = 0
-        repeat while i < newSeriesNames:GetSize()
-            seriesList:Add(seriesFactor:GetValue(newSeriesNames:Get(i)))
-            i = i + 1
+            i = 0
+            repeat while i < newBoxNames:GetSize()
+                j = 0
+                repeat while j < newSeriesNames:GetSize()  
+                    text name = newBoxNames:Get(i)+" "+newSeriesNames:Get(j)
+                    if sliceFactor:HasKey(name)
+                        if boxFactor:HasKey(newBoxNames:Get(i))
+                            boxFactor:GetValue(newBoxNames:Get(i)):AddSlice(sliceFactor:GetValue(name))
+                        end   
+                        if seriesFactor:HasKey(newSeriesNames:Get(j))
+                            seriesFactor:GetValue(newSeriesNames:Get(j)):AddItem(sliceFactor:GetValue(name))
+                        end
+                    end
+                    j = j + 1
+                end 
+                i = i + 1
+            end  
+    
+            pieBoxes:Empty()
+            // Add the groups
+            i = 0
+            repeat while i < newBoxNames:GetSize()
+                pieBoxes:Add(boxFactor:GetValue(newBoxNames:Get(i)))
+                i = i + 1
+            end
+
+            // Add the series
+            Array <Series> seriesList
+            i = 0
+            repeat while i < newSeriesNames:GetSize()
+                seriesList:Add(seriesFactor:GetValue(newSeriesNames:Get(i)))
+                i = i + 1
+            end
+            GetLegend():SetSeriesList(seriesList)
         end
-        GetLegend():SetSeriesList(seriesList)
     end
 
 
-    action SeparateByFactor(boolean flag)
-        if pieBoxes:GetSize() > 1 and not flag
-            MergePieBoxes()
-        end
-        parent:Chart:SeparateByFactor(flag)
+    private action MakeFactorPieBoxes
+        if pieBoxes:GetSize() = 1
+            PieBox original = pieBoxes:Get(0)
+            Array<PieBox> newBoxes 
+            Array<PieSlice> slices = original:GetSlices()
+    
+            integer i = 0 
+            repeat while i < GetFactorList():GetSize()
+                integer j = 0 
+                repeat while j < slices:GetSize()
+                    if slices:Get(j):GetName() = GetFactorList():Get(i)
+                        PieBox newBox
+                        newBox:SetName(GetFactorList():Get(i))
+                        newBox:AddSlice(slices:Get(j))
+    
+                        PieSlice otherSlice
+                        otherSlice:SetValue(original:GetValue()-slices:Get(j):GetValue())
+                        newBox:AddSlice(otherSlice)
+    
+                        newBoxes:Add(newBox)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+    
+            pieBoxes:Empty()
+            pieBoxes = newBoxes
+
+        elseif pieBoxes:GetSize() > 1
+            HashTable<text, PieBox> boxFactor
+            HashTable<text, Series> seriesFactor
+            HashTable<text, PieSlice> sliceFactor
+
+            Array<text> newSeriesNames
+            if GetHorizontalPanel():GetTextLabels() not= undefined
+                newSeriesNames = GetHorizontalPanel():GetTextLabels()
+            end
+
+            i = 0 
+            repeat while i < newSeriesNames:GetSize()
+                Series series
+                text name = newSeriesNames:Get(i)
+                series:SetName(name)
+                seriesFactor:Add(name, series)
+                i = i + 1
+            end
+    
+            Array<text> newBoxNames
+            i = 0 
+            repeat while i < GetFactorList():GetSize()
+                PieBox box
+                text name = GetFactorList():Get(i)
+                box:SetName(name)
+                newBoxNames:Add(name)
+                boxFactor:Add(name, box)
+                i = i + 1
+            end
+    
+            i = 0 
+            repeat while i < pieBoxes:GetSize()
+                integer j = 0
+                repeat while j < pieBoxes:Get(i):GetSize()
+                    text seriesName = pieBoxes:Get(i):Get(j):GetSeries():GetName()
+                    text boxName = pieBoxes:Get(i):Get(j):GetGroup():GetName()
+                    text sliceName = seriesName+" "+boxName
+                    number value = pieBoxes:Get(i):Get(j):GetValue()
+                    if not sliceFactor:HasKey(sliceName)
+                        PieSlice slice
+                        slice:SetName(boxName)
+                        slice:SetValue(value)
+                        sliceFactor:Add(sliceName, slice)
+                    else
+                        number oldValue = sliceFactor:GetValue(sliceName):GetValue()
+                        sliceFactor:GetValue(sliceName):SetValue(oldValue + value)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+    
+            i = 0
+            repeat while i < newBoxNames:GetSize()
+                j = 0
+                repeat while j < newSeriesNames:GetSize()  
+                    text name = newBoxNames:Get(i)+" "+newSeriesNames:Get(j)
+                    if sliceFactor:HasKey(name)
+                        if boxFactor:HasKey(newBoxNames:Get(i))
+                            boxFactor:GetValue(newBoxNames:Get(i)):AddSlice(sliceFactor:GetValue(name))
+                        end   
+                        if seriesFactor:HasKey(newSeriesNames:Get(j))
+                            seriesFactor:GetValue(newSeriesNames:Get(j)):AddItem(sliceFactor:GetValue(name))
+                        end
+                    end
+                    j = j + 1
+                end 
+                i = i + 1
+            end  
+    
+            pieBoxes:Empty()
+            // Add the groups
+            i = 0
+            repeat while i < newBoxNames:GetSize()
+                pieBoxes:Add(boxFactor:GetValue(newBoxNames:Get(i)))
+                i = i + 1
+            end
+
+            // Add the series
+            Array <Series> seriesList
+            i = 0
+            repeat while i < newSeriesNames:GetSize()
+                seriesList:Add(seriesFactor:GetValue(newSeriesNames:Get(i)))
+                i = i + 1
+            end
+            GetLegend():SetSeriesList(seriesList) 
+        end 
     end
 
-    action SeparateBySeries(boolean flag)
-        if pieBoxes:GetSize() > 1 and not flag
-            MergePieBoxes()
-        end
-        parent:Chart:SeparateBySeries(flag)
-    end
-
+    /*
+    Supplemental actions to Chart class's SeparateByFactor and SeparateBySeries.
+    This ensures the separate pie charts are created and filled in properly.
+    */
     action SeparateByFactor(integer requestColumns)
-        if GetFactorList():GetSize() > 1
-            MakePieBoxes()
+        if GetFactorList() not= undefined
+            if GetFactorList():GetSize() > 1 // We won't separate by series if there is only one.
+                MakeFactorPieBoxes()
+                parent:Chart:SeparateByFactor(requestColumns)
+            end
         end
-        parent:Chart:SeparateByFactor(requestColumns)
     end
+
 
     action SeparateBySeries(integer requestColumns)
-        parent:Chart:SeparateByFactor(requestColumns)
+        if GetColumnList() not= undefined
+            if GetColumnList():GetSize() > 1 // We won't separate by series if there is only one.
+                MakeSeriesPieBoxes()
+                if GetFactorList() not= undefined
+                    parent:Chart:SeparateByFactor(requestColumns)
+                else
+                    parent:Chart:SeparateBySeries(requestColumns)
+                end
+            end
+        end
+    end
+
+    /*
+        Returns an array of all the columns labels 
+        This is necessary since the legend doesn't hold the
+        column headers in a pie chart if a factor is used.
+    */
+    private action GetColumnList returns Array<text>
+        return GetHorizontalPanel():GetTextLabels()
     end
 
     action GetDonutHolePercent returns number

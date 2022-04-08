@@ -88,6 +88,16 @@ class ScatterPlot is TwoVariableChart
         parent:TwoVariableChart:AddPoint(point)
     end
 
+    /*
+    Supplemental actions to Chart class's SeparateByFactor and SeparateBySeries.
+    This ensures the separate pie charts are created and filled in properly.
+    */
+    action SeparateByFactor(integer requestColumns)
+        if GetFactorList() not= undefined
+            parent:Chart:SeparateBySeries(requestColumns)
+        end
+    end
+
     /* 
         This action converts this chart to a text value that contains information 
         for a scalable vector graphics file. This is useful for saving charts to disk.

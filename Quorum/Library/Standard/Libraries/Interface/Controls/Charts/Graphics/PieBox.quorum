@@ -1,67 +1,84 @@
-package Libraries.Interface.Controls.Charts
+package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Containers.Array
-use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Interface.Controls.Charts.GroupPanel
 
 /*
-    PieBox is a Drawable that holds all the slices for a single pie chart.
+The PieBox class is a data structure that stores information for each 
+group of slices in a certain a certain pie. 
+This class inherits from a GroupPanel Icon that is used for accessibility.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Graphics.PieBox
+class Main
+    action Main
+        // Make a pie
+        PieBox pie
+        
+        // Add a slice
+        PieSlice slice
+        pie:AddSlice(bar)
+        
+        // Get a slice and set its value
+        pie:Get(0):SetValue(20.0)
+    end
+end
 */
 
-class PieBox is Drawable
-    Array<Wedge> slices
-    ChartAreaPanel chartArea = undefined
-    number totalValueOfBox = 0.0
+class PieBox is GroupPanel
+    number totalValueOfPie = 0.0
 
-    action AddSlice(Wedge newSlice)
-        slices:Add(newSlice)
-        totalValueOfBox = totalValueOfBox + newSlice:GetValue()
+    action AddSlice(PieSlice slice)
+        AddItem(slice)
+        RecalculateGroupValues()
     end
 
-    action GetSlices returns Array<Wedge>
-        return slices
+    action AddSlice(text name, number value)
+        PieSlice slice
+        slice:SetName(name)
+        slice:SetValue(value)
+        AddItem(slice)
+        RecalculateGroupValues()
+    end
+
+    action Get(integer index) returns PieSlice
+        return cast(PieSlice, GetItemAt(index))
+    end
+
+    action GetSlices returns Array<PieSlice>
+        return cast(Array<PieSlice>, GetGroupItems())
     end
 
     action Empty()
-        slices:Empty()
-        totalValueOfBox = 0.0
+        totalValueOfPie = 0      
+        parent:GroupPanel:Empty()
     end
 
-    action GetSize() returns integer
-        return slices:GetSize()
+    action GetValue() returns number
+        return totalValueOfPie
     end
 
-    action Get(integer i) returns Wedge
-        if i >= 0 and i < slices:GetSize()
-            return slices:Get(i)
-        else
-            return undefined
-        end
-    end
-
-    action Set(integer i, Wedge slice)
-        if i >= 0 and i < slices:GetSize()
-            slices:Set(i, slice)
-        end
-    end
-
-    action GetTotalValue() returns number
-        return totalValueOfBox
-    end
-
-    action SetTotalValue(number value)
-        totalValueOfBox = value
+    action SetValue(number value)
+        totalValueOfPie = value
     end
 
     /*
-        A link to the parent chart area of this pie
+        Since the user can alter the value of the slice manually, 
+        Anytime a slice is added or it's value changes the totals 
+        for this group will be recalculated.
     */
-    action SetChartArea(ChartAreaPanel chartArea)
-        me:chartArea = chartArea
+    action RecalculateGroupValues
+        totalValueOfPie = 0 
+        Array<PieSlice> slices = GetSlices()
+        integer i = 0
+        repeat while i < slices:GetSize()
+            value = slices:Get(i):GetValue()
+            if value < 0
+                alert("Cannot add slice "+slices:Get(i):GetName()+" because it has a negative value of "+value+". Try creating a bar chart instead.")
+            end
+            totalValueOfPie = totalValueOfPie + value
+            i = i + 1
+        end
     end
-
-    action GetChartArea returns ChartAreaPanel
-        return chartArea
-    end
-
 end
