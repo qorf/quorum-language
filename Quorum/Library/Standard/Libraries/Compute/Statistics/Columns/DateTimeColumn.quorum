@@ -13,7 +13,9 @@ use Libraries.Compute.Statistics.DateTimeParsers.TimestampParser
 
 /*
     DateTimeColumn is a DataFrameColumn that contains DateTime objects. These objects can be undefined
-    or not. 
+    or not. By default, the DateTimeColumn uses timestamps in ISO 8601 format. This means that the expected string  
+    is in the format of YYYY-MM-DDThh:mm:ss. The year must be 4 digits and months, days, hours, minutes, and seconds
+    must be 2 digits. For more information on the ISO 8601 format see this: https://en.wikipedia.org/wiki/ISO_8601
 
     Attribute: Author Gabriel Contreras
 */
