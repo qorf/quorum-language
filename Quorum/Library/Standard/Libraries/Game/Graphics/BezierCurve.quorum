@@ -15,8 +15,11 @@ towards them, making a curve.
 Attribute: Example
 use Libraries.Game.Game
 use Libraries.Game.Graphics.BezierCurve
+use Libraries.Game.Graphics.Color
 
 class Main is Game
+
+    Color color
 
     action Main
         StartGame()
@@ -24,6 +27,11 @@ class Main is Game
 
     action CreateGame
         BezierCurve curve
+        curve:SetBackgroundColor(color:Pink())
+        curve:SetIconColor(color:Maroon())
+        curve:SetLineThickness(10)
+        curve:SetPointThickness(20)
+        curve:SetDrawPoints(true)
         curve:SetSize(600, 600)
         curve:Set(20, 20, 20, 580, 580, 20, 580, 580)
         Add(curve)
@@ -38,6 +46,10 @@ class BezierCurve is Icon
     Vector2 controlPoint2
 
     boolean initialized = false
+    boolean drawPoints = false
+
+    number lineThickness = 2
+    number pointThickness = 6
 
     private action Initialize
         initialized = true
@@ -160,6 +172,30 @@ class BezierCurve is Icon
         end
 
         controlPoint2:Set(x, y)
+    end
+
+    action SetDrawPoints(boolean drawPoints)
+        me:drawPoints = drawPoints
+    end
+
+    action IsDrawingPoints returns boolean
+        return drawPoints
+    end
+
+    action GetLineThickness returns number
+        return lineThickness
+    end
+
+    action SetLineThickness(number lineThickness)
+        me:lineThickness = lineThickness
+    end
+
+    action GetPointThickness returns number
+        return pointThickness
+    end
+
+    action SetPointThickness(number pointThickness)
+        me:pointThickness = pointThickness
     end
 
 end

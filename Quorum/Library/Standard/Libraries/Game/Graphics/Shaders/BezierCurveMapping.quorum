@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.GameStateManager
 use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.BezierCurve
+use Libraries.Game.Graphics.ColorGroup
 
 class BezierCurveMapping is ShaderMapping
 
@@ -39,8 +40,8 @@ class BezierCurveMapping is ShaderMapping
         number aspectRatio = width / height
         number pixelDistance = 1.0 / height
         number antiAliasDistance = 2 * pixelDistance
-        number lineThickness = 1.0 * pixelDistance - pixelDistance
-        number dotThickness = 14 * pixelDistance - pixelDistance
+        number lineThickness = curve:GetLineThickness() * pixelDistance - pixelDistance
+        number dotThickness = curve:GetPointThickness() * pixelDistance - pixelDistance
 
         // Translate the points to the [-1, 1] space, adjusting the width by the aspect ratio.
         number x1 = ((curve:GetPoint1():GetX() / width) - 0.5) * 2 * aspectRatio
@@ -56,13 +57,25 @@ class BezierCurveMapping is ShaderMapping
         program:SetShaderInput("u_lineThickness", lineThickness)
         program:SetShaderInput("u_dotThickness", dotThickness)
         program:SetShaderInput("u_antiAliasDistance", antiAliasDistance)
-        program:SetShaderInput("u_lineColor", 0.0, 0.0, 1.0, 1.0)
-        program:SetShaderInput("u_dotColor", 1.0, 0.0, 0.0, 1.0)
         program:SetShaderInput("u_point1", x1, y1)
         program:SetShaderInput("u_control1", cx1, cy1)
         program:SetShaderInput("u_control2", cx2, cy2)
         program:SetShaderInput("u_point2", x2, y2)
-        program:SetShaderInput("u_dotEnabled", true)
+        program:SetShaderInput("u_dotEnabled", curve:IsDrawingPoints())
+
+        ColorGroup lineColor = curve:GetBackgroundColor()
+        if lineColor not= undefined
+            program:SetShaderInput("u_lineColor", lineColor:GetBottomLeft())
+        else
+            program:SetShaderInput("u_lineColor", 0.0, 0.0, 0.0, 1.0)
+        end
+
+        ColorGroup dotColor = curve:GetIconColor()
+        if dotColor not= undefined
+            program:SetShaderInput("u_dotColor", dotColor:GetBottomLeft())
+        else
+            program:SetShaderInput("u_dotColor", 0.0, 0.0, 0.0, 1.0)
+        end
     end
 
     action End(ShaderProgram program)
