@@ -61,6 +61,26 @@ class NumberColumn is DataFrameColumn
         end
     end
 
+    /*
+        By default, this replaces all undefined values with the number value of the text passed in.
+        If the text passed in is not a number, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        check 
+            number num = cast(number, value)
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    SetAsNumber(row, num)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
+        end
+    end
     
     action Add(number value)
         rows:Add(value)

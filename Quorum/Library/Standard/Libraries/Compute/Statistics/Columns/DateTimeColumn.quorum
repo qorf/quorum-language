@@ -37,13 +37,37 @@ class DateTimeColumn is DataFrameColumn
         end
 
         check 
-            DateTime time
-            time = parser:Parse(value)
+            DateTime time = parser:Parse(value)
             rows:Add(time)
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             alert(value + " failed to parse")
+        end
+    end
+
+    /*
+        By default, this replaces all undefined values with the number value of the text passed in.
+        If the text passed in is not a number, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        if value = undefined or value:IsEmpty()
+            return now
+        end
+
+        check 
+            DateTime time = parser:Parse(value)
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    rows:Set(row, time)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
         end
     end
 

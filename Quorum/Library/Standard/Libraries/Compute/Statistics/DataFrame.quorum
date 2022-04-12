@@ -3056,6 +3056,57 @@ class DataFrame
     end
 
     /*
+        This action replaces undefined values in the DataFrame with a value derived from the text. If the text will not
+        result in a replacement, the request is ignored in the column. This action replaces the undefined values across
+        the entire DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        //perhaps this replaces an undefined in an IntegerColumn or a TextColumn
+        frame:ReplaceUndefined("0")
+        output frame:ToText()
+    */
+    action ReplaceUndefined(text value)
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = GetColumn(i)
+            column:ReplaceUndefined(value)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action replaces undefined values in the DataFrame with a value derived from the text. If the text will not
+        result in a replacement, the request is ignored in the column. This action replaces the undefined values across
+        only the selected columns. Selected factors are ignored.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //Add the first column in the set to the list of selected columns
+        frame:AddSelectedColumn(0)
+
+        //perhaps this replaces an undefined in an IntegerColumn or a TextColumn
+        frame:ReplaceUndefinedFromSelectedColumns("0")
+        output frame:ToText()
+    */
+    action ReplaceUndefinedFromSelectedColumns(text value)
+        DataFrameSelection selection = GetSelection()
+        Iterator<integer> iterator = selection:GetColumnIterator()
+        repeat while iterator:HasNext()
+            integer next = iterator:Next()
+            DataFrameColumn column = GetColumn(next)
+            column:ReplaceUndefined(value)
+        end
+    end
+
+    /*
         This action returns a text based representation of the data frame.
 
         Attribute: Returns a text based representation, in comma separated format

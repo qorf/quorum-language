@@ -41,6 +41,26 @@ class TextColumn is DataFrameColumn
         end
     end
 
+    /*
+        By default, this replaces all undefined values with the number value of the text passed in.
+        If the text passed in is undefined, this just returns.
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        if value = undefined
+            return now // because it's pointless to replace undefined with undefined
+        end
+
+        row = 0
+        repeat while row < GetSize()
+            if IsUndefined(row)
+                SetAsText(row, value)
+            end
+            row = row + 1
+        end
+    end
+
     action SetAsResult(integer index, Result value)
         if not IsResultCheckable(value) rows:Set(index, undefined) return now end
         Type type = value:type

@@ -73,6 +73,15 @@ class DataFrameColumn
     end
 
     /*
+        If the column has undefined values, this action replaces all rows that have undefined with 
+        a value selected from text. If the text value is invalid for this column, the call is ignored.
+
+        Attribute: Parameter value The value to be replaced.
+    */
+    action ReplaceUndefined(text value)
+    end
+
+    /*
         Columns may optionally add data from the Runtime system. 
         In this case, columns may optionally choose to accept or reject a particular Libraries.Language.Compile.Interpreter.Result based on type. 
         If the column is rejected, an undefined value is placed at the new position. The Result object

@@ -26,34 +26,59 @@ class BooleanColumn is DataFrameColumn
         end
 
         check 
-            text val = value:ToLowerCase()
-            if val = "true"
-                rows:Add(true)
-            elseif val = "t"
-                rows:Add(true)
-            elseif val = "y"
-                rows:Add(true)
-            elseif val = "yes"
-                rows:Add(true)
-            elseif val = "1"
-                rows:Add(true)
-            elseif val = "false"
-                rows:Add(false)
-            elseif val = "f"
-                rows:Add(false)
-            elseif val = "n"
-                rows:Add(false)
-            elseif val = "no"
-                rows:Add(false)
-            elseif val = "0"
-                rows:Add(false)
-            else //We don't recognize this value, so put in undefined
-                rows:Add(undefined) //add a missing value
-                parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
-            end
+            boolean boo = Convert(value)
+            rows:Add(boo)
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+        end
+    end
+
+    private action Convert(text value) returns boolean
+        text val = value:ToLowerCase()
+        if val = "true"
+            return true
+        elseif val = "t"
+            return true
+        elseif val = "y"
+            return true
+        elseif val = "yes"
+            return true
+        elseif val = "1"
+            return true
+        elseif val = "false"
+            return false
+        elseif val = "f"
+            return false
+        elseif val = "n"
+            return false
+        elseif val = "no"
+            return false
+        elseif val = "0"
+            return false
+        else //We don't recognize this value, so put in undefined
+            alert("Could not identify text value as a boolean")
+        end
+    end
+
+    /*
+        By default, this replaces all undefined values with the number value of the text passed in.
+        If the text passed in is not a number, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        check 
+            boolean num = Convert(value)
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    SetAsBoolean(row, num)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
         end
     end
 
