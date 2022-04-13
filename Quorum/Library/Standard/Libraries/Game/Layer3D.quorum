@@ -41,6 +41,8 @@ use Libraries.Compute.Math
 use Libraries.Compute.Quaternion
 use Libraries.System.SystemHelper
 use Libraries.Language.Errors.ConcurrencyError
+use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Events.GestureEvent
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -90,6 +92,7 @@ class Layer3D is Layer
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<GestureListener> gestureListeners
     Array<Joint3D> joints
     Camera camera = undefined
     Painter3D painter
@@ -1412,6 +1415,119 @@ class Layer3D is Layer
     end
 
     /*
+    This action will notify gesture listeners that are a part of this layer of the
+    given gesture event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The GestureEvent to send to the GestureListeners.
+    */
+    action ProcessGestureEvent(GestureEvent event) returns Item
+        if event:GetX() < GetViewportX() or (event:GetX() > GetViewportX() + GetViewportWidth())
+            or event:GetY() < GetViewportY() or (event:GetY() > GetViewportY() + GetViewportHeight())
+            
+            return undefined
+        end
+
+        Ray ray = camera:GetPickRay(camera:GetWidth() - event:GetX(), event:GetY())
+        Vector3 origin = ray:GetOrigin()
+
+        integer counter = 0
+        Item3D temp = undefined
+        Item result = undefined
+
+        /*
+        TO-DO: This array of all items is regenerated for each mouse event
+        processed. It would be more efficient to maintain this array
+        independently of this action.
+        */
+        Array<Item3D> allItems
+        repeat items:GetSize() times
+            GetChildrenHierarchy(items:Get(counter), allItems)
+            counter = counter + 1
+        end
+        counter = 0
+
+        repeat allItems:GetSize() times
+            temp = allItems:Get(counter)
+            if RayIntersectsItem(ray, temp)
+                eventTargetArray:Add(temp)
+            end
+
+            counter = counter + 1
+        end
+
+        boolean processing = true
+
+        if eventTargetArray:GetSize() not= 0
+            depthSorter:SetOrigin(origin)
+            eventTargetArray:Sort(depthSorter)
+            counter = 0
+            repeat while processing and counter < eventTargetArray:GetSize()
+                event:SetSource(eventTargetArray:Get(counter))
+                eventTargetArray:Get(counter):ProcessGestureEvent(event)
+                processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = eventTargetArray:Get(counter)
+                end
+                counter = counter + 1
+            end
+
+            eventTargetArray:Empty()
+        end
+
+        if processing and gestureListeners:IsEmpty() = false
+            counter = 0
+            event:SetEventHandled(true)
+
+            if event:eventType = event:SINGLE_TAP
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnSingleTap(event)
+                    counter = counter + 1
+                end
+            elseif event:eventType = event:DOUBLE_TAP
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnDoubleTap(event)
+                    counter = counter + 1
+                end
+            elseif event:eventType = event:SWIPE
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnSwipe(event)
+                    counter = counter + 1
+                end
+            elseif event:eventType = event:PAN
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnPan(event)
+                    counter = counter + 1
+                end
+            elseif event:eventType = event:LONG_PRESS
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnLongPress(event)
+                    counter = counter + 1
+                end
+            elseif event:eventType = event:PINCH
+                if event:timingCode = event:BEGIN
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnPinchBegin(event)
+                        counter = counter + 1
+                    end
+                elseif event:timingCode = event:CONTINUE
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnPinchContinue(event)
+                        counter = counter + 1
+                    end
+                elseif event:timingCode = event:FINISH
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnPinchEnd(event)
+                        counter = counter + 1
+                    end
+                end
+            end
+        end
+
+        return result
+    end
+
+    /*
     This action recursively finds all children in the hierarchy of the given
     Item3D. The found items are appended to the provided array. The provided
     Item3D is also automatically added to the array.
@@ -1798,6 +1914,87 @@ class Layer3D is Layer
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will add a GestureListener to the layer. When the layer
+    receives a gesture event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    GestureListeners in the layer will receive the event.
+
+    Attribute: Parameter listener The GestureListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Interface.Events.GestureListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from GestureListener.
+        GestureListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer3D layer
+            layer:AddGestureListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action AddGestureListener(GestureListener listener)
+        gestureListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a GestureListener from the layer. The listener will no
+    longer receive events from the layer. If the given GestureListener is not on
+    the layer before calling this action, then this action will have no effect.
+
+    Attribute: Parameter listener The GestureListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Interface.Events.GestureListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from GestureListener.
+        GestureListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer3D layer
+            layer:AddGestureListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveGestureListener(myListener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gestureListeners:Remove(listener)
     end
 
     /*

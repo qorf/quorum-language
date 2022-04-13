@@ -38,6 +38,8 @@ use Libraries.Compute.Vector2
 use Libraries.Game.GameInput
 use Libraries.System.SystemHelper
 use Libraries.Language.Errors.ConcurrencyError
+use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Events.GestureEvent
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -85,6 +87,7 @@ class Layer2D is Layer
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<GestureListener> gestureListeners
     Array<Item2D> depthSortedArray
     Camera camera = undefined
     Painter2D painter
@@ -1558,6 +1561,131 @@ class Layer2D is Layer
     end
 
     /*
+    This action will notify gesture listeners that are a part of this layer of the
+    given gesture event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The GestureEvent to send to the TouchListeners.
+    */
+    action ProcessGestureEvent(GestureEvent event) returns Item
+        
+        boolean processing = true
+        integer counter = items:GetSize()
+        Item2D temp = undefined
+        Item result = undefined
+
+/*
+    public constant integer SINGLE_TAP = 1
+    public constant integer DOUBLE_TAP = 2
+    public constant integer SWIPE = 3
+    public constant integer PAN = 4
+    public constant integer LONG_PRESS = 5
+    public constant integer PINCH = 6
+*/
+
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+
+        repeat while counter > 0 and processing
+            counter = counter - 1
+            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+
+            if temp not= undefined
+                event:SetSource(temp)
+                temp:ProcessGestureEvent(event)
+                processing = not event:WasEventHandled()
+                if event:WasEventHandled()
+                    result = temp
+                end
+            end
+        end
+
+        if processing
+            if event:eventType = event:SINGLE_TAP
+                if gestureListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnSingleTap(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:DOUBLE_TAP
+                if gestureListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnDoubleTap(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:SWIPE
+                if gestureListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnSwipe(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:PAN
+                if gestureListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnPan(event)
+                        counter = counter + 1
+                    end
+                end
+        
+            elseif event:eventType = event:LONG_PRESS
+                if gestureListeners:GetSize() > 0
+                    counter = 0
+                    event:SetEventHandled(true)
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnDoubleTap(event)
+                        counter = counter + 1
+                    end
+                end
+
+            elseif event:eventType = event:PINCH
+                if event:timingCode = event:BEGIN
+                    if gestureListeners:GetSize() > 0
+                        counter = 0
+                        event:SetEventHandled(true)
+                        repeat gestureListeners:GetSize() times
+                            gestureListeners:Get(counter):OnPinchBegin(event)
+                            counter = counter + 1
+                        end
+                    end
+                elseif event:timingCode = event:FINISH
+                    if gestureListeners:GetSize() > 0
+                        counter = 0
+                        event:SetEventHandled(true)
+                        repeat gestureListeners:GetSize() times
+                            gestureListeners:Get(counter):OnPinchEnd(event)
+                            counter = counter + 1
+                        end
+                    end
+                elseif event:timingCode = event:CONTINUE
+                    if gestureListeners:GetSize() > 0
+                        counter = 0
+                        event:SetEventHandled(true)
+                        repeat gestureListeners:GetSize() times
+                            gestureListeners:Get(counter):OnPinchContinue(event)
+                            counter = counter + 1
+                        end
+                    end
+                end
+            end
+        end
+
+        return result
+    end
+
+    /*
     This action will add a MouseListener to the layer. When the layer receives a
     mouse event, it will first try to find the topmost item which can handle the
     event. If the event is not handled, then all MouseListeners in the layer 
@@ -1881,6 +2009,87 @@ class Layer2D is Layer
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
+    end
+
+    /*
+    This action will add a GestureListener to the layer. When the layer
+    receives a gesture event, it will first try to find the topmost item which can
+    handle the event. If the event is not handled, then all 
+    GestureListeners in the layer will receive the event.
+
+    Attribute: Parameter listener The GestureListener to add to this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.GestureListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from GestureListener.
+        GestureListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddGestureListener(myListener)
+            AddLayer(layer)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action AddGestureListener(GestureListener listener)
+        gestureListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a GestureListener from the layer. The listener will no
+    longer receive events from the layer. If the given GestureListener is not on
+    the layer before calling this action, then this action will have no effect.
+
+    Attribute: Parameter listener The GestureListener to remove from this layer.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer2D
+    use Libraries.Interface.Events.GestureListener
+
+    class Main is Game
+
+        // For most programs, this should be replaced with 
+        // a custom class inheriting from GestureListener.
+        GestureListener myListener
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer2D layer
+            layer:AddGestureListener(myListener)
+            AddLayer(layer)
+
+            layer:RemoveGestureListener(myListener)
+        end
+
+        action Update(number seconds)
+        end
+
+    end
+
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gestureListeners:Remove(listener)
     end
 
     /*

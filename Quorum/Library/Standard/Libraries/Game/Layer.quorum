@@ -10,6 +10,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
+use Libraries.Interface.Events.GestureEvent
 
 class Layer 
     
@@ -255,6 +256,15 @@ class Layer
     Attribute: Parameter event The TouchEvent to send to the TouchListeners.
     */
     blueprint action ProcessTouchEvent(TouchEvent event) returns Item
+
+    /*
+    This action will notify gesture listeners that are a part of this layer of the
+    given gesture event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly.
+
+    Attribute: Parameter event The TouchEvent to send to the TouchListeners.
+    */
+    blueprint action ProcessGestureEvent(GestureEvent event) returns Item
 
     /*
     This action finds an Item on this layer which is present at the given coordinates

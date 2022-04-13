@@ -37,6 +37,8 @@ use Libraries.Language.Errors.UndefinedObjectError
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Layer
 use Libraries.Game.Graphics.DrawableShape
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Events.GestureListener
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -1751,7 +1753,23 @@ class Item2D is Item
     end
 
     /*
-    FIX ME: Needs comments
+    This action takes a touch event and handles it. It will first test to 
+    see if the touch event took place within the bounds of this Item. If so, it
+    will notify any TouchListeners of the event. If the event was not contained
+    within this Item, or if there are no TouchListeners on this Item, the Item
+    will ask its parent Item to process the touch event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.TouchEvent
+        use Libraries.Interface.Events.TouchListener
+        Item2D myItem
+        TouchListener listener
+        myItem:AddTouchListener(listener)
+        TouchEvent event
+        event:eventType = event:BEGAN
+        myItem:ProcessTouchEvent(event)
     */
     action ProcessTouchEvent(TouchEvent event)
 
@@ -1796,6 +1814,92 @@ class Item2D is Item
             event:SetEventHandled(true)
             if parentItem not= undefined
                 parentItem:ProcessTouchEvent(event)
+            end
+        end
+    end
+
+    /*  
+    This action takes a gesture event and handles it. It will first test to 
+    see if the gesture event took place within the bounds of this Item. If so, it
+    will notify any GestureListeners of the event. If the event was not contained
+    within this Item, or if there are no GestureListeners on this Item, the Item
+    will ask its parent Item to process the event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.GestureEvent
+        use Libraries.Interface.Events.GestureListener
+        Item2D myItem
+        GestureListener listener
+        myItem:AddGestureListener(listener)
+        GestureEvent event
+        event:eventType = event:DOUBLE_TAP
+        myItem:ProcessGestureEvent(event)
+    
+    */
+    action ProcessGestureEvent(GestureEvent event)
+        Layer layer = GetLayer()
+        if layer not= undefined and GetLayer():GetCamera() not= undefined
+            Vector3 worldCoordinates = layer:GetCamera():ScreenToWorldCoordinates(event:GetX() - layer:GetViewportX(), event:GetY() - layer:GetViewportY())
+
+            if not Contains(worldCoordinates:GetX(), worldCoordinates:GetY())
+                if parentItem not= undefined
+                    parentItem:ProcessGestureEvent(event)
+                end
+    
+                return now
+            end
+        end
+
+        boolean wasSent = false
+
+        Iterator<GestureListener> iterator = GetGestureListeners()
+        if iterator:HasNext()
+            event:SetEventHandled(true)
+            wasSent = true
+
+            if event:eventType = event:SINGLE_TAP
+                repeat while iterator:HasNext()
+                    iterator:Next():OnSingleTap(event)
+                end
+            elseif event:eventType = event:DOUBLE_TAP
+                repeat while iterator:HasNext()
+                    iterator:Next():OnDoubleTap(event)
+                end
+            elseif event:eventType = event:SWIPE
+                repeat while iterator:HasNext()
+                    iterator:Next():OnSwipe(event)
+                end
+            elseif event:eventType = event:PAN
+                repeat while iterator:HasNext()
+                    iterator:Next():OnPan(event)
+                end
+            elseif event:eventType = event:LONG_PRESS
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPress(event)
+                end
+            elseif event:eventType = event:PINCH
+                if event:timingCode = event:BEGIN
+                    repeat while iterator:HasNext()
+                        iterator:Next():OnPinchBegin(event)
+                    end
+                elseif event:timingCode = event:FINISH
+                    repeat while iterator:HasNext()
+                        iterator:Next():OnPinchEnd(event)
+                    end
+                elseif event:timingCode = event:CONTINUE
+                    repeat while iterator:HasNext()
+                        iterator:Next():OnPinchContinue(event)
+                    end
+                end
+            end
+        end
+
+        if not wasSent
+            event:SetEventHandled(true)
+            if parentItem not= undefined
+                parentItem:ProcessGestureEvent(event)
             end
         end
     end

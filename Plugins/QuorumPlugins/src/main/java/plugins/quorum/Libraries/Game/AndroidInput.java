@@ -3,7 +3,11 @@ package plugins.quorum.Libraries.Game;
 import android.util.Log;
 import android.view.MotionEvent;
 import java.util.HashMap;
+
+import android.view.ScaleGestureDetector;
 import quorum.Libraries.Containers.List_;
+import quorum.Libraries.Interface.Events.GestureEvent;
+import quorum.Libraries.Interface.Events.GestureEvent_;
 import quorum.Libraries.Interface.Events.TouchEvent;
 import quorum.Libraries.Interface.Events.TouchEvent_;
 
@@ -14,13 +18,24 @@ import quorum.Libraries.Interface.Events.TouchEvent_;
 public class AndroidInput 
 {
     public java.lang.Object me_ = null;
-    
+
+    public static final int GESTURE_SINGLE_TAP = 1;
+    public static final int GESTURE_DOUBLE_TAP = 2;
+    public static final int GESTURE_FLING = 3;
+    public static final int GESTURE_LONG_PRESS = 4;
+    public static final int GESTURE_SCROLL = 5;
+    public static final int GESTURE_SCALE_BEGIN = 6;
+    public static final int GESTURE_SCALE_CONTINUE = 7;
+    public static final int GESTURE_SCALE_FINISH = 8;
+
     private List_ touchEvents;
+    private List_ gestureEvents;
     private final HashMap<Integer, Coordinates> map = new HashMap<>();
     
-    public void InitializePlugin(List_ list)
+    public void InitializePlugin(List_ list, List_ gestureList)
     {
         touchEvents = list;
+        gestureEvents = gestureList;
     }
     
     public void AddEvent(TouchEvent_ event)
@@ -148,6 +163,99 @@ public class AndroidInput
     public List_ GetEvents()
     {
         return touchEvents;
+    }
+
+    public void AddGestureEvent(GestureEvent_ event)
+    {
+        gestureEvents.Add(event);
+    }
+
+    public void AddSingleTapEvent(MotionEvent event)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SINGLE_TAP);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddDoubleTapEvent(MotionEvent event)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.DOUBLE_TAP);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddFlingEvent(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SWIPE);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddLongPressEvent(MotionEvent event)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddScrollEvent(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PAN);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddScaleBeginEvent(ScaleGestureDetector detector)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddScaleContinueEvent(ScaleGestureDetector detector)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public void AddScaleEndEvent(ScaleGestureDetector detector)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
+
+        // TO-DO: Set relevant properties here...
+
+        AddGestureEvent(quorumEvent);
+    }
+
+    public List_ GetGestureEvents()
+    {
+        return gestureEvents;
     }
     
     private class Coordinates

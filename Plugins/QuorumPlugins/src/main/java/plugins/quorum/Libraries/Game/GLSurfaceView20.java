@@ -371,23 +371,26 @@ public class GLSurfaceView20 extends GLSurfaceView
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e)
+        public boolean onDoubleTap(MotionEvent event)
         {
-            Log.i("TAG", "onDoubleTap: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddDoubleTapEvent(event);
             return true;
         }
 
         @Override
         public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
         {
-            Log.d("TAG", "onFling: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddFlingEvent(event1, event2, velocityX, velocityY);
             return true;
         }
 
         @Override
-        public void onLongPress(MotionEvent e)
+        public void onLongPress(MotionEvent event)
         {
-            Log.i("TAG", "onLongPress: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddLongPressEvent(event);
         }
 
         @Override
@@ -397,16 +400,18 @@ public class GLSurfaceView20 extends GLSurfaceView
         }
 
         @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
+        public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY)
         {
-            Log.i("TAG", "onScroll: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScrollEvent(event1, event2, distanceX, distanceY);
             return true;
         }
 
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e)
+        public boolean onSingleTapConfirmed(MotionEvent event)
         {
-            Log.i("TAG", "onSingleTapConfirmed: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddSingleTapEvent(event);
             return true;
         }
     }
@@ -416,21 +421,24 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector)
         {
-            Log.i("TAG", "onScaleBegin: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleBeginEvent(detector);
             return true;
         }
 
         @Override
         public boolean onScale(ScaleGestureDetector detector)
         {
-            Log.i("TAG", "onScale: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleContinueEvent(detector);
             return true;
         }
 
         @Override
         public void onScaleEnd(ScaleGestureDetector detector)
         {
-            Log.i("TAG", "onScaleEnd: ");
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleEndEvent(detector);
         }
     }
 }

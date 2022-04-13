@@ -11,6 +11,8 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.ResizeListener
 use Libraries.Interface.Item
+use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Events.GestureEvent
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -21,8 +23,10 @@ times, use an InputMonitor instead.
 class IOSInput is GameInput
 
     Array<TouchListener> touchListeners
-    List<TouchEvent> touchEvents
+    Array<GestureListener> gestureListeners
     Array<ResizeListener> resizeListeners
+    List<TouchEvent> touchEvents
+    List<GestureEvent> gestureEvents
 
     on create
         InitializePlugin(touchEvents)
@@ -195,6 +199,25 @@ class IOSInput is GameInput
     */
     action RemoveTouchListener(TouchListener listener)
         touchListeners:Remove(listener)
+    end
+
+    /*
+    This action adds a GestureListener directly to the GameInput. When the
+    GameInput receives a gesture event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    GestureListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddGestureListener(GestureListener listener)
+        gestureListeners:Add(listener)
+    end
+
+    /*
+    This action removes a GestureListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gestureListeners:Remove(listener)
     end
 
     /*

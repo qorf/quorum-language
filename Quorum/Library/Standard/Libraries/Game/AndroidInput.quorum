@@ -14,6 +14,8 @@ use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.TextInputProcessor
 use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Events.GestureListener
 use Libraries.Containers.Iterator
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
@@ -32,8 +34,10 @@ class AndroidInput is GameInput
     Array<TextInputListener> textInputListeners
     Array<ResizeListener> resizeListeners
     Array<KeyboardListener> keyboardListeners
+    Array<GestureListener> gestureListeners
 
     List<TouchEvent> touchEvents
+    List<GestureEvent> gestureEvents
     private TextInputProcessor textInputProcessor
     private KeyboardProcessor keyboardProcessor
     GameStateManager manager
@@ -58,6 +62,13 @@ class AndroidInput is GameInput
     Array<RecentInputTimer> recentKeyPresses
 
     /*
+    An array containing "recent" gestures. Gestures are considered recent if
+    they happened within a certain number of seconds, defined by the
+    "multipleTapTimer" value from AndroidConfiguration.
+    */
+    Array<RecentInputTimer> recentGestures
+
+    /*
     An array containing the current touches on the screen. Used for CONTINUE 
     InputSets.
     */
@@ -71,7 +82,7 @@ class AndroidInput is GameInput
     Item lastTouchMoveTarget = undefined
 
     on create
-        InitializePlugin(touchEvents)
+        InitializePlugin(touchEvents, gestureEvents)
     end
 
     /*
@@ -495,6 +506,157 @@ class AndroidInput is GameInput
 
         return false
     end
+
+    private action HandleGestureEvents
+        // Note: gestureEvents is automatically filled with events in plugins.
+        if gestureEvents:IsEmpty() = false
+            Array<Layer> layers = parent:GameInput:layers
+            GestureEvent gestureEvent = undefined
+
+            InputSet set = keyboardModifiers:Copy()
+            InputSet multiSet = undefined
+
+            RecentInputTimer recentInput = undefined
+
+            Item target = undefined
+
+            repeat while not (gestureEvents:IsEmpty())
+                gestureEvent = gestureEvents:RemoveFromFront()
+                set:SetGestureInput(gestureEvent:eventType)
+                set:SetInputTrigger(gestureEvent:timingCode)
+
+                if gestureEvent:timingCode = gestureEvent:BEGIN
+                    recentInput = GetRecentGestureInput(gestureEvent)
+                end
+
+                BehaviorEvent behaviorEvent
+                behaviorEvent:SetGestureEvent(gestureEvent)
+
+                boolean useDefaultTable = true
+
+                integer counter = layers:GetSize()
+                repeat while counter > 0 and not gestureEvent:WasEventHandled()
+                    counter = counter - 1
+
+                    Item temp = layers:Get(counter):ProcessGestureEvent(gestureEvent)
+
+                    if gestureEvent:GetSource() not= undefined
+                        Item seeker = gestureEvent:GetSource()
+
+                        InputSet beginSet = set:Copy()
+                        beginSet:SetInputTrigger(beginSet:BEGIN)
+                        InputSet finishSet = set:Copy()
+                        finishSet:SetInputTrigger(finishSet:FINISH)
+
+                        repeat while seeker not= undefined and useDefaultTable = true// or noMoveTarget
+                            InputTable table = GetInputTable(seeker:GetInputGroup())
+
+                            if useDefaultTable
+                                if table not= undefined
+                                    if recentInput not= undefined
+                                        if ItemsAreRelated(seeker, recentInput:item)
+                                            multiSet:SetEventCount(recentInput:count + 1)
+                                        else
+                                            multiSet:SetEventCount(1)
+                                        end
+                                        if table:HasKey(multiSet)
+                                            set = multiSet
+                                        end
+                                    end
+                                    if table:HasKey(set)
+                                        if recentInput not= undefined
+                                            recentInput:timer = 0
+                                            if recentInput:item not= seeker
+                                                recentInput:item = seeker
+                                                recentInput:count = 1
+                                                gestureEvent:gestureCount = 1
+                                            else
+                                                recentInput:count = recentInput:count + 1
+                                                gestureEvent:gestureCount = recentInput:count
+                                            end
+                                        end
+
+                                        useDefaultTable = false
+                                        gestureEvent:SetEventHandled(true)
+                                        target = seeker
+                                    end
+                                end
+                            end
+
+                            if seeker is Item2D
+                                Item2D target2D = cast(Item2D, seeker)
+                                seeker = target2D:GetParent()
+                            elseif seeker is Item3D
+                                Item3D target3D = cast(Item3D, seeker)
+                                seeker = target3D:GetParent()
+                            else
+                                seeker = undefined
+                            end
+                        end
+                    end
+                end
+
+                if not gestureEvent:WasEventHandled()
+                    NotifyGestureListeners(gestureEvent)
+                end
+
+                behaviorEvent:SetItem(target)
+                InputTable table = undefined
+
+                if useDefaultTable
+                    table = GetDefaultInputTable()
+
+                    if recentInput not= undefined
+
+                        if ItemsAreRelated(recentInput:item, gestureEvent:GetSource())
+                            multiSet:SetEventCount(recentInput:count + 1)
+                            recentInput:timer = 0
+                            recentInput:count = recentInput:count + 1
+                            gestureEvent:gestureCount = recentInput:count
+                            if table:HasKey(multiSet)
+                                set = multiSet
+                            end
+                        else
+                            recentInput:timer = 0
+                            recentInput:count = 1
+                            gestureEvent:gestureCount = 1
+                        end
+
+                        recentInput:item = gestureEvent:GetSource()
+                    end
+                else
+                    table = GetInputTable(target:GetInputGroup())
+                end
+
+                table:ProcessInput(set, behaviorEvent)
+
+                // End of repeat statement over size of touch events.
+            end
+        end
+
+        // End of action.
+    end
+
+    private action GetRecentGestureInput(GestureEvent event) returns RecentInputTimer
+        integer counter = 0
+        Item item = event:GetSource()
+        repeat while counter < recentGestures:GetSize()
+            RecentInputTimer timer = recentGestures:Get(counter)
+            if timer:item = item
+                return timer
+            end
+
+            counter = counter + 1
+        end
+
+        RecentInputTimer timer
+        timer:count = 0
+        timer:inputValue = event:eventType
+        timer:item = item
+        recentGestures:Add(timer)
+
+        return timer
+    end
     
     public action HandleKeyboardEvents()
         keyboardProcessor:Update(keyboardEvents)
@@ -516,7 +678,7 @@ class AndroidInput is GameInput
         textInputEvents:Empty(false)
     end
 
-private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
+    private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
         KeyboardEvent currentEvent = undefined
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
@@ -672,6 +834,58 @@ private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
     end
 
     /*
+    This action will forward a touch event to all of the GestureListeners that
+    have been added directly to the AndroidInput.
+    */
+    private action NotifyGestureListeners(GestureEvent event)
+        integer counter = 0
+
+        if event:eventType = event:SINGLE_TAP
+            repeat gestureListeners:GetSize() times
+                gestureListeners:Get(counter):OnSingleTap(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:DOUBLE_TAP
+            repeat gestureListeners:GetSize() times
+                gestureListeners:Get(counter):OnDoubleTap(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:SWIPE
+            repeat gestureListeners:GetSize() times
+                gestureListeners:Get(counter):OnSwipe(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:PAN
+            repeat gestureListeners:GetSize() times
+                gestureListeners:Get(counter):OnPan(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:LONG_PRESS
+            repeat gestureListeners:GetSize() times
+                gestureListeners:Get(counter):OnLongPress(event)
+                counter = counter + 1
+            end
+        elseif event:eventType = event:PINCH
+            if event:timingCode = event:BEGIN
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnPinchBegin(event)
+                    counter = counter + 1
+                end
+            elseif event:timingCode = event:CONTINUE
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnPinchContinue(event)
+                    counter = counter + 1
+                end
+            elseif event:timingCode = event:FINISH
+                repeat gestureListeners:GetSize() times
+                    gestureListeners:Get(counter):OnPinchEnd(event)
+                    counter = counter + 1
+                end
+            end
+        end
+    end
+
+    /*
     This action will add a KeyboardListener to the GameInput. The GameInput will
     notify the KeyboardListener if keys are pressed on the keyboard. This action
     is automatically called by the Game class when needed.
@@ -766,6 +980,25 @@ private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
     end
 
     /*
+    This action adds a GestureListener directly to the GameInput. When the
+    GameInput receives a gesture event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    GestureListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    action AddGestureListener(GestureListener listener)
+        gestureListeners:Add(listener)
+    end
+
+    /*
+    This action removes a GestureListener from the GameInput. The listener will
+    no longer receive events from the GameInput.
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gestureListeners:Remove(listener)
+    end
+
+    /*
     This action will add a TextInputListener to the DesktopInput. The 
     DesktopInput will notify the TextInputListener when the user provides text
     input to the game via the keyboard.
@@ -801,6 +1034,6 @@ private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
         resizeListeners:Remove(listener)
     end
 
-    private system action InitializePlugin(List<TouchEvent> list)
+    private system action InitializePlugin(List<TouchEvent> list, List<GestureEvent> gestureList)
 
 end
