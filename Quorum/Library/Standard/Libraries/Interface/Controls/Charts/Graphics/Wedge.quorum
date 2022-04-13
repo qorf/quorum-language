@@ -7,6 +7,8 @@ use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
+use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.PieBox
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -68,6 +70,8 @@ class Wedge is Drawable
     public constant text WEDGE_SHADER_PROGRAM_NAME = "Wedge Shader Program"
 
     Math math
+    PieBox box = undefined 
+    Series series = undefined
     number value = 0
     number outerRadius = 100
     number innerRadius = 0
@@ -263,7 +267,7 @@ class Wedge is Drawable
 
     /*
     This action returns the actual value associated with this wedge.
-    The parent PieChart has a total value to which this value will be compared
+    The parent PieBox has a total value to which this value will be compared
     to get a percent for the appropriate size.
 
     Attribute: Returns a number value
@@ -274,6 +278,36 @@ class Wedge is Drawable
 
     action SetValue(number value)
         me:value = value
+    end
+
+    /*
+    This action returns the series associated with this wedge.
+    The parent Chart has a series list that will be used to color this object
+    associating it to the legend
+
+    Attribute: Returns a Series
+    */
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    /*
+    This action returns the pie box associated with this wedge.
+    The parent PieChart has a pie box list that will be used to place this object
+    associating it to the correct group.
+
+    Attribute: Returns a PieBox
+    */
+    action SetPieBox(PieBox box)
+        me:box = box
+    end
+
+    action GetPieBox returns PieBox
+        return box
     end
 
 end

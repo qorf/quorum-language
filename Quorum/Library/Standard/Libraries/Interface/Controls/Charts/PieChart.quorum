@@ -14,6 +14,7 @@ use Libraries.Interface.Layouts.PieChartLayout
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.File
+use Libraries.Containers.HashTable
 
 /*
     The PieChart class is Chart object that inherits from Control and like other
@@ -48,9 +49,7 @@ use Libraries.System.File
 */
 
 class PieChart is Chart
-    Array<Wedge> slices
-    number totalValue = 0
-    Drawable pieBox
+    Array<PieBox> pieBoxes // used when chart is separated into sub charts
     number donutHolePercent = 0
 
     Color highlightColor = undefined
@@ -87,8 +86,12 @@ class PieChart is Chart
         SetAccessibilityCode(parent:Item:ITEM)
 
         SetDefaultOrientationToVertical()
+        ShowSubChartAreaBorders(false)
+        SeparationCapable(true)
+        OrientationCapable(false)
         ShowXAxis(false)
         ShowYAxis(false)
+        HideAllGridLines()
         GetVerticalPanel():BlockPaddingOffset(true)
         GetHorizontalPanel():BlockPaddingOffset(true)
     end
@@ -110,19 +113,73 @@ class PieChart is Chart
     end
 
     action LoadChartAreaItems()
-        Control chartArea = GetChartArea()
-
-        chartArea:Add(pieBox)
-
-        integer i = 0
-        repeat while i < slices:GetSize()
-            Wedge slice = slices:Get(i)
-            slice:SetFocusable(true)
-            slice:SetAccessibilityCode(parent:Item:ITEM)
-            slice:SetNextFocus(GetNextFocus())
-            slice:SetPreviousFocus(GetPreviousFocus())
-            slice:SetDescription(" " + slice:GetValue())
-            i = i + 1
+        if IsSeparated()
+            integer k = 0
+            repeat while k < GetNumberOfChartAreas()
+                integer j = 0 
+                repeat while j < pieBoxes:GetSize()
+                    if pieBoxes:Get(j):GetName() = GetSubChartAreas():Get(k):GetName()
+                        GetSubChartAreas():Get(k):Add(pieBoxes:Get(j))
+                        pieBoxes:Get(j):SetChartArea(GetSubChartAreas():Get(k))
+                        integer i = 0
+                        repeat while i < pieBoxes:Get(j):GetSize()
+                            Wedge slice = pieBoxes:Get(j):Get(i)
+                            slice:SetFocusable(true)
+                            slice:SetAccessibilityCode(parent:Item:ITEM)
+                            slice:SetNextFocus(GetNextFocus())
+                            slice:SetPreviousFocus(GetPreviousFocus())
+                            number value = slice:GetValue()
+                            number percent = math:Round((slice:GetValue()/pieBoxes:Get(j):GetTotalValue()) * 100, 2)
+                            text description = " "
+                            if percent = cast(integer, percent)
+                                description = description + cast(integer, percent) + " percent , value of "
+                            else
+                                description = description + percent + " percent , value of "
+                            end
+                            if value = cast(integer, value)
+                                description = description + cast(integer, value) + ","
+                            else
+                                description = description + value + ","
+                            end
+                            slice:SetDescription(description)
+                            GetSubChartAreas():Get(k):AddChartAreaItem(slice)
+                            i = i + 1
+                        end
+                    end
+                    j = j + 1
+                end
+                k = k + 1
+            end
+        else
+            if pieBoxes:GetSize() > 1
+                MergePieBoxes()
+                GetLegend():ApplySeriesColor()
+            end
+            GetChartArea():Add(pieBoxes:Get(0))
+            pieBoxes:Get(0):SetChartArea(GetChartArea())
+            integer i = 0
+            repeat while i < pieBoxes:Get(0):GetSize()
+                Wedge slice = pieBoxes:Get(0):Get(i)
+                slice:SetFocusable(true)
+                slice:SetAccessibilityCode(parent:Item:ITEM)
+                slice:SetNextFocus(GetNextFocus())
+                slice:SetPreviousFocus(GetPreviousFocus())
+                number value = slice:GetValue()
+                number percent = math:Round((slice:GetValue()/pieBoxes:Get(0):GetTotalValue()) * 100, 2)
+                text description = " "
+                if percent = cast(integer, percent)
+                    description = description + cast(integer, percent) + " percent , value of "
+                else
+                    description = description + percent + " percent , value of "
+                end
+                if value = cast(integer, value)
+                    description = description + cast(integer, value)
+                else
+                    description = description + value
+                end
+                slice:SetDescription(description)
+                i = i + 1
+            end
         end
     end
 
@@ -177,30 +234,173 @@ class PieChart is Chart
             return now
         end
         Item target = item:GetFocusTarget()
-
         if target not= undefined
             target:Focus()
             parent:Chart:GainedSelection(item)        
         end
     end
 
-    action AddSlice(Wedge slice)
-        if slice:GetValue() > 0
-            slices:Add(slice)
-            totalValue = totalValue + slice:GetValue()
+    action AddPieBox(PieBox box)
+        pieBoxes:Add(box)
+    end
+
+    action GetPieBoxes returns Array<PieBox>
+        return pieBoxes
+    end
+
+    private action MergePieBoxes
+        PieBox newBox
+        HashTable<text, Wedge> sliceFactor
+        integer i = 0 
+        repeat while i < pieBoxes:GetSize()
+            integer j = 0
+            repeat while j < pieBoxes:Get(i):GetSize()
+                text name = pieBoxes:Get(i):Get(j):GetName()
+                number value = pieBoxes:Get(i):Get(j):GetValue()
+                Series series = pieBoxes:Get(i):Get(j):GetSeries()
+                if not sliceFactor:HasKey(name)
+                    Wedge slice
+                    slice:SetName(name)
+                    slice:SetValue(value)
+                    slice:SetSeries(series)
+                    series:AddItem(slice)
+                    sliceFactor:Add(name, slice)
+                else
+                    number oldValue = sliceFactor:GetValue(name):GetValue()
+                    sliceFactor:GetValue(name):SetValue(oldValue + value)
+                end
+                j = j + 1
+            end
+            i = i + 1
         end
+
+        i = 0 
+        repeat while i < GetSeriesList():GetSize()
+            if sliceFactor:HasKey(GetSeriesList():Get(i):GetName())
+                newBox:AddSlice(sliceFactor:GetValue(GetSeriesList():Get(i):GetName()))
+                sliceFactor:GetValue(GetSeriesList():Get(i):GetName()):SetPieBox(newBox)
+            end
+            i = i + 1
+        end
+
+        pieBoxes:Empty()
+        pieBoxes:Add(newBox)
     end
 
-    action GetSlices returns Array <Wedge> 
-        return slices
+    // Makes pies based on the factors which are the entries in the legend.
+    // Then we need to replace the legend entries with the new list
+    private action MakePieBoxes
+        HashTable<text, PieBox> boxFactor
+        HashTable<text, Series> seriesFactor
+        HashTable<text, Wedge> sliceFactor
+
+        Array<text> newSeriesNames
+        integer i = 0 
+        repeat while i < GetFactorList():GetSize()
+            Series series
+            text name = GetFactorList():Get(i)
+            series:SetName(name)
+            newSeriesNames:Add(name)
+            seriesFactor:Add(name, series)
+            i = i + 1
+        end
+
+        Array<text> newBoxNames
+        i = 0 
+        repeat while i < GetSeriesList():GetSize()
+            PieBox box
+            text name = GetSeriesList():Get(i):GetName()
+            box:SetName(name)
+            newBoxNames:Add(name)
+            boxFactor:Add(name, box)
+            i = i + 1
+        end
+    
+        i = 0 
+        repeat while i < pieBoxes:GetSize()
+            integer j = 0
+            repeat while j < pieBoxes:Get(i):GetSize()
+                text seriesName = pieBoxes:Get(i):Get(j):GetSeries():GetName()
+                text boxName = pieBoxes:Get(i):Get(j):GetPieBox():GetName()
+                text sliceName = seriesName+" "+boxName
+                number value = pieBoxes:Get(i):Get(j):GetValue()
+                if not sliceFactor:HasKey(sliceName)
+                    Wedge slice
+                    slice:SetName(boxName)
+                    slice:SetValue(value)
+                    sliceFactor:Add(sliceName, slice)
+                else
+                    number oldValue = sliceFactor:GetValue(sliceName):GetValue()
+                    sliceFactor:GetValue(sliceName):SetValue(oldValue + value)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < newBoxNames:GetSize()
+            j = 0
+            repeat while j < newSeriesNames:GetSize()  
+                text name = newBoxNames:Get(i)+" "+newSeriesNames:Get(j)
+                if sliceFactor:HasKey(name)
+                    if boxFactor:HasKey(newBoxNames:Get(i))
+                        boxFactor:GetValue(newBoxNames:Get(i)):AddSlice(sliceFactor:GetValue(name))
+                        sliceFactor:GetValue(name):SetPieBox(boxFactor:GetValue(newBoxNames:Get(i)))
+                    end   
+                    if seriesFactor:HasKey(newSeriesNames:Get(j))
+                        seriesFactor:GetValue(newSeriesNames:Get(j)):AddItem(sliceFactor:GetValue(name))
+                        sliceFactor:GetValue(name):SetSeries(seriesFactor:GetValue(newSeriesNames:Get(j)))
+                    end
+                end
+                j = j + 1
+            end 
+            i = i + 1
+        end  
+
+        pieBoxes:Empty()
+        // Add the groups
+        i = 0
+        repeat while i < newBoxNames:GetSize()
+            pieBoxes:Add(boxFactor:GetValue(newBoxNames:Get(i)))
+            i = i + 1
+        end
+        OverrideXLabelsWithText(newBoxNames)
+
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < newSeriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(newSeriesNames:Get(i)))
+            i = i + 1
+        end
+        GetLegend():SetSeriesList(seriesList)
     end
 
-    action GetPieBox returns Drawable
-        return pieBox
+
+    action SeparateByFactor(boolean flag)
+        if pieBoxes:GetSize() > 1 and not flag
+            MergePieBoxes()
+        end
+        parent:Chart:SeparateByFactor(flag)
     end
 
-    action GetTotalValue returns number
-        return totalValue
+    action SeparateBySeries(boolean flag)
+        if pieBoxes:GetSize() > 1 and not flag
+            MergePieBoxes()
+        end
+        parent:Chart:SeparateBySeries(flag)
+    end
+
+    action SeparateByFactor(integer requestColumns)
+        if GetFactorList():GetSize() > 1
+            MakePieBoxes()
+        end
+        parent:Chart:SeparateByFactor(requestColumns)
+    end
+
+    action SeparateBySeries(integer requestColumns)
+        parent:Chart:SeparateByFactor(requestColumns)
     end
 
     action GetDonutHolePercent returns number
@@ -221,15 +421,22 @@ class PieChart is Chart
         of  the chart.
     */
     private action GenerateSummary returns text
-        integer sliceCount = slices:GetSize()
-        text sliceText = "slices"
-        if sliceCount = 1
-            sliceText = "slice"
+        integer count = pieBoxes:Get(0):GetSize()
+        text countText = "slices"
+        if count = 1
+            countText = "slice"
+        end
+        if IsSeparated()
+            count = pieBoxes:GetSize()
+            countText = "pies"
+            if count = 1
+                countText = "pie"
+            end
         end
         if GetName() = "Pie Chart"
-            SetDescription(" with " + sliceCount + " " + sliceText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
         else
-            SetDescription(", pie chart with " + sliceCount + " " + sliceText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
         end
         return GetDescription()
     end
@@ -258,9 +465,7 @@ class PieChart is Chart
         chartArea:SetFocusTarget(me:GetChartArea())
         chartArea:SetParent(summary)
         chartArea:SetContainer(me)
-
         chartArea:SetDisplayName("Pie Chart")
-        GetChartArea():SetDescription(" with " + slices:GetSize() + " slices")
     
         // If any of these are not showing the tree will skip them in the navigation        
         if IsShowingYAxis()
@@ -273,26 +478,117 @@ class PieChart is Chart
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
-        if slices:GetSize() > 0
-            ChartItem firstSlice
-            firstSlice:SetContainer(me)
-            chartArea:SetChild(firstSlice)
-            firstSlice:SetParent(chartArea)
-            firstSlice:SetFocusTarget(slices:Get(0))
+        if IsSeparated()
+            integer subAreaCount = pieBoxes:GetSize()
+            ChartItem firstArea
+            firstArea:SetContainer(me)
+            if GetNumberOfChartAreas() > 0
+                GetChartArea():SetDescription(" with " + subAreaCount + " pies.")
+                chartArea:SetChild(firstArea)
+                firstArea:SetParent(chartArea)
+                firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
+                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
+                Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
+                GetSubChartAreas():Get(0):SetDescription(" pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
+
+                //Slices within SubChartArea
+                ChartItem firstSlice
+                firstSlice:SetContainer(me)
+                if chartAreaItems:GetSize() > 0
+                    firstArea:SetChild(firstSlice)
+                    firstSlice:SetParent(firstArea)
+                    firstSlice:SetFocusTarget(chartAreaItems:Get(0))
+                    chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
+                end
+
+                integer j = 1
+                ChartItem previousSlice = firstSlice
+                repeat while j < chartAreaItems:GetSize()
+                    ChartItem slice
+                    slice:SetContainer(me)
+                    slice:SetParent(firstArea)
+                    slice:SetFocusTarget(chartAreaItems:Get(j))
+                    chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
+                    previousSlice:SetNext(slice)
+                    slice:SetPrevious(previousSlice)
+                    previousSlice = slice
+                    j = j + 1
+                end
+                firstArea:SetLastChild(previousSlice)
+            end
 
             integer i = 1
-            ChartItem previousSlice = firstSlice
-            repeat while i < slices:GetSize()
-                ChartItem slice
-                slice:SetContainer(me)
-                slice:SetParent(chartArea)
-                slice:SetFocusTarget(slices:Get(i))
-                previousSlice:SetNext(slice)
-                slice:SetPrevious(previousSlice)
-                previousSlice = slice
+            ChartItem previousArea = firstArea
+            repeat while i < GetNumberOfChartAreas()
+                ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
+                if chartSubArea:IsShowing()
+                    ChartItem nextArea
+                    nextArea:SetContainer(me)
+                    nextArea:SetParent(chartArea)
+                    nextArea:SetFocusTarget(chartSubArea)
+                    previousArea:SetNext(nextArea)
+                    nextArea:SetPrevious(previousArea)
+                    previousArea = nextArea
+                    nextArea:SetDisplayName(chartSubArea:GetName())
+                    Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
+
+                    chartSubArea:SetDescription(" pie with " + chartAreaItems:GetSize() + " slices, " + (i+1) + " of " + subAreaCount + " pies.")
+
+                    //Slices within SubChartArea
+                    ChartItem firstSlice
+                    firstSlice:SetContainer(me)
+                    if chartAreaItems:GetSize() > 0
+                        nextArea:SetChild(firstSlice)
+                        firstSlice:SetParent(nextArea)
+                        firstSlice:SetFocusTarget(chartAreaItems:Get(0))
+                        chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
+                    end
+    
+                    j = 1
+                    ChartItem previousSlice = firstSlice
+                    repeat while j < chartAreaItems:GetSize()
+                        ChartItem slice
+                        slice:SetContainer(me)
+                        slice:SetParent(nextArea)
+                        slice:SetFocusTarget(chartAreaItems:Get(j))
+                        chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
+                        previousSlice:SetNext(slice)
+                        slice:SetPrevious(previousSlice)
+                        previousSlice = slice
+                        j = j + 1
+                    end
+                    nextArea:SetLastChild(previousSlice)
+                end
                 i = i + 1
             end
-            chartArea:SetLastChild(previousSlice)
+            chartArea:SetLastChild(previousArea)
+        else
+            PieBox box = pieBoxes:Get(0)
+            integer count = box:GetSize()
+            GetChartArea():SetDescription(" with " + count + " slices")
+            if count > 0
+                ChartItem firstSlice
+                firstSlice:SetContainer(me)
+                chartArea:SetChild(firstSlice)
+                firstSlice:SetParent(chartArea)
+                firstSlice:SetFocusTarget(box:Get(0))
+                box:Get(0):SetDescription(box:Get(0):GetDescription() + ", 1 of " + count + " slices.")
+    
+                integer i = 1
+                ChartItem previousSlice = firstSlice
+                repeat while i < box:GetSize()
+                    ChartItem slice
+                    slice:SetContainer(me)
+                    slice:SetParent(chartArea)
+                    slice:SetFocusTarget(box:Get(i))
+                    box:Get(i):SetDescription(box:Get(i):GetDescription() + ", " + (i+1) + " of " + count + " slices.")
+                    previousSlice:SetNext(slice)
+                    slice:SetPrevious(previousSlice)
+                    previousSlice = slice
+                    i = i + 1
+                end
+                chartArea:SetLastChild(previousSlice)
+            end
         end
         
         ChartSelection selection = GetSelection()

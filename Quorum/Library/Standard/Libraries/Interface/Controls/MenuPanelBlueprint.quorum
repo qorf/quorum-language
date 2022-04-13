@@ -2,8 +2,14 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Interface.Views.DropShadowView
 
-class MenuPanelBlueprint is Control
+class MenuPanelBlueprint is Icon
     
     Array<MenuItem> menuItems
 
@@ -88,6 +94,33 @@ class MenuPanelBlueprint is Control
 
     action GetIterator returns Iterator<MenuItem>
         return menuItems:GetIterator()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetShaderProgram() = undefined
+            Color color
+            color:SetColor(1, 1, 1, 1)
+            LoadFilledRectangle(2, 2, color)
+    
+            ShaderManager manager
+            ShaderProgram program = undefined
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+            SetShaderProgram(program)
+        end
+
+        if GetView2D() = undefined
+            DropShadowView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
     end
 
     blueprint action IsScrollable returns boolean

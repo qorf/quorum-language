@@ -86,7 +86,7 @@ class BoxPlotWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             Array <PlotGroup> plotGroups = chart:GetPlotGroups()
 
             integer i = 0
@@ -146,7 +146,7 @@ class BoxPlotWriter is ChartWriter
                     Rectangle iqrBox
                     iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
                     iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
-                    iqrBox:SetFill(plot:GetIcon():GetColor())
+                    iqrBox:SetFill(plot:GetColor())
                     iqrBox:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(3):GetHashCode())
                     iqrBox:SetTabIndex(-1)
                     if HasAccessibility()
@@ -163,7 +163,7 @@ class BoxPlotWriter is ChartWriter
                                 number radius = items:Get(index):GetHeight()/2
                                 outlier:SetRadius(radius)
                                 outlier:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                                outlier:SetFill(plot:GetIcon():GetColor())  
+                                outlier:SetFill(plot:GetColor())  
                                 outlier:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
                                 outlier:SetStroke("black")
                                 outlier:SetStrokeWidth(1)
@@ -234,7 +234,7 @@ class BoxPlotWriter is ChartWriter
                     iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
                     iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
                     iqrBox:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(3):GetHashCode())
-                    iqrBox:SetFill(plot:GetIcon():GetColor())
+                    iqrBox:SetFill(plot:GetColor())
                     iqrBox:SetTabIndex(-1)
                     if HasAccessibility()
                         iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
@@ -250,7 +250,7 @@ class BoxPlotWriter is ChartWriter
                                 number radius = items:Get(index):GetHeight()/2
                                 outlier:SetRadius(radius)
                                 outlier:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                                outlier:SetFill(plot:GetIcon():GetColor())  
+                                outlier:SetFill(plot:GetColor())  
                                 outlier:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
                                 outlier:SetStroke("black")
                                 outlier:SetStrokeWidth(1)
@@ -263,7 +263,7 @@ class BoxPlotWriter is ChartWriter
                                 Rectangle plotLine
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill("black")
+                                plotLine:SetFill(items:Get(index):GetColor())
                                 plotLine:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
@@ -285,7 +285,7 @@ class BoxPlotWriter is ChartWriter
         BoxPlot boxPlot
         boxPlot = cast(BoxPlot, chart)
 
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             Array<PlotGroup> plotGroups = boxPlot:GetPlotGroups()
     
             UnorderedList plotGroupsUL

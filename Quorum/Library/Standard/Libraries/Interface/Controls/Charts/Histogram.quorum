@@ -81,10 +81,10 @@ class Histogram is SharedBarChartParent
         SetAccessibilityCode(parent:Item:ITEM)
 
         // Default settings specific to histogram
-        RegressionCapable(false)
+        SeparationCapable(true)
         ShowAllTicks()
         SetDefaultOrientationToVertical()
-        SetDefaultSeparation(true)
+        SeparateSeriesByDefault(true)
         GetVerticalPanel():BlockPaddingOffset(true)
         GetHorizontalPanel():BlockPaddingOffset(true)
     end

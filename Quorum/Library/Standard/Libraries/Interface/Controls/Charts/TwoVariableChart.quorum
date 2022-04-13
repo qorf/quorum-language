@@ -95,13 +95,21 @@ class TwoVariableChart is Chart
         if lines:GetSize() > 0
             integer i = 0
             repeat while i < lines:GetSize()
+                ChartLine cline = lines:Get(i)
                 ChartAreaPanel chartArea
-                if IsSeparatedByFactor()
+                if IsSeparated()
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
-                        if lines:Get(i):GetSeries() = GetSubChartAreas():Get(j):GetSeries()
-                            chartArea = GetSubChartAreas():Get(j)
-                            chartArea:AddChartAreaItem(lines:Get(i))
+                        if IsSeparatedBySeries()
+                            if cline:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(cline)
+                            end
+                        elseif IsSeparatedByFactor()
+//                            if lineName = GetSubChartAreas():Get(j):GetName()
+//                                chartArea = GetSubChartAreas():Get(j)
+//                                chartArea:AddChartAreaItem(lines:Get(i))
+//                            end
                         end
                         j = j + 1
                     end
@@ -109,15 +117,15 @@ class TwoVariableChart is Chart
                     chartArea = GetChartArea()
                 end
 
-                lines:Get(i):SetFocusable(true)
-                lines:Get(i):SetAccessibilityCode(parent:Item:ITEM)
-                lines:Get(i):SetNextFocus(GetNextFocus())
-                lines:Get(i):SetPreviousFocus(GetPreviousFocus())
-                chartArea:Add(lines:Get(i))
+                cline:SetFocusable(true)
+                cline:SetAccessibilityCode(parent:Item:ITEM)
+                cline:SetNextFocus(GetNextFocus())
+                cline:SetPreviousFocus(GetPreviousFocus())
+                chartArea:Add(cline)
 
                 integer j = 0
-                repeat while j < lines:Get(i):GetLines():GetSize()
-                    LineSegment line = lines:Get(i):GetLines():Get(j)
+                repeat while j < cline:GetLines():GetSize()
+                    LineSegment line = cline:GetLines():Get(j)
                     line:SetFocusable(true)
                     line:SetAccessibilityCode(parent:Item:ITEM)
                     line:SetNextFocus(GetNextFocus())
@@ -125,10 +133,10 @@ class TwoVariableChart is Chart
                     chartArea:Add(line)
                     j = j + 1
                 end
-                if lines:Get(i):GetPointsFlag()
+                if cline:GetPointsFlag()
                     j = 0
-                    repeat while j < lines:Get(i):GetPoints():GetSize()
-                        ChartPoint point = lines:Get(i):GetPoints():Get(j)
+                    repeat while j < cline:GetPoints():GetSize()
+                        ChartPoint point = cline:GetPoints():Get(j)
                         point:SetFocusable(true)
                         point:SetAccessibilityCode(parent:Item:ITEM)
                         point:SetNextFocus(GetNextFocus())
@@ -150,14 +158,21 @@ class TwoVariableChart is Chart
                 point:SetAccessibilityCode(parent:Item:ITEM)
                 point:SetNextFocus(GetNextFocus())
                 point:SetPreviousFocus(GetPreviousFocus())
-                if IsSeparatedByFactor()
-                    integer k = 0
-                    repeat while k < GetNumberOfChartAreas()
-                        if point:GetSeries() = GetSubChartAreas():Get(k):GetSeries()
-                            GetSubChartAreas():Get(k):Add(point)
-                            GetSubChartAreas():Get(k):AddChartAreaItem(point)
+                if IsSeparated()
+                    integer j = 0
+                    repeat while j < GetNumberOfChartAreas()
+                        if IsSeparatedBySeries()
+                            if point:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                GetSubChartAreas():Get(j):Add(point)
+                                GetSubChartAreas():Get(j):AddChartAreaItem(point)
+                            end
+                        elseif IsSeparatedByFactor()
+//                            if groupName = GetSubChartAreas():Get(j):GetName()
+//                                GetSubChartAreas():Get(j):Add(point)
+//                                GetSubChartAreas():Get(j):AddChartAreaItem(point)
+//                            end
                         end
-                        k = k + 1
+                        j = j + 1
                     end
                 else
                     GetChartArea():Add(point)
@@ -198,6 +213,16 @@ class TwoVariableChart is Chart
     end
 
     /*
+        Returns an array of all the factors 
+        This overrides the parent Class GetFactorList since 
+        TwoVariableCharts work differently than the others.
+    */
+    action GetFactorList returns Array<text>
+        Array<text> list
+        return list
+    end
+
+    /*
         DisposeDrawables
         
         Empties drawables from the chart area.
@@ -228,16 +253,10 @@ class TwoVariableChart is Chart
 
         if target not= undefined
             if target is Series
-                Series temp = cast(Series, target)
                 if points:GetSize() > 0
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        Drawable item = temp:GetItemAt(i)
-                        item:SetColor(previousColor)
-                        item:SetZ(previousZ)
-                        i = i + 1
-                    end
+                    parent:Chart:LostSelection(ci)
                 else
+                    Series temp = cast(Series, target)
                     integer i = 0
                     repeat while i < temp:GetSize()
                         ChartLine line = cast(ChartLine, temp:GetItemAt(i))
@@ -245,20 +264,13 @@ class TwoVariableChart is Chart
                         line:SetZ(previousZ)
                         i = i + 1
                     end
+                    temp:GetIcon():SetColor(previousColor)
+                    temp:GetEntryBox():SetColor(0,0,0,0)
                 end
-//                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
-                temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
-                if GetPointsFlag()
-                    temp:GetPoint1():SetColor(previousColor)
-                    temp:GetPoint2():SetColor(previousColor)
-                    temp:GetPoint1():SetZ(0)
-                    temp:GetPoint2():SetZ(0)
-                end
                 temp:SetColor(previousColor)
-                temp:SetZ(0)
+                temp:SetZ(previousZ)
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
                 temp:SetColor(previousColor)
@@ -292,18 +304,11 @@ class TwoVariableChart is Chart
         if target not= undefined
             target:Focus()
             if target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
                 if points:GetSize() > 0
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        Drawable item = temp:GetItemAt(i)
-                        item:SetColor(GetHighlightColor())
-                        previousZ = item:GetZ()
-                        item:SetZ(-1)
-                        i = i + 1
-                    end
+                    parent:Chart:GainedSelection(ci)
                 else
+                    Series temp = cast(Series, target)
+                    previousColor = temp:GetColor()
                     integer i = 0
                     repeat while i < temp:GetSize()
                         ChartLine line = cast(ChartLine, temp:GetItemAt(i))
@@ -312,18 +317,11 @@ class TwoVariableChart is Chart
                         line:SetZ(-1)
                         i = i + 1
                     end
+                    temp:GetIcon():SetColor(GetHighlightColor())
+                    temp:GetEntryBox():SetColor(GetHighlightColor())
                 end
-//                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
-                if GetPointsFlag()
-                    temp:GetPoint1():SetColor(GetHighlightColor())
-                    temp:GetPoint2():SetColor(GetHighlightColor())
-                    temp:GetPoint1():SetZ(-1)
-                    temp:GetPoint2():SetZ(-1)
-                end
                 previousColor = temp:GetColor()
                 temp:SetColor(GetHighlightColor())
                 temp:SetZ(-1)
@@ -513,17 +511,17 @@ class TwoVariableChart is Chart
         ChartItem xAxis
         ChartItem yAxis
         ChartItem chartArea //not to be confused with panels
-        ChartItem summary = GetInfoTreeRoot()
 
+        ChartItem summary = GetInfoTreeRoot()
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(chartAreaItem)
-        summary:SetChild(chartAreaItem)
+        summary:SetNext(chartArea)
+        summary:SetChild(chartArea)
         summary:SetContainer(me)
         summary:SetFocusTarget(me)
-        chartAreaItem:SetFocusTarget(me:GetChartArea())
-        chartAreaItem:SetParent(summary)
-        chartAreaItem:SetContainer(me)
+        chartArea:SetFocusTarget(me:GetChartArea())
+        chartArea:SetParent(summary)
+        chartArea:SetContainer(me)
 
         text lineText = "lines"
         text pointText = "points"
@@ -534,38 +532,37 @@ class TwoVariableChart is Chart
             linetext = "point"
         end
         if lines:GetSize() > 0
-            chartAreaItem:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
+            chartArea:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
             me:GetChartArea():SetDescription("with" + lines:GetSize() + " " + lineText + ".")
         elseif points:GetSize() > 0
-            chartAreaItem:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
+            chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
             me:GetChartArea():SetDescription("with" + points:GetSize() + " " + pointText + ".")
         end
     
         // If any of these are not showing the tree will skip them in the navigation        
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartAreaItem, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, chartAreaItem, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, chartAreaItem, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
 
         // Generate Line Chart Info
         if lines:GetSize() > 0
-            if IsSeparatedByFactor()
-                integer subAreaCount = GetLegend():GetSeriesList():GetSize()
+            if IsSeparated()
+                integer subAreaCount = GetNumberOfVisibleChartAreas()
                 ChartItem firstArea
                 firstArea:SetContainer(me)
                 if GetNumberOfChartAreas() > 0
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
-                    chartAreaItem:SetChild(firstArea)
-                    firstArea:SetParent(chartAreaItem)
+                    chartArea:SetChild(firstArea)
+                    firstArea:SetParent(chartArea)
                     firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
-                    firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                    firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                    GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                     GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " line, 1 of " + subAreaCount + " sub charts.")
                     Icon newIcon = NewRegionIcon(0,0,1,1)
                     if chartAreaItems:GetSize() > 0
@@ -583,6 +580,8 @@ class TwoVariableChart is Chart
                 
                             Icon region = NewRegionIcon(0,0,1,1)
                             CreateChunks(GetSubChartAreas():Get(0), firstChartLineItem, region, line:GetPoints(), line:GetLines(), 0)
+
+                            firstArea:SetLastChild(firstChartLineItem)
                         end
                     end
                 end
@@ -591,17 +590,16 @@ class TwoVariableChart is Chart
                 ChartItem previousArea = firstArea
                 repeat while i < GetNumberOfChartAreas()
                     ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                    if chartSubArea:GetIsShowing()
+                    if chartSubArea:IsShowing()
                         ChartItem nextArea
                         nextArea:SetContainer(me)
-                        nextArea:SetParent(chartAreaItem)
+                        nextArea:SetParent(chartArea)
                         nextArea:SetFocusTarget(chartSubArea)
                         previousArea:SetNext(nextArea)
                         nextArea:SetPrevious(previousArea)
                         previousArea = nextArea
-                        nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                        nextArea:SetDisplayName(chartSubArea:GetName())
                         Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                        chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                         chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " line, " + (i+1) + " of " + subAreaCount + " sub charts.")
                         Icon newIcon = NewRegionIcon(0,0,1,1)
                         if chartAreaItems:GetSize() > 0
@@ -619,6 +617,8 @@ class TwoVariableChart is Chart
                     
                                 Icon region = NewRegionIcon(0,0,1,1)
                                 CreateChunks(chartSubArea, firstChartLineItem, region, line:GetPoints(), line:GetLines(), 0)
+
+                                previousArea:SetLastChild(firstChartLineItem)
                             end
                         end
                     end
@@ -628,9 +628,9 @@ class TwoVariableChart is Chart
             else
                 ChartItem firstChartLineItem
                 firstChartLineItem:SetContainer(me)
-                chartAreaItem:SetChild(firstChartLineItem)
+                chartArea:SetChild(firstChartLineItem)
                 firstChartLineItem:SetDisplayName("This is the line for " + lines:Get(0):GetName() + ".")
-                firstChartLineItem:SetParent(chartAreaItem)
+                firstChartLineItem:SetParent(chartArea)
     
                 ChartLine firstChartLine = lines:Get(0)
 
@@ -647,7 +647,7 @@ class TwoVariableChart is Chart
                     ChartItem chartLineItem
                     chartLineItem:SetContainer(me)
                     chartLineItem:SetDisplayName("This is the line for " + lines:Get(i):GetName() + ".")
-                    chartLineItem:SetParent(chartAreaItem)
+                    chartLineItem:SetParent(chartArea)
                     chartLineItem:SetPrevious(previousChartLineItem)
     
                     ChartLine chartLine = lines:Get(i)
@@ -667,18 +667,17 @@ class TwoVariableChart is Chart
 
         // Generate Scatter Plot Info
         if points:GetSize() > 0
-            if IsSeparatedByFactor()
-                integer subAreaCount = GetLegend():GetSeriesList():GetSize()
+            if IsSeparated()
+                integer subAreaCount = GetNumberOfVisibleChartAreas()
                 ChartItem firstArea
                 firstArea:SetContainer(me)
                 if GetNumberOfChartAreas() > 0
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
-                    chartAreaItem:SetChild(firstArea)
-                    firstArea:SetParent(chartAreaItem)
+                    chartArea:SetChild(firstArea)
+                    firstArea:SetParent(chartArea)
                     firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
-                    firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                    firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                    GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                     GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " points, 1 of " + subAreaCount + " sub charts.")
                     Icon newIcon = NewRegionIcon(0,0,1,1)
                     Array <ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
@@ -689,17 +688,16 @@ class TwoVariableChart is Chart
                 ChartItem previousArea = firstArea
                 repeat while i < GetNumberOfChartAreas()
                     ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                    if chartSubArea:GetIsShowing()
+                    if chartSubArea:IsShowing()
                         ChartItem nextArea
                         nextArea:SetContainer(me)
-                        nextArea:SetParent(chartAreaItem)
+                        nextArea:SetParent(chartArea)
                         nextArea:SetFocusTarget(chartSubArea)
                         previousArea:SetNext(nextArea)
                         nextArea:SetPrevious(previousArea)
                         previousArea = nextArea
-                        nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                        nextArea:SetDisplayName(chartSubArea:GetName())
                         Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                        chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                         chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " points, " + (i+1) + " of " + subAreaCount + " sub charts.")
                         Icon newIcon = NewRegionIcon(0,0,1,1)
                         Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
@@ -710,9 +708,10 @@ class TwoVariableChart is Chart
                 chartArea:SetLastChild(previousArea)
             else
                 Icon newIcon = NewRegionIcon(0,0,1,1)
-                SubdivideQuadrant(GetChartArea(), chartAreaItem, newIcon, points, 0)
+                SubdivideQuadrant(GetChartArea(), chartArea, newIcon, points, 0)
             end
         end
+        chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
@@ -924,6 +923,7 @@ class TwoVariableChart is Chart
             Icon leftChunkRegion = NewRegionIcon(region:GetPercentageX(), 0, region:GetPercentageWidth() / 2.0, 1.0)
             leftChunkRegion:SetName("Left Chunk")
             chartArea:Add(leftChunkRegion)
+            regions:Add(leftChunkRegion)
             
             ChartItem leftChunkItem
             leftChunkItem:SetContainer(me)
@@ -934,6 +934,7 @@ class TwoVariableChart is Chart
             Icon rightChunkRegion = NewRegionIcon(region:GetPercentageX() + region:GetPercentageWidth() / 2.0, 0, region:GetPercentageWidth() / 2.0, 1.0)
             rightChunkRegion:SetName("Right Chunk")
             chartArea:Add(rightChunkRegion)
+            regions:Add(rightChunkRegion)
             
             ChartItem rightChunkItem
             rightChunkItem:SetContainer(me)

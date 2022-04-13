@@ -71,7 +71,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
         chart:SetYAxisTitle("Total")
         chart:SetXAxisTitle("Group")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         Array<text> groupNames
@@ -122,7 +122,6 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                     Series series
                     groupNames:Add(column:GetHeader())
                     series:SetName(column:GetHeader())
-                    series:AddItem(plot:GetIcon())
                     series:AddItem(plot)
                     plot:SetSeries(series)
                     seriesFactor:Add(column:GetHeader(), series)
@@ -159,11 +158,12 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
     action CreateChartWithFactor(DataFrame frame) returns Chart
         ViolinPlot chart
+        chart:UseFactor(true)
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Violin Plot")
         end
 
         HashTable<text, Series> seriesFactor
@@ -272,9 +272,8 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 Plot plot
                 plot:SetData(dataset)
                 plot:SetInfo(Calculations(column, dataset))
-                plot:SetName(column:GetHeader())
+                plot:SetName(seriesNames:Get(j))
                 if(seriesFactor:HasKey(seriesNames:Get(j)))
-                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot:GetIcon())
                     seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
                     plot:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
                 end

@@ -24,7 +24,7 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Circle
     to save their representation in the form ScalableVectorGraphics. This class will write out
     all of the necessary text needed to write out an SVG file that will contain the chart.
 
-    Attribute: Author Gabriel Contreras
+    Attribute: Author Tim Kluthe
 
     Attribute: Example
 
@@ -45,15 +45,6 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 */
 
 class ScatterPlotWriter is ChartWriter
-
-    private number outerEdgePadding = 0
-    private number betweenGroupPadding = 0
-    private number betweenBarPadding = 0
-    private number barWidthPercent = 0
-    private number barHeightPercent = 0
-    
-    //Array<Circle> points
-    //Array<Rectangle> regions
 
     action WriteOutChart(ScatterPlot chart, integer svgWidth, integer svgHeight) returns text
         return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
@@ -100,7 +91,6 @@ class ScatterPlotWriter is ChartWriter
     /*
         This action adds the content of the ScatterPlot to the SVG
     */
-
     private action AddPoints(ScalableVectorGraphics canvas, ScatterPlot chart)
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
@@ -127,10 +117,11 @@ class ScatterPlotWriter is ChartWriter
         i = 0
         repeat while i < chart:GetChartPoints():GetSize()
             ChartPoint currentPoint = chart:GetChartPoints():Get(i)
+            number radius = currentPoint:GetShape():GetRadius()
 
             Circle point
-            point:SetRadius(currentPoint:GetShape():GetRadius())
-            point:SetPosition(currentPoint:GetGlobalX(), TranslatePositionY(currentPoint)) 
+            point:SetRadius(radius)
+            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
             point:SetFill(currentPoint:GetColor())
             point:SetID(canvas:GetID() + "-" + currentPoint:GetSeries():GetHashCode() + "-" + currentPoint:GetHashCode())
             point:SetStyleClass("quorum-chart-circle")
@@ -138,7 +129,6 @@ class ScatterPlotWriter is ChartWriter
             if HasAccessibility()
                 point:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
             end
-            //points:Add(point)
             canvas:Add(point)
 
             i = i + 1
@@ -151,14 +141,14 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
     
         ChartItem chartItem = scatterplot:GetChartAreaItem()
-        if not chart:IsSeparatedByFactor()
+        if not chart:IsSeparated()
             ChartItem firstItem = chartItem:GetChildItem()
 
             if firstItem not= undefined
                 if firstItem:GetFocusTarget() is ChartPoint
                     AddPointsAccessibility(canvas, firstItem, chartAreaItem)
                 else
-                    AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                    AddRegionLayerAccessibility(canvas, firstItem, chartAreaItem)
                 end
             end
             
@@ -171,7 +161,7 @@ class ScatterPlotWriter is ChartWriter
                     if firstItem:GetFocusTarget() is ChartPoint
                         AddPointsAccessibility(canvas, firstItem, chartAreaItem)
                     else
-                        AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                        AddRegionLayerAccessibility(canvas, firstItem, chartAreaItem)
                     end
                 end
             end
@@ -186,7 +176,7 @@ class ScatterPlotWriter is ChartWriter
                         if firstItem:GetFocusTarget() is ChartPoint
                             AddPointsAccessibility(canvas, firstItem, chartAreaItem)
                         else
-                            AddRegionLayerAccessibily(canvas, firstItem, chartAreaItem)
+                            AddRegionLayerAccessibility(canvas, firstItem, chartAreaItem)
                         end
                     end
                 end
@@ -197,7 +187,7 @@ class ScatterPlotWriter is ChartWriter
 
     end
 
-    action AddRegionLayerAccessibily(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+    action AddRegionLayerAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -218,7 +208,7 @@ class ScatterPlotWriter is ChartWriter
             if firstItem:GetChildItem():GetFocusTarget() is ChartPoint
                 AddPointsAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
             else
-                AddRegionLayerAccessibily(canvas, firstItem:GetChildItem(), firstRegionNav)
+                AddRegionLayerAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
             end
         end
 
@@ -238,7 +228,7 @@ class ScatterPlotWriter is ChartWriter
                 if nextItem:GetChildItem():GetFocusTarget() is ChartPoint
                     AddPointsAccessibility(canvas, nextItem:GetChildItem(), regionNav)
                 else
-                    AddRegionLayerAccessibily(canvas, nextItem:GetChildItem(), regionNav)
+                    AddRegionLayerAccessibility(canvas, nextItem:GetChildItem(), regionNav)
                 end
             end
 

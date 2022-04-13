@@ -7,6 +7,7 @@ use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
 use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 use Libraries.Data.Formats.ScalableVectorGraphics.MultiplePolygon
 use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.UnorderedList
 
 /*
     The GeoMapWriter class is part of the set of writers that allow for Charts
@@ -82,26 +83,36 @@ class GeoMapWriter is ChartWriter
         
         Array<Region> regions = chart:GetRegions()
 
+        number xmin = chart:GetXAxisMinimum()
+        number xmax = chart:GetXAxisMaximum()
+        number ymin = chart:GetYAxisMinimum()
+        number ymax = chart:GetYAxisMaximum()
+
         integer i = 0
         repeat while i < regions:GetSize()
             if regions:Get(i):GetSubRegions():GetSize() = 1
                 Polygon tempRegion
                 integer k = 0
                 repeat while k < regions:Get(i):GetSubRegions():Get(0):GetPoints():GetSize()
-                    number x = regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetFirstValue()
-                    number y = regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetSecondValue()
-                    number fixy = canvas:GetHeight()-y //This flips the y coord because svg goes top down.
-                    tempRegion:AddPoint(x, fixy)
+                    number x = ((regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetFirstValue() - xmin) / (xmax - xmin)) * chart:GetMapAnchor():GetWidth()
+                    number y = ((regions:Get(i):GetSubRegions():Get(0):GetPoints():Get(k):GetSecondValue() - ymin) / (ymax - ymin)) * chart:GetMapAnchor():GetHeight()
+
+                    x = x + cast(integer, chart:GetMapAnchor():GetGlobalX())
+                    y = cast(integer, TranslatePositionY(chart:GetMapAnchor())) - y
+                    tempRegion:AddPoint(x, y)
                     k = k + 1
                 end
                 tempRegion:SetTitle(regions:Get(i):GetName())
                 tempRegion:SetFill(regions:Get(i):GetColor())
-                tempRegion:SetAriaDescription(regions:Get(i):GetDescription())
-                tempRegion:SetAriaLabel(regions:Get(i):GetName() + ", " + regions:Get(i):GetDescription())
+                tempRegion:SetID(canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+                tempRegion:SetStyleClass("quorum-chart-polygon")
                 tempRegion:SetRole("region")
-//                tempRegion:SetStroke(chart:GetRegionBorderColor())
-//                tempRegion:SetStrokeWidth(chart:GetRegionBorderWidth())
-                tempRegion:SetTabIndex(i+1)
+                tempRegion:SetStroke("black")
+                tempRegion:SetStrokeWidth(1)
+                tempRegion:SetTabIndex(-1)
+                if HasAccessibility()
+                    tempRegion:SetAriaLabel(regions:Get(i):GetName() + regions:Get(i):GetDescription())
+                end
                 canvas:Add(tempRegion) 
             end
             if regions:Get(i):GetSubRegions():GetSize() > 1 // We need a way to store multiple polygons in one svg focusable region
@@ -111,10 +122,12 @@ class GeoMapWriter is ChartWriter
                     Polygon polygon
                     integer k = 0
                     repeat while k < regions:Get(i):GetSubRegions():Get(j):GetPoints():GetSize()
-                        number x = regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetFirstValue()
-                        number y = regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetSecondValue()
-                        number fixy = canvas:GetHeight()-y //This flips the y coord because svg goes top down.
-                        polygon:AddPoint(x, fixy)
+                        number x = ((regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetFirstValue() - xmin) / (xmax - xmin)) * chart:GetMapAnchor():GetWidth()
+                        number y = ((regions:Get(i):GetSubRegions():Get(j):GetPoints():Get(k):GetSecondValue() - ymin) / (ymax - ymin)) * chart:GetMapAnchor():GetHeight()
+    
+                        x = x + cast(integer, chart:GetMapAnchor():GetGlobalX())
+                        y = cast(integer, TranslatePositionY(chart:GetMapAnchor())) - y
+                        polygon:AddPoint(x, y)
                         k = k + 1
                     end 
                     tempRegion:AddPolygon(polygon)
@@ -122,12 +135,15 @@ class GeoMapWriter is ChartWriter
                 end
                 tempRegion:SetTitle(regions:Get(i):GetName())
                 tempRegion:SetFill(regions:Get(i):GetColor())
-                tempRegion:SetAriaDescription(regions:Get(i):GetDescription())
-                tempRegion:SetAriaLabel(regions:Get(i):GetName() + ", " + regions:Get(i):GetDescription())
+                tempRegion:SetID(canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+                tempRegion:SetStyleClass("quorum-chart-multipolygon")
                 tempRegion:SetRole("region")
-//                tempRegion:SetStroke(chart:GetRegionBorderColor())
-//                tempRegion:SetStrokeWidth(chart:GetRegionBorderWidth())
-                tempRegion:SetTabIndex(i+1)
+                tempRegion:SetStroke("black")
+                tempRegion:SetStrokeWidth(1)
+                tempRegion:SetTabIndex(-1)
+                if HasAccessibility()
+                    tempRegion:SetAriaLabel(regions:Get(i):GetName() + regions:Get(i):GetDescription())
+                end
                 canvas:Add(tempRegion) 
             end 
             i = i + 1
@@ -135,6 +151,24 @@ class GeoMapWriter is ChartWriter
     end
 
     action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        GeoMap map
+        map = cast(GeoMap, chart)
         
+        UnorderedList regionsUL
+        regionsUL:AddAttribute("role","group")
+        chartAreaItem:AddNestedTag(regionsUL)
+
+        Array<Region> regions = map:GetRegions()
+
+        integer i = 0
+        repeat while i < regions:GetSize()
+            ListItem regionNav 
+            regionNav:SetIdentifier(canvas:GetID() + "-" + regions:Get(i):GetHashCode() + "-nav")
+            regionNav:AddAttribute("role","treeitem")
+            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+            regionNav:SetTabIndex("-1")
+            regionsUL:Add(regionNav)
+            i = i + 1
+        end    
     end
 end
