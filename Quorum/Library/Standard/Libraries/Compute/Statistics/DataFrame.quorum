@@ -61,6 +61,8 @@ use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Interface.Controls.Charts.GeoMap
 use Libraries.Compute.Statistics.Charts.GeoMapCreator
 use Libraries.Compute.Statistics.Transforms.RemoveUndefinedRowsTransform
+use Libraries.Compute.Statistics.Transforms.ColumnSplitter
+use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -3104,6 +3106,74 @@ class DataFrame
             DataFrameColumn column = GetColumn(next)
             column:ReplaceUndefined(value)
         end
+    end
+
+    /*
+        This action splits the selected columns into new columns using the delimiter (typically a character)
+        to split each row. For example, if we a column called stats with values like 22-2, and a delimiter
+        of dash (-),  we would split into two columns, one with 22 and the other with 2. 
+
+        This is the simplest case of column splitting. For more advanced forms of splitting, we can override
+        the ColumnSplitter class and override a single action, Split, which takes a text value and returns
+        an array of values to be placed into the new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //create the names for the new columns
+        Array<text> headers
+        headers:Add("points")
+        headers:Add("thingy")
+
+        //set which column or columns we want to split in this way
+        //then split the values and output them to the console
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:SplitSelectedColumns(headers, "-")
+        output result:ToText()
+    */
+    action SplitSelectedColumns(Array<text> headers, text delimiter) returns DataFrame
+        DelimiterColumnSplitter splitter
+        splitter:SetHeaders(headers)
+        splitter:SetDelimiter(delimiter)
+        return splitter:Transform(me)
+    end
+
+    /*
+        This action splits the selected columns into new columns using the delimiter (typically a character)
+        to split each row. For example, if we a column called stats with values like 22-2, and a delimiter
+        of dash (-),  we would split into two columns, one with 22 and the other with 2. This version
+        can explicitly include or exclude undefined cells.
+
+        This is the simplest case of column splitting. For more advanced forms of splitting, we can override
+        the ColumnSplitter class and override a single action, Split, which takes a text value and returns
+        an array of values to be placed into the new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //create the names for the new columns
+        Array<text> headers
+        headers:Add("points")
+        headers:Add("thingy")
+
+        //set which column or columns we want to split in this way
+        //then split the values and output them to the console
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:SplitSelectedColumns(headers, "-")
+        output result:ToText()
+    */
+    action SplitSelectedColumns(Array<text> headers, text delimiter, boolean includeUndefined) returns DataFrame
+        DelimiterColumnSplitter splitter
+        splitter:SetIncludeUndefined(includeUndefined)
+        splitter:SetHeaders(headers)
+        splitter:SetDelimiter(delimiter)
+        return splitter:Transform(me)
     end
 
     /*

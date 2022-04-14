@@ -479,6 +479,16 @@ class DataFrameColumn
     blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
 
     /*
+        This action copies the type of the data frame, but does not copy over its
+        rows. The header name is retained.
+
+        Attribute: Returns the column of the appropriate type but without the data.
+    */
+    action CopyEmpty returns DataFrameColumn
+        return Copy(0, -1)
+    end
+
+    /*
         This action sets the size of the column to the parameter and then fills it with undefined values. 
 
         Attribute: Parameter size the size of the column.
