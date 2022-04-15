@@ -94,11 +94,9 @@ class AndroidInput is GameInput
     */
     action ProcessInputEvents
         UpdateRecentInputTimers()
-
         HandleTouchEvents()
-        
+        HandleGestureEvents()
         HandleKeyboardEvents()
-
         HandleTextInputEvents()
     end  
 
@@ -528,6 +526,8 @@ class AndroidInput is GameInput
                 if gestureEvent:timingCode = gestureEvent:BEGIN
                     recentInput = GetRecentGestureInput(gestureEvent)
                 end
+
+                multiSet = set:Copy()
 
                 BehaviorEvent behaviorEvent
                 behaviorEvent:SetGestureEvent(gestureEvent)

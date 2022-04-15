@@ -373,6 +373,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onDoubleTap(MotionEvent event)
         {
+            Log.d("TAG","onDoubleTap: ");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddDoubleTapEvent(event);
             return true;
@@ -410,6 +411,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onSingleTapConfirmed(MotionEvent event)
         {
+            Log.d("TAG","onSingleTapConfirmed: ");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddSingleTapEvent(event);
             return true;

@@ -170,12 +170,31 @@ public class AndroidInput
         gestureEvents.Add(event);
     }
 
+    private void InitializeValues(MotionEvent event, GestureEvent quorumEvent)
+    {
+        int x = (int)event.getRawX();
+        int y = GameStateManager.display.GetHeight() - (int)event.getRawY();
+
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+    }
+
+    private void InitializeValues(ScaleGestureDetector detector, GestureEvent quorumEvent)
+    {
+        int x = (int)detector.getFocusX();
+        int y = GameStateManager.display.GetHeight() - (int)detector.getFocusY();
+
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+    }
+
     public void AddSingleTapEvent(MotionEvent event)
     {
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SINGLE_TAP);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -186,6 +205,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.DOUBLE_TAP);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -196,6 +216,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SWIPE);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(event1, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -206,6 +227,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -216,6 +238,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PAN);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(event1, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -227,6 +250,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -238,6 +262,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
@@ -249,6 +274,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
 
         // TO-DO: Set relevant properties here...
+        InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
     }
