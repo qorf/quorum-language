@@ -13,6 +13,8 @@ use Libraries.Compute.Statistics.Analysis.UnivariateAction
 use Libraries.Compute.Vector
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 
 /*
     This class is used to create a Violin Chart from columns/factor of data in a DataFrame.
@@ -47,15 +49,24 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
     action Create(DataFrame frame) returns Chart
         //If there are no factors to map to, each column will be map at its own x-tick
-        if GetColumnSize() > 0 and GetFactorSize() = 0
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        //If there are no factors to map to, each column will be map at its own x-tick
+        if columns > 0 and factors = 0
             return CreateChartWithoutFactor(frame)
-        elseif GetColumnSize() > 0 and GetFactorSize() = 1
+        elseif columns > 0 and factors = 1
             DataFrameColumn factor = frame:GetColumn(GetFactor(0))
             if factor:IsUndefined() // If the factor is undefined don't use a factor
                 return CreateChartWithoutFactor(frame)
             else
                 return CreateChartWithFactor(frame)
             end
+        elseif columns = 1 and factors = 2
+            DataFrameColumn factor1 = frame:GetColumn(GetFactor(0))
+            DataFrameColumn factor2 = frame:GetColumn(GetFactor(1))
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            return CreateChartWithTwoFactors(factor1, factor2, column)
         else
             alert("ViolinPlotCreator does not support the number of column/factors that were selected.")
             alert("Please include at least one numerical column. Violin Plots can support at most one factor.")
@@ -123,7 +134,6 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                     groupNames:Add(column:GetHeader())
                     series:SetName(column:GetHeader())
                     series:AddItem(plot)
-                    plot:SetSeries(series)
                     seriesFactor:Add(column:GetHeader(), series)
     
                     PlotGroup group
@@ -158,7 +168,6 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
     action CreateChartWithFactor(DataFrame frame) returns Chart
         ViolinPlot chart
-        chart:UseFactor(true)
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
@@ -275,7 +284,6 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
                 plot:SetName(seriesNames:Get(j))
                 if(seriesFactor:HasKey(seriesNames:Get(j)))
                     seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
-                    plot:SetSeries(seriesFactor:GetValue(seriesNames:Get(j)))
                 end
                 if groupFactor:HasKey(groupNames:Get(i))
                     groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
@@ -309,8 +317,196 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
 
         SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetFactorList(groupNames)
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor)
+        return chart
+    end
+
+
+    private action CreateChartWithTwoFactors(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns ViolinPlot
+        ViolinPlot chart
+        if not column:IsNumberColumn()
+            alert("ViolinPlotCreator does not support non-numerical columns.")
+            return undefined
+        end
+        
+        chart:SetLegendTitle(factor2:GetHeader())
+        chart:SetXAxisTitle(factor1:GetHeader())
+        chart:SetYAxisTitle(column:GetHeader())
+
+        HashTable<text, Series> seriesFactor
+        HashTable<text, PlotGroup> groupFactor
+        HashTable<text, NumberColumn> dataFactor 
+
+        boolean dateFactor1 = false
+        boolean numericalFactor1 = false
+        boolean dateFactor2 = false
+        boolean numericalFactor2 = false
+
+        Array <text> groupNames 
+        if factor1:IsDateTimeColumn()
+            dateFactor1 = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not groupFactor:HasKey(dates:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(dates:GetAsText(i))
+                        groupNames:Add(dates:GetAsText(i))
+                        groupFactor:Add(dates:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
+        else
+            if factor1:IsNumberColumn()
+                numericalFactor1 = true
+            end
+            DataFrameColumn labels = factor1:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not groupFactor:HasKey(labels:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(labels:GetAsText(i))
+                        groupNames:Add(labels:GetAsText(i))
+                        groupFactor:Add(labels:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        Array <text> seriesNames 
+        if factor2:IsDateTimeColumn()
+            dateFactor2 = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not seriesFactor:HasKey(dates:GetAsText(i))
+                        Series series
+                        series:SetName(dates:GetAsText(i))
+                        seriesNames:Add(dates:GetAsText(i))
+                        seriesFactor:Add(dates:GetAsText(i), series)
+                    end
+                end
+                i = i + 1
+            end
+        else
+            if factor2:IsNumberColumn()
+                numericalFactor2 = true
+            end
+            DataFrameColumn labels = factor2:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not seriesFactor:HasKey(labels:GetAsText(i))
+                        Series series
+                        series:SetName(labels:GetAsText(i))
+                        seriesNames:Add(labels:GetAsText(i))
+                        seriesFactor:Add(labels:GetAsText(i), series)
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
+                text name = factor1:GetAsText(i)+" "+factor2:GetAsText(i)
+                number valueForName = column:GetAsNumber(i)
+                if dataFactor:HasKey(name)
+                    dataFactor:GetValue(name):Add(valueForName)
+                else
+                    NumberColumn newCol
+                    newCol:Add(valueForName)
+                    dataFactor:Add(name, newCol)
+                end
+            end
+            i = i + 1
+        end 
+
+        // Create all plots (even the ones that will be empty)
+        // This is necessary to ensure correct data display as well as uniformity when the user customizes or navigates the chart.
+        // Fill the plot groups
+        number yMax = 0
+        number yMin = 0
+        i = 0
+        repeat while i < groupNames:GetSize()
+            integer j = 0
+            repeat while j < seriesNames:GetSize()
+                text dataKey = groupNames:Get(i) + " " + seriesNames:Get(j)
+                if dataFactor:HasKey(dataKey)
+                    NumberColumn col = dataFactor:GetValue(dataKey)
+                    
+                    Vector dataset = col:ConvertToVector()
+                    dataset:Sort()            
+                    
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
+                    end
+                    Plot plot
+                    plot:SetData(dataset)
+                    plot:SetInfo(Calculations(col, dataset))
+                    plot:SetName(seriesNames:Get(j))
+                    if(seriesFactor:HasKey(seriesNames:Get(j)))
+                        seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    end
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
+                    end
+                else
+                    //Make an emtpy plot
+                    Array<number> col
+
+                    Plot plot
+                    plot:SetInfo(col)
+                    plot:SetName(seriesNames:Get(j))
+                    if(seriesFactor:HasKey(seriesNames:Get(j)))
+                        seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    end
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
+                    end
+                end
+                j = j + 1
+            end
+            i = i + 1  
+        end
+
+        // Add the groups
+        i = 0
+        repeat while i < groupNames:GetSize()
+            PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
+            chart:AddPlotGroup(group)
+            i = i + 1
+        end
+
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
+
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
+        chart:SetFactorList(groupNames)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor1)
         return chart
     end
 

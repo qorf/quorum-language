@@ -3,6 +3,8 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.Graphics.PieBox
+use Libraries.Interface.Controls.Charts.Graphics.PieSlice
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.LayoutProperties
@@ -10,8 +12,6 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.Charts.Graphics.Wedge
-use Libraries.Interface.Controls.Charts.PieBox
 
 /*
     This class determines the visual layout for a pie chart.
@@ -70,7 +70,7 @@ class PieChartLayout is ChartLayout
         end
 
         if pieBox not= undefined
-            Array<Wedge> slices = pieBox:GetSlices()
+            Array<PieSlice> slices = pieBox:GetSlices()
             number width = chartAreaContainer:GetWidth()
             number height = chartAreaContainer:GetHeight()
             number donutHolePercent = chart:GetDonutHolePercent()
@@ -86,12 +86,12 @@ class PieChartLayout is ChartLayout
             transparent:SetColor(0, 0, 0, 0)
             pieBox:LoadFilledRectangle(radius*2, radius*2, transparent)
     
+            number currentTheta = 90 // This starts it at the top
             number currentPercent = 0
             integer i = 0
             repeat while i < slices:GetSize()
-                currentPercent = currentPercent
-                Wedge slice = slices:Get(i)
-                number percent = math:Round(slice:GetValue()/cast(number, pieBox:GetTotalValue()), 5)
+                PieSlice slice = slices:Get(i)
+                number percent = math:Round(slice:GetValue()/cast(number, pieBox:GetValue()), 5)
                 slice:Load(slice:GetColor())
                 slice:SetSize(pieBox:GetWidth(), pieBox:GetHeight())
                 slice:SetOuterRadius(radius)
@@ -101,6 +101,29 @@ class PieChartLayout is ChartLayout
                 currentPercent = currentPercent + percent
                 slice:SetEndPercentage(currentPercent)
                 pieBox:Add(slice)
+
+                if slice:ShowAnnotation() or chart:ShowAnnotations() 
+                    ControlLabel label = slice:GetAnnotation()
+                    currentTheta = currentTheta - (percent/2) * 360 // Travel half way along the arc to place label
+                    if label not= undefined
+                        integer x = cast(integer, middleX + radius * math:Cosine(math:DegreesToRadians(currentTheta)))
+                        integer y = cast(integer, middleY + radius * math:Sine(math:DegreesToRadians(currentTheta)))
+                        number degrees = currentTheta mod 360
+                        if degrees < 0
+                            degrees = 360 + degrees
+                        end
+                        if degrees >= 0 and degrees < 90
+                            label:SetPosition(x, y)
+                        elseif degrees >= 90 and degrees < 180
+                            label:SetPosition(x-label:GetWidth(), y)
+                        elseif degrees >= 180 and degrees < 270
+                            label:SetPosition(x-label:GetWidth(), y-label:GetHeight())
+                        else
+                            label:SetPosition(x, y-label:GetHeight())
+                        end
+                    end
+                    currentTheta = currentTheta - (percent/2) * 360 // Account for the remaining half of the arc
+                end
                 i = i + 1
             end
         end

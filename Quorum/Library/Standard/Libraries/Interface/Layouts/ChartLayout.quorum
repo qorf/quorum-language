@@ -710,7 +710,7 @@ class ChartLayout is Layout
                     if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                         currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                     end
-                    currentIcon = seriesList:Get(i):GetIcon()
+                    currentIcon = seriesList:Get(i):GetEntryIcon()
                     currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
     
                     iconX = padding
@@ -797,7 +797,7 @@ class ChartLayout is Layout
                     if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                         currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                     end
-                    currentIcon = seriesList:Get(i):GetIcon()
+                    currentIcon = seriesList:Get(i):GetEntryIcon()
                     currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
     
                     iconY = originPointY - iconSize

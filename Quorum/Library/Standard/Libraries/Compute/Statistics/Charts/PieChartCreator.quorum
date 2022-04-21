@@ -6,11 +6,12 @@ use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Columns.all
-use Libraries.Interface.Controls.Charts.all
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
-use Libraries.Interface.Controls.Charts.Graphics.Wedge
 use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Interface.Controls.Charts.Graphics.PieBox
+use Libraries.Interface.Controls.Charts.Graphics.PieSlice
 
 /*
     This class is used to create a Pie Chart from columns of data in a DataFrame.
@@ -112,7 +113,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while i < column:GetSize()
             if not column:IsUndefined(i)
                 if hash:HasKey(column:GetAsText(i))
-                    hash:Add(column:GetAsText(i), hash:GetValue(column:GetAsText(i)) + 1)
+                    hash:Set(column:GetAsText(i), hash:GetValue(column:GetAsText(i)) + 1)
                 end
             end
             i = i + 1
@@ -127,22 +128,23 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             text name = seriesNames:Get(i)
             integer value = hash:GetValue(name)
 
-            Wedge wedge
-            wedge:SetName(name)
-            wedge:SetValue(value)
-            box:AddSlice(wedge)
-            wedge:SetPieBox(box)
+            PieSlice slice
+            slice:SetName(name)
+            slice:SetValue(value)
+            box:AddSlice(slice)
 
             Series series
             series:SetName(name)
-            series:AddItem(wedge)
+            series:AddItem(slice)
             seriesList:Add(series)
-            wedge:SetSeries(series)
+            slice:SetSeries(series)
             i = i + 1
         end
 
         chart:AddPieBox(box)
 
+        chart:SetFactorList(seriesNames)
+        chart:OverrideXLabelsWithText(seriesNames)
         chart:SetSeriesList(seriesList)
         SetScale(chart, 0, 1, 0, 1)
         return chart
@@ -161,7 +163,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         integer columns = GetColumnSize()
 
         Array<text> seriesNames
-        HashTable<text, Wedge> sliceFactor
+        HashTable<text, PieSlice> sliceFactor
 
         integer i = 0
         repeat while i < columns
@@ -178,7 +180,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             sum:Calculate(column)
 
             if not sliceFactor:HasKey(column:GetHeader())
-                Wedge slice
+                PieSlice slice
                 seriesNames:Add(column:GetHeader())
                 slice:SetName(column:GetHeader())
                 slice:SetValue(sum:GetSum())
@@ -201,13 +203,13 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 seriesList:Add(series)
                 sliceFactor:GetValue(seriesNames:Get(i)):SetSeries(series)
                 box:AddSlice(sliceFactor:GetValue(seriesNames:Get(i)))
-                sliceFactor:GetValue(seriesNames:Get(i)):SetPieBox(box)
             end
             i = i + 1
         end
 
         chart:AddPieBox(box)
 
+        chart:OverrideXLabelsWithText(seriesNames)
         chart:SetSeriesList(seriesList)
         SetScale(chart, 0, 1, 0, 1)
         return chart
@@ -226,7 +228,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         PieChart chart
         integer columns = GetColumnSize()
 
-        HashTable<text, Wedge> sliceFactor
+        HashTable<text, PieSlice> sliceFactor
 
         boolean dateFactor = false
         boolean numericalFactor = false
@@ -294,7 +296,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     number valueForName = column:GetAsNumber(j)
 
                     if not sliceFactor:HasKey(name)
-                        Wedge slice
+                        PieSlice slice
                         slice:SetName(factor:GetAsText(j))
                         slice:SetValue(valueForName)
                         sliceFactor:Add(name, slice)
@@ -316,7 +318,6 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 if sliceFactor:HasKey(name)
                     if groupFactor:HasKey(groupNames:Get(i))
                         groupFactor:GetValue(groupNames:Get(i)):AddSlice(sliceFactor:GetValue(name))
-                        sliceFactor:GetValue(name):SetPieBox(groupFactor:GetValue(groupNames:Get(i)))
                     end   
                     if seriesFactor:HasKey(seriesNames:Get(j))
                         seriesFactor:GetValue(seriesNames:Get(j)):AddItem(sliceFactor:GetValue(name))
@@ -345,6 +346,7 @@ class PieChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         end
 
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetFactorList(seriesNames)
         chart:SetSeriesList(seriesList)
         SetScale(chart, 0, 1, 0, 1)
         return chart

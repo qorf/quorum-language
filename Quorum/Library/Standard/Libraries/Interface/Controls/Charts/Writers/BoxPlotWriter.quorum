@@ -11,13 +11,15 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.System.FileWriter
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Vector
 use Libraries.Interface.Layouts.BoxPlotLayout
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.UnorderedList
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
     The BoxPlotChartWriter class is part of the set of writers that allow for Charts
@@ -95,14 +97,14 @@ class BoxPlotWriter is ChartWriter
 
                 if chart:HasGroups()
                     Rectangle plotGroup
-                    plotGroup:SetWidth(group:GetItem():GetWidth())
-                    plotGroup:SetHeight(group:GetItem():GetHeight())
-                    plotGroup:SetPosition(group:GetItem():GetGlobalX(), TranslatePositionY(group:GetItem()) - group:GetItem():GetHeight()) 
+                    plotGroup:SetWidth(group:GetWidth())
+                    plotGroup:SetHeight(group:GetHeight())
+                    plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
                     plotGroup:SetFill(transparent)
                     plotGroup:SetID(canvas:GetID() + "-" + group:GetHashCode())
                     plotGroup:SetTabIndex(-1)
                     if HasAccessibility()
-                        plotGroup:SetAriaLabel(group:GetItem():GetName() + group:GetItem():GetDescription())
+                        plotGroup:SetAriaLabel(group:GetName() + group:GetDescription())
                     end
                     GetGroupPanels():Add(plotGroup)
                     canvas:Add(plotGroup)
@@ -112,7 +114,7 @@ class BoxPlotWriter is ChartWriter
                 integer k = 0
                 repeat while k < group:GetSize()
                     Plot plot = group:Get(k)
-                    Array<Drawable> items = plot:GetPlotItems()
+                    Array<ChartDrawable> items = plot:GetPlotItems()
                     /* Indices for items of individual box plot
                         0: PLOT AREA (ENTIRE REGION)
                         1: MINIMUM LINE
@@ -131,13 +133,13 @@ class BoxPlotWriter is ChartWriter
                     // LAYER ONE   
                     // Index 0: This is the transparent box around the entire plot used for navigation.
                     Rectangle plotArea
-                    plotArea:SetSize(items:Get(0):GetWidth(),items:Get(0):GetHeight())
-                    plotArea:SetPosition(items:Get(0):GetGlobalX(), TranslatePositionY(items:Get(0)) - items:Get(0):GetHeight())
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(0):GetHashCode())
+                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
-                        plotArea:SetAriaLabel(items:Get(0):GetName() + items:Get(0):GetDescription())
+                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
                     end 
                     canvas:Add(plotArea)                         
               
@@ -199,7 +201,7 @@ class BoxPlotWriter is ChartWriter
                     Plot plot
                     plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
                     
-                    Array<Drawable> items = plot:GetPlotItems()
+                    Array<ChartDrawable> items = plot:GetPlotItems()
                     /* Indices for items of individual box plot
                         0: PLOT AREA (ENTIRE REGION)
                         1: MINIMUM LINE
@@ -218,15 +220,15 @@ class BoxPlotWriter is ChartWriter
                     // LAYER ONE   
                     // Index 0: This is the transparent box around the entire plot used for navigation.
                     Rectangle plotArea
-                    plotArea:SetSize(items:Get(0):GetWidth(),items:Get(0):GetHeight())
-                    plotArea:SetPosition(items:Get(0):GetGlobalX(), TranslatePositionY(items:Get(0)) - items:Get(0):GetHeight())
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(0):GetHashCode())
+                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
-                        plotArea:SetAriaLabel(items:Get(0):GetName() + items:Get(0):GetDescription())
+                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
                     end 
-                    canvas:Add(plotArea)                         
+                    canvas:Add(plotArea)                   
               
                     // LAYER TWO 
                     // Index 3: The IQR box. We want the IQR box to sit under the other elements      
@@ -315,9 +317,9 @@ class BoxPlotWriter is ChartWriter
                 repeat while j < plotGroups:Get(i):GetSize()
                     Plot plot = plotGroups:Get(i):Get(j)
                     ListItem plotNav 
-                    plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode() + "-nav")
+                    plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
                     plotNav:AddAttribute("role","treeitem")
-                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode())
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
                     plotNav:AddAttribute("aria-expanded","false")
                     plotNav:SetTabIndex("-1")
                     currentGrouping:Add(plotNav)
@@ -353,9 +355,9 @@ class BoxPlotWriter is ChartWriter
                 Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
 
                 ListItem plotNav 
-                plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode() + "-nav")
+                plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
                 plotNav:AddAttribute("role","treeitem")
-                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(0):GetHashCode())
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
                 plotNav:AddAttribute("aria-expanded","false")
                 plotNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(plotNav)

@@ -3,11 +3,12 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 //****************************************
 //data structure that holds information about a drawable and the portion of the map it takes up.
 //****************************************
-class Region is Drawable
+class Region is ChartDrawable
     private text regionID = "" //NV for Nevada
     private Array<SubRegion> subRegions //region bounds. usually length 1, unless it's on the coast and has islands.
     private number numberValue = 0.0

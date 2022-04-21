@@ -5,115 +5,111 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
-use Libraries.Interface.Controls.Charts.RegressionLine
-use Libraries.Interface.Controls.Control
-use Libraries.Interface.Layouts.ManualLayout
-use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Views.LabelBoxView
-use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
 The Series class is a data structure that stores information for each 
-set (array) of drawable items (bar icons) of a certain series. 
+set (array) of drawable items of a certain series. 
 This class also contains an Icon that is used for accessibility.
 This will allow every bar of a series to be drawn with the same color.
 
 Attribute: Example
 
 use Libraries.Interface.Controls.Charts.Series
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 class Main
    action Main
-      //make a series
+      // Make a series
       Series series
-      //add an item
+
+      // Add a ChartDrawable item
       Bar bar
-      series:AddItem(bar:GetIcon())
-      //set the color for the series
+      series:AddItem(bar)
+
+      // Set the color for the series
       Color color
       series:SetColor(color:Red())
    end
 end
 */
 
-class Series is Drawable
-    private ControlLabel name
-    private text textName = ""
-    private Icon icon
+class Series is Icon //is Drawable
+    ChartAreaPanel chartArea = undefined // If separated by series, this will correspond to the correct sub chart area
+    private ControlLabel label
+    private Icon entryIcon // The small colored shape appearing in the legend for this entry.
     private Icon entryBox
-    private Color color
-    private Array<Drawable> items
+    private Color customColor = undefined
+    private Array<ChartDrawable> items
     private RegressionLine regressionline = undefined
-    private boolean showValue = false
-    private boolean showPercent = false
-    private number seriesValue = 0
-    private number seriesValuePercent = 0
 
     // Standard entry in the legend
     /*************************************
-    SeriesIcon NameOfSeries    
+    EntryIcon  NameOfSeries    
     **************************************/
 
     // Showing all options
     /*************************************
-    SeriesIcon  NameOfSeries     (Value) (%)
+    EntryIcon   NameOfSeries     (Value) (%)
     LineIcon    RegressionEquation                    
                 RegressionRSquared
     ***************************************/
 
-    action GetName() returns text
-        return name:GetName()
+    action GetLabel returns ControlLabel
+        return label
     end
 
-    action GetTextName() returns text
-        return textName
+    action SetLabel(ControlLabel label)
+        me:label = label
     end
 
-    action SetName(text name)
-        textName = name        
-        me:name:SetName(name)
-        me:name:SetText(name)
+    action GetEntryIcon returns Icon
+        return entryIcon
     end
 
-    action GetLabel() returns ControlLabel
-        return name
-    end
-
-    action SetLabel(ControlLabel name)
-        me:name = name
-    end
-
-    action GetIcon() returns Icon
-        return icon
-    end
-
-    action SetIcon(Icon icon)
-        me:icon = icon
+    action SetEntryIcon(Icon icon)
+        entryIcon = icon
     end
 
     action GetEntryBox returns Icon
         return entryBox
     end
 
-    action GetColor() returns Color
-        return color
-    end
-
     action SetColor(Color color)
-        me:color = color
+        if customColor not= undefined
+            parent:Drawable:SetColor(customColor)
+        else
+            parent:Drawable:SetColor(color)
+        end
     end
 
-    action AddItem(Drawable item)
+    action SetCustomColor(Color color)
+        customColor = color
+    end
+
+    action AddItem(ChartDrawable item)
+        item:SetSeries(me)
         items:Add(item)
     end
 
-    action GetItemAt(integer index) returns Drawable
-        return items:Get(index)
+    action GetItemAt(integer index) returns ChartDrawable
+        if index >= 0 and index < GetSize()
+            return items:Get(index)
+        else
+            return undefined
+        end
     end
 
     action GetSize() returns integer
         return items:GetSize()
     end
 
+    action Empty()
+        items:Empty()
+    end
+
+    /*
+        A link to the regression line for this series.
+    */
     action SetRegressionLine(RegressionLine regressionline)
         me:regressionline = regressionline
     end
@@ -121,4 +117,16 @@ class Series is Drawable
     action GetRegressionLine returns RegressionLine
         return regressionline
     end
+
+    /*
+        A link to the parent chart area of this series.
+    */
+    action SetChartArea(ChartAreaPanel chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea returns ChartAreaPanel
+        return chartArea
+    end
+
 end

@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.ControlLabel
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -48,6 +49,15 @@ class ScatterPlotLayout is TwoVariableChartLayout
             integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + xAxisPaddingOffset
             integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
             point:SetPosition(x, y)
+
+            if point:ShowAnnotation() or chart:ShowAnnotations()
+                ControlLabel pointLabel = point:GetAnnotation()
+                if pointLabel not= undefined
+                    integer annotX = cast(integer, x+pointRadius-(pointLabel:GetWidth()/2))
+                    integer annotY = cast(integer, y+point:GetHeight())
+                    pointLabel:SetPosition(annotX, annotY)
+                end
+            end
             i = i + 1
         end
 
