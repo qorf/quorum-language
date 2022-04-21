@@ -1500,9 +1500,16 @@ class Layer3D is Layer
                     counter = counter + 1
                 end
             elseif event:eventType = event:LONG_PRESS
-                repeat gestureListeners:GetSize() times
-                    gestureListeners:Get(counter):OnLongPress(event)
-                    counter = counter + 1
+                if event:timingCode = event:BEGIN
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnLongPressBegin(event)
+                        counter = counter + 1
+                    end
+                elseif event:timingCode = event:FINISH
+                    repeat gestureListeners:GetSize() times
+                        gestureListeners:Get(counter):OnLongPressEnd(event)
+                        counter = counter + 1
+                    end
                 end
             elseif event:eventType = event:PINCH
                 if event:timingCode = event:BEGIN

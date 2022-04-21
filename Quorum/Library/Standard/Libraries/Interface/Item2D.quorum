@@ -1538,7 +1538,7 @@ class Item2D is Item
     action Contains(number containsX, number containsY) returns boolean
         number testX = containsX - GetOffsetX()
         number testY = containsY - GetOffsetY()
-        return testX >= GetX() and testX <= GetX() + GetWidth() and testY >= GetY() and testY <= GetY() + GetHeight()
+        return testX >= GetX() and testX <= GetX() + GetWidth() * GetScaleX() and testY >= GetY() and testY <= GetY() + GetHeight() * GetScaleY()
     end
 
     /*
@@ -1876,9 +1876,15 @@ class Item2D is Item
                     iterator:Next():OnPan(event)
                 end
             elseif event:eventType = event:LONG_PRESS
+                if event:timingCode = event:BEGIN
                 repeat while iterator:HasNext()
-                    iterator:Next():OnLongPress(event)
+                    iterator:Next():OnLongPressBegin(event)
                 end
+            elseif event:timingCode = event:FINISH
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPressEnd(event)
+                end
+            end
             elseif event:eventType = event:PINCH
                 if event:timingCode = event:BEGIN
                     repeat while iterator:HasNext()

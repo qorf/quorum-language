@@ -1445,8 +1445,14 @@ class Item3D is Item
                 iterator:Next():OnPan(event)
             end
         elseif event:eventType = event:LONG_PRESS
-            repeat while iterator:HasNext()
-                iterator:Next():OnLongPress(event)
+            if event:timingCode = event:BEGIN
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPressBegin(event)
+                end
+            elseif event:timingCode = event:FINISH
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPressEnd(event)
+                end
             end
         elseif event:eventType = event:PINCH
             repeat while iterator:HasNext()

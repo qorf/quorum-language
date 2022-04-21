@@ -54,6 +54,28 @@ class GestureEvent
     public integer gestureCount = 0
 
 
+    // Indicates that this gesture has no directionality. The default DIRECTION value for most gestures.
+    public constant integer NO_DIRECTION = 0
+
+    // Indicates that this gesture was directed to the right. Used by the SWIPE gesture.
+    public constant integer RIGHT = 1
+
+    // Indicates that this gesture was directed to the left. Used by the SWIPE gesture.
+    public constant integer LEFT = 2
+
+    // Indicates that this gesture was directed upwards. Used by the SWIPE gesture.
+    public constant integer UP = 3
+
+    // Indicates that this gesture was directed downwards. Used by the SWIPE gesture.
+    public constant integer DOWN = 4
+
+    
+    integer direction = NO_DIRECTION
+    integer panDistanceX = 0
+    integer panDistanceY = 0
+    number scaleFactor = 1.0
+
+
     /*
     The Item which received, was the target of, or otherwise is relevant to the
     GestureEvent which has occurred. If an Item is tapped directly, it will be 
@@ -311,4 +333,47 @@ class GestureEvent
         end
     end
     
+    /* 
+    Indicates how far along the x-axis the user has panned since the last pan event.
+    If this gesture isn't a pan event, this value will be 0.
+
+    Attribute: Returns how much the user's finger has moved along the x-axis since the last pan event.
+    */
+    action GetPanDistanceX returns integer
+        return panDistanceX
+    end
+
+    /* 
+    Indicates how far along the y-axis the user has panned since the last pan event.
+    If this gesture isn't a pan event, this value will be 0.
+
+    Attribute: Returns how much the user's finger has moved along the y-axis since the last pan event.
+    */
+    action GetPanDistanceY returns integer
+        return panDistanceY
+    end
+
+    /*
+    This value represents the scaling requested by a PINCH gesture. A value greater than one
+    indicates that the user's fingers are moving apart (zoom in), and a value less than one 
+    indicates that the user's fingers are coming together (zoom out). The value is calculated
+    relative to the position of the fingers on the last PINCH gesture event. If this gesture
+    isn't a PINCH gesture, this value will always be 1.
+
+    Attribute: Returns The new scale factor, relative to the scale factor of the last PINCH event.
+    */
+    action GetScaleFactor returns number
+        return scaleFactor
+    end
+
+    /*
+    Which direction this gesture was performed in. For most gestures, this will be NO_DIRECTION,
+    but for the SWIPE and PAN gestures this will be one of RIGHT, LEFT, UP, or DOWN.
+
+    Attribute: Returns Which direction a SWIPE or PAN gesture was in, or NO_DIRECTION if this is a different gesture type.
+    */
+    action GetDirection returns integer
+        return direction
+    end
+
 end
