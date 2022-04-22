@@ -192,6 +192,7 @@ use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Options.BasicOptions
+use Libraries.Interface.Options.LightModeOptions
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -260,7 +261,7 @@ class Game
     SceneManager sceneManager = undefined
 
     on create
-        BasicOptions options
+        LightModeOptions options
         interfaceOptions = options
     end
 
