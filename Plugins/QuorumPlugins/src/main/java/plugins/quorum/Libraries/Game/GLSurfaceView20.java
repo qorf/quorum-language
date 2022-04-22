@@ -80,6 +80,9 @@ public class GLSurfaceView20 extends GLSurfaceView
         gestureDetector.onTouchEvent(event);
         scaleDetector.onTouchEvent(event);
 
+        if (event.getAction() == MotionEvent.ACTION_UP)
+            input.plugin_.TestLongPressEnd(event);
+
         return true;
     }
     
@@ -363,17 +366,14 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onDown(MotionEvent event)
         {
-            Log.d("TAG","onDown: ");
-
-            // don't return false here or else none of the other
-            // gestures will work
+            // We're required to return true here -- if it returns false, all other gestures will fail.
+            // We could conditionally return false to temporarily block gesture input, but otherwise it must be true.
             return true;
         }
 
         @Override
         public boolean onDoubleTap(MotionEvent event)
         {
-            Log.d("TAG","onDoubleTap: ");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddDoubleTapEvent(event);
             return true;
@@ -397,7 +397,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public void onShowPress(MotionEvent e)
         {
-            Log.i("TAG", "onShowPress: ");
+            // We currently don't do anything with the show press.
         }
 
         @Override
@@ -411,7 +411,6 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onSingleTapConfirmed(MotionEvent event)
         {
-            Log.d("TAG","onSingleTapConfirmed: ");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddSingleTapEvent(event);
             return true;

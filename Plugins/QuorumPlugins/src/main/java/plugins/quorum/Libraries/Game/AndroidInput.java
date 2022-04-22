@@ -31,6 +31,8 @@ public class AndroidInput
     private List_ touchEvents;
     private List_ gestureEvents;
     private final HashMap<Integer, Coordinates> map = new HashMap<>();
+
+    boolean longPressed = false;
     
     public void InitializePlugin(List_ list, List_ gestureList)
     {
@@ -193,7 +195,6 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SINGLE_TAP);
 
-        // TO-DO: Set relevant properties here...
         InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -204,7 +205,6 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.DOUBLE_TAP);
 
-        // TO-DO: Set relevant properties here...
         InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -215,7 +215,22 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SWIPE);
 
-        // TO-DO: Set relevant properties here...
+        if (Math.abs(velocityX) > Math.abs(velocityY))
+        {
+            if (velocityX > 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.RIGHT);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.LEFT);
+        }
+        else
+        {
+            // The provided Y distance is in Android's coordinate space, which is reversed from ours. So we flip the signs here.
+            if (velocityY < 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.UP);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.DOWN);
+        }
+
         InitializeValues(event1, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -226,7 +241,24 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
 
-        // TO-DO: Set relevant properties here...
+        InitializeValues(event, quorumEvent);
+
+        AddGestureEvent(quorumEvent);
+
+        longPressed = true;
+    }
+
+    public void TestLongPressEnd(MotionEvent event)
+    {
+        if (longPressed == false)
+            return;
+
+        longPressed = false;
+
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
+
         InitializeValues(event, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -236,8 +268,25 @@ public class AndroidInput
     {
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PAN);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceX_((int)-distanceX);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceY_((int)distanceY);
 
-        // TO-DO: Set relevant properties here...
+        if (Math.abs(distanceX) > Math.abs(distanceY))
+        {
+            if (distanceX > 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.RIGHT);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.LEFT);
+        }
+        else
+        {
+            // The provided Y distance is in Android's coordinate space, which is reversed from ours. So we flip the signs here.
+            if (distanceY < 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.UP);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.DOWN);
+        }
+
         InitializeValues(event1, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -249,7 +298,8 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
 
-        // TO-DO: Set relevant properties here...
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
+
         InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -261,7 +311,8 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
 
-        // TO-DO: Set relevant properties here...
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
+
         InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
@@ -273,7 +324,8 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
 
-        // TO-DO: Set relevant properties here...
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
+
         InitializeValues(detector, quorumEvent);
 
         AddGestureEvent(quorumEvent);
