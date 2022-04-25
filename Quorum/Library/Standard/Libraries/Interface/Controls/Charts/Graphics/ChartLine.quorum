@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Charts.ChartLinePointComparison
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
     This object class is used to contain the points and lines for each line object in the line chart. It should
@@ -15,7 +16,7 @@ use Libraries.Interface.Controls.Charts.ChartLinePointComparison
 
     Attribute: Author Cody Molisee
 */
-class ChartLine is Drawable
+class ChartLine is ChartDrawable
     Array<ChartPoint> points
     Array<LineSegment> lines
     private boolean showPoints = true

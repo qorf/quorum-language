@@ -1,9 +1,7 @@
-package Libraries.Interface.Controls.Charts
+package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Icon
-use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Charts.GroupPanel
 
 /*
 The PlotGroup class is a data structure that stores information for each 
@@ -12,83 +10,47 @@ by its label. This class also contains an Icon that is used for accessibility.
 
 Attribute: Example
 
-use Libraries.Interface.Controls.Charts.BarGroup
+use Libraries.Interface.Controls.Charts.PlotGroup
 class Main
    action Main
       //make group
       PlotGroup group
+
       //add a plot
       Plot plot
       group:AddPlot(plot)
+
       //get a plot set its data
       group:Get(0):SetData(Vector v)
    end
 end
 */
 
-class PlotGroup
-    Array<Plot> plots
-    Drawable item = undefined
-    Icon icon
-    text name = ""
+class PlotGroup is GroupPanel
     private number maxValue = 0
     private number minValue = 0
     private number maxOutlierValue = 0
     private number minOutlierValue = 0
 
-    action AddPlot(Plot newPlot)
-        if plots:GetSize() = 0
-            maxValue = newPlot:GetInfoAt(4)
-            minValue = newPlot:GetInfoAt(3)
-            maxOutlierValue = newPlot:GetMaxOutlierValue()
-            minOutlierValue = newPlot:GetMinOutlierValue()
-        else   
-            if newPlot:GetInfoAt(4) > maxValue
-                maxValue = newPlot:GetInfoAt(4)
-            end
-            if newPlot:GetInfoAt(3) < minValue
-                minValue = newPlot:GetInfoAt(3)
-            end
-            if newPlot:GetMaxOutlierValue() > maxOutlierValue
-                maxOutlierValue = newPlot:GetMaxOutlierValue()
-            end
-            if newPlot:GetMinOutlierValue() < minOutlierValue
-                minOutlierValue = newPlot:GetMinOutlierValue()
-            end
-        end
-        plots:Add(newPlot)
+    action AddPlot(Plot plot)
+        AddItem(plot)
+        RecalculateGroupValues()
     end
 
-    action GetName() returns text
-        return name
+    action Get(integer index) returns Plot
+        return cast(Plot, GetItemAt(index))
     end
 
-    action SetName(text name)
-        me:name = name
+    action GetPlots returns Array<Plot>
+        return cast(Array<Plot>, GetGroupItems())
     end
 
-    action GetItem() returns Drawable
-        return item
-    end
-
-    action SetItem(Drawable item)
-        me:item = item
-    end
-
-    action GetIcon() returns Icon
-        return icon
-    end
-
-    action SetIcon(Icon icon)
-        me:icon = icon
-    end
-
-    action GetSize() returns integer
-        return plots:GetSize()
-    end
-
-    action Get(integer i) returns Plot
-        return plots:Get(i)
+    action Empty()    
+        maxValue = 0
+        minValue = 0
+        maxOutlierValue = 0
+        minOutlierValue = 0  
+        parent:GroupPanel:Empty()
     end
 
     action GetMaxValue returns number
@@ -105,5 +67,43 @@ class PlotGroup
 
     action GetMinOutlierValue returns number
         return minOutlierValue
+    end
+
+    /*
+        Since the user can alter the value of the plot manually, 
+        Anytime a plot is added the totals for this group will be recalculated. 
+    */
+    action RecalculateGroupValues
+        maxValue = 0
+        minValue = 0
+        maxOutlierValue = 0
+        minOutlierValue = 0  
+        Array<Plot> plots = GetPlots()
+        integer i = 0
+        repeat while i < plots:GetSize()
+            Plot plot = plots:Get(i)
+            if not plot:IsUndefined()
+                if GetSize() = 0
+                    maxValue = plot:GetInfoAt(4)
+                    minValue = plot:GetInfoAt(3)
+                    maxOutlierValue = plot:GetMaxOutlierValue()
+                    minOutlierValue = plot:GetMinOutlierValue()
+                else   
+                    if plot:GetInfoAt(4) > maxValue
+                        maxValue = plot:GetInfoAt(4)
+                    end
+                    if plot:GetInfoAt(3) < minValue
+                        minValue = plot:GetInfoAt(3)
+                    end
+                    if plot:GetMaxOutlierValue() > maxOutlierValue
+                        maxOutlierValue = plot:GetMaxOutlierValue()
+                    end
+                    if plot:GetMinOutlierValue() < minOutlierValue
+                        minOutlierValue = plot:GetMinOutlierValue()
+                    end
+                end
+            end
+            i = i + 1
+        end
     end
 end

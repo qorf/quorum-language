@@ -142,6 +142,24 @@ class TwoVariableChart is Chart
                         point:SetNextFocus(GetNextFocus())
                         point:SetPreviousFocus(GetPreviousFocus())
                         chartArea:Add(point)
+
+                        number valueX = point:GetValueX()
+                        number valueY = point:GetValueY()
+                        text valueXText = ""+valueX
+                        if CheckIfInteger(valueX)
+                            valueXText = ""+cast(integer, valueX)
+                        end
+                        text valueYText = ""+valueY
+                        if CheckIfInteger(valueY)
+                            valueYText = ""+cast(integer, valueY)
+                        end
+
+                        if point:ShowAnnotation() or ShowAnnotations()
+                            ControlLabel pointLabel
+                            pointLabel:SetText("("+valueXText+","+valueYText+")")
+                            point:SetAnnotation(pointLabel)
+                            chartArea:Add(pointLabel)
+                        end
                         j = j + 1
                     end
                 end
@@ -158,12 +176,24 @@ class TwoVariableChart is Chart
                 point:SetAccessibilityCode(parent:Item:ITEM)
                 point:SetNextFocus(GetNextFocus())
                 point:SetPreviousFocus(GetPreviousFocus())
+                number valueX = point:GetValueX()
+                number valueY = point:GetValueY()
+                text valueXText = ""+valueX
+                if CheckIfInteger(valueX)
+                    valueXText = ""+cast(integer, valueX)
+                end
+                text valueYText = ""+valueY
+                if CheckIfInteger(valueY)
+                    valueYText = ""+cast(integer, valueY)
+                end
+
+                ChartAreaPanel chartArea = GetChartArea()
                 if IsSeparated()
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
                         if IsSeparatedBySeries()
                             if point:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
-                                GetSubChartAreas():Get(j):Add(point)
+                                chartArea = GetSubChartAreas():Get(j)
                                 GetSubChartAreas():Get(j):AddChartAreaItem(point)
                             end
                         elseif IsSeparatedByFactor()
@@ -174,12 +204,21 @@ class TwoVariableChart is Chart
                         end
                         j = j + 1
                     end
-                else
-                    GetChartArea():Add(point)
+                end
+                chartArea:Add(point)
+                if point:ShowAnnotation() or ShowAnnotations()
+                    ControlLabel pointLabel
+                    pointLabel:SetText("("+valueXText+","+valueYText+")")
+                    point:SetAnnotation(pointLabel)
+                    chartArea:Add(pointLabel)
                 end
                 i = i + 1
             end
         end
+    end
+
+    private action CheckIfInteger(number value) returns boolean
+        return (cast(integer, value) = value)
     end
 
     private action flipValues()
@@ -210,16 +249,6 @@ class TwoVariableChart is Chart
                 i = i + 1
             end
         end
-    end
-
-    /*
-        Returns an array of all the factors 
-        This overrides the parent Class GetFactorList since 
-        TwoVariableCharts work differently than the others.
-    */
-    action GetFactorList returns Array<text>
-        Array<text> list
-        return list
     end
 
     /*
@@ -264,7 +293,7 @@ class TwoVariableChart is Chart
                         line:SetZ(previousZ)
                         i = i + 1
                     end
-                    temp:GetIcon():SetColor(previousColor)
+                    temp:GetEntryIcon():SetColor(previousColor)
                     temp:GetEntryBox():SetColor(0,0,0,0)
                 end
             elseif target is LineSegment
@@ -317,7 +346,7 @@ class TwoVariableChart is Chart
                         line:SetZ(-1)
                         i = i + 1
                     end
-                    temp:GetIcon():SetColor(GetHighlightColor())
+                    temp:GetEntryIcon():SetColor(GetHighlightColor())
                     temp:GetEntryBox():SetColor(GetHighlightColor())
                 end
             elseif target is LineSegment
