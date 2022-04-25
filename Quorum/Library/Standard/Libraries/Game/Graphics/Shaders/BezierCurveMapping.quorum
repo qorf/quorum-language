@@ -44,14 +44,15 @@ class BezierCurveMapping is ShaderMapping
         number dotThickness = curve:GetPointThickness() * pixelDistance - pixelDistance
 
         // Translate the points to the [-1, 1] space, adjusting the width by the aspect ratio.
+        // Also flip the Y coordinates (Quorum draws with 0 at the bottom, but the shader will try to render 0 at the top).
         number x1 = ((curve:GetPoint1():GetX() / width) - 0.5) * 2 * aspectRatio
-        number y1 = ((curve:GetPoint1():GetY() / height) - 0.5) * 2
+        number y1 = (((height - curve:GetPoint1():GetY()) / height) - 0.5) * 2
         number cx1 = ((curve:GetControlPoint1():GetX() / width) - 0.5) * 2 * aspectRatio
-        number cy1 = ((curve:GetControlPoint1():GetY() / height) - 0.5) * 2
+        number cy1 = (((height - curve:GetControlPoint1():GetY()) / height) - 0.5) * 2
         number cx2 = ((curve:GetControlPoint2():GetX() / width) - 0.5) * 2 * aspectRatio
-        number cy2 = ((curve:GetControlPoint2():GetY() / height) - 0.5) * 2
+        number cy2 = (((height - curve:GetControlPoint2():GetY()) / height) - 0.5) * 2
         number x2 = ((curve:GetPoint2():GetX() / width) - 0.5) * 2 * aspectRatio
-        number y2 = ((curve:GetPoint2():GetY() / height) - 0.5) * 2
+        number y2 = (((height - curve:GetPoint2():GetY()) / height) - 0.5) * 2
 
         program:SetShaderInput("u_aspectRatio", aspectRatio)
         program:SetShaderInput("u_lineThickness", lineThickness)
