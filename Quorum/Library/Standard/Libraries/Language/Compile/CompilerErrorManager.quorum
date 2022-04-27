@@ -8,6 +8,11 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Web.Page.Division
 use Libraries.Web.Page.OrderedList
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
 
 class CompilerErrorManager
     integer numberOfErrors = 0
@@ -187,6 +192,50 @@ class CompilerErrorManager
     action EmptyHints
         numberOfHints = 0
         hintsPerFile:Empty()
+    end
+
+    /*
+        This action returns the complete set of compiler errors as a DataFrame object. Specifically, 
+        it creates columns for the message, the line, and the file. 
+    */
+    action GetCompilerErrorsAsDataFrame returns DataFrame
+        DataFrame frame
+        TextColumn message
+        message:SetHeader("Message")
+
+        IntegerColumn line
+        line:SetHeader("Line")
+
+        TextColumn file
+        file:SetHeader("File")
+
+        TextColumn path
+        path:SetHeader("Path")
+
+        Array<DataFrameColumn> columns
+        columns:Add(message)
+        columns:Add(line)
+        columns:Add(file)
+        columns:Add(path)
+        frame:SetColumns(columns)
+        
+        Iterator<CompilerError> errors = GetIterator()
+        repeat while errors:HasNext()
+            CompilerError error = errors:Next()
+            CompilerErrorType type = error:GetCompilerErrorType()
+            text t = error:GetDisplayName()
+
+            message:Add(error:GetErrorMessage())
+            line:Add(error:GetLineNumber())
+            if error:GetFile() not= undefined
+                file:Add(error:GetFile():GetFileName())
+                path:Add(error:GetFile():GetAbsolutePath())
+            else
+                file:Add(undefined)
+                path:Add(undefined)
+            end
+        end
+        return frame
     end
 
     action GetCompilerErrorsAsJSON(text version) returns text
