@@ -1423,16 +1423,19 @@ class Layer2D is Layer
         array:Add(root)
     end
 
+    // Values used for the depth sorting.
     integer lastDepthSort = -1
     Array<Item2D> depthSortTemp
     private action CalculateDepthSortedArray
         depthSortedArray:Empty(false)
         
         integer i = items:GetSize()
+        number negativeInfinity = interfaceScale:GetNegativeInfinityValue()
+        number positiveInfinity = interfaceScale:GetPositiveInfinityValue()
 
         repeat while i > 0
             i = i - 1
-            GetDepthSortedItems(items:Get(i), depthSortedArray)
+            GetDepthSortedItems(items:Get(i), depthSortedArray, negativeInfinity, positiveInfinity, negativeInfinity, positiveInfinity, false)
         end
 
         if lastDepthSort > depthSortedArray:GetSize() 
@@ -1452,10 +1455,11 @@ class Layer2D is Layer
     /*
     This action returns an Array of all of the visible elements on this Layer, 
     including elements nested into other Items as children, sorted by ascending 
-    depth. Items which are not visible (i.e. IsShowing() returns false) will not
-    be included in the Array. In case of Items with equal depth, children items
-    will appear earlier in the Array than their parent items. This is useful for
-    mouse detection but does not match draw order.
+    depth. Items which are not visible (i.e. IsShowing() returns false or the item
+    is not within the clipping area of a parent item) will not be included in the
+    Array. In case of Items with equal depth, children items will appear earlier 
+    in the Array than their parent items. This is useful for mouse detection but
+    does not match draw order.
     */
     private action GetDepthSortedItems returns Array<Item2D>
         return depthSortedArray
@@ -1464,8 +1468,10 @@ class Layer2D is Layer
     /*
     Used by GetDepthSortedItems() to recursively collect items. The given item
     adds itself to the array then recurses on the children elements.
+    Clipping information is used to cull items that will be entirely clipped
+    out of their parent views.
     */
-    private action GetDepthSortedItems(Item2D item, Array<Item2D> array)
+    private action GetDepthSortedItems(Item2D item, Array<Item2D> array, number leftClip, number rightClip, number bottomClip, number topClip, boolean clipping)
         if item:IsShowing() = false
             return now
         end
@@ -1473,15 +1479,39 @@ class Layer2D is Layer
         Array<Item2D> children = item:GetChildren()
         integer i = children:GetSize()
 
+        if item:IsClipping()
+            clipping = true
+            number newLeft = item:GetGlobalX()
+            number newRight = item:GetGlobalX() + item:GetWidth() * item:GetScaleX()
+            number newBottom = item:GetGlobalY()
+            number newTop = item:GetGlobalY() + item:GetHeight() * item:GetScaleY()
+            if newLeft > leftClip
+                leftClip = newLeft
+            end
+            if newRight < rightClip
+                rightClip = newRight
+            end
+            if newBottom > bottomClip
+                bottomClip = newBottom
+            end
+            if newTop < topClip
+                topClip = newTop
+            end
+        end
+
         if item:IsCustomDrawing() = false
             repeat while i > 0
                 i = i - 1
                 Item2D child = children:Get(i)
-                GetDepthSortedItems(child, array)
+                GetDepthSortedItems(child, array, leftClip, rightClip, bottomClip, topClip, clipping)
             end
         end
 
-        array:Add(item)
+        if clipping = false or (item:GetGlobalX() <= rightClip and item:GetGlobalX() + item:GetWidth() * item:GetScaleX() >= leftClip
+                        and item:GetGlobalY() <= topClip and item:GetGlobalY() + item:GetHeight() * item:GetScaleY() >= bottomClip)
+
+            array:Add(item)
+        end
     end
 
     /*

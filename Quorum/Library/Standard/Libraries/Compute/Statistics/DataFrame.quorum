@@ -983,6 +983,40 @@ class DataFrame
     end
 
     /*
+        This action returns the number of rows in the longest column of the data frame.
+        Note that not all columns are guaranteed to have the same number of rows, so
+        some of the columns in the frame might be shorter than this value.
+
+        Attribute: Returns the number of rows in the longest column of the frame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        output "The data contains " + frame:GetRowSize() + " rows."
+    */
+    action GetRowSize returns integer
+        if columns:IsEmpty()
+            return 0
+        end
+
+        integer size = 0
+        integer counter = 0
+        repeat while counter < columns:GetSize()
+            DataFrameColumn column = columns:Get(counter)
+            if column:GetSize() > size
+                size = column:GetSize()
+            end
+            counter = counter + 1
+        end
+
+        return size
+    end
+
+    /*
         This action returns true if the number of columns is zero
 
         Attribute: Returns true if the number of columns is zero.
