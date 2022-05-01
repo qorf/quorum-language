@@ -101,11 +101,6 @@ void main()
 
         // Favor the dot color over the line color if the pixel is within a dot.
         outputColor = mix(dotColor, color, float(min(d1, d2) > dotAliasDistance));
-
-//        float d3 = length(u_control1 - p);
-//        float d4 = length(u_control2 - p);
-//        if (min(d3, d4) < dotAliasDistance)
-//            outputColor = vec4(u_dotColor.r * 5, 0, 0, 1);
     }    
     else
     {
