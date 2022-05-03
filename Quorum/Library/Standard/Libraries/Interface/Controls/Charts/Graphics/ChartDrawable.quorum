@@ -92,4 +92,16 @@ class ChartDrawable is Drawable
     action GetGroup returns GroupPanel
         return group
     end
+
+    /*
+        A link to the parent chart area of this drawable.
+    */
+    action GetChartArea returns ChartAreaPanel
+        return chartArea
+    end
+
+    action SetChartArea(ChartAreaPanel chartArea)
+        me:chartArea = chartArea
+    end
+
 end

@@ -447,9 +447,11 @@ class ChartWriter
         This action adds a white background to the canvas
     */
     action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
-        chartArea:SetFill("white")
-        chartArea:SetSize(axisLengthX,axisLengthY)
-        chartArea:SetPosition(axisPointX, axisPointY - axisLengthY)
+        chartArea:SetFill(cast(Color, chart:GetChartArea():GetBackgroundColor()))
+        chartArea:SetStroke(cast(Color, chart:GetChartArea():GetBorderColor()))
+        chartArea:SetStrokeWidth(4)
+        chartArea:SetSize(cast(integer, chart:GetChartArea():GetWidth()), cast(integer, chart:GetChartArea():GetHeight()))
+        chartArea:SetPosition(chart:GetChartArea():GetGlobalX(), TranslatePositionY(chart:GetChartArea())  - chart:GetChartArea():GetHeight())
         chartArea:SetID(canvas:GetID() + "-" + chartArea:GetHashCode())
         chartArea:SetStyleClass("quorum-chart-element")
         chartArea:SetTabIndex(-1)
@@ -466,7 +468,7 @@ class ChartWriter
             if currentSubChartArea:IsShowing()
                 Rectangle svgSubChartArea
     
-                svgSubChartArea:SetFill("white")
+                svgSubChartArea:SetFill(cast(Color, chart:GetChartArea():GetBackgroundColor()))
                 svgSubChartArea:SetStroke(cast(Color, currentSubChartArea:GetBorderColor()))
                 svgSubChartArea:SetStrokeWidth(4)
                 svgSubChartArea:SetSize(currentSubChartArea:GetWidth(),currentSubChartArea:GetHeight())
@@ -485,7 +487,7 @@ class ChartWriter
 
                     areaTitle:SetText(currentSubChartArea:GetLabel():GetText())
                     areaTitle:SetTextAnchor("left")
-                    areaTitle:SetPosition(currentSubChartArea:GetLabel():GetGlobalX(), TranslatePositionY(currentSubChartArea:GetLabel()))
+                    areaTitle:SetPosition(currentSubChartArea:GetLabel():GetGlobalX(), TranslatePositionY(currentSubChartArea:GetLabel()) - currentSubChartArea:GetLabel():GetHeight())
                     areaTitle:SetFontSize(currentSubChartArea:GetLabel():GetFontSize() + "px")
                     areaTitle:SetFontFamily("Arial")
                     areaTitle:SetID(canvas:GetID() + "-" + areaTitle:GetHashCode())
@@ -507,17 +509,6 @@ class ChartWriter
 
         if chart:IsShowingXAxis()
             HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
-    
-            Drawable chartXAxis = chart:GetHorizontalPanel():GetAxis()
-            if chartXAxis not= undefined and chartXAxis:IsShowing()
-                xAxis:SetWidth(chartXAxis:GetWidth())
-                xAxis:SetHeight(chartXAxis:GetHeight())
-                xAxis:SetPosition(chartXAxis:GetGlobalX(), TranslatePositionY(chartXAxis) - chartXAxis:GetHeight())
-                xAxis:SetFill(chartXAxis:GetColor())
-                xAxis:SetTabIndex(-1)
-                xAxis:SetID(canvas:GetID() + "-" + xAxis:GetHashCode())
-                canvas:Add(xAxis)
-            end
 
             if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
                 horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
@@ -538,7 +529,26 @@ class ChartWriter
             i = 0
             repeat while i < subHorizontalPanels:GetSize()
                 HorizontalAxisPanel currentSubHorizontalPanel = subHorizontalPanels:Get(i)
-    
+
+                Array<Drawable> axisLines = currentSubHorizontalPanel:GetAxisLines()
+                j = 0
+                repeat while j < axisLines:GetSize()
+                    Drawable axisLine = axisLines:Get(j)
+                    if axisLine not= undefined and axisLine:IsShowing()
+                        Rectangle svgAxisLine
+            
+                        svgAxisLine:SetWidth(axisLine:GetWidth())
+                        svgAxisLine:SetHeight(axisLine:GetHeight())
+                        svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                        svgAxisLine:SetFill(axisLine:GetColor())
+                        svgAxisLine:SetTabIndex(-1)
+                        svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                        subXAxes:Add(svgAxisLine)
+                        canvas:Add(svgAxisLine)
+                    end
+                    j = j + 1
+                end
+        
                 if currentSubHorizontalPanel not= undefined and currentSubHorizontalPanel:IsShowing()
                     //Background of sub panel
                     Rectangle svgSubHorizontalPanel
@@ -575,17 +585,6 @@ class ChartWriter
 
         if chart:IsShowingYAxis()
             VerticalAxisPanel verticalAxisPanel = chart:GetVerticalPanel()
-    
-            Drawable chartYAxis = chart:GetVerticalPanel():GetAxis()
-            if chartYAxis not= undefined and chartYAxis:IsShowing()
-                yAxis:SetWidth(chartYAxis:GetWidth())
-                yAxis:SetHeight(chartYAxis:GetHeight())
-                yAxis:SetPosition(chartYAxis:GetGlobalX(), TranslatePositionY(chartYAxis) - chartYAxis:GetHeight())
-                yAxis:SetFill(chartYAxis:GetColor())
-                yAxis:SetTabIndex(-1)
-                yAxis:SetID(canvas:GetID() + "-" + yAxis:GetHashCode())
-                canvas:Add(yAxis)
-            end
 
             if verticalAxisPanel not= undefined and verticalAxisPanel:IsShowing()
                 verticalPanel:SetWidth(verticalAxisPanel:GetWidth())
@@ -606,6 +605,25 @@ class ChartWriter
             i = 0
             repeat while i < subVerticalPanels:GetSize()
                 VerticalAxisPanel currentSubVerticalPanel = subVerticalPanels:Get(i)
+
+                Array<Drawable> axisLines = currentSubVerticalPanel:GetAxisLines()
+                j = 0
+                repeat while j < axisLines:GetSize()
+                    Drawable axisLine = axisLines:Get(j)
+                    if axisLine not= undefined and axisLine:IsShowing()
+                        Rectangle svgAxisLine
+            
+                        svgAxisLine:SetWidth(axisLine:GetWidth())
+                        svgAxisLine:SetHeight(axisLine:GetHeight())
+                        svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                        svgAxisLine:SetFill(axisLine:GetColor())
+                        svgAxisLine:SetTabIndex(-1)
+                        svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                        subYAxes:Add(svgAxisLine)
+                        canvas:Add(svgAxisLine)
+                    end
+                    j = j + 1
+                end
     
                 if currentSubVerticalPanel not= undefined and currentSubVerticalPanel:IsShowing()
                     //Background of sub panel
@@ -650,7 +668,7 @@ class ChartWriter
     private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
         chartTitle:SetText(chart:GetTitle())
         chartTitle:SetTextAnchor("left")
-        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))
+        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()) - chart:GetTitleLabel():GetHeight()/2)
         chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
         chartTitle:SetFontFamily("Arial")
         chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
@@ -665,7 +683,7 @@ class ChartWriter
     private action AddChartSubtitle(ScalableVectorGraphics canvas, Chart chart)
         chartSubtitle:SetText(chart:GetSubtitle())
         chartSubtitle:SetTextAnchor("left")
-        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()))
+        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()) - chart:GetSubtitleLabel():GetHeight()/2)
         chartSubtitle:SetFontSize(chart:GetSubtitleLabel():GetFontSize() + "px")
         chartSubtitle:SetFontFamily("Arial")
         chartSubtitle:SetID(canvas:GetID() + "-" + chartSubtitle:GetHashCode())

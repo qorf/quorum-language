@@ -330,18 +330,38 @@ class Chart is Control
         accessibility navigation.
     */
     private action FlipAxisInfo()
-        number temp = horizontalPanel:GetMaximum()
-        horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
-        verticalPanel:SetMaximum(temp)
+        number tempNum = 0
+        integer tempInt = 0
+        boolean tempBool = true
+        text tempText = ""
+        DateTime tempDate
+        Array <text> tempLabels
 
-        temp = horizontalPanel:GetMinimum()
-        horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
-        verticalPanel:SetMinimum(temp)
-
-        temp = horizontalPanel:GetPaddingOffset()
+        // Axis offset
+        tempNum = horizontalPanel:GetPaddingOffset()
         horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
-        verticalPanel:SetPaddingOffset(temp)
+        verticalPanel:SetPaddingOffset(tempNum)
 
+
+        // Range values
+        tempNum = horizontalPanel:GetMaximum()
+        horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
+        verticalPanel:SetMaximum(tempNum)
+
+        tempNum = horizontalPanel:GetMinimum()
+        horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
+        verticalPanel:SetMinimum(tempNum)
+
+        tempBool = horizontalPanel:OverrideDefaultMin()
+        horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
+        verticalPanel:OverrideDefaultMin(tempBool)
+
+        tempBool = horizontalPanel:OverrideDefaultMax()
+        horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
+        verticalPanel:OverrideDefaultMax(tempBool)
+
+
+        // DateRange values
         DateTime tempdate = horizontalPanel:GetMaximumDate()
         horizontalPanel:SetMaximumDate(verticalPanel:GetMaximumDate())
         verticalPanel:SetMaximumDate(tempdate)
@@ -350,53 +370,58 @@ class Chart is Control
         horizontalPanel:SetMinimumDate(verticalPanel:GetMinimumDate())
         verticalPanel:SetMinimumDate(tempdate)
 
-        Array <text> templabels = horizontalPanel:GetTextLabels()
-        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
-        verticalPanel:SetTextLabels(templabels)
 
-        temp = horizontalPanel:GetTickInterval()
+        // Tick information
+        tempNum = horizontalPanel:GetTickInterval()
         horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
-        verticalPanel:SetTickInterval(temp)
+        verticalPanel:SetTickInterval(tempNum)
 
-        integer tempint = horizontalPanel:GetTickCount()
+        tempBool = horizontalPanel:OverrideDefaultInterval()
+        horizontalPanel:OverrideDefaultInterval(verticalPanel:OverrideDefaultInterval())
+        verticalPanel:OverrideDefaultInterval(tempBool)
+
+        tempInt = horizontalPanel:GetTickCount()
         horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
-        verticalPanel:SetTickCount(tempint)
+        verticalPanel:SetTickCount(tempInt)
 
-        boolean tempflag = horizontalPanel:GetOverrideDefaultTickCount()
-        horizontalPanel:OverrideDefaultTickCount(verticalPanel:GetOverrideDefaultTickCount())
-        verticalPanel:OverrideDefaultTickCount(tempflag)
+        tempBool = horizontalPanel:OverrideDefaultTickCount()
+        horizontalPanel:OverrideDefaultTickCount(verticalPanel:OverrideDefaultTickCount())
+        verticalPanel:OverrideDefaultTickCount(tempBool)
 
-        tempflag = horizontalPanel:GetOverrideDefaultInterval()
-        horizontalPanel:OverrideDefaultInterval(verticalPanel:GetOverrideDefaultInterval())
-        verticalPanel:OverrideDefaultInterval(tempflag)
-
-        tempflag = horizontalPanel:NumericalOverrideLabels()
-        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
-        verticalPanel:NumericalOverrideLabels(tempflag)
-
-        tempflag = horizontalPanel:ShowGroupBrackets()
-        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
-        verticalPanel:ShowGroupBrackets(tempflag)
-
-        tempflag = horizontalPanel:ShowTicks()
+        tempBool = horizontalPanel:ShowTicks()
         horizontalPanel:ShowTicks(verticalPanel:ShowTicks())
-        verticalPanel:ShowTicks(tempflag)
+        verticalPanel:ShowTicks(tempBool)
 
-        tempflag = horizontalPanel:OverrideDefaultMin()
-        horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
-        verticalPanel:OverrideDefaultMin(tempflag)
+        // Brackets
+        tempBool = horizontalPanel:ShowGroupBrackets()
+        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
+        verticalPanel:ShowGroupBrackets(tempBool)
 
-        tempflag = horizontalPanel:OverrideDefaultMax()
-        horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
-        verticalPanel:OverrideDefaultMax(tempflag)
 
-        text temptext = horizontalPanel:GetTitleText()
+        // Labels
+        tempLabels = horizontalPanel:GetTextLabels()
+        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
+        verticalPanel:SetTextLabels(tempLabels)
+
+        tempBool = horizontalPanel:ShowLabels()
+        horizontalPanel:ShowLabels(verticalPanel:ShowLabels())
+        verticalPanel:ShowLabels(tempBool)
+
+        tempBool = horizontalPanel:NumericalOverrideLabels()
+        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
+        verticalPanel:NumericalOverrideLabels(tempBool)
+
+
+        // Title
+        tempText = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
-        verticalPanel:SetTitleText(temptext)
+        verticalPanel:SetTitleText(tempText)
 
-        temptext = horizontalPanel:GetNumberFormat()
+
+        // Number format
+        tempText = horizontalPanel:GetNumberFormat()
         horizontalPanel:SetNumberFormat(verticalPanel:GetNumberFormat())
-        verticalPanel:SetNumberFormat(temptext)
+        verticalPanel:SetNumberFormat(tempText)
 
         if xAxisIsIndependent
             xAxisIsIndependent = false
@@ -416,6 +441,7 @@ class Chart is Control
             background = undefined
         end
 
+        GetChartArea():Empty()
         GetLegend():Empty()
         GetVerticalPanel():Empty()
         GetHorizontalPanel():Empty()
@@ -686,6 +712,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             horizontalPanel:SetNumberFormat(format)
+            horizontalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -693,6 +720,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             verticalPanel:SetNumberFormat(format)
+            verticalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -716,14 +744,6 @@ class Chart is Control
         These actions are used to offset the start of the tick placement
         if the chart has added white space on either side of the chart area.
     */
-    action GetPaddedChartOffset returns integer
-        return paddedChartOffset
-    end
-
-    action SetPaddedChartOffset(integer offset)
-        paddedChartOffset = offset
-    end
-
     action SetYAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
             verticalPanel:SetPaddingOffset(percent)
@@ -823,6 +843,17 @@ class Chart is Control
         return verticalOrientation
     end
 
+
+    /*
+        Returns an array of the factor/group names 
+    */
+    action GetFactorList returns Array<text>
+        return factorList
+    end
+    action SetFactorList(Array <text> factorList)
+        me:factorList = factorList
+    end
+
     /*
         SeparateByFactor will attempt to create faceted sub chart area panels. 
         Each factor/group (independent variable) will get it's own panel.
@@ -866,6 +897,10 @@ class Chart is Control
         return separateByFactor
     end
 
+    private action SeparateFactorByDefault(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
     /*
         SeparateBySeries will attempt to create faceted sub chart area panels 
         Each series entry in the legend will get it's own chart area.
@@ -875,7 +910,7 @@ class Chart is Control
         defaultSeparateBySeries = flag
     end
 
-    action SeparateBySeries()
+    action SeparateBySeries
         SeparateBySeries(1)
     end
 
@@ -909,16 +944,59 @@ class Chart is Control
         return separateBySeries
     end
 
-    action IsSeparated returns boolean
-        return (separateBySeries or separateByFactor)
-    end
-
     private action SeparateSeriesByDefault(boolean flag)
         defaultSeparateBySeries = flag
     end
 
-    private action SeparateFactorByDefault(boolean flag)
-        defaultSeparateByFactor = flag
+//    /*
+//        SeparateByColumn will attempt to create faceted sub chart area panels 
+//        Each column of the dataframe (dependent variable) will get it's own chart area.
+//        Each sub area will contain all elements associated with that column
+//    */
+//    action SeparateByColumn(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+//
+//    action SeparateByColumn
+//        SeparateByColumn(1)
+//    end
+//
+//    action SeparateByColumn(integer requestedColumns)
+//        if separationCapable and requestedColumns > 0
+//            integer numberOfFacets = GetColumnList():GetSize()
+//            boolean singleRow = false
+//            if numberOfFacets > 1
+//                if requestedColumns > 1
+//                    if requestedColumns > numberOfFacets
+//                        horizontalPanel:SplitIntoSections(numberOfFacets)
+//                        singleRow = true
+//                    else
+//                        horizontalPanel:SplitIntoSections(requestedColumns)
+//                    end
+//                end
+//                if not singleRow
+//                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
+//                end
+//            end
+//            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+//            if numberOfChartAreas > 1
+//                separateByColumn = true
+//                separateByFactor = false
+//            end
+//            overrideDefaultSeparation = true
+//        end
+//    end
+//
+//    action IsSeparatedByColumn returns boolean
+//        return separateByColumn
+//    end
+//
+//    private action SeparateColumnByDefault(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+
+    action IsSeparated returns boolean
+        return (separateBySeries or separateByFactor)
     end
 
     private action SeparationCapable(boolean separationCapable)
@@ -928,6 +1006,7 @@ class Chart is Control
     private action XAxisIsIndependent returns boolean
         return xAxisIsIndependent
     end
+
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -949,6 +1028,10 @@ class Chart is Control
         verticalPanel:SetLabels(newLabels)
     end
 
+    action ShowYLabels(boolean show)
+        verticalPanel:ShowLabels(show)
+    end  
+
     action GetXLabels returns Array<ControlLabel>
         return horizontalPanel:GetLabels()
     end
@@ -956,6 +1039,10 @@ class Chart is Control
     action SetXLabels(Array<ControlLabel> newLabels)
         horizontalPanel:SetLabels(newLabels)
     end
+
+    action ShowXLabels(boolean show)
+        horizontalPanel:ShowLabels(show)
+    end  
 
     action RotateXLabels(integer degrees) // "360 -" because it rotates opposite of how you'd imagine.
         xLabelsRotation = 360 - degrees
@@ -1399,17 +1486,6 @@ class Chart is Control
         legend:GetSeriesList():Add(series)
     end
 
-    /*
-        Returns an array of all the factor/group labels 
-    */
-    action GetFactorList returns Array<text>
-        return factorList
-    end
-
-    action SetFactorList(Array <text> factorList)
-        me:factorList = factorList
-    end
-
     action SetColorPaletteToCalm()
         options:SetPalette(options:CALM)
     end 
@@ -1527,34 +1603,55 @@ class Chart is Control
         end
 
         // Create default tick sizes. 
-        // Having a min of 12 for the long side, ensures 4 for short side, 
-        // which ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
-        // If minor gridlines aren't showing, then the min can go to 6.
-        integer xTickHeight = cast(integer, GetHeight()*0.01)
-        if me:IsShowingMinorXGridLines()
-            if xTickHeight < 12
-                xTickHeight = 12
-            end
-        else
-            if xTickHeight < 6
-                xTickHeight = 6
-            end
-        end
-        horizontalPanel:SetTickWidth(cast(integer, xTickHeight/3))  
-        horizontalPanel:SetTickHeight(xTickHeight)
+        // Having a min of 4 pixels for short side, ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
+        // If gridlines aren't showing, then the min can go down.
 
-        integer yTickWidth = cast(integer, GetWidth()*0.01)
-        if me:IsShowingMinorYGridLines()
-            if yTickWidth < 12
-                yTickWidth = 12
-            end
-        else
-            if yTickWidth < 6
-                yTickWidth = 6
+        integer xTickWidth = 0
+        if horizontalPanel:GetTickCount() > 0
+            xTickWidth = cast(integer, (GetWidth()*0.75)/(horizontalPanel:GetTickCount()+horizontalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (xTickWidth*3) > cast(integer, GetHeight()*0.01)
+                xTickWidth = cast(integer, (GetHeight()*0.01)/3)
             end
         end
-        verticalPanel:SetTickWidth(yTickWidth)  
-        verticalPanel:SetTickHeight(cast(integer, yTickWidth/3))
+        if me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 4
+                xTickWidth = 4
+            end
+        elseif not me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 2
+                xTickWidth = 2
+            end
+        elseif not me:IsShowingMinorXGridLines() and not me:IsShowingMajorXGridLines()
+            if xTickWidth < 1
+                xTickWidth = 1
+            end
+        end
+        horizontalPanel:SetTickWidth(xTickWidth)  
+        horizontalPanel:SetTickHeight(xTickWidth*3)
+
+
+        integer yTickHeight = 0
+        if verticalPanel:GetTickCount() > 0
+            yTickHeight = cast(integer, (GetHeight()*0.75)/(verticalPanel:GetTickCount()+verticalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (yTickHeight*3) > cast(integer, GetWidth()*0.01)
+                yTickHeight = cast(integer, (GetWidth()*0.01)/3)
+            end
+        end
+        if me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 4
+                yTickHeight = 4
+            end
+        elseif not me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 2
+                yTickHeight = 2
+            end
+        elseif not me:IsShowingMinorYGridLines() and not me:IsShowingMajorYGridLines()
+            if yTickHeight < 1
+                yTickHeight = 1
+            end
+        end
+        verticalPanel:SetTickWidth(yTickHeight*3)  
+        verticalPanel:SetTickHeight(yTickHeight)
  
         // If the title font size is manually set then we can try to accomodate the title area percent
         // This has to be done before the axis panels because they use titleAreaHeightPercent in their calculations.
@@ -1680,7 +1777,7 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, horizontalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if horizontalPanel:GetLabelCount() > 0
+            if horizontalPanel:GetLabelCount() > 0 and horizontalPanel:ShowLabels()
                 integer labelautofontsize = cast(integer, (GetWidth()*horizontalPanelWidthPercent)/horizontalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
@@ -1755,7 +1852,7 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, verticalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if verticalPanel:GetLabelCount() > 0
+            if verticalPanel:GetLabelCount() > 0 and verticalPanel:ShowLabels()
                 integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
@@ -2010,7 +2107,7 @@ class Chart is Control
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
+                temp:SetColor(previousColor)  
             elseif target is ControlLabel
                 ControlLabel temp = cast(ControlLabel, target)
                 temp:LostSelection()
@@ -2376,5 +2473,4 @@ class Chart is Control
         game:SetChart(me)
         game:StartGame()
     end
-
 end

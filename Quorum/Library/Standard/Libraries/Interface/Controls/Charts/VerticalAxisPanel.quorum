@@ -84,7 +84,7 @@ class VerticalAxisPanel is Control
     private ControlLabel longestLabel
 
     // Axis Drawables
-    private Drawable axis = undefined
+    private Array <Drawable> axislines
     private Array <Drawable> ticks
     private Array <Drawable> brackets
     private Array <Drawable> majorlines
@@ -94,6 +94,7 @@ class VerticalAxisPanel is Control
     private integer tickWidth = 3
     private boolean showGroupBrackets = false
     private boolean showTicks = false
+    private boolean showLabels = true
     private Color axisColor
 
     // Range controls
@@ -357,12 +358,6 @@ class VerticalAxisPanel is Control
             Add(labelAnchor)
         end
 
-        if GetAxis() = undefined
-            Drawable line
-            SetAxis(line)
-            chart:GetChartArea():Add(line)
-        end
-
         if UseIntegers()
             if textLabels not= undefined and numericalLabels
                 ChangeOverrideLabelsToIntegers()
@@ -401,6 +396,7 @@ class VerticalAxisPanel is Control
             end
             number scaleNum = min
 
+            Array<Drawable> theAxisLines
             Array<Drawable> theTicks
             Array<Drawable> theBrackets
             Array<ControlLabel> theLabels
@@ -454,7 +450,7 @@ class VerticalAxisPanel is Control
                         minDate:SubtractDays(cast(integer, scaleNum))  
                     end
                 else
-                    scaleText = textLabels:Get((cast(integer, i*intervaloverride) mod textLabels:GetSize()))
+                    scaleText = textLabels:Get(i)
                     label:SetDescription(", " + (i+1) + " of " + tickCount + " labels.")
                 end
                 label:SetText(scaleText)
@@ -530,15 +526,37 @@ class VerticalAxisPanel is Control
                         end
                     end
                 end
-                i = i + intervaloverride
+                i = i + 1
             end
+
             if subPanel = undefined
+                Drawable axis
+                theAxisLines:Add(axis)
+                chart:GetChartArea():Add(axis)
+            else
+                integer horizontalSections = chart:GetHorizontalPanel():GetNumberOfSections()
+                integer m = 0
+                repeat while m < horizontalSections
+                    Drawable axis
+                    theAxisLines:Add(axis)
+                    if chart:GetSubChartAreas():Get(m + k*horizontalSections):IsShowing()
+                        chart:GetSubChartAreas():Get(m + k*horizontalSections):Add(axis)
+                    else
+                        axis:Hide()
+                    end
+                    m = m + 1
+                end
+            end
+
+            if subPanel = undefined
+                axislines = theAxisLines:CopyToArray()
                 ticks = theTicks:CopyToArray()
                 brackets = theBrackets:CopyToArray()
                 labels = theLabels:CopyToArray()
                 majorlines = theMajorLines:CopyToArray()
                 minorlines = theMinorLines:CopyToArray()
             else
+                subPanel:SetAxisLines(theAxisLines:CopyToArray())
                 subPanel:SetTicks(theTicks:CopyToArray())
                 subPanel:SetBrackets(theBrackets:CopyToArray())
                 subPanel:SetLabels(theLabels:CopyToArray())
@@ -780,10 +798,19 @@ class VerticalAxisPanel is Control
             title = undefined
         end
 
-        if axis not= undefined
-            axis:Dispose()
-            Remove(axis)
-            axis = undefined
+        if not axislines:IsEmpty()
+            Drawable temp = undefined
+            integer i = 0
+            repeat while i < axislines:GetSize()
+                temp = axislines:Get(i)
+                if temp not= undefined
+                    temp:Dispose()
+                    Remove(temp)
+                    temp = undefined
+                end
+                i = i + 1
+            end
+            axislines:Empty()
         end
 
         if not ticks:IsEmpty()
@@ -863,7 +890,7 @@ class VerticalAxisPanel is Control
         Empty()
     end
 
-/*
+    /*
     These actions control the title on the axis.
 
     Attribute: Label for vertical panel.
@@ -891,20 +918,6 @@ class VerticalAxisPanel is Control
 
     action GetTitleText() returns text
         return titleText
-    end
-
-    action SetName(text name)
-        parent:Item2D:SetName(name)
-        
-        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-
-        if defaultProperties not= undefined
-            defaultProperties:SetLabelText(name)
-        end
-        if GetView2D() is ControlView
-            ControlView content = cast(ControlView, GetView2D())
-            content:SetText(name)
-        end
     end
 
     /*
@@ -980,7 +993,7 @@ class VerticalAxisPanel is Control
         overrideDefaultTickCount = flag
     end
 
-    action GetOverrideDefaultTickCount returns boolean
+    action OverrideDefaultTickCount returns boolean
         return overrideDefaultTickCount
     end
 
@@ -1001,7 +1014,7 @@ class VerticalAxisPanel is Control
         overrideDefaultTickInterval = flag
     end
 
-    action GetOverrideDefaultInterval returns boolean
+    action OverrideDefaultInterval returns boolean
         return overrideDefaultTickInterval
     end
 
@@ -1131,6 +1144,10 @@ class VerticalAxisPanel is Control
         return numberformat
     end
 
+    action OverrideDefaultNumberFormat(boolean override)
+        overrideDefaultNumberFormat = override
+    end
+
     // This action is used for a number scale axis not a text axis.
     private action UseIntegers() returns boolean
         if numberformat = "integer"
@@ -1186,12 +1203,12 @@ class VerticalAxisPanel is Control
         the Chart. Layout is handled automatically so users don't need to use this
         action directly.
     */
-    action GetAxis returns Drawable
-        return axis
+    action GetAxisLines returns Array <Drawable>
+        return axislines
     end
 
-    action SetAxis(Drawable line)
-        axis = line
+    action SetAxisLines (Array<Drawable> lines)
+        me:axislines = lines
     end
 
     action SetAxisColor(Color axisColor)
@@ -1226,6 +1243,14 @@ class VerticalAxisPanel is Control
 
     action ShowTicks(boolean show)
         showTicks = show
+    end
+
+    action ShowLabels returns boolean
+        return showLabels
+    end
+
+    action ShowLabels(boolean show)
+        showLabels = show
     end
 
     action OverrideDefaultMin returns boolean

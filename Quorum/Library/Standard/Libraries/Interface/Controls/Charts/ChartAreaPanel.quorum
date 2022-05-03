@@ -68,8 +68,16 @@ class ChartAreaPanel is Control
         chartAreaItems:Add(item)
     end
 
+    action GetBorderColor returns ColorGroup
+        return properties:GetBorderColor()
+    end
+
     action SetBorderColor(ColorGroup color)
         properties:SetBorderColor(color)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        return properties:GetBackgroundColor()
     end
 
     action SetBackgroundColor(ColorGroup color)

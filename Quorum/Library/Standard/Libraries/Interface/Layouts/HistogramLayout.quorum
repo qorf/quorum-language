@@ -50,23 +50,21 @@ class HistogramLayout is SharedBarChartLayout
             boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
             boolean stacked = chart:GetStackedFlag()
             boolean separateBySeries = chart:IsSeparatedBySeries()
+            boolean separateByFactor = chart:IsSeparatedByFactor()
 
             if horizontal
-                currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
-                width = chartAreaContainer:GetHeight()
-                height = chartAreaContainer:GetWidth() - currentYPosition
+                integer paddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+                width = chartAreaContainer:GetHeight() - paddingOffset
+                height = chartAreaContainer:GetWidth() 
                 rangeMax = chart:GetXAxisMaximum()
                 rangeMin = chart:GetXAxisMinimum()
-                axisOffset = cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
                 tickCount = chart:GetVerticalPanel():GetTickCount()
             else
-                currentYPosition = cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
-                width = chartAreaContainer:GetWidth()
-                height = chartAreaContainer:GetHeight() - currentYPosition
+                integer paddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+                width = chartAreaContainer:GetWidth() - paddingOffset
+                height = chartAreaContainer:GetHeight()
                 rangeMax = chart:GetYAxisMaximum()
                 rangeMin = chart:GetYAxisMinimum()
-            
-                axisOffset = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
                 tickCount = chart:GetHorizontalPanel():GetTickCount()
             end
             resetYPosition = currentYPosition

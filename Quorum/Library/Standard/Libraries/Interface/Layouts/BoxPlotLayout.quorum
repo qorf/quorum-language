@@ -91,12 +91,12 @@ class BoxPlotLayout is ChartLayout
             end
 
             integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/numberOfPanels
-            integer height = cast(integer, chartAreaContainer:GetHeight()) - cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
+            integer height = cast(integer, chartAreaContainer:GetHeight())
             number range = (yMax-yMin)
             number rangeMin = yMin
             if horizontal
                 panelwidth = cast(integer, chartAreaContainer:GetHeight())/numberOfPanels
-                height = cast(integer, chartAreaContainer:GetWidth()) - cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
+                height = cast(integer, chartAreaContainer:GetWidth())
                 range = (xMax-xMin)
                 rangeMin = xMin
             end

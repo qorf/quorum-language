@@ -193,8 +193,8 @@ class Histogram is SharedBarChartParent
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                 end
             else
-                //Default binwidth and bincount
-                binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize())))
+                //Default binwidth and bincount (don't count undefined column values)
+                binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
                 if max < 2.5
                     decimalScale = true
                     binWidth = math:Round(range / cast(number, binCount),1)
@@ -215,10 +215,6 @@ class Histogram is SharedBarChartParent
                     end
                 end
             end
-        end
-
-        if binCount > 100
-            alert("This results in over 100 bins, please change bin width.")
         end
 
         Array<integer> count
