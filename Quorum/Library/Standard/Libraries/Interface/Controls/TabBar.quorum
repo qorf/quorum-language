@@ -15,6 +15,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
+use Libraries.Interface.Views.ControlShaderView
 
 class TabBar is Control
     
@@ -34,6 +35,7 @@ class TabBar is Control
 
         SetClipping(true)
         SetName("Tab Bar")
+        SetInterfaceOptionsKey("TabBar")
     end
 
     action Add(Array<Tab> array)
@@ -80,6 +82,7 @@ class TabBar is Control
         if reselect
             if tabs:GetSize() > 0
                 index = index - 1
+
                 if index < 0
                     index = 0
                 end
@@ -90,6 +93,8 @@ class TabBar is Control
         else
             pane:Select(currentTab)
         end
+
+        tab:Dispose()
 
         Resize()
 
@@ -235,20 +240,9 @@ class TabBar is Control
         View2D view = properties:GetView2D()
         if view = undefined
             if GetView2D() = undefined
-                LabelBoxView content
+                ControlShaderView content
                 content:SetName("TabBar View")
-                Color color
-                ColorGroup background = properties:GetBackgroundColor()
-                ColorGroup border = properties:GetBorderColor()
-                number thickness = properties:GetBorderThickness()
-                if background = undefined
-                    background = color:DarkGray()
-                end
-                if border = undefined
-                    border = color:Black()
-                end
-                content:SetBorderThickness(cast(integer, thickness))
-                content:Initialize(background, border)
+                content:Initialize()
                 view = content
             end
         end

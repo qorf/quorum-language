@@ -5,6 +5,8 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import org.robovm.apple.audiotoolbox.AudioServices;
 import org.robovm.apple.coregraphics.CGPoint;
 import org.robovm.apple.coregraphics.CGRect;
@@ -13,21 +15,7 @@ import org.robovm.apple.foundation.NSExtensions;
 import org.robovm.apple.foundation.NSObject;
 import org.robovm.apple.foundation.NSRange;
 import org.robovm.apple.foundation.NSString;
-import org.robovm.apple.uikit.UIAlertView;
-import org.robovm.apple.uikit.UIAlertViewDelegate;
-import org.robovm.apple.uikit.UIAlertViewDelegateAdapter;
-import org.robovm.apple.uikit.UIAlertViewStyle;
-import org.robovm.apple.uikit.UIDevice;
-import org.robovm.apple.uikit.UIKeyboardType;
-import org.robovm.apple.uikit.UIReturnKeyType;
-import org.robovm.apple.uikit.UITextAutocapitalizationType;
-import org.robovm.apple.uikit.UITextAutocorrectionType;
-import org.robovm.apple.uikit.UITextField;
-import org.robovm.apple.uikit.UITextFieldDelegate;
-import org.robovm.apple.uikit.UITextFieldDelegateAdapter;
-import org.robovm.apple.uikit.UITextSpellCheckingType;
-import org.robovm.apple.uikit.UITouch;
-import org.robovm.apple.uikit.UITouchPhase;
+import org.robovm.apple.uikit.*;
 import org.robovm.objc.annotation.Method;
 import org.robovm.rt.VM;
 import org.robovm.rt.bro.NativeObject;
@@ -39,6 +27,7 @@ import plugins.quorum.Libraries.Game.libGDX.Pool;
 
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSConfiguration;
+import quorum.Libraries.Interface.Events.GestureEvent;
 import quorum.Libraries.Interface.Events.TouchEvent;
 import quorum.Libraries.Containers.List_;
 import quorum.Libraries.Containers.List;
@@ -96,7 +85,8 @@ public class IOSInput
     int numTouched = 0;
     boolean justTouched = false;
     
-    List touchEventList;
+    List_ touchEventList;
+    List_ gestureEventList;
     
     Pool<TouchEvent> touchEventPool = new Pool<TouchEvent>() 
         {
@@ -560,9 +550,11 @@ public class IOSInput
     {
         for (int i = 0; i < touchDown.length; i++) 
         {
-                if (touchDown[i] == 0) return i;
+                if (touchDown[i] == 0)
+                    return i;
         }
-        throw new GameRuntimeError("Couldn't find free finger ID!");
+        // If there's no free pointers, offer up the first one.
+        return 0;
     }
 
     private int FindPointer(UITouch touch) 
@@ -570,9 +562,10 @@ public class IOSInput
         long ptr = touch.getHandle();
         for (int i = 0; i < touchDown.length; i++) 
         {
-            if (touchDown[i] == ptr) return i;
+            if (touchDown[i] == ptr)
+                return i;
         }
-        throw new GameRuntimeError("Couldn't find finger ID for touch event!");
+        return -1;
     }
 
     private static class NSSetExtensions extends NSExtensions 
@@ -608,8 +601,6 @@ public class IOSInput
 
                 // We need to invert the y-axis to match the Quorum engine's y-axis.
                 locY = (int)(bounds.getMaxY() - (loc.getY() * app.displayScaleFactor));
-                
-                // app.debug("IOSInput","pos= "+loc+"  bounds= "+bounds+" x= "+locX+" locY= "+locY);
             }
 
             synchronized (touchEvents) 
@@ -667,12 +658,25 @@ public class IOSInput
                 if (phase == UITouchPhase.Cancelled || phase == UITouchPhase.Ended) 
                 {
                     event.fingerID = FindPointer(touch);
+
+                    /*
+                    There may not be a relevant finger ID if the event was cancelled immediately on touch down due to
+                    gesture recognition. In this case, give it a free digit to represent the new finger touching the
+                    screen (but don't adjust the number of touches -- a new finger touched the screen and was
+                    immediately disregarded, so there's no net change in the number of touches).
+                    */
+                    if (event.fingerID == -1)
+                    {
+                        event.fingerID = GetFreePointer();
+                    }
+                    else
+                        numTouched--;
+
                     touchDown[event.fingerID] = 0;
                     touchX[event.fingerID] = event.x;
                     touchY[event.fingerID] = event.y;
                     deltaX[event.fingerID] = 0;
                     deltaY[event.fingerID] = 0;
-                    numTouched--;
                 }
 
                 event.movementX = deltaX[event.fingerID];
@@ -705,9 +709,166 @@ public class IOSInput
             return 0;
     }
     */
-    
-    public void InitializePlugin(List_ list)
+
+    private void InitializeValues(UIGestureRecognizer recognizer, GestureEvent quorumEvent)
     {
-        touchEventList = (List)list;
+        CGPoint point = recognizer.getLocationInView(recognizer.getView());
+        final CGRect bounds = app.GetCachedBounds();
+
+        int x = (int)(point.getX() * app.displayScaleFactor - bounds.getMinX());
+
+        // We need to invert the y-axis to match the Quorum engine's y-axis.
+        int y = (int)(bounds.getMaxY() - (point.getY() * app.displayScaleFactor));
+
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+    }
+
+    public void AddSingleTapEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SINGLE_TAP);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddDoubleTapEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.DOUBLE_TAP);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddSwipeEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SWIPE);
+
+        UISwipeGestureRecognizer swipeRecognizer = (UISwipeGestureRecognizer)recognizer;
+        UISwipeGestureRecognizerDirection direction = swipeRecognizer.getDirection();
+
+        long directionValue = direction.value();
+        if (directionValue == UISwipeGestureRecognizerDirection.Right.value())
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.RIGHT);
+        else if (directionValue == UISwipeGestureRecognizerDirection.Left.value())
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.LEFT);
+        else if (directionValue == UISwipeGestureRecognizerDirection.Up.value())
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.UP);
+        else if (directionValue == UISwipeGestureRecognizerDirection.Down.value())
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.DOWN);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddLongPressEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
+        if (recognizer.getState().value() == UIGestureRecognizerState.Ended.value())
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddPanEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PAN);
+
+        UIPanGestureRecognizer panRecognizer = (UIPanGestureRecognizer)recognizer;
+        CGPoint translation = panRecognizer.getTranslation(recognizer.getView());
+
+        int x = (int)(translation.getX() * app.displayScaleFactor);
+        int y = (int)(-translation.getY() * app.displayScaleFactor);
+
+        panRecognizer.setTranslation(new CGPoint(0, 0), recognizer.getView());
+
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceX_(x);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceY_(y);
+
+        if (Math.abs(x) > Math.abs(y))
+        {
+            if (x < 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.LEFT);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.RIGHT);
+        }
+        else
+        {
+            if (y < 0)
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.DOWN);
+            else
+                quorumEvent.Set_Libraries_Interface_Events_GestureEvent__direction_(quorumEvent.UP);
+        }
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddPinchBeginEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
+
+        UIPinchGestureRecognizer pinchRecognizer = (UIPinchGestureRecognizer)recognizer;
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(pinchRecognizer.getScale());
+        // To maintain consistent behavior between IOS and Android, reset the recognizer's scale value to 1.0
+        // This will make the recognizer give us "per event" scaling, instead of overall scaling
+        pinchRecognizer.setScale(1.0);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddPinchContinueEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
+
+        UIPinchGestureRecognizer pinchRecognizer = (UIPinchGestureRecognizer)recognizer;
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(pinchRecognizer.getScale());
+        // To maintain consistent behavior between IOS and Android, reset the recognizer's scale value to 1.0
+        // This will make the recognizer give us "per event" scaling, instead of overall scaling
+        pinchRecognizer.setScale(1.0);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void AddPinchEndEvent(UIGestureRecognizer recognizer)
+    {
+        GestureEvent quorumEvent = new GestureEvent();
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
+
+        UIPinchGestureRecognizer pinchRecognizer = (UIPinchGestureRecognizer)recognizer;
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(pinchRecognizer.getScale());
+        // To maintain consistent behavior between IOS and Android, reset the recognizer's scale value to 1.0
+        // This will make the recognizer give us "per event" scaling, instead of overall scaling
+        pinchRecognizer.setScale(1.0);
+
+        InitializeValues(recognizer, quorumEvent);
+
+        gestureEventList.Add(quorumEvent);
+    }
+
+    public void InitializePlugin(List_ list, List_ gestureList)
+    {
+        touchEventList = list;
+        gestureEventList = gestureList;
     }
 }

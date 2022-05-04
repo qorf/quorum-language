@@ -60,6 +60,9 @@ use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Interface.Controls.Charts.GeoMap
 use Libraries.Compute.Statistics.Charts.GeoMapCreator
+use Libraries.Compute.Statistics.Transforms.RemoveUndefinedRowsTransform
+use Libraries.Compute.Statistics.Transforms.ColumnSplitter
+use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -315,6 +318,139 @@ class DataFrame
             col:SetSize(size)
             i = i + 1
         end
+    end
+
+    /*
+        This action takes a Quorum expression text value and then creates a new column the DataFrame. The expression
+        follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group * 2
+        would take the value of Group, multiply it by 2, and then do that for each row. If a row is an invalid type,
+        an undefined value is placed at that position. 
+
+        The AddColumn(text, text) call is not destructive, meaning it adds to the DataFrame, but does not change
+        the original data. 
+
+        Attribute: column The name to give to the column that will be created. 
+        Attribute: source A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        frame:AddColumn("Group * 3")
+        output frame:ToText()
+    */
+    action AddColumn(text column, text source)
+        DataFrameColumn newColumn = CalculateColumn(source)
+        newColumn:SetHeader(column)
+        me:AddColumn(newColumn)
+    end
+
+    /*
+        This action takes a Quorum expression text value and then creates a new column without adding it to the DataFrame. The expression
+        follows the normal rules for Quorum, using the DataFrame's columns as the allowable variables. 
+        For example, if a DataFrame has a column, Group, and is an integer, then a value like Group * 2
+        would take the value of Group, multiply it by 2, and then do that for each row. If a row is an invalid type,
+        an undefined value is placed at that position. The CalculateColumn(text) call is not destructive, meaning it does 
+        not change the original frame.
+
+        Attribute: column The name to give to the column that will be created. 
+        Attribute: source A Quorum expression, which will be parsed and executed on the DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        DataFrameColumn col = frame:CalculateColumn("Group * 3")
+        output col:ToText()
+    */
+    action CalculateColumn(text source) returns DataFrameColumn
+        QuorumLexer luthor
+        CompilerErrorManager errors
+        luthor:SetCompilerErrorManager(errors)
+        luthor:Read(source)
+
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(errors)
+        parser:SetLexer(luthor)
+
+        ParseContext expression = parser:Expression()
+
+        if expression = undefined or not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+    
+        //Now do semantic analysis on the thing and get it setup for runtime processing
+        DataFrameExpressionListener listener
+        listener:SetCompilerErrorManager(errors)
+        listener:SetDataFrame(me)
+        expression:Traverse(listener)
+        
+        if not errors:IsCompilationErrorFree()
+            alert(errors:GetFirstMessageAsText())
+        end
+
+        //the top-most item on the stack is the final expression
+        Stack<QuorumOpcode> stack = listener:GetOpcodeStack()
+
+        if stack:IsEmpty()
+            alert("The expression contained an unidentified error and could not be evaluated.")
+        end
+        QuorumOpcode op = stack:Pop()
+        Type columnType = op:GetType()
+
+        DataFrameColumn newColumn = undefined
+
+        //check the type of the column. If it is one we support, cool. If not, then bail.
+        if columnType:IsNumber() //for now bail
+            NumberColumn col
+            newColumn = col
+        elseif columnType:IsInteger()
+            IntegerColumn col
+            newColumn = col
+        elseif columnType:IsBoolean()
+            BooleanColumn col
+            newColumn = col
+        elseif columnType:IsText()
+            TextColumn col
+            newColumn = col
+        else 
+            alert("Only Number, Boolean, Integer, and Text columns are allowed in the current system. Your expression evaluates to " +
+                columnType:GetName() + ".")
+        end
+        
+        row = 0
+        Runtime runtime
+        boolean done = false
+        repeat while not done
+            //first check that all the variables in the list are there
+            //if there are zero variables, then just process the expression for now, even though technically it's a constant
+            boolean missingValue = SetupRuntime(listener, runtime, me, row)
+            
+            //if there are missing values, this row can't be evaluated
+            //so fill it with undefined values
+            if not missingValue
+                op:Evaluate(runtime)
+                if runtime:GetStackSize() = 0
+                    newColumn:Add(undefined)
+                else 
+                    Result result = runtime:PopFromStack()
+                    newColumn:AddAsResult(result)
+                end
+            end
+
+            row = row + 1
+            done = not HasAnotherRow(me, row)
+            runtime:GetCurrentBlock():Empty()
+        end
+
+        return newColumn
     end
 
     private action SetupRuntime(DataFrameExpressionListener listener, Runtime runtime, DataFrame frame, integer row) returns boolean
@@ -892,6 +1028,35 @@ class DataFrame
         end
 
         return undefined
+    end
+
+    /*
+        This action returns whether or not there is a column named "header" in
+        its header row. If multiple columns have the same name, then this action returns true.
+
+
+        Attribute: Parameter header The column we want back.
+        Attribute: Returns A boolean of true if a column of this name exists
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv") 
+        DataFrameColumn column = frame:GetColumn("Gender")
+    */
+    action HasColumn(text header) returns boolean
+        i = 0
+        repeat while i < columns:GetSize()
+            DataFrameColumn column = columns:Get(i)
+            if column not= undefined and column:GetHeader() = header
+                return true
+            end
+            i = i + 1
+        end
+
+        return false
     end
 
     /*
@@ -2540,55 +2705,6 @@ class DataFrame
 
         return cast(BarChart, CreateChart(creator))
     end
-    
-    /*
-        This action returns a text based representation of the data frame at a particular row.
-
-        Attribute: Returns a text based representation, in comma separated format
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-
-        //Load a comma separated file
-        DataFrame frame
-        frame:Load("Data.csv")
-
-        //output the frame to the console
-        output frame:ToText(0)
-    */
-    action ToText(integer row) returns text
-        DataFrame frame = me
-        integer size = frame:GetSize() //number of columns
-
-        text currentRow = ""
-        text dq = currentRow:GetDoubleQuote()
-        text lf = currentRow:GetLineFeed()
-        
-        i = 0
-        repeat while i < frame:GetSize()
-            DataFrameColumn column = frame:GetColumn(i)
-            if row < column:GetSize()
-                text value = column:GetAsText(row)
-                if value not= undefined
-                    if not value:IsEmpty() and value:Contains(",")
-                        currentRow = currentRow + dq + value + dq
-                    else
-                        currentRow = currentRow + value
-                    end
-                end
-                hadRow = true
-            end
-        
-            
-            if i not= frame:GetSize() - 1
-                currentRow = currentRow + ","
-            end
-            i = i + 1
-        end
-
-        return currentRow
-    end
 
     /*
         This action creates a LineChart from the current column selection in the DataFrame.
@@ -2876,6 +2992,191 @@ class DataFrame
     end
 
     /*
+        This action calculates the total number of rows in the data frame.
+        To do this, it traverses the columns, finds the column with the 
+        max row count, and returns that integer.
+
+        Attribute: Returns the row count of the column with the largest number of rows
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:CalculateMaximumRows()
+    */
+    action CalculateMaximumRows returns integer
+        max = 0
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn col = GetColumn(i)
+            if col:GetSize() > max
+                max = col:GetSize()
+            end
+            i = i + 1
+        end
+        return max
+    end
+
+    /*
+        This action removes undefined values from the DataFrame. This action creates a copy of 
+        the DataFrame, so it is not destructive. For this version, which does not take into account
+        selection, this action removes a row if any value, in any column, is undefined. 
+
+        Attribute: Returns a new DataFrame copy with all rows with undefined in any position removed
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:RemoveUndefinedRows():ToText()
+    */
+    action RemoveUndefinedRows returns DataFrame
+        RemoveUndefinedRowsTransform transform
+        return Transform(transform)
+    end
+
+    /*
+        This action removes undefined values from the DataFrame. This action creates a copy of 
+        the DataFrame, so it is not destructive. For this version, rows are removed only if the undefined
+        value was in a selected column. Selected factors are not taken into account.
+
+        Attribute: Returns a new DataFrame copy with all rows with undefined in any position removed
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        output frame:RemoveUndefinedRows():ToText()
+    */
+    action RemoveUndefinedRowsFromSelectedColumns returns DataFrame
+        RemoveUndefinedRowsTransform transform
+        transform:SetAccountForSelectedColumns(true)
+        return Transform(transform)
+    end
+
+    /*
+        This action replaces undefined values in the DataFrame with a value derived from the text. If the text will not
+        result in a replacement, the request is ignored in the column. This action replaces the undefined values across
+        the entire DataFrame.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        //perhaps this replaces an undefined in an IntegerColumn or a TextColumn
+        frame:ReplaceUndefined("0")
+        output frame:ToText()
+    */
+    action ReplaceUndefined(text value)
+        i = 0
+        repeat while i < GetSize()
+            DataFrameColumn column = GetColumn(i)
+            column:ReplaceUndefined(value)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action replaces undefined values in the DataFrame with a value derived from the text. If the text will not
+        result in a replacement, the request is ignored in the column. This action replaces the undefined values across
+        only the selected columns. Selected factors are ignored.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //Add the first column in the set to the list of selected columns
+        frame:AddSelectedColumn(0)
+
+        //perhaps this replaces an undefined in an IntegerColumn or a TextColumn
+        frame:ReplaceUndefinedFromSelectedColumns("0")
+        output frame:ToText()
+    */
+    action ReplaceUndefinedFromSelectedColumns(text value)
+        DataFrameSelection selection = GetSelection()
+        Iterator<integer> iterator = selection:GetColumnIterator()
+        repeat while iterator:HasNext()
+            integer next = iterator:Next()
+            DataFrameColumn column = GetColumn(next)
+            column:ReplaceUndefined(value)
+        end
+    end
+
+    /*
+        This action splits the selected columns into new columns using the delimiter (typically a character)
+        to split each row. For example, if we a column called stats with values like 22-2, and a delimiter
+        of dash (-),  we would split into two columns, one with 22 and the other with 2. 
+
+        This is the simplest case of column splitting. For more advanced forms of splitting, we can override
+        the ColumnSplitter class and override a single action, Split, which takes a text value and returns
+        an array of values to be placed into the new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //create the names for the new columns
+        Array<text> headers
+        headers:Add("points")
+        headers:Add("thingy")
+
+        //set which column or columns we want to split in this way
+        //then split the values and output them to the console
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:SplitSelectedColumns(headers, "-")
+        output result:ToText()
+    */
+    action SplitSelectedColumns(Array<text> headers, text delimiter) returns DataFrame
+        DelimiterColumnSplitter splitter
+        splitter:SetHeaders(headers)
+        splitter:SetDelimiter(delimiter)
+        return splitter:Transform(me)
+    end
+
+    /*
+        This action splits the selected columns into new columns using the delimiter (typically a character)
+        to split each row. For example, if we a column called stats with values like 22-2, and a delimiter
+        of dash (-),  we would split into two columns, one with 22 and the other with 2. This version
+        can explicitly include or exclude undefined cells.
+
+        This is the simplest case of column splitting. For more advanced forms of splitting, we can override
+        the ColumnSplitter class and override a single action, Split, which takes a text value and returns
+        an array of values to be placed into the new columns.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+        
+        //create the names for the new columns
+        Array<text> headers
+        headers:Add("points")
+        headers:Add("thingy")
+
+        //set which column or columns we want to split in this way
+        //then split the values and output them to the console
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:SplitSelectedColumns(headers, "-")
+        output result:ToText()
+    */
+    action SplitSelectedColumns(Array<text> headers, text delimiter, boolean includeUndefined) returns DataFrame
+        DelimiterColumnSplitter splitter
+        splitter:SetIncludeUndefined(includeUndefined)
+        splitter:SetHeaders(headers)
+        splitter:SetDelimiter(delimiter)
+        return splitter:Transform(me)
+    end
+
+    /*
         This action returns a text based representation of the data frame.
 
         Attribute: Returns a text based representation, in comma separated format
@@ -2894,5 +3195,54 @@ class DataFrame
     action ToText returns text
         CommaSeparatedSaver saver
         return saver:ConvertToText(me)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10)
+    */
+    action ToText(integer rows) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows)
+    end
+
+    /*
+        This action returns a text based representation of the data frame.
+
+        Attribute: Returns a text based representation, in comma separated format
+        Attribute: Parameter rows The number of rows to get
+        Attribute: Parameter header Whether or not to show the header from the frame
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+
+        //output the frame to the console
+        output frame:ToText(10, false)
+    */
+    action ToText(integer rows, boolean header) returns text
+        CommaSeparatedSaver saver
+        if rows < 0
+            rows = 0 //the -1 in the actual saver is a convenience, but is not very intuitive. Turn it off here.
+        end
+        return saver:ConvertToText(me, rows, header)
     end
 end

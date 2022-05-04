@@ -10,6 +10,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.System.DateTime
 use Libraries.Containers.Support.Comparison
+use Libraries.Language.Compile.Interpreter.Result
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -39,7 +40,7 @@ use Libraries.Containers.Support.Comparison
     DataFrameColumn col = frame:GetColumn(0)
     output col:ToText()
 */
-class DataFrameColumn 
+class DataFrameColumn is Comparison
     /* This is the name of the column. */
     text header = ""
     integer undefinedSize = 0
@@ -69,6 +70,51 @@ class DataFrameColumn
         Attribute: Parameter value The value to be converted to the proper type for this kind of column.
     */
     action Add(text value)
+    end
+
+    /*
+        If the column has undefined values, this action replaces all rows that have undefined with 
+        a value selected from text. If the text value is invalid for this column, the call is ignored.
+
+        Attribute: Parameter value The value to be replaced.
+    */
+    action ReplaceUndefined(text value)
+    end
+
+    /*
+        Columns may optionally add data from the Runtime system. 
+        In this case, columns may optionally choose to accept or reject a particular Libraries.Language.Compile.Interpreter.Result based on type. 
+        If the column is rejected, an undefined value is placed at the new position. The Result object
+        must have a corresponding Libraries.Language.Compile.Symbol.Type.
+
+        Attribute: Parameter value The Libraries.Language.Compile.Interpreter.Result to be converted to the proper type for this kind of column.
+    */
+    action AddAsResult(Result value)
+    end
+
+    /*
+        Returns whether or not the result is checkable inside sub-types.This action generally should not be used.
+
+        Attribute: Parameter value The Libraries.Language.Compile.Interpreter.Result to check
+        Attribute: Returns whether or not it is valid
+    */
+    action IsResultCheckable(Result value) returns boolean
+        if value not= undefined and value:type not= undefined
+            return true
+        else
+            return false
+        end
+    end
+
+    /*
+        This action sets the index to Libraries.Language.Compile.Interpreter.Result if and only if the
+        column accepts values of this type. If it does not, undefined is placed at this index.
+
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
+    action SetAsResult(integer index, Result value)
+        alert("Cannot convert value at position " + index + " to text.")
     end
 
     /*
@@ -433,6 +479,16 @@ class DataFrameColumn
     blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
 
     /*
+        This action copies the type of the data frame, but does not copy over its
+        rows. The header name is retained.
+
+        Attribute: Returns the column of the appropriate type but without the data.
+    */
+    action CopyEmpty returns DataFrameColumn
+        return Copy(0, -1)
+    end
+
+    /*
         This action sets the size of the column to the parameter and then fills it with undefined values. 
 
         Attribute: Parameter size the size of the column.
@@ -520,5 +576,19 @@ class DataFrameColumn
     */
     action SetSortComparison(Comparison comparison)
         me:comparison = comparison
+    end
+
+    action Compare(Object a, Object b) returns integer
+        //first handle the case where items are undefined
+        if a = undefined and b = undefined
+            return 0
+        elseif a = undefined and b not= undefined
+            return -1
+        elseif a not= undefined and b = undefined
+            return 1
+        end
+
+        //both items are defined, so now do the normal sort
+        return a:Compare(b)
     end
 end

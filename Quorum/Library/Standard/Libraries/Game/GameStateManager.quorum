@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Item
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Options.InterfaceOptions
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -185,4 +186,23 @@ shared class GameStateManager
     will occur.
     */
     system action GetMainThreadName returns text
+
+    /*
+
+    */
+    action GetInterfaceOptions returns InterfaceOptions
+        if GetGame() not= undefined
+            return GetGame():GetInterfaceOptions()
+        end
+        return undefined
+    end
+
+    /*
+
+    */
+    action SetInterfaceOptions(InterfaceOptions options)
+        if GetGame() not= undefined
+            GetGame():SetInterfaceOptions(options)
+        end
+    end
 end

@@ -7,6 +7,7 @@ use Libraries.Interface.Events.GutterListener
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlShaderView
 
 class Gutter is Control
     
@@ -17,12 +18,9 @@ class Gutter is Control
     Array<GutterListener> listeners
 
     on create
+        SetInterfaceOptionsKey("Gutter")
+
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-
-        Color color
-
-        defaultProperties:SetBackgroundColor(color:CustomColor(233.0/255.0, 232.0/255.0, 226.0/255.0, 1))
-        defaultProperties:SetBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
         defaultProperties:SetBorderThickness(1)
         defaultProperties:SetBorderStyle(defaultProperties:RIGHT)
 
@@ -114,10 +112,8 @@ class Gutter is Control
     action LoadGraphics(LayoutProperties properties)
         if properties:GetView2D() = undefined
             if GetView2D() = undefined
-                LabelBoxView view
-                view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                view:SetBorderStyle(properties:GetBorderStyle())
-                view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+                ControlShaderView view
+                view:Initialize()
                 SetView2D(view)
             end
         elseif properties:GetView2D() not= GetView2D()

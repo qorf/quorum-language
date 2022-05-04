@@ -23,10 +23,7 @@ import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
+import android.view.*;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -46,6 +43,9 @@ public class GLSurfaceView20 extends GLSurfaceView
     public int width;
     public int height;
     public boolean aspectRatio = false;
+
+    private final GestureDetector gestureDetector;
+    private final ScaleGestureDetector scaleDetector;
     
     public GLSurfaceView20(Context context, AndroidConfiguration config)
     {
@@ -54,6 +54,9 @@ public class GLSurfaceView20 extends GLSurfaceView
         height = config.targetHeight;
         aspectRatio = config.useAspectRatio;
         Initialize(true, 16, 0);
+
+        gestureDetector = new GestureDetector(context, new QuorumGestureTranslator());
+        scaleDetector = new ScaleGestureDetector(context, new QuorumScaleGestureTranslator());
     }
     
     public GLSurfaceView20(Context context, AndroidConfiguration config, boolean translucent, int depth, int stencil)
@@ -63,6 +66,9 @@ public class GLSurfaceView20 extends GLSurfaceView
         height = config.targetHeight;
         aspectRatio = config.useAspectRatio;
         Initialize(translucent, depth, stencil);
+
+        gestureDetector = new GestureDetector(context, new QuorumGestureTranslator());
+        scaleDetector = new ScaleGestureDetector(context, new QuorumScaleGestureTranslator());
     }
     
     @Override
@@ -70,6 +76,13 @@ public class GLSurfaceView20 extends GLSurfaceView
     {
         quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
         input.plugin_.AddEvent(event);
+
+        gestureDetector.onTouchEvent(event);
+        scaleDetector.onTouchEvent(event);
+
+        if (event.getAction() == MotionEvent.ACTION_UP)
+            input.plugin_.TestLongPressEnd(event);
+
         return true;
     }
     
@@ -346,6 +359,87 @@ public class GLSurfaceView20 extends GLSurfaceView
                 }
             }
         }
+    }
 
+    private class QuorumGestureTranslator extends GestureDetector.SimpleOnGestureListener
+    {
+        @Override
+        public boolean onDown(MotionEvent event)
+        {
+            // We're required to return true here -- if it returns false, all other gestures will fail.
+            // We could conditionally return false to temporarily block gesture input, but otherwise it must be true.
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent event)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddDoubleTapEvent(event);
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddFlingEvent(event1, event2, velocityX, velocityY);
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent event)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddLongPressEvent(event);
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e)
+        {
+            // We currently don't do anything with the show press.
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScrollEvent(event1, event2, distanceX, distanceY);
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent event)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddSingleTapEvent(event);
+            return true;
+        }
+    }
+
+    private class QuorumScaleGestureTranslator extends ScaleGestureDetector.SimpleOnScaleGestureListener
+    {
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleBeginEvent(detector);
+            return true;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleContinueEvent(detector);
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector)
+        {
+            quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
+            input.plugin_.AddScaleEndEvent(detector);
+        }
     }
 }

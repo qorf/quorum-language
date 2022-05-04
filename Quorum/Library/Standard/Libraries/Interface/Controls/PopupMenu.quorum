@@ -11,6 +11,7 @@ use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlShaderView
 
 class PopupMenu is MenuRoot, MouseListener
     
@@ -32,10 +33,10 @@ class PopupMenu is MenuRoot, MouseListener
         dialog:Add(me)
 
         SetBorderThickness(1)
-        panel:SetBorderThickness(1)
         Add(panel)
 
         SetAccessibilityCode(parent:Item:POPUP_MENU)
+        SetInterfaceOptionsKey("MenuPanel")
         SetName("Pop-Up Menu")
     end
 
@@ -220,18 +221,6 @@ class PopupMenu is MenuRoot, MouseListener
             MenuItem item = GetMenuItem(GetSelection():GetPath())
             item:MenuSelectionUp()
         end
-    end
-
-    action LoadGraphics(LayoutProperties properties)
-        Color color
-
-        LabelBoxView content
-        content:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-        content:Initialize(color:CustomColor(1, 1, 1, 0), color:Black())
-
-        panel:SetView2D(content)
-
-        parent:Control:LoadGraphics(properties)
     end
 
     /*

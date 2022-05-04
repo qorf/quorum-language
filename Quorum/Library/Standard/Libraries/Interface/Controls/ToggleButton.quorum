@@ -90,6 +90,10 @@ class ToggleButton is Button
 
     end
 
+    action IsRenderingSelection returns boolean
+        return GetToggleState()
+    end
+
     action Activate(BehaviorEvent event)
         if toggled
             if canToggleOff

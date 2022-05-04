@@ -1574,7 +1574,9 @@ class QuorumParser
         if next:category = constants:ID
             SetLocationToToken(context:objectLocation, next)
             Token look = tokenIterator:LookAhead(1)
-            if look:category = constants:COLON //this is an object call
+            //if the lookahead is undefined, a later rule will capture this
+            //here we just do not want to crash under this condition.
+            if look not= undefined and look:category = constants:COLON //this is an object call
                 context:objectName = next:value
                 tokenIterator:Next()
 

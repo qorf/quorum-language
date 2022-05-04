@@ -7,6 +7,8 @@ use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Symbol.Type
 
 /*
     IntegerColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -32,6 +34,47 @@ class IntegerColumn is DataFrameColumn
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
+        end
+    end
+
+    action AddAsResult(Result value)
+        if not IsResultCheckable(value) rows:Add(undefined) return now end
+        Type type = value:type
+        if type:IsInteger()
+            rows:Add(value:integerValue)
+        else
+            rows:Add(undefined)
+        end
+    end
+
+    /*
+        By default, this replaces all undefined values with the integer value of the text passed in.
+        If the text passed in is not an integer, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        check 
+            integer num = cast(integer, value)
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    SetAsInteger(row, num)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
+        end
+    end
+
+    action SetAsResult(integer index, Result value)
+        if not IsResultCheckable(value) rows:Set(index, undefined) return now end
+        Type type = value:type
+        if type:IsInteger()
+            rows:Set(index, value:integerValue)
+        else
+            rows:Set(index, undefined)
         end
     end
 
@@ -187,7 +230,7 @@ class IntegerColumn is DataFrameColumn
             if GetSortComparison() not= undefined
                 newRows:Sort(GetSortComparison())
             else
-                newRows:Sort()
+                newRows:Sort(me)
             end
         end
         column:rows = newRows

@@ -7,6 +7,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Behaviors.Controls.OptionDialogCancelBehavior
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Views.ControlShaderView
 
 class OptionDialog is Dialog
     Label lineLabel
@@ -15,6 +16,19 @@ class OptionDialog is Dialog
     Button ok
     Button cancel
 
+    OptionDialogCancelBehavior defaultCancelBehavior
+    Behavior cancelBehavior = defaultCancelBehavior
+
+    on create
+        SetModal(true)
+        lineLabel:SetText("Are you sure?")
+
+        SetInterfaceOptionsKey("Dialog")
+        SetBorderThickness(1)
+
+        Setup()
+    end
+
     action GetLabelTitle returns text
         return lineLabel:GetText()
     end
@@ -22,14 +36,6 @@ class OptionDialog is Dialog
     action SetLabelTitle(text title)
         SetName(title + " Dialog")
         lineLabel:SetText(title)
-    end
-
-    OptionDialogCancelBehavior defaultCancelBehavior
-    Behavior cancelBehavior = defaultCancelBehavior
-    on create
-        SetModal(true)
-        lineLabel:SetText("Are you sure?")
-        Setup()
     end
 
     action GetCancelBehavior returns Behavior
@@ -55,11 +61,8 @@ class OptionDialog is Dialog
         SetNextFocus(lineLabel)
         SetPreviousFocus(ok)
 
-        LabelBoxView view
-        Color color
-        view:SetBorderThickness(1)
-        view:SetBorderStyle(view:ALL)
-        view:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+        ControlShaderView view
+        view:Initialize()
 
         LayoutProperties props = lineLabel:GetDefaultLayoutProperties()
         props:SetPercentageOriginX(0.5)
@@ -75,6 +78,7 @@ class OptionDialog is Dialog
         props:SetPercentageOriginY(0.5)
         props:SetPercentageX(0.825)
         props:SetPercentageY(0.5)
+        ok:SetInterfaceOptionsKey("DialogAcceptButton")
         ok:SetName("Yes")
         ok:SetFontSize(14)
         ok:SetHorizontalLayoutMode(ok:parent:Libraries.Interface.Controls.Control:STANDARD)
@@ -98,6 +102,7 @@ class OptionDialog is Dialog
         cancel:SetPreviousFocus(ok)
 
         Control panel
+        Color color
         ManualLayout findLayout
         panel:SetLayout(findLayout)
         panel:SetPercentageWidth(1.0)

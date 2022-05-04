@@ -1,0 +1,164 @@
+package Libraries.Interface.Options
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Gradient
+
+/*
+    This is the default set of options for a light mode style color approach. 
+*/
+class LightModeOptions is InterfaceOptions
+    on create
+        Color color
+        constant number MAX = 255.0
+        SetFontColor(color:Black())
+        SetSelectionFontColor(color:White())
+        Color defaultSelectionColor = color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1)
+        //Color defaultSelectionColor = color:CustomColor(87.0 / MAX, 145.0 / MAX, 245.0 / MAX, 1)
+        SetSelectionColor(defaultSelectionColor)
+        SetBorderColor(color:Black())
+        SetIconColor(color:White())
+
+        Gradient backgroundGradient
+        Color gray = color:LightGray()
+        Color lightGray = color:CustomColor(234.0 / MAX, 234.0 / MAX, 234.0 / MAX, 1)
+        backgroundGradient:Set(lightGray, lightGray, lightGray, lightGray)
+        SetBackgroundColor(backgroundGradient)
+
+        Gradient mouseOverGradient
+        Color mouseOver = color:CustomColor(224.0 / MAX, 220.0 / MAX, 224.0 / MAX, 1)
+        mouseOverGradient:Set(mouseOver, mouseOver, mouseOver, mouseOver)
+        SetMouseOverColor(mouseOverGradient)
+
+        // Default shadow values.
+        SetShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetShadowX(6)
+        SetShadowY(-6)
+        SetShadowEdgeFade(3)
+
+        // Button specific colors.
+        SetButtonBorderThickness(2)
+        SetButtonFocusColor(defaultSelectionColor)
+        SetButtonFocusFontColor(color:White())
+        SetButtonMouseDownColor(color:CustomColor(223.0 / MAX, 223.0 / MAX, 223.0 / MAX, 1))
+        SetButtonFontColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 1))
+        SetButtonBackgroundColor(lightGray)
+
+        // Cell specific colors.
+        SetCellBackgroundColor(color:White())
+
+        // Checkbox specific colors.
+        SetCheckboxBackgroundColor(color:White())
+        SetCheckboxSelectionColor(color:CustomColor(79.0 / MAX, 158.0 / MAX, 227.0 / MAX, 1))
+        SetCheckboxBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
+        SetCheckboxSelectionBorderColor(color:CustomColor(79.0 / MAX, 151.0 / MAX, 217.0 / MAX, 1))
+        SetCheckboxAccentColor(color:White())
+
+        // ScrollPane specific colors.
+        Color sidePanel = color:CustomColor(244.0 / MAX, 243.0 / MAX, 243.0 / MAX, 1)
+        SetScrollPaneBackgroundColor(lightGray)
+        SetScrollPaneForegroundColor(sidePanel)
+        SetScrollPaneAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
+
+        // ProgressBar specific colors.
+        SetProgressBarBackgroundColor(color:CustomColor(0.9, 0.9, 0.9, 1))
+        SetProgressBarBorderColor(color:Black())
+        SetProgressBarForegroundColor(color:CustomColor(0.282, 0.4, 0.706, 1))
+
+        // RadioButton specific colors.
+        SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
+        SetRadioButtonBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
+        SetRadioButtonSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+        SetRadioButtonSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
+        SetRadioButtonFontColor(color:Black())
+        SetRadioButtonSelectionFontColor(color:Black())
+
+        SetRadioButtonBorderThickness(1)
+
+        // TabBar specific colors.
+        SetTabBarBackgroundColor(color:CustomColor(224.0 / MAX, 224.0 / MAX, 224.0 / MAX, 1))
+        SetTabBarBorderColor(color:Black())
+
+        //TABS
+        SetTabBackgroundColor(color:CustomColor(229.0 / MAX, 229.0 / MAX, 229.0 / MAX, 1))
+        SetTabFontColor(color:Black())
+        SetTabSelectionColor(defaultSelectionColor)
+        SetTabSelectionFontColor(color:White())
+        SetTabForegroundColor(color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1))
+        SetTabAccentColor(color:White())
+        SetTabUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
+        SetTabUnfocusedSelectionFontColor(color:Black())
+
+        SetTabBorderThickness(1)
+        SetTabTopLeftRounding(0.5)
+        SetTabTopRightRounding(0.5)
+
+        //TREES
+        //Trees use the control label to represent their selection when
+        //they do not have the focus. 
+        SetTreeItemUnfocusedSelectionFontColor(color:Black())
+        SetTreeItemUnfocusedSelectionColor(color:CustomColor(213.0 / MAX, 213.0 / MAX, 213.0 / MAX, 1))
+
+        //The arrow to the tree uses the accent color.
+        SetTreeItemAccentColor(color:CustomColor(124.0 / MAX, 127.0 / MAX, 134.0 / MAX, 1))
+
+
+        //MENUS
+        SetMenuItemBackgroundColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemBorderColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
+        SetMenuItemSelectionColor(defaultSelectionColor)
+
+        //TEXTBOX
+        SetTextBoxBackgroundColor(color:White())
+        SetTextBoxFontColor(color:Black())
+        SetTextBoxForegroundColor(sidePanel)
+        SetTextBoxAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
+        SetTextBoxIconColor(GetTextBoxFontColor())
+
+        //TEXT FIELD
+        SetTextFieldBackgroundColor(color:White())
+        SetTextFieldFontColor(color:Black())
+        SetTextFieldIconColor(GetTextFieldFontColor())
+
+        // TreeTableCell specific colors.
+        SetTreeTableCellBackgroundColor(color:White())
+        SetTreeTableCellSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))
+        SetTreeTableCellFontColor(color:Black())
+        SetTreeTableCellSelectionFontColor(color:White())
+        SetTreeTableCellBorderColor(color:Black())
+        SetTreeTableCellUnfocusedSelectionColor(color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1))
+        SetTreeTableCellUnfocusedSelectionFontColor(color:Black())
+
+        // Gutter specific colors.
+        SetGutterBackgroundColor(color:CustomColor(229.0/255.0, 229.0/255.0, 229.0/255.0, 1))
+        SetGutterBorderColor(color:CustomColor(142.0/255.0, 142.0/255.0, 142.0/255.0, 1))
+        SetGutterFontColor(color:Black())
+
+        // List specific colors.
+        SetListBackgroundColor(GetTextBoxBackgroundColor())
+
+        // ListItem specific colors.
+        SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
+
+        // Dialog colors.
+        SetDialogShadowColor(color:CustomColor(0, 0, 0, 0.5))
+        SetDialogShadowX(6)
+        SetDialogShadowY(-6)
+        SetDialogShadowEdgeFade(3)
+
+        // Dialog bar specific colors.
+        SetDialogBarBackgroundColor(color:CustomColor(224.0 / MAX, 224.0 / MAX, 224.0 / MAX, 1))
+        SetDialogBarBorderColor(color:Black())
+        SetDialogBarForegroundColor(color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1))
+        SetDialogBarAccentColor(color:White())
+        SetDialogBarFontColor(color:Black())
+
+        // Dialog accept button colors.
+        SetDialogAcceptButtonBackgroundColor(color:CustomColor(76.0/MAX, 138.0/MAX, 202.0/MAX, 1))
+        SetDialogAcceptButtonFontColor(color:White())
+        
+        Gradient okayMouseOver
+        okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))
+        SetDialogAcceptButtonMouseOverColor(okayMouseOver)
+        SetDialogAcceptButtonMouseDownColor(color:CustomColor(0.58, 0.58, 0.68, 1))
+    end
+end
