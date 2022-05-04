@@ -491,7 +491,7 @@ class Control is Item2D
     This action sets the y position of the Control relative to the size of its
     container, if the container's Layout supports it.
 
-    Attribute: Parameter y The target y position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    Attribute: Parameter y The target y position as a percentage (as a value between 0.0 and 1.0) of the container's height.
     */
     action SetPercentageY(number y)
         defaultProperties:SetPercentageY(y)
@@ -505,6 +505,50 @@ class Control is Item2D
     */
     action GetPercentageY returns number
         return defaultProperties:GetPercentageY()
+    end
+
+    /*
+    This action determines where the x-value of the "origin" point on the Control is located, as a percentage of its width.
+    When using a ManualLayout, the layout will try to position the Control's origin point at the location specified using
+    the Control's pixel and percentage position values. By default, the origin is at 0,0 (the bottom left corner of the object).
+
+    Attribute: Parameter x The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action SetPercentageOriginX(number x)
+        defaultProperties:SetPercentageOriginX(x)
+    end
+
+    /*
+    This action returns where the x-value of the "origin" point on the Control is located, as a percentage of its width.
+    When using a ManualLayout, the layout will try to position the Control's origin point at the location specified using
+    the Control's pixel and percentage position values. By default, the origin is at 0,0 (the bottom left corner of the object).
+
+    Attribute: Returns The target x position as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
+    action GetPercentageOriginX returns number
+        return defaultProperties:GetPercentageOriginX()
+    end
+
+    /*
+    This action determines where the y-value of the "origin" point on the Control is located, as a percentage of its height.
+    When using a ManualLayout, the layout will try to position the Control's origin point at the location specified using
+    the Control's pixel and percentage position values. By default, the origin is at 0,0 (the bottom left corner of the object).
+
+    Attribute: Parameter y The target y position as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
+    action SetPercentageOriginY(number y)
+        defaultProperties:SetPercentageOriginY(y)
+    end
+
+    /*
+    This action returns where the y-value of the "origin" point on the Control is located, as a percentage of its height.
+    When using a ManualLayout, the layout will try to position the Control's origin point at the location specified using
+    the Control's pixel and percentage position values. By default, the origin is at 0,0 (the bottom left corner of the object).
+
+    Attribute: Returns The target y position as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
+    action GetPercentageOriginY returns number
+        return defaultProperties:GetPercentageOriginY()
     end
 
     /*
