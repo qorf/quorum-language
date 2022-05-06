@@ -1,255 +1,305 @@
 package Libraries.Interface.Controls
 
-use Libraries.Containers.Array
-use Libraries.Containers.Support.Pair
-use Libraries.Interface.Events.FocusEvent
-use Libraries.Interface.Layouts.SpreadsheetLayout
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.System.File
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Selections.SpreadsheetSelection
-use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Compute.Math
 
 class Spreadsheet is Control
-    Array<Column> columns
-    SpreadsheetSelection selection
 
-    // The cellBehavior is called when a Cell would be activated if it doesn't
-    // have an activation behavior of its own defined.
-    Behavior cellBehavior = undefined
+    /*
+    TO-DO:
+    Selection
+    Selection in AccessibilityManager and WebAccessibility
+        - Related plugin code, as well
+    Spreadsheet behaviors
+    */
+
+    // The DataFrame representing the actual data in the columns/cells.
+    DataFrame frame
     
+    /*
+    The custom renderer handling the main area of the table.
+    Cells and gutters are added to the renderer. The scrolling elements
+    are not added to the renderer, but directly to the table instead.
+    */
+    SpreadsheetRenderer renderer
+
+    // Whether or not this table should display column headers.
+    boolean showHeaders = true
+
+    // Controls used for the scroll bars.
+    Control horizontalBar
+    Control horizontalControl
+    Control verticalBar
+    Control verticalControl
+
+    /*
+    Values representing how far the scroll bars have moved, where 0 is the start
+    of a track (left/top) and 1 is the end of a track (right/bottom). Note that
+    the values are calculated using the left/top edge of the scroll controls, so
+    reaching a full value of 1.0 is an unlikely edge case.
+    */
+    number scrollPercentX = 0
+    number scrollPercentY = 0
+
+    // How much of the overall table can be seen in the view, as a ratio of overall width/height.
+    number verticalViewRatio = 1
+    number horizontalViewRatio = 1
+
+    // How many pixels thick the bars are.
+    number barThickness = 20
+
+    // Values used for mouse wheel scrolling.
+    Math math
+    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+
     on create
-        SpreadsheetLayout layout
-        SetLayout(layout)
+        // TO-DO: Replace this with a specific set of options for Spreadsheet.
+        SetInterfaceOptionsKey("TextBox")
 
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        ManualLayout manual
+        SetLayout(manual)
 
-        SetInputGroup("Spreadsheet")
+        SetFont(GetDefaultFont())
+        SetFontSize(GetDefaultFontSize())
 
-        SetFocusable(true)
-        selection:Initialize(me)
-        SetAccessibilityCode(parent:Item:TABLE)
-        SetName("Table")
+        Add(renderer)
+
+        horizontalBar:SetPercentageX(0)
+        horizontalBar:SetPercentageY(0)
+        horizontalBar:SetPercentageWidth(1)
+        horizontalBar:SetPixelHeight(barThickness)
+        horizontalControl:SetPercentageHeight(1)
+
+        verticalBar:SetPercentageX(1)
+        verticalBar:SetPercentageY(0)
+        verticalBar:SetPercentageOriginX(1)
+        verticalBar:SetPercentageHeight(1)
+        verticalBar:SetPixelWidth(barThickness)
+        verticalControl:SetPercentageWidth(1)
+        verticalControl:SetPercentageOriginY(1)
+
+        horizontalBar:Add(horizontalControl)
+        verticalBar:Add(verticalControl)
+        Add(horizontalBar)
+        Add(verticalBar)
+
+        // The bars need layouts in order to set the controls within them.
+        ManualLayout horizontalLayout
+        horizontalBar:SetLayout(horizontalLayout)
+        ManualLayout verticalLayout
+        verticalBar:SetLayout(verticalLayout)
     end
 
-    action IsAccessibleParent returns boolean
-        return true
+    action Load(text fileName)
+        frame:Load(fileName)
+        Load(frame)
     end
 
-    action Add(Column column)
-        columns:Add(column)
-        column:SetSpreadsheet(me)
-        parent:Item2D:Add(column)
+    action Load(File file)
+        frame:Load(file)
+        Load(frame)
     end
 
-    action Add(integer position, Column column)
-        columns:Add(position, column)
-
-        parent:Item2D:Add(column)
-    end
-
-    action GetColumn(integer i) returns Column
-        return columns:Get(i)
-    end
-
-    action RemoveColumn(Column column)
-        columns:Remove(column)
-        column:SetSpreadsheet(undefined)
-        parent:Item2D:Remove(column)
-    end
-
-    action RemoveColumnAt(integer column)
-        Column c = columns:RemoveAt(column)
-        parent:Item2D:Remove(c)
-    end
-
-    action GetColumnsSize returns integer
-        return columns:GetSize()
-    end
-
-    action GetRowsSize returns integer
-        integer max = 0
-        integer counter = 0
-        repeat while counter < GetColumnsSize()
-            Column column = columns:Get(counter)
-            if column:GetSize() > max
-                max = column:GetSize()
-            end
-            counter = counter + 1
-        end
-
-        return max
-    end
-
-    action GetSelection returns SpreadsheetSelection
-        return selection
-    end
-
-    action IsColumnsEmpty returns boolean
-        return columns:IsEmpty()
-    end
-
-    action Empty
-        selection:Empty()
-        columns:Empty()
-        parent:Item2D:Empty()
+    action Load(DataFrame dataFrame)
+        frame = dataFrame
+        Reload()
     end
 
     /*
-    This action selects a single cell in the spreadsheet.
+    This action regenerates the cells and columns of the table to match the
+    already loaded data frame. Use this action to manually force the table
+    to reflect changes to the underlying DataFrame.
     */
-    action Select(Cell cell)
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
-        end
+    action Reload
+        renderer:Empty()
+        renderer:Load(me)
+    end
 
-        if cell not= undefined
-            cell:GainedSelection()
-        end
+    action GetDataFrame returns DataFrame
+        return frame
+    end
 
-        selection:Set(cell)
+    action SetShowHeaders(boolean display)
+        showHeaders = display
+    end
+
+    action IsShowingHeaders returns boolean
+        return showHeaders
+    end
+
+    action GetScrollPercentageX returns number
+        return scrollPercentX
+    end
+
+    action GetScrollPercentageY returns number
+        return scrollPercentY
     end
 
     /*
-    This action selects a single Cell at the provided x and y coordinates,
-    where the x coordinate represents the column and the y coordinate represents
-    the row.
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
     */
-    action Select(integer row, integer column)
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
+    action LoadGraphics(LayoutProperties properties)
+        // If the bars haven't had views loaded, do that now.
+        if verticalBar:GetView2D() = undefined
+            ControlShaderView verticalBarView
+            ControlShaderView horizontalBarView
+            ControlShaderView verticalControlView
+            ControlShaderView horizontalControlView
+    
+            verticalBarView:SetName("TextBox Vertical Bar View")
+            horizontalBarView:SetName("TextBox Horizontal Bar View")
+            verticalControlView:SetName("TextBox Vertical Control View")
+            horizontalControlView:SetName("TextBox Horizontal ControlView")
+    
+            verticalBarView:Initialize()
+            horizontalBarView:Initialize()
+            verticalControlView:Initialize()
+            horizontalControlView:Initialize()
+    
+            verticalBar:SetView2D(verticalBarView)
+            horizontalBar:SetView2D(horizontalBarView)
+            verticalControl:SetView2D(verticalControlView)
+            horizontalControl:SetView2D(horizontalControlView)
         end
 
-        Cell cell = GetCell(row, column)
-        if cell not= undefined
-            cell:GainedSelection()
-        end
+        verticalBar:SetBackgroundColor(GetForegroundColor())
+        horizontalBar:SetBackgroundColor(GetForegroundColor())
+        verticalControl:SetBackgroundColor(GetAccentColor())
+        horizontalControl:SetBackgroundColor(GetAccentColor())
 
-        selection:Set(row, column)
+        parent:Control:LoadGraphics(properties)
     end
 
-    action Deselect
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
+    /*
+    The Resize action is used to recalculate the size and position of Controls
+    that are being controlled by a Layout. Calling Resize on an Item2D won't
+    have a direct effect on it, but if the Item's children hierarchy contains
+    any Controls, those Controls will be resized.
+    */
+    action Resize
+        number height = GetHeight()
+        number width = GetWidth()
+        number totalHeight = renderer:GetTotalHeight()
+        number totalWidth = renderer:GetTotalWidth()
+
+        verticalViewRatio = height / renderer:GetTotalHeight()
+        horizontalViewRatio = width / renderer:GetTotalWidth()
+        boolean verticalVisible = verticalViewRatio < 1.0
+        boolean horizontalVisible = horizontalViewRatio < 1.0
+        number barHeight = height
+        number barWidth = width
+
+        /*
+        If both bars are visible, we need to offset the total size of the bars so they can't overlap
+        in the bottom right corner. Otherwise, if only one is visible, they're allowed to use the whole
+        side of the spreadsheet view, so nix any previously set pixel values.
+        */
+        if verticalVisible and horizontalVisible
+            verticalBar:SetPixelHeight(-barThickness)
+            horizontalBar:SetPixelWidth(-barThickness)
+            barHeight = height - barThickness
+            barWidth = width - barThickness
+            verticalViewRatio = barHeight / totalHeight
+            horizontalViewRatio = barWidth / totalWidth
+        else
+            verticalBar:SetPixelHeight(0)
+            horizontalBar:SetPixelWidth(0)
         end
 
-        selection:Empty()
+        if verticalViewRatio > 1.0
+            verticalViewRatio = 1.0
+        end
+
+        if horizontalViewRatio > 1.0
+            horizontalViewRatio = 1.0
+        end
+
+        if verticalVisible
+            verticalControl:SetPercentageHeight(verticalViewRatio)
+            verticalBar:Show()
+            renderer:SetPixelWidth(-barThickness)
+        else
+            verticalBar:Hide()
+            renderer:SetPixelWidth(0)
+        end
+
+        if horizontalVisible
+            horizontalControl:SetPercentageWidth(horizontalViewRatio)
+            horizontalBar:Show()
+            renderer:SetPixelHeight(-barThickness)
+            renderer:SetPixelY(barThickness)
+        else
+            horizontalBar:Hide()
+            renderer:SetPixelHeight(0)
+            renderer:SetPixelY(0)
+        end
+
+        // UpdatePaneView also calls the parent Resize action from Item2D, so
+        // layouts will properly be applied.
+        UpdatePaneView(GetScrollPercentageX(), GetScrollPercentageY())
     end
 
-    action MoveSelectionUp
-        integer row = selection:GetRow()
-        integer column = selection:GetColumn()
+    // Update the position of the scroll bars, then refresh the renderer to view the appropriate cells.
+    private action UpdatePaneView(number percentX, number percentY)
+        if percentX > (1.0 - horizontalViewRatio)
+            percentX = 1.0 - horizontalViewRatio
+        elseif percentX < 0.0
+            percentX = 0.0
+        end
+
+        if percentY > (1.0 - verticalViewRatio)
+            percentY = 1.0 - verticalViewRatio
+        elseif percentY < 0.0
+            percentY = 0.0
+        end
+
+        horizontalControl:SetPercentageY(percentX)
+        verticalControl:SetPercentageY(1.0 - percentY)
+
+        scrollPercentageX = percentX
+        scrollPercentageY = percentY
         
-        if row > 0
-            Select(row - 1, column)
-        end
+        parent:Item2D:Resize()
     end
 
-    action MoveSelectionDown
-        integer row = selection:GetRow()
-        integer col = selection:GetColumn()
+    action ScrolledMouse(MouseEvent event)
+        number y = event:scrollAmount
+        boolean positive = true
+        if y < 0
+            positive = false
+            y = y * -1
+        end
+
+        y = y + 1
+        y = math:SquareRoot(math:Logarithm(y))
+        number lines = cast(integer, y / liner)
+        if lines <= 1
+            lines = 1
+        end
+        /*
+        TO-DO: Consider getting a different value for the count.
+        This will work fine for the common case of every row being a single row of text,
+        but for other cases, there's probably a more accurate value that can be retrieved.
+        The renderer would likely be the best place to get this info, once it's been
+        optimized to pre-calculate heights and cache them.
+        */
+        number count = frame:GetRowSize()
+        number linePercentage = lines / count
+
+        number heightChange = linePercentage * lines
+
+        if not positive
+            heightChange = heightChange * -1
+        end
         
-        if col >= 0 and col < columns:GetSize()
-            Column column = columns:Get(col)
-            if row < column:GetSize() - 1
-                Select(row + 1, col)
-            end
-        end
-    end
-
-    action MoveSelectionLeft
-        integer row = selection:GetRow()
-        integer column = selection:GetColumn()
-
-        if selection:GetColumn() > 0
-            Select(row, column - 1)
-        end
-    end
-
-    action MoveSelectionRight
-        integer row = selection:GetRow()
-        integer column = selection:GetColumn()
-        
-        if selection:GetColumn() < columns:GetSize() - 1
-            Select(row, column + 1)
-        end
-    end
-
-    /*
-    This action returns the coordinates of a cell within the Spreadsheet within
-    a Pair object. The first value of the Pair is the x coordinate, representing
-    which column contains the cell. The second value of the Pair is the y
-    coordinate, representing which row contains the cell.
-
-    This action can potentially iterate over every cell in the Spreadsheet, and
-    should be used sparingly if working with lots of cells.
-    */
-    action GetCellCoordinates(Cell cell) returns Pair<integer>
-        integer col = 0
-        Pair<integer> pair
-
-        repeat while col < columns:GetSize()
-            Column column = columns:Get(col)
-            integer row = column:GetCellIndex(cell)
-            if row > -1
-                pair:Set(row, col)
-                return pair
-            end
-            col = col + 1
-        end
-
-        // If the cell couldn't be found, return -1 for each coordinate.
-        pair:Set(-1, -1)
-        return pair
-    end
-
-    /*
-    This action returns the index of the column within the Spreadsheet, or
-    returns -1 if the column is not a part of this Spreadsheet.
-    */
-    action GetColumnIndex(Column column) returns integer
-        return columns:GetFirstLocation(column)
-    end
-
-    /*
-    This action gets the cell located at the given coordinates, specified 
-    as a row and then a column.
-    */
-    action GetCell(integer row, integer column) returns Cell
-        return columns:Get(column):GetCell(row)
-    end
-
-    /*
-    This action sets the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
-    be used instead.
-    */
-    action SetCellActivationBehavior(Behavior behavior)
-        cellBehavior = behavior
-    end
-
-    /*
-    This action returns the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
-    be used instead.
-    */
-    action GetCellActivationBehavior returns Behavior
-        return cellBehavior
-    end
-
-    /*
-
-    */
-    action GainedFocus(FocusEvent event)
-        if selection:IsEmpty()
-            if columns:IsEmpty() = false and columns:Get(0):IsEmpty() = false
-                Select(0, 0)
-            end
-        end
+        UpdatePaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
     end
 end

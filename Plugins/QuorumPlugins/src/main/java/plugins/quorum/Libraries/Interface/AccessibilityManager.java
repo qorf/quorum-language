@@ -14,7 +14,6 @@ import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.ButtonGroup_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Cell_;
-import quorum.Libraries.Interface.Controls.Column_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.List_;
 import quorum.Libraries.Interface.Item_;
@@ -293,13 +292,17 @@ public class AccessibilityManager
                 nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), groupPointer, item);
                 break;
             case TABLE:
-                nativePointer = CreateSpreadsheetNative(parentLong, item.GetName(), item);
+                // TO-DO: FIX ME
+                nativePointer = 0;
+//                nativePointer = CreateSpreadsheetNative(parentLong, item.GetName(), item);
                 break;
             case TREE_TABLE:
                 nativePointer = CreateTreeTableNative(parentLong, item.GetName(), item);
                 break;
             case CELL:
-                nativePointer = CreateCellNative(parentLong, item.GetName(), item, false);
+                // TO-DO: FIX ME
+                nativePointer = 0;
+//                nativePointer = CreateCellNative(parentLong, item.GetName(), item, false);
                 break;
             case TREE_TABLE_CELL:
                 nativePointer = CreateCellNative(parentLong, item.GetName(), item, true);
@@ -967,17 +970,19 @@ public class AccessibilityManager
     */
     public static long GetSpreadsheetSelectionPointer(Spreadsheet_ sheet)
     {
-        SpreadsheetSelection_ selection = sheet.GetSelection();
-        Item_ item = selection.Get();
-        if (item == null)
-            return 0;
-        
-        Long itemPointer = ITEM_MAP.get(item);
-        
-        if (itemPointer == null)
-            return 0;
-        else
-            return itemPointer;
+        // TO-DO: FIX ME
+        return 0;
+//        SpreadsheetSelection_ selection = sheet.GetSelection();
+//        Item_ item = selection.Get();
+//        if (item == null)
+//            return 0;
+//
+//        Long itemPointer = ITEM_MAP.get(item);
+//
+//        if (itemPointer == null)
+//            return 0;
+//        else
+//            return itemPointer;
     }
     
     
@@ -1013,15 +1018,16 @@ public class AccessibilityManager
     {
         if (object instanceof Cell_)
         {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
-                if (spreadsheet != null)
-                    return spreadsheet.GetColumnIndex(column);
-            }
+            // TO-DO: FIX ME
+//            Cell_ cell = (Cell_)object;
+//            Column_ column = cell.GetColumn();
+//
+//            if (column != null)
+//            {
+//                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
+//                if (spreadsheet != null)
+//                    return spreadsheet.GetColumnIndex(column);
+//            }
         }
         else if (object instanceof TreeTableCell_)
         {
@@ -1049,13 +1055,14 @@ public class AccessibilityManager
     {
         if (object instanceof Cell_)
         {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                return column.GetCellIndex(cell);
-            }
+            // TO-DO: FIX ME
+//            Cell_ cell = (Cell_)object;
+//            Column_ column = cell.GetColumn();
+//
+//            if (column != null)
+//            {
+//                return column.GetCellIndex(cell);
+//            }
         }
         else if (object instanceof TreeTableCell_)
         {
@@ -1089,7 +1096,8 @@ public class AccessibilityManager
         Item_ item = null;
         if (spreadsheet != null)
         {
-            item = spreadsheet.GetCell(row, column);
+            // TO-DO: FIX ME
+//            item = spreadsheet.GetCell(row, column);
         }
         else if (treeTable != null)
         {
@@ -1141,7 +1149,9 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetColumnsSize();
+            // TO-DO: FIX ME
+            return 0;
+//            return spreadsheet.GetColumnsSize();
         }
         else if (treeTable != null)
         {
@@ -1182,7 +1192,9 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetRowsSize();
+            // TO-DO: FIX ME
+            return 0;
+//            return spreadsheet.GetRowsSize();
         }
         else if (treeTable != null)
         {
@@ -1206,8 +1218,9 @@ public class AccessibilityManager
     {
         if (object instanceof Cell_)
         {
-            Cell_ cell = (Cell_)object;
-            return cell.GetText();
+            // TO-DO: FIX ME
+//            Cell_ cell = (Cell_)object;
+//            return cell.GetText();
         }
         else if (object instanceof TreeTableCell_)
         {
@@ -1297,6 +1310,7 @@ public class AccessibilityManager
     
     public static double[] GetTextBoundingRectangle(Object_ object, int startIndex, int endIndex)
     {
+        // TO-DO: FIX ME
         // The order of values in the bounding box is left, top, width, height.
         double[] bounds = new double[4];
         

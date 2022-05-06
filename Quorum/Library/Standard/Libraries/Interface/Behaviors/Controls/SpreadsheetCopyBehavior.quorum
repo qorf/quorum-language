@@ -15,21 +15,21 @@ use Libraries.Game.Game
 */
 class SpreadsheetCopyBehavior is Behavior
     action Run(BehaviorEvent event)
-        if event:GetItem() is Spreadsheet
-            Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
-            
-            SpreadsheetSelection selection = sheet:GetSelection()
-            Cell cell = selection:Get()
-            if cell = undefined
-                return now
-            end
-            text value = cell:GetText()
-            if value = undefined
-                return now
-            end
-            GameStateManager manager
-            Game game = manager:GetGame()
-            game:SetClipboard(value)
-        end
+//        if event:GetItem() is Spreadsheet
+//            Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
+//            
+//            SpreadsheetSelection selection = sheet:GetSelection()
+//            Cell cell = selection:Get()
+//            if cell = undefined
+//                return now
+//            end
+//            text value = cell:GetText()
+//            if value = undefined
+//                return now
+//            end
+//            GameStateManager manager
+//            Game game = manager:GetGame()
+//            game:SetClipboard(value)
+//        end
     end
 end

@@ -181,12 +181,13 @@ class AccessibilityManager is Accessibility
             end
 
         elseif selection is SpreadsheetSelection
-            SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
-            if not tableSelection:IsEmpty()
-                Cell cell = tableSelection:Get()
-
-                Select(cell)
-            end
+        // TO-DO: Re-implement accessible Spreadsheet selection
+//            SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
+//            if not tableSelection:IsEmpty()
+//                Cell cell = tableSelection:Get()
+//
+//                Select(cell)
+//            end
         elseif selection is ListSelection
             ListSelection listSelection = cast(ListSelection, selection)
             if not listSelection:IsEmpty()

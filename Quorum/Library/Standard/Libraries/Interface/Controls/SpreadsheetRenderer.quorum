@@ -1,0 +1,431 @@
+package Libraries.Interface.Controls
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+use Libraries.Interface.Layouts.ManualLayout
+
+class SpreadsheetRenderer is Control
+
+    Spreadsheet table = undefined
+
+    // A reusable source of data cells. Mitigates new object instantiation/garbage collection for large data sets.
+    Array<Cell> cellPool
+
+    /*
+    A two dimensional array of the columns and the cells they contain.
+    Only cells currently visible in the renderer are present here. If
+    a column isn't visible (because it's too far to the left or right)
+    then that column will be represented by an empty array.
+    */
+    Array<Array<Cell>> columns
+
+    Math math
+
+    // How much horizontal and vertical padding should be applied to cells.
+    // Currently just interface-scaled pixel constants, but this could change in the future.
+    number horizontalCellPadding = 4
+    number verticalCellPadding = 3
+
+    number gutterWidth = 0
+    number gutterHeight = 0
+
+    on create
+        SetPercentageWidth(1.0)
+        SetPercentageHeight(1.0)
+//        SetClipping(true)
+//        SetCustomDrawing(true)
+
+        ManualLayout layout
+        SetLayout(layout)
+    end
+
+    action Load(Spreadsheet table)
+        me:table = table
+
+        UpdateCellView(table:GetScrollPercentageX(), table:GetScrollPercentageY())
+    end
+
+    action UpdateCellView(number scrollPercentX, number scrollPercentY)
+        DataFrame frame = table:GetDataFrame()
+        Array<DataFrameColumn> dataColumns = frame:GetColumns()
+        if dataColumns:IsEmpty()
+            Empty()
+            return now
+        end
+
+        number rows = frame:GetRowSize()
+        number firstRow = GetRowFromScrollValue(scrollPercentY)
+        integer firstRowInteger = cast(integer, firstRow)
+        if firstRow > -1 and firstRow < 0
+            firstRowInteger = -1
+        end
+
+        // Check to make sure we have the same number of cell columns and data frame columns.
+        // Start by trimming the columns if we have too many.
+        repeat while columns:GetSize() > dataColumns:GetSize()
+            RecycleColumn(columns:RemoveFromEnd())
+        end
+
+        // Add new column arrays if we don't have enough.
+        repeat while columns:GetSize() < dataColumns:GetSize()
+            Array<Cell> newColumn
+            columns:Add(newColumn)
+        end
+
+        /*
+        These variables map the left and right edges of the renderer to the column's x-coordinates.
+        i.e. if windowLeft = 100 and windowRight = 200, the pixels of the columns between x-coordinates
+        100 and 200 will be visible in the renderer.
+        */
+        number windowLeft = scrollPercentX * GetTotalWidth()
+        number windowRight = windowLeft + GetCellViewWidth()
+
+        // The x-coordinates of the left and right sides of the current column.
+        number currentLeft = 0
+        number currentRight = 0
+
+        // Iterate over the columns, determining how many cells from each should be visible.
+        integer columnCounter = 0
+        repeat while columnCounter < columns:GetSize()
+            number columnWidth = GetColumnWidth(columnCounter)
+            currentRight = currentLeft + columnWidth
+            if currentLeft > windowRight or currentRight < windowLeft or firstRowInteger >= rows
+                // This column isn't visible in the renderer. Empty out the cells.
+                RecycleColumn(columns:Get(columnCounter))
+            else
+                Array<Cell> column = columns:Get(columnCounter)
+                integer cellIndex = 0
+                integer dataIndex = firstRowInteger
+                number y = GetCellViewHeight() + (firstRow - firstRowInteger) * GetCellHeight(firstRowInteger)
+                // Stack up the visible cells in this column from top-to-bottom.
+                repeat while y > 0 and dataIndex < rows
+                    number cellHeight = GetCellHeight(dataIndex)
+                    y = y - cellHeight
+
+                    Cell cell = undefined
+                    if cellIndex < column:GetSize()
+                        cell = column:Get(cellIndex)
+                    else
+                        Cell newCell = NewCell()
+                        column:Add(newCell)
+                        cell = newCell
+                    end
+
+                    SetCellValues(cell, columnCounter, dataIndex)
+                    cell:SetPixelWidth(columnWidth)
+                    cell:SetPixelHeight(cellHeight)
+                    cell:SetPixelX(currentLeft)
+                    cell:SetPixelY(y)
+
+                    cellIndex = cellIndex + 1
+                    dataIndex = dataIndex + 1
+                end
+
+                // Trim out any extra cells we don't need in this column.
+                repeat while cellIndex < column:GetSize()
+                    Cell cell = column:RemoveFromEnd()
+                    RecycleCell(cell)
+                end
+            end
+
+            currentLeft = currentRight
+            columnCounter = columnCounter + 1
+        end
+    end
+
+    action Empty
+        integer i = 0
+        repeat while i < columns:GetSize()
+            RecycleColumn(columns:Get(i))
+            i = i + 1
+        end
+
+        cellPool:Empty()
+    end
+
+    action GetColumnWidth(integer index) returns number
+        // TO-DO: Make this return a more reasonable value. For now, return a hard-coded value for testing.
+        // This needs to eventually include interface scaling somehow.
+        return GetWidth() * 0.25
+    end
+
+    action GetCellHeight(integer rowIndex) returns number
+        DataFrame frame = table:GetDataFrame()
+
+        /*
+        TO-DO: Currently we brute force calculate how many rows of text are needed for text wrapping on every cell in a row.
+        Since this isn't cached yet, this will involve a lot of repeated calculations. This will need to be optimized in the future.
+        */
+        integer i = 0
+        integer lines = 0
+        repeat while i < frame:GetSize()
+            integer currentLines = CalculateLinesOfText(i, rowIndex, GetColumnWidth(i) - 2 * horizontalCellPadding)
+            if currentLines > lines
+                lines = currentLines
+            end
+            i = i + 1
+        end
+
+        Font font = table:GetFont()
+        font:SetSize(cast(integer, table:GetFontSize() * table:GetInterfaceScale() + 0.5))
+        return font:GetLineHeight() * lines + 2 * verticalCellPadding * table:GetInterfaceScale()
+    end
+
+    private action CalculateLinesOfText(integer columnIndex, integer rowIndex, number wrapWidth) returns integer
+        // Check edge cases -- if the cell's not valid, return a default value.
+        DataFrame frame = table:GetDataFrame()
+        DataFrameColumn column = frame:GetColumn(columnIndex)
+        if rowIndex >= column:GetSize()
+            return 1
+        elseif rowIndex = -1
+            return CalculateLinesOfText(column:GetHeader(), wrapWidth)
+        end
+
+        text cellText = column:GetAsText(rowIndex)
+        if cellText = undefined
+            return 1
+        end
+
+        return CalculateLinesOfText(cellText, wrapWidth)
+    end
+
+    private action CalculateLinesOfText(text cellText, number wrapWidth) returns integer
+        Font font = table:GetFont()
+        if font = undefined or font:IsLoaded() = false
+            return 0
+        end
+
+        if font:GetSize() not= table:GetFontSize() * table:GetInterfaceScale()
+            font:SetSize(cast(integer, table:GetFontSize() * table:GetInterfaceScale()))
+        end
+
+        // Start counting the actual lines of code.
+        // The line-counting code here is an adapated and trimmed form of the code in Label:LoadDrawables().
+
+        integer index = 0
+        number x = 0
+
+        Glyph glyph = undefined
+
+        boolean endsWithSpace = false
+
+        if cellText:GetSize() > 0
+            endsWithSpace = cellText:GetCharacter(cellText:GetSize() - 1):Equals(" ")
+        end
+
+        Array<text> lines = cellText:Split(cellText:GetLineFeed(), true)
+        Array<text> words = undefined
+
+        integer lineIndex = 0
+        integer wordsIndex = 0
+        integer glyphIndex = 0
+        text currentWord = ""
+        integer currentWordLength = 0
+        integer currentLineLength = 0
+
+        number maxLineWidth = 0
+        integer lineCount = 0
+
+        repeat lines:GetSize() times
+            words = lines:Get(lineIndex):Split(" ", true)
+            wordsIndex = 0
+            currentLineLength = 0
+
+            repeat words:GetSize() times
+                currentWord = words:Get(wordsIndex)
+                currentWordLength = 0
+                glyphIndex = 0
+
+                if wordsIndex + 1 not= words:GetSize() or endsWithSpace
+                    currentWord = currentWord + " "
+                end
+
+                repeat currentWord:GetSize() times
+                    glyph = font:GetGlyph(currentWord:GetCharacter(glyphIndex))
+                    currentWordLength = currentWordLength + glyph:horizontalAdvance
+                    glyphIndex = glyphIndex + 1
+                end
+
+                if currentLineLength + currentWordLength > wrapWidth
+                    if currentLineLength > maxLineWidth
+                        maxLineWidth = currentLineLength
+                    end
+                    lineCount = lineCount + 1
+                    currentLineLength = 0
+                    x = 0
+                end
+
+                glyphIndex = 0
+                repeat currentWord:GetSize() times
+                    glyphIndex = glyphIndex + 1
+                    x = x + glyph:horizontalAdvance
+                    if x > wrapWidth
+                        currentLineLength = 0
+                        currentWordLength = 0
+                        x = 0
+                        lineCount = lineCount + 1
+                    end
+                end
+
+                wordsIndex = wordsIndex + 1
+                currentLineLength = currentLineLength + currentWordLength
+            end
+
+            if currentLineLength > maxLineWidth
+                maxLineWidth = currentLineLength
+            end
+
+            // After iterating through all words on this line, we go to the
+            // next line.
+            lineIndex = lineIndex + 1
+            x = 0
+            lineCount = lineCount + 1
+        end
+
+        return lineCount
+    end
+
+    // Returns the combined height of all of the rows (including headers if they're showing in the parent table).
+    action GetTotalHeight returns number
+        // TO-DO: This value should be cached and only regenerated when absolutely necessary.
+
+        DataFrame frame = table:GetDataFrame()
+        Array<DataFrameColumn> frameColumns = frame:GetColumns()
+        integer rows = frame:GetRowSize()
+
+        number height = 0
+        integer i = 0
+        if table:IsShowingHeaders()
+            // Passing -1 as our index into GetCellHeight will get the height of the header cells.
+            i = -1
+        end
+
+        repeat while i < rows
+            height = height + GetCellHeight(i)
+            i = i + 1
+        end
+
+        return height
+    end
+
+    /*
+    Returns the index of the first row visible at the top of the spreadsheet
+    for the given scroll value. Note that this can return non-integer values.
+    The fractional component indicates how much of the row is off of the top
+    of the spreadsheet. For example, a return value of "4.2" would indicate
+    that the first row is at index 4, and 20% of it is off the top (and thus
+    the bottom 80% of it is visible in the table).
+    */
+    action GetRowFromScrollValue(number scrollPercentY) returns number
+        // TO-DO: The total height is recalculated each time, but it should be cached and only regenerated when absolutely necessary.
+        // Because of that we potentially iterate over the whole set of cells twice to find the row!
+        number totalHeight = GetTotalHeight()
+        number scrollPoint = scrollPercentY * totalHeight
+        integer rowCount = table:GetDataFrame():GetRowSize()
+
+        if scrollPoint >= totalHeight
+            return rowCount
+        end
+
+        integer index = 0
+        if table:IsShowingHeaders()
+            // Passing -1 as our index into GetCellHeight will get the height of the header cells.
+            index = -1
+        end
+
+        number y = 0
+        number nextY = 0
+        repeat while nextY < scrollPoint
+            y = nextY
+            if index < rowCount
+                nextY = nextY + GetCellHeight(index)
+            else
+                nextY = totalHeight
+            end
+
+            index = index + 1
+        end
+
+        if nextY = scrollPoint
+            return index
+        else
+            number cellHeight = nextY - y
+            number relativeScrollPoint = cellHeight - (nextY - scrollPoint)
+            return (index - 1) + (relativeScrollPoint / cellHeight)
+        end
+    end
+
+    // Returns the combined width of all of the columns.
+    action GetTotalWidth returns number
+        integer i = 0
+        number result = 0
+        repeat while i < columns:GetSize()
+            result = result + GetColumnWidth(i)
+            i = i + 1
+        end
+        return result
+    end
+
+    action GetCellViewWidth returns number
+        return GetWidth() - gutterWidth
+    end
+
+    action GetCellViewHeight returns number
+        return GetHeight() - gutterHeight
+    end
+
+    private action RecycleColumn(Array<Cell> column)
+        repeat until column:IsEmpty()
+            Cell cell = column:RemoveFromEnd()
+            RecycleCell(cell)
+        end
+    end
+
+    private action NewCell returns Cell
+        if cellPool:IsEmpty() = false
+            Cell cell = cellPool:RemoveFromEnd()
+            Add(cell)
+            return cell
+        else
+            Cell cell
+            Add(cell)
+            return cell
+        end
+    end
+
+    private action RecycleCell(Cell cell)
+        if cell = undefined
+            return now
+        end
+
+        Remove(cell)
+        cellPool:Add(cell)
+    end
+
+    private action SetCellValues(Cell cell, integer columnIndex, integer rowIndex)
+        DataFrame frame = table:GetDataFrame()
+        cell:SetInterfaceOptionsKey(table:GetInterfaceOptionsKey())
+        if rowIndex = -1
+            Array<text> headers = frame:GetHeaders()
+            cell:SetValue(headers:Get(columnIndex))
+        else
+            DataFrameColumn column = frame:GetColumn(columnIndex)
+            cell:SetValue(column:GetAsText(rowIndex))
+        end
+
+        cell:SetSpreadsheet(table)
+        cell:SetHorizontalPadding(horizontalCellPadding)
+        cell:SetVerticalPadding(verticalCellPadding)
+    end
+
+    action Resize
+        parent:Item2D:Resize()
+        
+        if table not= undefined
+            UpdateCellView(table:GetScrollPercentageX(), table:GetScrollPercentageY())
+        end
+    end
+end
