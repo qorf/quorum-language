@@ -154,6 +154,10 @@ class ScatterPlotWriter is ChartWriter
             
         else
             ChartItem firstSubChartAreaItem = chartItem:GetChildItem()
+            if firstSubChartAreaItem = undefined
+                return now
+            end
+
             if firstSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, firstSubChartAreaItem:GetFocusTarget()) = chartArea
                 ChartItem firstItem = firstSubChartAreaItem:GetChildItem()
 

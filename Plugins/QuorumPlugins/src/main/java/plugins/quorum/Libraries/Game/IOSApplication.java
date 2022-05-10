@@ -346,6 +346,11 @@ public class IOSApplication
     */
     public void Log(String info)
     {
+        GlobalLog(info);
+    }
+
+    public static void GlobalLog(String info)
+    {
         Foundation.log("%@", new NSString(info));
     }
 }

@@ -192,6 +192,7 @@ use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Options.BasicOptions
+use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 
 /*
@@ -2718,6 +2719,68 @@ class Game
     */
     action RemoveTouchListener(TouchListener listener)
         gameInput:RemoveTouchListener(listener)
+    end
+
+    /*
+    This action adds a GestureListener to the Game. The gesture listener will be
+    notified when the user performs a gesture on mobile devices, so long as the event
+    is not handled by any items in the layers.
+
+    Attribute: Parameter listener The GestureListener to add to the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.GestureListener
+
+        class Main is Game
+
+            GestureListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddGestureListener(listener)
+            end
+            
+        end
+    */
+    action AddGestureListener(GestureListener listener)
+        gameInput:AddGestureListener(listener)
+    end
+
+    /*
+    This action removes a GestureListener from the Game. The listener will no
+    longer receive GestureEvents from the Game. If the given GestureListener is not
+    a part of the Game, this action will have no effect.
+
+    Attribute: Parameter listener The GestureListener to be removed from the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.GestureListener
+
+        class Main is Game
+
+            GestureListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddGestureListener(listener)
+
+                RemoveGestureListener(listener)
+            end
+            
+        end
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gameInput:RemoveGestureListener(listener)
     end
 
     /*

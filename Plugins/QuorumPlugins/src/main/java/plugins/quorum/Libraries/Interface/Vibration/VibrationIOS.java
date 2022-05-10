@@ -49,6 +49,8 @@ public class VibrationIOS implements VibrationStrategy {
             engine.startAndReturnError(ptr);
             Foundation.log("%@", ptr.get());
         } catch(Exception e) {
+            Foundation.log("%@", new NSString("VibrationIOS: Exception during haptic engine setup!"));
+            Foundation.log("%@", new NSString(e.getMessage()));
             engine = null; //if it's off, it's off.
         }
     }

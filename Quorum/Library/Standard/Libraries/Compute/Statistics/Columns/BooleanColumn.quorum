@@ -206,7 +206,7 @@ class BooleanColumn is DataFrameColumn
             if GetSortComparison() not= undefined
                 newRows:Sort(GetSortComparison())
             else
-                newRows:Sort()
+                newRows:Sort(me)
             end
         end
         column:rows = newRows
