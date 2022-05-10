@@ -806,6 +806,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             root.remove();
             root = null;
         }
+        if (focusButton) {
+            focusButton.remove();
+            focusButton = null;
+        }
         elementList.length = 0;
         currentFocus = null;
     };
