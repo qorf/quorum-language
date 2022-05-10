@@ -40,7 +40,7 @@ use Libraries.Language.Compile.Interpreter.Result
     DataFrameColumn col = frame:GetColumn(0)
     output col:ToText()
 */
-class DataFrameColumn 
+class DataFrameColumn is Comparison
     /* This is the name of the column. */
     text header = ""
     integer undefinedSize = 0
@@ -576,5 +576,19 @@ class DataFrameColumn
     */
     action SetSortComparison(Comparison comparison)
         me:comparison = comparison
+    end
+
+    action Compare(Object a, Object b) returns integer
+        //first handle the case where items are undefined
+        if a = undefined and b = undefined
+            return 0
+        elseif a = undefined and b not= undefined
+            return -1
+        elseif a not= undefined and b = undefined
+            return 1
+        end
+
+        //both items are defined, so now do the normal sort
+        return a:Compare(b)
     end
 end

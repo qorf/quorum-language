@@ -20,6 +20,8 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Events.GestureListener
 
 /*
     The Item class represents any object that has a position (such as x and y
@@ -75,6 +77,7 @@ class Item
     Array<MouseMovementListener> mouseMoveListeners
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
+    Array<GestureListener> gestureListeners
     Array<FocusListener> focusListeners
     Array<Behavior> behaviors
 
@@ -289,6 +292,28 @@ class Item
     
     */
     blueprint action ProcessMouseEvent(MouseEvent event)
+
+    /*  
+    This action takes a gesture event and handles it. It will first test to 
+    see if the gesture event took place within the bounds of this Item. If so, it
+    will notify any GestureListeners of the event. If the event was not contained
+    within this Item, or if there are no GestureListeners on this Item, the Item
+    will ask its parent Item to process the event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Events.GestureEvent
+        use Libraries.Interface.Events.GestureListener
+        Item2D myItem
+        GestureListener listener
+        myItem:AddGestureListener(listener)
+        GestureEvent event
+        event:eventType = event:DOUBLE_TAP
+        myItem:ProcessGestureEvent(event)
+    
+    */
+    blueprint action ProcessGestureEvent(GestureEvent event)
     
     /*
     This action sets the X coordinate of the Item.
@@ -581,6 +606,49 @@ class Item
     */
     action GetTouchListeners returns Iterator<TouchListener>
         return touchListeners:GetIterator()
+    end
+
+    /* 
+    This action adds a GestureListener to the Item. If the Item ever receives a
+    GestureEvent, the listener will be notified.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.GestureListener
+        Item myItem
+        GestureListener listener
+        myItem:AddGestureListener(listener)
+    */
+    action AddGestureListener(GestureListener listener)
+        gestureListeners:Add(listener)
+    end
+
+    /* 
+    This action removes a GestureListener from the Item. The listener will no
+    longer receive notification if the Item gets a GestureEvent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item
+        use Libraries.Interface.Events.GestureListener
+        Item myItem
+        GestureListener listener
+        myItem:AddGestureListener(listener)
+        myItem:RemoveGestureListener(listener)
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gestureListeners:Remove(listener)
+    end
+
+    /*
+    This action returns an Iterator containing all of the GestureListeners
+    that have been added to this Item using the AddGestureListener action.
+
+    Attribute: Returns An iterator containing all of the registered GestureListeners.
+    */
+    action GetGestureListeners returns Iterator<GestureListener>
+        return gestureListeners:GetIterator()
     end
 
     /* 

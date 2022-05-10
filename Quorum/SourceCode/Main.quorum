@@ -25,6 +25,7 @@ use Libraries.Language.Compile.CompilerRequest
 use Libraries.Network.NetworkExchangeListener
 use Libraries.Network.NetworkExchange
 use Libraries.Network.WebServer
+use Libraries.Compute.Statistics.DataFrame
 
 class Main is NetworkExchangeListener
     public constant text NAME_FLAG = "-name"
@@ -306,6 +307,7 @@ class Main is NetworkExchangeListener
                 output "File written."
             end
         else
+            //output errors:GetCompilerErrorsAsDataFrame():ToText()
             output errors:GetCompilerErrorsAsText()
         end
     end

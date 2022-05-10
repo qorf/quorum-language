@@ -232,7 +232,7 @@ class NumberColumn is DataFrameColumn
             if GetSortComparison() not= undefined
                 newRows:Sort(GetSortComparison())
             else
-                newRows:Sort()
+                newRows:Sort(me)//otherwise override it with my default
             end
         end
         column:rows = newRows

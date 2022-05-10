@@ -27,6 +27,7 @@ use Libraries.Interface.Events.ControlActivationListener
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.WindowFocusListener
 use Libraries.Interface.Events.WindowFocusEvent
+use Libraries.Interface.Events.GestureListener
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -220,6 +221,21 @@ class GameInput
     ResizeEvents. 
     */
     blueprint action RemoveResizeListener(ResizeListener listener)
+
+    /*
+    This action adds a GestureListener directly to the GameInput. When the
+    GameInput receives a gesture event, it will first check if any of the items
+    added to the layers of the Game can handle the event - if none do, then all
+    GestureListeners which are added directly to the GameInput will 
+    receive the event.
+    */
+    blueprint action AddGestureListener(GestureListener listener)
+
+    /*
+    This action removes a GestureListener from the GameInput. It will no longer
+    receive gesture events directly from the GameInput.
+    */
+    blueprint action RemoveGestureListener(GestureListener listener)
 
     /*
     This action will add a SelectionListener to the GameInput. The GameInput
