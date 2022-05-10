@@ -193,6 +193,7 @@ use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Options.BasicOptions
 use Libraries.Interface.Options.LightModeOptions
+use Libraries.Interface.Behaviors.Controls.SpreadsheetScrollDragBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1559,6 +1560,24 @@ class Game
         end
 
         gameInput:AddInputTable(spreadsheetTable)
+
+        // InputTable for the scrollbars on the Spreadsheet.
+        InputTable spreadsheetScroll
+        spreadsheetScroll:SetIdentifier("SpreadsheetScroll")
+
+        InputSet dragBegin
+        dragBegin:SetDragItemInput()
+        dragBegin:SetInputTrigger(dragBegin:BEGIN)
+        InputSet dragContinue
+        dragContinue:SetDragItemInput()
+        dragContinue:SetInputTrigger(dragBegin:CONTINUE)
+
+        SpreadsheetScrollDragBehavior spreadsheetVerticalDrag
+        spreadsheetScroll:Add(dragBegin, spreadsheetVerticalDrag)
+        spreadsheetScroll:Add(dragContinue, spreadsheetVerticalDrag)
+
+        gameInput:AddInputTable(spreadsheetScroll)
+        
 
         InputTable spreadsheetCellTable
         spreadsheetCellTable:SetIdentifier("SpreadsheetCell")

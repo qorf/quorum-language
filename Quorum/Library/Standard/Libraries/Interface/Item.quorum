@@ -691,7 +691,7 @@ class Item
         UpdateBehaviors(secondsSinceUpdate)
 
         integer counter = 0
-        repeat GetItemCount() times
+        repeat while counter < GetItemCount()
             GetChildAsItem(counter):UpdateAll(secondsSinceUpdate)
             counter = counter + 1
         end

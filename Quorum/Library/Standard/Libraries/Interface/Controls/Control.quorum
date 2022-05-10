@@ -975,7 +975,7 @@ class Control is Item2D
         integer counter = 0
         boolean haveResized = false
 
-        repeat GetItemCount() times
+        repeat while counter < GetItemCount()
             Item item = GetChildAsItem(counter)
             if item is Control and haveResized = false
                 Control control = cast(Control, item)

@@ -1,0 +1,60 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Item2D
+
+class SpreadsheetScrollDragBehavior is Behavior
+    
+    boolean verticalScroll = true
+
+    /*
+    An offset on our calculations to compensate for where the user clicks on the scroll control.
+    We need to set the position of the beginning of the bar within the track, but the user will
+    almost certainly click somewhere in the middle of it instead.
+    */
+    number clickOffset = 0
+
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent = undefined
+            return now
+        end
+
+        // Try to find the spreadsheet this will affect via the item's parent hierarchy.
+        Spreadsheet sheet = undefined
+        Item2D item = cast(Item2D, event:GetItem())
+        repeat while item not= undefined and sheet = undefined
+            if item is Spreadsheet
+                sheet = cast(Spreadsheet, item)
+            end
+
+            item = item:GetParent()
+        end
+
+        // If we couldn't find a Spreadsheet, then we can't scroll it.
+        if sheet = undefined
+            return now
+        end
+        
+        if dragEvent:eventType = dragEvent:DRAGGING_BEGAN
+            if verticalScroll
+                clickOffset = sheet:GetVerticalTrackPercentage(dragEvent:GetStartY() - sheet:GetGlobalY()) - sheet:GetScrollPercentageY()
+            else
+                clickOffset = sheet:GetHorizontalTrackPercentage(dragEvent:GetStartX() - sheet:GetGlobalX()) - sheet:GetScrollPercentageX()
+            end
+        elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+            if verticalScroll
+                sheet:SetScrollPercentageY(sheet:GetVerticalTrackPercentage(dragEvent:GetY() - sheet:GetGlobalY()) - clickOffset)
+            else
+                sheet:SetScrollPercentageX(sheet:GetHorizontalTrackPercentage(dragEvent:GetX() - sheet:GetGlobalX()) - clickOffset)
+            end
+        end
+    end
+
+    action SetVerticalScrolling(boolean vertical)
+        verticalScroll = vertical
+    end
+end

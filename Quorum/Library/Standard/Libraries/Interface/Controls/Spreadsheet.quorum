@@ -13,6 +13,8 @@ class Spreadsheet is Control
 
     /*
     TO-DO:
+    Horizontal scroll testing
+    Vertical scroll drag
     Selection
     Selection in AccessibilityManager and WebAccessibility
         - Related plugin code, as well
@@ -61,6 +63,11 @@ class Spreadsheet is Control
     on create
         // TO-DO: Replace this with a specific set of options for Spreadsheet.
         SetInterfaceOptionsKey("TextBox")
+
+        SetInputGroup("Spreadsheet")
+        // The scroll bars use their own input group to manage stuff like click and drag.
+        horizontalControl:SetInputGroup("SpreadsheetScroll")
+        verticalControl:SetInputGroup("SpreadsheetScroll")
 
         ManualLayout manual
         SetLayout(manual)
@@ -133,6 +140,14 @@ class Spreadsheet is Control
         return showHeaders
     end
 
+    action SetScrollPercentageX(number x)
+        UpdatePaneView(x, GetScrollPercentageY())
+    end
+
+    action SetScrollPercentageY(number y)
+        UpdatePaneView(GetScrollPercentageX(), y)
+    end
+
     action GetScrollPercentageX returns number
         return scrollPercentX
     end
@@ -190,8 +205,17 @@ class Spreadsheet is Control
         number totalHeight = renderer:GetTotalHeight()
         number totalWidth = renderer:GetTotalWidth()
 
-        verticalViewRatio = height / renderer:GetTotalHeight()
-        horizontalViewRatio = width / renderer:GetTotalWidth()
+        // TO-DO: REMOVE THIS
+        if (height / totalHeight) not= verticalViewRatio
+            check
+                alert("verticalViewRatio changing from " + verticalViewRatio + " to " + (height / totalHeight) + " with height = " + height + " and totalHeight = " + totalHeight)
+            detect e
+                e:OutputStackTrace()
+            end
+        end
+
+        verticalViewRatio = height / totalHeight
+        horizontalViewRatio = width / totalWidth
         boolean verticalVisible = verticalViewRatio < 1.0
         boolean horizontalVisible = horizontalViewRatio < 1.0
         number barHeight = height
@@ -221,6 +245,9 @@ class Spreadsheet is Control
         if horizontalViewRatio > 1.0
             horizontalViewRatio = 1.0
         end
+
+        // TO-DO: REMOVE THIS
+//        verticalViewRatio = 0.49261083743842365
 
         if verticalVisible
             verticalControl:SetPercentageHeight(verticalViewRatio)
@@ -261,13 +288,15 @@ class Spreadsheet is Control
             percentY = 0.0
         end
 
-        horizontalControl:SetPercentageY(percentX)
+        horizontalControl:SetPercentageX(percentX)
         verticalControl:SetPercentageY(1.0 - percentY)
 
-        scrollPercentageX = percentX
-        scrollPercentageY = percentY
+        scrollPercentX = percentX
+        scrollPercentY = percentY
         
         parent:Item2D:Resize()
+
+        renderer:UpdateCellView(percentX, percentY)
     end
 
     action ScrolledMouse(MouseEvent event)
@@ -301,5 +330,20 @@ class Spreadsheet is Control
         end
         
         UpdatePaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
+    end
+
+    // This action translate a pixel value to a percentage scroll Y value. The pixel value is relative to the Spreadsheet.
+    action GetVerticalTrackPercentage(number y) returns number
+        number sharedSpaceOffset = 0
+        if horizontalBar:IsShowing()
+            sharedSpaceOffset = barThickness
+        end
+
+        return 1.0 - (y - sharedSpaceOffset) / verticalBar:GetHeight()
+    end
+
+    // This action translate a pixel value to a percentage scroll X value. The pixel value is relative to the Spreadsheet.
+    action GetHorizontalTrackPercentage(number x) returns number
+        return x / (horizontalBar:GetWidth() - horizontalControl:GetWidth())
     end
 end
