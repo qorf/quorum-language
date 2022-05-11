@@ -101,6 +101,12 @@ class Spreadsheet is Control
         horizontalBar:SetLayout(horizontalLayout)
         ManualLayout verticalLayout
         verticalBar:SetLayout(verticalLayout)
+
+        SetName("Spreadsheet")
+        verticalBar:SetName("Vertical Bar")
+        verticalControl:SetName("Vertical Bar Control")
+        horizontalBar:SetName("Horizontal Bar")
+        horizontalControl:SetName("Horizontal Bar Control")
     end
 
     action Load(text fileName)
@@ -205,15 +211,6 @@ class Spreadsheet is Control
         number totalHeight = renderer:GetTotalHeight()
         number totalWidth = renderer:GetTotalWidth()
 
-        // TO-DO: REMOVE THIS
-        if (height / totalHeight) not= verticalViewRatio
-            check
-                alert("verticalViewRatio changing from " + verticalViewRatio + " to " + (height / totalHeight) + " with height = " + height + " and totalHeight = " + totalHeight)
-            detect e
-                e:OutputStackTrace()
-            end
-        end
-
         verticalViewRatio = height / totalHeight
         horizontalViewRatio = width / totalWidth
         boolean verticalVisible = verticalViewRatio < 1.0
@@ -228,9 +225,10 @@ class Spreadsheet is Control
         */
         if verticalVisible and horizontalVisible
             verticalBar:SetPixelHeight(-barThickness)
+            verticalBar:SetPixelY(barThickness * GetInterfaceScale())
             horizontalBar:SetPixelWidth(-barThickness)
-            barHeight = height - barThickness
-            barWidth = width - barThickness
+            barHeight = height - barThickness * GetInterfaceScale()
+            barWidth = width - barThickness * GetInterfaceScale()
             verticalViewRatio = barHeight / totalHeight
             horizontalViewRatio = barWidth / totalWidth
         else
@@ -246,9 +244,6 @@ class Spreadsheet is Control
             horizontalViewRatio = 1.0
         end
 
-        // TO-DO: REMOVE THIS
-//        verticalViewRatio = 0.49261083743842365
-
         if verticalVisible
             verticalControl:SetPercentageHeight(verticalViewRatio)
             verticalBar:Show()
@@ -261,8 +256,9 @@ class Spreadsheet is Control
         if horizontalVisible
             horizontalControl:SetPercentageWidth(horizontalViewRatio)
             horizontalBar:Show()
+            // Currently, ManualLayout applies interface scale to dimensions, but not to positions. Thus only the Y needs the scale applied manually.
             renderer:SetPixelHeight(-barThickness)
-            renderer:SetPixelY(barThickness)
+            renderer:SetPixelY(barThickness * GetInterfaceScale())
         else
             horizontalBar:Hide()
             renderer:SetPixelHeight(0)
@@ -344,6 +340,6 @@ class Spreadsheet is Control
 
     // This action translate a pixel value to a percentage scroll X value. The pixel value is relative to the Spreadsheet.
     action GetHorizontalTrackPercentage(number x) returns number
-        return x / (horizontalBar:GetWidth() - horizontalControl:GetWidth())
+        return x / horizontalBar:GetWidth()
     end
 end

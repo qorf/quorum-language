@@ -195,6 +195,7 @@ use Libraries.Interface.Options.BasicOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Behaviors.Controls.SpreadsheetScrollDragBehavior
+use Libraries.Interface.Behaviors.Controls.SpreadsheetScrollBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1519,12 +1520,14 @@ class Game
         SpreadsheetLeftBehavior spreadsheetLeftBehavior
         SpreadsheetRightBehavior spreadsheetRightBehavior
         SpreadsheetActivationBehavior spreadsheetActivate
+        SpreadsheetScrollBehavior spreadsheetScrollBehavior
 
         spreadsheetTable:Add(downArrow, spreadsheetDownBehavior)
         spreadsheetTable:Add(upArrow, spreadsheetUpBehavior)
         spreadsheetTable:Add(leftArrow, spreadsheetLeftBehavior)
         spreadsheetTable:Add(rightArrow, spreadsheetRightBehavior)
         spreadsheetTable:Add(enterSet, spreadsheetActivate)
+        spreadsheetTable:Add(mouseScroll, spreadsheetScrollBehavior)
 
         //copy past for fields
         if manager:GetOperatingSystem():Contains("OS X")

@@ -7,8 +7,6 @@ use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Item2D
 
 class SpreadsheetScrollDragBehavior is Behavior
-    
-    boolean verticalScroll = true
 
     /*
     An offset on our calculations to compensate for where the user clicks on the scroll control.
@@ -38,6 +36,14 @@ class SpreadsheetScrollDragBehavior is Behavior
         if sheet = undefined
             return now
         end
+
+        /*
+        This is a rather fragile way to determine if we have the vertical or horizontal control,
+        but it's quite unlikely that the name of an internal component of the Spreadsheet will
+        be modified, and the two controls don't have any more concrete way of differentiating
+        them, short of injecting properties via JSON (which has its own downsides).
+        */
+        boolean verticalScroll = event:GetItem():GetName():StartsWith("Vertical")
         
         if dragEvent:eventType = dragEvent:DRAGGING_BEGAN
             if verticalScroll

@@ -1,0 +1,21 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Controls.Spreadsheet
+
+
+class SpreadsheetScrollBehavior is Behavior
+
+    action Run(BehaviorEvent behaviorEvent)
+        MouseEvent event = behaviorEvent:GetMouseEvent()
+        if (event = undefined) or (behaviorEvent:GetItem() is Spreadsheet = false)
+            return now
+        end
+
+        Spreadsheet sheet = cast(Spreadsheet, behaviorEvent:GetItem())
+        sheet:ScrolledMouse(event)
+    end
+
+end

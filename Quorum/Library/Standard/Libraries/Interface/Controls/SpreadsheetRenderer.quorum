@@ -32,6 +32,10 @@ class SpreadsheetRenderer is Control
     number gutterWidth = 0
     number gutterHeight = 0
 
+    // TO-DO: REMOVE THIS
+//    number lastTotalHeight = 0
+//    number lastTotalWidth = 0
+
     on create
         SetPercentageWidth(1.0)
         SetPercentageHeight(1.0)
@@ -75,16 +79,11 @@ class SpreadsheetRenderer is Control
             columns:Add(newColumn)
         end
 
-        /*
-        These variables map the left and right edges of the renderer to the column's x-coordinates.
-        i.e. if windowLeft = 100 and windowRight = 200, the pixels of the columns between x-coordinates
-        100 and 200 will be visible in the renderer.
-        */
-        number windowLeft = scrollPercentX * GetTotalWidth()
+        number windowLeft = 0
         number windowRight = windowLeft + GetCellViewWidth()
 
         // The x-coordinates of the left and right sides of the current column.
-        number currentLeft = 0
+        number currentLeft = -(scrollPercentX * GetTotalWidth())
         number currentRight = 0
 
         // Iterate over the columns, determining how many cells from each should be visible.
@@ -149,7 +148,7 @@ class SpreadsheetRenderer is Control
     action GetColumnWidth(integer index) returns number
         // TO-DO: Make this return a more reasonable value. For now, return a hard-coded value for testing.
         // This needs to eventually include interface scaling somehow.
-        return GetWidth() * 0.25
+        return table:GetWidth() * 0.25
     end
 
     action GetCellHeight(integer rowIndex) returns number
@@ -366,15 +365,16 @@ class SpreadsheetRenderer is Control
             result = result + GetColumnWidth(i)
             i = i + 1
         end
+
         return result
     end
 
     action GetCellViewWidth returns number
-        return GetWidth() - gutterWidth
+        return GetWidth()
     end
 
     action GetCellViewHeight returns number
-        return GetHeight() - gutterHeight
+        return GetHeight()
     end
 
     private action RecycleColumn(Array<Cell> column)
