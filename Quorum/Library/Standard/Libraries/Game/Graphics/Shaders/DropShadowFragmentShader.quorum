@@ -44,7 +44,7 @@ float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding
 
 void main()
 {
-    vec2 point = (v_texCoords.xy - 0.5) * 2;
+    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
     point.x *= u_aspectRatio;
     vec2 dimensions = vec2(u_aspectRatio, 1.0);
 
@@ -56,7 +56,7 @@ void main()
     // z: left
     // w: bottom (y-negative)
     float fillDistance = signedDistanceFunction(point, dimensions, u_rounding);
-    float shadowAlpha = 1.0 - smoothstep(-u_softness, 0, fillDistance);
+    float shadowAlpha = 1.0 - smoothstep(-u_softness, 0.0, fillDistance);
 
     vec4 resultColor = v_color * texture(u_texture, v_texCoords);
     resultColor.a *= shadowAlpha;  
