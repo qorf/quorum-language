@@ -155,6 +155,11 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     {
         game.Set_Libraries_Game_Game__exitRequested_(true);
     };
+
+    this.Log$quorum_text = function(value)
+    {
+        console.log(value);
+    };
     
 }
 

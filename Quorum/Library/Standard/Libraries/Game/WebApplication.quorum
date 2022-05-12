@@ -52,4 +52,31 @@ class WebApplication is Application
     */
     system action Exit
 
+    /*
+    This action outputs a message to the developer console in the web browser.
+    
+    Attribute: Parameter message The message to print to the developer console.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.WebApplication
+
+    class Main is Game
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            // Get the WebApplication class from the GameStateManager.
+            // Note that this code will crash if the application isn't running on the web,
+            // because we aren't double-checking to make sure the application is a WebApplication first.
+            GameStateManager manager
+            WebApplication app = cast(WebApplication, manager:GetApplication())
+            app:Log("Hello world!")
+        end
+    end
+    */
+    system action Log(text message)
+
 end
