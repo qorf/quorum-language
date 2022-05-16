@@ -85,6 +85,10 @@ class Drawable is TextureRegion, Item2D
     // The mesh used to render this object to the screen.
     Mesh mesh = undefined
 
+    // Values used internally by the rendering system to track which indices in the Mesh are reserved for this Drawable for a given render.
+    integer meshIndex = 0
+    integer indicesCount = 0
+
     on create
         SceneProperties properties
         drawableType = properties:NONE
@@ -1265,13 +1269,6 @@ class Drawable is TextureRegion, Item2D
         SetColor(color)
     end
 
-    action LoadLine(integer x, integer y, integer density, Color color)
-        Texture temp
-        temp:LoadLine(x, y, density, color)
-        Load(temp)
-        SetColor(color)
-    end
-
     /*
     This action will create a new Texture with a hollow black rectangle with
     the given width and height. This texture is then loaded into the Drawable.
@@ -1825,6 +1822,42 @@ class Drawable is TextureRegion, Item2D
 
     action GetDrawableShape returns DrawableShape
         return shape
+    end
+
+    /*
+    This action is used internally by the rendering system to determine what
+    index a Drawable starts at in a Mesh. Most users will never need to call
+    this action directly.
+    */
+    action GetMeshIndex returns integer
+        return meshIndex
+    end
+
+    /*
+    This action is used internally by the rendering system to set what
+    index a Drawable starts at in a Mesh. Most users will never need to call
+    this action directly.
+    */
+    action SetMeshIndex(integer meshIndex)
+        me:meshIndex = meshIndex
+    end
+
+    /*
+    This action is used internally by the rendering system to determine how
+    many indices a Drawable uses in a Mesh. Most users will never need to call
+    this action directly.
+    */
+    action GetIndicesCount returns integer
+        return indicesCount
+    end
+
+    /*
+    This action is used internally by the rendering system to set how
+    many indices a Drawable uses in a Mesh. Most users will never need to call
+    this action directly.
+    */
+    action SetIndicesCount(integer indicesCount)
+        me:indicesCount = indicesCount
     end
 
 end

@@ -85,6 +85,10 @@ class TabPane is Control
         return viewArea:GetLayout()
     end
 
+    action GetViewAreaLayoutProperties returns LayoutProperties
+        return viewArea:GetDefaultLayoutProperties()
+    end
+
     private action SetCurrentItem(Tab tab)
         Item2D item = undefined
 

@@ -79,6 +79,24 @@ function plugins_quorum_Libraries_Compute_Math_() {
         return Math.round(value);
     };
 
+    this.RoundToNearestInteger$quorum_number = function (value) {
+        let y = Math.floor(value);
+        let d = value - y;
+        if (d > 0.5) {
+            if (y == -1.0) {
+                return -0.0; // Preserve sign of operand
+            }
+            return y+1.0;
+        }
+
+        if (d < 0.5) {
+            return y;
+        }
+        /* half way, round to even */
+        let z =  parseInt(y);
+        return (z & 1) == 0 ? y : y + 1.0;
+    };
+
     this.RaiseToPower$quorum_number$quorum_number = function (value, power) {
         return Math.pow(value, power);
     };

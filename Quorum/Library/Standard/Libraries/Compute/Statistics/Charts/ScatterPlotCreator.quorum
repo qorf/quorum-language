@@ -1,26 +1,28 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Interface.Controls.Charts.Chart
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Interface.Controls.Charts.ScatterPlot
-use Libraries.Compute.Vector
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Interface.Controls.Charts.Series
-use Libraries.Interface.Controls.Charts.Legend
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Vector
+use Libraries.System.DateTime
+use Libraries.Compute.Statistics.Tests.Regression
 
 /*
-    This class is used to create a scatter plot for use in an application.
+    This class is used to create a Scatter Plot from columns of data in a DataFrame.
+    There are 2 ways to make a scatter plot from the data frame using this class:
+        1. Two columns and one factor: By default, first column is x-axis (independent), second column is y-axis (dependent), colored by factor.
+        2. Two or more column: By default, first column is x-axis (independent), and all other columns are used on y-axis (dependent), colored by y-axis columns.
 
-    Attribute: Author Andreas Stefik, William Allee
+    Attribute: Author Andreas Stefik, William Allee, Hannah Williams
+
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
@@ -28,7 +30,7 @@ use Libraries.Containers.Support.Comparison
 
     DataFrame frame
     frame:Load("Data.csv")
-    frame:AddSelectedColumn(1)
+    frame:AddSelectedColumn(1) //Independent Variable
     frame:AddSelectedColumn(2)
     ScatterPlot chart = frame:ScatterPlot()
     chart:SetTitle("My Awesome Title")
@@ -41,8 +43,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
     number xAxisMaximum = 1
     number yAxisMinimum = 0
     number yAxisMaximum = 1
-    Comparison comparison = undefined
-    ChartOptions options
 
     action Create(DataFrame frame) returns Chart
         integer columns = GetColumnSize()
@@ -51,7 +51,12 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         if columns > 1 and factors = 0
             return CreateChart(frame, false)
         elseif columns = 2 and factors = 1
-            return CreateChart(frame, true)
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsUndefined() // If the factor is undefined don't use a factor
+                return CreateChart(frame, false)
+            else
+                return CreateChart(frame, true)
+            end
         else
             alert("ScatterPlotCreator does not support the number of column/factors that were selected.")
         end
@@ -61,56 +66,103 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
 
     action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         ScatterPlot chart
+        // Start with booleans for dates and numbers as true, they will be marked false if the data does not comply
+        boolean dateXData = true        
+        boolean dateYData = true
+        boolean dateFactor = false      // Factor is date/time. We need to know this for sorting the labels.
         boolean numericalXData = true
         boolean numericalYData = true
-        boolean numericalFactor = false
+        boolean numericalFactor = false // Factor is number. We need to know this for sorting the labels.
         integer columns = GetColumnSize()
 
+        Array<text> seriesNames
         HashTable<text, Series> seriesFactor
-        HashTable<number, text> numberForText //Used to later sort
-        HashTable<text, number> xLabels //Used for non-numerical data
-        HashTable<text, number> yLabels //Used for non-numerical data
+        HashTable<text, Array<DataFrameColumn>> regressionFactor //Used for regression lines
+        HashTable<text, number> xLabels         //Used for text data
+        HashTable<text, number> yLabels         //Used for text data
+        HashTable<DateTime, text> textForDate   //Used to change a date for it's original text
+
+        Array<number> numericalFactorKeys
+        Array<DateTime> dateFactorKeys
         Vector xVector
         Vector yVector
 
         DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
         if useFactor
             factor = frame:GetColumn(GetFactor(0))
-            if factor:IsNumberColumn()
-                numericalFactor = true
+            if factor:IsDateTimeColumn()
+                dateFactor = true
+                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, true))
+                integer i = 0 
+                repeat while i < dates:GetSize()
+                    if not dates:IsUndefined(i)
+                        DateTime date = dates:GetAsDateTime(i)
+                        if not textForDate:HasKey(date)
+                            seriesNames:Add(dates:GetAsText(i))
+                            dateFactorKeys:Add(date)
+                            textForDate:Add(date, dates:GetAsText(i)) 
+                        end
+                    end
+                    i = i + 1
+                end
+            else
+                if factor:IsNumberColumn()
+                    numericalFactor = true
+                end
+                DataFrameColumn labels = factor:Copy(true, true)
+                integer i = 0 
+                repeat while i < labels:GetSize()
+                    if not labels:IsUndefined(i)
+                        seriesNames:Add(labels:GetAsText(i))
+                    end
+                    i = i + 1
+                end
             end
+
             integer i = 0 
             repeat while i < factor:GetSize()
                 if not factor:IsUndefined(i)
-                    if(not seriesFactor:HasKey(factor:GetAsText(i)))
+                    if not seriesFactor:HasKey(factor:GetAsText(i))
                         Series series
                         series:SetName(factor:GetAsText(i))
                         seriesFactor:Add(factor:GetAsText(i), series)
+                        Array<DataFrameColumn> regColumns
+                        NumberColumn column1 //independent
+                        NumberColumn column2 //dependent
+                        regColumns:Add(column1)
+                        regColumns:Add(column2)
+                        regressionFactor:Add(factor:GetAsText(i), regColumns)
+
                         if numericalFactor
-                            numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
+                            numericalFactorKeys:Add(factor:GetAsNumber(i))
                         end
                     end
                 end
-                i = i + 1 
-            end
+                i = i + 1  
+            end               
         end
 
-        // The first column will default to the x-axis
+        // The first column will default to the x-axis (independent variable)
         DataFrameColumn dfx = frame:GetColumn(GetColumn(0))
-        if(dfx:IsNumberColumn())
+        if dfx:IsNumberColumn()
             if dfx = undefined and dfx:CanConvertToVector()
                 alert("Could not compute a scatterplot on the x column")  
             end
             xVector = dfx:ConvertToVector()
+            dateXData = false
+        elseif dfx:IsDateTimeColumn()
+            numericalXData = false
         else
+            dateXData = false
             numericalXData = false
         end
 
+        // The rest of the columns will be the y-axis (dependent variables)
         integer i = 1
         repeat while i < columns
             DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
 
-            if(dfy:IsNumberColumn())
+            if dfy:IsNumberColumn() 
                 if dfy = undefined and dfy:CanConvertToVector()
                     alert("Could not compute a scatterplot on a y column")        
                 end
@@ -118,45 +170,101 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 if dfx:GetSize() not= dfy:GetSize()
                     alert("Columns must be the same size in order to create Scatter Plot")
                 end
+                dateYData = false
+            elseif dfy:IsDateTimeColumn() 
+                numericalYData = false
             else
+                dateYData = false
                 numericalYData = false
             end
 
             if not useFactor
                 if(not seriesFactor:HasKey(dfy:GetHeader()))
                     Series series
+                    seriesNames:Add(dfy:GetHeader())
                     series:SetName(dfy:GetHeader())
                     seriesFactor:Add(dfy:GetHeader(), series)
+                    Array<DataFrameColumn> regColumns
+                    NumberColumn column1 //independent
+                    column1:SetHeader(dfx:GetHeader())
+                    NumberColumn column2 //dependent
+                    column2:SetHeader(dfy:GetHeader())
+                    regColumns:Add(column1)
+                    regColumns:Add(column2)
+                    regressionFactor:Add(dfy:GetHeader(), regColumns)
                 end
             end
-
             i = i + 1
         end
 
         chart:SetXAxisTitle(dfx:GetHeader())
         if columns = 2
             chart:SetYAxisTitle(frame:GetColumn(GetColumn(1)):GetHeader())
-        else
-            chart:SetYAxisTitle("Total")
         end
 
-        number xMin = chart:GetXAxisMinimum()
-        number xMax = chart:GetXAxisMaximum()
-        number yMin = chart:GetYAxisMinimum()
-        number yMax = chart:GetYAxisMaximum()
+        number xMin = 0.0   
+        number xMax = 0.0
+        number yMin = 0.0   
+        number yMax = 0.0
+        DateTime xdateMin = undefined
+        DateTime xdateMax = undefined
+        DateTime ydateMin = undefined
+        DateTime ydateMax = undefined
 
-        // If everything is numerical
-        if numericalXData and numericalYData
+        /*
+            Get the distinct values on the x-axis
+            For DateTime or number columns simply get the min/max
+            For text columns get each unique entry
+        */
+        if numericalXData
             Summarize xSum
             dfx:Calculate(xSum)
             xMin = xSum:GetMinimum()
             xMax = xSum:GetMaximum()
-    
+
+        elseif dateXData
+            DateTimeColumn column = cast(DateTimeColumn, frame:GetColumn(dfx:GetHeader()):Copy(true, true))
+            if column:GetSize() > 0
+                xdateMin = column:GetAsDateTime(0)
+                xdateMax = column:GetAsDateTime(column:GetSize()-1)
+            end
+            if xdateMin not= undefined and xdateMax not= undefined
+                xMin = 0
+                xMax = xdateMax:GetDayDifference(xdateMin)
+                chart:GetHorizontalPanel():SetMinimumDate(xdateMin)
+                chart:GetHorizontalPanel():SetMaximumDate(xdateMax)
+            end
+
+        else //textXData
+            DataFrameColumn column = frame:GetColumn(dfx:GetHeader()):Copy(true, true)
+            Array<text> xLabelTextArray
+            i = 0
+            repeat while i < column:GetSize()
+                if not column:IsUndefined(i)
+                    if(not xLabels:HasKey(column:GetAsText(i)))
+                        xLabels:Add(column:GetAsText(i), cast(number, i))
+                        xLabelTextArray:Add(column:GetAsText(i))
+                    end
+                end
+                i = i + 1
+            end
+            if xLabels:GetSize() > 0
+                xMin = 0
+                xMax = xLabels:GetSize()-1
+                chart:OverrideXLabelsWithText(xLabelTextArray)
+            end
+        end
+
+        /*
+            Get the distinct values on the y-axis
+            For DateTime or number columns simply get the min/max
+            For text columns get each unique entry
+        */
+        if numericalYData
             Summarize ySum
             frame:GetColumn(GetColumn(1)):Calculate(ySum)
             yMin = ySum:GetMinimum()
             yMax = ySum:GetMaximum()
-    
             i = 1 
             repeat while i < columns
                 frame:GetColumn(GetColumn(i)):Calculate(ySum)
@@ -168,165 +276,41 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end
-            yAxisMinimum = yMin
-            yAxisMaximum = yMax
-            xAxisMinimum = xMin
-            xAxisMaximum = xMax
-    
+
+        elseif dateYData
+            DateTimeColumn column = cast(DateTimeColumn, frame:GetColumn(frame:GetColumn(GetColumn(1)):GetHeader()):Copy(true, true))
+            if column:GetSize() > 0
+                ydateMin = column:GetAsDateTime(0)
+                ydateMax = column:GetAsDateTime(column:GetSize()-1)
+            end
+            i = 1 
+            repeat while i < columns
+                column = cast(DateTimeColumn, frame:GetColumn(frame:GetColumn(GetColumn(i)):GetHeader()):Copy(true, true))
+                if column:GetSize() > 0
+                    if column:GetAsDateTime(0):IsBefore(ydateMin)
+                        ydateMin = column:GetAsDateTime(0)
+                    end
+                    if column:GetAsDateTime(column:GetSize()-1):IsAfter(ydateMax)
+                        ydateMax = column:GetAsDateTime(column:GetSize()-1)
+                    end
+                end
+                i = i + 1
+            end
+            if ydateMin not= undefined and ydateMax not= undefined
+                yMin = 0
+                yMax = ydateMax:GetDayDifference(ydateMin)
+                chart:GetVerticalPanel():SetMinimumDate(ydateMin)
+                chart:GetVerticalPanel():SetMaximumDate(ydateMax)
+            end
+
+        else //textYData
+            Comparison comparison = undefined
             i = 1
             repeat while i < columns
                 DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
-                integer j = 0
-                repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
-                        number x = dfx:GetAsNumber(j)
-                        number y = dfy:GetAsNumber(j)
-                        ChartPoint point
-                        point:SetValueX(x)
-                        point:SetValueY(y)
-                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
-
-                        if useFactor
-                            if(seriesFactor:HasKey(factor:GetAsText(j)))
-                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
-                            end
-                        else
-                            if(seriesFactor:HasKey(dfy:GetHeader()))
-                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
-                            end
-                        end
-                        chart:Add(point)
-                    end
-                    j = j + 1
+                if dfy:GetSortComparison() not= undefined
+                    comparison = dfy:GetSortComparison()
                 end
-                i = i + 1
-            end
-
-
-        // If x data is non-numerical and y data is numerical
-        elseif not numericalXData and numericalYData
-            // Get distinct x-axis labels
-            i = 0
-            repeat while i < dfx:GetSize()
-                if not dfx:IsUndefined(i)
-                    if(not xLabels:HasKey(dfx:GetAsText(i)))
-                        xLabels:Add(dfx:GetAsText(i), cast(number, i))
-                    end
-                end
-                i = i + 1
-            end
-            
-            //Sort the labels
-            Array<text> xLabelTextArray = xLabels:CopyToKeyArray()
-            if comparison = undefined
-                xLabelTextArray:Sort()
-            else
-                xLabelTextArray:Sort(comparison)
-            end
-
-            //Get new position on x-axis for each label
-            i = 0
-            repeat while i < xLabelTextArray:GetSize()
-                if(xLabels:HasKey(xLabelTextArray:Get(i)))
-                    xLabels:Set(xLabelTextArray:Get(i), cast(number, i))
-                end
-                i = i + 1
-            end
-            
-
-            xMax = xLabels:GetSize()-1
-            xMin = 0
-
-            Summarize ySum
-            frame:GetColumn(GetColumn(1)):Calculate(ySum)
-            yMin = ySum:GetMinimum()
-            yMax = ySum:GetMaximum()
-    
-            i = 2 
-            repeat while i < columns
-                frame:GetColumn(GetColumn(i)):Calculate(ySum)
-                if ySum:GetMinimum() < yMin
-                    yMin = ySum:GetMinimum()
-                end
-                if ySum:GetMaximum() > yMax
-                    yMax = ySum:GetMaximum()
-                end
-                i = i + 1
-            end
-
-            i = 1
-            repeat while i < columns
-                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
-                integer j = 0
-                repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
-                        number x = xLabels:GetValue(dfx:GetAsText(j))
-                        number y = dfy:GetAsNumber(j)
-                        ChartPoint point
-                        point:SetValueX(x)
-                        point:SetValueY(y)
-                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
-
-                        if useFactor
-                            if(seriesFactor:HasKey(factor:GetAsText(j)))
-                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
-                            end
-                        else
-                            if(seriesFactor:HasKey(dfy:GetHeader()))
-                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
-                            end
-                        end
-                        chart:Add(point)
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-            xTicks = xLabels:GetSize()
-            yAxisMinimum = yMin
-            yAxisMaximum = yMax
-            xAxisMinimum = xMin
-            xAxisMaximum = xMax
-            
-            chart:OverrideXLabelsWithText(xLabelTextArray)
-
-        // If everything is non-numerical data
-        elseif not numericalXData and not numericalYData 
-            // Get distinct x-axis labels
-            i = 0
-            repeat while i < dfx:GetSize()
-                if not dfx:IsUndefined(i)
-                    if(not xLabels:HasKey(dfx:GetAsText(i)))
-                        xLabels:Add(dfx:GetAsText(i), cast(number, i))
-                    end
-                end
-                i = i + 1
-            end
-            //Sort the x labels
-            Array<text> xLabelTextArray = xLabels:CopyToKeyArray()
-            if comparison = undefined
-                xLabelTextArray:Sort()
-            else
-                xLabelTextArray:Sort(comparison)
-            end
-            //Get new position on x-axis for each label
-            i = 0
-            repeat while i < xLabelTextArray:GetSize()
-                if(xLabels:HasKey(xLabelTextArray:Get(i)))
-                    xLabels:Set(xLabelTextArray:Get(i), cast(number, i))
-                end
-                i = i + 1
-            end
-
-
-            // Get distinct y-axis labels
-            i = 1
-            repeat while i < columns
-                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
                 integer j = 0
                 repeat while j < dfy:GetSize()
                     if not dfy:IsUndefined(j)
@@ -338,6 +322,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end
+
             //Sort the y labels
             Array<text> yLabelTextArray = yLabels:CopyToKeyArray()
             if comparison = undefined
@@ -348,165 +333,137 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
             //Get new position on y-axis for each label
             i = 0
             repeat while i < yLabelTextArray:GetSize()
-                if(yLabels:HasKey(yLabelTextArray:Get(i)))
+                if yLabels:HasKey(yLabelTextArray:Get(i))
                     yLabels:Set(yLabelTextArray:Get(i), cast(number, i))
                 end
                 i = i + 1
             end
-
-            yAxisMinimum = 0
-            yAxisMaximum = yLabels:GetSize()-1
-            xAxisMinimum = 0
-            xAxisMaximum = xLabels:GetSize()-1
-
-            i = 1
-            repeat while i < columns
-                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
-                integer j = 0
-                repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
-                        number x = xLabels:GetValue(dfx:GetAsText(j))
-                        number y = yLabels:GetValue(dfy:GetAsText(j))
-                        ChartPoint point
-                        point:SetValueX(x)
-                        point:SetValueY(y)
-                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
-
-                        if useFactor
-                            if(seriesFactor:HasKey(factor:GetAsText(j)))
-                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
-                            end
-                        else
-                            if(seriesFactor:HasKey(dfy:GetHeader()))
-                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
-                            end
-                        end
-                        chart:Add(point)
-                    end
-                    j = j + 1
-                end
-                i = i + 1
+            if yLabels:GetSize() > 0
+                yMin = 0
+                yMax = yLabels:GetSize()-1
+                chart:OverrideYLabelsWithText(yLabelTextArray)
             end
-            xTicks = xLabels:GetSize()
-            yTicks = yLabels:GetSize()
-
-            chart:OverrideXLabelsWithText(xLabelTextArray)
-            chart:OverrideYLabelsWithText(yLabelTextArray)
-
-        // If x data is numerical and y data is non-numerical
-        else
-            Summarize xSum
-            dfx:Calculate(xSum)
-            xMin = xSum:GetMinimum()
-            xMax = xSum:GetMaximum()
-
-            // Get distinct y-axis labels
-            i = 1
-            repeat while i < columns
-                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
-                integer j = 0
-                repeat while j < dfy:GetSize()
-                    if not dfy:IsUndefined(j)
-                        if(not yLabels:HasKey(dfy:GetAsText(j)))
-                            yLabels:Add(dfy:GetAsText(j), cast(number, j))
-                        end
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-            //Sort the y labels
-            Array<text> yLabelTextArray = yLabels:CopyToKeyArray()
-            if comparison = undefined
-                yLabelTextArray:Sort()
-            else
-                yLabelTextArray:Sort(comparison)
-            end
-            //Get new position on y-axis for each label
-            i = 0
-            repeat while i < yLabelTextArray:GetSize()
-                if(yLabels:HasKey(yLabelTextArray:Get(i)))
-                    yLabels:Set(yLabelTextArray:Get(i), cast(number, i))
-                end
-                i = i + 1
-            end
-
-            yAxisMinimum = 0
-            yAxisMaximum = yLabels:GetSize()-1
-            xAxisMinimum = xMin
-            xAxisMaximum = xMax
-            if (xMax - xMin) < 10
-                xTicks = cast(integer, xMax - xMin) + 1
-            else
-                xTicks = 10
-            end            
-
-            i = 1
-            repeat while i < columns
-                DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
-                integer j = 0
-                repeat while j < dfx:GetSize()
-                    if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
-                        number x = dfx:GetAsNumber(j)
-                        number y = yLabels:GetValue(dfy:GetAsText(j))
-                        ChartPoint point
-                        point:SetValueX(x)
-                        point:SetValueY(y)
-                        point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
-
-                        if useFactor
-                            if(seriesFactor:HasKey(factor:GetAsText(j)))
-                                seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
-                            end
-                        else
-                            if(seriesFactor:HasKey(dfy:GetHeader()))
-                                seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
-                                point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
-                            end
-                        end
-                        chart:Add(point)
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-            yTicks = yLabels:GetSize()
-            chart:OverrideYLabelsWithText(yLabelTextArray)
         end
+
+        yAxisMinimum = yMin
+        yAxisMaximum = yMax
+        xAxisMinimum = xMin
+        xAxisMaximum = xMax
+    
+        i = 1
+        repeat while i < columns
+            DataFrameColumn dfy = frame:GetColumn(GetColumn(i))
+            integer j = 0
+            repeat while j < dfx:GetSize()
+                if not dfx:IsUndefined(j) and not dfy:IsUndefined(j) and not factor:IsUndefined(j)
+                    number x = 0
+                    number y = 0
+                    if numericalXData
+                        x = dfx:GetAsNumber(j)
+                    elseif dateXData
+                        if xdateMin not= undefined
+                            x = dfx:GetAsDateTime(j):GetDayDifference(xdateMin)
+                        end
+                    else
+                        if xLabels:HasKey(dfx:GetAsText(j))
+                            x = xLabels:GetValue(dfx:GetAsText(j))
+                        end                        
+                    end
+
+                    if numericalYData
+                        y = dfy:GetAsNumber(j)
+                    elseif dateYData
+                        if ydateMin not= undefined
+                            y = dfy:GetAsDateTime(j):GetDayDifference(ydateMin)
+                        end
+                    else
+                        if yLabels:HasKey(dfy:GetAsText(j))
+                            y = yLabels:GetValue(dfy:GetAsText(j))
+                        end
+                    end
+                    ChartPoint point
+                    point:SetValueX(x)
+                    point:SetValueY(y)
+                    point:SetName("Point for " + x + " " + dfx:GetHeader() + " and " + y + " " + dfy:GetHeader())
+
+                    if useFactor
+                        if(seriesFactor:HasKey(factor:GetAsText(j)))
+                            seriesFactor:GetValue(factor:GetAsText(j)):AddItem(point)
+                            point:SetSeries(seriesFactor:GetValue(factor:GetAsText(j)))
+                            
+                            if (numericalXData or dateXData) and (numericalYData or dateYData)
+                                if regressionFactor:HasKey(factor:GetAsText(j))
+                                    regressionFactor:GetValue(factor:GetAsText(j)):Get(0):Add(cast(text, x))
+                                    regressionFactor:GetValue(factor:GetAsText(j)):Get(1):Add(cast(text, y))
+                                end
+                            end
+                        end
+                    else
+                        if(seriesFactor:HasKey(dfy:GetHeader()))
+                            seriesFactor:GetValue(dfy:GetHeader()):AddItem(point)
+                            point:SetSeries(seriesFactor:GetValue(dfy:GetHeader()))
+
+                            if (numericalXData or dateXData) and (numericalYData or dateYData)
+                                if regressionFactor:HasKey(dfy:GetHeader())
+                                    regressionFactor:GetValue(dfy:GetHeader()):Get(0):Add(cast(text, x))
+                                    regressionFactor:GetValue(dfy:GetHeader()):Get(1):Add(cast(text, y))
+                                end
+                            end
+                        end
+                    end
+                    chart:Add(point)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        if (numericalXData or dateXData) and (numericalYData or dateYData)
+            // Compute the regression lines for each series (they may not be shown)
+            Array<text> regKeyArray = regressionFactor:CopyToKeyArray()
+            i = 0
+            repeat while i < regKeyArray:GetSize()
+                DataFrameColumn indepVals = regressionFactor:GetValue(regKeyArray:Get(i)):Get(0)
+                DataFrameColumn depVals = regressionFactor:GetValue(regKeyArray:Get(i)):Get(1)
+                if indepVals:GetSize() > 2 or depVals:GetSize() > 2
+                    RegressionLine regLine
+                    DataFrame regressionFrame
+                    regressionFrame:SetColumns(regressionFactor:GetValue(regKeyArray:Get(i)))
+                    if useFactor
+                        regLine:SetIndependentVariable(chart:GetXAxisTitle())
+                        regLine:SetDependentVariable(chart:GetYAxisTitle())
+                    else
+                        regLine:SetIndependentVariable(regressionFactor:GetValue(regKeyArray:Get(i)):Get(0):GetHeader())
+                        regLine:SetDependentVariable(regressionFactor:GetValue(regKeyArray:Get(i)):Get(1):GetHeader())
+                        if columns > 2
+                            regLine:NamedAfterSeries(true)
+                        end
+                    end
+                    Regression regression 
+                    regression:AddFactor(0) //the independent variable
+                    regression:AddColumn(1) //the dependent variable
+                    regressionFrame:Calculate(regression)
+                    regLine:SetRegression(regression)
+                    if seriesFactor:HasKey(regKeyArray:Get(i))
+                        regLine:SetSeries(seriesFactor:GetValue(regKeyArray:Get(i)))
+                        seriesFactor:GetValue(regKeyArray:Get(i)):SetRegressionLine(regLine)
+                    end
+                end
+                i = i + 1
+            end 
+         end
 
         // Sort and add the series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if numericalFactor
-            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < numberKeyArray:GetSize()
-                seriesList:Add(seriesFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i))))
-                i = i + 1
-            end
-        else
-            if comparison = undefined
-                seriesKeyArray:Sort()
-            else
-                seriesKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < seriesKeyArray:GetSize()
-                seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-                i = i + 1
-            end
-        end 
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
 
         if useFactor
             chart:SetLegendTitle(factor:GetHeader())
+            chart:SetFactorList(seriesNames)
         end
 
         chart:SetSeriesList(seriesList)

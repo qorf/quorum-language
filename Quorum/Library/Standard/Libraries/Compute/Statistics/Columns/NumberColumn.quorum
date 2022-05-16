@@ -6,6 +6,8 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Symbol.Type
 
 /*
     NumberColumn is a DataFrameColumn that contains Number objects. These objects can be undefined
@@ -18,7 +20,7 @@ class NumberColumn is DataFrameColumn
     Array<Number> rows
 
     action Add(text value)
-        if value = undefined
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
@@ -33,6 +35,52 @@ class NumberColumn is DataFrameColumn
         end
     end
 
+    action AddAsResult(Result value)
+        if not IsResultCheckable(value) rows:Add(undefined) return now end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Add(value:numberValue)
+        elseif type:IsInteger()
+            rows:Add(value:integerValue)
+        else
+            rows:Add(undefined)
+        end
+    end
+
+    action SetAsResult(integer index, Result value)
+        if not IsResultCheckable(value) rows:Set(index, undefined) return now end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Set(index, value:numberValue)
+        elseif type:IsInteger()
+            rows:Set(index, value:integerValue)
+        else
+            rows:Set(index, undefined)
+        end
+    end
+
+    /*
+        By default, this replaces all undefined values with the number value of the text passed in.
+        If the text passed in is not a number, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        check 
+            number num = cast(number, value)
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    SetAsNumber(row, num)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
+        end
+    end
     
     action Add(number value)
         rows:Add(value)
@@ -181,7 +229,11 @@ class NumberColumn is DataFrameColumn
         end
 
         if sort
-            newRows:Sort()
+            if GetSortComparison() not= undefined
+                newRows:Sort(GetSortComparison())
+            else
+                newRows:Sort(me)//otherwise override it with my default
+            end
         end
         column:rows = newRows
 
@@ -199,12 +251,12 @@ class NumberColumn is DataFrameColumn
     private action CalculateValueCount(Array<Number> values) returns HashTable<number,integer>
         HashTable<number, integer> hash
         i = 0
-        repeat while i < rows:GetSize()
-            if rows:Get(i) not= undefined
-                if hash:HasKey(rows:Get(i))
-                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+        repeat while i < values:GetSize()
+            if values:Get(i) not= undefined
+                if hash:HasKey(values:Get(i))
+                    hash:Add(values:Get(i), hash:GetValue(values:Get(i)) + 1)
                 else
-                    hash:Add(rows:Get(i), 1)
+                    hash:Add(values:Get(i), 1)
                 end
             end
             i = i + 1

@@ -35,6 +35,7 @@ public:
 	const WCHAR* GetName();
 	void SetDescription(_In_ std::wstring description);
 	const WCHAR* GetDescription();
+    std::wstring GetRoleDescription();
 	jobject GetMe();
 	int GetUniqueId() const noexcept;
 

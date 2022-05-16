@@ -17,7 +17,7 @@ use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.CompilerErrorCodes
 
 class Compiler
-    public constant number VERSION = 9.5
+    public constant number VERSION = 10.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -689,14 +689,22 @@ There are many ways to load canvases and this is provided only as an exemplar.
         <title>Test Web Application</title>
         <meta charset=" + dq + "UTF-8" + dq + ">
         <meta name="+ dq +"viewport" + dq +"content="+ dq +"width=device-width, initial-scale=1.0"+ dq +">
+        <style>
+            html, body, #QuorumUIRoot {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+        </style>
         <script src = "+ dq +"QuorumStandardLibrary.js"+ dq +"></script>
         <script src = "+ dq + GetName() + ".js"+ dq +"></script>
     </head>
     <body>
-        <canvas id="+ dq +"QuorumGraphicsCanvas"+ dq +" width="+ dq +"800"+ dq +" height="+ dq +"600"+ dq +" tabindex="+ dq +"0"+ dq +" style="+ dq +"outline: none"+ dq +">
-            Your browser doesn't appear to support the 
-            <code>&lt;canvas&gt;</code> element.
-        </canvas>
+        <div id="+ dq +"QuorumUIContainer"+ dq +"></div>
         <script type="+ dq +"text/javascript"+ dq +">
             var Module = {
                 onRuntimeInitialized: function () {

@@ -1393,6 +1393,24 @@ class StandardInput is GameInput
     end
 
     /*
+    This action adds a GestureListener directly to the GameInput. Note that gestures
+    aren't supported on desktop platforms - if the Game is running on a desktop
+    platform, this action will be ignored.
+    */
+    action AddGestureListener(GestureListener listener)
+        // Do nothing - touch isn't supported on Desktop.
+    end
+
+    /*
+    This action removes a GestureListener from the GameInput. Note that gestures
+    aren't supported on desktop platforms - if the Game is running on a desktop
+    platform, this action will be ignored.
+    */
+    action RemoveGestureListener(GestureListener listener)
+        // Do nothing - touch isn't supported on Desktop.
+    end
+
+    /*
     This action will add a ResizeListener to the GameInput. The 
     GameInput will notify the ResizeListener when the size of the game space
     changes, e.g. the window changes size or goes fullscreen.

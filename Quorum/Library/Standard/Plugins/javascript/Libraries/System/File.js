@@ -1,13 +1,18 @@
 function plugins_quorum_Libraries_System_File_() {
-    this.defaultWorkingDirectory = window.location.hostname;
+    // default to the root of the website
+    this.defaultWorkingDirectory = window.location.protocol + "//" + window.location.hostname;
     this.path = "";
     //
     this.GetLastModifiedNative = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not access last modified date while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     this.GetDirectoryListingNative = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not get directory listing while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     this.GetParentDirectoryNative = function () 
@@ -38,25 +43,7 @@ function plugins_quorum_Libraries_System_File_() {
     };
 
     this.GetAbsolutePathNative = function () {
-        //check if the path contains any pre-prend
-        var test = this.path;
-        var levelUp = 0;
-        while(test.startsWith("../")) {
-            test = test.substring(3, test.length);
-            levelUp++;
-        }
-        
-        if(test.startsWith("./")) {
-            test = test.substring(2, test.length);
-        }
-        
-        //now if the level ups are greater than 0, change the working directory
-        var newWorking = this.defaultWorkingDirectory;
-        
-        if (!newWorking.endsWith('/'))
-            newWorking = newWorking + '/';
-        
-        return newWorking + test;
+        return new URL(this.path, this.defaultWorkingDirectory + "/").href
     };
 
     this.GetWorkingDirectoryFromPath$quorum_text = function (path) {
@@ -77,7 +64,7 @@ function plugins_quorum_Libraries_System_File_() {
                 isFound = true;
             }
         };
-        xmlhttp.open("GET", url, false); //http://localhost:8383/HTML5Application/index.html/Library/Tests/SeparatedValue/Resources/Simple.csv
+        xmlhttp.open("HEAD", url, false);
         xmlhttp.send();
         return isFound;
     };
@@ -97,21 +84,21 @@ function plugins_quorum_Libraries_System_File_() {
     };
 
     this.GetFileName = function () {
-        
-    };
-
-    this.GetFileExtension = function () {
-
+        return this.GetAbsolutePathNative().split("/").pop();
     };
 
     //throw exception
     this.GetFreeDiskSpace = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not get disk space when running Quorum on the web.");
+        throw exceptionInstance_;
     };
 
     //throw exception
     this.GetTotalDiskSpace = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not get disk space when running Quorum on the web.");
+        throw exceptionInstance_;
     };
 
     this.GetFileSize = function () {
@@ -120,31 +107,43 @@ function plugins_quorum_Libraries_System_File_() {
 
     //throw exception
     this.Delete = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not delete files while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     //throw exception
     this.CreateDirectory = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not create directory while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     //throw exception
     this.CreateDirectories = function () {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not create directories while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     //throw exception
     this.Move$quorum_text = function (newPath) {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not move files while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     //throw exception
     this.Copy$quorum_Libraries_System_File = function (copy) {
-
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not copy files while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
     
     this.SetExecutable$quorum_text = function(exec) {
-        
+        let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
+        exceptionInstance_.SetErrorMessage$quorum_text("Can not set files to be executable while running Quorum in JavaScript mode.");
+        throw exceptionInstance_;
     };
 
     /*

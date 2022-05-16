@@ -59,10 +59,10 @@ class ScatterPlot is TwoVariableChart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        // Default settings specific to scatter plot
+        RegressionCapable(true)
         ShowAllTicks()
         SetDefaultOrientationToHorizontal()
-        GetHorizontalPanel():SetPaddingOffset(25)
-        GetVerticalPanel():SetPaddingOffset(25)
     end
 
     /*
@@ -86,6 +86,16 @@ class ScatterPlot is TwoVariableChart
 
     action Add(ChartPoint point)
         parent:TwoVariableChart:AddPoint(point)
+    end
+
+    /*
+    Supplemental actions to Chart class's SeparateByFactor and SeparateBySeries.
+    This ensures the separate pie charts are created and filled in properly.
+    */
+    action SeparateByFactor(integer requestColumns)
+        if GetFactorList() not= undefined
+            parent:Chart:SeparateBySeries(requestColumns)
+        end
     end
 
     /* 

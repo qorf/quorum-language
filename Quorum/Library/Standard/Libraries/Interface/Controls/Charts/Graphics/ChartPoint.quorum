@@ -1,0 +1,74 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
+class ChartPoint is ChartDrawable
+    number percentX = 0
+    number percentY = 0
+    number valueX = 0
+    number valueY = 0
+    text name = ""
+    Series series = undefined
+    
+    Icon parentRegion = undefined
+    Icon icon
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetPercentX returns number
+        return percentX
+    end
+
+    action SetPercentX(number percentX)
+        me:percentX = percentX
+    end
+
+    action GetPercentY returns number
+        return percentY
+    end
+
+    action SetPercentY(number percentY)
+        me:percentY = percentY
+    end
+
+    action GetValueX returns number
+        return valueX
+    end
+
+    action SetValueX(number valueX)
+        me:valueX = valueX
+    end
+
+    action GetValueY returns number
+        return valueY
+    end
+
+    action SetValueY(number valueY)
+        me:valueY = valueY
+    end
+
+    action SetParentRegion(Icon region)
+        parentRegion = region
+    end
+
+    action GetParentRegion returns Icon
+        return parentRegion
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+end

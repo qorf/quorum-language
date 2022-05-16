@@ -1,0 +1,52 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+/*
+The Bar class is a ChartDrawable that stores information for each 
+indiviual bar. Bar contains a numerical value to determine the size 
+of the bar within a chart.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Graphics.Bar
+class Main
+    action Main
+        // Make bar
+        Bar bar
+    
+        // Set value
+        bar:SetValue(20.0)
+    
+        // Get value
+        number x = bar:GetValue()
+    end
+end
+*/
+
+class Bar is ChartDrawable
+    number value = 0 
+
+    /*
+    This action returns the actual value associated with this slice.
+    The parent Chart axis has a total value to which this value will be compared
+    to get a percent for the appropriate size.
+
+    Attribute: Returns a number value
+    */
+    action GetValue returns number
+        return value
+    end
+
+    action SetValue(number value)
+        me:value = value
+        if GetBarGroup() not= undefined
+            GetBarGroup():RecalculateGroupValues()
+        end
+    end
+
+    /*
+    Link to the parent BarGroup
+    */
+    action GetBarGroup returns BarGroup
+        return cast(BarGroup, GetGroup())
+    end
+end

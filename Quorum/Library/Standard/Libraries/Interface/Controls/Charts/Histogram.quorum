@@ -9,10 +9,11 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Containers.Support.Comparison
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.System.File
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 
 /*
     The Histogram class is Chart object that inherits from SharedBarChartParent and like other
@@ -45,7 +46,6 @@ class Histogram is SharedBarChartParent
     Math math
     Array <DataFrameColumn> columns 
     Array<number> binFloor
-    Comparison comparison = undefined
     number binWidth = -1
     boolean binWidthOverride = false
     integer binCount = 0
@@ -82,9 +82,11 @@ class Histogram is SharedBarChartParent
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        // Default settings specific to histogram
+        SeparationCapable(true)
         ShowAllTicks()
         SetDefaultOrientationToVertical()
-        SetDefaultSeparation(true)
+        SeparateSeriesByDefault(true)
         GetVerticalPanel():BlockPaddingOffset(true)
         GetHorizontalPanel():BlockPaddingOffset(true)
     end
@@ -240,6 +242,7 @@ class Histogram is SharedBarChartParent
             n = n + 1
         end  
 
+        Array<text> seriesNames
         n = 0
         repeat while n < numberOfColumns 
             DataFrameColumn column = columns:Get(n)   
@@ -283,6 +286,7 @@ class Histogram is SharedBarChartParent
             // If a new series (ie new column)
             if(not seriesFactor:HasKey(column:GetHeader()))
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
             end
@@ -305,7 +309,7 @@ class Histogram is SharedBarChartParent
                 end
                 // If bar is part of a series
                 if(seriesFactor:HasKey(column:GetHeader()))
-                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar:GetIcon())
+                    seriesFactor:GetValue(column:GetHeader()):AddItem(bar)
                     bar:SetSeries(seriesFactor:GetValue(column:GetHeader()))
                 end
                 i = i + 1
@@ -331,17 +335,11 @@ class Histogram is SharedBarChartParent
             i = i + 1
         end    
         
-        // Series
+        // Add the series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
             i = i + 1
         end
 

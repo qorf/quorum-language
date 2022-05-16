@@ -32,6 +32,8 @@ use Libraries.Game.Physics.PhysicsProperties3D
 use Libraries.Game.Physics.all
 use Libraries.Game.Physics.Joints.JointEdge3D
 use Libraries.Game.Shapes.Rectangle
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Events.GestureListener
 
 /*
     The Item3D class represents any object that has a position in 3D space.
@@ -1399,6 +1401,70 @@ class Item3D is Item
 
         end
 
+    end
+
+    /*  
+    This action takes a gesture event and handles it. It will first test to 
+    see if the gesture event took place within the bounds of this Item. If so, it
+    will notify any GestureListeners of the event. If the event was not contained
+    within this Item, or if there are no GestureListeners on this Item, the Item
+    will ask its parent Item to process the event, if there is a parent.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item3D
+        use Libraries.Interface.Events.GestureEvent
+        use Libraries.Interface.Events.GestureListener
+        Item3D myItem
+        GestureListener listener
+        myItem:AddGestureListener(listener)
+        GestureEvent event
+        event:eventType = event:DOUBLE_TAP
+        myItem:ProcessGestureEvent(event)
+    
+    */
+    action ProcessGestureEvent(GestureEvent event)
+        event:SetEventHandled(true)
+
+        Iterator<GestureListener> iterator = GetGestureListeners()
+
+        if event:eventType = event:SINGLE_TAP
+            repeat while iterator:HasNext()
+                iterator:Next():OnSingleTap(event)
+            end
+        elseif event:eventType = event:DOUBLE_TAP
+            repeat while iterator:HasNext()
+                iterator:Next():OnDoubleTap(event)
+            end
+        elseif event:eventType = event:SWIPE
+            repeat while iterator:HasNext()
+                iterator:Next():OnSwipe(event)
+            end
+        elseif event:eventType = event:PAN
+            repeat while iterator:HasNext()
+                iterator:Next():OnPan(event)
+            end
+        elseif event:eventType = event:LONG_PRESS
+            if event:timingCode = event:BEGIN
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPressBegin(event)
+                end
+            elseif event:timingCode = event:FINISH
+                repeat while iterator:HasNext()
+                    iterator:Next():OnLongPressEnd(event)
+                end
+            end
+        elseif event:eventType = event:PINCH
+            repeat while iterator:HasNext()
+                if event:timingCode = event:BEGIN
+                    iterator:Next():OnPinchBegin(event)
+                elseif event:timingCode = event:CONTINUE
+                    iterator:Next():OnPinchContinue(event)
+                elseif event:timingCode = event:FINISH
+                    iterator:Next():OnPinchEnd(event)
+                end
+            end
+        end
     end
 
     /*  

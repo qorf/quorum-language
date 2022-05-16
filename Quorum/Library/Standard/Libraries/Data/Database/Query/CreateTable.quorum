@@ -1,6 +1,7 @@
 package Libraries.Data.Database
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 /*
     The CreateTable class is a query make a new table on a database. To create a table you need to give
     it a name using SetTable and then the table needs at least one column. 
@@ -20,6 +21,13 @@ class CreateTable is Query
 
     /* This array stores the keys in order of insertion. */
     Array<text> keys
+
+    HashTable<text, integer> notNullConstraints
+    HashTable<text, integer> uniqueConstraints
+    HashTable<text, text> columnDefaults
+    HashTable<text, text> foreignKeys
+    text primaryKey = undefined
+
     /*
         This action adds a text column to the table. If the value is less than 0, this throws an error. 
         If the value is greater than 0 and less than 65,535, a VARCHAR is created on the database. 
@@ -39,6 +47,33 @@ class CreateTable is Query
     */
     action AddTextColumn(text name, integer size)
         AddTextColumn(name, size, false)
+    end
+
+    /*
+        This action adds a text column to the table. This column can hold a string with a maximum length of 
+        65,535 characters.
+
+        Attribute: Parameter name the name of the column
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddTextColumn("description")
+        
+    */
+    action AddTextColumn(text name)
+        CheckName(name)
+
+        if columns:HasKey(name)
+            alert("The name '" + name + "' is already being prepared for entry into the database.")
+        end
+
+        text result = ""
+        result = name + " TEXT"
+        
+        keys:Add(name)
+        columns:Add(name, result)
     end
 
     /*
@@ -103,18 +138,17 @@ class CreateTable is Query
         
     */
     action AddIntegerColumn(text name)
-        CheckName(name)
-
-        text result = name + " INTEGER"
-        
-        keys:Add(name)
-        columns:Add(name, result)
+        AddIntegerColumn(name, false)
     end
 
+
     /*
-        This action adds a 32 bit integer column to the table. 
+        This action adds a 32 bit integer column to the table and allows for specifiying if this column automatically increments by 1 on each insertion.
+        An auto increment column does not need to be set when doing an insert, usually this is reserved for an 'id' column where the number does not matter
+        but each record needs a integer id. 
 
         Attribute: Parameter name the name of the column
+        Attribute: Parameter autoIncrement sets whether or not this integer column automatically increments on insertion
 
         Attribute: Example
         use Libraries.Data.Database.CreateTable
@@ -123,13 +157,179 @@ class CreateTable is Query
         mine:AddIntegerColumn("id")
         
     */
+    action AddIntegerColumn(text name, boolean autoIncrement)
+        CheckName(name)
+
+        text result = name + " INTEGER"
+        if autoIncrement
+            result = result + " AUTO_INCREMENT"
+        end
+        keys:Add(name)
+        columns:Add(name, result)
+    end
+
+
+    action AddNumberColumn(text name)
+        CheckName(name)
+
+        text result = name + " DOUBLE"
+        keys:Add(name)
+        columns:Add(name, result)
+    end
+
+    action AddBooleanColumn(text name)
+        CheckName(name)
+
+        text result = name + " BOOLEAN"
+        keys:Add(name)
+        columns:Add(name, result)
+    end
+
+    /*
+        This action adds a DateTime column to the table. 
+
+        Attribute: Parameter name the name of the column
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddDateTimeColumn("start_date")
+        
+    */
     action AddDateTimeColumn(text name)
+        AddDateTimeColumn(name, false)
+    end
+
+    /*
+        This action adds a DateTime column to the table. A datetime column can also be set that when a new record is inserted
+        or updated the datetime column will be set to the current time removing the need for the user to find and set the time.
+
+        Attribute: Parameter name the name of the column
+        Attribute: Parameter autoInitialize if true this will make a datetime column that on insert will automatically be a timestamp of the current time
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddDateTimeColumn("start_date", true)
+        
+    */
+    action AddDateTimeColumn(text name, boolean autoInitialize)
         CheckName(name)
 
         text result = name + " DATETIME"
+        if autoInitialize
+            result = result + " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        end
+        keys:Add(name)
+        columns:Add(name, result)
+    end
+
+    /*
+        This action adds a Timestamp column to the table. A timestamp column is very similar to a DateTime
+        column in that the values make look the same but the range of a timestamp is smaller and on a database
+        a timestamp will be converted and stored as UTC rather than the system timezone. When retrieving timestamps
+        they will be converted back to the system timezone.
+
+        Attribute: Parameter name the name of the column
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddTimestampColumn("last_modified")
+        
+    */
+    action AddTimestampColumn(text name)
+        AddTimestampColumn(name, false)
+    end
+
+
+    /*
+        This action adds a Timestamp column to the table. A timestamp column is very similar to a DateTime
+        column in that the values make look the same but the range of a timestamp is smaller and on a database
+        a timestamp will be converted and stored as UTC rather than the system timezone. When retrieving timestamps
+        they will be converted back to the system timezone. A timestamp column can also be set that when a new record is inserted
+        or updated the timestamp column will be set to the current time removing the need for the user to find and set the time.
+
+        Attribute: Parameter name the name of the column
+        Attribute: Parameter autoInitialize if true this will make a timestamp column that on insert will automatically be a timestamp of the current time
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddTimestampColumn("last_modified", true)
+        
+    */
+    action AddTimestampColumn(text name, boolean autoInitialize)
+        CheckName(name)
+
+        text result = name + " TIMESTAMP"
+        if autoInitialize
+            result = result + " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        end
+        keys:Add(name)
+        columns:Add(name, result)
+    end
+
+    /*
+        This action adds a Date column to the table. Similar to a DateTime column but stores no time portion.
+
+        Attribute: Parameter name the name of the column
+
+        Attribute: Example
+        use Libraries.Data.Database.CreateTable
+
+        CreateTable mine
+        mine:AddDateColumn("birthday")
+        
+    */
+    action AddDateColumn(text name)
+        CheckName(name)
+
+        text result = name + " DATE"
         
         keys:Add(name)
         columns:Add(name, result)
+    end
+
+    action AddNotNullConstraint(text name)
+        notNullConstraints:Add(name, 0) 
+    end
+
+    action AddUniqueConstraint(text name)
+        uniqueConstraints:Add(name, 0)
+    end
+
+    action SetPrimaryKey(text name)
+        primaryKey = name
+    end
+
+    action AddForeignKey(text name, text reference)
+        foreignKeys:Add(name, reference) 
+    end
+
+    action AddDefaultConstriant(text name, text default)
+        columnDefaults:Add(name, default)
+    end
+
+    action AddDefaultNullConstriant(text name)
+        columnDefaults:Add(name, "NULL")
+    end
+
+    action AddDefaultConstriant(text name, integer default)
+        columnDefaults:Add(name, ""+default)
+    end
+
+    action AddDefaultConstriant(text name, number default)
+        columnDefaults:Add(name, ""+default)
+    end
+
+    action AddDefaultConstriant(text name, boolean default)
+        columnDefaults:Add(name, ""+default)
+
     end
 
     private action CheckName(text name)
@@ -170,13 +370,41 @@ class CreateTable is Query
             text value = columns:GetValue(key)
             result = result + value
 
-            if i = keys:GetSize() - 1
-                result = result + table:GetLineFeed() + ");"
-            else
+            // check not null constraint
+            if notNullConstraints:HasKey(key)
+                result = result + " NOT NULL"
+            end
+
+            // check unique constraint
+            if uniqueConstraints:HasKey(key)
+                result = result + " UNIQUE"
+            end
+
+            // check default
+            if columnDefaults:HasKey(key)
+                result = result + " DEFAULT " + columnDefaults:GetValue(key)
+            end
+
+            if i not= keys:GetSize() - 1
                 result = result + "," + table:GetLineFeed()
             end
             i = i + 1
         end
+
+        // check if there is a primary key
+        if primaryKey not= undefined and columns:HasKey(primaryKey)
+            result = result + ", " + table:GetLineFeed() + "PRIMARY KEY (" + primaryKey + ")"
+        end
+
+        if not foreignKeys:IsEmpty()
+            Iterator<text> it = foreignKeys:GetKeyIterator()
+            repeat while it:HasNext()
+                text foreignKey = it:Next()
+                result = result + ", " + table:GetLineFeed() + "FOREIGN KEY (" + foreignKey + ") REFERENCES " + foreignKeys:GetValue(foreignKey) 
+            end
+        end
+
+        result = result + table:GetLineFeed()  + ");"
 
         return result
     end

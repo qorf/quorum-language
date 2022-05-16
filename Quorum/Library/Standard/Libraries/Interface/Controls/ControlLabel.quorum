@@ -1,50 +1,37 @@
 package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Label
-use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.SelectionHighlightView
+use Libraries.Interface.Views.ControlShaderView
 
 class ControlLabel is Label
     
-    SelectionHighlightView view = undefined
     boolean useSelectionColor = false
+    boolean renderFocus = true
 
     on create
         SetPositionOnBaseLine(false)
-
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        Color color
-        Color selectionColor = color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1)
-        Color unfocusedColor = color:CustomColor(190.0 / 255.0, 190.0 / 255.0, 228.0 / 255.0, 1)
-
-        properties:SetSelectionFontColor(color:White())
-        properties:SetFontColor(color:Black())
-        properties:SetSelectionColor(selectionColor)
-        properties:SetUnfocusedSelectionColor(unfocusedColor)
+        SetInterfaceOptionsKey("ControlLabel")
     end
 
     action GainedSelection
+        renderFocus = true
         UseSelectionColor(true)
-        if view not= undefined
-            view:SetSelectionColor(GetSelectionColor())
-        end
-
         parent:Control:GainedSelection()
     end
 
     action UnfocusedSelection
-        UseSelectionColor(false)
-        if view not= undefined
-            view:SetSelectionColor(GetUnfocusedSelectionColor())
-        end
-
+        renderFocus = false
+        UseSelectionColor(true)
         parent:Control:GainedSelection()
     end
 
     action LostSelection
+        renderFocus = false
         UseSelectionColor(false)
         parent:Control:LostSelection()
     end
@@ -54,12 +41,23 @@ class ControlLabel is Label
         parent:Label:ResetDrawableColors()
     end
 
-    private action GetCurrentColor returns Color
+    private action GetCurrentColor returns ColorGroup
         if useSelectionColor
-            return GetSelectionFontColor()
-        else
-            return GetFontColor()
+            if renderFocus
+                return GetSelectionFontColor()
+            elseif GetUnfocusedSelectionFontColor() not= undefined
+                return GetUnfocusedSelectionFontColor()
+            end
         end
+        return GetFontColor()
+    end
+
+    action IsRenderingSelection returns boolean
+        return useSelectionColor
+    end
+
+    action IsRenderingFocus returns boolean
+        return renderFocus
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -67,13 +65,9 @@ class ControlLabel is Label
 
         if properties:GetView2D() not= undefined
             SetView2D(properties:GetView2D())
-            if properties:GetView2D() is SelectionHighlightView
-                view = cast(SelectionHighlightView, properties:GetView2D())
-            end
         elseif GetView2D() = undefined
-            SelectionHighlightView content
-            view = content
-            content:Initialize(properties:GetSelectionColor())
+            ControlShaderView content
+            content:Initialize()
             SetView2D(content)
         end
     end

@@ -1,6 +1,7 @@
 function plugins_quorum_Libraries_Game_WebDisplay_() 
 {
-    var canvas = null;
+    let container = null;
+    let canvas = null;
     var configuration = null;
     
     var lastTime = 0;
@@ -20,13 +21,23 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.SetupDisplay = function()
     {
-        if (typeof currentIDECanvas_$Global_ !== 'undefined') {
-            canvas = document.getElementById(currentIDECanvas_$Global_);
+        let id;
+        if (typeof currentUIContainer_$Global_ !== "undefined") {
+            id = currentUIContainer_$Global_;
         } else {
-            var id = configuration.canvasID;
-            currentIDECanvas_$Global_ = id;
-            canvas = document.getElementById(id);
+            id = configuration.containerID;
         }
+        container = document.getElementById(id);
+
+        canvas = document.createElement("canvas");
+        canvas.setAttribute("aria-hidden", "true");
+        canvas.style.outline = "none";
+        canvas.style.position = "absolute";
+        canvas.style.left = 0;
+        canvas.style.top = 0;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        container.appendChild(canvas);
     };
     
     this.GetCanvas = function()
@@ -34,13 +45,14 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         return canvas;
     };
     
+    this.GetContainer = function()
+    {
+        return container;
+    };
+    
     this.SetDisplayMode$quorum_integer$quorum_integer$quorum_boolean = function(width, height, fullscreen)
     {
-        // Currently resizes canvas but does not support fullscreen.
-        canvas.width = width;
-        canvas.height = height;
-        
-        return canvas.width === width && canvas.height === height && !fullscreen;
+        throw new Error("Not supported on the web platform; the size is defined by the container.");
     };
     
     this.GetWidth = function()
@@ -80,8 +92,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.Destroy = function()
     {
-        // It's not clear if a user should be able to close the game display, 
-        // since it exists on a canvas on a webpage.
+        canvas.remove();
     };
     
     this.UpdateTime = function()

@@ -1,0 +1,154 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector
+use Libraries.Interface.Controls.Icon
+use Libraries.Containers.Support.Pair
+
+/*
+The Plot class is a data structure that stores information for each 
+indiviual plot in a box plot or violin plot. Plot contains an array of data and a color element
+that is used for accessibility and keeping track of to which series the plot belongs.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Plot
+class Main
+   action Main
+      //make plot
+      plot plot
+      //add value
+      plot:Add(30)
+      //get value
+      number x = plot:Get(0)
+   end
+end
+*/
+
+class Plot is ChartDrawable
+    Vector data                 // All data for this plot
+    Array <number> info         // Summary values
+    Array <number> outliers     // Outlier values
+    Array <ChartDrawable> items // Drawable items on chart within this plot
+    Array<Pair<integer>> points // VIOLIN ONLY - Coordinates to draw violin shaped polygon
+    Icon plotArea
+
+    private number minOutlierValue = 0
+    private number maxOutlierValue = 0
+
+    /* Indices info of individual plot values (info)
+        0: MEDIAN
+        1: Q1 LOWER QUARTILE
+        2: Q3 UPPER QUARTILE
+        3: MINIMUM
+        4: MAXIMUM
+    */
+
+     /* Indices for plotting items of individual plot (items)
+        0: PLOT AREA 
+        1: MINIMUM LINE
+        2: LOWER WHISKER
+        3: INTERQUARTILE RANGE
+        4: RIGHT BORDER OF IQR
+        5: LEFT BORDER OF IQR
+        6: Q1 LINE
+        7: MEDIAN LINE
+        8: Q3 LINE
+        9: UPPER WHISKER    
+        10: MAXIMUM LINE 
+        11+: OUTLIERS
+    */
+
+    action SetData(Vector vector)
+        data = vector:Copy()
+        if data:GetSize() > 0
+            minOutlierValue = data:Get(0)
+            maxOutlierValue = data:Get(data:GetSize()-1)
+        end
+    end
+    
+    action GetData() returns Vector
+        return data
+    end
+
+    action IsUndefined() returns boolean
+        if info:GetSize() = 0
+            return true
+        end
+        return false
+    end
+
+    // Fill in plotting information and outliers.
+    action SetInfo(Array<number> array)
+        integer i = 0
+        repeat while i < array:GetSize()
+            if i < 5
+                info:Add(array:Get(i))
+            else
+                outliers:Add(array:Get(i))
+            end
+            i = i + 1
+        end
+//        if GetPlotGroup() not= undefined
+//            GetPlotGroup():RecalculateGroupValues()
+//        end
+    end
+
+    action GetInfo returns Array<number>
+        return info
+    end
+
+    action GetOutliers() returns Array<number>
+        return outliers
+    end
+    
+    action GetInfoAt(integer index) returns number
+        return info:Get(index)
+    end
+
+    action GetInfoSize() returns integer
+        return info:GetSize()
+    end
+
+    action AddItem(ChartDrawable item)
+        items:Add(item)
+    end
+
+    action GetPlotItems() returns Array<ChartDrawable> 
+        return items
+    end
+
+    action GetMinOutlierValue returns number
+        return minOutlierValue
+    end
+
+    action GetMaxOutlierValue returns number
+        return maxOutlierValue
+    end
+
+    /*
+        Array of points used to outline the violin shape in a violin plot chart.
+    */
+    action GetPoints returns Array<Pair<integer>>
+        return points
+    end
+
+    /*
+        Icon surrounding single plot when focused on.    
+    */
+    action GetPlotArea returns Icon
+        return plotArea
+    end
+
+    action SetPlotArea(Icon plotArea)
+        me:plotArea = plotArea
+    end
+
+    /*
+        Link to the parent PlotGroup
+    */
+    action GetPlotGroup returns PlotGroup
+        return cast(PlotGroup, GetGroup())
+    end
+end

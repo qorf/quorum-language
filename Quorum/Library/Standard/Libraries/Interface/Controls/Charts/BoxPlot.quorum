@@ -13,7 +13,10 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.Support.FirstLetterNavigator
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
     The BoxPlot class is Chart object that inherits from Control and like other
@@ -97,6 +100,7 @@ class BoxPlot is Chart
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
 
+        SeparationCapable(true)
         SetDefaultShowBrackets(true)
         SetDefaultOrientationToVertical()
         GetVerticalPanel():BlockPaddingOffset(true)
@@ -119,7 +123,7 @@ class BoxPlot is Chart
         LoadChartAreaItems()
     end
 
-    action LoadChartAreaItems()
+    action LoadChartAreaItems()   
         ChartAreaPanel chartArea
         // Adding drawables for each boxplot to the chart
         integer i = 0
@@ -128,101 +132,116 @@ class BoxPlot is Chart
             integer k = 0
             repeat while k < group:GetSize()
                 Plot plot = group:Get(k)
-                number median = plot:GetInfoAt(0)
-                number firstQ = plot:GetInfoAt(1)
-                number thirdQ = plot:GetInfoAt(2)
-                number minimum = plot:GetInfoAt(3)
-                number maximum = plot:GetInfoAt(4)
-                number iqr = thirdQ - firstQ
 
-                // Minimum Line 
-                Drawable minimumLine
-                minimumLine:SetName("Minimum")
-                minimumLine:SetDescription(" " + minimum + ".")
-                if CheckIfInteger(minimum)
-                    minimumLine:SetDescription(" " + cast(integer, minimum))
-                else
+                ChartDrawable minimumLine
+                ChartDrawable lowerWhisker 
+                ChartDrawable interQuartileRange
+                ChartDrawable rightBorder // Right side of IQR
+                ChartDrawable leftBorder  // Left side of IQR
+                ChartDrawable firstQuartileLine
+                ChartDrawable medianLine
+                ChartDrawable thirdQuartileLine
+                ChartDrawable upperWhisker 
+                ChartDrawable maximumLine
+                ChartDrawable filler
+
+                if not plot:IsUndefined()
+                    number median = plot:GetInfoAt(0)
+                    number firstQ = plot:GetInfoAt(1)
+                    number thirdQ = plot:GetInfoAt(2)
+                    number minimum = plot:GetInfoAt(3)
+                    number maximum = plot:GetInfoAt(4)
+                    number iqr = thirdQ - firstQ
+    
+                    // Minimum Line 
+                    minimumLine:SetFocusable(true)
+                    minimumLine:SetAccessibilityCode(0)
+                    minimumLine:SetName("Minimum")
                     minimumLine:SetDescription(" " + minimum)
-                end
-                minimumLine:SetFocusable(true)
-                minimumLine:SetAccessibilityCode(0)
-                // Lower Whisker Line
-                Drawable lowerWhisker
-                // Interquartile Range Region Area
-                Drawable interQuartileRange
-                interQuartileRange:SetName("Interquartile range")
-                if CheckIfInteger(iqr)
-                    interQuartileRange:SetDescription(" " + cast(integer, iqr))
-                else
+                    if CheckIfInteger(minimum)
+                        minimumLine:SetDescription(" " + cast(integer, minimum))
+                    end
+
+                    // Interquartile Range Region Area
+                    interQuartileRange:SetFocusable(true)
+                    interQuartileRange:SetAccessibilityCode(0)
+                    interQuartileRange:SetName("Interquartile range")
                     interQuartileRange:SetDescription(" " + iqr)
-                end
-                interQuartileRange:SetFocusable(true)
-                interQuartileRange:SetAccessibilityCode(0)
-                // Right Side of IQR
-                Drawable rightBorder
-                // Left Side of IQR
-                Drawable leftBorder
-                // Lower Quartile Line Q1
-                Drawable firstQuartileLine
-                firstQuartileLine:SetName("1st Quartile")
-                if CheckIfInteger(firstQ)
-                    firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
-                else
+                    if CheckIfInteger(iqr)
+                        interQuartileRange:SetDescription(" " + cast(integer, iqr))
+                    end
+    
+                    // Lower Quartile Line Q1
+                    firstQuartileLine:SetFocusable(true)
+                    firstQuartileLine:SetAccessibilityCode(0)
+                    firstQuartileLine:SetName("1st Quartile")
                     firstQuartileLine:SetDescription(" " + firstQ)
-                end
-                firstQuartileLine:SetFocusable(true)
-                firstQuartileLine:SetAccessibilityCode(0)
-                // Median Line (denser)
-                Drawable medianLine
-                medianLine:SetName("Median")
-                if CheckIfInteger(median)
-                    medianLine:SetDescription(" " + cast(integer, median))
-                else
+                    if CheckIfInteger(firstQ)
+                        firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
+                    end
+    
+                    // Median Line (denser) 
+                    medianLine:SetFocusable(true)
+                    medianLine:SetAccessibilityCode(0)
+                    medianLine:SetName("Median")
                     medianLine:SetDescription(" " + median)
-                end
-                medianLine:SetFocusable(true)
-                medianLine:SetAccessibilityCode(0)
-                // Upper Quartile Line Q3
-                Drawable thirdQuartileLine
-                thirdQuartileLine:SetName("3rd Quartile")
-                if CheckIfInteger(thirdQ)
-                    thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
-                else
+                    if CheckIfInteger(median)
+                        medianLine:SetDescription(" " + cast(integer, median))
+                    end
+    
+                    // Upper Quartile Line Q3
+                    thirdQuartileLine:SetFocusable(true)
+                    thirdQuartileLine:SetAccessibilityCode(0)
+                    thirdQuartileLine:SetName("3rd Quartile")
                     thirdQuartileLine:SetDescription(" " + thirdQ)
-                end
-                thirdQuartileLine:SetFocusable(true)
-                thirdQuartileLine:SetAccessibilityCode(0)
-                // Upper Whisker Line
-                Drawable upperWhisker
-                // Maximum Line
-                Drawable maximumLine
-                maximumLine:SetName("Maximum")
-                if CheckIfInteger(maximum)
-                    maximumLine:SetDescription(" " + cast(integer, maximum))
-                else
+                    if CheckIfInteger(thirdQ)
+                        thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
+                    end
+    
+                    // Maximum Line
+    
+                    maximumLine:SetFocusable(true)
+                    maximumLine:SetAccessibilityCode(0)
+                    maximumLine:SetName("Maximum")
                     maximumLine:SetDescription(" " + maximum)
+                    if CheckIfInteger(maximum)
+                        maximumLine:SetDescription(" " + cast(integer, maximum))
+                    end
+
                 end
-                maximumLine:SetFocusable(true)
-                maximumLine:SetAccessibilityCode(0)
+
                 // Plot Area Outline Panel
                 Icon plotArea
-                plotArea:SetName(group:Get(k):GetName() + " box plot")
+                plotArea:SetName(plot:GetName() + ", ")
+                plotArea:SetDescription((k+1) + " of " + group:GetSize() + " plots")
                 plotArea:SetFocusable(true)
                 plotArea:SetAccessibilityCode(0)
+                plot:SetPlotArea(plotArea)
 
                 if not HasGroups()
                     plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " box plots")
+                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " plots")
                 end
     
-                if IsSeparatedByFactor()
-                    plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " box plots")
+                if IsSeparated()
+                    if IsSeparatedByFactor()
+                        plotArea:SetName(plot:GetName() + ", ")
+                    elseif IsSeparatedBySeries()
+                        plotArea:SetName(group:GetName() + ", ")
+                    end
+                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " plots")
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
-                        if plot:GetSeries() = GetSubChartAreas():Get(j):GetSeries()
-                            chartArea = GetSubChartAreas():Get(j)
-                            chartArea:AddChartAreaItem(plot)
+                        if IsSeparatedBySeries()
+                            if plot:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
+                        elseif IsSeparatedByFactor()
+                            if group:GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
                         end
                         j = j + 1
                     end
@@ -258,7 +277,7 @@ class BoxPlot is Chart
                     10: MAXIMUM LINE 
                     11+: OUTLIER POINTS
                 */
-                plot:AddItem(plotArea)
+                plot:AddItem(filler)
                 plot:AddItem(minimumLine)      
                 plot:AddItem(lowerWhisker)
                 plot:AddItem(interQuartileRange)
@@ -276,7 +295,7 @@ class BoxPlot is Chart
                     Array <number> outliers = plot:GetOutliers()
                     integer j = 0
                     repeat while j < outliers:GetSize()
-                        Drawable outlier
+                        ChartDrawable outlier
                         outlier:SetName("Outlier")
                         if CheckIfInteger(outliers:Get(j))
                             outlier:SetDescription(" " + cast(integer, outliers:Get(j)))
@@ -294,14 +313,13 @@ class BoxPlot is Chart
             end
 
             // Area covering entire group panel
-            Icon panel
-            panel:SetName(group:GetName() + " group, ")
-            panel:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
-            panel:SetFocusable(true)
-            panel:SetAccessibilityCode(0)
-            chartArea:Add(panel)
-            group:SetItem(panel)
-            GetGroupPanels():Add(panel)
+//            GroupPanel panel
+            group:SetName(group:GetName() + " group, ")
+            group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
+            group:SetFocusable(true)
+            group:SetAccessibilityCode(0)
+            chartArea:Add(group)
+            GetGroupPanels():Add(group)
             i = i + 1
         end
     end
@@ -317,32 +335,7 @@ class BoxPlot is Chart
     */
     action DisposeDrawables
         parent:Chart:DisposeDrawables()
-        Control chartArea = me:GetChartArea()
-        integer i = 0
-        repeat while i < plotGroups:GetSize()
-            integer j = 0
-            repeat while j < plotGroups:Get(i):GetSize()
-                Array<Drawable> items = plotGroups:Get(i):Get(j):GetPlotItems()
-                integer k = 0
-                repeat while k < items:GetSize()
-                    if items:Get(k) not= undefined
-                        Drawable target = items:Get(k)
-                        target:Dispose()
-                        chartArea:Remove(target)
-                    end
-                    k = k + 1
-                end
-                items:Empty()
-                j = j + 1
-            end
-            if plotGroups:Get(i):GetItem() not= undefined
-                Drawable target = plotGroups:Get(i):GetItem()
-                target:Dispose()
-                chartArea:Remove(target)
-            end
-            i = i + 1
-        end
-        chartArea:Empty()
+        GetChartArea():Empty()
     end
 
     /*
@@ -368,21 +361,22 @@ class BoxPlot is Chart
                 Series temp = cast(Series, target)
                 integer i = 0
                 repeat while i < temp:GetSize()
-                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    Plot plot = cast(Plot, temp:GetItemAt(i))
                     integer j = 1
                     repeat while j < plot:GetPlotItems():GetSize()
-                        Drawable item = plot:GetPlotItems():Get(j)
+                        ChartDrawable item = plot:GetPlotItems():Get(j)
                         if j = 3
                             item:SetColor(previousColor)
                         else
-                            item:SetColor(0,0,0,1)
+                            item:SetColor(previousColor:Black())
                         end
                         j = j + 1
                     end
-                    i = i + 2
+                    i = i + 1
                 end
-                temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
+//                temp:GetLabel():LostSelection()
+                temp:GetEntryIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -414,17 +408,18 @@ class BoxPlot is Chart
                 previousColor = temp:GetColor()
                 integer i = 0
                 repeat while i < temp:GetSize()
-                    Plot plot = cast(Plot, temp:GetItemAt(i+1))
+                    Plot plot = cast(Plot, temp:GetItemAt(i))
                     integer j = 1
                     repeat while j < plot:GetPlotItems():GetSize()
-                        Drawable item = plot:GetPlotItems():Get(j)
+                        ChartDrawable item = plot:GetPlotItems():Get(j)
                         item:SetColor(GetHighlightColor())
                         j = j + 1
                     end
-                    i = i + 2
+                    i = i + 1
                 end
-                temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+//                temp:GetLabel():GainedSelection()
+                temp:GetEntryIcon():SetColor(GetHighlightColor())
+                temp:GetEntryBox():SetColor(GetHighlightColor())
             else
                 parent:Chart:GainedSelection(ci)
             end            
@@ -449,17 +444,24 @@ class BoxPlot is Chart
         Appends a plotgroup.
     */
     action AddPlotGroup(PlotGroup group)
-        if maxValue < group:GetMaxValue()
+        if plotGroups:GetSize() = 0
             maxValue = group:GetMaxValue()
-        end
-        if minValue > group:GetMinValue()
             minValue = group:GetMinValue()
-        end
-        if maxOutlierValue < group:GetMaxOutlierValue()
             maxOutlierValue = group:GetMaxOutlierValue()
-        end
-        if minOutlierValue > group:GetMinOutlierValue()
             minOutlierValue = group:GetMinOutlierValue()
+        else
+            if maxValue < group:GetMaxValue()
+                maxValue = group:GetMaxValue()
+            end
+            if minValue > group:GetMinValue()
+                minValue = group:GetMinValue()
+            end
+            if maxOutlierValue < group:GetMaxOutlierValue()
+                maxOutlierValue = group:GetMaxOutlierValue()
+            end
+            if minOutlierValue > group:GetMinOutlierValue()
+                minOutlierValue = group:GetMinOutlierValue()
+            end
         end
         plotGroups:Add(group)
         if group:GetSize() > 1
@@ -610,7 +612,7 @@ class BoxPlot is Chart
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         
-        if IsSeparatedByFactor()
+        if IsSeparated()
             //Chart Areas
             integer subAreaCount = GetLegend():GetSeriesList():GetSize()
             ChartItem firstArea
@@ -620,9 +622,8 @@ class BoxPlot is Chart
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
-                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetTitleName())
+                firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetName(GetSubChartAreas():Get(0):GetSeries():GetName())
                 GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
 
                 //Plots within Chart Areas
@@ -635,7 +636,7 @@ class BoxPlot is Chart
                             return now
                         end
                         Plot plot = cast(Plot, chartAreaItems:Get(k))
-                        Array<Drawable> items = plot:GetPlotItems() //First plot
+                        Array<ChartDrawable> items = plot:GetPlotItems() //First plot
                         if k = 0
                             firstArea:SetChild(next_target)
                         else
@@ -644,16 +645,16 @@ class BoxPlot is Chart
                         end
                         
                         next_target:SetContainer(me)
-                        next_target:SetDisplayName(items:Get(0):GetName()) 
-                        next_target:SetFocusTarget(items:Get(0))  
+                        next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
+                        next_target:SetFocusTarget(plot:GetPlotArea())  
                         next_target:SetParent(firstArea)
                         prev_target = next_target    
                         ChartItem previous
                         integer target_index = 0
-                        integer index = 0
+                        integer index = 1
                         repeat while index < items:GetSize()
-                            Drawable item = items:Get(index)
-                            Drawable lastItem = items:Get(items:GetSize() - 1)
+                            ChartDrawable item = items:Get(index)
+                            ChartDrawable lastItem = items:Get(items:GetSize() - 1)
                             text Description = item:GetDescription()
                     
                             if Description not= ""
@@ -686,7 +687,7 @@ class BoxPlot is Chart
             ChartItem previousArea = firstArea
             repeat while i < GetNumberOfChartAreas()
                 ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:GetIsShowing()
+                if chartSubArea:IsShowing()
                     ChartItem nextArea
                     nextArea:SetContainer(me)
                     nextArea:SetParent(chartArea)
@@ -694,9 +695,8 @@ class BoxPlot is Chart
                     previousArea:SetNext(nextArea)
                     nextArea:SetPrevious(previousArea)
                     previousArea = nextArea
-                    nextArea:SetDisplayName(chartSubArea:GetTitleName())
+                    nextArea:SetDisplayName(chartSubArea:GetName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                    chartSubArea:SetName(chartSubArea:GetSeries():GetName())
                     chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
 
                     //Plots within Plot Groups
@@ -709,7 +709,7 @@ class BoxPlot is Chart
                                 return now
                             end
                             Plot plot = cast(Plot, chartAreaItems:Get(k))
-                            Array<Drawable> items = plot:GetPlotItems() //First plot
+                            Array<ChartDrawable> items = plot:GetPlotItems() //First plot
                             if k = 0
                                 nextArea:SetChild(next_target)
                             else
@@ -718,16 +718,16 @@ class BoxPlot is Chart
                             end
     
                             next_target:SetContainer(me)
-                            next_target:SetDisplayName(items:Get(0):GetName()) 
-                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
+                            next_target:SetFocusTarget(plot:GetPlotArea())  
                             next_target:SetParent(nextArea)
                             prev_target = next_target      
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
-                                Drawable item = items:Get(index)
-                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                ChartDrawable item = items:Get(index)
+                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
                                 text Description = item:GetDescription()
                         
                                 if Description not= ""
@@ -766,7 +766,7 @@ class BoxPlot is Chart
                 if plotGroups:GetSize() > 0
                     chartArea:SetChild(firstGroup)
                     firstGroup:SetParent(chartArea)
-                    firstGroup:SetFocusTarget(plotGroups:Get(0):GetItem())
+                    firstGroup:SetFocusTarget(plotGroups:Get(0))
                     firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
         
                     //Plots within Plot Groups
@@ -775,7 +775,7 @@ class BoxPlot is Chart
                         integer k = 0
                         repeat while k < plotGroups:Get(0):GetSize()
                             ChartItem next_target
-                            Array<Drawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
+                            Array<ChartDrawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
                             if k = 0
                                 firstGroup:SetChild(next_target)
                             else
@@ -784,16 +784,16 @@ class BoxPlot is Chart
                             end
                             
                             next_target:SetContainer(me)
-                            next_target:SetDisplayName(items:Get(0):GetName()) 
-                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetPlotArea():GetName()) 
+                            next_target:SetFocusTarget(plotGroups:Get(0):Get(k):GetPlotArea())  
                             next_target:SetParent(firstGroup)
                             prev_target = next_target    
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
-                                Drawable item = items:Get(index)
-                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                ChartDrawable item = items:Get(index)
+                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
                                 text Description = item:GetDescription()
                       
                                 if Description not= ""
@@ -828,7 +828,7 @@ class BoxPlot is Chart
                     ChartItem group
                     group:SetContainer(me)
                     group:SetParent(chartArea)
-                    group:SetFocusTarget(plotGroups:Get(i):GetItem())
+                    group:SetFocusTarget(plotGroups:Get(i))
                     group:SetDisplayName(plotGroups:Get(i):GetName())
                     previousGroup:SetNext(group)
                     group:SetPrevious(previousGroup)
@@ -840,7 +840,7 @@ class BoxPlot is Chart
                         integer k = 0
                         repeat while k < plotGroups:Get(i):GetSize()
                             ChartItem next_target
-                            Array<Drawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
+                            Array<ChartDrawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
                             if k = 0
                                 group:SetChild(next_target)
                             else
@@ -849,16 +849,16 @@ class BoxPlot is Chart
                             end
     
                             next_target:SetContainer(me)
-                            next_target:SetDisplayName(items:Get(0):GetName()) 
-                            next_target:SetFocusTarget(items:Get(0))  
+                            next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetPlotArea():GetName()) 
+                            next_target:SetFocusTarget(plotGroups:Get(i):Get(k):GetPlotArea())  
                             next_target:SetParent(group)
                             prev_target = next_target      
                             ChartItem previous
                             integer target_index = 0
-                            integer index = 0
+                            integer index = 1
                             repeat while index < items:GetSize()
-                                Drawable item = items:Get(index)
-                                Drawable lastItem = items:Get(items:GetSize() - 1)
+                                ChartDrawable item = items:Get(index)
+                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
                                 text Description = item:GetDescription()
                       
                                 if Description not= ""
@@ -893,7 +893,7 @@ class BoxPlot is Chart
                 integer k = 0
                 repeat while k < plotGroups:GetSize()
                     ChartItem next_target
-                    Array<Drawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
+                    Array<ChartDrawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
                     if k = 0
                         chartArea:SetChild(next_target)
                     else
@@ -902,16 +902,16 @@ class BoxPlot is Chart
                     end
     
                     next_target:SetContainer(me)
-                    next_target:SetDisplayName(items:Get(0):GetName()) 
-                    next_target:SetFocusTarget(items:Get(0))  
+                    next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetPlotArea():GetName()) 
+                    next_target:SetFocusTarget(plotGroups:Get(k):Get(0):GetPlotArea())  
                     next_target:SetParent(chartArea)
                     prev_target = next_target      
                     ChartItem previous
                     integer target_index = 0
-                    integer index = 0
+                    integer index = 1
                     repeat while index < items:GetSize()
-                        Drawable item = items:Get(index)
-                        Drawable lastItem = items:Get(items:GetSize() - 1)
+                        ChartDrawable item = items:Get(index)
+                        ChartDrawable lastItem = items:Get(items:GetSize() - 1)
                         text Description = item:GetDescription()
                 
                         if Description not= ""
@@ -955,5 +955,19 @@ class BoxPlot is Chart
     action ConvertToScalableVectorGraphics returns text
         BoxPlotWriter writer
         return writer:WriteOutChart(me)
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            BoxPlotWriter chartWriter
+            chartWriter:WriteOutChart(me,file)
+        end
     end
 end

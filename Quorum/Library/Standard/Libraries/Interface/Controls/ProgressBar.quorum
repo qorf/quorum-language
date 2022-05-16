@@ -21,14 +21,13 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
 
 class ProgressBar is Control
     Label label = undefined
     Icon icon = undefined
 
-    Icon backgroundBar
     Icon bar
-    Color barColor
 
     LayoutProperties labelProperties
     GameStateManager manager
@@ -53,50 +52,48 @@ class ProgressBar is Control
         properties:SetFontSize(16)
         SetSize(150,25)
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
-        properties:SetBorderThickness(2)
-        barColor = color:CustomColor(0.282, 0.4, 0.706, 1)
         SetName("Progress Bar")
 
+        LayoutProperties iconProperties = bar:GetDefaultLayoutProperties()
+        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(0)
+        bar:SetName("Bar Fill")
+        Add(bar)
+
+        SetBorderThickness(2)
+        bar:SetBorderThickness(2)
+
+        SetInterfaceOptionsKey("ProgressBar")
         SetInputGroup("ProgressBar")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:PROGRESS_BAR)
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        bar:SetInterfaceOptionsKey(key)
     end
 
     action LoadGraphics(LayoutProperties properties)
         if properties = undefined
             return now
         end
-        ColorGroup background = properties:GetBackgroundColor()
-        ColorGroup border = properties:GetBorderColor()
-        number borderThickness = properties:GetBorderThickness()
-        Color color
-        backgroundBar:LoadRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), border)
-        FlowLayout layout
-        backgroundBar:SetLayout(layout)
-        LayoutProperties iconProperties = backgroundBar:GetDefaultLayoutProperties()
-        iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetPercentageWidth(1.0)
-        backgroundBar:SetName("Bar Background")
-        Add(backgroundBar)
 
-        bar:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()), barColor)
-        iconProperties = bar:GetDefaultLayoutProperties()
-        iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetPercentageWidth(0)
-        iconProperties:SetLeftPadding(borderThickness)
-        iconProperties:SetRightPadding(borderThickness)
-        iconProperties:SetTopPadding(borderThickness)
-        iconProperties:SetBottomPadding(borderThickness)
-        bar:SetName("Bar Fill")
-        backgroundBar:Add(bar)
+        // If the background bar doesn't have a view, we haven't loaded our icons yet.
+        if GetView2D() = undefined
+            ControlShaderView backgroundView
+            backgroundView:Initialize()
+            SetView2D(backgroundView)
+
+            ControlShaderView barView
+            barView:Initialize()
+            bar:SetView2D(barView)
+        end
+
+        bar:SetBackgroundColor(GetForegroundColor())
+        Color transparency
+        transparency:SetColor(1, 1, 1, 0)
+        bar:SetBorderColor(transparency)
 
         parent:Control:LoadGraphics(properties)
     end
@@ -140,10 +137,6 @@ class ProgressBar is Control
                 bar:RequestLayout()
             end
         end
-    end
-
-    action SetBarColor(Color barColor)
-        me:barColor = barColor
     end
 
 end

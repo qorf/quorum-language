@@ -1,0 +1,368 @@
+package Libraries.Language.Compile.Parsing
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Context.OutputContext
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Stack
+
+/*
+    This class converts Quorum Source code into JavaScriptObjectNotation (JSON) objects,
+    which can be used to calculate information appropriate for blocks. It is not
+    intended as a converter to a JSON representation of Quorum's abstract syntax tree 
+    and should not be used in this way, as it intentionally leaves out particular nodes
+    for efficiency and because the block system does not need it.
+
+    Attribute: Example
+
+    package Blocks
+
+    use Libraries.Language.Compile.Parsing.BlockListener
+    use Libraries.Language.Compile.Parsing.QuorumLexer
+    use Libraries.System.File
+    use Libraries.Language.Compile.Parsing.QuorumParser
+    use Libraries.Language.Compile.Context.StartContext
+    use Libraries.Language.Compile.CompilerErrorManager
+    use Libraries.Data.Formats.JavaScriptObjectNotation
+
+    class Main
+    
+        action Main
+            BlockListener listener
+    
+            CompilerErrorManager manager
+            QuorumLexer lexer
+            lexer:SetCompilerErrorManager(manager)
+            File file
+            file:SetPath("SourceCode/Main.quorum")
+            lexer:Read(file)
+            
+            QuorumParser parser
+            parser:SetCompilerErrorManager(manager)
+            parser:SetLexer(lexer)
+    
+            StartContext start = parser:Start()
+            start:Traverse(listener)
+            JavaScriptObjectNotation result = listener:Convert()
+            result:SetPrettyPrint(true)
+            output result:ToText()
+        end
+    end
+*/
+class BlockListener is QuorumSourceListener
+    JavaScriptObjectNotation start
+    Stack<JavaScriptObjectNotation> scopes
+    JavaScriptObjectNotation currentScope = start
+    integer key = 0
+    on create
+        scopes:Push(start)
+    end
+
+    action AddUniqueToScope(JavaScriptObjectNotation item)
+        JavaScriptObjectNotation unique
+        unique:SetKey("" + key)
+        unique:SetObject()
+        unique:Add(item)
+        currentScope:Add(unique)
+        key = key + 1
+    end
+
+    action EnterDocumentation(DocumentationContext context) 
+        JavaScriptObjectNotation statement
+        JavaScriptObjectNotation location = GetLocation(context)
+        if location not= undefined
+            currentScope:Add("Documentation", location)
+        end
+    end
+
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) end
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) 
+        currentScope = scopes:Pop()
+    end
+
+    action EnterActionsNoClass(ActionsNoClassContext context) end
+    action ExitActionsNoClass(ActionsNoClassContext context) end
+    
+    action EnterNumber(NumberContext context) end
+    action ExitNumber(NumberContext context) end
+
+    action EnterParenthesisExpression(ParenthesisContext context) end
+    action ExitParenthesisExpression(ParenthesisContext context) end
+
+    action EnterCast(CastContext context) end
+    action ExitCast(CastContext context) end
+
+    action EnterSayStatement(SayContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("SayStatement")
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+        AddExpression(context:expression, statement)
+    end
+
+    action EnterCheckStatement(CheckContext context) end
+    action ExitCheckStatement(CheckContext context) end
+
+    action EnterParentFieldAccess(ParentFieldAccessContext context) end
+    action ExitParentFieldAccess(ParentFieldAccessContext context) end
+
+    action EnterFullClassDeclaration(FullClassDeclarationContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("FullClassDeclaration")
+        statement:Add("Name", context:className)
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+        currentScope = statement
+        scopes:Push(statement)
+    end
+
+    action ExitFullClassDeclaration(FullClassDeclarationContext context) 
+        currentScope = scopes:Pop()
+    end
+
+    action EnterNoClassDeclaration(NoClassDeclarationContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("NoClassDeclaration")
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+        currentScope = statement
+        scopes:Push(statement)
+    end
+    action ExitNoClassDeclaration(NoClassDeclarationContext ctx) 
+        currentScope = scopes:Pop()
+    end
+
+    action EnterFormalParameter(FormalParameterContext context) end
+    action ExitFormalParameter(FormalParameterContext context) end
+
+    action EnterStatement(StatementContext context) end
+    action ExitStatement(StatementContext context) end
+
+    action EnterMe(MeContext context) end
+    action ExitMe(MeContext context) end
+
+    action EnterActionExpressionList(ActionExpressionListContext context) end
+    action ExitActionExpressionList(ActionExpressionListContext context) end
+
+    action EnterStart(StartContext context) end
+    action ExitStart(StartContext context) end
+
+    action EnterText(TextContext context) end
+    action ExitText(TextContext context) end
+
+    action EnterOr(AndOrContext context) end
+    action ExitOr(AndOrContext context) end
+
+    action EnterOutputStatement(OutputContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("OutputStatement")
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+        AddExpression(context:expression, statement)
+    end
+    action ExitOutputStatement(OutputContext context) end
+
+    action EnterSystemAction(ActionContext context) end
+    action ExitSystemAction(ActionContext context) end
+
+    action EnterConstructor(ConstructorContext context) end
+    action ExitConstructor(ConstructorContext context) end
+
+    action EnterBlueprintAction(ActionContext context) end
+    action ExitBlueprintAction(ActionContext context) end
+
+    action EnterActionHeader(ActionContext context) end
+    action ExitActionHeader(ActionContext context) end
+
+    action EnterAction(ActionContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("Action")
+        statement:Add("Name", context:actionName)
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+        currentScope = statement
+        scopes:Push(statement)
+    end
+    action ExitAction(ActionContext context) 
+        currentScope = scopes:Pop()
+    end
+
+    action EnterGenericStatement(GenericContext context) end
+    action ExitGenericStatement(GenericContext context) end
+
+    action EnterAnd(AndOrContext context) end
+    action ExitAnd(AndOrContext context) end
+
+    action EnterUndefined(UndefinedContext context) end
+    action ExitUndefined(UndefinedContext context) end
+
+    action EnterIs(IsContext context) end
+    action ExitIs(IsContext context) end
+
+    action EnterIfStatement(IfContext context) 
+        JavaScriptObjectNotation statement
+        statement:SetKey("IfStatement")
+        SetLocation(context, statement)
+        AddUniqueToScope(statement)
+
+        AddExpression(context:ifExpression, statement)
+        currentScope = statement
+        scopes:Push(statement)
+    end
+    action ExitIfStatement(IfContext context) 
+        currentScope = scopes:Pop()
+    end
+
+    action EnterElseIfStatement(IfContext context) end
+    action ExitElseIfStatement(IfContext context) end
+
+    action EnterElseStatement(IfContext context) end
+    action ExitElseStatement(IfContext context) end
+
+    action EnterAccessModifier(AccessModifierContext context) end
+    action ExitAccessModifier(AccessModifierContext context) end
+
+    action EnterBlock(BlockContext context) end
+    action ExitBlock(BlockContext context) end
+
+    action EnterClassStatements(ClassStatementsContext context) end
+    action ExitClassStatements(ClassStatementsContext context) end
+
+    action EnterQualifiedName(QualifiedNameContext context) end
+    action ExitQualifiedName(QualifiedNameContext context) end
+
+    action EnterLoopStatement(LoopContext context) end
+    action ExitLoopStatement(LoopContext context) end
+
+    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
+    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
+
+    action EnterInheritStatements(InheritStatementsContext context) end
+    action ExitInheritStatements(InheritStatementsContext context) end
+
+    action EnterInheritStatement(InheritStatementContext context) end
+    action ExitInheritStatement(InheritStatementContext context) end
+
+    action EnterDetectStatement(DetectStatementContext context) end
+    action ExitDetectStatement(DetectStatementContext context) end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context) end
+    action ExitAlwaysStatement(AlwaysStatementContext context) end
+
+    action EnterAddition(AdditionContext addition) end
+    action ExitAddition(AdditionContext addition) end
+
+    action EnterReturnStatement(ReturnContext context) end
+    action ExitReturnStatement(ReturnContext context) end
+
+    action EnterInput(InputContext context) end
+    action ExitInput(InputContext context) end
+
+    action EnterInputNoParameters(InputContext context) end
+    action ExitInputNoParameters(InputContext context) end
+
+    action EnterMultiplication(MultiplicationContext context) end
+    action ExitMultiplication(MultiplicationContext context) end
+
+    action EnterMinus(UnaryMinusContext context) end
+    action ExitMinus(UnaryMinusContext context) end
+
+    action EnterBoolean(BooleanContext context) end
+    action ExitBoolean(BooleanContext context) end
+
+    action EnterAlertStatement(AlertContext context) end
+    action ExitAlertStatement(AlertContext context) end
+
+    action EnterUse(UseContext context) end
+    action ExitUse(UseContext context) end
+
+    action EnterNot(NotContext context) end
+    action ExitNot(NotContext context) end
+
+    action EnterGenericDeclaration(GenericDeclarationContext context) end
+    action ExitGenericDeclaration(GenericDeclarationContext context) end
+
+    action EnterClassType(ClassTypeContext context) end
+    action ExitClassType(ClassTypeContext context) end
+
+    action EnterEquals(EqualsContext context) end
+    action ExitEquals(EqualsContext context) end
+
+    action EnterInequality(InequalityContext context) end
+    action ExitInequality(InequalityContext context) end
+
+    action EnterInteger(IntegerContext int) end
+    action ExitInteger(IntegerContext int) end
+
+    action EnterPackageRule(PackageContext context) end
+    action ExitPackageRule(PackageContext context) end
+
+    action EnterNormalAssignment(NormalAssignmentContext context) end
+    action ExitNormalAssignment(NormalAssignmentContext context) end
+
+    action EnterParentAssignment(ParentAssignmentContext context) end
+    action ExitParentAssignment(ParentAssignmentContext context) end
+
+    action EnterObjectAssignment(ObjectAssignmentContext context) end
+    action ExitObjectAssignment(ObjectAssignmentContext context) end
+
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context) end
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) end
+
+    action EnterMeVariableAccess(MeVariableAccessContext context) end
+    action ExitMeVariableAccess(MeVariableAccessContext context) end
+
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) end
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+
+    action EnterInitialParentActionCall(ActionCallContext ctx) end
+    action ExitInitialParentActionCall(ActionCallContext ctx) end
+
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) end
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) end
+
+    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) end
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context) end
+
+    action EnterActionCall(ActionCallContext ctx) end
+    action ExitActionCall(ActionCallContext ctx) end
+
+    action SetLocation(ParseContext context, JavaScriptObjectNotation statement)
+        JavaScriptObjectNotation location = GetLocation(context)
+        if location not= undefined
+            statement:Add("Index", GetLocation(context))
+        end
+    end
+
+    action GetLocation(ParseContext context) returns JavaScriptObjectNotation
+        Token first = context:GetFirstToken()
+        if first = undefined
+            return undefined
+        end
+        Token last = context:GetLastToken()
+        integer start = first:startIndex
+        integer finish = first:endIndex
+        
+        if last not= undefined
+            finish = last:endIndex
+        end
+        JavaScriptObjectNotation notation
+        notation:SetArray()
+        notation:Add(start)
+        notation:Add(finish)
+        return notation
+    end
+
+    private action AddExpression(ParseContext expression, JavaScriptObjectNotation statement)
+        JavaScriptObjectNotation express
+        express:SetKey("Expression")
+        SetLocation(expression, express)
+        statement:Add(express)
+    end
+
+    action Convert returns JavaScriptObjectNotation
+        return start
+    end
+end

@@ -16,6 +16,10 @@ class View2D
 
     action SetItem(Item2D item)
         me:item = item
+        if me is Item2D
+            Item2D meItem = cast(Item2D, cast(Object, me))
+            meItem:SetLayer(item:GetLayer())
+        end
     end
 
     action GetItem returns Item2D

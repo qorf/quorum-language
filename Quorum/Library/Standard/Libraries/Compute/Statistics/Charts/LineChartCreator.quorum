@@ -1,24 +1,24 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Interface.Controls.Charts.LineChart
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Compute.Math
-use Libraries.Interface.Controls.Charts.ChartPoint
-use Libraries.Interface.Controls.Charts.TwoVariableChart
-use Libraries.Interface.Controls.Charts.ChartLine
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
-use Libraries.Game.Graphics.Color
-use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Controls.Charts.ChartLine
 use Libraries.Interface.Controls.Charts.Series
-use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Interface.Controls.Charts.RegressionLine
+use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Comparison
+use Libraries.System.DateTime
 
 /*
     This class is used to create a Line Chart from a dataframe. The class contains two possible inputs, 
@@ -46,23 +46,13 @@ use Libraries.Containers.Support.Comparison
     chart:Display(1500, 750)
 */
 class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
-    integer xTicks = 5
-    integer yTicks = 5
-    //integer tickSkips = 1
-
     // The minimum and maximum values portrayed in the chart area.
     number xAxisMinimum = 0
     number xAxisMaximum = 1
     number yAxisMinimum = 0
     number yAxisMaximum = 1
-    Color defaultColor
 
     Comparison comparison = undefined
-    ChartOptions options
-
-    on create
-        defaultColor = defaultColor:Black()
-    end
     
     action Create(DataFrame frame) returns Chart
         //If there are no factors to map to, just use id (row) as factor
@@ -80,84 +70,127 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     action CreateChart(DataFrame frame, boolean useFactor) returns Chart
         LineChart chart
         integer columns = GetColumnSize()
-        boolean numericalFactor = false
+        boolean defaultFactor = false   // Uses each row as a factor
+        boolean textFactor = false      // Uses a unique text entry as a factor
+        boolean numericalFactor = false // Uses a unique number/integer entry as a factor
+        boolean dateFactor = false      // Uses unique date/time as a factor  
 
         HashTable<text, Array<ChartPoint>> groupFactor
         HashTable<text, Series> seriesFactor
         HashTable<text, ChartLine> lineFactor
         HashTable<text, ChartPoint> pointFactor
-        HashTable<number, text> textForNumber
-        
-        
-        number max = 0.0
-        number min = 0.0
+        HashTable<text, DateTime> dateForText
+     
+        number xMin = 0.0   
+        number xMax = 0.0
+        DateTime xdateMin = undefined
+        DateTime xdateMax = undefined
 
-        chart:SetYAxisTitle("Total")
+        Array<text> groupNames
         DataFrameColumn factor = frame:GetColumn(GetColumn(0)) // Initialized. This will be overwritten if factor is used
         if useFactor
             factor = frame:GetColumn(GetFactor(0))
             chart:SetXAxisTitle(factor:GetHeader())
-            if factor:IsNumberColumn()
-                numericalFactor = true
-                min = factor:GetAsNumber(0) // default min
-            end
-        else
-            chart:SetXAxisTitle("Entry")
-            numericalFactor = true
-        end
 
-        integer i = 0
-        repeat while i < factor:GetSize()
-            if not factor:IsUndefined(i)
-                text key = factor:GetAsText(i)
-                number value = 0.0
-                if not useFactor
-                    key = ""+i
-                    value = cast(number, i)
-                end
-                if not groupFactor:HasKey(key)
-                    Array <ChartPoint> arr
-                    groupFactor:Add(key, arr)
-                    if numericalFactor
-                        if useFactor
-                            textForNumber:Add(factor:GetAsNumber(i), key)
-                            if factor:GetAsNumber(i) > max
-                                max = factor:GetAsNumber(i)
-                            end
-                            if factor:GetAsNumber(i) < min
-                                min = factor:GetAsNumber(i)
-                            end
-                        else
-                            textForNumber:Add(value, key)
-                            max = value
+            // DATE-TIME
+            if factor:IsDateTimeColumn()
+                dateFactor = true
+                integer i = 0
+                repeat while i < factor:GetSize()
+                    if not factor:IsUndefined(i)
+                        if not dateForText:HasKey(factor:GetAsText(i))
+                            dateForText:Add(factor:GetAsText(i), factor:GetAsDateTime(i))
+                        end
+                        if not groupFactor:HasKey(factor:GetAsText(i))
+                            Array <ChartPoint> arr
+                            groupFactor:Add(factor:GetAsText(i), arr)
                         end
                     end
-                end
-            end
-            i = i + 1
-        end
-        xAxisMaximum = max
-        xAxisMinimum = min
-        
-        max = 0.0
-        min = 0.0
+                    i = i + 1
+                end   
+                DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, true))
+                if dates:GetSize() > 0
+                    xMin = 0 
+                    xMax = dates:Get(i-1):GetDayDifference(dates:Get(0))
+                    xdateMin = dates:Get(0)
+                    xdateMax = dates:Get(dates:GetSize()-1)
+                    chart:GetHorizontalPanel():SetMinimumDate(xdateMin)
+                    chart:GetHorizontalPanel():SetMaximumDate(xdateMax)  
+                end          
 
+            // NUMBER-INTEGER
+            elseif factor:IsNumberColumn()
+                numericalFactor = true
+                integer i = 0
+                repeat while i < factor:GetSize()
+                    if not factor:IsUndefined(i)
+                        if not groupFactor:HasKey(factor:GetAsText(i))
+                            Array <ChartPoint> arr
+                            groupFactor:Add(factor:GetAsText(i), arr)
+                        end
+                    end
+                    i = i + 1
+                end  
+                Summarize calc
+                factor:Calculate(calc)
+                xMin = calc:GetMinimum()
+                xMax = calc:GetMaximum() 
+
+            // TEXT
+            else //if factor:IsTextColumn()
+                textFactor = true
+                DataFrameColumn labels = factor:Copy(true, true)
+                integer i = 0 
+                repeat while i < labels:GetSize()
+                    if not labels:IsUndefined(i)
+                        groupNames:Add(labels:GetAsText(i))
+                        Array <ChartPoint> arr
+                        groupFactor:Add(labels:GetAsText(i), arr)
+                    end
+                    i = i + 1
+                end
+                xMin = 0
+                xMax = groupFactor:GetSize()
+            end
+        else
+            numericalFactor = true
+            defaultFactor = true
+            integer i = 0
+            repeat while i < factor:GetSize()
+                Array <ChartPoint> arr
+                groupFactor:Add(""+i, arr)
+                i = i + 1
+            end 
+            xMin = 0
+            xMax = i
+        end
+    
+        xAxisMinimum = xMin
+        xAxisMaximum = xMax
+        
+        number yMin = 0.0   
+        number yMax = 0.0
+
+        Array<text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if not column:IsNumberColumn()
-                alert("LineChartCreator does not support text columns.")
+            if not column:IsNumberColumn() 
+                alert("LineChartCreator does not support non-numerical columns.")
                 return undefined
             end
+
             if not seriesFactor:HasKey(column:GetHeader())
                 ChartLine newline
                 newline:SetName(column:GetHeader()) 
                 lineFactor:Add(column:GetHeader(), newline)
+                
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 series:AddItem(newline)
                 newline:SetSeries(series)
-                seriesFactor:Add(column:GetHeader(), series)           
+                seriesFactor:Add(column:GetHeader(), series)
             end
     
             number valueForName = 0.0
@@ -165,18 +198,20 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             repeat while j < column:GetSize()
                 if not column:IsUndefined(j) and not factor:IsUndefined(j)
                     valueForName = column:GetAsNumber(j)
-                    text xposition = factor:GetAsText(j)
-                    if not useFactor
-                        xposition = ""+j
+                    
+                    text factorPosition = factor:GetAsText(j)
+                    if defaultFactor
+                        factorPosition = ""+j
                     end
-                    text pointKey = xposition + " " + column:GetHeader()
+                    text pointKey = factorPosition + " " + column:GetHeader()
+
                     if not pointFactor:HasKey(pointKey)
                         ChartPoint point
                         point:SetValueY(valueForName)
                         point:SetName(pointKey)
                         pointFactor:Add(pointKey, point)
-                        if groupFactor:HasKey(xposition)
-                            groupFactor:GetValue(xposition):Add(point)
+                        if groupFactor:HasKey(factorPosition)
+                            groupFactor:GetValue(factorPosition):Add(point)
                         end
                         if lineFactor:HasKey(column:GetHeader())
                             lineFactor:GetValue(column:GetHeader()):Add(point)
@@ -186,88 +221,129 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         valueForName = valueForName + point:GetValueY()
                         point:SetValueY(valueForName)
                     end
-                    if(valueForName > max)
-                        max = valueForName
+                    if(valueForName > yMax)
+                        yMax = valueForName
                     end
-                    if(valueForName < min)
-                        min = valueForName
+                    if(valueForName < yMin)
+                        yMin = valueForName
                     end
                 end
                 j = j + 1
             end
             i = i + 1
         end
-        yAxisMaximum = max
-        yAxisMinimum = min
+        yAxisMinimum = yMin
+        yAxisMaximum = yMax
         
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
-        HashTable<text, number> numberForText
-        if numericalFactor
-            Array<number> numberKeyArray = textForNumber:CopyToKeyArray()
-            Array<text> xLabels
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < numberKeyArray:GetSize()
-                if not useFactor
-                    xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
-                    numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
-                    chart:SetXAxisNumberFormat("integer")
-                else
-                    xLabels:Add(textForNumber:GetValue(numberKeyArray:Get(i)))
-                    numberForText:Add(textForNumber:GetValue(numberKeyArray:Get(i)), numberKeyArray:Get(i))
-                end
-                i = i + 1
-            end
-            groupKeyArray = xLabels
-        else
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
-            end
+        if dateFactor
+            Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
             i = 0
             repeat while i < groupKeyArray:GetSize()
-                numberForText:Add(groupKeyArray:Get(i), cast(number, i))
-                i = i + 1
-            end
-            xAxisMaximum = groupKeyArray:GetSize()-1
-        end
-
-        if not numericalFactor 
-            chart:OverrideXLabelsWithText(groupKeyArray)
-        end
-
-        i = 0
-        repeat while i < groupKeyArray:GetSize()
-            if groupFactor:HasKey(groupKeyArray:Get(i))
-                Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
-                integer j = 0
-                repeat while j < points:GetSize()
-                    ChartPoint point = points:Get(j)
-                    point:SetValueX(numberForText:GetValue(groupKeyArray:Get(i)))
-                    j = j + 1
+                if groupFactor:HasKey(groupKeyArray:Get(i))
+                    Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
+                    integer j = 0
+                    repeat while j < points:GetSize()
+                        ChartPoint point = points:Get(j)
+                        if dateForText:HasKey(groupKeyArray:Get(i)) and xdateMin not= undefined
+                            number x = dateForText:GetValue(groupKeyArray:Get(i)):GetDayDifference(xdateMin)
+                            point:SetValueX(x)
+                        end
+                        j = j + 1
+                    end
                 end
-            end
-            i = i + 1
-        end  
+                i = i + 1
+            end  
+
+        elseif numericalFactor
+            Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+            i = 0
+            repeat while i < groupKeyArray:GetSize()
+                if groupFactor:HasKey(groupKeyArray:Get(i))
+                    Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
+                    integer j = 0
+                    repeat while j < points:GetSize()
+                        ChartPoint point = points:Get(j)
+                        number x = cast(number, groupKeyArray:Get(i))
+                        point:SetValueX(x)
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end  
+
+        elseif textFactor
+            i = 0
+            repeat while i < groupNames:GetSize()
+                if groupFactor:HasKey(groupNames:Get(i))
+                    Array <ChartPoint> points = groupFactor:GetValue(groupNames:Get(i))
+                    integer j = 0
+                    repeat while j < points:GetSize()
+                        ChartPoint point = points:Get(j)
+                        number x = i
+                        point:SetValueX(x)
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end  
+            chart:OverrideXLabelsWithText(groupNames)
+
+        else // defaultFactor
+            Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
+            i = 0
+            repeat while i < groupKeyArray:GetSize()
+                if groupFactor:HasKey(groupKeyArray:Get(i))
+                    Array <ChartPoint> points = groupFactor:GetValue(groupKeyArray:Get(i))
+                    integer j = 0
+                    repeat while j < points:GetSize()
+                        ChartPoint point = points:Get(j)
+                        number x = i
+                        point:SetValueX(x)
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end    
+        end
 
         // Series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            lineFactor:GetValue(seriesKeyArray:Get(i)):SortPoints()
-            chart:AddChartLine(lineFactor:GetValue(seriesKeyArray:Get(i)))
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            lineFactor:GetValue(seriesNames:Get(i)):SortPoints()
+            chart:AddChartLine(lineFactor:GetValue(seriesNames:Get(i)))
+            if not textFactor
+                Array<DataFrameColumn> regColumns 
+                NumberColumn column1 //independent
+                NumberColumn column2 //dependent
+                ChartLine line = lineFactor:GetValue(seriesNames:Get(i))
+                integer j = 0
+                repeat while j < line:GetPoints():GetSize()
+                    column1:Add(cast(text, line:GetPoints():Get(j):GetValueX()))
+                    column2:Add(cast(text, line:GetPoints():Get(j):GetValueY()))
+                    j = j + 1
+                end
+                if line:GetPoints():GetSize() < 3
+                    output "Linear regression was not computable for " + seriesNames:Get(i)
+                else
+                    regColumns:Add(column1)
+                    regColumns:Add(column2)
+                    RegressionLine regLine
+                    regLine:SetIndependentVariable(chart:GetXAxisTitle())
+                    regLine:SetDependentVariable(seriesNames:Get(i))
+                    regLine:NamedAfterSeries(true)
+                    DataFrame regressionFrame
+                    regressionFrame:SetColumns(regColumns)
+                    Regression regression 
+                    regression:AddFactor(0) //the independent variable
+                    regression:AddColumn(1) //the dependent variable
+                    regressionFrame:Calculate(regression)
+                    regLine:SetRegression(regression)
+                    regLine:SetSeries(seriesFactor:GetValue(seriesNames:Get(i)))
+                    seriesFactor:GetValue(seriesNames:Get(i)):SetRegressionLine(regLine)
+                end
+            end
             i = i + 1
         end
 

@@ -3,6 +3,9 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.Inputs.RowInput
+use Libraries.Compute.Statistics.Inputs.CellInput
+use Libraries.Containers.Support.Pair
 
 /*
     This encompasses the overall selection of columns and factors
@@ -13,7 +16,7 @@ use Libraries.Containers.Iterator
     
     Attribute: Author Andreas Stefik
 */
-class DataFrameSelection is ColumnInput, FactorInput
+class DataFrameSelection is ColumnInput, FactorInput, RowInput, CellInput
     Array<DataFrameSelectionListener> listeners
     DataFrame frame = undefined
 
@@ -35,6 +38,32 @@ class DataFrameSelection is ColumnInput, FactorInput
             DataFrameSelectionListener listener = iterator:Next()
             listener:SelectionChanged(frame)
         end
+    end
+
+    action CopyTo(RowInput col)
+        col:EmptyRows()
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer value = GetColumn(i)
+            col:AddRow(value)
+            i = i + 1
+        end
+        FireSelectionChanged()
+    end
+
+    action CopyTo(CellInput col)
+        col:EmptyCells()
+        integer i = 0
+        repeat while i < GetColumnSize()
+            Pair<integer> value = GetCell(i)
+            Pair<integer> copy
+            integer x = value:GetFirstValue()
+            integer y = value:GetSecondValue()
+            copy:Set(x,y)
+            col:AddCell(copy)
+            i = i + 1
+        end
+        FireSelectionChanged()
     end
 
     action CopyTo(ColumnInput col)
@@ -69,6 +98,42 @@ class DataFrameSelection is ColumnInput, FactorInput
         FireSelectionChanged()
     end
 
+    action AddRow(integer row)
+        parent:Libraries.Compute.Statistics.Inputs.RowInput:AddRow(row)
+        FireSelectionChanged()
+    end
+
+    action AddCell(integer x, integer y)
+        parent:Libraries.Compute.Statistics.Inputs.CellInput:AddCell(x, y)
+        FireSelectionChanged()
+    end
+
+    action AddCell(Pair<integer> cell)
+        parent:Libraries.Compute.Statistics.Inputs.CellInput:AddCell(cell)
+        FireSelectionChanged()
+    end
+
+    action RemoveRowAt(integer index)
+        parent:Libraries.Compute.Statistics.Inputs.RowInput:RemoveRowAt(index)
+        FireSelectionChanged()
+    end
+
+    action RemoveRow(integer index) returns boolean
+        boolean value = parent:Libraries.Compute.Statistics.Inputs.RowInput:RemoveRow(index)
+        if value
+            FireSelectionChanged()
+        end
+        return value
+    end
+
+    action EmptyRows
+        boolean empty = GetRowSize() = 0
+        parent:Libraries.Compute.Statistics.Inputs.RowInput:EmptyRows()
+        if not empty
+            FireSelectionChanged()
+        end
+    end
+
     action RemoveFactorAt(integer index)
         parent:Libraries.Compute.Statistics.Inputs.FactorInput:RemoveFactorAt(index)
         FireSelectionChanged()
@@ -85,6 +150,27 @@ class DataFrameSelection is ColumnInput, FactorInput
     action EmptyFactors
         boolean empty = GetFactorSize() = 0
         parent:Libraries.Compute.Statistics.Inputs.FactorInput:EmptyFactors()
+        if not empty
+            FireSelectionChanged()
+        end
+    end
+
+    action RemoveCellAt(integer index)
+        parent:Libraries.Compute.Statistics.Inputs.CellInput:RemoveCellAt(index)
+        FireSelectionChanged()
+    end
+
+    action RemoveRow(Pair<integer> cell) returns boolean
+        boolean value = parent:Libraries.Compute.Statistics.Inputs.CellInput:RemoveCell(cell)
+        if value
+            FireSelectionChanged()
+        end
+        return value
+    end
+
+    action EmptyCells
+        boolean empty = GetCellSize() = 0
+        parent:Libraries.Compute.Statistics.Inputs.CellInput:EmptyCells()
         if not empty
             FireSelectionChanged()
         end
@@ -110,6 +196,7 @@ class DataFrameSelection is ColumnInput, FactorInput
             FireSelectionChanged()
         end
     end
+
     action GetFrame returns DataFrame
         return frame
     end

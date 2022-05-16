@@ -1,28 +1,26 @@
 package Libraries.Compute.Statistics.Charts
 
 use Libraries.Compute.Statistics.DataFrameChartCreator
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.InterQuartileRange
-use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Calculations.Summarize
-use Libraries.Compute.Vector
-use Libraries.Interface.Controls.Charts.all
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.all
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Compute.Statistics.Calculations.InterQuartileRange
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Vector
+use Libraries.Containers.Array
 use Libraries.Containers.HashTable
-use Libraries.Interface.Controls.Charts.PlotGroup
-use Libraries.Interface.Controls.Charts.Plot
-use Libraries.Interface.Controls.Charts.ChartOptions
-use Libraries.Interface.Controls.Icon
-use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 
 /*
     This class is used to create a box plot of data in a DataFrame.
     It calculates the median and the lower and upper quartiles,
     it also finds the maximum and minimum values.
 
-    Attribute: Authors Benjamin Murphy & Shyann Calhoun
+    Attribute: Authors Benjamin Murphy, Shyann Calhoun, Hannah Williams
 
     Attribute: Example
 
@@ -54,14 +52,26 @@ use Libraries.Containers.Support.Comparison
 */
 
 class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, FactorInput
-    Comparison comparison = undefined
 
     action Create(DataFrame frame) returns Chart
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
         //If there are no factors to map to, each column will be map at its own x-tick
-        if GetColumnSize() > 0 and GetFactorSize() = 0
+        if columns > 0 and factors = 0
             return CreateChartWithoutFactor(frame)
-        elseif GetColumnSize() > 0 and GetFactorSize() = 1
-            return CreateChartWithFactor(frame)
+        elseif columns > 0 and factors = 1
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            if factor:IsUndefined() // If the factor is undefined don't use a factor
+                return CreateChartWithoutFactor(frame)
+            else
+                return CreateChartWithFactor(frame)
+            end
+        elseif columns = 1 and factors = 2
+            DataFrameColumn factor1 = frame:GetColumn(GetFactor(0))
+            DataFrameColumn factor2 = frame:GetColumn(GetFactor(1))
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            return CreateChartWithTwoFactors(factor1, factor2, column)
         else
             alert("BoxPlotCreator does not support the number of column/factors that were selected.")
             alert("Please include at least one numerical column. Box Plots can support at most one factor.")
@@ -70,9 +80,8 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         return undefined
     end
 
-    action CreateChartWithoutFactor(DataFrame frame) returns Chart
+    private action CreateChartWithoutFactor(DataFrame frame) returns Chart
         BoxPlot chart
-        ChartOptions options
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
@@ -81,142 +90,145 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
-        Array<text> columnNames
+        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
-        boolean numericalGroupName = false // Want to see if the column headers are numbers?
+        boolean numericalGroupName = false
 
-        number largest = 0
-        number smallest = 0
+        number yMax = 0
+        number yMin = 0
+
         integer i = 0
         repeat while i < GetColumnSize()
-            DataFrameColumn columnFrame = frame:GetColumn(GetColumn(i))
-            if columnFrame = undefined and columnFrame:CanConvertToVector()
-                alert("Could not find column number " + GetColumn(i))
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsUndefined()
+                if not column:CanConvertToVector()
+                    alert("Could not covert values in " + GetColumn(i) + " to vector")
+                end
+                
+                NumberColumn newColumn
+                if column:GetUndefinedSize() > 0
+                    newColumn = RemoveUndefinedValues(cast(NumberColumn, column:Copy(true, false)))
+                else
+                    newColumn = cast(NumberColumn, column:Copy())
+                end
+                Vector dataset = newColumn:ConvertToVector()
+                dataset:Sort()                
+                
+                if dataset:GetSize() > 0
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
+                    end
+                end
+    
+                Plot plot
+                plot:SetData(dataset)
+                plot:SetInfo(Calculations(newColumn, dataset))
+                plot:SetName(column:GetHeader())
+    
+                if not seriesFactor:HasKey(column:GetHeader())
+                    Series series
+                    groupNames:Add(column:GetHeader())
+                    series:SetName(column:GetHeader())
+                    series:AddItem(plot)
+                    seriesFactor:Add(column:GetHeader(), series)
+    
+                    PlotGroup group
+                    group:SetName(column:GetHeader())
+                    group:AddPlot(plot)
+                    groupFactor:Add(column:GetHeader(), group)
+                end
+                i = i + 1 
             end
-            if columnFrame:CanConvertToVector() = false
-                alert("Could not covert values in " + GetColumn(i)+ " to vector")
-            end
-            //convert to vector, do the calculation
-            Summarize sum
-            sum:Calculate(columnFrame)
-            if largest < sum:GetMaximum()
-                largest = sum:GetMaximum()
-            end
-            if smallest > sum:GetMinimum()
-                smallest = sum:GetMinimum()
-            end
-
-            Plot plot
-            Vector dataset = columnFrame:ConvertToVector()
-            dataset:Sort()
-            plot:SetData(dataset)
-            plot:SetInfo(Calculations(dataset))
-            plot:SetName(columnFrame:GetHeader())
-
-            if(not seriesFactor:HasKey(columnFrame:GetHeader()))
-                Series series
-                series:SetName(columnFrame:GetHeader())
-                series:AddItem(plot:GetIcon())
-                series:AddItem(plot)
-                plot:SetSeries(series)
-                seriesFactor:Add(columnFrame:GetHeader(), series)
-
-                PlotGroup group
-                group:SetName(columnFrame:GetHeader())
-                group:AddPlot(plot)
-                groupFactor:Add(columnFrame:GetHeader(), group)
-            end
-            i=i+1 
         end
 
-        // Sort and add
+        // Add the groups and series
         Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
-            chart:AddPlotGroup(groupFactor:GetValue(seriesKeyArray:Get(i)))
-            columnNames:Add(seriesKeyArray:Get(i)) 
+        repeat while i < groupNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(groupNames:Get(i)))
+            chart:AddPlotGroup(groupFactor:GetValue(groupNames:Get(i)))
             i = i + 1
         end
 
-        SetScale(chart, smallest, largest, 0, columnNames:GetSize())
-        chart:OverrideXLabelsWithText(columnNames)
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
         chart:SetSeriesList(seriesList)
         chart:GetHorizontalPanel():NumericalOverrideLabels(numericalGroupName)
         return chart
     end
 
-
-    action CreateChartWithFactor(DataFrame frame) returns Chart
+    private action CreateChartWithFactor(DataFrame frame) returns Chart
         BoxPlot chart
         integer columns = GetColumnSize()
 
         chart:SetYAxisTitle("Total")
         if(columns = 1)
-            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Per " + frame:GetColumn(GetFactor(0)):GetHeader() + " Box Plot")
+            chart:SetTitle(frame:GetColumn(GetColumn(0)):GetHeader() + " Box Plot")
         end
 
-        Array<text> groupNames
         HashTable<text, Series> seriesFactor
         HashTable<text, PlotGroup> groupFactor
-        HashTable<text, HashTable<text, Vector>> dataFactor 
-        HashTable<number, text> numberForText
-        boolean numerical = false
+        HashTable<text, NumberColumn> dataFactor 
+        boolean dateFactor = false
+        boolean numericalFactor = false
 
         DataFrameColumn factor = frame:GetColumn(GetFactor(0))
         chart:SetXAxisTitle(factor:GetHeader())
-        if factor:IsNumberColumn()
-            numerical = true
-        end
 
-        integer i = 0
-        repeat while i < factor:GetSize()
-            if not factor:IsUndefined(i)
-                if not dataFactor:HasKey(factor:GetAsText(i))
-                    HashTable<text, Vector> dataSet
-                    dataFactor:Add(factor:GetAsText(i), dataSet)
-                end
-                if not groupFactor:HasKey(factor:GetAsText(i))
-                    PlotGroup group
-                    group:SetName(factor:GetAsText(i))
-                    groupFactor:Add(factor:GetAsText(i), group)
-                    if numerical
-                        numberForText:Add(factor:GetAsNumber(i), factor:GetAsText(i))
+        Array <text> groupNames 
+        if factor:IsDateTimeColumn()
+            dateFactor = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not groupFactor:HasKey(dates:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(dates:GetAsText(i))
+                        groupNames:Add(dates:GetAsText(i))
+                        groupFactor:Add(dates:GetAsText(i), group)
                     end
                 end
-                integer j = 0
-                repeat while j < columns
-                    DataFrameColumn column = frame:GetColumn(GetColumn(j))
-                    if dataFactor:HasKey(factor:GetAsText(j))
-                        if not dataFactor:GetValue(factor:GetAsText(j)):HasKey(column:GetHeader())
-                            dataFactor:GetValue(factor:GetAsText(j)):Add(column:GetHeader(), undefined)
-                        end
-                    end
-                    j = j + 1
-                end
+                i = i + 1
             end
-            i = i + 1
+        else
+            if factor:IsNumberColumn()
+                numericalFactor = true
+            end
+            DataFrameColumn labels = factor:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not groupFactor:HasKey(labels:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(labels:GetAsText(i))
+                        groupNames:Add(labels:GetAsText(i))
+                        groupFactor:Add(labels:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
         end
 
-
+        Array <text> seriesNames
         i = 0
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column = undefined and column:CanConvertToVector()
-                alert("Could not find column number " + GetColumn(i))
-            end
             if column:CanConvertToVector() = false
                 alert("Could not covert values in " + GetColumn(i)+ " to vector")
             end
-            if  not seriesFactor:HasKey(column:GetHeader())
+            if not seriesFactor:HasKey(column:GetHeader())
                 Series series
+                seriesNames:Add(column:GetHeader())
                 series:SetName(column:GetHeader())
                 seriesFactor:Add(column:GetHeader(), series)
             end
@@ -225,22 +237,13 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                 if not factor:IsUndefined(j) and not column:IsUndefined(j)
                     number value = column:GetAsNumber(j)
                     
-                    if dataFactor:GetValue(factor:GetAsText(j)):GetValue(column:GetHeader()) not= undefined
-                        Vector vector = dataFactor:GetValue(factor:GetAsText(j)):GetValue(column:GetHeader())
-                        Vector copy
-                        copy:SetSize(vector:GetSize()+1)
-                        k = 0
-                        repeat while k < vector:GetSize()
-                            copy:Set(k, vector:Get(k))
-                            k = k + 1
-                        end
-                        copy:Set(k, value)
-                        dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), copy)
+                    text dataKey = factor:GetAsText(j) + " " + column:GetHeader()
+                    if not dataFactor:HasKey(dataKey)
+                        NumberColumn newColumn
+                        newColumn:Add(value)
+                        dataFactor:Add(dataKey, newColumn)
                     else
-                        Vector vector
-                        vector:SetSize(1)
-                        vector:Set(0,value)
-                        dataFactor:GetValue(factor:GetAsText(j)):Set(column:GetHeader(), vector)
+                        dataFactor:GetValue(dataKey):Add(value)
                     end
                 end
                 j = j + 1
@@ -248,51 +251,229 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = i + 1
         end
 
-        // Sort and add the series
-        Array <Series> seriesList
-        Array<text> seriesKeyArray = seriesFactor:CopyToKeyArray()
-        if comparison = undefined
-            seriesKeyArray:Sort()
-        else
-            seriesKeyArray:Sort(comparison)
-        end
+        // Fill the plot groups
+        number yMax = 0
+        number yMin = 0
         i = 0
-        repeat while i < seriesKeyArray:GetSize()
-            seriesList:Add(seriesFactor:GetValue(seriesKeyArray:Get(i)))
+        repeat while i < groupNames:GetSize()
+            integer j = 0
+            repeat while j < seriesNames:GetSize()
+                text dataKey = groupNames:Get(i) + " " + seriesNames:Get(j)
+                NumberColumn column = dataFactor:GetValue(dataKey)
+                
+                Vector dataset = column:ConvertToVector()
+                dataset:Sort()            
+                
+                if dataset:GetSize() > 0
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
+                    end
+                end
+    
+                Plot plot
+                plot:SetData(dataset)
+                plot:SetInfo(Calculations(column, dataset))
+                plot:SetName(seriesNames:Get(j))
+                if(seriesFactor:HasKey(seriesNames:Get(j)))
+                    seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                end
+                if groupFactor:HasKey(groupNames:Get(i))
+                    groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
+                end
+
+                j = j + 1
+            end
+            i = i + 1  
+        end
+
+        // Add the groups
+        i = 0
+        repeat while i < groupNames:GetSize()
+            PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
+            chart:AddPlotGroup(group)
             i = i + 1
         end
 
-        // Fill the plot groups
-        Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
-        number largest = 0
-        number smallest = 0
+        // Add the series
+        Array <Series> seriesList
         i = 0
-        repeat while i < groupKeyArray:GetSize()
-            integer j = 0
-            repeat while j < seriesKeyArray:GetSize()
-                Plot plot
-                Vector dataset = dataFactor:GetValue(groupKeyArray:Get(i)):GetValue(seriesKeyArray:Get(j))
-                if dataset not= undefined
-                    dataset:Sort()
-                    plot:SetData(dataset)
-                    plot:SetInfo(Calculations(dataset))
-                    plot:SetName(seriesKeyArray:Get(j))
-    
-                    if largest < dataset:Get(dataset:GetSize()-1) //Find largest value to scale y axis
-                        largest = dataset:Get(dataset:GetSize()-1)
-                    end
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
+
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
+        chart:OverrideXLabelsWithText(groupNames)
+        chart:SetFactorList(groupNames)
+        chart:SetSeriesList(seriesList)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor)
+        return chart
+    end
+
+
+    private action CreateChartWithTwoFactors(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BoxPlot
+        BoxPlot chart
+        if not column:IsNumberColumn()
+            alert("BoxPlotCreator does not support non-numerical columns.")
+            return undefined
+        end
         
-                    if smallest > dataset:Get(0) //Find smallest value to scale y axis
-                        smallest = dataset:Get(0)
-                    end    
-    
-                    if(seriesFactor:HasKey(seriesKeyArray:Get(j)))
-                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot:GetIcon())
-                        seriesFactor:GetValue(seriesKeyArray:Get(j)):AddItem(plot)
-                        plot:SetSeries(seriesFactor:GetValue(seriesKeyArray:Get(j)))
+        chart:SetLegendTitle(factor2:GetHeader())
+        chart:SetXAxisTitle(factor1:GetHeader())
+        chart:SetYAxisTitle(column:GetHeader())
+
+        HashTable<text, Series> seriesFactor
+        HashTable<text, PlotGroup> groupFactor
+        HashTable<text, NumberColumn> dataFactor 
+
+        boolean dateFactor1 = false
+        boolean numericalFactor1 = false
+        boolean dateFactor2 = false
+        boolean numericalFactor2 = false
+
+        Array <text> groupNames 
+        if factor1:IsDateTimeColumn()
+            dateFactor1 = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor1:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not groupFactor:HasKey(dates:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(dates:GetAsText(i))
+                        groupNames:Add(dates:GetAsText(i))
+                        groupFactor:Add(dates:GetAsText(i), group)
                     end
-                    if groupFactor:HasKey(groupKeyArray:Get(i))
-                        groupFactor:GetValue(groupKeyArray:Get(i)):AddPlot(plot)
+                end
+                i = i + 1
+            end
+        else
+            if factor1:IsNumberColumn()
+                numericalFactor1 = true
+            end
+            DataFrameColumn labels = factor1:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not groupFactor:HasKey(labels:GetAsText(i))
+                        PlotGroup group
+                        group:SetName(labels:GetAsText(i))
+                        groupNames:Add(labels:GetAsText(i))
+                        groupFactor:Add(labels:GetAsText(i), group)
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        Array <text> seriesNames 
+        if factor2:IsDateTimeColumn()
+            dateFactor2 = true
+            DateTimeColumn dates = cast(DateTimeColumn, factor2:Copy(true, true))
+            integer i = 0 
+            repeat while i < dates:GetSize()
+                if not dates:IsUndefined(i)
+                    if not seriesFactor:HasKey(dates:GetAsText(i))
+                        Series series
+                        series:SetName(dates:GetAsText(i))
+                        seriesNames:Add(dates:GetAsText(i))
+                        seriesFactor:Add(dates:GetAsText(i), series)
+                    end
+                end
+                i = i + 1
+            end
+        else
+            if factor2:IsNumberColumn()
+                numericalFactor2 = true
+            end
+            DataFrameColumn labels = factor2:Copy(true, true)
+            integer i = 0 
+            repeat while i < labels:GetSize()
+                if not labels:IsUndefined(i)
+                    if not seriesFactor:HasKey(labels:GetAsText(i))
+                        Series series
+                        series:SetName(labels:GetAsText(i))
+                        seriesNames:Add(labels:GetAsText(i))
+                        seriesFactor:Add(labels:GetAsText(i), series)
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i) and not factor1:IsUndefined(i) and not factor2:IsUndefined(i)
+                text name = factor1:GetAsText(i)+" "+factor2:GetAsText(i)
+                number valueForName = column:GetAsNumber(i)
+                if dataFactor:HasKey(name)
+                    dataFactor:GetValue(name):Add(valueForName)
+                else
+                    NumberColumn newCol
+                    newCol:Add(valueForName)
+                    dataFactor:Add(name, newCol)
+                end
+            end
+            i = i + 1
+        end 
+
+        // Create all plots (even the ones that will be empty)
+        // This is necessary to ensure correct data display as well as uniformity when the user customizes or navigates the chart.
+        // Fill the plot groups
+        number yMax = 0
+        number yMin = 0
+        i = 0
+        repeat while i < groupNames:GetSize()
+            integer j = 0
+            repeat while j < seriesNames:GetSize()
+                text dataKey = groupNames:Get(i) + " " + seriesNames:Get(j)
+                if dataFactor:HasKey(dataKey)
+                    NumberColumn col = dataFactor:GetValue(dataKey)
+                    
+                    Vector dataset = col:ConvertToVector()
+                    dataset:Sort()            
+                    
+                    if i = 0
+                        yMin = dataset:Get(0)
+                        yMax = dataset:Get(dataset:GetSize()-1)
+                    else
+                        if yMin > dataset:Get(0)
+                            yMin = dataset:Get(0)
+                        end
+                        if yMax < dataset:Get(dataset:GetSize()-1)
+                            yMax = dataset:Get(dataset:GetSize()-1)
+                        end
+                    end
+                    Plot plot
+                    plot:SetData(dataset)
+                    plot:SetInfo(Calculations(col, dataset))
+                    plot:SetName(seriesNames:Get(j))
+                    if(seriesFactor:HasKey(seriesNames:Get(j)))
+                        seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    end
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
+                    end
+                else
+                    //Make an emtpy plot
+                    Array<number> col
+
+                    Plot plot
+                    plot:SetInfo(col)
+                    plot:SetName(seriesNames:Get(j))
+                    if(seriesFactor:HasKey(seriesNames:Get(j)))
+                        seriesFactor:GetValue(seriesNames:Get(j)):AddItem(plot)
+                    end
+                    if groupFactor:HasKey(groupNames:Get(i))
+                        groupFactor:GetValue(groupNames:Get(i)):AddPlot(plot)
                     end
                 end
                 j = j + 1
@@ -300,50 +481,28 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             i = i + 1  
         end
 
-        // Sort the plot groups within the chart
-        if numerical
-            Array<number> numberKeyArray = numberForText:CopyToKeyArray()
-            if comparison = undefined
-                numberKeyArray:Sort()
-            else
-                numberKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < numberKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(numberForText:GetValue(numberKeyArray:Get(i)))
-                if CheckIfInteger(numberKeyArray:Get(i))
-                    group:SetName(cast(text, cast(integer, numberKeyArray:Get(i))))
-                    groupNames:Add(cast(text, cast(integer, numberKeyArray:Get(i))))
-                else
-                    groupNames:Add(numberForText:GetValue(numberKeyArray:Get(i)))
-                end
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-       else
-            if comparison = undefined
-                groupKeyArray:Sort()
-            else
-                groupKeyArray:Sort(comparison)
-            end
-            i = 0
-            repeat while i < groupKeyArray:GetSize()
-                PlotGroup group = groupFactor:GetValue(groupKeyArray:Get(i))
-                chart:AddPlotGroup(group)
-                i = i + 1
-            end
-            groupNames = groupKeyArray
-        end  
+        // Add the groups
+        i = 0
+        repeat while i < groupNames:GetSize()
+            PlotGroup group = groupFactor:GetValue(groupNames:Get(i))
+            chart:AddPlotGroup(group)
+            i = i + 1
+        end
 
-        SetScale(chart, smallest, largest, 0, groupNames:GetSize())
+        // Add the series
+        Array <Series> seriesList
+        i = 0
+        repeat while i < seriesNames:GetSize()
+            seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
+            i = i + 1
+        end
+
+        SetScale(chart, yMin, yMax, 0, groupNames:GetSize())
         chart:OverrideXLabelsWithText(groupNames)
+        chart:SetFactorList(groupNames)
         chart:SetSeriesList(seriesList)
-        chart:GetHorizontalPanel():NumericalOverrideLabels(numerical)
+        chart:GetHorizontalPanel():NumericalOverrideLabels(numericalFactor1)
         return chart
-    end
-
-    private action CheckIfInteger(number value) returns boolean
-        return (cast(integer, value) = value)
     end
 
     private action SetScale(BoxPlot chart, number ymin, number ymax, number xmin, number xmax)
@@ -352,47 +511,74 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         chart:GetHorizontalPanel():SetMinimum(xmin)
         chart:GetHorizontalPanel():SetMaximum(xmax)
     end
-    
+
+    private action RemoveUndefinedValues(NumberColumn column) returns NumberColumn
+        NumberColumn newColumn
+        integer i = 0
+        repeat while i < column:GetSize()
+            if not column:IsUndefined(i)
+                newColumn:Add(column:GetAsNumber(i))
+            end
+            i = i + 1
+        end
+        return newColumn
+    end
+
     /*
     This action returns the five number summary of a dataset as an array, in the order median, lower quartile, upper quartile, smallest, largest. 
     It also excludes outliers in the set as smallest and largest.
     */
-    action Calculations(Vector dataset) returns Array<number>
+    action Calculations(NumberColumn column, Vector dataset) returns Array<number>
+        Array<number> myData
         Array <number> outliers
     
-        number median = GetMedian(dataset,0,dataset:GetSize()-1)
-        integer medianIndex = 0
-        integer lowerMedianIndex = 0
-        integer upperMedianIndex = 0
+        number median = 0
         number lowerQuartile = 0
         number upperQuartile = 0
-        //Calculating what needs to be sent to GetMedian is slightly different depending on even or odd data sets.
-        if dataset:GetSize() mod 2 = 0
-            lowerMedianIndex = (dataset:GetSize()-1)/2
-            upperMedianIndex = dataset:GetSize()/2
-            lowerQuartile = GetMedian(dataset,0,lowerMedianIndex)
-            upperQuartile = GetMedian(dataset,upperMedianIndex,dataset:GetSize()-1)
-        else
-            medianIndex = (dataset:GetSize()-1)/2
-            lowerQuartile = GetMedian(dataset,0,medianIndex)
-            upperQuartile = GetMedian(dataset,medianIndex,dataset:GetSize()-1)
-        end
 
-        //We want to exclude outliers from the data as our high and low values.
-        number iqr = upperQuartile-lowerQuartile
-        number lowerRange = lowerQuartile - iqr*1.5
-        number upperRange = upperQuartile + iqr*1.5
         integer lastIndex = dataset:GetSize()-1
         number largest = dataset:Get(lastIndex)
         number smallest = dataset:Get(0)
 
+        if dataset:GetSize() > 3
+            Calculate(column)
+            median = GetMedian()
+            lowerQuartile = GetBottomMedian()
+            upperQuartile = GetTopMedian()
+        else // If the vector has 3 or less values then the IQR Class calculation won't work.
+            median = GetMedian(dataset,0,lastIndex)
+            integer medianIndex = 0
+            integer lowerMedianIndex = 0
+            integer upperMedianIndex = 0
+            //Calculating what needs to be sent to GetMedian is slightly different depending on even or odd data sets.
+            if dataset:GetSize() mod 2 = 0
+                lowerMedianIndex = (lastIndex)/2
+                upperMedianIndex = dataset:GetSize()/2
+                lowerQuartile = GetMedian(dataset,0,lowerMedianIndex)
+                upperQuartile = GetMedian(dataset,upperMedianIndex,lastIndex)
+            else
+                medianIndex = (lastIndex)/2
+                lowerQuartile = GetMedian(dataset,0,medianIndex)
+                upperQuartile = GetMedian(dataset,medianIndex,lastIndex)
+            end
+        end
+
+        //We want to exclude outliers from the data as our high and low values.
+        iqr = upperQuartile-lowerQuartile
+        lowerRange = lowerQuartile - iqr*1.5
+        upperRange = upperQuartile + iqr*1.5
+
         // Add the lower outliers to be plotted as points
         integer index = 0
-        boolean bottomGlitch = false // For some reason if there are bottom outliers then it adds them twice :(
         repeat while index < dataset:GetSize()
             if dataset:Get(index) < lowerRange
-                outliers:Add(dataset:Get(index))
-                bottomGlitch = true
+                if index > 0
+                    if not (dataset:Get(index) = dataset:Get(index-1)) //Skip duplicates since we only need one point to show an outlier
+                        outliers:Add(dataset:Get(index))
+                    end
+                else
+                    outliers:Add(dataset:Get(index))
+                end
             else
                 smallest = dataset:Get(index)
                 index = index + dataset:GetSize() + 1 //Skip the rest
@@ -401,10 +587,16 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         end
 
         // Add the upper outliers to be plotted as points
-        index = dataset:GetSize()-1
+        index = lastIndex
         repeat while index > 0
             if dataset:Get(index) > upperRange
-                outliers:Add(dataset:Get(index))
+                if index < lastIndex
+                    if not (dataset:Get(index) = dataset:Get(index+1)) //Skip duplicates since we only need one point to show an outlier
+                        outliers:Add(dataset:Get(index))
+                    end
+                else
+                    outliers:Add(dataset:Get(index))
+                end
             else
                 largest = dataset:Get(index)
                 index = index - dataset:GetSize() - 1 //Skip the rest
@@ -412,7 +604,6 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             index = index - 1
         end
         
-        Array<number> myData
         myData:Add(median)
         myData:Add(lowerQuartile)
         myData:Add(upperQuartile)
@@ -422,12 +613,9 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
         integer i = 0
         repeat while i < outliers:GetSize()
             myData:Add(outliers:Get(i))
-            if bottomGlitch //to skip repeat glitch
-                i = i + 1
-            end
             i = i + 1
         end
+        Empty()
         return myData
     end
 end
-

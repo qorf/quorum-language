@@ -3,14 +3,15 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.BarChart
-use Libraries.Interface.Controls.Charts.BarGroup
-use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.ControlLabel
 
 class BarChartLayout is SharedBarChartLayout
     integer outerEdgePadding = 0
@@ -46,6 +47,7 @@ class BarChartLayout is SharedBarChartLayout
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
         boolean stacked = chart:GetStackedFlag()
+        boolean separateBySeries = chart:IsSeparatedBySeries()
         boolean separateByFactor = chart:IsSeparatedByFactor()
 
         if barGroups:GetSize() > 0
@@ -55,9 +57,16 @@ class BarChartLayout is SharedBarChartLayout
             if stacked
                 numberOfBars = numberOfGroups
             end
-            if separateByFactor
+            if separateBySeries
                 numberOfBars = numberOfGroups
                 stacked = false
+            elseif separateByFactor
+                numberOfGroups = 1
+                if stacked
+                    numberOfBars = 1
+                else
+                    numberOfBars = chart:GetSeriesList():GetSize()
+                end
             end
 
             if horizontal
@@ -107,8 +116,8 @@ class BarChartLayout is SharedBarChartLayout
             Color transparent
             transparent:SetColor(0, 0, 0, 0)
             
-            Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
             currentXPosition = currentXPosition + outerEdgePadding
+            resetXPosition = currentXPosition
 
             // Tracking area of each bar group for group icon
             integer groupX = currentXPosition    // x-axis coordinate
@@ -116,89 +125,136 @@ class BarChartLayout is SharedBarChartLayout
             integer barHeight = 0
             integer groupWidth = 0               // width of entire group
             integer groupHeight = 0              // height of entire group
-        
+
+             
+            integer negativeCurrentYPosition = 0
+
             integer i = 0
             repeat while i < barGroups:GetSize()
                 BarGroup currentGroup = barGroups:Get(i)
+
+                if stacked
+                    currentYPosition = cast(integer, ((0-rangeMin)/(rangeMax-rangeMin)) * height)
+                    negativeCurrentYPosition = currentYPosition
+                end
+
                 integer j = 0
                 repeat while j < currentGroup:GetSize()
-                    Bar bar 
+                    Bar currentBar
                     // We want to stack/display so it keeps the same order as the legend
-                    if stacked
+                    if stacked 
                         if horizontal
-                            bar = currentGroup:Get(j)
+                            currentBar = currentGroup:Get(j)
                         else
-                            bar = currentGroup:Get(currentGroup:GetSize()-1-j)
-                        end
-                    else
-                        if horizontal
-                            bar = currentGroup:Get(barGroups:Get(i):GetSize()-1-j)
-                        else
-                            bar = currentGroup:Get(j)
-                        end
-                    end
-
-                    currentBar = bar:GetIcon()
-                    barHeight = cast(integer, ((bar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height)
-                    if barHeight >= 0 
-                        // Set bar height (percentage)
-                        number percent = (bar:GetValue()-rangeMin)/(rangeMax-rangeMin)
-                        bar:SetHeight(percent)
-    
-                        //Find max height for barGroup Icon
-                        if(barHeight > groupHeight)
-                            groupHeight = barHeight
-                        end
-    
-                        if horizontal
-                            currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
-                            currentBar:SetPosition(currentYPosition, currentXPosition)
-                        else
-                            currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
-                            currentBar:SetPosition(currentXPosition, currentYPosition)
+                            currentBar = currentGroup:Get(currentGroup:GetSize()-1-j)
                         end
 
-                        if not separateByFactor
-                            if stacked
-                                currentYPosition = currentYPosition + barHeight
+                        if currentBar:GetValue() < 0
+                            barHeight = cast(integer, ((currentBar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height)
+                            negativeCurrentYPosition = negativeCurrentYPosition - barHeight
+                            if barHeight >= 0 
+                                if horizontal
+                                    currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
+                                    currentBar:SetPosition(negativeCurrentYPosition, currentXPosition)
+                                else
+                                    currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
+                                    currentBar:SetPosition(currentXPosition, negativeCurrentYPosition)
+                                end
+                            end                            
+                        else
+                            barHeight = cast(integer, ((currentBar:GetValue() - 0)/(rangeMax-rangeMin)) * height)
+                            if barHeight >= 0 
+                                if horizontal
+                                    currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
+                                    currentBar:SetPosition(currentYPosition, currentXPosition)
+                                else
+                                    currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
+                                    currentBar:SetPosition(currentXPosition, currentYPosition)
+                                end
+                            end
+                            currentYPosition = currentYPosition + barHeight
+                        end
+                    else 
+                        if horizontal
+                            currentBar = currentGroup:Get(barGroups:Get(i):GetSize()-1-j)
+                        else
+                            currentBar = currentGroup:Get(j)
+                        end
+
+                        currentYPosition = cast(integer, ((0 - rangeMin)/(rangeMax-rangeMin)) * height)
+                        if currentBar:GetValue() < 0
+                            barHeight = cast(integer, ((currentBar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height)
+                            currentYPosition = currentYPosition - barHeight
+                        else
+                            barHeight = cast(integer, ((currentBar:GetValue() - 0)/(rangeMax-rangeMin)) * height)
+                        end
+
+                        if barHeight >= 0 
+                            if horizontal
+                                currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
+                                currentBar:SetPosition(currentYPosition, currentXPosition)
                             else
-                                currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                                currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
+                                currentBar:SetPosition(currentXPosition, currentYPosition)
                             end
                         end
-                    else
-                        if not stacked and not separateByFactor
+                        if currentBar:ShowAnnotation() or chart:ShowAnnotations()
+                            ControlLabel barLabel = currentBar:GetAnnotation()
+                            if barLabel not= undefined
+                                if horizontal
+                                    integer annotY = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetHeight()/2.0))
+                                    if currentBar:GetValue() < 0
+                                        barLabel:SetPosition(currentYPosition - barLabel:GetWidth(), annotY)
+                                    else
+                                        barLabel:SetPosition(currentYPosition + barHeight, annotY)
+                                    end
+                                else
+                                    integer annotX = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetWidth()/2.0))
+                                    if currentBar:GetValue() < 0
+                                        barLabel:SetPosition(annotX, currentYPosition - barLabel:GetHeight())
+                                    else
+                                        barLabel:SetPosition(annotX, currentYPosition + barHeight)
+                                    end
+                                end
+                            end
+                        end
+
+                        if not separateBySeries
                             currentXPosition = currentXPosition + barWidth + betweenBarPadding
                         end
-                    end
+                    end 
                     j = j + 1
                 end
-
-                // Creating Bar Group Icon
-                Icon newIcon = currentGroup:GetIcon()
-                LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
-                if stacked or separateByFactor
+                
+                if stacked or chart:IsSeparated()
                     if horizontal 
-                        newIcon:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
-                        newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
+                        currentGroup:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
+                        currentGroup:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
                     else
-                        newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition, transparent)
-                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
+                        currentGroup:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition, transparent)
+                        currentGroup:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
                     end
-                    currentXPosition = currentXPosition + barWidth + betweenGroupPadding
+                    if separateByFactor
+                        currentXPosition = resetXPosition
+                        groupX = currentXPosition + (currentXPosition + barWidth + betweenGroupPadding)*(i+1)
+                    else
+                        currentXPosition = currentXPosition + barWidth + betweenGroupPadding
+                        groupX = currentXPosition
+                    end
                 else
                     groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
+                    groupHeight = cast(integer, ((currentGroup:GetMaxBarValue()-rangeMin)/(rangeMax-rangeMin)) * height)
                     currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
                     if horizontal
-                        newIcon:LoadRectangle(cast(integer, groupHeight), cast(integer, groupWidth), transparent)
-                        newIcon:SetPosition(groupY, groupX-cast(integer, betweenGroupPadding/2))
+                        currentGroup:LoadRectangle(cast(integer, groupHeight), cast(integer, groupWidth), transparent)
+                        currentGroup:SetPosition(groupY, groupX-cast(integer, betweenGroupPadding/2))
                     else
-                        newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight), transparent)
-                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
+                        currentGroup:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight), transparent)
+                        currentGroup:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
                     end
+                    groupX = currentXPosition
                 end
                 currentYPosition = resetYPosition
-                groupHeight = 0
-                groupX = currentXPosition
                 i = i + 1
             end
         end

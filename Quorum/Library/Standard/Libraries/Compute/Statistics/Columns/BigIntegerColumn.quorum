@@ -34,6 +34,31 @@ class BigIntegerColumn is DataFrameColumn
         end
     end
 
+    /*
+        By default, this replaces all undefined values with the BitInteger value of the text passed in.
+        If the text passed in is not a BitInteger, then this call is ignored
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+        if value = undefined
+            return now
+        end
+        check 
+            BigInteger num
+            num:SetValue(value, 10) //should throw an error if it's wrong
+            row = 0
+            repeat while row < GetSize()
+                if IsUndefined(row)
+                    rows:Set(row, num)
+                end
+                row = row + 1
+            end
+        detect e
+            return now
+        end
+    end
+
     action CanConvertToVector returns boolean
         return false
     end
@@ -145,7 +170,11 @@ class BigIntegerColumn is DataFrameColumn
         end
 
         if sort
-            newRows:Sort()
+            if GetSortComparison() not= undefined
+                newRows:Sort(GetSortComparison())
+            else
+                newRows:Sort(me)
+            end
         end
         column:rows = newRows
 

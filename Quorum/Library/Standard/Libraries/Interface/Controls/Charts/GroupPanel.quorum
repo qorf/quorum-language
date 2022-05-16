@@ -1,0 +1,57 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
+/*
+The GroupPanel class is a parent data structure that stores 
+information and an array of each group of drawables. 
+These are usually (but not always) catergorized into groups 
+by a factor upon chart creation. A group may only have one drawable in it.
+Group holds a reference to a ChartAreaPanel to be used 
+if the chart is separated by factor.
+
+Attribute: Author Hannah Williams
+*/
+
+class GroupPanel is Icon
+    ChartAreaPanel chartArea = undefined // When separated by factor this will correspond to the correct sub chart area
+    private Array<ChartDrawable> items
+
+    action AddItem(ChartDrawable item)
+        item:SetGroup(me)
+        items:Add(item)
+    end
+
+    action GetItemAt(integer index) returns ChartDrawable
+        if index >= 0 and index < GetSize()
+            return items:Get(index)
+        else
+            return undefined
+        end
+    end
+
+    action GetGroupItems() returns Array<ChartDrawable>
+        return items
+    end
+
+    action GetSize() returns integer
+        return items:GetSize()
+    end
+
+    action Empty()
+        items:Empty()
+    end
+
+    /*
+        A link to the parent chart area of this group.
+    */
+    action SetChartArea(ChartAreaPanel chartArea)
+        me:chartArea = chartArea
+    end
+
+    action GetChartArea returns ChartAreaPanel
+        return chartArea
+    end
+end

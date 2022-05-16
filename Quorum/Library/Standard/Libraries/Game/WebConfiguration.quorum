@@ -5,9 +5,9 @@ use Libraries.Game.ApplicationConfiguration
 class WebConfiguration is ApplicationConfiguration
 
     /*
-    The ID of the canvas to use for rendering the Game.
+    The ID of the pre-existing element that contains the UI.
     */
-    public text canvasID = "QuorumGraphicsCanvas"
+    public text containerID = "QuorumUIContainer"
 
     /*
     Whether or not the Game should be limited to the given number of frames per
@@ -32,15 +32,6 @@ class WebConfiguration is ApplicationConfiguration
     public boolean disableContextMenu = true
 
     /*
-    The keepTabFocus flag controls how a game responds to the Tab key. Online
-    games must have the focus to receive input (the user has either clicked on
-    the game window or tabbed to it). If keepTabFocus is false and the user
-    presses the Tab key, the window will lose focus. If it is true, the window
-    will keep the focus even if the user presses Tab.
-    */
-    public boolean keepTabFocus = false
-
-    /*
     The maximum number of seconds allowed between each mouse click before the
     click is no longer considered related to the previous click. This is used
     for things such as double-click input.
@@ -53,5 +44,15 @@ class WebConfiguration is ApplicationConfiguration
     used for things like capturing double-taps on keys.
     */
     public number multipleKeyPressTimer = 0.5
+
+    /* The title of the application. If undefined, defaults to "Game". */
+    public text title = undefined
+
+    /*
+    The name of the button that assistive technology users will press
+    to move focus into the application. If undefined, defaults to
+    "Enter " followed by the title.
+    */
+    public text focusButtonName = undefined
 
 end

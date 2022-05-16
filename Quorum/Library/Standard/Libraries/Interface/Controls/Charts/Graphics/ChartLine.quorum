@@ -1,0 +1,176 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Controls.Charts.LineSegment
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Charts.ChartLinePointComparison
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
+/*
+    This object class is used to contain the points and lines for each line object in the line chart. It should
+    not be used without Line Chart.
+
+    Attribute: Author Cody Molisee
+*/
+class ChartLine is ChartDrawable
+    Array<ChartPoint> points
+    Array<LineSegment> lines
+    private boolean showPoints = true
+    ChartPoint lineMax
+    ChartPoint lineMin
+    ChartPoint lineStart
+    ChartPoint lineEnd
+    Series series = undefined
+
+    /*
+    Returns max y point of all points
+    */
+    action GetLineMax() returns ChartPoint
+        return lineMax
+    end
+    /*
+    Returns min y point of all points
+    */
+    action GetLineMin() returns ChartPoint
+        return lineMin
+    end
+    /*
+    Returns max x point of all points
+    */
+    action GetLineStart() returns ChartPoint
+        return lineStart
+    end
+    /*
+    Returns min x point of all points
+    */
+    action GetLineEnd() returns ChartPoint
+        return lineEnd
+    end
+
+    /*
+    Returns an array of ChartPoints for this line.
+    */
+    action GetPoints() returns Array<ChartPoint>
+        return points
+    end
+
+    /*
+    Returns an array of Drawables for this line.
+    */
+    action GetLines() returns Array<LineSegment>
+        return lines
+    end
+
+    /*
+    Sets the showPoints flag to false.
+    flag is true by default.
+    */
+    action HidePoints()
+        showPoints = false
+    end
+
+    /*
+    Sets the showPoints flag to true.
+    flag is true by default.
+    */
+    action ShowPoints()
+        showPoints = true
+    end
+
+    /*
+    Returns the value of the showPoints flag.
+    */
+    action GetPointsFlag() returns boolean
+        return showPoints
+    end
+
+    /*
+    Sets/changes the color for this line.
+    */
+    action SetColor(Color lineColor)
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(lineColor)
+            i = i + 1
+        end
+        parent:Drawable:SetColor(lineColor)
+    end
+
+    /*
+    Sets/changes the z value for this line.
+    True will bring forward, false will move it back.
+    */
+    action BringForward(boolean show)
+        integer value = 0
+        if show
+            value = -1
+        end
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetZ(value)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetZ(value)
+            i = i + 1
+        end
+    end
+    
+    /*
+    Adds a ChartPoint to this lines array of ChartPoints.
+    If points:GetSize() > 1, add a line Drawable to this lines line array.
+    */
+    action Add(ChartPoint point)
+        points:Add(point)
+        if points:GetSize() > 1
+            LineSegment line
+            lines:Add(line)
+        end
+    end
+    
+    /*
+    Sorts all the chart points within the line by lowest x value first
+    This is used in numerical factor line charts
+    */
+    action SortPoints()
+        ChartLinePointComparison comparison
+        points:Sort(comparison)
+
+        if points:GetSize() > 0
+            lineStart = points:Get(0)
+            lineEnd = points:Get(points:GetSize()-1)
+            lineMax = points:Get(0)
+            lineMin = points:Get(0)
+
+            integer i = 1
+            repeat while i < points:GetSize()
+                if points:Get(i):GetValueY() > lineMax:GetValueY()
+                    lineMax = points:Get(i)
+                end
+                if points:Get(i):GetValueY() < lineMin:GetValueY()
+                    lineMin = points:Get(i)
+                end
+                i = i + 1
+            end
+        end        
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+end

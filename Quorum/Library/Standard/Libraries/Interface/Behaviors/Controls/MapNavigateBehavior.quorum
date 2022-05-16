@@ -1,0 +1,44 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.GeoMap
+
+class MapNavigateBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is GeoMap
+            KeyboardEvent keys
+            integer keycode = event:GetKeyboardEvent():keyCode
+            GeoMap chart = cast(GeoMap, event:GetItem())
+
+            if event:GetInputSet():HasModifier(event:GetInputSet():SHIFT)
+                if keycode = keys:TAB
+                    chart:SelectPrevious()
+                elseif keycode = keys:ENTER
+                    chart:SelectParent()
+                end
+            else
+                // TREE-LIKE Navigation
+                if keycode = keys:UP
+                    chart:SelectPrevious()
+                elseif keycode = keys:DOWN
+                    chart:SelectNext()
+                elseif keycode = keys:LEFT
+                    chart:CloseItem()
+                elseif keycode = keys:RIGHT
+                    chart:OpenItem()
+
+                // ORIGINAL Navigation
+                elseif keycode = keys:TAB
+                    chart:SelectNext()
+                elseif keycode = keys:ENTER
+                    chart:SelectChild()
+                end
+            end
+        end
+    end
+
+end

@@ -1,0 +1,24 @@
+use Libraries.Data.Formats.JavaScriptObjectNotation
+
+class DeepArray 
+    action Main
+        JavaScriptObjectNotation data
+        text dq = ""
+    dq = dq:GetDoubleQuote()
+        text item = 
+"{"+dq+"coordinates"+dq+": [[[[-88.684434, 48.115785], [-88.675628, 48.120444]]], [[[-83.829224, 43.662632], [-83.831284, 43.669506]]]]}"
+        data:Read(item)
+
+        CheckResult(data:ToText(), item)
+    end
+
+    action CheckResult(text result, text answer)
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        if answer = result
+            output "pass"
+        else
+            output "fail"
+        end
+    end
+end

@@ -1122,7 +1122,7 @@ class QuorumBytecodeListener is QuorumSourceListener
         else
             if variable not= undefined //if it is, it should have been caught in a previous phase
                 Type type = variable:GetType()
-                if not type:IsPrimitive() //if it is, again previous phase
+                if type not= undefined and not type:IsPrimitive() //if it is, again previous phase
                     text staticKey = type:GetStaticKey()
                     SymbolTable table = GetSymbolTable()
                     clazz = table:GetClass(staticKey)
@@ -1165,8 +1165,13 @@ class QuorumBytecodeListener is QuorumSourceListener
                     CompilerErrorType errorType
                     errorType:SetCurrentType(errorType:INVALID_OPERATOR)
                     error:SetCompilerErrorType(errorType)
-                    error:SetErrorMessage("I cannot assign a value to a variable " +
-                        "named " + variable:GetName() + " because it is of type " + type:GetStaticKey() + ", which is a primitive")
+                    if type not= undefined
+                        error:SetErrorMessage("I cannot assign a value to a variable " +
+                            "named " + variable:GetName() + " because it is of type " + type:GetStaticKey() + ", which is a primitive")
+                    else
+                        error:SetErrorMessage("I cannot assign a value to a variable " +
+                            "named " + variable:GetName() + " because the type is undefined.")
+                    end
                     manager:Add(error)
                 end
                 variable:SetIsDefined(true)

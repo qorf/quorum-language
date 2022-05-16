@@ -438,6 +438,40 @@ class DatabaseStrategy
     blueprint action Update(Update query) returns integer
 
     /*
+        This action returns the last generated id from an insert. For example if a table has an auto incremented id column it does not 
+        need to be specified in the insert but the user might want to know what that value is.
+
+        Attribute: Returns Returns the last id that was generated from an insert
+
+        Attribute: Example
+    
+        use Libraries.Data.Database.Strategies.DefaultDatabaseStrategy
+        use Libraries.Data.Database.Connection
+        use Libraries.Data.Database.Insert
+        
+        DefaultDatabaseStrategy strategy
+    
+        Connection connection
+        connection:SetLocation("localhost")
+        connection:SetUsername("user1")
+        connection:SetPassword("secretPassword")
+        connection:SetDatabase("myDB")
+        strategy:Connect(connection)
+    
+        Insert insert
+        insert:SetTable("tasks")
+        insert:Add("title", "Low Priority Task")
+        insert:Add("priority", 4)
+        insert:Add("start_date", "2021-12-31")
+    
+        strategy:Insert(insert)
+        
+   
+        output strategy:GetLastInsertedID()
+    */
+    blueprint action GetLastInsertedID returns integer
+
+    /*
         This action runs a Delete query on the database. The query object itself has all the information needed to build the query
         to send to a database server and some queries have an action to build their equivalent SQL string.
 

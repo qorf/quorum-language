@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlShaderView
 
 class ToolBar is Control
     on create
@@ -21,6 +22,7 @@ class ToolBar is Control
         toolbarProperties:SetPixelHeight(30)
         SetAccessibilityCode(parent:Item:TOOLBAR)
         SetInputGroup("ToolBar")
+        SetInterfaceOptionsKey("ToolBar")
     end
 
     action IsAccessibleParent returns boolean
@@ -28,14 +30,9 @@ class ToolBar is Control
     end
 
     action LoadGraphics(LayoutProperties properties)
-        Gradient gradient
-        Color color
-        gradient:Set(color:LightGray(), color:LightGray(), color:White(), color:White())
-        
-        LabelBoxView content
-        content:Initialize(gradient, color:Black(), "")
-        content:SetBorderThickness(0)
-        SetView2D(content)
+        ControlShaderView view
+        view:Initialize()
+        SetView2D(view)
 
         parent:Control:LoadGraphics(properties)
     end
