@@ -621,6 +621,29 @@ class LayoutProperties
         return default:GetForegroundColor()
     end
 
+    action SetForegroundSelectionColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetForegroundSelectionColor(value)
+        needsRendering = true
+    end
+
+    action GetForegroundSelectionColor returns ColorGroup
+        if options not= undefined and options:GetForegroundSelectionColor() not= undefined
+            return options:GetForegroundSelectionColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetForegroundSelectionColor() not= undefined
+            return controlPalette:GetForegroundSelectionColor()
+        end
+
+        return default:GetForegroundSelectionColor()
+    end
+
     action SetFontColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()

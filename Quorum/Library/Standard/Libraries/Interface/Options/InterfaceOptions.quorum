@@ -73,9 +73,10 @@ end
 */
 class InterfaceOptions
 
-        // Key values for color properties.
+    // Key values for color properties.
     public constant text BACKGROUND_COLOR = "backgroundColor"
     public constant text FOREGROUND_COLOR = "foregroundColor"
+    public constant text FOREGROUND_SELECTION_COLOR = "foregroundSelectionColor"
     public constant text FONT_COLOR = "fontColor"
     public constant text BORDER_COLOR = "borderColor"
     public constant text FOCUS_COLOR = "focusColor"
@@ -288,6 +289,33 @@ class InterfaceOptions
             return undefined
         else
             return palette:GetForegroundColor()
+        end
+    end
+
+    action SetForegroundSelectionColor(ColorGroup value)
+        SetColorProperty(FOREGROUND_SELECTION_COLOR, value)
+    end
+
+    action GetForegroundSelectionColor returns ColorGroup
+        return GetColorProperty(FOREGROUND_SELECTION_COLOR)
+    end
+
+    action SetForegroundSelectionColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetForegroundSelectionColor(value)
+    end
+
+    action GetForegroundSelectionColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetForegroundSelectionColor()
         end
     end
 
@@ -1224,6 +1252,14 @@ class InterfaceOptions
         return GetForegroundColor(BUTTON)
     end
 
+    action SetButtonForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(BUTTON, value)
+    end
+
+    action GetButtonForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(BUTTON)
+    end
+
     action SetButtonFontColor(ColorGroup value)
         SetFontColor(BUTTON, value)
     end
@@ -1530,6 +1566,14 @@ class InterfaceOptions
 
     action GetCellForegroundColor returns ColorGroup
         return GetForegroundColor(CELL)
+    end
+
+    action SetCellForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(CELL, value)
+    end
+
+    action GetCellForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(CELL)
     end
 
     action SetCellFontColor(ColorGroup value)
@@ -1840,6 +1884,14 @@ class InterfaceOptions
         return GetForegroundColor(CHART)
     end
 
+    action SetChartForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(CHART, value)
+    end
+
+    action GetChartForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(CHART)
+    end
+
     action SetChartFontColor(ColorGroup value)
         SetFontColor(CHART, value)
     end
@@ -2146,6 +2198,14 @@ class InterfaceOptions
 
     action GetCheckboxForegroundColor returns ColorGroup
         return GetForegroundColor(CHECKBOX)
+    end
+
+    action SetCheckboxForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(CHECKBOX, value)
+    end
+
+    action GetCheckboxForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(CHECKBOX)
     end
 
     action SetCheckboxFontColor(ColorGroup value)
@@ -2456,6 +2516,14 @@ class InterfaceOptions
         return GetForegroundColor(DIALOG)
     end
 
+    action SetDialogForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(DIALOG, value)
+    end
+
+    action GetDialogForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(DIALOG)
+    end
+
     action SetDialogFontColor(ColorGroup value)
         SetFontColor(DIALOG, value)
     end
@@ -2762,6 +2830,14 @@ class InterfaceOptions
 
     action GetDialogBarForegroundColor returns ColorGroup
         return GetForegroundColor(DIALOG_BAR)
+    end
+
+    action SetDialogBarForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(DIALOG_BAR)
     end
 
     action SetDialogBarFontColor(ColorGroup value)
@@ -3072,6 +3148,14 @@ class InterfaceOptions
         return GetForegroundColor(DIALOG_ACCEPT_BUTTON)
     end
 
+    action SetDialogAcceptButtonForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(DIALOG_ACCEPT_BUTTON)
+    end
+
     action SetDialogAcceptButtonFontColor(ColorGroup value)
         SetFontColor(DIALOG_ACCEPT_BUTTON, value)
     end
@@ -3378,6 +3462,14 @@ class InterfaceOptions
 
     action GetGutterForegroundColor returns ColorGroup
         return GetForegroundColor(GUTTER)
+    end
+
+    action SetGutterForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(GUTTER, value)
+    end
+
+    action GetGutterForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(GUTTER)
     end
 
     action SetGutterFontColor(ColorGroup value)
@@ -3688,6 +3780,14 @@ class InterfaceOptions
         return GetForegroundColor(LABEL)
     end
 
+    action SetLabelForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(LABEL, value)
+    end
+
+    action GetLabelForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(LABEL)
+    end
+
     action SetLabelFontColor(ColorGroup value)
         SetFontColor(LABEL, value)
     end
@@ -3994,6 +4094,14 @@ class InterfaceOptions
 
     action GetListForegroundColor returns ColorGroup
         return GetForegroundColor(LIST)
+    end
+
+    action SetListForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(LIST, value)
+    end
+
+    action GetListForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(LIST)
     end
 
     action SetListFontColor(ColorGroup value)
@@ -4304,6 +4412,14 @@ class InterfaceOptions
         return GetForegroundColor(LIST_ITEM)
     end
 
+    action SetListItemForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(LIST_ITEM, value)
+    end
+
+    action GetListItemForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(LIST_ITEM)
+    end
+
     action SetListItemFontColor(ColorGroup value)
         SetFontColor(LIST_ITEM, value)
     end
@@ -4610,6 +4726,14 @@ class InterfaceOptions
 
     action GetMenuBarForegroundColor returns ColorGroup
         return GetForegroundColor(MENU_BAR)
+    end
+
+    action SetMenuBarForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(MENU_BAR, value)
+    end
+
+    action GetMenuBarForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(MENU_BAR)
     end
 
     action SetMenuBarFontColor(ColorGroup value)
@@ -4920,6 +5044,14 @@ class InterfaceOptions
         return GetForegroundColor(MENU_ITEM)
     end
 
+    action SetMenuItemForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(MENU_ITEM, value)
+    end
+
+    action GetMenuItemForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(MENU_ITEM)
+    end
+
     action SetMenuItemFontColor(ColorGroup value)
         SetFontColor(MENU_ITEM, value)
     end
@@ -5226,6 +5358,14 @@ class InterfaceOptions
 
     action GetMenuPanelForegroundColor returns ColorGroup
         return GetForegroundColor(MENU_PANEL)
+    end
+
+    action SetMenuPanelForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(MENU_PANEL)
     end
 
     action SetMenuPanelFontColor(ColorGroup value)
@@ -5536,6 +5676,14 @@ class InterfaceOptions
         return GetForegroundColor(PROGRESS_BAR)
     end
 
+    action SetProgressBarForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(PROGRESS_BAR)
+    end
+
     action SetProgressBarFontColor(ColorGroup value)
         SetFontColor(PROGRESS_BAR, value)
     end
@@ -5842,6 +5990,14 @@ class InterfaceOptions
 
     action GetRadioButtonForegroundColor returns ColorGroup
         return GetForegroundColor(RADIO_BUTTON)
+    end
+
+    action SetRadioButtonForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(RADIO_BUTTON)
     end
 
     action SetRadioButtonFontColor(ColorGroup value)
@@ -6152,6 +6308,14 @@ class InterfaceOptions
         return GetForegroundColor(SCROLL_PANE)
     end
 
+    action SetScrollPaneForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(SCROLL_PANE)
+    end
+
     action SetScrollPaneFontColor(ColorGroup value)
         SetFontColor(SCROLL_PANE, value)
     end
@@ -6458,6 +6622,14 @@ class InterfaceOptions
 
     action GetTabForegroundColor returns ColorGroup
         return GetForegroundColor(TAB)
+    end
+
+    action SetTabForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TAB, value)
+    end
+
+    action GetTabForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TAB)
     end
 
     action SetTabFontColor(ColorGroup value)
@@ -6768,6 +6940,14 @@ class InterfaceOptions
         return GetForegroundColor(TAB_BAR)
     end
 
+    action SetTabBarForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TAB_BAR, value)
+    end
+
+    action GetTabBarForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TAB_BAR)
+    end
+
     action SetTabBarFontColor(ColorGroup value)
         SetFontColor(TAB_BAR, value)
     end
@@ -7074,6 +7254,14 @@ class InterfaceOptions
 
     action GetTextBoxForegroundColor returns ColorGroup
         return GetForegroundColor(TEXT_BOX)
+    end
+
+    action SetTextBoxForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TEXT_BOX)
     end
 
     action SetTextBoxFontColor(ColorGroup value)
@@ -7384,6 +7572,14 @@ class InterfaceOptions
         return GetForegroundColor(TEXT_FIELD)
     end
 
+    action SetTextFieldForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TEXT_FIELD)
+    end
+
     action SetTextFieldFontColor(ColorGroup value)
         SetFontColor(TEXT_FIELD, value)
     end
@@ -7690,6 +7886,14 @@ class InterfaceOptions
 
     action GetToolBarForegroundColor returns ColorGroup
         return GetForegroundColor(TOOL_BAR)
+    end
+
+    action SetToolBarForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TOOL_BAR, value)
+    end
+
+    action GetToolBarForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TOOL_BAR)
     end
 
     action SetToolBarFontColor(ColorGroup value)
@@ -8000,6 +8204,14 @@ class InterfaceOptions
         return GetForegroundColor(TREE_ITEM)
     end
 
+    action SetTreeItemForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TREE_ITEM)
+    end
+
     action SetTreeItemFontColor(ColorGroup value)
         SetFontColor(TREE_ITEM, value)
     end
@@ -8306,6 +8518,14 @@ class InterfaceOptions
 
     action GetTreeTableCellForegroundColor returns ColorGroup
         return GetForegroundColor(TREE_TABLE_CELL)
+    end
+
+    action SetTreeTableCellForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TREE_TABLE_CELL)
     end
 
     action SetTreeTableCellFontColor(ColorGroup value)
