@@ -21,13 +21,12 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 
 
 class Legend is Control
     ChartOptions options
-    ControlLabel title = undefined
+    ChartLabel title = undefined
     Array<Series> seriesList
     Array<text> itemNames
     boolean displayOnLeft = false
@@ -43,6 +42,9 @@ class Legend is Control
     number minimumWidth = 0
     number minimumHeight = 0
 
+    ColorGroup backgroundColor = undefined
+    ColorGroup borderColor = undefined
+
     on create
         ManualLayout layout
         SetLayout(layout)
@@ -54,14 +56,6 @@ class Legend is Control
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:Black())
         SetName("Legend")
 
         SetFocusable(true)
@@ -191,7 +185,7 @@ class Legend is Control
         end
 
         if GetTitleLabel() = undefined 
-            ControlLabel newLabel
+            ChartLabel newLabel
             SetTitleLabel(newLabel)
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
@@ -209,7 +203,7 @@ class Legend is Control
             end
             Add(seriesIcon)
 
-            ControlLabel newLabel
+            ChartLabel newLabel
             newLabel:SetText(seriesList:Get(i):GetName())
             newLabel:SetName(seriesList:Get(i):GetName())
             seriesList:Get(i):SetLabel(newLabel)
@@ -224,12 +218,12 @@ class Legend is Control
                     RegressionLine regLine = seriesList:Get(i):GetRegressionLine()
                     regLine:SetVariableNames(chart:GetYAxisTitle(), chart:GetXAxisTitle(), chart:GetHorizontalFlag(), chart:OrientationChanged())
 
-                    ControlLabel regressionLabel = seriesList:Get(i):GetRegressionLine():GetLabel()
+                    ChartLabel regressionLabel = seriesList:Get(i):GetRegressionLine():GetLabel()
                     regressionLabel:SetFocusable(true)
                     regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
                     Add(regressionLabel)
 
-                    ControlLabel r2Label = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                    ChartLabel r2Label = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
                     r2Label:SetFocusable(true)
                     r2Label:SetAccessibilityCode(parent:Item:ITEM)
                     Add(r2Label)
@@ -267,7 +261,7 @@ class Legend is Control
             title = undefined
         end
         if not seriesList:IsEmpty()
-            ControlLabel temp = undefined
+            ChartLabel temp = undefined
             integer i = 0
             repeat while i < seriesList:GetSize()
                 temp = seriesList:Get(i):GetLabel()
@@ -296,7 +290,7 @@ class Legend is Control
         titleFontSize = size
     end
 
-    action SetTitleLabel(ControlLabel title)
+    action SetTitleLabel(ChartLabel title)
         me:title = title
     end
 
@@ -305,7 +299,7 @@ class Legend is Control
         SetName(name)
     end    
 
-    action GetTitleLabel() returns ControlLabel
+    action GetTitleLabel() returns ChartLabel
         return title
     end
 
@@ -432,7 +426,7 @@ class Legend is Control
     end
 
     action CalculateMinimumSpace()
-        ControlLabel currentLabel
+        ChartLabel currentLabel
         number labelWidth = 0
         number labelHeight = 0
         if GetTitleLabel() not= undefined
@@ -644,5 +638,47 @@ class Legend is Control
         newItemStructure:Add(newLabel)
 
         return newItemStructure
+    end
+
+    action GetBorderColor returns ColorGroup
+        if borderColor not= undefined
+            return borderColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetBorderColor()
+        end
+        return undefined
+    end
+
+    action SetBorderColor(ColorGroup color)
+        borderColor = color
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if backgroundColor not= undefined
+            return backgroundColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetIconColor()
+        end
+
+        return undefined
+    end
+
+    action SetBackgroundColor(ColorGroup color)
+        backgroundColor = color
+    end
+
+    // Try to get the chart this is attached to via the parent hierarchy.
+    private action GetParentChart returns Chart
+        Item2D parentItem = GetParent()
+        repeat until parentItem is Chart or parentItem = undefined
+            parentItem = parentItem:GetParent()
+        end
+        return cast(Chart, parentItem)
     end
 end

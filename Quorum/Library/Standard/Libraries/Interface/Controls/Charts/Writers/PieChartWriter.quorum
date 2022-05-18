@@ -12,7 +12,6 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.PieChart
 use Libraries.Interface.Controls.Charts.Graphics.PieBox
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.System.File
 use Libraries.System.FileWriter
 use Libraries.Web.Page.Script
@@ -160,7 +159,7 @@ class PieChartWriter is ChartWriter
                 canvas:Add(slice)
 
                 if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
-                    ControlLabel label = pieBox:Get(i):GetAnnotation()
+                    ChartLabel label = pieBox:Get(i):GetAnnotation()
                     if label not= undefined
                         Label labelSVG
                         labelSVG:SetText(label:GetText())
@@ -245,7 +244,7 @@ class PieChartWriter is ChartWriter
                     canvas:Add(slice)
 
                     if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
-                        ControlLabel label = pieBox:Get(i):GetAnnotation()
+                        ChartLabel label = pieBox:Get(i):GetAnnotation()
                         if label not= undefined
                             Label labelSVG
                             labelSVG:SetText(label:GetText())

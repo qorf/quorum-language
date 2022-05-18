@@ -12,7 +12,6 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Game.Graphics.Color
 use Libraries.Web.Page.Script
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Web.Page.UnorderedList
 use Libraries.Web.Page.ListItem
 use Libraries.Interface.Item
@@ -142,7 +141,7 @@ class HistogramWriter is ChartWriter
                     canvas:Add(bar)
 
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
-                        ControlLabel label = currentBar:GetAnnotation()
+                        ChartLabel label = currentBar:GetAnnotation()
                         if label not= undefined
                             Label labelSVG
                             labelSVG:SetText(label:GetText())
@@ -184,7 +183,7 @@ class HistogramWriter is ChartWriter
                     canvas:Add(bar)
 
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
-                        ControlLabel label = currentBar:GetAnnotation()
+                        ChartLabel label = currentBar:GetAnnotation()
                         if label not= undefined
                             Label labelSVG
                             labelSVG:SetText(label:GetText())

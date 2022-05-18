@@ -343,16 +343,16 @@ class GeoMap is Chart, FirstLetterNavigator
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Region tempReg = cast(Region, temp:GetItemAt(i))
-                    tempReg:SetColor(GetHighlightColor())
+                    tempReg:SetColor(GetSelectionColor())
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetEntryIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is Region
                 Region temp = cast(Region, target)
                 previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
             else
                 parent:Chart:GainedSelection(item)
             end         

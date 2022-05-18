@@ -10,7 +10,6 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.System.File
@@ -412,14 +411,14 @@ class BoxPlot is Chart
                     integer j = 1
                     repeat while j < plot:GetPlotItems():GetSize()
                         ChartDrawable item = plot:GetPlotItems():Get(j)
-                        item:SetColor(GetHighlightColor())
+                        item:SetColor(GetSelectionColor())
                         j = j + 1
                     end
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetEntryIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
             else
                 parent:Chart:GainedSelection(ci)
             end            

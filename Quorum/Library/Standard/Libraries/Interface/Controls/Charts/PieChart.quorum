@@ -7,7 +7,6 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.PieChartLayout
 use Libraries.Interface.Selections.ChartSelection
@@ -148,7 +147,7 @@ class PieChart is Chart
                             GetSubChartAreas():Get(k):AddChartAreaItem(slice)
 
                             if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
-                                ControlLabel sliceLabel
+                                ChartLabel sliceLabel
                                 if showPercentAnnotation
                                     sliceLabel:SetText(percentText+"%")
                                 elseif showValueAnnotation
@@ -195,7 +194,7 @@ class PieChart is Chart
                 slice:SetDescription(description)
                 
                 if slice:ShowAnnotation() or ShowAnnotations()
-                    ControlLabel sliceLabel
+                    ChartLabel sliceLabel
                     if showPercentAnnotation
                         sliceLabel:SetText(percentText+"%")
                     elseif showValueAnnotation

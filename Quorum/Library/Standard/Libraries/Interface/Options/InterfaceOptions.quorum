@@ -73,7 +73,7 @@ end
 */
 class InterfaceOptions
 
-    // Key values for color properties.
+        // Key values for color properties.
     public constant text BACKGROUND_COLOR = "backgroundColor"
     public constant text FOREGROUND_COLOR = "foregroundColor"
     public constant text FONT_COLOR = "fontColor"
@@ -113,6 +113,7 @@ class InterfaceOptions
     // Key values for default interface options.
     public constant text BUTTON = "Button"
     public constant text CELL = "Cell"
+    public constant text CHART = "Chart"
     public constant text CHECKBOX = "Checkbox"
     public constant text DIALOG = "Dialog"
     public constant text DIALOG_BAR = "DialogBar"
@@ -1821,6 +1822,314 @@ class InterfaceOptions
 
     action CopyCellInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(CELL)
+    end
+
+    action SetChartBackgroundColor(ColorGroup value)
+        SetBackgroundColor(CHART, value)
+    end
+
+    action GetChartBackgroundColor returns ColorGroup
+        return GetBackgroundColor(CHART)
+    end
+
+    action SetChartForegroundColor(ColorGroup value)
+        SetForegroundColor(CHART, value)
+    end
+
+    action GetChartForegroundColor returns ColorGroup
+        return GetForegroundColor(CHART)
+    end
+
+    action SetChartFontColor(ColorGroup value)
+        SetFontColor(CHART, value)
+    end
+
+    action GetChartFontColor returns ColorGroup
+        return GetFontColor(CHART)
+    end
+
+    action SetChartBorderColor(ColorGroup value)
+        SetBorderColor(CHART, value)
+    end
+
+    action GetChartBorderColor returns ColorGroup
+        return GetBorderColor(CHART)
+    end
+
+    action SetChartFocusColor(ColorGroup value)
+        SetFocusColor(CHART, value)
+    end
+
+    action GetChartFocusColor returns ColorGroup
+        return GetFocusColor(CHART)
+    end
+
+    action SetChartFocusFontColor(ColorGroup value)
+        SetFocusFontColor(CHART, value)
+    end
+
+    action GetChartFocusFontColor returns ColorGroup
+        return GetFocusFontColor(CHART)
+    end
+
+    action SetChartFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(CHART, value)
+    end
+
+    action GetChartFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(CHART)
+    end
+
+    action SetChartMouseOverColor(ColorGroup value)
+        SetMouseOverColor(CHART, value)
+    end
+
+    action GetChartMouseOverColor returns ColorGroup
+        return GetMouseOverColor(CHART)
+    end
+
+    action SetChartMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(CHART, value)
+    end
+
+    action GetChartMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(CHART)
+    end
+
+    action SetChartMouseDownColor(ColorGroup value)
+        SetMouseDownColor(CHART, value)
+    end
+
+    action GetChartMouseDownColor returns ColorGroup
+        return GetMouseDownColor(CHART)
+    end
+
+    action SetChartMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(CHART, value)
+    end
+
+    action GetChartMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(CHART)
+    end
+
+    action SetChartSelectionColor(ColorGroup value)
+        SetSelectionColor(CHART, value)
+    end
+
+    action GetChartSelectionColor returns ColorGroup
+        return GetSelectionColor(CHART)
+    end
+
+    action SetChartSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(CHART, value)
+    end
+
+    action GetChartSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(CHART)
+    end
+
+    action SetChartUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(CHART, value)
+    end
+
+    action GetChartUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(CHART)
+    end
+
+    action SetChartUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(CHART, value)
+    end
+
+    action GetChartUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(CHART)
+    end
+
+    action SetChartSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(CHART, value)
+    end
+
+    action GetChartSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(CHART)
+    end
+
+    action SetChartUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(CHART, value)
+    end
+
+    action GetChartUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(CHART)
+    end
+
+    action SetChartGlowColor(ColorGroup value)
+        SetGlowColor(CHART, value)
+    end
+
+    action GetChartGlowColor returns ColorGroup
+        return GetGlowColor(CHART)
+    end
+
+    action SetChartMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(CHART, value)
+    end
+
+    action GetChartMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(CHART)
+    end
+
+    action SetChartMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(CHART, value)
+    end
+
+    action GetChartMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(CHART)
+    end
+
+    action SetChartIconColor(ColorGroup value)
+        SetIconColor(CHART, value)
+    end
+
+    action GetChartIconColor returns ColorGroup
+        return GetIconColor(CHART)
+    end
+
+    action SetChartAccentColor(ColorGroup value)
+        SetAccentColor(CHART, value)
+    end
+
+    action GetChartAccentColor returns ColorGroup
+        return GetAccentColor(CHART)
+    end
+
+    action SetChartShadowColor(ColorGroup value)
+        SetShadowColor(CHART, value)
+    end
+
+    action GetChartShadowColor returns ColorGroup
+        return GetShadowColor(CHART)
+    end
+
+    action SetChartBorderThickness(number value)
+        SetBorderThickness(CHART, value)
+    end
+
+    action GetChartBorderThickness returns number
+        return GetBorderThickness(CHART)
+    end
+
+    action HasChartBorderThickness returns boolean
+        return GetBorderThickness(CHART):IsNotANumber() = false
+    end
+
+    action SetChartTopLeftRounding(number value)
+        SetTopLeftRounding(CHART, value)
+    end
+
+    action GetChartTopLeftRounding returns number
+        return GetTopLeftRounding(CHART)
+    end
+
+    action HasChartTopLeftRounding returns boolean
+        return GetTopLeftRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartTopRightRounding(number value)
+        SetTopRightRounding(CHART, value)
+    end
+
+    action GetChartTopRightRounding returns number
+        return GetTopRightRounding(CHART)
+    end
+
+    action HasChartTopRightRounding returns boolean
+        return GetTopRightRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartBottomLeftRounding(number value)
+        SetBottomLeftRounding(CHART, value)
+    end
+
+    action GetChartBottomLeftRounding returns number
+        return GetBottomLeftRounding(CHART)
+    end
+
+    action HasChartBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartBottomRightRounding(number value)
+        SetBottomRightRounding(CHART, value)
+    end
+
+    action GetChartBottomRightRounding returns number
+        return GetBottomRightRounding(CHART)
+    end
+
+    action HasChartBottomRightRounding returns boolean
+        return GetBottomRightRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartShadowX(number value)
+        SetShadowX(CHART, value)
+    end
+
+    action GetChartShadowX returns number
+        return GetShadowX(CHART)
+    end
+
+    action HasChartShadowX returns boolean
+        return GetShadowX(CHART):IsNotANumber() = false
+    end
+
+    action SetChartShadowY(number value)
+        SetShadowY(CHART, value)
+    end
+
+    action GetChartShadowY returns number
+        return GetShadowY(CHART)
+    end
+
+    action HasChartShadowY returns boolean
+        return GetShadowY(CHART):IsNotANumber() = false
+    end
+
+    action SetChartShadowWidth(number value)
+        SetShadowWidth(CHART, value)
+    end
+
+    action GetChartShadowWidth returns number
+        return GetShadowWidth(CHART)
+    end
+
+    action HasChartShadowWidth returns boolean
+        return GetShadowWidth(CHART):IsNotANumber() = false
+    end
+
+    action SetChartShadowHeight(number value)
+        SetShadowHeight(CHART, value)
+    end
+
+    action GetChartShadowHeight returns number
+        return GetShadowHeight(CHART)
+    end
+
+    action HasChartShadowHeight returns boolean
+        return GetShadowHeight(CHART):IsNotANumber() = false
+    end
+
+    action SetChartShadowEdgeFade(number value)
+        SetShadowEdgeFade(CHART, value)
+    end
+
+    action GetChartShadowEdgeFade returns number
+        return GetShadowEdgeFade(CHART)
+    end
+
+    action HasChartShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(CHART):IsNotANumber() = false
+    end
+
+    action CopyChartInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(CHART)
     end
 
     action SetCheckboxBackgroundColor(ColorGroup value)

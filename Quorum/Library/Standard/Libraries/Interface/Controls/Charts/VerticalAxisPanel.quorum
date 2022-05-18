@@ -21,7 +21,6 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Compute.Math
 use Libraries.System.DateTime
@@ -67,12 +66,12 @@ class VerticalAxisPanel is Control
     // Title
     private integer titleFontSize = 0
     private text titleText = ""
-    private ControlLabel title = undefined
+    private ChartLabel title = undefined
 
     // Tick Labels
     private integer labelFontSize = 0
     private Array <text> textLabels = undefined
-    private Array <ControlLabel> labels
+    private Array <ChartLabel> labels
     private integer labelRotation = 0
     private text numberformat = "integer"
     private boolean overrideDefaultNumberFormat = false
@@ -81,7 +80,7 @@ class VerticalAxisPanel is Control
     private number sumOfLabelWidths = 0
     private number labelMinimum = 0
     private integer labelCount = 0
-    private ControlLabel longestLabel
+    private ChartLabel longestLabel
 
     // Axis Drawables
     private Array <Drawable> axislines
@@ -95,7 +94,7 @@ class VerticalAxisPanel is Control
     private boolean showGroupBrackets = false
     private boolean showTicks = false
     private boolean showLabels = true
-    private Color axisColor
+    private ColorGroup axisColor = undefined
 
     // Range controls
     private number min = 0.0
@@ -124,7 +123,6 @@ class VerticalAxisPanel is Control
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
         SetName("y axis")
-        axisColor = transparent:Copy() //Starts transparent, will be changed if axis is showing
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
@@ -210,7 +208,7 @@ class VerticalAxisPanel is Control
             end
             yAxis:SetLastChild(previousLabel)
         elseif chart:GetSubVerticalPanels():GetSize() = 1
-            Array<ControlLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
+            Array<ChartLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
             if textLabels not= undefined
                 chart:GetSubVerticalPanels():Get(0):SetTextLabels(labels)
             end
@@ -250,7 +248,7 @@ class VerticalAxisPanel is Control
             firstSubPanel:SetDisplayName(chart:GetSubVerticalPanels():Get(0):GenerateSummary())
             chart:GetSubVerticalPanels():Get(0):SetName("Sub " + titleText + " axis, ")
             chart:GetSubVerticalPanels():Get(0):SetDescription(firstSubPanel:GetDisplayName() + " 1 of " + numberOfSections + " sub axes.")  
-            Array<ControlLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
+            Array<ChartLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
             if labels:GetSize() > 0
                 ChartItem firstLabel
                 firstLabel:SetContainer(chart)
@@ -347,7 +345,7 @@ class VerticalAxisPanel is Control
 
         if GetTitleLabel() = undefined 
             Item2D labelAnchor
-            ControlLabel newLabel
+            ChartLabel newLabel
             SetTitleLabel(newLabel)
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
@@ -399,7 +397,7 @@ class VerticalAxisPanel is Control
             Array<Drawable> theAxisLines
             Array<Drawable> theTicks
             Array<Drawable> theBrackets
-            Array<ControlLabel> theLabels
+            Array<ChartLabel> theLabels
             Array<Drawable> theMajorLines
             Array<Drawable> theMinorLines
 
@@ -419,7 +417,7 @@ class VerticalAxisPanel is Control
                 theBrackets:Add(top)
 
                 Item2D labelAnchor
-                ControlLabel label
+                ChartLabel label
                 label:SetFontSize(GetFontSize() - 5)
                 label:SetFocusable(true)
                 label:SetAccessibilityCode(parent:Item:ITEM)
@@ -874,7 +872,7 @@ class VerticalAxisPanel is Control
         end
 
         if not labels:IsEmpty()
-            ControlLabel temp = undefined
+            ChartLabel temp = undefined
             integer i = 0
             repeat while i < labels:GetSize()
                 temp = labels:Get(i)
@@ -904,7 +902,7 @@ class VerticalAxisPanel is Control
         titleFontSize = size
     end
 
-    action SetTitleLabel(ControlLabel title)
+    action SetTitleLabel(ChartLabel title)
         me:title = title
     end
 
@@ -912,7 +910,7 @@ class VerticalAxisPanel is Control
         titleText = name
     end    
 
-    action GetTitleLabel() returns ControlLabel
+    action GetTitleLabel() returns ChartLabel
         return title
     end
 
@@ -1026,11 +1024,11 @@ class VerticalAxisPanel is Control
         return intervaloverride
     end
 
-    action GetLabels returns Array<ControlLabel>
+    action GetLabels returns Array<ChartLabel>
         return labels
     end
 
-    action SetLabels(Array<ControlLabel> newLabels)
+    action SetLabels(Array<ChartLabel> newLabels)
         labels = newLabels
     end
 
@@ -1038,7 +1036,7 @@ class VerticalAxisPanel is Control
         return labelCount
     end
 
-    action GetLongestLabel returns ControlLabel
+    action GetLongestLabel returns ChartLabel
         return longestLabel
     end
 
@@ -1211,12 +1209,30 @@ class VerticalAxisPanel is Control
         me:axislines = lines
     end
 
-    action SetAxisColor(Color axisColor)
+    action SetAxisColor(ColorGroup axisColor)
         me:axisColor = axisColor
     end
 
-    action GetAxisColor returns Color
-        return axisColor
+    action GetAxisColor returns ColorGroup
+        if axisColor not= undefined
+            return axisColor
+        end
+
+        Chart parentChart = GetParentChart()
+        if parentChart not= undefined
+            return parentChart:GetBorderColor()
+        end
+
+        return undefined
+    end
+
+    // Try to get the chart this is attached to via the parent hierarchy.
+    private action GetParentChart returns Chart
+        Item2D parentItem = GetParent()
+        repeat until parentItem is Chart or parentItem = undefined
+            parentItem = parentItem:GetParent()
+        end
+        return cast(Chart, parentItem)
     end
 
     action SetBrackets(Array <Drawable> brackets)

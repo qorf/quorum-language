@@ -1,4 +1,5 @@
 package Libraries.Interface.Controls.Charts
+
 use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
 use Libraries.Data.Formats.ScalableVectorGraphics.Label
@@ -10,7 +11,6 @@ use Libraries.Web.Page.Division
 use Libraries.Web.Page.ListItem
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Item2D
 use Libraries.System.File
 use Libraries.Interface.Controls.Icon
@@ -569,7 +569,7 @@ class ChartWriter
                 i = i + 1
             end
 
-            ControlLabel xAxisTitle = chart:GetHorizontalPanel():GetTitleLabel()
+            ChartLabel xAxisTitle = chart:GetHorizontalPanel():GetTitleLabel()
             if xAxisTitle not= undefined xAxisTitle:IsShowing()
                 xAxisLabel:SetText(chart:GetXAxisTitle())
                 xAxisLabel:SetTextAnchor("left")
@@ -645,7 +645,7 @@ class ChartWriter
                 i = i + 1
             end
 
-            ControlLabel yAxisTitle = chart:GetVerticalPanel():GetTitleLabel()
+            ChartLabel yAxisTitle = chart:GetVerticalPanel():GetTitleLabel()
             if yAxisTitle not= undefined and yAxisTitle:IsShowing()
                 Item2D yAxisTitleAnchor = chart:GetVerticalPanel():GetTitleLabel():GetParent()
                 yAxisLabel:SetText(chart:GetYAxisTitle())
@@ -711,7 +711,7 @@ class ChartWriter
         Array<Drawable> brackets = horizontalContainer:GetBrackets()
         Array<Drawable> lines = horizontalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
-        Array<ControlLabel> labels = horizontalContainer:GetLabels()
+        Array<ChartLabel> labels = horizontalContainer:GetLabels()
 
         i = 0
         repeat while i < ticks:GetSize()
@@ -789,7 +789,7 @@ class ChartWriter
 
         i = 0
         repeat while i < labels:GetSize()
-            ControlLabel currentLabel = labels:Get(i)
+            ChartLabel currentLabel = labels:Get(i)
             if currentLabel:IsShowing()
                 Item2D currentLabelAnchor = currentLabel:GetParent()
                 Label svgLabel
@@ -822,7 +822,7 @@ class ChartWriter
             Array<Drawable> subBrackets = subHorizontalPanel:GetBrackets()
             Array<Drawable> subLines = subHorizontalPanel:GetMajorGridlines()
             Array<Drawable> subMinorlines = subHorizontalPanel:GetMinorGridlines()
-            Array<ControlLabel> subLabels = subHorizontalPanel:GetLabels()
+            Array<ChartLabel> subLabels = subHorizontalPanel:GetLabels()
             
             Array<Label> subXLabels
 
@@ -902,7 +902,7 @@ class ChartWriter
     
             i = 0
             repeat while i < subLabels:GetSize()
-                ControlLabel currentSubLabel = subLabels:Get(i)
+                ChartLabel currentSubLabel = subLabels:Get(i)
                 if currentSubLabel:IsShowing()
                     Item2D currentLabelAnchor = currentSubLabel:GetParent()
                     Label svgLabel
@@ -946,7 +946,7 @@ class ChartWriter
         Array<Drawable> brackets = verticalContainer:GetBrackets()
         Array<Drawable> lines = verticalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
-        Array<ControlLabel> labels = verticalContainer:GetLabels()
+        Array<ChartLabel> labels = verticalContainer:GetLabels()
 
         i = 0
         repeat while i < ticks:GetSize()
@@ -1025,7 +1025,7 @@ class ChartWriter
 
         i = 0
         repeat while i < labels:GetSize()
-            ControlLabel currentLabel = labels:Get(i)
+            ChartLabel currentLabel = labels:Get(i)
             if currentLabel:IsShowing()
                 //Item2D currentLabelAnchor = currentLabel:GetParent()
                 Label svgLabel
@@ -1059,7 +1059,7 @@ class ChartWriter
             Array<Drawable> subBrackets = subVerticalPanel:GetBrackets()
             Array<Drawable> subLines = subVerticalPanel:GetMajorGridlines()
             Array<Drawable> subMinorlines = subVerticalPanel:GetMinorGridlines()
-            Array<ControlLabel> subLabels = subVerticalPanel:GetLabels()
+            Array<ChartLabel> subLabels = subVerticalPanel:GetLabels()
     
             Array<Label> subYLabels
 
@@ -1139,7 +1139,7 @@ class ChartWriter
     
             i = 0
             repeat while i < subLabels:GetSize()
-                ControlLabel currentSubLabel = subLabels:Get(i)
+                ChartLabel currentSubLabel = subLabels:Get(i)
                 if currentSubLabel:IsShowing()
                     //Item2D currentLabelAnchor = currentSubLabel:GetParent()
                     Label svgLabel
@@ -1197,7 +1197,7 @@ class ChartWriter
 
         canvas:Add(svgElementLegend)
 
-        ControlLabel legendTitle = legend:GetTitleLabel()
+        ChartLabel legendTitle = legend:GetTitleLabel()
         if legendTitle not= undefined and legendTitle:IsShowing()
             Label svgElementLegendTitle
 
@@ -1257,7 +1257,7 @@ class ChartWriter
                 canvas:Add(svgElementSeriesIcon)
             end
 
-            ControlLabel currentSeriesLabel = seriesList:Get(i):GetLabel()
+            ChartLabel currentSeriesLabel = seriesList:Get(i):GetLabel()
             if currentSeriesLabel not= undefined and currentSeriesLabel:IsShowing()
                 Label svgElementSeriesLabel
     
@@ -1295,7 +1295,7 @@ class ChartWriter
                     canvas:Add(svgElementRegIcon)
 
                     //Regression equation
-                    ControlLabel currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                    ChartLabel currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
                     Label svgElementRegLabel
 
                     svgElementRegLabel:SetText(currentLabel:GetText())
@@ -1314,7 +1314,7 @@ class ChartWriter
                     canvas:Add(svgElementRegLabel)
 
                     //R^2 equation
-                    ControlLabel currentRLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                    ChartLabel currentRLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
                     Label svgElementRLabel
 
                     svgElementRLabel:SetText(currentRLabel:GetText())

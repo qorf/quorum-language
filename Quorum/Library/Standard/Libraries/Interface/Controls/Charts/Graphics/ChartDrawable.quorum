@@ -2,10 +2,10 @@ package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.GroupPanel
+use Libraries.Interface.Controls.Charts.ChartLabel
 
 
 /*
@@ -23,7 +23,7 @@ class ChartDrawable is Drawable
     Series series = undefined
     GroupPanel group = undefined
     Color customColor = undefined
-    ControlLabel annotation = undefined
+    ChartLabel annotation = undefined
     boolean showAnnotation = false
 
     on create
@@ -52,11 +52,11 @@ class ChartDrawable is Drawable
         Annotation is a control label that can be shown appended to this drawable
         It can show things like a name, value, equation or custom text. 
     */
-    action SetAnnotation(ControlLabel annotation)
+    action SetAnnotation(ChartLabel annotation)
         me:annotation = annotation
     end
 
-    action GetAnnotation returns ControlLabel
+    action GetAnnotation returns ChartLabel
         return annotation
     end
 

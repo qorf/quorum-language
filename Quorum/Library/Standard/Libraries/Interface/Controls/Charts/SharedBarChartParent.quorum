@@ -1,7 +1,6 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
@@ -147,7 +146,7 @@ class SharedBarChartParent is Chart
                 temp:SetPreviousFocus(GetPreviousFocus())
 
                 if temp:ShowAnnotation() or ShowAnnotations() and not GetStackedFlag() //not sure how we will show annotations for stacked bars
-                    ControlLabel barLabel
+                    ChartLabel barLabel
                     barLabel:SetText(valueText)
                     temp:SetAnnotation(barLabel)
                     chartArea:Add(barLabel)

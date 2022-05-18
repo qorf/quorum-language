@@ -1,7 +1,6 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Selections.ChartSelection
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
@@ -155,7 +154,7 @@ class TwoVariableChart is Chart
                         end
 
                         if point:ShowAnnotation() or ShowAnnotations()
-                            ControlLabel pointLabel
+                            ChartLabel pointLabel
                             pointLabel:SetText("("+valueXText+","+valueYText+")")
                             point:SetAnnotation(pointLabel)
                             chartArea:Add(pointLabel)
@@ -207,7 +206,7 @@ class TwoVariableChart is Chart
                 end
                 chartArea:Add(point)
                 if point:ShowAnnotation() or ShowAnnotations()
-                    ControlLabel pointLabel
+                    ChartLabel pointLabel
                     pointLabel:SetText("("+valueXText+","+valueYText+")")
                     point:SetAnnotation(pointLabel)
                     chartArea:Add(pointLabel)
@@ -341,24 +340,24 @@ class TwoVariableChart is Chart
                     integer i = 0
                     repeat while i < temp:GetSize()
                         ChartLine line = cast(ChartLine, temp:GetItemAt(i))
-                        line:SetColor(GetHighlightColor())
+                        line:SetColor(GetSelectionColor())
                         previousZ = line:GetZ()
                         line:SetZ(-1)
                         i = i + 1
                     end
-                    temp:GetEntryIcon():SetColor(GetHighlightColor())
-                    temp:GetEntryBox():SetColor(GetHighlightColor())
+                    temp:GetEntryIcon():SetColor(GetSelectionColor())
+                    temp:GetEntryBox():SetColor(GetSelectionColor())
                 end
             elseif target is LineSegment
                 LineSegment temp = cast(LineSegment, target)
                 previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
                 temp:SetZ(-1)
             elseif target is ChartLine
                 ChartLine temp = cast(ChartLine, target)
                 previousColor = temp:GetColor()
                 previousZ = temp:GetZ()
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
                 temp:SetZ(-1)
             elseif target is Icon
                 target:Show()

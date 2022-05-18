@@ -6,7 +6,6 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartOptions
@@ -22,6 +21,7 @@ use Libraries.Interface.Controls.Charts.ChartDisplay
 use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.DateTime
+use Libraries.Interface.Views.ControlShaderView
 
 /*
 
@@ -82,7 +82,7 @@ class Chart is Control
 
     // Title Area Components
     private number titleAreaHeightPercent = 0.05
-    private ControlLabel title = undefined
+    private ChartLabel title = undefined
     private text titleText = "Chart Title"
     private boolean showTitle = true 
     private integer titlefontsize = 0
@@ -92,7 +92,7 @@ class Chart is Control
 
     // Subtitle Area Components - not implemented yet
     private number subtitleAreaHeightPercent = 0
-    private ControlLabel subtitle = undefined
+    private ChartLabel subtitle = undefined
     private text subtitleText = "Subtitle"
     private boolean showSubtitle = false
     private integer subtitlefontsize = 0
@@ -162,6 +162,9 @@ class Chart is Control
     on create
         chartArea:SetName("Chart Area")
         Add(chartArea)
+
+        // Get default colors from the InterfaceOptions.
+        SetInterfaceOptionsKey("Chart")
     end
 
     action IsAccessibleParent returns boolean
@@ -186,10 +189,13 @@ class Chart is Control
         // Load background of display window
         if GetBackground() = undefined
             Drawable background
-            background:LoadFilledRectangle(cast(integer, GetWidth()) ,cast(integer, GetHeight()), color:White())
+            background:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()))
             SetBackground(background)
             Add(background)
         end
+
+        // Always ensure the background is the right color, whether it's newly loaded or not.
+        GetBackground():SetColor(GetBackgroundColor())
 
         // Load background/border of chart area
         chartArea:LoadChartAreaView()
@@ -203,11 +209,6 @@ class Chart is Control
         if defaultShowBrackets and HasGroups() and not overrideDefaultShowBrackets
             verticalPanel:ShowGroupBrackets(true)
             horizontalPanel:ShowGroupBrackets(true)
-        end
-
-        // Default highlight color is selection color (currently blue)
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
         end
 
         // Load sub chart areas and sub axis panels
@@ -236,7 +237,7 @@ class Chart is Control
                 if separateByFactor
                     if i < GetFactorList():GetSize()
                         subArea:SetName(GetFactorList():Get(i))
-                        ControlLabel newLabel
+                        ChartLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
@@ -248,7 +249,7 @@ class Chart is Control
                 if separateBySeries 
                     if i < GetSeriesList():GetSize()
                         subArea:SetName(GetSeriesList():Get(i):GetName())
-                        ControlLabel newLabel
+                        ChartLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
@@ -276,7 +277,7 @@ class Chart is Control
         if IsShowingTitle()
             titleAreaHeightPercent = 0.10
             if GetTitleLabel() = undefined
-                ControlLabel newLabel
+                ChartLabel newLabel
                 SetTitleLabel(newLabel)
                 newLabel:SetText(titleText)
                 Add(newLabel)
@@ -286,7 +287,7 @@ class Chart is Control
         if IsShowingSubtitle()
             subtitleAreaHeightPercent = 0.05
             if GetSubtitleLabel() = undefined
-                ControlLabel newLabel
+                ChartLabel newLabel
                 SetSubtitleLabel(newLabel)
                 newLabel:SetText(subtitleText)
                 Add(newLabel)
@@ -295,14 +296,12 @@ class Chart is Control
 
         horizontalPanel:LoadAxis(me, properties)
         if IsShowingXAxis()
-            horizontalPanel:SetAxisColor(color:Black())
             horizontalPanelHeightPercent = 0.15
             Add(horizontalPanel)
         end
 
         verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
-            verticalPanel:SetAxisColor(color:Black())
             verticalPanelWidthPercent = 0.15
             Add(verticalPanel)
         end
@@ -1020,11 +1019,11 @@ class Chart is Control
         verticalPanel:SetTextLabels(labels)
     end
 
-    action GetYLabels returns Array<ControlLabel>
+    action GetYLabels returns Array<ChartLabel>
         return verticalPanel:GetLabels()
     end
 
-    action SetYLabels(Array<ControlLabel> newLabels)
+    action SetYLabels(Array<ChartLabel> newLabels)
         verticalPanel:SetLabels(newLabels)
     end
 
@@ -1032,11 +1031,11 @@ class Chart is Control
         verticalPanel:ShowLabels(show)
     end  
 
-    action GetXLabels returns Array<ControlLabel>
+    action GetXLabels returns Array<ChartLabel>
         return horizontalPanel:GetLabels()
     end
 
-    action SetXLabels(Array<ControlLabel> newLabels)
+    action SetXLabels(Array<ChartLabel> newLabels)
         horizontalPanel:SetLabels(newLabels)
     end
 
@@ -1070,11 +1069,11 @@ class Chart is Control
     /* 
         Label for the chart title
     */
-    action GetTitleLabel returns ControlLabel
+    action GetTitleLabel returns ChartLabel
         return title
     end
 
-    private action SetTitleLabel(ControlLabel label)
+    private action SetTitleLabel(ChartLabel label)
         me:title = label
     end
 
@@ -1114,11 +1113,11 @@ class Chart is Control
     /* 
         Label for the chart subtitle
     */
-    action GetSubtitleLabel returns ControlLabel
+    action GetSubtitleLabel returns ChartLabel
         return subtitle
     end
 
-    private action SetSubtitleLabel(ControlLabel label)
+    private action SetSubtitleLabel(ChartLabel label)
         me:subtitle = label
     end
 
@@ -1580,13 +1579,6 @@ class Chart is Control
 
     action SetCurrentPaletteToGrayScale()
         options:SetPaletteToGrayScale()
-    end
-
-    /*
-        Gets the default selection color (highlighting) the chart items
-    */
-    action GetHighlightColor() returns Color
-        return highlightColor
     end
 
     /*
@@ -2108,17 +2100,18 @@ class Chart is Control
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
                 temp:SetColor(previousColor)  
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
+            elseif target is ChartLabel
+                ChartLabel temp = cast(ChartLabel, target)
+                temp:LostSelection()
+            elseif target is ChartAreaPanel
+                Control temp = cast(Control, target)
                 temp:LostSelection()
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                    view:Initialize(previousBackgroundColor, previousColorGroup)
-                    temp:SetView2D(view)
+                    // Remove the View set during Gained selection
+                    temp:SetView2D(undefined)
                 end
             end
         end
@@ -2148,29 +2141,32 @@ class Chart is Control
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Drawable element = temp:GetItemAt(i)
-                    element:SetColor(GetHighlightColor())
+                    element:SetColor(GetSelectionColor())
                     element:SetZ(-1)
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetEntryIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 previousZ = temp:GetZ()
                 previousColor = temp:GetColor()
                 temp:SetZ(-5)
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetIcon():SetColor(GetSelectionColor())
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()
                 previousColor = temp:GetColor()
                 temp:SetZ(-1)
-                temp:SetColor(GetHighlightColor())
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
+                temp:SetColor(GetSelectionColor())
+            elseif target is ChartLabel
+                ChartLabel temp = cast(ChartLabel, target)
+                temp:GainedSelection()
+            elseif target is ChartAreaPanel
+                Control temp = cast(Control, target)
                 temp:GainedSelection()
             elseif target is Control
                 Control temp = cast(Control, target)
@@ -2178,9 +2174,12 @@ class Chart is Control
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     previousBackgroundColor = properties:GetBackgroundColor()
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(GetHighlightColor():White(), GetHighlightColor())
+                    Color transparency
+                    transparency:SetColor(0, 0, 0, 0)
+                    ControlShaderView view
+                    view:Initialize()
+                    temp:SetBackgroundColor(transparency)
+                    temp:SetBorderColor(GetSelectionColor())
                     temp:SetView2D(view)
                 end
             end
