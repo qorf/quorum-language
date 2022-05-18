@@ -259,17 +259,17 @@ class HistogramLayout is SharedBarChartLayout
                 if horizontal
                     if currentGroup:GetSelectionBracket():GetSize() = 3
                         Drawable top = currentGroup:GetSelectionBracket():Get(0)
-                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetHighlightColor())
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
                         top:SetPosition(x + w - tickWidth + tickHeight, y + h - tickHeight)
                         top:Hide()
     
                         Drawable side = currentGroup:GetSelectionBracket():Get(1)
-                        side:LoadFilledRectangle(tickHeight, h, chart:GetHighlightColor())
+                        side:LoadFilledRectangle(tickHeight, h, chart:GetSelectionColor())
                         side:SetPosition(x + w + tickHeight, y)
                         side:Hide()
 
                         Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
-                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetHighlightColor())
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
                         bottom:SetPosition(x + w - tickWidth + tickHeight, y)
                         bottom:Hide()
 
@@ -292,24 +292,24 @@ class HistogramLayout is SharedBarChartLayout
                         vertices:Add(y2)
                         vertices:Add(x3)
                         vertices:Add(y3)
-                        arrow:LoadShape(vertices, chart:GetHighlightColor())
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
                         arrow:Hide()
                         currentGroup:SetSelectionArrowVertices(vertices)
                     end 
                 else
                     if currentGroup:GetSelectionBracket():GetSize() = 3
                         Drawable top = currentGroup:GetSelectionBracket():Get(0)
-                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetHighlightColor())
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
                         top:SetPosition(x, y + h - tickHeight + tickWidth)
                         top:Hide()
     
                         Drawable side = currentGroup:GetSelectionBracket():Get(1)
-                        side:LoadFilledRectangle(w, tickWidth, chart:GetHighlightColor())
+                        side:LoadFilledRectangle(w, tickWidth, chart:GetSelectionColor())
                         side:SetPosition(x, y + h + tickWidth)
                         side:Hide()
 
                         Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
-                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetHighlightColor())
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
                         bottom:SetPosition(x + w - tickWidth, y + h - tickHeight + tickWidth)
                         bottom:Hide()
 
@@ -332,7 +332,7 @@ class HistogramLayout is SharedBarChartLayout
                         vertices:Add(y2)
                         vertices:Add(x3)
                         vertices:Add(y3)
-                        arrow:LoadShape(vertices, chart:GetHighlightColor())
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
                         arrow:Hide()
                         currentGroup:SetSelectionArrowVertices(vertices)
                     end  
