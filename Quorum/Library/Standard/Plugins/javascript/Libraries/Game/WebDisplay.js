@@ -92,8 +92,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.Destroy = function()
     {
-        // It's not clear if a user should be able to close the game display, 
-        // since it exists on a canvas on a webpage.
+        canvas.remove();
     };
     
     this.UpdateTime = function()
