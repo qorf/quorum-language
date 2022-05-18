@@ -522,6 +522,27 @@ class ChartWriter
                     horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
                 end
                 canvas:Add(horizontalPanel)
+
+                if not chart:IsSeparated()
+                    Array<Drawable> axisLines = horizontalAxisPanel:GetAxisLines()
+                    j = 0
+                    repeat while j < axisLines:GetSize()
+                        Drawable axisLine = axisLines:Get(j)
+                        if axisLine not= undefined and axisLine:IsShowing()
+                            Rectangle svgAxisLine
+                
+                            svgAxisLine:SetWidth(axisLine:GetWidth())
+                            svgAxisLine:SetHeight(axisLine:GetHeight())
+                            svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                            svgAxisLine:SetFill(axisLine:GetColor())
+                            svgAxisLine:SetTabIndex(-1)
+                            svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                            xAxis = svgAxisLine
+                            canvas:Add(svgAxisLine)
+                        end
+                        j = j + 1
+                    end
+                end
             end
 
             Array<HorizontalAxisPanel> subHorizontalPanels = chart:GetSubHorizontalPanels()
@@ -598,6 +619,27 @@ class ChartWriter
                     verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
                 end
                 canvas:Add(verticalPanel)
+
+                if not chart:IsSeparated()
+                    Array<Drawable> axisLines = verticalAxisPanel:GetAxisLines()
+                    j = 0
+                    repeat while j < axisLines:GetSize()
+                        Drawable axisLine = axisLines:Get(j)
+                        if axisLine not= undefined and axisLine:IsShowing()
+                            Rectangle svgAxisLine
+                
+                            svgAxisLine:SetWidth(axisLine:GetWidth())
+                            svgAxisLine:SetHeight(axisLine:GetHeight())
+                            svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                            svgAxisLine:SetFill(axisLine:GetColor())
+                            svgAxisLine:SetTabIndex(-1)
+                            svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                            yAxis = svgAxisLine
+                            canvas:Add(svgAxisLine)
+                        end
+                        j = j + 1
+                    end
+                end
             end
 
             Array<VerticalAxisPanel> subVerticalPanels = chart:GetSubVerticalPanels()

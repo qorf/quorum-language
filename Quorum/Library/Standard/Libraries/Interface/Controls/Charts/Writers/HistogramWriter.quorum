@@ -5,6 +5,8 @@ use Libraries.Interface.Controls.Charts.Histogram
 use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
 use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Group
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
 use Libraries.Data.Formats.ScalableVectorGraphics.Label
 use Libraries.System.FileWriter
@@ -105,41 +107,76 @@ class HistogramWriter is ChartWriter
             i = 0
             repeat while i < chart:GetBarGroups():GetSize()
                 BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
-    
+
+                Group barGroupSVG
                 if chart:HasGroups()
-                    Rectangle barGroup
-                    barGroup:SetWidth(currentBarGroup:GetWidth())
-                    barGroup:SetHeight(currentBarGroup:GetHeight())
-                    barGroup:SetPosition(currentBarGroup:GetGlobalX(), TranslatePositionY(currentBarGroup) - currentBarGroup:GetHeight()) 
-                    barGroup:SetFill(transparent)
-                    barGroup:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
-                    barGroup:SetStyleClass("quorum-chart-rect")
-                    barGroup:SetTabIndex(-1)
+                    barGroupSVG:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
+                    barGroupSVG:SetStyleClass("quorum-chart-bargroup")
+                    barGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
-                        barGroup:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
+                        barGroupSVG:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
                     end
-                    GetGroupPanels():Add(barGroup)
-                    canvas:Add(barGroup)
+                    canvas:Add(barGroupSVG)
     
+                    if currentBarGroup:GetSelectionBracket():GetSize() = 3
+                        integer k = 0
+                        repeat while k < currentBarGroup:GetSelectionBracket():GetSize()
+                            Rectangle bracket
+                            bracket:SetWidth(currentBarGroup:GetSelectionBracket():Get(k):GetWidth())
+                            bracket:SetHeight(currentBarGroup:GetSelectionBracket():Get(k):GetHeight())
+                            bracket:SetPosition(currentBarGroup:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(currentBarGroup:GetSelectionBracket():Get(k)) - currentBarGroup:GetSelectionBracket():Get(k):GetHeight()) 
+                            bracket:SetFill(transparent) // Should be transparent until selected then chart:GetHighlightColor()
+                            bracket:SetStyleClass("quorum-chart-selection-bracket")
+                            bracket:SetTabIndex(-1)
+                            barGroupSVG:Add(bracket)    
+                            k = k + 1
+                        end
+                    end
+
+                    if currentBarGroup:GetSelectionArrow() not= undefined
+                        Array <number> vertices = currentBarGroup:GetSelectionArrowVertices()
+                        number Yoffset = TranslatePositionY(currentBarGroup:GetSelectionArrow())
+                        number Xoffset = currentBarGroup:GetSelectionArrow():GetGlobalX()
+                        
+                        Polygon arrow
+                        integer k = 0
+                        repeat while k < vertices:GetSize()
+                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBarGroup:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+                            k = k + 2
+                        end
+                        arrow:SetFill(transparent) // Should be transparent until selected then chart:GetHighlightColor()
+                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetTabIndex(-1)
+                        barGroupSVG:Add(arrow)
+                    end
                 end
                 
                 j = 0
                 repeat while j < currentBarGroup:GetSize()
                     Bar currentBar = currentBarGroup:Get(j)
     
+                    Group barSVG
+                    barSVG:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    barSVG:SetStyleClass("quorum-chart-bar")
+                    barSVG:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                    end
+                    if chart:HasGroups()
+                        barGroupSVG:Add(barSVG)
+                    else
+                        canvas:Add(barSVG)
+                    end
+
                     Rectangle bar
                     bar:SetWidth(currentBar:GetWidth())
                     bar:SetHeight(currentBar:GetHeight())
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
-                    bar:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
-                    if HasAccessibility()
-                        bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
-                    end
-                    canvas:Add(bar)
-
+                    barSVG:Add(bar)
+    
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
                         ChartLabel label = currentBar:GetAnnotation()
                         if label not= undefined
@@ -152,10 +189,28 @@ class HistogramWriter is ChartWriter
                             labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
-                            canvas:Add(labelSVG)
+                            barSVG:Add(labelSVG)
                         end
                     end 
-    
+
+                    if currentBar:GetSelectionArrow() not= undefined
+                        Array <number> vertices = currentBar:GetSelectionArrowVertices()
+                        number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
+                        number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
+
+                        Polygon arrow
+                        integer k = 0
+                        repeat while k < vertices:GetSize()
+                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+                            k = k + 2
+                        end
+                        arrow:SetFill(transparent) // Should be transparent until selected then currentBar:GetColor()
+                        arrow:SetID(canvas:GetID() + "-" + currentBar:GetSelectionArrow():GetHashCode())
+                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetTabIndex(-1)
+                        barSVG:Add(arrow)
+                    end
+
                     j = j + 1
                 end
     
@@ -169,18 +224,24 @@ class HistogramWriter is ChartWriter
                     Bar currentBar
                     currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
     
+
+                    Group barSVG
+                    barSVG:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    barSVG:SetStyleClass("quorum-chart-bar")
+                    barSVG:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                    end
+                    canvas:Add(barSVG)
+
                     Rectangle bar
                     bar:SetWidth(currentBar:GetWidth())
                     bar:SetHeight(currentBar:GetHeight())
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
-                    bar:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetName():GetHashCode() + "-" + currentBar:GetHashCode())
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
-                    if HasAccessibility()
-                        bar:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
-                    end
-                    canvas:Add(bar)
+                    barSVG:Add(bar)
 
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
                         ChartLabel label = currentBar:GetAnnotation()
@@ -194,9 +255,27 @@ class HistogramWriter is ChartWriter
                             labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
-                            canvas:Add(labelSVG)
+                            barSVG:Add(labelSVG)
                         end
                     end 
+
+                    if currentBar:GetSelectionArrow() not= undefined
+                        Array <number> vertices = currentBar:GetSelectionArrowVertices()
+                        number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
+                        number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
+
+                        Polygon arrow
+                        integer k = 0
+                        repeat while k < vertices:GetSize()
+                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+                            k = k + 2
+                        end
+                        arrow:SetFill(transparent) // Should be transparent until selected then currentBar:GetColor()
+                        arrow:SetID(canvas:GetID() + "-" + currentBar:GetSelectionArrow():GetHashCode())
+                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetTabIndex(-1)
+                        barSVG:Add(arrow)
+                    end
     
                     j = j + 1
                 end
