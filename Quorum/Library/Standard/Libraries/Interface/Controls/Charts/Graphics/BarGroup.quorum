@@ -32,6 +32,10 @@ class BarGroup is GroupPanel
     number totalNegativeValue = 0 // Used in determining height of negative value bar when stacked
     number maxBarValue = 0
     number minBarValue = 0
+    Bar maxBar = undefined
+    Array <Drawable> selectionBracket
+    Drawable selectionArrow
+    Array<number> vertices
 
     action AddBar(Bar bar)
         AddItem(bar)
@@ -88,6 +92,10 @@ class BarGroup is GroupPanel
         return minBarValue
     end
 
+    action GetMaxBar returns Bar
+        return maxBar
+    end
+
     /*
         Since the user can alter the value of the bar manually, 
         Anytime a bar is added or it's value changes the totals 
@@ -103,8 +111,14 @@ class BarGroup is GroupPanel
         integer i = 0
         repeat while i < bars:GetSize()
             value = bars:Get(i):GetValue()
+            if i = 0
+                maxBarValue = value
+                maxBar = bars:Get(i)
+            end
+
             if value > maxBarValue
                 maxBarValue = value
+                maxBar = bars:Get(i)
             end
             if value < minBarValue
                 minBarValue = value
@@ -117,5 +131,21 @@ class BarGroup is GroupPanel
             end    
             i = i + 1
         end
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
     end
 end

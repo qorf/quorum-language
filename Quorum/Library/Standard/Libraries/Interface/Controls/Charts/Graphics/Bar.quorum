@@ -1,4 +1,5 @@
 package Libraries.Interface.Controls.Charts.Graphics
+use Libraries.Containers.Array
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -24,6 +25,8 @@ end
 
 class Bar is ChartDrawable
     number value = 0 
+    Drawable selectionArrow
+    Array<number> vertices
 
     /*
     This action returns the actual value associated with this slice.
@@ -48,5 +51,17 @@ class Bar is ChartDrawable
     */
     action GetBarGroup returns BarGroup
         return cast(BarGroup, GetGroup())
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
     end
 end

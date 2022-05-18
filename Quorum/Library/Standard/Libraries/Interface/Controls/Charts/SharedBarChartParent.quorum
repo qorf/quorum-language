@@ -99,6 +99,20 @@ class SharedBarChartParent is Chart
                 barGroupIcon:SetPreviousFocus(GetPreviousFocus())
                 GetChartArea():Add(barGroupIcon)
             end
+            GetChartArea():Add(barGroups:Get(i):GetSelectionArrow())
+
+            Drawable top
+            barGroups:Get(i):GetSelectionBracket():Add(top)
+            GetChartArea():Add(top)
+
+            Drawable side
+            barGroups:Get(i):GetSelectionBracket():Add(side) 
+            GetChartArea():Add(side)
+
+            Drawable bottom
+            barGroups:Get(i):GetSelectionBracket():Add(bottom) 
+            GetChartArea():Add(bottom)  
+
             GetGroupPanels():Add(barGroups:Get(i))
 
             integer j = 0  
@@ -153,6 +167,7 @@ class SharedBarChartParent is Chart
                     chartArea:Add(barLabel)
                 end
                 chartArea:Add(temp)
+                chartArea:Add(temp:GetSelectionArrow())
                 j = j + 1
             end
             i = i + 1
@@ -229,8 +244,21 @@ class SharedBarChartParent is Chart
         end
         Item target = item:GetFocusTarget()
         if target not= undefined
-            parent:Chart:LostSelection(item)
-        end
+            if target is BarGroup
+                BarGroup group = cast(BarGroup, target)
+                group:GetSelectionArrow():Hide()
+                integer i = 0
+                repeat while i < group:GetSelectionBracket():GetSize()
+                    group:GetSelectionBracket():Get(i):Hide()
+                    i = i + 1
+                end
+            elseif target is Bar
+                Bar bar = cast(Bar, target)
+                bar:GetSelectionArrow():Hide()
+            else
+                parent:Chart:LostSelection(item)
+            end
+        end 
     end
 
     /* 
@@ -252,7 +280,20 @@ class SharedBarChartParent is Chart
         Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
-            parent:Chart:GainedSelection(item)            
+            if target is BarGroup
+                BarGroup group = cast(BarGroup, target)
+                group:GetSelectionArrow():Show()
+                integer i = 0
+                repeat while i < group:GetSelectionBracket():GetSize()
+                    group:GetSelectionBracket():Get(i):Show()
+                    i = i + 1
+                end
+            elseif target is Bar
+                Bar bar = cast(Bar, target)
+                bar:GetSelectionArrow():Show()
+            else
+                parent:Chart:GainedSelection(item)  
+            end          
         end
     end
 
