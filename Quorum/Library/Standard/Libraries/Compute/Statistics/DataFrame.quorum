@@ -177,6 +177,27 @@ class DataFrame
         EmptyColumnsOnLoad()
     end
     
+    /*
+        This action loads a data frame from text formatted as a Comma Separated Value (CSV). 
+
+        Attribute: Parameter text written as a Comma Separated Value that can be parsed into a data frame.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.System.File
+
+        //Load a comma separated text value
+        DataFrame frame
+        text value = "Hello, how, are, you
+            1, 2, 3, 4
+            2, 3, 4, 5"
+        frame:LoadFromCommaSeparatedValue(value) 
+    */
+    action LoadFromCommaSeparatedValue(text value)
+        CommaSeparatedLoader loader
+        loader:Load(me, value)
+        EmptyColumnsOnLoad()
+    end
     
     /*
         This action takes a Quorum expression text value and then filters the DataFrame on a copy. 
