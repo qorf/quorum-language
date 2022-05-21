@@ -1,0 +1,33 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Item
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+
+/*
+
+*/
+class EditorCursor is Item
+
+    on create
+        SceneConstants constants
+        SetProperty(constants:EDITOR_TAG, undefined)
+
+        // The cursor is not accessible because the accessibility information is provided by the SceneEditor instead.
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+
+        // The cursor is not focusable because it acts as a component of the SceneEditor, which gets the focus instead.
+        SetFocusable(false)
+    end
+
+    blueprint action GetItemsAtCursor returns Array<Item>
+
+    blueprint action GetEditorLayer returns EditorLayer
+
+    blueprint action IncreaseSize
+
+    blueprint action DecreaseSize
+
+end

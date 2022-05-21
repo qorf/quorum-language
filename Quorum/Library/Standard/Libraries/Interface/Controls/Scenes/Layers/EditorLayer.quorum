@@ -1,0 +1,98 @@
+package Libraries.Interface.Controls.Scenes.Layers
+
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Game.Layer
+use Libraries.Compute.Vector3
+
+class EditorLayer is Layer
+
+    Vector3 cameraEulerAngles
+    SceneEditor_LIBRARY editor = undefined
+
+    on create
+        cameraEulerAngles:Set(0, 0, 0)
+    end
+
+    blueprint action SetGridSnapping(boolean enabled)
+
+    blueprint action SetGridUnitSize(number units)
+
+    blueprint action GetGridUnitSize returns number
+
+    blueprint action IsGridSnapping returns boolean
+
+    blueprint action IsGridCoordinate(number value) returns boolean
+
+    blueprint action ShowEditorComponents(boolean shouldShow)
+
+    blueprint action GetNearestGridCoordinate(number coordinate) returns number
+
+    blueprint action GetNextGridCoordinate(number coordinate) returns number
+
+    blueprint action GetPreviousGridCoordinate(number coordinate) returns number
+
+    blueprint action GetCursor returns EditorCursor
+
+    action SetSceneEditor(SceneEditor_LIBRARY editor)
+        me:editor = editor
+    end
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        return me:editor
+    end
+
+    action GainedSelection
+        ShowEditorComponents(true)
+    end
+
+    action LostSelection
+        ShowEditorComponents(false)
+    end
+
+    action ShowCursor(boolean visible)
+        EditorCursor cursor = GetCursor()
+        if visible
+            cursor:Show()
+        else
+            cursor:Hide()
+        end
+    end
+
+    action SetCameraYaw(number yaw)
+        cameraEulerAngles:SetX(yaw)
+        GetCamera():SetYawPitchRoll(yaw, GetCameraPitch(), GetCameraRoll())
+    end
+
+    action GetCameraYaw returns number
+        return cameraEulerAngles:GetX()
+    end
+
+    action SetCameraPitch(number pitch)
+        cameraEulerAngles:SetY(pitch)
+        GetCamera():SetYawPitchRoll(GetCameraYaw(), pitch, GetCameraRoll())
+    end
+
+    action GetCameraPitch returns number
+        return cameraEulerAngles:GetY()
+    end
+
+    action SetCameraRoll(number roll)
+        cameraEulerAngles:SetZ(roll)
+        GetCamera():SetYawPitchRoll(GetCameraYaw(), GetCameraPitch(), roll)
+    end
+
+    action GetCameraRoll returns number
+        return cameraEulerAngles:GetZ()
+    end
+
+    action SetCameraYawPitchRoll(number yaw, number pitch, number roll)
+        cameraEulerAngles:Set(yaw, pitch, roll)
+        GetCamera():SetYawPitchRoll(yaw, pitch, roll)
+    end
+
+    action GetCameraYawPitchRoll returns Vector3
+        return cameraEulerAngles
+    end
+
+end
