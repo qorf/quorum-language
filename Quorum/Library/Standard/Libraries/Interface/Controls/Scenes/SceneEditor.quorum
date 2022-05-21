@@ -1,0 +1,327 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Layer3D
+use Libraries.Compute.Vector2
+use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Model
+use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Matrix4
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.HashTable
+use Libraries.Game.Game
+use Libraries.System.File
+use Libraries.Interface.Controls.Button
+
+
+/*
+SceneEditor is the main Control that enables adding a functional scene editor
+to a Game. 
+
+Attribute: Example
+
+TODO
+need to implement more to understand how to structure examples.
+
+*/
+class SceneEditor_LIBRARY is Control
+
+//    Array<EditorLayer> layers
+
+//    VisualEditorResources visualResources
+//    VisualEditorSelection selection
+
+//    Array<SceneChangeListener> sceneChangeListeners
+
+//    SceneControllerEditManager editManager
+
+    // The rotational speed measured in degrees,
+    // and the directional speed, measured in 3D world units.
+    public constant number CAMERA_ROTATIONAL_SPEED_3D = 15
+    public constant number CAMERA_DIRECTIONAL_SPEED_3D = 1
+
+    public constant number SELECTION_ROTATIONAL_SPEED_3D = 90
+    public constant number SELECTION_DIRECTIONAL_SPEED_3D = 5
+
+    public constant number CAMERA_ROTATIONAL_SPEED_2D = 90
+    public constant number CAMERA_DIRECTIONAL_SPEED_2D = 600
+    public constant number SELECTION_ROTATIONAL_SPEED_2D = 90
+    public constant number SELECTION_DIRECTIONAL_SPEED_2D = 600
+
+    /*
+    Velocities of the layer's camera.
+    Directions are always -1, 0, or 1, and are multiplied by either the rotational
+    or directional speed during the Update to produce the per-frame velocity.
+    */
+    integer yawDirection = 0
+    integer pitchDirection = 0
+    integer rollDirection = 0
+    integer forwardDirection = 0
+    integer strafeDirection = 0
+    integer verticalDirection = 0
+
+    // The velocity of the currently selected item on each axis.
+    integer selectionXDirection = 0
+    integer selectionYDirection = 0
+    integer selectionZDirection = 0
+    integer selectionYawDirection = 0
+    integer selectionPitchDirection = 0
+    integer selectionRollDirection = 0
+
+    // Vectors which are constantly reused for frequent calculations.
+    Vector2 workVector2
+    Vector3 workVector3
+
+    GameStateManager manager
+    Accessibility accessibility = undefined
+    Math math
+    Color color
+
+    /*
+    A subset of the items, filtered in some way (e.g., the items in view of
+    the camera). These can be iterated over to query for more information or to
+    modify the elements.
+    */
+    Array<Item> filteredItems = undefined
+
+    /*
+    "Highlight" drawables used to show which items have been filtered.
+    */
+//    Array<SelectionHighlight> filterHighlights
+
+    /*
+    Tracks how many times each name has been used from the palette.
+    Used to add numbers to the end of the names of duplicate items.
+    */
+    HashTable<text, integer> nameCounts
+
+    // Used for when a movement key is held and the grid lock is enabled.
+    number gridMoveTimer = 0
+    number gridMoveTimerMax = 0.5
+
+    // A reference to the property dialogs for this controller.
+//    Item3DPropertiesDialog item3dPropertiesDialog
+//    Item2DPropertiesDialog item2dPropertiesDialog
+//    Camera2DPropertiesDialog camera2dPropertiesDialog
+//    Camera3DPropertiesDialog camera3dPropertiesDialog
+//    PointLightPropertiesDialog pointLightPropertiesDialog
+//    Audio3DPropertiesDialog audio3DPropertiesDialog
+
+    // An array containing the different property dialogs.
+//    Array<PropertiesDialog> propertiesDialogs
+
+    // A reference to the find dialog for this controller.
+//    VisualEditorFindDialog findDialog
+
+    // Used to forcibly change the focus and send information via the screen reader.
+    Item2D dummyItem
+
+
+    on create
+
+    end
+
+    /*
+    This action returns the description of the item currently focused by the cursor on
+    the current layer. If there is no item at the cursor this action returns the position
+    of the cursor. If there are multiple items this action will return the names of each item
+    at the current cursor position.
+
+    Attribute: Returns The affine as the identy matrix
+
+    */
+    action GetDescription returns text
+        return ""
+    end
+
+
+    /*
+    This action is called automatically by the system. This resize adjusts the size of the
+    viewports, camera, and grid.
+    */
+    action Resize
+
+    end
+
+
+    /*
+        This action takes every dialog added to this Scene Editor and hides all of them.
+    */
+    action HideDialogs
+
+    end
+
+
+
+    action Update(number seconds)
+
+    end
+
+    action SetFilteredItems(Array<Item> items, boolean moveFocus)
+
+    end
+
+    private action EmptyFilteredItems(boolean moveFocus)
+
+    end
+
+    private action SetFilterHighlightData
+
+    end
+
+    action Delete(Item item)
+
+
+    end
+
+    action DeselectEditorCamera
+        // Was already empty
+    end
+
+    Matrix4 previewTransform = undefined
+    action GetPreviewTransform returns Matrix4
+        return previewTransform
+    end
+
+    action SetPreviewTransform(Matrix4 transform)
+        previewTransform = transform
+    end
+
+    action GetDefaultItemName(integer type) returns text
+        if type = 0
+            return "Box"
+        elseif type = 1
+            return "Sphere"
+        elseif type = 2
+            return "Cylinder"
+        end
+
+        return "Item"
+    end
+
+action SetYawDirection(integer direction)
+        yawDirection = direction
+
+        if direction = 0
+            //NotifyAccessibility(me, "Yaw " + math:Round(GetSelectedLayer():GetCameraYaw(), 1))
+        end
+    end
+
+    action GetYawDirection returns integer
+        return yawDirection
+    end
+
+    action SetPitchDirection(integer direction)
+        pitchDirection = direction
+
+        if direction = 0
+            //NotifyAccessibility(me, "Pitch " + math:Round(GetSelectedLayer():GetCameraPitch(), 1))
+        end
+    end
+
+    action GetPitchDirection returns integer
+        return pitchDirection
+    end
+
+    action SetRollDirection(integer direction)
+        rollDirection = direction
+
+        if direction = 0
+            //NotifyAccessibility(me, "Roll " + math:Round(GetSelectedLayer():GetCameraRoll(), 1))
+        end
+    end
+
+    action GetRollDirection returns integer
+        return rollDirection
+    end
+
+    action IsCameraRotating returns boolean
+//        return GetYawDirection() not= 0 or GetPitchDirection() not= 0
+        return false
+    end
+
+    action GetYaw returns number
+//        return GetSelectedLayer():GetCameraYaw()
+        return 0
+    end
+
+    action GetPitch returns number
+//        return GetSelectedLayer():GetCameraPitch()
+        return 0
+    end
+
+    action GetRoll returns number
+//        return GetSelectedLayer():GetCameraRoll()
+        return 0
+    end
+
+    action SetForwardDirection(integer direction)
+        forwardDirection = direction
+
+//        if IsCameraMoving() = false
+//            if GetSelectedLayer() is EditorLayer2D
+//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+//                number x = math:Round(temp:GetX(), 1)
+//                number y = math:Round(temp:GetY(), 1)
+//                NotifyAccessibility(me, "Camera " + x + ", " + y)
+//            else
+//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+//                number x = math:Round(temp:GetX(), 2)
+//                number y = math:Round(temp:GetY(), 2)
+//                number z = math:Round(temp:GetZ(), 2)
+//                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+//            end
+//        end
+    end
+
+    action GetForwardDirection returns integer
+        return forwardDirection
+    end
+    action SetStrafeDirection(integer direction)
+        strafeDirection = direction
+
+//        if IsCameraMoving() = false
+//            if GetSelectedLayer() is EditorLayer2D
+//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+//                number x = math:Round(temp:GetX(), 1)
+//                number y = math:Round(temp:GetY(), 1)
+//                NotifyAccessibility(me, "Camera " + x + ", " + y)
+//            else
+//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+//                number x = math:Round(temp:GetX(), 2)
+//                number y = math:Round(temp:GetY(), 2)
+//                number z = math:Round(temp:GetZ(), 2)
+//                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+//            end
+//        end
+    end
+
+    action GetStrafeDirection returns integer
+        return strafeDirection
+    end
+
+    action SetVerticalDirection(integer direction)
+
+    end
+
+    action GetVerticalDirection returns integer
+        return verticalDirection
+    end
+
+    action IsCameraMoving returns boolean
+        return GetForwardDirection() not= 0 or GetStrafeDirection() not= 0 or GetVerticalDirection() not= 0
+    end
+
+end
