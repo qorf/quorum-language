@@ -25,6 +25,8 @@ use Libraries.Game.Game
 use Libraries.System.File
 use Libraries.Interface.Controls.Button
 
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+
 
 /*
 SceneEditor is the main Control that enables adding a functional scene editor
@@ -322,6 +324,150 @@ action SetYawDirection(integer direction)
 
     action IsCameraMoving returns boolean
         return GetForwardDirection() not= 0 or GetStrafeDirection() not= 0 or GetVerticalDirection() not= 0
+    end
+
+    action SetCursorToItem(EditorItem item)
+
+    end
+    // Used when moving an InteractableItem into a grid space to give information about what's under the item.
+    // Doesn't include the item itself in the description.
+    private action GetDescriptionAtItemPosition(EditorItem item) returns text
+        return ""
+    end
+
+    action SetSelectionXDirection(integer direction)
+        selectionXDirection = direction
+
+        if direction = 0
+            if manager:GetFocus() is EditorItem
+                EditorItem focus = cast(EditorItem, manager:GetFocus())
+                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
+            end
+        end
+    end
+
+    action GetSelectionXDirection returns integer
+        return selectionXDirection
+    end
+
+    action SetSelectionYDirection(integer direction)
+        selectionYDirection = direction
+
+        if direction = 0
+            if manager:GetFocus() is EditorItem
+                EditorItem focus = cast(EditorItem, manager:GetFocus())
+                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
+            end
+        end
+    end
+
+    action GetSelectionYDirection returns integer
+        return selectionYDirection
+    end
+
+    action SetSelectionZDirection(integer direction)
+        selectionZDirection = direction
+
+        if direction = 0
+            if manager:GetFocus() is EditorItem
+                EditorItem focus = cast(EditorItem, manager:GetFocus())
+                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
+            end
+        end
+    end
+
+    action GetSelectionZDirection returns integer
+        return selectionZDirection
+    end
+
+    action IsSelectionMoving returns boolean
+        return GetSelectionXDirection() not= 0 or GetSelectionYDirection() not= 0 or GetSelectionZDirection() not= 0
+    end
+
+    action SetSelectionYawDirection(integer direction)
+        selectionYawDirection = direction
+
+//        if direction = 0
+//            if manager:GetFocus() is InteractableItem3D
+//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
+//                number yaw = math:Round(focus:GetYaw(), 1)
+//                NotifyAccessibility(focus, "yaw " + yaw)
+//            end
+//        end
+    end
+
+    action GetSelectionYawDirection returns integer
+        return selectionYawDirection
+    end
+
+    action SetSelectionPitchDirection(integer direction)
+        selectionPitchDirection = direction
+
+//        if direction = 0
+//            if manager:GetFocus() is InteractableItem3D
+//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
+//                number pitch = math:Round(focus:GetPitch(), 1)
+//                NotifyAccessibility(focus, "pitch " + pitch)
+//            end
+//        end
+    end
+
+    action GetSelectionPitchDirection returns integer
+        return selectionPitchDirection
+    end
+
+    action SetSelectionRollDirection(integer direction)
+        selectionRollDirection = direction
+
+//        if direction = 0
+//            if manager:GetFocus() is InteractableItem3D
+//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
+//                number roll = math:Round(focus:GetRoll(), 1)
+//                NotifyAccessibility(focus, "roll " + roll)
+//            elseif manager:GetFocus() is InteractableItem2D
+//                InteractableItem2D focus = cast(InteractableItem2D, manager:GetFocus())
+//                number rotation = math:Round(focus:GetRotation(), 1)
+//                NotifyAccessibility(focus, rotation + " degrees")
+//            end
+//        end
+    end
+
+    action GetSelectionRollDirection returns integer
+        return selectionRollDirection
+    end
+
+    action IsSelectionRotating returns boolean
+        return GetSelectionYawDirection() not= 0 or GetSelectionPitchDirection() not= 0 or GetSelectionRollDirection() not= 0
+    end
+
+    action NotifyAccessibility(Item item, text message)
+        if accessibility not= undefined
+            accessibility:Notify(item, message)
+        end
+    end
+
+    action SetSelectedItem(EditorItem item)
+//        selection:SetSelection(item)
+    end
+
+    action GetNameCount(text name) returns integer
+        if nameCounts:HasKey(name)
+            return nameCounts:GetValue(name)
+        end
+        return 0
+    end
+
+    action IncrementNameCount(text name)
+        nameCounts:Set(name, GetNameCount(name) + 1)
+    end
+
+    action GetNextNamePostfix(text name) returns text
+        integer count = GetNameCount(name)
+        if count = 0
+            return ""
+        end
+
+        return " " + count
     end
 
 end

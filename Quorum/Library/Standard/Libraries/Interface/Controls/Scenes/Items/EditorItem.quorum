@@ -1,0 +1,160 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Interface.Item
+
+class EditorItem is Item
+    
+    SceneConstants constants
+    SceneEditor_LIBRARY editor = undefined
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    blueprint action ResetScale
+
+    action SetSceneEditor(SceneEditor_LIBRARY editor)
+        me:editor = editor
+    end
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        return editor
+    end
+
+    action GetConstants returns SceneConstants
+        return constants
+    end
+
+    action GainedFocus(FocusEvent event)
+        if editor not= undefined
+            editor:SetSelectedItem(me)
+        end
+    end
+
+    action GainedSelection
+        // Do nothing here -- inheriting classes may override this.
+    end
+
+    action LostSelection
+        // Do nothing here -- inheriting classes may override this.
+    end
+
+    action NotifyAccessibility(text message)
+        editor:NotifyAccessibility(me, message)
+    end
+
+    action IsEditorPhysicsEnabled returns boolean
+        SceneProperties properties
+        if HasProperty(properties:PHYSICS_ENABLED)
+            return GetProperty(properties:PHYSICS_ENABLED):GetBoolean()
+        end
+        return false
+    end
+
+    action SetEditorPhysicsEnabled(boolean enable)
+        SceneProperties properties
+        if HasProperty(properties:PHYSICS_ENABLED)
+            JavaScriptObjectNotation json = GetProperty(properties:PHYSICS_ENABLED)
+            json:SetBoolean(enable)
+        else
+            JavaScriptObjectNotation json
+            json:SetBoolean(enable)
+            SetProperty(properties:PHYSICS_ENABLED, json)
+        end
+    end
+
+    action GetEditorResponsiveness returns integer
+        SceneProperties properties
+        if HasProperty(properties:RESPONSIVENESS)
+            return GetProperty(properties:RESPONSIVENESS):GetInteger()
+        end
+
+        // The default value is UNMOVABLE, or 0.
+        return 0
+    end
+
+    action SetEditorResponsiveness(integer responsive)
+        SceneProperties properties
+        if HasProperty(properties:RESPONSIVENESS)
+            JavaScriptObjectNotation json = GetProperty(properties:RESPONSIVENESS)
+            json:SetInteger(responsive)
+        else
+            JavaScriptObjectNotation json
+            json:SetInteger(responsive)
+            SetProperty(properties:RESPONSIVENESS, json)
+        end
+    end
+
+    action GetEditorMass returns number
+        SceneProperties properties
+        if HasProperty(properties:MASS)
+            return GetProperty(properties:MASS):GetNumber()
+        end
+
+        return 0
+    end
+
+    action SetEditorMass(number mass)
+        SceneProperties properties
+        if HasProperty(properties:MASS)
+            JavaScriptObjectNotation json = GetProperty(properties:MASS)
+            json:SetNumber(mass)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(mass)
+            SetProperty(properties:MASS, json)
+        end
+    end
+
+    action GetEditorFriction returns number
+        SceneProperties properties
+        if HasProperty(properties:FRICTION)
+            return GetProperty(properties:FRICTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    action SetEditorFriction(number friction)
+        SceneProperties properties
+        if HasProperty(properties:FRICTION)
+            JavaScriptObjectNotation json = GetProperty(properties:FRICTION)
+            json:SetNumber(friction)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(friction)
+            SetProperty(properties:FRICTION, json)
+        end
+    end
+
+    action GetEditorRestitution returns number
+        SceneProperties properties
+        if HasProperty(properties:RESTITUTION)
+            return GetProperty(properties:RESTITUTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    action SetEditorRestitution(number restitution)
+        SceneProperties properties
+        if HasProperty(properties:RESTITUTION)
+            JavaScriptObjectNotation json = GetProperty(properties:RESTITUTION)
+            json:SetNumber(restitution)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(restitution)
+            SetProperty(properties:RESTITUTION, json)
+        end
+    end
+
+end
