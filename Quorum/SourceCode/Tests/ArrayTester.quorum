@@ -51,6 +51,8 @@ class ArrayTester
         ArraySetSize()
         ArraySetSizeCheck()
         ArraySortInteger()
+        ArrayShuffle()
+        ArrayShuffleRange()
         ArraySortNumber()
         ArraySortText()
         AssignFromGetIntToNum()
@@ -532,6 +534,38 @@ class ArrayTester
             results:Add(0, "sorted")
             suite:Test(files, results)
             suite:TestJavaScript(files, results)
+    end
+
+    action ArrayShuffle
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayShuffle.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "1")
+        results:Add(2, "3")
+        results:Add(3, "4")
+        results:Add(4, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+    end
+
+    action ArrayShuffleRange
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayShuffleRange.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "1")
+        results:Add(2, "2")
+        results:Add(3, "3")
+        results:Add(4, "6")
+        results:Add(5, "4")
+        results:Add(6, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
     end
 
     action ArraySortNumber
