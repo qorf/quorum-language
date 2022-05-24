@@ -181,6 +181,46 @@ class NumberColumn is DataFrameColumn
         rows:Set(right, rows:Get(left))
     end
 
+//    action SendTo(integer index, DataFrameColumn column)
+//        
+//    end
+//
+//    private action SplitByRows(Array<integer> sortedArray, NumberColumn column) returns Array<IntegerColumn>
+//        Array<DataFrameColumn> columns
+//        DataFrameColumn in = Copy(0, -1)
+//        DataFrameColumn out = Copy(0, -1)
+//        i = 0
+//        row = 0
+//        repeat while i < sortedArray:GetSize()
+//            integer index = sortedArray:Get(i)
+//            if row = index
+//                Number value = column:Get(index)
+//                in:Add()
+//                row = row + 1
+//                i = i + 1
+//            else
+//                //keep putting rows in out until we're done
+//                out:Add(column:Get(row))
+//                row = row + 1
+//                repeat while index not= row and row < column:GetSize()
+//                    out:Add(column:Get(row))
+//                    row = row + 1
+//                end
+//            end
+//            
+//        end
+//
+//        //for any remaining rows, toss them in out
+//        repeat while row < column:GetSize()
+//            out:Add(column:Get(row))
+//            row = row + 1
+//        end
+//
+//        columns:Add(in)
+//        columns:Add(out)
+//        return columns
+//    end
+
     action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
         NumberColumn column
         column:SetHeader(GetHeader())

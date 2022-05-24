@@ -571,6 +571,14 @@ class DataFrameColumn is Comparison
     end
 
     /*
+        This action takes an index sorted array and splits the column into two columns,
+        returning copies. The first one contains all of the items from the indexes in the array.
+        The second one is the items that were not in the array.
+    */
+    action SplitByRows(Array<integer> sortedArray)
+    end
+
+    /*
         We can manually set a comparison, which is then passed to the 
         default sorting routines if sorting occurs.
     */
