@@ -24,6 +24,7 @@ use Libraries.Interface.Layouts.ManualLayout
 
 
 class Legend is Control
+    private LayoutProperties properties = undefined
     ChartOptions options
     ChartLabel title = undefined
     Array<Series> seriesList
@@ -43,18 +44,19 @@ class Legend is Control
 
     ColorGroup backgroundColor = undefined
     ColorGroup borderColor = undefined
+    ColorGroup selectionColor = undefined
+    ColorGroup selectionBorderColor = undefined
 
     on create
-        ManualLayout layout
-        SetLayout(layout)
-
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:STANDARD)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        Color transparent
+        transparent:SetColor(0,0,0,0)
+        properties = GetDefaultLayoutProperties()
+        properties:SetBackgroundColor(transparent)
+        properties:SetBorderColor(transparent)
+        properties:SetBorderThickness(4)
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
-
         SetName("Legend")
 
         SetFocusable(true)
@@ -306,20 +308,6 @@ class Legend is Control
         return titleText
     end
 
-    action SetName(text name)
-        parent:Item2D:SetName(name)
-        
-        LayoutProperties defaultProperties = GetDefaultLayoutProperties()
-
-        if defaultProperties not= undefined
-            defaultProperties:SetLabelText(name)
-        end
-        if GetView2D() is ControlView
-            ControlView content = cast(ControlView, GetView2D())
-            content:SetText(name)
-        end
-    end
-
     /*
         This action is used by the layout to position the graphical components of 
         the Chart. Layout is handled automatically so users don't need to use this
@@ -515,7 +503,7 @@ class Legend is Control
         end
     end
 
-    // This are currently obsolete
+    // This is currently obsolete
     private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
         Icon newItemStructure
         newItemStructure:SetFocusable(true)
@@ -560,7 +548,7 @@ class Legend is Control
         return newItemStructure
     end
     
-    // This are currently obsolete
+    // This is currently obsolete
     private action MakeEntry(text name) returns Control
         Control newItemStructure
         newItemStructure:SetFocusable(true)
@@ -607,7 +595,7 @@ class Legend is Control
         return newItemStructure
     end
 
-    // This are currently obsolete
+    // This is currently obsolete
     action MakeTitleEntry(text title) returns Control
         Control newItemStructure
         newItemStructure:SetFocusable(true)
@@ -670,6 +658,39 @@ class Legend is Control
 
     action SetBackgroundColor(ColorGroup color)
         backgroundColor = color
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        if selectionBorderColor not= undefined
+            return selectionBorderColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionBorderColor()
+        end
+        return undefined
+    end
+
+    action SetSelectionBorderColor(ColorGroup color)
+        selectionBorderColor = color
+    end
+
+    action GetSelectionColor returns ColorGroup
+        if selectionColor not= undefined
+            return selectionColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetForegroundSelectionColor()
+        end
+
+        return undefined
+    end
+
+    action SetSelectionColor(ColorGroup color)
+        selectionColor = color
     end
 
     // Try to get the chart this is attached to via the parent hierarchy.
