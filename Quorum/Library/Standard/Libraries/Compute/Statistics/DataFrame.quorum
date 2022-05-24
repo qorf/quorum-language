@@ -64,6 +64,7 @@ use Libraries.Compute.Statistics.Transforms.RemoveUndefinedRowsTransform
 use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
+use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -3327,6 +3328,142 @@ class DataFrame
             DataFrameColumn column = GetColumn(next)
             column:ReplaceUndefined(value)
         end
+    end
+
+    /*
+        The SplitRowsTransform class takes a data frame and transforms it into two DataFrames with copies of all of the
+        data inside them. Specifically, you can set a percentage of the total data, like 0.8 for 80%, which then 
+        instructs the transform to select 80% of the rows, randomly, and place it into one DataFrame copy, with the 
+        remainder going in the other. This operation is synchronized across all columns so that it is the same split everywhere.
+        
+        Attribute: Returns an array of DataFrame objects with exactly 2 spots. The first is the selected rows and the 
+        second is the rejected rows.
+        
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Containers.Array
+        
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue(
+        "Hello, Hi
+        0, 17
+        1, 19
+        2, 21
+        3, 23
+        4, 25
+        5, 27
+        6, 29
+        7, 31
+        8, 33
+        9, 35
+        10, 35"
+        )
+        
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        
+        Array<DataFrame> frames = frame:SplitSelectedColumnsRandomlyByRows()
+        output frames:Get(0):ToText()
+        output frames:Get(1):ToText()
+    */
+    action SplitSelectedColumnsRandomlyByRows returns Array<DataFrame>
+        SplitRowsTransform transform
+        transform:Transform(me)
+        return transform:GetResultFrames()
+    end
+
+    /*
+        The SplitRowsTransform class takes a data frame and transforms it into two DataFrames with copies of all of the
+        data inside them. Specifically, you can set a percentage of the total data, like 0.8 for 80%, which then 
+        instructs the transform to select 80% of the rows, randomly, and place it into one DataFrame copy, with the 
+        remainder going in the other. This operation is synchronized across all columns so that it is the same split everywhere.
+        
+        Attribute: Parameter percent the percent of the split in the first element of the return. The second
+            will contain 1.0 - percent.
+        Attribute: Returns an array of DataFrame objects with exactly 2 spots. The first is the selected rows and the 
+        second is the rejected rows.
+        
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Containers.Array
+        
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue(
+        "Hello, Hi
+        0, 17
+        1, 19
+        2, 21
+        3, 23
+        4, 25
+        5, 27
+        6, 29
+        7, 31
+        8, 33
+        9, 35
+        10, 35"
+        )
+        
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        
+        //Take half the DataFrame's rows
+        Array<DataFrame> frames = frame:SplitSelectedColumnsRandomlyByRows(0.5)
+        output frames:Get(0):ToText()
+        output frames:Get(1):ToText()
+    */
+    action SplitSelectedColumnsRandomlyByRows(number percent) returns Array<DataFrame>
+        SplitRowsTransform transform
+        transform:SetPercent(percent)
+        transform:Transform(me)
+        return transform:GetResultFrames()
+    end
+
+    /*
+        The SplitRowsTransform class takes a data frame and transforms it into two DataFrames with copies of all of the
+        data inside them. Specifically, you can set a percentage of the total data, like 0.8 for 80%, which then 
+        instructs the transform to select 80% of the rows, randomly, and place it into one DataFrame copy, with the 
+        remainder going in the other. This operation is synchronized across all columns so that it is the same split everywhere.
+        
+        Attribute: Parameter percent the percent of the split in the first element of the return. The second
+            will contain 1.0 - percent.
+        Attribute: Parameter seed The seed passed to the random number generator.
+        Attribute: Returns an array of DataFrame objects with exactly 2 spots. The first is the selected rows and the 
+        second is the rejected rows.
+        
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Containers.Array
+        
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue(
+        "Hello, Hi
+        0, 17
+        1, 19
+        2, 21
+        3, 23
+        4, 25
+        5, 27
+        6, 29
+        7, 31
+        8, 33
+        9, 35
+        10, 35"
+        )
+        
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        
+        //take half the DataFrame's rows and use a random seed of 0
+        Array<DataFrame> frames = frame:SplitSelectedColumnsRandomlyByRows(0.5, 0)
+        output frames:Get(0):ToText()
+        output frames:Get(1):ToText()
+    */
+    action SplitSelectedColumnsRandomlyByRows(number percent, number seed) returns Array<DataFrame>
+        SplitRowsTransform transform
+        transform:SetPercent(percent)
+        transform:SetSeed(seed)
+        transform:Transform(me)
+        return transform:GetResultFrames()
     end
 
     /*
