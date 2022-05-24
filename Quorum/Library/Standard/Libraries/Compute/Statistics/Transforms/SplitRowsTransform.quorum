@@ -12,13 +12,12 @@ use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
+The SplitRowsTransform class takes a data frame and transforms it into two DataFrames with copies of all of the
+data inside them. Specifically, you can set a percentage of the total data, like 0.8 for 80%, which then 
+instructs the transform to select 80% of the rows, randomly, and place it into one DataFrame copy, with the 
+remainder going in the other. This operation is synchronized across all columns so that it is the same split everywhere.
 
 Attribute: Example
-
-use Libraries.Compute.Statistics.DataFrame
-use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
-
 DataFrame frame
 frame:LoadFromCommaSeparatedValue(
 "Hello, Hi
@@ -26,22 +25,40 @@ frame:LoadFromCommaSeparatedValue(
 1, 19
 2, 21
 3, 23
-4, 25"
+4, 25
+5, 27
+6, 29
+7, 31
+8, 33
+9, 35
+10, 35"
 )
 
 frame:AddSelectedColumn(0)
 frame:AddSelectedColumn(1)
 
 SplitRowsTransform transform
-transform:Transform(frame)
-
+DataFrame in = transform:Transform(frame)
+DataFrame out = transform:GetRemainderFrame()
+output in:ToText()
+output out:ToText()
 */
 class SplitRowsTransform is DataFrameTransform
     boolean hasRandomSeed = false
     number seed = 0
     number percent = 0.8
+    DataFrame selectedFrame = undefined
+    DataFrame remainderFrame = undefined
+    Array<DataFrame> resultFrames = undefined
 
     action Transform(DataFrame frame) returns DataFrame 
+        DataFrame selectedFrame2
+        DataFrame remainderFrame2
+        Array<DataFrame> resultFrames2
+        selectedFrame = selectedFrame2
+        remainderFrame = remainderFrame2
+        resultFrames = resultFrames2
+
         //check if all of the selected columns have the same length. 
         //if they are not even, then throw an exception
         DataFrameSelection selection = frame:GetSelection()
@@ -81,7 +98,7 @@ class SplitRowsTransform is DataFrameTransform
         if hasRandomSeed
             selectedColumns:Shuffle(seed)
         else
-            selectedColumns:Shuffle(0)
+            selectedColumns:Shuffle()
         end
 
         //now split it by the percentage listed
@@ -99,72 +116,83 @@ class SplitRowsTransform is DataFrameTransform
         //sort the list so we can do in order comparisons
         first:Sort()
 
+        
         //now get all of the columns and split them by rows, into separate data frame copies
         //in each case, pass the split array, so we get the same split in each column
         i = 0
         repeat while i < size
             integer index = selection:GetColumn(i)
             NumberColumn column = cast(NumberColumn, frame:GetColumn(index))
-            Array<IntegerColumn> columns = SplitByRows(first, column)
-
+            //Array<IntegerColumn> columns = SplitByRows(first, column)
+            Array<DataFrameColumn> columns = column:SplitByRows(first)
+            selectedFrame:AddColumn(columns:Get(0))
+            remainderFrame:AddColumn(columns:Get(1))
             i = i + 1
         end
 
-        return frame
+        resultFrames:Add(selectedFrame)
+        resultFrames:Add(remainderFrame)
+        return selectedFrame
     end
 
-    private action SplitByRows(Array<integer> sortedArray, NumberColumn column) returns Array<IntegerColumn>
-        Array<NumberColumn> columns
-        NumberColumn in
-        NumberColumn out
-        i = 0
-        row = 0
-        repeat while i < sortedArray:GetSize()
-            integer index = sortedArray:Get(i)
-            if row = index
-                in:Add(column:Get(index))
-                row = row + 1
-                i = i + 1
-            else
-                //keep putting rows in out until we're done
-                out:Add(column:Get(row))
-                row = row + 1
-                repeat while index not= row and row < column:GetSize()
-                    out:Add(column:Get(row))
-                    row = row + 1
-                end
-            end
-            
-        end
-
-        //for any remaining rows, toss them in out
-        repeat while row < column:GetSize()
-            out:Add(column:Get(row))
-            row = row + 1
-        end
-
-        columns:Add(in)
-        columns:Add(out)
-        return columns
+    /* This action provides the DataFrame for the content selected. */
+    action GetSelectedFrame returns DataFrame
+        return selectedFrame
     end
 
-    action GetRemainder returns DataFrame
-        return undefined
+    /* This action provides the DataFrame for the remainder of the data set. */
+    action GetRemainderFrame returns DataFrame
+        return remainderFrame
     end
 
+    /* Returns the seed for the random number generator. This seed is only used if GetHasRandomSeed() = true. */
     action GetSeed returns number
         return seed
     end
 
+    /*
+        Sets the random seed for the random number generator. As a convenience, this action 
+        also tells the class to use the random number generator seed. If this is not the desired behavior, 
+        call SetHasRandomSeed(false) on the transform. Calling this action is not necessary if no seed
+        is desired.
+    */
     action SetSeed(number seed)
         me:seed = seed
+        hasRandomSeed = true
     end
 
+    /* Gets the total percentage of the DataFrame to randomly select. */
     action GetPercent returns number
         return percent
     end
 
+    /* Sets the total percentage of the DataFrame to randomly select. */
     action SetPercent(number percent)
         me:percent = percent
+    end
+
+    /*
+        This action returns the resulting operations two frames. The first index of the array is the 
+        frame with the percentage indicated in the system. The second index of the array is the remainder
+        frame. This action should only be called after Transform is called, otherwise it will return an 
+        empty array.
+    */
+    action GetResultFrames returns Array<DataFrame>
+        return resultFrames
+    end
+
+    /*
+        Determines whether or not this class takes a seed for the random number generator into account.
+    */
+    action GetHasRandomSeed returns boolean
+        return hasRandomSeed
+    end
+
+    /*
+        Sets whether or not this class takes a seed for the random number generator into account. If true, then it
+        does.
+    */
+    action SetHasRandomSeed(boolean hasRandomSeed)
+        me:hasRandomSeed = hasRandomSeed
     end
 end
