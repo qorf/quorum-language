@@ -16,6 +16,7 @@ use Libraries.System.File
 use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Random
 use Libraries.System.DateTime
+use Libraries.System.FileWriter
 
 class ChartWriter
     private number axisPointX = 105
@@ -135,7 +136,7 @@ class ChartWriter
     */
     action WriteOutChart(Chart chart) returns text
         ScalableVectorGraphics chartCanvas
-        chartCanvas:SetSize(svgWidth,svgHeight)
+        //chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetViewBox(0,0,svgWidth,svgHeight)
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
@@ -165,10 +166,12 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
-            AddAccessibility(chartCanvas, chart)
+            Division accessibleChart
+            accessibleChart = AddAccessibility(chartCanvas, chart)
+            return accessibleChart:Generate()
+        else
+            return chartCanvas:ToText()
         end
-
-        return chartCanvas:ToText()
     end
 
     /*
@@ -203,7 +206,7 @@ class ChartWriter
         axisLengthY = cast(integer, svgHeight*chart:GetChartAreaHeightPercent())
         axisPointY = cast(integer, svgHeight*(1 - chart:GetHorizontalPanelHeightPercent()))
         ScalableVectorGraphics chartCanvas
-        chartCanvas:SetSize(svgWidth,svgHeight)
+        //chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetViewBox(0,0,svgWidth,svgHeight)
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
@@ -233,10 +236,12 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
-            AddAccessibility(chartCanvas, chart)
+            Division accessibleChart
+            accessibleChart = AddAccessibility(chartCanvas, chart)
+            file:Write(accessibleChart:Generate())
+        else
+            chartCanvas:Write(file)
         end
-
-        chartCanvas:Write(file)
     end
 
     /*
@@ -439,6 +444,7 @@ class ChartWriter
         background:SetTabIndex(-1)
         if HasAccessibility()
             background:SetAriaLabel(chart:GetTitle() + ", " + chart:GenerateSummary())
+            background:SetAriaHidden("true")
         end
         canvas:Add(background)
     end
@@ -456,7 +462,7 @@ class ChartWriter
         chartArea:SetStyleClass("quorum-chart-element")
         chartArea:SetTabIndex(-1)
         if HasAccessibility()
-            
+            chartArea:SetAriaHidden("true")
         end
         canvas:Add(chartArea)
 
@@ -478,6 +484,7 @@ class ChartWriter
                 svgSubChartArea:SetTabIndex(-1)
                 if HasAccessibility()
                     svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
+                    svgSubChartArea:SetAriaHidden("true")
                 end
                 me:subChartAreas:Add(svgSubChartArea)
                 canvas:Add(svgSubChartArea)
@@ -493,6 +500,9 @@ class ChartWriter
                     areaTitle:SetID(canvas:GetID() + "-" + areaTitle:GetHashCode())
                     areaTitle:SetStyleClass("quorum-chart-text")
                     areaTitle:SetTabIndex(-1)
+                    if HasAccessibility()
+                        areaTitle:SetAriaHidden("true")
+                    end
                     canvas:Add(areaTitle)
                 end
             end
@@ -520,8 +530,33 @@ class ChartWriter
                 horizontalPanel:SetStyleClass("quorum-chart-element")
                 if HasAccessibility()
                     horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    horizontalPanel:SetAriaHidden("true")
                 end
                 canvas:Add(horizontalPanel)
+
+                if not chart:IsSeparated()
+                    Array<Drawable> axisLines = horizontalAxisPanel:GetAxisLines()
+                    j = 0
+                    repeat while j < axisLines:GetSize()
+                        Drawable axisLine = axisLines:Get(j)
+                        if axisLine not= undefined and axisLine:IsShowing()
+                            Rectangle svgAxisLine
+                
+                            svgAxisLine:SetWidth(axisLine:GetWidth())
+                            svgAxisLine:SetHeight(axisLine:GetHeight())
+                            svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                            svgAxisLine:SetFill(axisLine:GetColor())
+                            svgAxisLine:SetTabIndex(-1)
+                            svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                            xAxis = svgAxisLine
+                            if HasAccessibility()
+                                svgAxisLine:SetAriaHidden("true")
+                            end
+                            canvas:Add(svgAxisLine)
+                        end
+                        j = j + 1
+                    end
+                end
             end
 
             Array<HorizontalAxisPanel> subHorizontalPanels = chart:GetSubHorizontalPanels()
@@ -544,6 +579,9 @@ class ChartWriter
                         svgAxisLine:SetTabIndex(-1)
                         svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
                         subXAxes:Add(svgAxisLine)
+                        if HasAccessibility()
+                            svgAxisLine:SetAriaHidden("true")
+                        end
                         canvas:Add(svgAxisLine)
                     end
                     j = j + 1
@@ -562,6 +600,7 @@ class ChartWriter
                     svgSubHorizontalPanel:SetStyleClass("quorum-chart-element")
                     if HasAccessibility()
                         svgSubHorizontalPanel:SetAriaLabel(currentSubHorizontalPanel:GetName() + currentSubHorizontalPanel:GetDescription())
+                        svgSubHorizontalPanel:SetAriaHidden("true")
                     end
                     me:subHorizontalPanels:Add(svgSubHorizontalPanel)
                     canvas:Add(svgSubHorizontalPanel)
@@ -579,6 +618,9 @@ class ChartWriter
                 xAxisLabel:SetID(canvas:GetID() + "-" + xAxisLabel:GetHashCode())
                 xAxisLabel:SetStyleClass("quorum-chart-text")
                 xAxisLabel:SetTabIndex(-1)
+                if HasAccessibility()
+                    xAxisLabel:SetAriaHidden("true")
+                end
                 canvas:Add(xAxisLabel)
             end
         end
@@ -596,8 +638,33 @@ class ChartWriter
                 verticalPanel:SetStyleClass("quorum-chart-element")
                 if HasAccessibility()
                     verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    verticalPanel:SetAriaHidden("true")
                 end
                 canvas:Add(verticalPanel)
+
+                if not chart:IsSeparated()
+                    Array<Drawable> axisLines = verticalAxisPanel:GetAxisLines()
+                    j = 0
+                    repeat while j < axisLines:GetSize()
+                        Drawable axisLine = axisLines:Get(j)
+                        if axisLine not= undefined and axisLine:IsShowing()
+                            Rectangle svgAxisLine
+                
+                            svgAxisLine:SetWidth(axisLine:GetWidth())
+                            svgAxisLine:SetHeight(axisLine:GetHeight())
+                            svgAxisLine:SetPosition(axisLine:GetGlobalX(), TranslatePositionY(axisLine) - axisLine:GetHeight())
+                            svgAxisLine:SetFill(axisLine:GetColor())
+                            svgAxisLine:SetTabIndex(-1)
+                            svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
+                            yAxis = svgAxisLine
+                            if HasAccessibility()
+                                svgAxisLine:SetAriaHidden("true")
+                            end
+                            canvas:Add(svgAxisLine)
+                        end
+                        j = j + 1
+                    end
+                end
             end
 
             Array<VerticalAxisPanel> subVerticalPanels = chart:GetSubVerticalPanels()
@@ -620,6 +687,9 @@ class ChartWriter
                         svgAxisLine:SetTabIndex(-1)
                         svgAxisLine:SetID(canvas:GetID() + "-" + axisLine:GetHashCode())
                         subYAxes:Add(svgAxisLine)
+                        if HasAccessibility()
+                            svgAxisLine:SetAriaHidden("true")
+                        end
                         canvas:Add(svgAxisLine)
                     end
                     j = j + 1
@@ -638,6 +708,7 @@ class ChartWriter
                     svgSubVerticalPanel:SetStyleClass("quorum-chart-element")
                     if HasAccessibility()
                         svgSubVerticalPanel:SetAriaLabel(currentSubVerticalPanel:GetName() + currentSubVerticalPanel:GetDescription())
+                        svgSubVerticalPanel:SetAriaHidden("true")
                     end
                     me:subVerticalPanels:Add(svgSubVerticalPanel)
                     canvas:Add(svgSubVerticalPanel)
@@ -657,6 +728,9 @@ class ChartWriter
                 yAxisLabel:SetID(canvas:GetID() + "-" + yAxisLabel:GetHashCode())
                 yAxisLabel:SetStyleClass("quorum-chart-text")
                 yAxisLabel:SetTabIndex(-1)
+                if HasAccessibility()
+                    yAxisLabel:SetAriaHidden("true")
+                end
                 canvas:Add(yAxisLabel)
             end
         end
@@ -674,6 +748,9 @@ class ChartWriter
         chartTitle:SetID(canvas:GetID() + "-" + chartTitle:GetHashCode())
         chartTitle:SetStyleClass("quorum-chart-text")
         chartTitle:SetTabIndex(-1)
+        if HasAccessibility()
+            chartTitle:SetAriaHidden("true")
+        end
         canvas:Add(chartTitle)
     end
 
@@ -688,6 +765,9 @@ class ChartWriter
         chartSubtitle:SetFontFamily("Arial")
         chartSubtitle:SetID(canvas:GetID() + "-" + chartSubtitle:GetHashCode())
         chartSubtitle:SetTabIndex(-1)
+        if HasAccessibility()
+            chartSubtitle:SetAriaHidden("true")
+        end
         canvas:Add(chartSubtitle)
     end
 
@@ -726,6 +806,10 @@ class ChartWriter
                 svgElementTick:SetTabIndex(-1)
                 svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
 
+                if HasAccessibility()
+                    svgElementTick:SetAriaHidden("true")
+                end
+
                 canvas:Add(svgElementTick)
             end
             i = i + 1
@@ -743,7 +827,9 @@ class ChartWriter
                 svgElementBracket:SetFill(currentBracket:GetColor())
                 svgElementBracket:SetTabIndex(-1)
                 svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
-
+                if HasAccessibility()
+                    svgElementBracket:SetAriaHidden("true")
+                end
                 canvas:Add(svgElementBracket)
             end
             i = i + 1
@@ -762,7 +848,9 @@ class ChartWriter
                 svgElementLine:SetFill(currentLine:GetColor())
                 svgElementLine:SetTabIndex(-1)
                 svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
-
+                if HasAccessibility()
+                    svgElementLine:SetAriaHidden("true")
+                end
                 canvas:Add(svgElementLine)
             end
             i = i + 1
@@ -781,7 +869,9 @@ class ChartWriter
                 svgElementMinorline:SetFill(currentMinorline:GetColor())
                 svgElementMinorline:SetTabIndex(-1)
                 svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
-
+                if HasAccessibility()
+                    svgElementMinorline:SetAriaHidden("true")
+                end
                 canvas:Add(svgElementMinorline)
             end
             i = i + 1
@@ -807,6 +897,7 @@ class ChartWriter
 
                 if HasAccessibility()
                     svgLabel:SetAriaLabel(currentLabel:GetDescription())
+                    svgLabel:SetAriaHidden("true")
                 end
                 
                 canvas:Add(svgLabel)
@@ -839,6 +930,10 @@ class ChartWriter
                     svgElementTick:SetTabIndex(-1)
                     svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementTick:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementTick)
                 end
                 i = i + 1
@@ -857,6 +952,10 @@ class ChartWriter
                     svgElementBracket:SetTabIndex(-1)
                     svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementBracket:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementBracket)
                 end
                 i = i + 1
@@ -876,6 +975,10 @@ class ChartWriter
                     svgElementLine:SetTabIndex(-1)
                     svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementLine:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementLine)
                 end
                 i = i + 1
@@ -895,6 +998,10 @@ class ChartWriter
                     svgElementMinorline:SetTabIndex(-1)
                     svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementMinorline:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementMinorline)
                 end
                 i = i + 1
@@ -920,6 +1027,7 @@ class ChartWriter
     
                     if HasAccessibility()
                         svgLabel:SetAriaLabel(currentSubLabel:GetDescription())
+                        svgLabel:SetAriaHidden("true")
                     end
                     
                     canvas:Add(svgLabel)
@@ -961,6 +1069,10 @@ class ChartWriter
                 svgElementTick:SetTabIndex(-1)
                 svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
 
+                if HasAccessibility()
+                    svgElementTick:SetAriaHidden("true")
+                end
+
                 canvas:Add(svgElementTick)
             end
             i = i + 1
@@ -978,6 +1090,10 @@ class ChartWriter
                 svgElementBracket:SetFill(currentBracket:GetColor())
                 svgElementBracket:SetTabIndex(-1)
                 svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
+
+                if HasAccessibility()
+                    svgElementBracket:SetAriaHidden("true")
+                end
 
                 canvas:Add(svgElementBracket)
             end
@@ -998,6 +1114,10 @@ class ChartWriter
                 svgElementLine:SetTabIndex(-1)
                 svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
 
+                if HasAccessibility()
+                    svgElementLine:SetAriaHidden("true")
+                end
+
                 canvas:Add(svgElementLine)
             end
             i = i + 1
@@ -1016,6 +1136,10 @@ class ChartWriter
                 svgElementMinorline:SetFill(currentMinorline:GetColor())
                 svgElementMinorline:SetTabIndex(-1)
                 svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
+
+                if HasAccessibility()
+                    svgElementMinorline:SetAriaHidden("true")
+                end
 
                 canvas:Add(svgElementMinorline)
             end
@@ -1044,6 +1168,7 @@ class ChartWriter
                 
                 if HasAccessibility()
                     svgLabel:SetAriaLabel(currentLabel:GetDescription())
+                    svgLabel:SetAriaHidden("true")
                 end
 
                 canvas:Add(svgLabel)
@@ -1076,6 +1201,10 @@ class ChartWriter
                     svgElementTick:SetTabIndex(-1)
                     svgElementTick:SetID(canvas:GetID() + "-" + svgElementTick:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementTick:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementTick)
                 end
                 i = i + 1
@@ -1094,6 +1223,10 @@ class ChartWriter
                     svgElementBracket:SetTabIndex(-1)
                     svgElementBracket:SetID(canvas:GetID() + "-" + svgElementBracket:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementBracket:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementBracket)
                 end
                 i = i + 1
@@ -1113,6 +1246,10 @@ class ChartWriter
                     svgElementLine:SetTabIndex(-1)
                     svgElementLine:SetID(canvas:GetID() + "-" + svgElementLine:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementLine:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementLine)
                 end
                 i = i + 1
@@ -1132,6 +1269,10 @@ class ChartWriter
                     svgElementMinorline:SetTabIndex(-1)
                     svgElementMinorline:SetID(canvas:GetID() + "-" + svgElementMinorline:GetHashCode())
     
+                    if HasAccessibility()
+                        svgElementMinorline:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementMinorline)
                 end
                 i = i + 1
@@ -1158,6 +1299,7 @@ class ChartWriter
     
                     if HasAccessibility()
                         svgLabel:SetAriaLabel(currentSubLabel:GetDescription())
+                        svgLabel:SetAriaHidden("true")
                     end
                     
                     canvas:Add(svgLabel)
@@ -1193,6 +1335,7 @@ class ChartWriter
 
         if HasAccessibility()
             svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
+            svgElementLegend:SetAriaHidden("true")
         end
 
         canvas:Add(svgElementLegend)
@@ -1215,6 +1358,7 @@ class ChartWriter
             
             if HasAccessibility()
                 svgElementLegendTitle:SetAriaLabel(legendTitle:GetDescription())
+                svgElementLegendTitle:SetAriaHidden("true")
             end
 
             canvas:Add(svgElementLegendTitle)
@@ -1254,6 +1398,10 @@ class ChartWriter
                 svgElementSeriesIcon:SetID(canvas:GetID() + "-" + currentSeriesIcon:GetHashCode())
                 svgElementSeriesIcon:SetStyleClass("quorum-chart-rect")
 
+                if HasAccessibility()
+                    svgElementSeriesIcon:SetAriaHidden("true")
+                end
+
                 canvas:Add(svgElementSeriesIcon)
             end
 
@@ -1274,6 +1422,7 @@ class ChartWriter
                 
                 if HasAccessibility()
                     svgElementSeriesLabel:SetAriaLabel(currentSeriesLabel:GetDescription())
+                    svgElementSeriesLabel:SetAriaHidden("true")
                 end
     
                 canvas:Add(svgElementSeriesLabel)
@@ -1292,6 +1441,10 @@ class ChartWriter
                     svgElementRegIcon:SetID(canvas:GetID() + "-" + currentIcon:GetHashCode())
                     svgElementRegIcon:SetStyleClass("quorum-chart-rect")
 
+                    if HasAccessibility()
+                        svgElementRegIcon:SetAriaHidden("true")
+                    end
+
                     canvas:Add(svgElementRegIcon)
 
                     //Regression equation
@@ -1309,6 +1462,7 @@ class ChartWriter
     
                     if HasAccessibility()
                         svgElementRegLabel:SetAriaLabel(currentLabel:GetDescription())
+                        svgElementRegLabel:SetAriaHidden("true")
                     end
 
                     canvas:Add(svgElementRegLabel)
@@ -1328,6 +1482,7 @@ class ChartWriter
 
                     if HasAccessibility()
                         svgElementRLabel:SetAriaLabel(currentRLabel:GetDescription())
+                        svgElementRLabel:SetAriaHidden("true")
                     end
 
                     canvas:Add(svgElementRLabel)
@@ -1342,143 +1497,73 @@ class ChartWriter
         Generates the treeview of treeitems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
-    private action AddAccessibility(ScalableVectorGraphics canvas, Chart chart)
-        //Navigation Wrapper
-        Division div
-        div:SetIdentifier(canvas:GetID() + "-nav")
-        div:SetClassAttribute("svg-navigation")
-        div:AddAttribute("role","application")
-        
-        UnorderedList tree
-        tree:AddAttribute("role","tree")
-        tree:AddClassAttribute("quorum-chart-tree")
-        div:AddNestedTag(tree)
+    private action AddAccessibility(ScalableVectorGraphics canvas, Chart chart) returns Division
+        //Region Wrapper
+        Division divRegion
+        divRegion:SetClassAttribute("quorum-wrapper")
+        divRegion:SetStyle("min-width: 200px; max-width: 800px;")
+        divRegion:AddAttribute("role","region")
 
-        //Level 1
-        ListItem chartItem
-        chartItem:SetIdentifier(background:GetID() + "-nav")
-        chartItem:AddAttribute("role","treeitem")
-        chartItem:AddClassAttribute("quorum-chart-treeitem")
-        chartItem:AddAttribute("aria-labelledby",background:GetID())
-        chartItem:SetTabIndex("-1")
-        tree:Add(chartItem)
+        //Chart Info Wrapper
+        Division divChartInfo
+        divChartInfo:SetIdentifier(canvas:GetID() + "-nav")
+        divChartInfo:SetClassAttribute("quorum-chart-info")
+        divChartInfo:SetTabIndex("0")
+        divChartInfo:AddAttribute("aria-hidden","false")
+        divChartInfo:AddAttribute("onfocus","gainFocus('" + background:GetID() + "')")
+        divChartInfo:AddAttribute("onblur","loseFocus('" + background:GetID() + "')")
+        divRegion:AddNestedTag(divChartInfo)
 
-        if chart:IsShowingYAxis()
-            ListItem verticalPanelItem
-            verticalPanelItem:SetIdentifier(verticalPanel:GetID() + "-nav")
-            verticalPanelItem:AddAttribute("role","treeitem")
-            verticalPanelItem:AddClassAttribute("quorum-chart-treeitem")
-            verticalPanelItem:AddAttribute("aria-labelledby",verticalPanel:GetID())
-            verticalPanelItem:AddAttribute("aria-expanded","false")
-            verticalPanelItem:SetTabIndex("-1")
-            tree:Add(verticalPanelItem)
+        //Chart title, summary, x axis, y axis, legend
+        //Title
+        Division chartTitle
+        chartTitle:SetTabIndex("-1")
+        chartTitle:AddAttribute("aria-hidden","false")
+        chartTitle:AddText(chart:GetTitle())
+        divChartInfo:AddNestedTag(chartTitle)
 
-            if chart:GetSubVerticalPanels():GetSize() <= 0
-                AddYAxisAccessibility(chart, yLabels, verticalPanelItem)
-            else
-                UnorderedList subVerticalPanelUL
-                subVerticalPanelUL:AddAttribute("role","group")
-                subVerticalPanelUL:AddClassAttribute("quorum-chart-group")
-                verticalPanelItem:Add(subVerticalPanelUL)
-    
-                i = 0
-                repeat while i < subVerticalPanels:GetSize() and i < subYLabels:GetSize()
-                    ListItem subVerticalPanelItem
-                    subVerticalPanelItem:SetIdentifier(subVerticalPanels:Get(i):GetID() + "-nav")
-                    subVerticalPanelItem:AddAttribute("role","treeitem")
-                    subVerticalPanelItem:AddClassAttribute("quorum-chart-treeitem")
-                    subVerticalPanelItem:AddAttribute("aria-labelledby",subVerticalPanels:Get(i):GetID())
-                    subVerticalPanelItem:AddAttribute("aria-expanded","false")
-                    subVerticalPanelItem:SetTabIndex("-1")
-                    AddYAxisAccessibility(chart, subYLabels:Get(i), subVerticalPanelItem)
-                    subVerticalPanelUL:Add(subVerticalPanelItem)
-    
-                    i = i + 1
-                end
-            end
-        end
+        //Summary
+        Division chartSummary
+        chartSummary:SetTabIndex("-1")
+        chartSummary:AddAttribute("aria-hidden","false")
+        chartSummary:AddText(chart:GetName() + " " + chart:GetDescription())
+        divChartInfo:AddNestedTag(chartSummary)
 
-        ListItem chartAreaItem
-        chartAreaItem:SetIdentifier(chartArea:GetID() + "-nav")
-        chartAreaItem:AddAttribute("role","treeitem")
-        chartAreaItem:AddClassAttribute("quorum-chart-treeitem")
-        chartAreaItem:AddAttribute("aria-labelledby",chartArea:GetID())
-        chartAreaItem:AddAttribute("aria-expanded","false")
-        chartAreaItem:SetTabIndex("-1")
-        tree:Add(chartAreaItem)
-        if not chart:IsSeparated()
-            AddChartContentAccessibility(canvas, chart, chart:GetChartArea(), chartAreaItem)
-        else
-            UnorderedList subChartAreaUL
-            subChartAreaUL:AddAttribute("role","group")
-            subChartAreaUL:AddClassAttribute("quorum-chart-group")
-            chartAreaItem:Add(subChartAreaUL)
-
-            i = 0
-            repeat while i < subChartAreas:GetSize()
-                ListItem subChartAreaItem
-                subChartAreaItem:SetIdentifier(subChartAreas:Get(i):GetID() + "-nav")
-                subChartAreaItem:AddAttribute("role","treeitem")
-                subChartAreaItem:AddClassAttribute("quorum-chart-treeitem")
-                subChartAreaItem:AddAttribute("aria-labelledby",subChartAreas:Get(i):GetID())
-                subChartAreaItem:AddAttribute("aria-expanded","false")
-                subChartAreaItem:SetTabIndex("-1")
-                AddChartContentAccessibility(canvas, chart, chart:GetSubChartAreas():Get(i), subChartAreaItem)
-                subChartAreaUL:Add(subChartAreaItem)
-
-                i = i + 1
-            end
-        end
-
+        //X Axis
         if chart:IsShowingXAxis()
-            ListItem horizontalPanelItem
-            horizontalPanelItem:SetIdentifier(horizontalPanel:GetID() + "-nav")
-            horizontalPanelItem:AddAttribute("role","treeitem")
-            horizontalPanelItem:AddClassAttribute("quorum-chart-treeitem")
-            horizontalPanelItem:AddAttribute("aria-labelledby",horizontalPanel:GetID())
-            horizontalPanelItem:AddAttribute("aria-expanded","false")
-            horizontalPanelItem:SetTabIndex("-1")
-            tree:Add(horizontalPanelItem)
-
-            if chart:GetSubHorizontalPanels():GetSize() <= 0
-                AddXAxisAccessibility(chart, xLabels, horizontalPanelItem)
-            else
-                UnorderedList subHorizontalPanelUL
-                subHorizontalPanelUL:AddAttribute("role","group")
-                subHorizontalPanelUL:AddClassAttribute("quorum-chart-group")
-                horizontalPanelItem:Add(subHorizontalPanelUL)
-
-                i = 0
-                repeat while i < subHorizontalPanels:GetSize() //and i < subXLabels:GetSize()
-                    ListItem subHorizontalPanelItem
-                    subHorizontalPanelItem:SetIdentifier(subHorizontalPanels:Get(i):GetID() + "-nav")
-                    subHorizontalPanelItem:AddAttribute("role","treeitem")
-                    subHorizontalPanelItem:AddClassAttribute("quorum-chart-treeitem")
-                    subHorizontalPanelItem:AddAttribute("aria-labelledby",subHorizontalPanels:Get(i):GetID())
-                    subHorizontalPanelItem:AddAttribute("aria-expanded","false")
-                    subHorizontalPanelItem:SetTabIndex("-1")
-                    AddXAxisAccessibility(chart, subXLabels:Get(i), subHorizontalPanelItem)
-                    subHorizontalPanelUL:Add(subHorizontalPanelItem)
-    
-                    i = i + 1
-                end
-            end
+            Division divXAxis
+            divXAxis:SetTabIndex("-1")
+            divXAxis:AddAttribute("aria-hidden","false")
+            divXAxis:AddText(chart:GetHorizontalPanel():GetName() + " " + chart:GetHorizontalPanel():GetDescription())
+            divChartInfo:AddNestedTag(divXAxis)
         end
 
+        //Y Axis
+        if chart:IsShowingYAxis()
+            Division divYAxis
+            divYAxis:SetTabIndex("-1")
+            divYAxis:AddAttribute("aria-hidden","false")
+            divYAxis:AddText(chart:GetVerticalPanel():GetName() + " " + chart:GetVerticalPanel():GetDescription())
+            divChartInfo:AddNestedTag(divYAxis)
+        end
 
+        //Legend
         if chart:IsShowingLegend()
-            ListItem legendItem
-            legendItem:SetIdentifier(canvas:GetID() + "-" + chart:GetLegend():GetHashCode() + "-nav")
-            legendItem:AddAttribute("role","treeitem")
-            legendItem:AddClassAttribute("quorum-chart-treeitem")
-            legendItem:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chart:GetLegend():GetHashCode())
-            legendItem:AddAttribute("aria-expanded","false")
-            legendItem:SetTabIndex("-1")
-            AddLegendAccessibility(canvas, chart, legendItem)
-            tree:Add(legendItem)
+            Division divLegend
+            divLegend:SetTabIndex("-1")
+            divLegend:AddAttribute("aria-hidden","false")
+            divLegend:AddText(chart:GetLegend():GetName() + " " + chart:GetLegend():GetDescription())
+            divChartInfo:AddNestedTag(divLegend)
         end
+        
+        //Wrapper for SVG to help with scaling size
+        Division svgWrapper
+        svgWrapper:SetTabIndex("-1")
+        svgWrapper:SetStyle("min-width: 200px; max-width: 800px; user-select: none;")
+        divRegion:AddNestedTag(svgWrapper)
+        svgWrapper:AddText(canvas:ToText())
 
-        canvas:Add(div)
+        return divRegion
     end
 
     action AddYAxisAccessibility(Chart chart, Array<Label> yLabels, ListItem yAxisLabelItem)
@@ -1583,6 +1668,10 @@ class ChartWriter
                 svgElementRegLine:SetTabIndex(-1)
                 svgElementRegLine:SetID(canvas:GetID() + "-" + line:GetHashCode())
                 svgElementRegLine:SetStyleClass("quorum-chart-rect")
+
+                if HasAccessibility()
+                    svgElementRegLine:SetAriaHidden("true")
+                end
 
                 canvas:Add(svgElementRegLine)
             end

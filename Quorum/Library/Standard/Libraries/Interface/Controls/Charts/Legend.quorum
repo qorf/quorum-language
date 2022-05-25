@@ -81,11 +81,26 @@ class Legend is Control
         legendArea:SetDisplayName(GetName())
         legendArea:SetFocusTarget(me)
         legendArea:SetParent(summary)
-        if GetName() = "Legend"
-            me:SetDescription(" with " + seriesList:GetSize() + " series")
-        else
-            me:SetDescription(" legend with " + seriesList:GetSize() + " series")
+
+        text description = ""
+        if titleText not= ""
+            description = description + "shows " + titleText + " and "
+        end 
+        if seriesList not= undefined
+            if seriesList:GetSize() = 1
+                description = description + "has a value of " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
+            else
+                description = description + "has values "
+                integer i = 0
+                repeat while i < seriesList:GetSize()-1
+                    description = description + seriesList:Get(i):GetName() + ", "
+                    i = i + 1
+                end
+                description = description + "and " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
+            end
         end
+        me:SetDescription(description)
+
         legendArea:SetContainer(chart)
 
         if chart:IsShowingXAxis()
@@ -302,7 +317,6 @@ class Legend is Control
 
     action SetTitleText(text name)
         titleText = name
-        SetName(name)
     end    
 
     action GetTitleLabel() returns ControlLabel
