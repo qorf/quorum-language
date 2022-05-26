@@ -42,7 +42,7 @@ class ScatterPlotLayout is TwoVariableChartLayout
         repeat while i < points:GetSize()
             ChartPoint point = points:Get(i)
             
-            point:LoadFilledCircle(pointRadius, points:Get(i):GetColor())
+            point:SetSize(2 * pointRadius, 2 * pointRadius)
 
             point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
             point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))

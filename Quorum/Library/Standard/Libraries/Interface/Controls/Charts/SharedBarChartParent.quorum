@@ -53,6 +53,14 @@ class SharedBarChartParent is Chart
     integer previousZ = 0
     ChartOptions options
     Math math
+
+    number barBorderThickness = 0
+    integer barBorderStyle = 0
+
+    on create
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        barBorderStyle = properties:ALL - properties:BOTTOM
+    end
     
     /*
         LoadGraphics
@@ -660,4 +668,49 @@ class SharedBarChartParent is Chart
             end
         end
     end
+
+    /*
+    This action returns how thick the borders of the bars are, in pixels.
+    */
+    action GetBarBorderThickness returns number
+        return barBorderThickness
+    end
+
+    /*
+    This action sets how thick the borders of the bars are, in pixels.
+    */
+    action SetBarBorderThickness(number barBorderThickness)
+        me:barBorderThickness = barBorderThickness
+    end
+    
+    action SetOrientationToHorizontal
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        barBorderStyle = properties:ALL - properties:LEFT
+        parent:Chart:SetOrientationToHorizontal()
+    end
+
+    action SetOrientationToVertical
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        barBorderStyle = properties:ALL - properties:BOTTOM
+        parent:Chart:SetOrientationToVertical()
+    end
+
+    /*
+    This action returns a code representing which sides of the bars have borders,
+    using the style constants from LayoutProperties (LEFT, RIGHT, TOP, BOTTOM, ALL,
+    and NONE). By default, vertical bar charts have bar borders on all sides except
+    the bottom, and horizontal bar charts have bar borders on all sides except the left.
+    */
+    action GetBarBorderStyle returns integer
+        return barBorderStyle
+    end
+
+    /*
+    This action sets which sides of the bars have borders, using a combination of the
+    style constants from LayoutProperties (LEFT, RIGHT, TOP, BOTTOM, ALL, and NONE).
+    */
+    action SetBarBorderStyle(integer barBorderStyle)
+        me:barBorderStyle = barBorderStyle
+    end
+
 end

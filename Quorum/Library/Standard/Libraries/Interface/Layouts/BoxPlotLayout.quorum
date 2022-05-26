@@ -17,6 +17,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Game.Graphics.ColorGroup
 
 /*
     This class determines the visual layout for the chart.
@@ -176,7 +177,7 @@ class BoxPlotLayout is ChartLayout
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
                         Array<ChartDrawable> item = plot:GetPlotItems()
                         Color lightColor = plot:GetColor()
-                        Color darkColor = lightColor:Black()
+                        ColorGroup darkColor = chart:GetBorderColor()
     
                         //Outer box
                         if plot:GetPlotArea() not= undefined
@@ -266,11 +267,11 @@ class BoxPlotLayout is ChartLayout
                                 number y = outliers:Get(outlierIndex)
                                 percent = (y - rangeMin)/range
                                 integer radius = line
-                                item:Get(j):LoadFilledCircle(radius, darkColor)
-                                item:Get(j):SetPosition(startw+center-halfline, cast(integer, percent*height)-line)
-                                if horizontal 
-                                    item:Get(j):LoadFilledCircle(radius, darkColor)
-                                    item:Get(j):SetPosition(cast(integer, percent*height)-line, startw+center-halfline)
+                                item:Get(j):SetSize(radius * 4, radius * 4)
+                                item:Get(j):SetColor(lightColor)
+                                item:Get(j):SetPosition(startw+center-line, cast(integer, percent*height)-line * 2)
+                                if horizontal
+                                    item:Get(j):SetPosition(cast(integer, percent*height)-line * 2, startw+center-line)
                                 end
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1

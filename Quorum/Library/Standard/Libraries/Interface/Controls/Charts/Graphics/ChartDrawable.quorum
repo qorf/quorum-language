@@ -6,6 +6,8 @@ use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.ChartLabel
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Icon
 
 
 /*
@@ -18,7 +20,7 @@ ChartDrawable holds the annotation for the drawable.
 Attribute: Author Hannah Williams
 */
 
-class ChartDrawable is Drawable    
+class ChartDrawable is Icon    
     ChartAreaPanel chartArea = undefined // If separated, this will correspond to the correct sub chart area
     Series series = undefined
     GroupPanel group = undefined
@@ -102,6 +104,16 @@ class ChartDrawable is Drawable
 
     action SetChartArea(ChartAreaPanel chartArea)
         me:chartArea = chartArea
+    end
+
+    // Try to get the chart this is attached to via the parent hierarchy.
+    private action GetParentChart returns Chart
+        Item2D parentItem = me
+        repeat until parentItem is Chart or parentItem = undefined
+            parentItem = parentItem:GetParent()
+        end
+
+        return cast(Chart, parentItem)
     end
 
 end

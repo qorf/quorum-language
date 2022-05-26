@@ -1016,6 +1016,15 @@ class Control is Item2D
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.
     end
+
+    action HasColorPropertyOverride(text property) returns boolean
+        return defaultProperties:HasColorPropertyOverride(property)
+    end
+
+    action HasNumberPropertyOverride(text property) returns boolean
+        return defaultProperties:HasNumberPropertyOverride(property)
+    end
+
     action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
