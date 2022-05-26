@@ -165,14 +165,14 @@ class ChartLayout is Layout
                         end
                         subContainer:SetPosition(x, y)
                         subContainer:SetSize(width, height-labelArea)
-                        if chart:ShowSubChartAreaBorders()
-                            subContainer:SetBorderColor(chart:GetBorderColor())
-                        else
-                            Color color
-                            color:SetColor(0,0,0,0)
-                            subContainer:SetBorderColor(color)
-                            subContainer:SetBackgroundColor(color)
-                        end
+//                        if chart:ShowSubChartAreaBorders()
+//                            subContainer:SetBorderColor(chart:GetBorderColor())
+//                        else
+//                            Color color
+//                            color:SetColor(0,0,0,0)
+//                            subContainer:SetBorderColor(color)
+//                            subContainer:SetBackgroundColor(color)
+//                        end
                         subContainer:LoadChartAreaView()
                         if subContainer:GetLabel() not= undefined
                             ChartLabel subchartLabel = subContainer:GetLabel()
@@ -235,9 +235,9 @@ class ChartLayout is Layout
         integer xAxisHeight = chart:GetHorizontalPanel():GetTickWidth()
         integer axisHeight = cast(integer, chartHeight) + xAxisHeight + cast(integer, tickHeight/2.0) // Makes a sharp corner at bottom and top.
         integer axisWidth = tickHeight
-        if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
-            axisWidth = 1
-        end
+//        if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+//            axisWidth = 1
+//        end
 
         // Calculating tick and label positions
         Array<Drawable> ticks = verticalContainer:GetTicks()
@@ -429,9 +429,9 @@ class ChartLayout is Layout
         integer tickWidth = cast(integer, mainHorizontalContainer:GetTickWidth())
         integer axisHeight = tickWidth
         integer axisWidth = cast(integer, chartWidth)
-        if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
-            axisHeight = 1
-        end
+//        if chart:ShowSubChartAreaBorders() and chart:IsSeparated()
+//            axisHeight = 1
+//        end
 
         // Calculating tick and label positions
         Array<Drawable> ticks = horizontalContainer:GetTicks()
