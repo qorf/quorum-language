@@ -42,7 +42,7 @@ class SceneEditor_LIBRARY is Control
 
 //    Array<EditorLayer> layers
 
-//    VisualEditorResources visualResources
+    SceneConstants constants
 //    VisualEditorSelection selection
 
 //    Array<SceneChangeListener> sceneChangeListeners
@@ -165,7 +165,13 @@ class SceneEditor_LIBRARY is Control
 
     end
 
+    action GetEditorTag returns text
+        return constants:EDITOR_TAG
+    end
 
+    action GetSceneConstants returns SceneConstants
+        return constants
+    end
 
     action Update(number seconds)
 
