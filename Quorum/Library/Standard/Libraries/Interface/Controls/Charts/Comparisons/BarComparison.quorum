@@ -1,0 +1,20 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Charts.Graphics.Bar
+
+class BarComparison is Comparison
+
+    action Compare(Object left, Object right) returns integer
+        Bar bar1 = cast(Bar, left)
+        Bar bar2 = cast(Bar, right)
+
+        if bar1:GetValue() > bar2:GetValue()
+            return parent:Comparison:LARGER
+        elseif bar1:GetValue() < bar2:GetValue()
+            return parent:Comparison:SMALLER
+        else
+            return parent:Comparison:EQUAL
+        end
+    end
+end

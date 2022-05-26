@@ -5,12 +5,10 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
-use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Compute.Statistics.Analysis.UnivariateAction
@@ -74,14 +72,6 @@ class ViolinPlot is Chart
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Violin Plot")
 

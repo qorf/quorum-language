@@ -12,8 +12,8 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.Legend
+use Libraries.Interface.Controls.Charts.ChartLabel
 use Libraries.Interface.Controls.Charts.Histogram
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Game.Graphics.Color
@@ -29,7 +29,6 @@ class ChartLayout is Layout
     integer minimumLabelOffset = 35
     number yLabelHeight = 0.30
     Math math
-    Color color
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
         LayoutProperties containerProperties
@@ -55,7 +54,7 @@ class ChartLayout is Layout
 
                 // Title
                 if chart:IsShowingTitle()
-                    ControlLabel titleLabel = chart:GetTitleLabel()
+                    ChartLabel titleLabel = chart:GetTitleLabel()
                     if titleLabel:GetDefaultLayoutProperties():NeedsRendering()
                         titleLabel:LoadGraphics(titleLabel:GetDefaultLayoutProperties())
                     end
@@ -68,7 +67,7 @@ class ChartLayout is Layout
 
                 // Title
                 if chart:IsShowingSubtitle()
-                    ControlLabel subtitleLabel = chart:GetSubtitleLabel()
+                    ChartLabel subtitleLabel = chart:GetSubtitleLabel()
                     if subtitleLabel:GetDefaultLayoutProperties():NeedsRendering()
                         subtitleLabel:LoadGraphics(subtitleLabel:GetDefaultLayoutProperties())
                     end
@@ -140,7 +139,7 @@ class ChartLayout is Layout
                     integer fontSize = 0
                     integer i = 0
                     repeat while i < chart:GetSubChartAreas():GetSize()
-                        ControlLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
+                        ChartLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
                         if label not= undefined
                             label:SetFontSize(cast(integer, labelArea*0.75))
                             if label:GetWidth() > width
@@ -167,15 +166,16 @@ class ChartLayout is Layout
                         subContainer:SetPosition(x, y)
                         subContainer:SetSize(width, height-labelArea)
                         if chart:ShowSubChartAreaBorders()
-                            subContainer:SetBorderColor(color:Black())
+                            subContainer:SetBorderColor(chart:GetBorderColor())
                         else
+                            Color color
                             color:SetColor(0,0,0,0)
                             subContainer:SetBorderColor(color)
                             subContainer:SetBackgroundColor(color)
                         end
                         subContainer:LoadChartAreaView()
                         if subContainer:GetLabel() not= undefined
-                            ControlLabel subchartLabel = subContainer:GetLabel()
+                            ChartLabel subchartLabel = subContainer:GetLabel()
                             subchartLabel:SetFontSize(fontSize)
                             subchartLabel:SetPosition(width/2-(subchartLabel:GetWidth()/2), subContainer:GetHeight()+labelArea/6)
                         end
@@ -222,7 +222,6 @@ class ChartLayout is Layout
 
     action LayoutVerticalAxis(Chart chart, VerticalAxisPanel verticalContainer)
         VerticalAxisPanel mainVerticalContainer = chart:GetVerticalPanel()
-        Color color
 
         number chartWidth = chart:GetChartArea():GetWidth()
         number chartHeight = chart:GetChartArea():GetHeight() 
@@ -246,7 +245,7 @@ class ChartLayout is Layout
         Array<Drawable> majorlines = verticalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
         Array<Drawable> axislines = verticalContainer:GetAxisLines()
-        Array<ControlLabel> labels = verticalContainer:GetLabels()
+        Array<ChartLabel> labels = verticalContainer:GetLabels()
 
         integer originPointX = cast(integer, verticalContainer:GetWidth())
         integer originPointY = 0
@@ -290,18 +289,18 @@ class ChartLayout is Layout
                     bracketY = cast(integer, tickY - majorDivWidth/2.0)
                     if brackets:GetSize() >= (i*3)+2
                         integer index = i*3
-                        brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight, color:LightGray())
+                        brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight, chart:GetAccentColor())
                         brackets:Get(index):SetPosition(tickX, bracketY+tickHeight)
                         
-                        brackets:Get(index+1):LoadFilledRectangle(tickHeight, cast(integer, majorDivWidth)-tickHeight*2, color:LightGray())
+                        brackets:Get(index+1):LoadFilledRectangle(tickHeight, cast(integer, majorDivWidth)-tickHeight*2, chart:GetAccentColor())
                         brackets:Get(index+1):SetPosition(tickX, bracketY+tickHeight)
 
                         bracketY = bracketY + cast(integer, majorDivWidth)
 
-                        brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight, color:LightGray())
+                        brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight, chart:GetAccentColor())
                         brackets:Get(index+2):SetPosition(tickX, bracketY-tickHeight*2)
                         tickX = tickX - tickWidth
-                        ticks:Get(i):SetColor(color:LightGray())
+                        ticks:Get(i):SetColor(chart:GetAccentColor())
                     end
                 end
             end
@@ -342,7 +341,7 @@ class ChartLayout is Layout
                 end   
                 integer thin = cast(integer, tickHeight*0.75)
                 majorLine:SetPosition(0, cast(integer, tickY+(thin/2)))
-                majorLine:LoadFilledRectangle(cast(integer, chartWidth), thin, color:LightGray())
+                majorLine:LoadFilledRectangle(cast(integer, chartWidth), thin, chart:GetAccentColor())
 
                 if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetHeight()/2)
@@ -351,7 +350,7 @@ class ChartLayout is Layout
                     repeat while j < ((startIndex)+1)*mainVerticalContainer:GetMinorGridlineCount() and minorY < (axisHeight - tickHeight)
                         Drawable minorLine = minorlines:Get(j)
                         minorLine:SetPosition(0, cast(integer, minorY+thinner))
-                        minorLine:LoadFilledRectangle(cast(integer, chartWidth), thinner, color:LightGray())
+                        minorLine:LoadFilledRectangle(cast(integer, chartWidth), thinner, chart:GetAccentColor())
                         j = j + 1
                         minorY = minorY + minorDivWidth
                     end
@@ -362,7 +361,7 @@ class ChartLayout is Layout
 
             // Labels
             if i < labels:GetSize()
-                ControlLabel currentLabel = labels:Get(i) 
+                ChartLabel currentLabel = labels:Get(i) 
                 currentLabel:SetFontSize(mainVerticalContainer:GetLabelFontSize())
                 
                 if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
@@ -387,7 +386,7 @@ class ChartLayout is Layout
         if verticalContainer:GetTitleLabel() not= undefined
             number labelMinimumX = mainVerticalContainer:GetLongestLabel():GetX()
 
-            ControlLabel axisLabel = verticalContainer:GetTitleLabel()
+            ChartLabel axisLabel = verticalContainer:GetTitleLabel()
             Item2D labelAnchor = axisLabel:GetParent()
             if axisLabel:GetDefaultLayoutProperties():NeedsRendering()       
                 axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
@@ -419,7 +418,6 @@ class ChartLayout is Layout
     */
     action LayoutHorizontalAxis(Chart chart, HorizontalAxisPanel horizontalContainer)
         HorizontalAxisPanel mainHorizontalContainer = chart:GetHorizontalPanel()
-        Color color
 
         number chartWidth = chart:GetChartArea():GetWidth()
         number chartHeight = chart:GetChartArea():GetHeight() 
@@ -441,7 +439,7 @@ class ChartLayout is Layout
         Array<Drawable> majorlines = horizontalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
         Array<Drawable> axislines = horizontalContainer:GetAxisLines()
-        Array<ControlLabel> labels = horizontalContainer:GetLabels()
+        Array<ChartLabel> labels = horizontalContainer:GetLabels()
 
         integer originPointX = 0
         integer originPointY = cast(integer, horizontalContainer:GetHeight())
@@ -492,18 +490,18 @@ class ChartLayout is Layout
                     bracketX = cast(integer, tickX - majorDivWidth/2.0)
                     if brackets:GetSize() >= (i*3)+2
                         integer index = i*3
-                        brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight, color:LightGray())
+                        brackets:Get(index):LoadFilledRectangle(tickWidth, tickHeight, chart:GetAccentColor())
                         brackets:Get(index):SetPosition(bracketX+tickWidth, tickY)
                         
-                        brackets:Get(index+1):LoadFilledRectangle(cast(integer, majorDivWidth)-tickWidth*2, tickWidth, color:LightGray())
+                        brackets:Get(index+1):LoadFilledRectangle(cast(integer, majorDivWidth)-tickWidth*2, tickWidth, chart:GetAccentColor())
                         brackets:Get(index+1):SetPosition(bracketX+tickWidth, tickY)
 
                         bracketX = bracketX + cast(integer, majorDivWidth)
 
-                        brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight, color:LightGray())
+                        brackets:Get(index+2):LoadFilledRectangle(tickWidth, tickHeight, chart:GetAccentColor())
                         brackets:Get(index+2):SetPosition(bracketX-tickWidth*2, tickY)
                         tickY = tickY - tickHeight
-                        ticks:Get(i):SetColor(color:LightGray())
+                        ticks:Get(i):SetColor(chart:GetAccentColor())
                     end
                 end
             end
@@ -544,7 +542,7 @@ class ChartLayout is Layout
                 end
                 integer thin = cast(integer, tickWidth*0.75)
                 majorLine:SetPosition(cast(integer, tickX+(thin/2)), 0)
-                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight), color:LightGray())
+                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight), chart:GetAccentColor())
     
                 if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetWidth()/2)
@@ -553,7 +551,7 @@ class ChartLayout is Layout
                     repeat while j < (startIndex+1)*mainHorizontalContainer:GetMinorGridlineCount() and minorX < (axisWidth - tickWidth)
                         Drawable minorLine = minorlines:Get(j)
                         minorLine:SetPosition(cast(integer, minorX+thinner), 0)
-                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight), color:LightGray())
+                        minorLine:LoadFilledRectangle(thinner, cast(integer, chartHeight), chart:GetAccentColor())
                         j = j + 1
                         minorX = minorX + minorDivWidth
                     end
@@ -564,7 +562,7 @@ class ChartLayout is Layout
 
             // Labels
             if i < labels:GetSize()
-                ControlLabel currentLabel = labels:Get(i)
+                ChartLabel currentLabel = labels:Get(i)
                 currentLabel:SetFontSize(mainHorizontalContainer:GetLabelFontSize())
                 Item2D labelAnchor = currentLabel:GetParent()
                 if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
@@ -661,7 +659,7 @@ class ChartLayout is Layout
         
         if horizontalContainer:GetTitleLabel() not= undefined
             number labelMinY = mainHorizontalContainer:GetLabelMinimum()
-            ControlLabel axisLabel = horizontalContainer:GetTitleLabel()
+            ChartLabel axisLabel = horizontalContainer:GetTitleLabel()
             Item2D labelAnchor = axisLabel:GetParent()
             axisLabel:LoadGraphics(axisLabel:GetDefaultLayoutProperties())
 
@@ -696,7 +694,7 @@ class ChartLayout is Layout
 
             //This is the title of the legend.      
             if legendContainer:GetTitleLabel() not= undefined
-                ControlLabel legendLabel = legendContainer:GetTitleLabel()
+                ChartLabel legendLabel = legendContainer:GetTitleLabel()
                 if legendLabel:GetDefaultLayoutProperties():NeedsRendering()       
                     legendLabel:LoadGraphics(legendLabel:GetDefaultLayoutProperties())
                 end
@@ -713,7 +711,7 @@ class ChartLayout is Layout
             integer labelY = 0
             Array<Series> seriesList = legendContainer:GetSeriesList()
             if not seriesList:IsEmpty()
-                ControlLabel currentLabel
+                ChartLabel currentLabel
                 Icon currentIcon
                 Icon entryBox
                 Color transparent
@@ -783,7 +781,7 @@ class ChartLayout is Layout
 
             //This is the title of the legend.      
             if legendContainer:GetTitleLabel() not= undefined
-                ControlLabel legendLabel = legendContainer:GetTitleLabel()
+                ChartLabel legendLabel = legendContainer:GetTitleLabel()
                 if legendLabel:GetDefaultLayoutProperties():NeedsRendering()       
                     legendLabel:LoadGraphics(legendLabel:GetDefaultLayoutProperties())
                 end
@@ -800,7 +798,7 @@ class ChartLayout is Layout
             integer labelY = 0
             Array<Series> seriesList = legendContainer:GetSeriesList()
             if not seriesList:IsEmpty()
-                ControlLabel currentLabel
+                ChartLabel currentLabel
                 Icon currentIcon
                 Icon entryBox
                 Color transparent

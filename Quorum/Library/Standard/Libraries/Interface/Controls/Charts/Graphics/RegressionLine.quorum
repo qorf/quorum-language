@@ -5,7 +5,6 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Compute.Vector
 use Libraries.Compute.Math
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Containers.Array
 
 class RegressionLine is Drawable
@@ -13,8 +12,8 @@ class RegressionLine is Drawable
     private Series series = undefined
     private Math math
     private Icon icon 
-    private ControlLabel equation
-    private ControlLabel rsquared
+    private ChartLabel equation
+    private ChartLabel rsquared
     private text equationText = ""
     private text rsquaredText = ""
     private integer lineDensity = 4     
@@ -47,15 +46,15 @@ class RegressionLine is Drawable
         return icon
     end
 
-    action GetLabel() returns ControlLabel
+    action GetLabel() returns ChartLabel
         return equation
     end
 
-    action GetEquationLabel() returns ControlLabel
+    action GetEquationLabel() returns ChartLabel
         return equation
     end
 
-    action GetRSquaredLabel() returns ControlLabel
+    action GetRSquaredLabel() returns ChartLabel
         return rsquared
     end
 

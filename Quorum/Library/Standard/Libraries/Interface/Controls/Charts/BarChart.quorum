@@ -4,7 +4,6 @@ use Libraries.Interface.Layouts.BarChartLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
 use Libraries.System.File
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
@@ -43,15 +42,6 @@ class BarChart is SharedBarChartParent
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
-        properties:SetBorderThickness(2)
         SetName("Bar Chart")
 
         SetInputGroup("Chart")

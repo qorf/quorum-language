@@ -1016,7 +1016,6 @@ class Control is Item2D
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.
     end
-
     action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
@@ -1031,6 +1030,14 @@ class Control is Item2D
 
     action GetForegroundColor returns ColorGroup
         return defaultProperties:GetForegroundColor()
+    end
+
+    action SetForegroundSelectionColor(ColorGroup value)
+        defaultProperties:SetForegroundSelectionColor(value)
+    end
+
+    action GetForegroundSelectionColor returns ColorGroup
+        return defaultProperties:GetForegroundSelectionColor()
     end
 
     action SetFontColor(ColorGroup value)

@@ -51,6 +51,7 @@ class ScalableVectorGraphicsObject
 
     //helper attributes
     private boolean isContainer = false
+    private boolean isOneLine = false
 
     //title and description of svg graphics element or container
     private text title = ""
@@ -219,6 +220,22 @@ class ScalableVectorGraphicsObject
     */
     action IsContainer returns boolean
         return isContainer
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+
+        Attribute: Parameter isContainer true if it will contain other objects, false if not
+    */
+    action SetIsOneLine(boolean isOneLine)
+        me:isOneLine = isOneLine
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+    */
+    action IsOneLine returns boolean
+        return isOneLine
     end
 
     /*

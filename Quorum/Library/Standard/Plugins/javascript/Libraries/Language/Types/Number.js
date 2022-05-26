@@ -88,9 +88,9 @@ Number.prototype.IsInfinite$NumberPrimitive = function() {
 };
 //system action IsNotANumber() returns boolean
 Number.prototype.IsNotANumber$NumberPrimitive = function() {
-  return this.valueOf() == Number.NaN;
+  return isNaN(this.valueOf());
 };
-//ystem action GetHex() returns text
+//system action GetHex() returns text
 Number.prototype.GetHex$NumberPrimitive = function() {
   return this.valueOf().toString(16);
 };

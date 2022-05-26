@@ -4,7 +4,6 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
@@ -35,7 +34,7 @@ end
 
 class Series is Icon //is Drawable
     ChartAreaPanel chartArea = undefined // If separated by series, this will correspond to the correct sub chart area
-    private ControlLabel label
+    private ChartLabel label
     private Icon entryIcon // The small colored shape appearing in the legend for this entry.
     private Icon entryBox
     private Color customColor = undefined
@@ -54,11 +53,11 @@ class Series is Icon //is Drawable
                 RegressionRSquared
     ***************************************/
 
-    action GetLabel returns ControlLabel
+    action GetLabel returns ChartLabel
         return label
     end
 
-    action SetLabel(ControlLabel label)
+    action SetLabel(ChartLabel label)
         me:label = label
     end
 

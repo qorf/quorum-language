@@ -63,6 +63,7 @@ use Libraries.Compute.Statistics.Charts.GeoMapCreator
 use Libraries.Compute.Statistics.Transforms.RemoveUndefinedRowsTransform
 use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
+use Libraries.Containers.Support.Pair
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -1509,6 +1510,89 @@ class DataFrame
     end
 
     /*
+        This adds a row to the selected range.
+    
+        Attribute: Parameter index the row index of the row to add
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedRow(0)
+        output frame:ToText()
+    */
+    action AddSelectedRow(integer index) 
+        CheckDefaultSelection()
+
+        selection:AddRow(index)
+    end
+
+    /*
+        This removes a column at the index of the selection.
+    
+        Attribute: Parameter index the selection index of the column to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:RemoveSelectedColumnAt(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedRowAt(integer index)
+        if selection = undefined or index < 0 or index >= selection:GetColumnSize()
+            return now
+        end
+
+        selection:RemoveRowAt(index)
+    end
+
+    /*
+        This removes a row of a particular index anywhere from the selection.
+    
+        Attribute: Parameter index the row index of the row to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedRow(0)
+        frame:RemoveSelectedRow(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedRow(integer index)
+        if selection = undefined
+            return now
+        end
+
+        selection:RemoveRow(index)
+    end
+
+    /*
+        This action empties the selection, so that no rows are selected.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedRow(0)
+        frame:EmptySelectedRows()
+        output frame:ToText()
+    */
+    action EmptySelectedRows
+        if selection = undefined
+            return now
+        end
+
+        selection:EmptyRows()
+    end
+
+    /*
         This adds a column to the selected range.
     
         Attribute: Parameter index the column index of the column to add
@@ -1569,6 +1653,122 @@ class DataFrame
         end
 
         selection:RemoveColumn(index)
+    end
+
+    /*
+        This adds a row to the selected range.
+    
+        Attribute: Parameter x the x coordinate of the cell to add
+        Attribute: Parameter y the y coordinate of the cell to add
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedCell(0,0)
+        output frame:ToText()
+    */
+    action AddSelectedCell(integer x, integer y) 
+        CheckDefaultSelection()
+
+        selection:AddCell(x,y)
+    end
+
+    /*
+        This adds a row to the selected range.
+    
+        Attribute: Parameter pair The x,y pair of the cell to add.
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Containers.Support.Pair
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        Pair<integer> cell
+        cell:Set(0,0)
+        frame:AddSelectedCell(cell)
+        output frame:ToText()
+    */
+    action AddSelectedCell(Pair<integer> cell) 
+        CheckDefaultSelection()
+
+        selection:AddCell(cell)
+    end
+
+    /*
+        This removes a cell at the index of the selection. This is the index of the cell in the selection, not
+        the x,y coordinate of the cell to remove.
+    
+        Attribute: Parameter index the selection index of the cell to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedCell(0,0)
+
+        //this is the first value in the selection, so remove at index 0.
+        frame:RemoveSelectedCellAt(0)
+        output frame:ToText()
+    */
+    action RemoveSelectedCellAt(integer index)
+        if selection = undefined or index < 0 or index >= selection:GetCellSize()
+            return now
+        end
+
+        selection:RemoveCellAt(index)
+    end
+
+    /*
+        This removes a row of a particular index anywhere from the selection.
+    
+        Attribute: Parameter index the row index of the cell to remove
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Containers.Support.Pair
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        Pair<integer> pair
+        pair:Set(0,0)
+
+        //be sure to send the same object
+        //the system looks at the object code, not
+        //the value in the pair
+        frame:AddSelectedCell(pair)
+        frame:RemoveSelectedCell(pair)
+        output frame:ToText()
+    */
+    action RemoveSelectedCell(Pair<integer> index)
+        if selection = undefined
+            return now
+        end
+
+        selection:RemoveCell(index)
+    end
+
+    /*
+        This action empties the selection, so that no rows are selected.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedCell(0,0)
+        frame:EmptySelectedCells()
+        output frame:ToText()
+    */
+    action EmptySelectedCells
+        if selection = undefined
+            return now
+        end
+
+        selection:EmptyCells()
     end
 
     /*

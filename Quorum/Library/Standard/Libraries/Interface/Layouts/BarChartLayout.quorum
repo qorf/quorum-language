@@ -57,6 +57,8 @@ class BarChartLayout is SharedBarChartLayout
             separateBySeries = chart:IsSeparatedBySeries()
             separateByFactor = chart:IsSeparatedByFactor()
     
+            integer tickHeight = 0
+            integer tickWidth = 0
             number yMax = chart:GetYAxisMaximum()
             number yMin = chart:GetYAxisMinimum()
             number xMax = chart:GetXAxisMaximum()
@@ -72,12 +74,16 @@ class BarChartLayout is SharedBarChartLayout
                 height = chartAreaContainer:GetWidth()
                 rangeMax = xMax
                 rangeMin = xMin
+                tickHeight = chart:GetVerticalPanel():GetTickHeight()
+                tickWidth = chart:GetVerticalPanel():GetTickWidth()
             else
                 integer paddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
                 width = chartAreaContainer:GetWidth() - paddingOffset
                 height = chartAreaContainer:GetHeight()
                 rangeMax = yMax
                 rangeMin = yMin
+                tickHeight = chart:GetHorizontalPanel():GetTickHeight()
+                tickWidth = chart:GetHorizontalPanel():GetTickWidth()
             end
             
             integer numberOfGroups = barGroups:GetSize()
@@ -222,13 +228,68 @@ class BarChartLayout is SharedBarChartLayout
                             currentXPosition = currentXPosition + barWidth + betweenBarPadding
                         end
                     end 
+
+                    // Load and place the bar selection arrow
+                    if horizontal
+                        integer arrowSize = cast(integer, currentBar:GetHeight()/4)
+                        if arrowSize < tickHeight*2
+                            arrowSize = tickHeight*2
+                        end
+                        integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth() + tickHeight)
+                        if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
+                            x1 = x1 + cast(integer, currentBar:GetAnnotation():GetWidth())
+                        end
+                        integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight()/2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 + arrowSize
+                        integer y3 = y1 - arrowSize
+
+                        Drawable arrow = currentBar:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, currentBar:GetColor())
+                        arrow:Hide()
+                        currentBar:SetSelectionArrowVertices(vertices)
+                    else
+                        integer arrowSize = cast(integer, currentBar:GetWidth()/4)
+                        if arrowSize < tickWidth*2
+                            arrowSize = tickWidth*2
+                        end
+                        integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth()/2)
+                        integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight() + tickWidth)
+                        if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
+                            y1 = y1 + cast(integer, currentBar:GetAnnotation():GetHeight())
+                        end
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 - arrowSize
+                        integer y3 = y1 + arrowSize
+
+                        Drawable arrow = currentBar:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, currentBar:GetColor())
+                        arrow:Hide()
+                        currentBar:SetSelectionArrowVertices(vertices)
+                    end
                     j = j + 1
                 end
                 
                 if stacked or chart:IsSeparated()
                     if horizontal 
                         currentGroup:LoadRectangle(currentYPosition, cast(integer, groupWidth), transparent)
-                        currentGroup:SetPosition(groupY, groupX)
+                        currentGroup:SetPosition(groupY, groupX)          
                     else
                         currentGroup:LoadRectangle(cast(integer, groupWidth), currentYPosition, transparent)
                         currentGroup:SetPosition(groupX, groupY)
@@ -236,13 +297,108 @@ class BarChartLayout is SharedBarChartLayout
                 else
                     groupHeight = cast(integer, ((currentGroup:GetMaxBarValue()-rangeMin)/(rangeMax-rangeMin)) * height)
                     if horizontal
+                        if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetWidth())
+                        end
                         currentGroup:LoadRectangle(groupHeight, cast(integer, groupWidth), transparent)
                         currentGroup:SetPosition(groupY, groupX)
                     else
+                        if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetHeight())
+                        end
                         currentGroup:LoadRectangle(cast(integer, groupWidth), groupHeight, transparent)
                         currentGroup:SetPosition(groupX, groupY)
                     end
                 end
+
+
+                // Load and place the group selection bracket/arrow
+                integer x = cast(integer, currentGroup:GetX())
+                integer y = cast(integer, currentGroup:GetY())
+                integer w = cast(integer, currentGroup:GetWidth())
+                integer h = cast(integer, currentGroup:GetHeight())
+                if horizontal
+                    if currentGroup:GetSelectionBracket():GetSize() = 3
+                        Drawable top = currentGroup:GetSelectionBracket():Get(0)
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        top:SetPosition(x + w - tickWidth + tickHeight, y + h - tickHeight)
+                        top:Hide()
+    
+                        Drawable side = currentGroup:GetSelectionBracket():Get(1)
+                        side:LoadFilledRectangle(tickHeight, h, chart:GetSelectionColor())
+                        side:SetPosition(x + w + tickHeight, y)
+                        side:Hide()
+
+                        Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        bottom:SetPosition(x + w - tickWidth + tickHeight, y)
+                        bottom:Hide()
+
+                        integer arrowSize = cast(integer, h/8)
+                        if arrowSize < tickHeight*2
+                            arrowSize = tickHeight*2
+                        end
+                        integer x1 = cast(integer, side:GetX() + tickHeight*2)
+                        integer y1 = cast(integer, side:GetY() + side:GetHeight()/2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 + arrowSize
+                        integer y3 = y1 - arrowSize
+
+                        Drawable arrow = currentGroup:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
+                        arrow:Hide()
+                        currentGroup:SetSelectionArrowVertices(vertices)
+                    end 
+                else
+                    if currentGroup:GetSelectionBracket():GetSize() = 3
+                        Drawable top = currentGroup:GetSelectionBracket():Get(0)
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        top:SetPosition(x, y + h - tickHeight + tickWidth)
+                        top:Hide()
+    
+                        Drawable side = currentGroup:GetSelectionBracket():Get(1)
+                        side:LoadFilledRectangle(w, tickWidth, chart:GetSelectionColor())
+                        side:SetPosition(x, y + h + tickWidth)
+                        side:Hide()
+
+                        Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        bottom:SetPosition(x + w - tickWidth, y + h - tickHeight + tickWidth)
+                        bottom:Hide()
+
+                        integer arrowSize = cast(integer, w/8)
+                        if arrowSize < tickWidth*2
+                            arrowSize = tickWidth*2
+                        end
+                        integer x1 = cast(integer, side:GetX() + side:GetWidth()/2)
+                        integer y1 = cast(integer, side:GetY() + tickWidth*2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 - arrowSize
+                        integer y3 = y1 + arrowSize
+
+                        Drawable arrow = currentGroup:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
+                        arrow:Hide()
+                        currentGroup:SetSelectionArrowVertices(vertices)
+                    end  
+                end
+
                 currentYPosition = resetYPosition
                 negativeYPosition = resetYPosition
                 i = i + 1
