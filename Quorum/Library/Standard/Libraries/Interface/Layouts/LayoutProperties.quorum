@@ -567,6 +567,14 @@ class LayoutProperties
         SetTopRightRounding(topRight)
     end
 
+    action HasColorPropertyOverride(text property) returns boolean
+        return options not= undefined and options:GetColorProperty(property) not= undefined
+    end
+
+    action HasNumberPropertyOverride(text property) returns boolean
+        return options not= undefined and (options:GetNumberProperty(property):IsNotANumber() = false)
+    end
+
     action GetInterfaceOptionsKey returns text
         return optionsKey
     end

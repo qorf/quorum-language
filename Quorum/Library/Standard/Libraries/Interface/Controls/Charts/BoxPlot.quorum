@@ -285,7 +285,7 @@ class BoxPlot is Chart
                     Array <number> outliers = plot:GetOutliers()
                     integer j = 0
                     repeat while j < outliers:GetSize()
-                        ChartDrawable outlier
+                        ChartPoint outlier
                         outlier:SetName("Outlier")
                         if CheckIfInteger(outliers:Get(j))
                             outlier:SetDescription(" " + cast(integer, outliers:Get(j)))
@@ -421,6 +421,14 @@ class BoxPlot is Chart
     */
     action HideOutliers()
         showOutliers = false
+    end
+
+    /*
+        Enables outliers in the chart. Outliers are visible by default, but can
+        be disabled via the HideOutliers action.
+    */
+    action ShowOutliers
+        showOutliers = true
     end
 
     /*

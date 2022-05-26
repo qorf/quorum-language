@@ -35,6 +35,7 @@ class ScalableVectorGraphicsObject
     //presentation attributes
     private text color = ""
     private text fill = ""
+    private text fillOpacity = ""
     private text stroke = ""
     private text strokeWidth = ""
 
@@ -81,6 +82,9 @@ class ScalableVectorGraphicsObject
         end
         if fill not= ""
             result = result + " fill="+dq+fill+dq
+        end
+        if fillOpacity not= ""
+            result = result + " fill-opacity="+dq+fillOpacity+dq
         end
         if stroke not= ""
             result = result + " stroke="+dq+stroke+dq
@@ -467,6 +471,69 @@ class ScalableVectorGraphicsObject
     */
     action GetFill returns text
         return fill
+    end
+
+    /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the object
+
+        Attribute: Parameter opacity The fill opacity attribute for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetFill("green")
+        circle:SetFillOpacity("50%") // alternate: circle:SetFillOpacity("0.5")
+    */
+    action SetFillOpacity(text opacity)
+        me:fillOpacity = opacity
+    end
+
+    /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the object
+
+        Attribute: Parameter opacity. The fill opacity attribute for the object. Representing the alpha value of the Color.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetFill(blue)
+        circle:SetFillOpacity(0.7)
+    */
+    action SetFillOpacity(number opacity)
+        if opacity >= 0 and opacity <= 1
+            me:fillOpacity = cast(text, opacity)
+        elseif opacity > 1 and opacity <= 100
+            me:fillOpacity = cast(text, opacity) + "%"
+        end
+    end
+
+    /*
+        This action returns the fill opacity of the object.
+
+        Attribute: Returns the fill opacity of the object. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetFill("navy")
+        circle:SetFillOpacity(0.7)
+        output circle:GetFillOpacity()
+    */
+    action GetFillOpacity returns text
+        return fillOpacity
     end
 
     /*

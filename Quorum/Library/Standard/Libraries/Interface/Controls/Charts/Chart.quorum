@@ -159,6 +159,10 @@ class Chart is Control
     private number legendPanelWidthPercent = 0.05
     private number legendPanelHeightPercent = 0.05
 
+    // How thick the borders of points should be, in pixels.
+    // Only used if the chart renders points. Otherwise, this does nothing.
+    number pointBorderThickness = 0
+
     on create
         chartArea:SetName("Chart Area")
         Add(chartArea)
@@ -489,14 +493,6 @@ class Chart is Control
     */
     action GetChartArea returns ChartAreaPanel
         return chartArea
-    end
-
-    action SetChartAreaBorderColor(ColorGroup color)
-        chartArea:SetBorderColor(color)
-    end
-
-    action SetChartAreaBackgroundColor(ColorGroup color)
-        chartArea:SetBackgroundColor(color)
     end
 
     /*
@@ -2145,7 +2141,6 @@ class Chart is Control
                     element:SetZ(-1)
                     i = i + 1
                 end
-//                temp:GetLabel():GainedSelection()
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is RegressionLine
@@ -2168,6 +2163,12 @@ class Chart is Control
             elseif target is ChartAreaPanel
                 Control temp = cast(Control, target)
                 temp:GainedSelection()
+            elseif target:Equals(me)
+                /*
+                Do whatever specialized work we want to do to show overall focus/selection on the Chart here.
+                Importantly, we do not want to override the color properties of the overall chart, like we would
+                if we fell into the last case below.
+                */
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -2472,4 +2473,23 @@ class Chart is Control
         game:SetChart(me)
         game:StartGame()
     end
+
+    /*
+    This action returns the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action GetPointBorderThickness returns number
+        return pointBorderThickness
+    end
+
+    /*
+    This action sets the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action SetPointBorderThickness(number pointBorderThickness)
+        me:pointBorderThickness = pointBorderThickness
+    end
+
 end

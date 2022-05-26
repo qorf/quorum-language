@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls.Charts
 
+use Libraries.Data.Formats.ScalableVectorGraphics.Group
 use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
 use Libraries.Data.Formats.ScalableVectorGraphics.Label
@@ -436,7 +437,8 @@ class ChartWriter
         This action adds a white background to the canvas
     */
     private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
-        background:SetFill("white")
+//        background:SetFill(cast(Color, chart:GetBackgroundColor()))
+        background:SetFill(cast(Color, chart:GetBackground():GetColor()))
         background:SetSize(100,100, "%")
         background:SetPosition(0, 0, "%")
         background:SetID(canvas:GetID() + "_" + background:GetHashCode())
@@ -454,6 +456,8 @@ class ChartWriter
     */
     action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
         chartArea:SetFill(cast(Color, chart:GetChartArea():GetBackgroundColor()))
+        chartArea:SetStroke(cast(Color, chart:GetChartArea():GetBorderColor()))
+        chartArea:SetStrokeWidth(chart:GetChartArea():GetBorderThickness())
         chartArea:SetSize(cast(integer, chart:GetChartArea():GetWidth()), cast(integer, chart:GetChartArea():GetHeight()))
         chartArea:SetPosition(chart:GetChartArea():GetGlobalX(), TranslatePositionY(chart:GetChartArea())  - chart:GetChartArea():GetHeight())
         chartArea:SetID(canvas:GetID() + "_" + chartArea:GetHashCode())
@@ -473,6 +477,8 @@ class ChartWriter
                 Rectangle svgSubChartArea
     
                 svgSubChartArea:SetFill(cast(Color, chart:GetChartArea():GetBackgroundColor()))
+                svgSubChartArea:SetStroke(cast(Color, currentSubChartArea:GetBorderColor()))
+                svgSubChartArea:SetStrokeWidth(currentSubChartArea:GetBorderThickness())
                 svgSubChartArea:SetSize(currentSubChartArea:GetWidth(),currentSubChartArea:GetHeight())
                 svgSubChartArea:SetPosition(currentSubChartArea:GetGlobalX(), TranslatePositionY(currentSubChartArea)  - currentSubChartArea:GetHeight())
                 svgSubChartArea:SetID(canvas:GetID() + "_" + svgSubChartArea:GetHashCode())
@@ -487,12 +493,12 @@ class ChartWriter
 
                 if currentSubChartArea:GetLabel() not= undefined
                     Label areaTitle
-
                     areaTitle:SetText(currentSubChartArea:GetLabel():GetText())
                     areaTitle:SetTextAnchor("left")
-                    areaTitle:SetPosition(currentSubChartArea:GetLabel():GetGlobalX(), TranslatePositionY(currentSubChartArea:GetLabel()) - currentSubChartArea:GetLabel():GetHeight())
+                    areaTitle:SetPosition(currentSubChartArea:GetLabel():GetGlobalX(), TranslatePositionY(currentSubChartArea:GetLabel()) - currentSubChartArea:GetLabel():GetHeight()/4)
                     areaTitle:SetFontSize(currentSubChartArea:GetLabel():GetFontSize() + "px")
                     areaTitle:SetFontFamily("Arial")
+                    areaTitle:SetFill(cast(Color, currentSubChartArea:GetLabel():GetFontColor()))
                     areaTitle:SetID(canvas:GetID() + "_" + areaTitle:GetHashCode())
                     areaTitle:SetStyleClass("quorum-chart-text")
                     areaTitle:SetTabIndex(-1)
@@ -613,7 +619,8 @@ class ChartWriter
                 xAxisLabel:SetPosition(xAxisTitle:GetGlobalX(), TranslatePositionY(xAxisTitle))
                 xAxisLabel:SetFontSize(xAxisTitle:GetFontSize() + "px")
                 xAxisLabel:SetFontFamily("Arial")
-                xAxisLabel:SetID(canvas:GetID() + "_" + xAxisLabel:GetHashCode())
+                xAxisLabel:SetFill(cast(Color, xAxisTitle:GetFontColor()))
+                xAxisLabel:SetID(canvas:GetID() + "-" + xAxisLabel:GetHashCode())
                 xAxisLabel:SetStyleClass("quorum-chart-text")
                 xAxisLabel:SetTabIndex(-1)
                 if HasAccessibility()
@@ -724,6 +731,7 @@ class ChartWriter
                 yAxisLabel:SetTransform("rotate(" + yAxisTitleAnchor:GetRotation() + ", " + yAxisTitleAnchor:GetGlobalX() + ", " + TranslatePositionY(yAxisTitleAnchor) + ")")
                 yAxisLabel:SetFontSize(yAxisTitle:GetFontSize() + "px")
                 yAxisLabel:SetFontFamily("Arial")
+                yAxisLabel:SetFill(cast(Color, yAxisTitle:GetFontColor()))
                 yAxisLabel:SetID(canvas:GetID() + "_" + yAxisLabel:GetHashCode())
                 yAxisLabel:SetStyleClass("quorum-chart-text")
                 yAxisLabel:SetTabIndex(-1)
@@ -741,9 +749,10 @@ class ChartWriter
     private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
         chartTitle:SetText(chart:GetTitle())
         chartTitle:SetTextAnchor("left")
-        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()) - chart:GetTitleLabel():GetHeight()/2)
+        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))// - chart:GetTitleLabel():GetHeight()/2)
         chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
         chartTitle:SetFontFamily("Arial")
+        chartTitle:SetFill(cast(Color, chart:GetTitleLabel():GetFontColor()))
         chartTitle:SetID(canvas:GetID() + "_" + chartTitle:GetHashCode())
         chartTitle:SetStyleClass("quorum-chart-text")
         chartTitle:SetTabIndex(-1)
@@ -759,9 +768,10 @@ class ChartWriter
     private action AddChartSubtitle(ScalableVectorGraphics canvas, Chart chart)
         chartSubtitle:SetText(chart:GetSubtitle())
         chartSubtitle:SetTextAnchor("left")
-        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()) - chart:GetSubtitleLabel():GetHeight()/2)
+        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()))// - chart:GetSubtitleLabel():GetHeight()/2)
         chartSubtitle:SetFontSize(chart:GetSubtitleLabel():GetFontSize() + "px")
         chartSubtitle:SetFontFamily("Arial")
+        chartSubtitle:SetFill(cast(Color, chart:GetSubtitleLabel():GetFontColor()))
         chartSubtitle:SetID(canvas:GetID() + "_" + chartSubtitle:GetHashCode())
         chartSubtitle:SetTabIndex(-1)
         if HasAccessibility()
@@ -889,7 +899,7 @@ class ChartWriter
                 svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
                 svgLabel:SetFontSize(currentLabel:GetFontSize() + "px")
                 svgLabel:SetFontFamily("Arial")
-                
+                svgLabel:SetFill(cast(Color, currentLabel:GetFontColor()))
                 svgLabel:SetID(canvas:GetID() + "_" + svgLabel:GetHashCode())
                 svgLabel:SetStyleClass("quorum-chart-text")
                 svgLabel:SetTabIndex(-1)
@@ -1019,7 +1029,7 @@ class ChartWriter
                     svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
                     svgLabel:SetFontSize(currentSubLabel:GetFontSize() + "px")
                     svgLabel:SetFontFamily("Arial")
-                    
+                    svgLabel:SetFill(cast(Color, currentSubLabel:GetFontColor()))
                     svgLabel:SetID(canvas:GetID() + "_" + svgLabel:GetHashCode())
                     svgLabel:SetStyleClass("quorum-chart-text")
                     svgLabel:SetTabIndex(-1)
@@ -1160,7 +1170,7 @@ class ChartWriter
                 //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
                 svgLabel:SetFontSize(currentLabel:GetFontSize() + "px")
                 svgLabel:SetFontFamily("Arial")
-
+                svgLabel:SetFill(cast(Color, currentLabel:GetFontColor()))
                 svgLabel:SetID(canvas:GetID() + "_" + svgLabel:GetHashCode())
                 svgLabel:SetStyleClass("quorum-chart-text")
                 svgLabel:SetTabIndex(-1)
@@ -1291,7 +1301,7 @@ class ChartWriter
                     //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
                     svgLabel:SetFontSize(currentSubLabel:GetFontSize() + "px")
                     svgLabel:SetFontFamily("Arial")
-                    
+                    svgLabel:SetFill(cast(Color, currentSubLabel:GetFontColor()))
                     svgLabel:SetID(canvas:GetID() + "_" + svgLabel:GetHashCode())
                     svgLabel:SetStyleClass("quorum-chart-text")
                     svgLabel:SetTabIndex(-1)
@@ -1345,12 +1355,10 @@ class ChartWriter
 
             svgElementLegendTitle:SetText(legendTitle:GetText())
             svgElementLegendTitle:SetTextAnchor("left")
-            svgElementLegendTitle:SetPosition(legendTitle:GetGlobalX(), TranslatePositionY(legendTitle))  
-            //svgLabel:SetPosition(currentLabelAnchor:GetGlobalX(), TranslatePositionY(currentLabelAnchor))     
-            //svgLabel:SetTransform("rotate(" + currentLabelAnchor:GetRotation() + ", " + currentLabelAnchor:GetGlobalX() + ", " + TranslatePositionY(currentLabelAnchor) + ")")   
+            svgElementLegendTitle:SetPosition(legendTitle:GetGlobalX(), TranslatePositionY(legendTitle))    
             svgElementLegendTitle:SetFontSize(legendTitle:GetFontSize() + "px")
             svgElementLegendTitle:SetFontFamily("Arial")
-
+            svgElementLegendTitle:SetFill(cast(Color, legendTitle:GetFontColor()))
             svgElementLegendTitle:SetID(canvas:GetID() + "_" + legendTitle:GetHashCode())
             svgElementLegendTitle:SetStyleClass("quorum-chart-text")
             svgElementLegendTitle:SetTabIndex(-1)
@@ -1366,24 +1374,37 @@ class ChartWriter
         integer i = 0
         Array<Series> seriesList = legend:GetSeriesList()
         repeat while i < seriesList:GetSize()
-//            Icon entryBox = seriesList:Get(i):GetEntryBox()
-//            if entryBox not= undefined and entryBox:IsShowing()
-//                Rectangle svgElementSeriesEntry
-//                
-//                svgElementSeriesEntry:SetWidth(entryBox:GetWidth())
-//                svgElementSeriesEntry:SetHeight(entryBox:GetHeight())
-//                svgElementSeriesEntry:SetPosition(entryBox:GetGlobalX(), TranslatePositionY(entryBox) - entryBox:GetHeight())
+            Icon entryBox = seriesList:Get(i):GetEntryBox()
+
+            Group entryGroupSVG
+            if entryBox not= undefined and entryBox:IsShowing()
+                
+                entryGroupSVG:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+                entryGroupSVG:SetStyleClass("quorum-chart-legendentry")
+                entryGroupSVG:SetFill(cast(Color, chart:GetSelectionColor())) //This color will be used to fill selection upon focus/hover
+                entryGroupSVG:SetTabIndex(-1)
+                if HasAccessibility()
+                    entryGroupSVG:SetAriaLabel(seriesList:Get(i):GetName() + seriesList:Get(i):GetDescription())
+                    entryGroupSVG:SetAriaHidden("true")
+                end
+                canvas:Add(entryGroupSVG)
+
+                Rectangle svgElementSeriesEntry                
+                svgElementSeriesEntry:SetWidth(entryBox:GetWidth())
+                svgElementSeriesEntry:SetHeight(entryBox:GetHeight())
+                svgElementSeriesEntry:SetPosition(entryBox:GetGlobalX(), TranslatePositionY(entryBox) - entryBox:GetHeight())
 //                svgElementSeriesEntry:SetFill(entryBox:GetColor())
-//                svgElementSeriesEntry:SetTabIndex(-1)
-//                svgElementSeriesEntry:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
-//                svgElementSeriesEntry:SetStyleClass("quorum-chart-rect")
-//
-//                if HasAccessibility()
-//                    svgElementSeriesEntry:SetAriaLabel(seriesList:Get(i):GetLabel():GetDescription())
-//                end
-//
-//                canvas:Add(svgElementSeriesEntry)
-//            end
+                svgElementSeriesEntry:SetFill(transparent)
+                svgElementSeriesEntry:SetTabIndex(-1)
+                svgElementSeriesEntry:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+                svgElementSeriesEntry:SetStyleClass("quorum-chart-selection-outline")
+                
+                if HasAccessibility()
+                    svgElementSeriesEntry:SetAriaHidden("true")
+                end
+
+                entryGroupSVG:Add(svgElementSeriesEntry)
+            end
 
             Icon currentSeriesIcon = seriesList:Get(i):GetEntryIcon()
             if currentSeriesIcon not= undefined and currentSeriesIcon:IsShowing()
@@ -1401,7 +1422,7 @@ class ChartWriter
                     svgElementSeriesIcon:SetAriaHidden("true")
                 end
 
-                canvas:Add(svgElementSeriesIcon)
+                entryGroupSVG:Add(svgElementSeriesIcon)
             end
 
             ChartLabel currentSeriesLabel = seriesList:Get(i):GetLabel()
@@ -1412,10 +1433,9 @@ class ChartWriter
                 svgElementSeriesLabel:SetTextAnchor("left")
                 svgElementSeriesLabel:SetPosition(currentSeriesLabel:GetGlobalX(), TranslatePositionY(currentSeriesLabel))    
                 svgElementSeriesLabel:SetFontSize(currentSeriesLabel:GetFontSize() + "px")
+                svgElementSeriesLabel:SetFill(cast(Color, currentSeriesLabel:GetFontColor()))
                 svgElementSeriesLabel:SetFontFamily("Arial")
-    
-                svgElementSeriesLabel:SetID(canvas:GetID() + "_" + seriesList:Get(i):GetHashCode())
-//                svgElementSeriesLabel:SetID(canvas:GetID() + "-" + currentSeriesLabel:GetHashCode())
+                svgElementSeriesLabel:SetID(canvas:GetID() + "_" + currentSeriesLabel:GetHashCode())
                 svgElementSeriesLabel:SetStyleClass("quorum-chart-text")
                 svgElementSeriesLabel:SetTabIndex(-1)
                 
@@ -1423,8 +1443,7 @@ class ChartWriter
                     svgElementSeriesLabel:SetAriaLabel(currentSeriesLabel:GetDescription())
                     svgElementSeriesLabel:SetAriaHidden("true")
                 end
-    
-                canvas:Add(svgElementSeriesLabel)
+                entryGroupSVG:Add(svgElementSeriesLabel)
             end
 
             if legend:IsShowingRegression()
@@ -1444,7 +1463,7 @@ class ChartWriter
                         svgElementRegIcon:SetAriaHidden("true")
                     end
 
-                    canvas:Add(svgElementRegIcon)
+                    entryGroupSVG:Add(svgElementRegIcon)
 
                     //Regression equation
                     ChartLabel currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
@@ -1455,16 +1474,15 @@ class ChartWriter
                     svgElementRegLabel:SetPosition(currentLabel:GetGlobalX(), TranslatePositionY(currentLabel))
                     svgElementRegLabel:SetFontSize(currentLabel:GetFontSize() + "px")
                     svgElementRegLabel:SetFontFamily("Arial")
+                    svgElementRegLabel:SetFill(cast(Color, currentLabel:GetFontColor()))
                     svgElementRegLabel:SetTabIndex(-1)
                     svgElementRegLabel:SetID(canvas:GetID() + "_" + currentLabel:GetHashCode())
                     svgElementRegLabel:SetStyleClass("quorum-chart-text")
-    
                     if HasAccessibility()
                         svgElementRegLabel:SetAriaLabel(currentLabel:GetDescription())
                         svgElementRegLabel:SetAriaHidden("true")
                     end
-
-                    canvas:Add(svgElementRegLabel)
+                    entryGroupSVG:Add(svgElementRegLabel)
 
                     //R^2 equation
                     ChartLabel currentRLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
@@ -1475,16 +1493,15 @@ class ChartWriter
                     svgElementRLabel:SetPosition(currentRLabel:GetGlobalX(), TranslatePositionY(currentRLabel))
                     svgElementRLabel:SetFontSize(currentRLabel:GetFontSize() + "px")
                     svgElementRLabel:SetFontFamily("Arial")
+                    svgElementRLabel:SetFill(cast(Color, currentRLabel:GetFontColor()))
                     svgElementRLabel:SetTabIndex(-1)
                     svgElementRLabel:SetID(canvas:GetID() + "_" + currentRLabel:GetHashCode())
                     svgElementRLabel:SetStyleClass("quorum-chart-text")
-
                     if HasAccessibility()
                         svgElementRLabel:SetAriaLabel(currentRLabel:GetDescription())
                         svgElementRLabel:SetAriaHidden("true")
                     end
-
-                    canvas:Add(svgElementRLabel)
+                    entryGroupSVG:Add(svgElementRLabel)
                 end
             end
 

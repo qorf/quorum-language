@@ -124,6 +124,7 @@ class BarChartWriter is ChartWriter
                 if chart:HasGroups()
                     barGroupSVG:SetID(canvas:GetID() + "_" + currentBarGroup:GetHashCode())
                     barGroupSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
+                    barGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     barGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
                         description = currentBarGroup:GetName() + currentBarGroup:GetDescription()
@@ -134,7 +135,18 @@ class BarChartWriter is ChartWriter
                         barGroupSVG:SetAriaLabel(description)
                         barGroupSVG:SetAriaHidden("false")
                     end
+
                     chartContent:Add(barGroupSVG)
+
+                    // The group area, used for hover 
+                    Rectangle barGroup
+                    barGroup:SetWidth(currentBarGroup:GetWidth())
+                    barGroup:SetHeight(currentBarGroup:GetHeight())
+                    barGroup:SetPosition(currentBarGroup:GetGlobalX(), TranslatePositionY(currentBarGroup) - currentBarGroup:GetHeight()) 
+                    barGroup:SetFill(transparent)
+                    barGroup:SetStyleClass("quorum-chart-rect")
+                    barGroup:SetTabIndex(-1)
+                    barGroupSVG:Add(barGroup)
     
                     if currentBarGroup:GetSelectionBracket():GetSize() = 3
                         integer k = 0
@@ -143,7 +155,7 @@ class BarChartWriter is ChartWriter
                             bracket:SetWidth(currentBarGroup:GetSelectionBracket():Get(k):GetWidth())
                             bracket:SetHeight(currentBarGroup:GetSelectionBracket():Get(k):GetHeight())
                             bracket:SetPosition(currentBarGroup:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(currentBarGroup:GetSelectionBracket():Get(k)) - currentBarGroup:GetSelectionBracket():Get(k):GetHeight()) 
-                            bracket:SetFill(transparent) // Should be transparent until selected then chart:GetHighlightColor()
+                            bracket:SetFill(transparent) // Should be transparent until selected
                             bracket:SetStyleClass("quorum-chart-selection-bracket")
                             bracket:SetTabIndex(-1)
                             if HasAccessibility()
@@ -165,7 +177,7 @@ class BarChartWriter is ChartWriter
                             arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBarGroup:GetSelectionArrow():GetY()-vertices:Get(k+1)))
                             k = k + 2
                         end
-                        arrow:SetFill(transparent) // Should be transparent until selected then chart:GetHighlightColor()
+                        arrow:SetFill(transparent) // Should be transparent until selected
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
                         arrow:SetTabIndex(-1)
                         if HasAccessibility()
@@ -182,6 +194,7 @@ class BarChartWriter is ChartWriter
                     Group barSVG
                     barSVG:SetID(canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode())
                     barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
+                    barSVG:SetFill(currentBar:GetColor())
                     barSVG:SetTabIndex(-1)
                     if HasAccessibility()
                         description = currentBar:GetName() + currentBar:GetDescription()
@@ -223,8 +236,9 @@ class BarChartWriter is ChartWriter
                             labelSVG:SetText(label:GetText())
                             labelSVG:SetTextAnchor("left")
                             labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                            labelSVG:SetFontSize(label:GetFontSize() + "px")                            
                             labelSVG:SetFontFamily("Arial")
+                            labelSVG:SetFill(cast(Color, label:GetFontColor()))
                             labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
@@ -246,7 +260,7 @@ class BarChartWriter is ChartWriter
                             arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
                             k = k + 2
                         end
-                        arrow:SetFill(transparent) // Should be transparent until selected then currentBar:GetColor()
+                        arrow:SetFill(transparent) // Should be transparent until selected 
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
                         arrow:SetTabIndex(-1)
                         if HasAccessibility()
@@ -265,60 +279,62 @@ class BarChartWriter is ChartWriter
             repeat while i < chart:GetSubChartAreas():GetSize()
                 j = 0
                 repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
-                    Bar currentBar
-                    currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))   
-
-                    Group barSVG
-                    barSVG:SetID(canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode())
-                    barSVG:SetStyleClass("quorum-chart-bar")
-                    barSVG:SetTabIndex(-1)
-                    if HasAccessibility()
-                        barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
-                    end
-                    canvas:Add(barSVG)
-
-                    Rectangle bar
-                    bar:SetWidth(currentBar:GetWidth())
-                    bar:SetHeight(currentBar:GetHeight())
-                    bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
-                    bar:SetFill(currentBar:GetColor())
-                    bar:SetStyleClass("quorum-chart-rect")
-                    bar:SetTabIndex(-1)
-                    barSVG:Add(bar)
-
-                    if currentBar:ShowAnnotation() or chart:ShowAnnotations()
-                        ChartLabel label = currentBar:GetAnnotation()
-                        if label not= undefined
-                            Label labelSVG
-                            labelSVG:SetText(label:GetText())
-                            labelSVG:SetTextAnchor("left")
-                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                            labelSVG:SetFontSize(label:GetFontSize() + "px")
-                            labelSVG:SetFontFamily("Arial")
-                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
-                            labelSVG:SetStyleClass("quorum-chart-text")
-                            labelSVG:SetTabIndex(-1)
-                            barSVG:Add(labelSVG)
+                    if (chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j) is Bar)
+                        Bar currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j)) 
+                      
+                        Group barSVG
+                        barSVG:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetHashCode() + "-" + currentBar:GetHashCode())
+                        barSVG:SetStyleClass("quorum-chart-bar")
+                        barSVG:SetFill(currentBar:GetColor())
+                        barSVG:SetTabIndex(-1)
+                        if HasAccessibility()
+                            barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         end
-                    end 
-
-                    if currentBar:GetSelectionArrow() not= undefined
-                        Array <number> vertices = currentBar:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
-                        number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
-
-                        Polygon arrow
-                        integer k = 0
-                        repeat while k < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                            k = k + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected then currentBar:GetColor()
-                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                        arrow:SetTabIndex(-1)
-                        barSVG:Add(arrow)
-                    end
+                        canvas:Add(barSVG)
     
+                        Rectangle bar
+                        bar:SetWidth(currentBar:GetWidth())
+                        bar:SetHeight(currentBar:GetHeight())
+                        bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                        bar:SetFill(currentBar:GetColor())
+                        bar:SetStyleClass("quorum-chart-rect")
+                        bar:SetTabIndex(-1)
+                        barSVG:Add(bar)
+
+                        if currentBar:ShowAnnotation() or chart:ShowAnnotations()
+                            ChartLabel label = currentBar:GetAnnotation()
+                            if label not= undefined
+                                Label labelSVG
+                                labelSVG:SetText(label:GetText())
+                                labelSVG:SetTextAnchor("left")
+                                labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                labelSVG:SetFontSize(label:GetFontSize() + "px")
+                                labelSVG:SetFontFamily("Arial")
+                                labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                                labelSVG:SetStyleClass("quorum-chart-text")
+                                labelSVG:SetTabIndex(-1)
+                                barSVG:Add(labelSVG)
+                            end
+                        end 
+
+                        if currentBar:GetSelectionArrow() not= undefined
+                            Array <number> vertices = currentBar:GetSelectionArrowVertices()
+                            number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
+                            number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
+    
+                            Polygon arrow
+                            integer k = 0
+                            repeat while k < vertices:GetSize()
+                                arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+                                k = k + 2
+                            end
+                            arrow:SetFill(transparent) // Should be transparent until selected
+                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetTabIndex(-1)
+                            barSVG:Add(arrow)
+                        end
+                    end
                     j = j + 1
                 end
                 i = i + 1
@@ -382,15 +398,16 @@ class BarChartWriter is ChartWriter
 
             i = 0
             repeat while i < chartArea:GetChartAreaItems():GetSize()
-                Item bar = chartArea:GetChartAreaItems():Get(i)
-                ListItem barNav 
-                barNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetName():GetHashCode() + "_" + bar:GetHashCode() + "_nav")
-                barNav:AddAttribute("role","treeitem")
-                barNav:AddClassAttribute("quorum-chart-treeitem")
-                barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetName():GetHashCode() + "_" + bar:GetHashCode())
-                barNav:SetTabIndex("-1")
-                subChartAreaItemsUL:Add(barNav)
-
+                if (chartArea:GetChartAreaItems():Get(i) is Bar)
+                    Item bar = chartArea:GetChartAreaItems():Get(i)
+                    ListItem barNav 
+                    barNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode() + "_nav")
+                    barNav:AddAttribute("role","treeitem")
+                    barNav:AddClassAttribute("quorum-chart-treeitem")
+                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode())
+                    barNav:SetTabIndex("-1")
+                    subChartAreaItemsUL:Add(barNav)
+                end
                 i = i + 1
             end
         end

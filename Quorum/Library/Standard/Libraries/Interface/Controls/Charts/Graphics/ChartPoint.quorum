@@ -3,6 +3,12 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
 
 class ChartPoint is ChartDrawable
     number percentX = 0
@@ -14,6 +20,10 @@ class ChartPoint is ChartDrawable
     
     Icon parentRegion = undefined
     Icon icon
+
+    on create
+        SetCornerRounding(1, 1, 1, 1)
+    end
 
     action GetName returns text
         return name
@@ -69,6 +79,62 @@ class ChartPoint is ChartDrawable
 
     action SetSeries(Series series)
         me:series = series
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        // Render this Drawable with the Control Shader.
+        if GetShaderProgram() = undefined
+            ShaderManager manager
+            ShaderProgram program = undefined
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+            SetShaderProgram(program)
+        end
+
+        if GetTexture() = undefined
+            LoadFilledRectangle(2, 2, GetBackgroundColor())
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetBorderColor()
+        end
+
+        return parent:Control:GetBorderColor()
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        return parent:Drawable:GetColorGroup()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetPointBorderThickness()
+        end
+
+        return parent:Control:GetBorderThickness()
     end
 
 end

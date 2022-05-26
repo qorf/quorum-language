@@ -65,7 +65,7 @@ class Shader
         shaderManager:Register(name, me)
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        shaderID = graphics:CreateShader(type, code)
+        shaderID = graphics:CreateShader(type, code, GetName())
 
         compiled = true
     end
@@ -96,7 +96,7 @@ class Shader
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        shaderID = graphics:CreateShader(type, code)
+        shaderID = graphics:CreateShader(type, code, GetName())
 
         invalidated = false
     end
