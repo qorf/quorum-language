@@ -49,6 +49,7 @@ class Histogram is SharedBarChartParent
     boolean binWidthOverride = false
     integer binCount = 0
     boolean binCountOverride = false
+    boolean isOverlayed = false
 
     boolean decimalScale = false
     number dataMin = 0
@@ -183,6 +184,9 @@ class Histogram is SharedBarChartParent
                     end
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                 end
+                if max = dataMax
+                    max = max + binWidth
+                end
             else
                 //Default binwidth and bincount (don't count undefined column values)
                 binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
@@ -216,9 +220,9 @@ class Histogram is SharedBarChartParent
         repeat while n < binCount
             count:Add(0)
             binFloor:Add(floor)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
+            text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor + binWidth) + "]"
             if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
             end
             if(not groupFactor:HasKey(valueDisplay))
                 BarGroup group
@@ -283,9 +287,9 @@ class Histogram is SharedBarChartParent
             repeat while i < count:GetSize() and floor < max
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
-                text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+                text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor+binWidth) + "]"
                 if(decimalScale)
-                    valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                    valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
                 end
                 Bar bar
                 bar:SetValue(amount)
@@ -309,9 +313,9 @@ class Histogram is SharedBarChartParent
         i = 0
         repeat while i < groupFactor:GetSize()
             floor = binFloor:Get(i)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+            text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor+binWidth) + "]"
             if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
                 maxValue = (math:Round(floor+binWidth, 2))
                 interval = maxValue - (math:Round(floor, 2))
             end
@@ -478,8 +482,30 @@ class Histogram is SharedBarChartParent
         me:dataMin = dataMin
     end
 
+    action GetDataMinimum returns number
+        return dataMin
+    end
+
     action SetDataMaximum(number dataMax)
         me:dataMax = dataMax
+    end
+
+    action GetDataMaximum returns number
+        return dataMax
+    end
+
+    /* 
+        This action can be used to display multiple bars withn a bin as an opaque overlay on top of one another.
+        Note: This is different from stacking the bars.
+        
+        Attribute: Returns true if bars are overlayed, returns false if bars are side-by-side
+    */
+    action OverlayBars(boolean overlaybars)
+        me:isOverlayed = overlaybars
+    end
+
+    action GetOverlayedFlag returns boolean
+        return isOverlayed
     end
 
     /* 

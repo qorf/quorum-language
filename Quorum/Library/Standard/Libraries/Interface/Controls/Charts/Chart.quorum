@@ -491,14 +491,6 @@ class Chart is Control
         return chartArea
     end
 
-    action SetChartAreaBorderColor(ColorGroup color)
-        chartArea:SetBorderColor(color)
-    end
-
-    action SetChartAreaBackgroundColor(ColorGroup color)
-        chartArea:SetBackgroundColor(color)
-    end
-
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -2145,7 +2137,6 @@ class Chart is Control
                     element:SetZ(-1)
                     i = i + 1
                 end
-//                temp:GetLabel():GainedSelection()
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is RegressionLine
@@ -2168,6 +2159,20 @@ class Chart is Control
             elseif target is ChartAreaPanel
                 Control temp = cast(Control, target)
                 temp:GainedSelection()
+            elseif target is Chart
+                Control temp = cast(Control, target)
+                LayoutProperties properties = temp:GetDefaultLayoutProperties()
+                if properties not= undefined
+                    previousColorGroup = properties:GetBorderColor()
+                    previousBackgroundColor = properties:GetBackgroundColor()
+                    Color transparency
+                    transparency:SetColor(0, 0, 0, 0)
+                    ControlShaderView view
+                    view:Initialize()
+                    temp:SetBackgroundColor(transparency)
+                    temp:SetBorderColor(transparency)
+                    temp:SetView2D(view)
+                end               
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()

@@ -177,7 +177,11 @@ class SharedBarChartParent is Chart
         return (cast(integer, value) = value)
     end
 
-    action AdjustStacked() 
+    /* 
+        This action adjusts the axis ranges to allow for the bars to be stacked.
+
+    */
+    private action AdjustStacked() 
         if IsSeparatedByFactor()
             if XAxisIsIndependent()
                 ShowXAxis(false)
@@ -363,10 +367,17 @@ class SharedBarChartParent is Chart
         return barGroups
     end
 
+//    /*
+//        Sets a flag that will stack bars inside each group if set to true.
+//    */
+//    action IsStacked(boolean flag)
+//        isStacked = flag
+//    end
+
     /*
         Sets a flag that will stack bars inside each group if set to true.
     */
-    action IsStacked(boolean flag)
+    action StackBars(boolean flag)
         isStacked = flag
     end
 
