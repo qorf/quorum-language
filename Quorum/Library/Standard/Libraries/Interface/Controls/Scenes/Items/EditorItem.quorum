@@ -7,6 +7,15 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Scenes.SceneProperties
 use Libraries.Interface.Item
 
+
+/*
+    The Editor Item class represents an object in the Scene Editor that is in the 
+    scene and is being added, removed, or having its properties modified. 
+    The main purpose of this class is to get and set information about certain properties 
+    of an item in the scene such as those for physics calculations like mass and restitution. 
+    Properties relating to physics and others important to the scene like position and the 
+    texture of the object will be saved to the scene file.  
+*/
 class EditorItem is Item
     
     SceneConstants constants
@@ -18,20 +27,43 @@ class EditorItem is Item
         SetAccessibilityCode(parent:Item:CUSTOM)
     end
 
+    /*
+        ResetScale sets the scale of the object along each axis to the default which is usually 1. 
+        The scale of the object affects how large it is in the scene. So a scale of 2 on the x-axis
+        means the object is twice as big on the x-axis than when normally sized. 
+    */
     blueprint action ResetScale
 
+    /*
+        Sets the SceneEditor object that this item is a part of.
+
+        Attribute: Parameter editor The SceneEditor this item is attached to 
+    */
     action SetSceneEditor(SceneEditor_LIBRARY editor)
         me:editor = editor
     end
 
+    /*
+        Returns the SceneEditor object that this item is a part of.
+
+        Attribute: Returns The SceneEditor this item is attached to 
+    */
     action GetSceneEditor returns SceneEditor_LIBRARY
         return editor
     end
 
+    /*
+        Used Internally. This action returns the class that contains all the constants
+        used by this object. 
+    */
     action GetConstants returns SceneConstants
         return constants
     end
 
+    /*
+        Internal action so that when an object in the editor gains focus it also tells the SceneEditor
+        class that this is the item that currently has the selection.
+    */
     action GainedFocus(FocusEvent event)
         if editor not= undefined
             editor:SetSelectedItem(me)
@@ -46,10 +78,20 @@ class EditorItem is Item
         // Do nothing here -- inheriting classes may override this.
     end
 
+    /*
+        This action is used to send a message down to the Accessibility system so the user can notified
+        of something that has changed or something the user may need to know to understand what is happening. 
+    */
     action NotifyAccessibility(text message)
         editor:NotifyAccessibility(me, message)
     end
 
+
+    /*
+        This action returns true if physics is currently enabled for this item. 
+
+        Attribute: Returns True if physics is enabled, false otherwise. 
+    */
     action IsEditorPhysicsEnabled returns boolean
         SceneProperties properties
         if HasProperty(properties:PHYSICS_ENABLED)

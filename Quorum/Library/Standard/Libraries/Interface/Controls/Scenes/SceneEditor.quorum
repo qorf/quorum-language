@@ -188,6 +188,10 @@ class SceneEditor_LIBRARY is Control
 
     end
 
+    action CancelNewItemPreview(EditorItem preview)
+
+    end
+
     action DeselectEditorCamera
         // Was already empty
     end
@@ -213,7 +217,11 @@ class SceneEditor_LIBRARY is Control
         return "Item"
     end
 
-action SetYawDirection(integer direction)
+    action ConfirmNewItemPreview(EditorItem newItem)
+
+    end
+
+    action SetYawDirection(integer direction)
         yawDirection = direction
 
         if direction = 0

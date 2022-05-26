@@ -7,7 +7,9 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
 
 
 /*
-
+    The EditorCursor class is a component of the SceneEditor that serves to show what is currently being selected 
+    or to pass information of what is currently at the cursor. The cursor itself is not an accessible item but it passes 
+    information back to the SceneEditor for accessibility. 
 */
 class EditorCursor is Item
 
@@ -22,12 +24,29 @@ class EditorCursor is Item
         SetFocusable(false)
     end
 
+    /*
+        GetItemsAtCursor returns an Array containing any item considered to be at the cursor. This could be an item that intersects
+        with the cursor or shares the same position. 
+
+        Attribute: Returns An array containing every item at the cursor position
+    */
     blueprint action GetItemsAtCursor returns Array<Item>
 
+    /*
+        GetEditorLayer returns the layer that this cursor is associated with.
+
+        Attribute: Returns The layer this cursor is a part of
+    */
     blueprint action GetEditorLayer returns EditorLayer
 
+    /*
+        Increases the size of the cursor. How it increases in size depends on if the cursor is in a 2D or 3D space.
+    */
     blueprint action IncreaseSize
 
+    /*
+        Decreases the size of the cursor. How it increases in size depends on if the cursor is in a 2D or 3D space.
+    */
     blueprint action DecreaseSize
 
 end
