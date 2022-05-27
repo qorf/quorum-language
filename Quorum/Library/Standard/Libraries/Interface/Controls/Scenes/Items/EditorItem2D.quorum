@@ -2,6 +2,16 @@ package Libraries.Interface.Controls.Scenes.Items
 
 use Libraries.Game.Graphics.Drawable
 
+
+/*
+    The EditorItem2D class represents a 2D object in the Scene Editor that is in the 
+    scene and is being added, removed, or having its properties modified. 
+    The main purpose of this class is to get and set information about certain properties 
+    of an item in the scene such as those for physics calculations like mass and restitution. 
+    Properties relating to physics and others important to the scene like position and the 
+    texture of the object will be saved to the scene file. For a 2D item specifically the scale 
+    will be 2 numbers and it will have a z that determines the order during layer sorting.
+*/
 class EditorItem2D is EditorItem, Drawable
     
     /*
