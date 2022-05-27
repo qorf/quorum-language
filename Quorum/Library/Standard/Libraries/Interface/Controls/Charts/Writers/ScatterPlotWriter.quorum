@@ -103,11 +103,12 @@ class ScatterPlotWriter is ChartWriter
             region:SetHeight(currentRegion:GetHeight())
             region:SetPosition(currentRegion:GetGlobalX(), TranslatePositionY(currentRegion) - currentRegion:GetHeight()) 
             region:SetFill(transparent)
-            region:SetID(canvas:GetID() + "-" + currentRegion:GetHashCode())
+            region:SetID(canvas:GetID() + "_" + currentRegion:GetHashCode())
             region:SetStyleClass("quorum-chart-region")
             region:SetTabIndex(-1)
             if HasAccessibility()
                 region:SetAriaLabel(currentRegion:GetName() + currentRegion:GetDescription())
+                region:SetAriaHidden("true")
             end
             canvas:Add(region)
 
@@ -116,20 +117,43 @@ class ScatterPlotWriter is ChartWriter
         i = 0
         repeat while i < chart:GetChartPoints():GetSize()
             ChartPoint currentPoint = chart:GetChartPoints():Get(i)
-            number radius = currentPoint:GetShape():GetRadius()
+            number radius = currentPoint:GetHeight()/2
 
             Circle point
             point:SetRadius(radius)
             point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
             point:SetFill(currentPoint:GetColor())
-            point:SetID(canvas:GetID() + "-" + currentPoint:GetSeries():GetHashCode() + "-" + currentPoint:GetHashCode())
+            point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+            point:SetStrokeWidth(currentPoint:GetBorderThickness())
+            point:SetID(canvas:GetID() + "_" + currentPoint:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
             point:SetStyleClass("quorum-chart-circle")
             point:SetTabIndex(-1)
             if HasAccessibility()
                 point:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
+                point:SetAriaHidden("true")
             end
             canvas:Add(point)
 
+
+            if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
+                ChartLabel label = currentPoint:GetAnnotation()
+                if label not= undefined
+                    Label labelSVG
+                    labelSVG:SetText(label:GetText())
+                    labelSVG:SetTextAnchor("left")
+                    labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                    labelSVG:SetFontSize(label:GetFontSize() + "px")
+                    labelSVG:SetFontFamily("Arial")
+                    labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                    labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                    labelSVG:SetStyleClass("quorum-chart-text")
+                    labelSVG:SetTabIndex(-1)
+                    if HasAccessibility()
+                        labelSVG:SetAriaHidden("true")
+                    end
+                    canvas:Add(labelSVG)
+                end
+            end
             i = i + 1
         end
     end
@@ -199,10 +223,10 @@ class ScatterPlotWriter is ChartWriter
         Icon region = cast(Icon, firstItem:GetFocusTarget())
 
         ListItem firstRegionNav
-        firstRegionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
+        firstRegionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
         firstRegionNav:AddAttribute("role","treeitem")
         firstRegionNav:AddClassAttribute("quorum-chart-treeitem")
-        firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
+        firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
         firstRegionNav:AddAttribute("aria-expanded","false")
         firstRegionNav:SetTabIndex("-1")
         groupUL:Add(firstRegionNav)
@@ -219,10 +243,10 @@ class ScatterPlotWriter is ChartWriter
         repeat while nextItem not= undefined and nextItem not= firstItem
             region = cast(Icon, nextItem:GetFocusTarget())
             ListItem regionNav
-            regionNav:SetIdentifier(canvas:GetID() + "-" + region:GetHashCode() + "-nav")
+            regionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
             regionNav:AddAttribute("role","treeitem")
             regionNav:AddClassAttribute("quorum-chart-treeitem")
-            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + region:GetHashCode())
+            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
             regionNav:AddAttribute("aria-expanded","false")
             regionNav:SetTabIndex("-1")
             groupUL:Add(regionNav)
@@ -248,10 +272,10 @@ class ScatterPlotWriter is ChartWriter
         ChartPoint point = cast(ChartPoint, firstItem:GetFocusTarget())
 
         ListItem firstPointNav
-        firstPointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
+        firstPointNav:SetIdentifier(canvas:GetID() + "_" + point:GetSeries():GetHashCode() + "_" + point:GetHashCode() + "_nav")
         firstPointNav:AddAttribute("role","treeitem")
         firstPointNav:AddClassAttribute("quorum-chart-treeitem")
-        firstPointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
+        firstPointNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + point:GetSeries():GetHashCode() + "_" + point:GetHashCode())
         firstPointNav:AddAttribute("aria-expanded","false")
         firstPointNav:SetTabIndex("-1")
         groupUL:Add(firstPointNav)
@@ -260,10 +284,10 @@ class ScatterPlotWriter is ChartWriter
         repeat while nextItem not= undefined and nextItem not= firstItem
             point = cast(ChartPoint, nextItem:GetFocusTarget())
             ListItem pointNav
-            pointNav:SetIdentifier(canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode() + "-nav")
+            pointNav:SetIdentifier(canvas:GetID() + "_" + point:GetSeries():GetHashCode() + "_" + point:GetHashCode() + "_nav")
             pointNav:AddAttribute("role","treeitem")
             pointNav:AddClassAttribute("quorum-chart-treeitem")
-            pointNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + point:GetSeries():GetHashCode() + "-" + point:GetHashCode())
+            pointNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + point:GetSeries():GetHashCode() + "_" + point:GetHashCode())
             pointNav:AddAttribute("aria-expanded","false")
             pointNav:SetTabIndex("-1")
             groupUL:Add(pointNav)

@@ -146,6 +146,9 @@ class BarChartWriter is ChartWriter
                     barGroup:SetFill(transparent)
                     barGroup:SetStyleClass("quorum-chart-rect")
                     barGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barGroup:SetAriaHidden("true")
+                    end
                     barGroupSVG:Add(barGroup)
     
                     if currentBarGroup:GetSelectionBracket():GetSize() = 3
@@ -220,8 +223,8 @@ class BarChartWriter is ChartWriter
                     bar:SetHeight(currentBar:GetHeight())
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
-                    bar:SetStroke("black")
-                    bar:SetStrokeWidth(2)
+                    bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
+                    bar:SetStrokeWidth(currentBar:GetBorderThickness())
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
@@ -283,12 +286,13 @@ class BarChartWriter is ChartWriter
                         Bar currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j)) 
                       
                         Group barSVG
-                        barSVG:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetHashCode() + "-" + currentBar:GetHashCode())
+                        barSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode())
                         barSVG:SetStyleClass("quorum-chart-bar")
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                            barSVG:SetAriaHidden("false")
                         end
                         canvas:Add(barSVG)
     
@@ -297,8 +301,13 @@ class BarChartWriter is ChartWriter
                         bar:SetHeight(currentBar:GetHeight())
                         bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                         bar:SetFill(currentBar:GetColor())
+                        bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
+                        bar:SetStrokeWidth(currentBar:GetBorderThickness())
                         bar:SetStyleClass("quorum-chart-rect")
                         bar:SetTabIndex(-1)
+                        if HasAccessibility()
+                            bar:SetAriaHidden("true")
+                        end
                         barSVG:Add(bar)
 
                         if currentBar:ShowAnnotation() or chart:ShowAnnotations()
@@ -311,9 +320,12 @@ class BarChartWriter is ChartWriter
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                                labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                                 labelSVG:SetStyleClass("quorum-chart-text")
                                 labelSVG:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    labelSVG:SetAriaHidden("true")
+                                end
                                 barSVG:Add(labelSVG)
                             end
                         end 
@@ -332,6 +344,9 @@ class BarChartWriter is ChartWriter
                             arrow:SetFill(transparent) // Should be transparent until selected
                             arrow:SetStyleClass("quorum-chart-selection-arrow")
                             arrow:SetTabIndex(-1)
+                            if HasAccessibility()
+                                arrow:SetAriaHidden("true")
+                            end
                             barSVG:Add(arrow)
                         end
                     end

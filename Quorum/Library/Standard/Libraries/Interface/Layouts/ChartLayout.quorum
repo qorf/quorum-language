@@ -316,7 +316,7 @@ class ChartLayout is Layout
             if currentTick:GetColor() not= undefined
                 currentTick:LoadFilledRectangle(tickWidth, tickHeight, currentTick:GetColor())
             else 
-                currentTick:LoadFilledRectangle(tickWidth, tickHeight)
+                currentTick:LoadFilledRectangle(tickWidth, tickHeight, mainVerticalContainer:GetAxisColor())
             end
             currentTick:SetPosition(tickX, cast(integer, tickY))
             if not mainVerticalContainer:ShowTicks()
@@ -517,7 +517,7 @@ class ChartLayout is Layout
             if currentTick:GetColor() not= undefined
                 currentTick:LoadFilledRectangle(tickWidth, tickHeight, currentTick:GetColor())
             else 
-                currentTick:LoadFilledRectangle(tickWidth, tickHeight)
+                currentTick:LoadFilledRectangle(tickWidth, tickHeight, mainHorizontalContainer:GetAxisColor())
             end
             currentTick:SetPosition(cast(integer, tickX), tickY)
             if not mainHorizontalContainer:ShowTicks()

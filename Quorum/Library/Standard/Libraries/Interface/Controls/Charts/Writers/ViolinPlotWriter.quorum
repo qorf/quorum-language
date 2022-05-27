@@ -107,10 +107,11 @@ class ViolinPlotWriter is ChartWriter
                     plotGroup:SetHeight(group:GetHeight())
                     plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
                     plotGroup:SetFill(transparent)
-                    plotGroup:SetID(canvas:GetID() + "-" + group:GetHashCode())
+                    plotGroup:SetID(canvas:GetID() + "_" + group:GetHashCode())
                     plotGroup:SetTabIndex(-1)
                     if HasAccessibility()
                         plotGroup:SetAriaLabel(group:GetName() + group:GetDescription())
+                        plotGroup:SetAriaHidden("true")
                     end
                     GetGroupPanels():Add(plotGroup)
                     canvas:Add(plotGroup)
@@ -140,10 +141,11 @@ class ViolinPlotWriter is ChartWriter
                     plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
                     plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
                         plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
                     end 
                     canvas:Add(plotArea)                       
               
@@ -160,10 +162,13 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(plot:GetColor())
+                    violin:SetFill(items:Get(11):GetColor())
+                    violin:SetStroke(cast(Color, items:Get(11):GetBorderColor()))
+                    violin:SetStrokeWidth(items:Get(11):GetBorderThickness())
                     violin:SetTabIndex(-1)
-                    violin:SetStroke("black")
-                    violin:SetStrokeWidth(1)
+                    if HasAccessibility()
+                        violin:SetAriaHidden("true")
+                    end 
                     canvas:Add(violin)
 
                     // LAYER TWO
@@ -174,13 +179,14 @@ class ViolinPlotWriter is ChartWriter
                             number radius = items:Get(index):GetHeight()/2
                             medianDot:SetRadius(radius)
                             medianDot:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                            medianDot:SetFill("white")  
-                            medianDot:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
-                            medianDot:SetStroke("black")
-                            medianDot:SetStrokeWidth(1)
+                            medianDot:SetFill(items:Get(index):GetColor())
+                            medianDot:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                            medianDot:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                            medianDot:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
                             medianDot:SetTabIndex(-1)
                             if HasAccessibility()
                                 medianDot:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                medianDot:SetAriaHidden("true")
                             end 
                         else
                             // Skip the IQR borders, as our violin plots do not use them.
@@ -188,11 +194,14 @@ class ViolinPlotWriter is ChartWriter
                                 Rectangle plotLine
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill("black")
-                                plotLine:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetFill(items:Get(index):GetColor())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
                                     plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
                                 end 
                                 canvas:Add(plotLine)
                             end
@@ -237,10 +246,11 @@ class ViolinPlotWriter is ChartWriter
                     plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
                     plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
                         plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
                     end 
                     canvas:Add(plotArea)                                  
                 
@@ -254,10 +264,13 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(plot:GetColor())
-                    violin:SetStroke("black")
-                    violin:SetStrokeWidth(1)
+                    violin:SetFill(items:Get(11):GetColor())
+                    violin:SetStroke(cast(Color, items:Get(11):GetBorderColor()))
+                    violin:SetStrokeWidth(items:Get(11):GetBorderThickness())
                     violin:SetTabIndex(-1)
+                    if HasAccessibility()
+                        violin:SetAriaHidden("true")
+                    end 
                     canvas:Add(violin)
 
                     // LAYER TWO
@@ -269,10 +282,13 @@ class ViolinPlotWriter is ChartWriter
                             medianDot:SetRadius(radius)
                             medianDot:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
                             medianDot:SetFill(items:Get(index):GetColor())
-                            medianDot:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                            medianDot:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                            medianDot:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                            medianDot:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
                             medianDot:SetTabIndex(-1)
                             if HasAccessibility()
                                 medianDot:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                medianDot:SetAriaHidden("true")
                             end  
                         else
                             // Skip the IQR borders, as our violin plots do not use them.
@@ -281,10 +297,13 @@ class ViolinPlotWriter is ChartWriter
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
                                 plotLine:SetFill(items:Get(index):GetColor())
-                                plotLine:SetID(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
                                     plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
                                 end
                                 canvas:Add(plotLine)
                             end
@@ -319,9 +338,9 @@ class ViolinPlotWriter is ChartWriter
             repeat while i < plotGroups:GetSize()
                 if violinPlot:HasGroups()
                     ListItem plotGroupNav 
-                    plotGroupNav:SetIdentifier(canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode() + "-nav")
+                    plotGroupNav:SetIdentifier(canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode() + "_nav")
                     plotGroupNav:AddAttribute("role","treeitem")
-                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode())
+                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode())
                     plotGroupNav:AddAttribute("aria-expanded","false")
                     plotGroupNav:SetTabIndex("-1")
                     plotGroupsUL:Add(plotGroupNav)
@@ -337,9 +356,9 @@ class ViolinPlotWriter is ChartWriter
                 repeat while j < plotGroups:Get(i):GetSize()
                     Plot plot = plotGroups:Get(i):Get(j)
                     ListItem plotNav 
-                    plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
+                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
                     plotNav:AddAttribute("role","treeitem")
-                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotNav:AddAttribute("aria-expanded","false")
                     plotNav:SetTabIndex("-1")
                     currentGrouping:Add(plotNav)
@@ -353,9 +372,9 @@ class ViolinPlotWriter is ChartWriter
                         // Add navigation for all parts.
                         if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                             ListItem itemNav 
-                            itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                             itemNav:AddAttribute("role","treeitem")
-                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                             itemNav:SetTabIndex("-1")
                             itemsUL:Add(itemNav)
                         end
@@ -375,9 +394,9 @@ class ViolinPlotWriter is ChartWriter
                 Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
 
                 ListItem plotNav 
-                plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
+                plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
                 plotNav:AddAttribute("role","treeitem")
-                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                 plotNav:AddAttribute("aria-expanded","false")
                 plotNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(plotNav)
@@ -391,9 +410,9 @@ class ViolinPlotWriter is ChartWriter
                     // Add navigation for all parts.
                     if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                         ListItem itemNav 
-                        itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                        itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                         itemNav:AddAttribute("role","treeitem")
-                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                         itemNav:SetTabIndex("-1")
                         itemsUL:Add(itemNav)
                     end
