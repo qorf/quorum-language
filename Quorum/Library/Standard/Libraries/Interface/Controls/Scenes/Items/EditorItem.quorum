@@ -100,6 +100,14 @@ class EditorItem is Item
         return false
     end
 
+    /*
+        This action sets whether or not this object will part of physics calculations that happen as the game
+        runs. If phyics is not enabled then certain properties of the item will cause an error if the user 
+        attempts to view or change them. If physics is enabled than the object can be affected by force, and 
+        velocity calculations as the game runs. 
+
+        Attribute: Parameter enable If true the physics enabled property will be set to true, false otherwise
+    */
     action SetEditorPhysicsEnabled(boolean enable)
         SceneProperties properties
         if HasProperty(properties:PHYSICS_ENABLED)
@@ -112,6 +120,22 @@ class EditorItem is Item
         end
     end
 
+    /*
+        This action returns how physics (linear velocity, angular velocity, force, 
+        torque) will affect the object.
+        There are three possible values to be returned:
+            0 indicates that the object is UNMOVABLE, which means no matter 
+                what forces or torques is applied to the object, the object 
+                will not move.
+            1 indicates that the object is NON_RESPONSIVE, which means that only
+                setting the angular velocity and linear velocity of this object
+                will affect how the object behaves.
+            2 indicates that the object is REPONSIVE, which means that this object
+                will behave differently when you apply forces and torques to 
+                this object.
+        
+        Attribute: Returns Returns how physics will affect the object. 
+    */
     action GetEditorResponsiveness returns integer
         SceneProperties properties
         if HasProperty(properties:RESPONSIVENESS)
@@ -122,6 +146,22 @@ class EditorItem is Item
         return 0
     end
 
+    /*
+        This action sets how physics (linear velocity, angular velocity, force, 
+        torque) will affect the object.
+        There are three possible values to be set:
+            0 indicates that the object is UNMOVABLE, which means no matter 
+                what forces or torques is applied to the object, the object 
+                will not move.
+            1 indicates that the object is NON_RESPONSIVE, which means that only
+                setting the angular velocity and linear velocity of this object
+                will affect how the object behaves.
+            2 indicates that the object is REPONSIVE, which means that this object
+                will behave differently when you apply forces and torques to 
+                this object.
+        
+        Attribute: Parameter responsive Integer representing how physics will affect the object. 
+    */
     action SetEditorResponsiveness(integer responsive)
         SceneProperties properties
         if HasProperty(properties:RESPONSIVENESS)
@@ -134,6 +174,11 @@ class EditorItem is Item
         end
     end
 
+    /*
+    This action returns the mass of the object set in the editor in kilograms.
+
+    Attribute: Returns the mass of the object.
+    */
     action GetEditorMass returns number
         SceneProperties properties
         if HasProperty(properties:MASS)
@@ -143,6 +188,11 @@ class EditorItem is Item
         return 0
     end
 
+    /*
+    This action changes the mass of this object. 
+
+    Attribute: Parameter mass The mass of the object in kilograms.
+    */
     action SetEditorMass(number mass)
         SceneProperties properties
         if HasProperty(properties:MASS)
@@ -155,6 +205,11 @@ class EditorItem is Item
         end
     end
 
+    /*
+    This action gets the coefficient of friction that is stored inside this editor property holder.
+
+    Attribute: Returns the coefficient of friction.
+    */
     action GetEditorFriction returns number
         SceneProperties properties
         if HasProperty(properties:FRICTION)
@@ -165,6 +220,11 @@ class EditorItem is Item
         return 0
     end
 
+    /*
+    This action sets the coefficient of friction that is stored inside this editor property holder.
+
+    Attribute: Parameter friction the coefficient of friction.
+    */
     action SetEditorFriction(number friction)
         SceneProperties properties
         if HasProperty(properties:FRICTION)
@@ -177,6 +237,11 @@ class EditorItem is Item
         end
     end
 
+    /*
+    This action returns how much energy that this object will loose after a collision.
+
+    Attribute: Returns the coefficient of restitution.
+    */
     action GetEditorRestitution returns number
         SceneProperties properties
         if HasProperty(properties:RESTITUTION)
@@ -187,6 +252,15 @@ class EditorItem is Item
         return 0
     end
 
+    /*
+    This action sets how much energy that this object will loose after a collision.
+    If you want the object to not loose any energy, then you can pass in 1.0. If
+    you want the object to loose a lot of energy (meaning, they would probably
+    move a lot slower after the collision), then you can pass in a 0.0.
+    You can also use the values between 0 and 1.
+
+    Attribute: Parameter restitution The coefficient of restitution.
+    */
     action SetEditorRestitution(number restitution)
         SceneProperties properties
         if HasProperty(properties:RESTITUTION)
