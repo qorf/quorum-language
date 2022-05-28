@@ -77,7 +77,7 @@ float udBezier(vec2 p0, vec2 p1, vec2 p2, in vec2 p3, vec2 pos)
 
 void main()
 {
-    vec2 p = (v_texCoords.xy - 0.5) * 2;
+    vec2 p = (v_texCoords.xy - 0.5) * 2.0;
     p.x *= u_aspectRatio;
     float px = u_antiAliasDistance;
 
@@ -86,7 +86,7 @@ void main()
 
     // bezier
     float d = be;
-    color = mix(color, u_lineColor, 1.0-smoothstep(u_lineThickness, u_lineThickness + px, d));
+    color = mix(color, u_lineColor, 1.0 - smoothstep(u_lineThickness, u_lineThickness + px, d));
          
     // Render the points, if enabled
     if (u_dotEnabled)

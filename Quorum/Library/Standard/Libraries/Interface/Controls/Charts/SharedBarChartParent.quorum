@@ -12,6 +12,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
+use Libraries.Game.Graphics.Path
 
 /*
     The SharedBarChartParent class is Chart object that inherits from Control and like other
@@ -56,6 +57,9 @@ class SharedBarChartParent is Chart
 
     number barBorderThickness = 0
     integer barBorderStyle = 0
+
+    // Used to render a trend line. Undefined if no trend line is being rendered.
+    Path trendLine = undefined
 
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -178,6 +182,11 @@ class SharedBarChartParent is Chart
                 j = j + 1
             end
             i = i + 1
+        end
+
+        // Add the trend line, if there is one.
+        if HasTrendLine()
+            GetChartArea():Add(trendLine)
         end
     end
 
@@ -724,4 +733,36 @@ class SharedBarChartParent is Chart
         me:barBorderStyle = barBorderStyle
     end
 
+    /*
+
+    */
+    action ShowTrendLine(boolean show)
+        if show = (trendLine not= undefined)
+            return now
+        end
+
+        if show
+            Path path
+            trendLine = path
+            path:SetPercentageWidth(1.0)
+            path:SetPercentageHeight(1.0)
+        else
+            GetChartArea():Remove(trendLine)
+            trendLine = undefined
+        end
+    end
+
+    /*
+
+    */
+    action HasTrendLine returns boolean
+        return trendLine not= undefined
+    end
+
+    /*
+    
+    */
+    action GetTrendLine returns Path
+        return trendLine
+    end
 end

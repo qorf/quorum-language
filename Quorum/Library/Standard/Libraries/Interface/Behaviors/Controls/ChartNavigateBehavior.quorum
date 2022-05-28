@@ -5,21 +5,56 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Events.GestureEvent
 
 class ChartNavigateBehavior is Behavior
 
+    constant integer LEFT = 0
+    constant integer RIGHT = 1
+    constant integer DOWN = 2
+    constant integer UP = 3
+
     action Run(BehaviorEvent event)
         if event:GetItem() is Chart
-            KeyboardEvent keys
-            integer keycode = event:GetKeyboardEvent():keyCode
+            integer direction = -1
             Chart chart = cast(Chart, event:GetItem())
-            if keycode = keys:UP
+
+            KeyboardEvent keyEvent = event:GetKeyboardEvent()
+            if keyEvent not= undefined
+                integer keycode = keyEvent:keyCode
+                if keycode = keyEvent:LEFT
+                    direction = LEFT
+                elseif keycode = keyEvent:RIGHT
+                    direction = RIGHT
+                elseif keycode = keyEvent:UP
+                    direction = UP
+                elseif keycode = keyEvent:DOWN
+                    direction = DOWN
+                end
+            elseif event:GetGestureEvent() not= undefined
+                GestureEvent gesture = event:GetGestureEvent()
+                if gesture:eventType not= gesture:SWIPE
+                    return now
+                end
+
+                if gesture:GetDirection() = gesture:LEFT
+                    direction = LEFT
+                elseif gesture:GetDirection() = gesture:RIGHT
+                    direction = RIGHT
+                elseif gesture:GetDirection() = gesture:UP
+                    direction = UP
+                elseif gesture:GetDirection() = gesture:DOWN
+                    direction = DOWN
+                end
+            end
+
+            if direction = UP
                 chart:SelectPrevious()
-            elseif keycode = keys:DOWN
+            elseif direction = DOWN
                 chart:SelectNext()
-            elseif keycode = keys:LEFT
+            elseif direction = LEFT
                 chart:CloseItem()
-            elseif keycode = keys:RIGHT
+            elseif direction = RIGHT
                 chart:OpenItem()
             end
         end

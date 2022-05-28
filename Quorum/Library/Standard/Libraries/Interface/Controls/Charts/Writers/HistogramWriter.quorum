@@ -93,6 +93,7 @@ class HistogramWriter is ChartWriter
         Histogram histogram
         histogram = cast(Histogram, chart)
         AddBars(canvas, histogram)
+        AddTrendLine(canvas, histogram)
     end
 
     /*
@@ -372,6 +373,12 @@ class HistogramWriter is ChartWriter
                 end
                 i = i + 1
             end
+        end
+    end
+
+    private action AddTrendLine(ScalableVectorGraphics canvas, Histogram chart)
+        if chart:HasTrendLine() = false
+            return now
         end
     end
 end
