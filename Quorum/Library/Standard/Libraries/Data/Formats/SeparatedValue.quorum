@@ -60,6 +60,10 @@ class SeparatedValue
 
         reader:OpenForRead(file)
         reader:SetStoreLines(false)
+        Read(reader)
+    end
+
+    private action Read(SeparatedValueFileReader reader)
         count = 1
         done = false
         repeat until done
@@ -82,6 +86,33 @@ class SeparatedValue
 
             count = count + 1
         end
+    end
+
+    /*
+        This action reads in a text value and puts any data found into a table. If the 
+        data is not in a consistent format, meaning that the number of columns
+        varies per row, then IsConsistent() will return false and obtaining a
+        correct parse cannot be guaranteed.
+
+
+        Attribute: Parameter file The file to be read in.
+
+        Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.SeparatedValue
+
+        SeparatedValue csvReader //first create the reader
+        text value = 
+            "Hello, how, are, you
+            1, 2, 3, 4
+            2, 3, 4, 5"
+        csvReader:Read(value) //read the csv text
+    */
+    action Read(text value)
+        SeparatedValueTextReader reader
+        reader:SetText(value)
+        Read(reader)
     end
 
     /*
