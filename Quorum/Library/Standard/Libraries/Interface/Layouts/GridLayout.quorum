@@ -1,0 +1,288 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+
+/*
+The GridLayout class is used to lay out controls in a grid pattern. The grid assumes that all columns have the same width
+and all rows have the same height. If the layout is applied to a Control, it will create a number of rows and columns based
+on the value of the Control's Get
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.GridLayout
+
+class Main is Game
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        GridLayout layout
+        // Set our layout to have 3 rows and 3 columns by default.
+        layout:SetDefaultGridWidth(3)
+        layout:SetDefaultGridHeight(3)
+        SetLayout(layout)
+
+        // We use the intensity value to change how dark/bright each rectangle is. 
+        number intensity = 0
+
+        integer row = 0
+        repeat while row < 3
+            integer column = 0
+            repeat while column < 3
+                Icon icon
+                // The icons should fill the whole width and height of their cell in the grid.
+                icon:SetPercentageWidth(1.0)
+                icon:SetPercentageHeight(1.0)
+
+                // Load a colored rectangle into the grid.
+                Color color
+                color:SetColor(intensity, intensity, intensity, 1)
+                icon:LoadFilledRectangle(10, 10, color)
+
+                // Indicate where the icon is located in the grid coordinates.
+                icon:SetGridX(column)
+                icon:SetGridY(row)
+
+                Add(icon)
+
+                // Adjust the intensity to make the next icon brighter than the last.
+                intensity = intensity + 0.1
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+end
+*/
+class GridLayout is Layout
+
+    /*
+    How many cells across the grid should be, by default.
+    This value is only used if the GridLayout isn't attached
+    to a Control with a valid container grid width. If that
+    value is available, it will be used instead.
+    */
+    integer defaultGridWidth = 5
+
+    /* 
+    How many cells tall the grid should be, by default.
+    This value is only used if the GridLayout isn't attached
+    to a Control with a valid container grid height. If that
+    value is available, it will be used instead.
+    */
+    integer defaultGridHeight = 5
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        /*
+        The horizontal/vertical layout modes for the container. Defaults to STANDARD.
+        */
+        LayoutProperties modeConstants
+        integer containerXMode = modeConstants:STANDARD
+        integer containerYMode = modeConstants:STANDARD
+
+        if container not= undefined
+            LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            containerXMode = containerProperties:GetHorizontalLayoutMode()
+            containerYMode = containerProperties:GetVerticalLayoutMode()
+
+            // In the future, we could support fit contents to dynamically fit the size of each row/column to the largest element in that row/column.
+            if containerXMode = containerProperties:FIT_CONTENTS or containerYMode = containerProperties:FIT_CONTENTS
+                alert("The GridLayout does not support the current layout mode. Please use another layout mode, such as STANDARD mode.")
+            end
+
+            // In the future, we could support FIT_FONT to set the height of each row based on the height of the given font.
+            if containerYMode = containerProperties:FIT_FONT
+                alert("The GridLayout does not support the current layout mode. Please use another layout mode, such as STANDARD mode.")
+            end
+        end
+
+        /*
+        For now, assume standard layout for the container. More complicated cases are checked for above, and cases like FILL or MAINTAIN_ASPECT_RATIO
+        are only used to size the container in ways that parent layouts will have to handle before this layout gets it.
+        */
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if item is Control
+                
+                Control control = cast(Control, item)
+                LayoutProperties properties = control:GetDefaultLayoutProperties()
+                number itemWidth = 0
+                number itemHeight = 0
+                number regionWidth = 0
+                number regionHeight = 0
+
+                integer xMode = properties:GetHorizontalLayoutMode()
+                integer yMode = properties:GetVerticalLayoutMode()
+
+                boolean setWidth = false
+                boolean setHeight = false
+
+                // Try to get the width using the standard mode, or via filling the cells.
+                if xMode = properties:STANDARD or xMode = properties:FILL
+                    integer startIndex = control:GetGridX()
+                    number startX = GetCellX(startIndex, container, containerWidth)
+                    
+                    /*
+                    Figure out how many columns this Cell is stretched across, and how wide
+                    that region is. This calculation isn't optimized for the current use case
+                    (i.e. that columns have consistent width), but will continue to work if
+                    columns are allowed non-consistent width in the future.
+                    */
+                    integer cellCount = 0
+                    repeat while cellCount < control:GetGridWidth()
+                        regionWidth = regionWidth + GetColumnWidth(startIndex + cellCount, container, containerWidth)
+                        cellCount = cellCount + 1
+                    end
+
+                    if xMode = properties:STANDARD
+                        itemWidth = regionWidth * control:GetPercentageWidth() + (control:GetPixelWidth() - control:GetLeftPadding() - control:GetRightPadding()) * control:GetInterfaceScale()
+                    elseif xMode = properties:FILL
+                        itemWidth = regionWidth - (control:GetLeftPadding() + control:GetRightPadding()) * control:GetInterfaceScale()
+                    end
+
+                    setWidth = true
+                end
+
+                // Try to get the height via the standard mode or fill, or using the aspect ratio if requested and we've already got the width.
+                if yMode = properties:STANDARD or yMode = properties:FILL
+                    integer startIndex = control:GetGridY()
+                    number startY = GetCellY(startIndex, container, containerHeight)
+                    
+                    /*
+                    Figure out how many columns this Cell is stretched across, and how wide
+                    that region is. This calculation isn't optimized for the current use case
+                    (i.e. that columns have consistent width), but will continue to work if
+                    columns are allowed non-consistent width in the future.
+                    */
+                    integer cellCount = 0
+                    repeat while cellCount < control:GetGridHeight()
+                        regionHeight = regionHeight + GetRowHeight(startIndex + cellCount, container, containerHeight)
+                        cellCount = cellCount + 1
+                    end
+
+                    if yMode = properties:STANDARD
+                        itemHeight = regionHeight * control:GetPercentageHeight() + (control:GetPixelHeight() - control:GetBottomPadding() - control:GetTopPadding()) * control:GetInterfaceScale()
+                    elseif yMode = properties:FILL
+                        itemHeight = regionHeight - (control:GetBottomPadding() + control:GetTopPadding()) * control:GetInterfaceScale()
+                    end
+
+                    setHeight = true
+                elseif yMode = properties:MAINTAIN_ASPECT_RATIO and setWidth
+                    itemHeight = itemWidth * control:GetPercentageHeight()
+                    setHeight = true
+                elseif yMode = properties:FIT_FONT
+                    itemHeight = properties:GetFont():GetLineHeight()
+                    setHeight = true
+                end
+
+                // If the width wants to maintain an aspect ratio, we can do it now if the height has already been set.
+                if xMode = properties:MAINTAIN_ASPECT_RATIO and setHeight
+                    itemWidth = itemHeight * control:GetPercentageWidth()
+                    setWidth = true
+                end
+
+                if setWidth
+                    if setHeight
+                        control:SetSize(itemWidth, itemHeight)
+                    else
+                        // Let the Control determine its own height during the layout that occurs during a SetWidth action.
+                        control:SetWidth(itemWidth)
+                    end
+                elseif setHeight
+                    // Let the Control determine its own width during the layout that occurs during a SetHeight action.
+                    control:SetHeight(itemHeight)
+                else
+                    // If we can't determine the width or height ourselves, we can only let the Control handle it itself.
+                    control:Resize()
+                end
+
+                // If we need to maintain an aspect ratio and couldn't do it before, do it now.
+                if xMode = properties:MAINTAIN_ASPECT_RATIO and (setHeight = false)
+                    control:SetWidth(control:GetPercentageX() * control:GetHeight())
+                end
+                if yMode = properties:MAINTAIN_ASPECT_RATIO and (setWidth = false)
+                    control:SetHeight(control:GetPercentageY() * control:GetWidth())
+                end
+
+                // Finally, position the element within the grid.
+                number originOffsetX = control:GetPercentageOriginX() * control:GetWidth()
+                number originOffsetY = control:GetPercentageOriginY() * control:GetHeight()
+                number startX = GetCellX(control:GetGridX(), container, containerWidth)
+                number startY = GetCellY(control:GetGridY(), container, containerHeight)
+
+                number x = startX + control:GetPixelX() + control:GetLeftPadding() + control:GetPercentageX() * regionWidth - originOffsetX
+                number y = startY + control:GetPixelY() + control:GetBottomPadding() + control:GetPercentageY() * regionHeight - originOffsetY                
+                control:SetPosition(x, y)
+            end
+            i = i + 1
+        end
+    end
+
+    // Get the X coordinate for the beginning of the column at the given index.
+    private action GetCellX(integer index, Control container, number containerWidth) returns number
+        if container not= undefined and container:GetContainerGridWidth() > 0
+            return (containerWidth / container:GetContainerGridWidth()) * index
+        else
+            return (containerWidth / defaultGridWidth) * index
+        end
+    end
+
+    // Get the Y coordinate for the beginning (bottom) of the row at the given index.
+    private action GetCellY(integer index, Control container, number containerHeight) returns number
+        if container not= undefined and container:GetContainerGridHeight() > 0
+            return (containerHeight / container:GetContainerGridHeight()) * index
+        else
+            return (containerHeight / defaultGridHeight) * index
+        end
+    end
+    
+    /*
+    Get the width of the given column.
+    While currently all columns are the same width in the grid, delineating this to a separate action will
+    make it easier to change the design in the future, if we so choose.
+    */
+    private action GetColumnWidth(integer index, Control container, number containerWidth) returns number
+        if container not= undefined and container:GetContainerGridWidth() > 0
+            return containerWidth / container:GetContainerGridWidth()
+        else
+            return containerWidth / defaultGridWidth
+        end
+    end
+
+    /*
+    Get the height of the given row.
+    While currently all rows are the same height in the grid, delineating this to a separate action will
+    make it easier to change the design in the future, if we so choose.
+    */
+    private action GetRowHeight(integer index, Control container, number containerHeight) returns number
+        if container not= undefined and container:GetContainerGridHeight() > 0
+            return containerHeight / container:GetContainerGridHeight()
+        else
+            return containerHeight / defaultGridWidth
+        end
+    end
+
+    action GetDefaultGridWidth returns integer
+        return defaultGridWidth
+    end
+
+    action SetDefaultGridWidth(integer defaultGridWidth)
+        me:defaultGridWidth = defaultGridWidth
+    end
+
+    action GetDefaultGridHeight returns integer
+        return defaultGridHeight
+    end
+
+    action SetDefaultGridHeight(integer defaultGridHeight)
+        me:defaultGridHeight = defaultGridHeight
+    end
+
+end
