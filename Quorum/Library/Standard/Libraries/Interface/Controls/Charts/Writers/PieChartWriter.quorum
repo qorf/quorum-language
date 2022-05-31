@@ -150,11 +150,14 @@ class PieChartWriter is ChartWriter
                     slice:SetCenter(centerX, centerY)
                 end
                 slice:SetFill(pieBox:Get(i):GetColor())
-                slice:SetID(canvas:GetID() + "-" + pieBox:Get(i):GetHashCode())
+                slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
+                slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+                slice:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
                 slice:SetStyleClass("quorum-chart-wedge")
                 slice:SetTabIndex(-1)
                 if HasAccessibility()
                     slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
+                    slice:SetAriaHidden("true")
                 end
                 canvas:Add(slice)
 
@@ -167,9 +170,13 @@ class PieChartWriter is ChartWriter
                         labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
                         labelSVG:SetFontSize(label:GetFontSize() + "px")
                         labelSVG:SetFontFamily("Arial")
-                        labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                        labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                        labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                         labelSVG:SetStyleClass("quorum-chart-text")
                         labelSVG:SetTabIndex(-1)
+                        if HasAccessibility()
+                            labelSVG:SetAriaHidden("true")
+                        end
                         canvas:Add(labelSVG)
                     end
                 end
@@ -235,11 +242,14 @@ class PieChartWriter is ChartWriter
                         slice:SetCenter(centerX, centerY)
                     end
                     slice:SetFill(pieBox:Get(i):GetColor())
-                    slice:SetID(canvas:GetID() + "-" + pieBox:GetChartArea():GetName():GetHashCode() + "-" + pieBox:Get(i):GetHashCode())
+                    slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
+                    slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+                    slice:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
                     slice:SetStyleClass("quorum-chart-wedge")
                     slice:SetTabIndex(-1)
                     if HasAccessibility()
                         slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
+                        slice:SetAriaHidden("true")
                     end
                     canvas:Add(slice)
 
@@ -252,9 +262,13 @@ class PieChartWriter is ChartWriter
                             labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
                             labelSVG:SetFontSize(label:GetFontSize() + "px")
                             labelSVG:SetFontFamily("Arial")
-                            labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                            labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
+                            if HasAccessibility()
+                                labelSVG:SetAriaHidden("true")
+                            end
                             canvas:Add(labelSVG)
                         end
                     end 
@@ -279,9 +293,9 @@ class PieChartWriter is ChartWriter
             integer i = 0
             repeat while i < pieBox:GetSize()
                 ListItem sliceNav 
-                sliceNav:SetIdentifier(canvas:GetID() + "-" + pieBox:Get(i):GetHashCode() + "-nav")
+                sliceNav:SetIdentifier(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode() + "_nav")
                 sliceNav:AddAttribute("role","treeitem")
-                sliceNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + pieBox:Get(i):GetHashCode())
+                sliceNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
                 sliceNav:SetTabIndex("-1")
                 slicesUL:Add(sliceNav)
                 i = i + 1
@@ -296,10 +310,10 @@ class PieChartWriter is ChartWriter
             repeat while i < chartArea:GetChartAreaItems():GetSize()
                 Item slice = chartArea:GetChartAreaItems():Get(i)
                 ListItem sliceNav 
-                sliceNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetName():GetHashCode() + "-" + slice:GetHashCode() + "-nav")
+                sliceNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + slice:GetHashCode() + "_nav")
                 sliceNav:AddAttribute("role","treeitem")
                 sliceNav:AddClassAttribute("quorum-chart-treeitem")
-                sliceNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetName():GetHashCode() + "-" + slice:GetHashCode())
+                sliceNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + slice:GetHashCode())
                 sliceNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(sliceNav)
 

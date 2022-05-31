@@ -47,10 +47,12 @@ class ScalableVectorGraphicsObject
     private text ariaRoleDescription = ""
     private text ariaLabelledBy = ""
     private text ariaDescribedBy = ""
+    private text ariaHidden = ""
     
 
     //helper attributes
     private boolean isContainer = false
+    private boolean isOneLine = false
 
     //title and description of svg graphics element or container
     private text title = ""
@@ -110,6 +112,9 @@ class ScalableVectorGraphicsObject
         end
         if ariaDescribedBy not= ""
             result = result + " aria-describedby="+dq+ariaDescribedBy+dq
+        end
+        if ariaHidden not= ""
+            result = result + " aria-hidden="+dq+ariaHidden+dq
         end
         return result
     end
@@ -219,6 +224,22 @@ class ScalableVectorGraphicsObject
     */
     action IsContainer returns boolean
         return isContainer
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+
+        Attribute: Parameter isContainer true if it will contain other objects, false if not
+    */
+    action SetIsOneLine(boolean isOneLine)
+        me:isOneLine = isOneLine
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+    */
+    action IsOneLine returns boolean
+        return isOneLine
     end
 
     /*
@@ -736,6 +757,27 @@ class ScalableVectorGraphicsObject
 
     action GetAriaDescribedBy returns text
         return ariaDescribedBy
+    end
+
+    /*
+        This action will give a aria-hidden attribute to the SVG element. This aria-hideen can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaHidden The aria-hidden for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaHidden("true")
+    */
+    action SetAriaHidden(text ariaHidden)
+        me:ariaHidden = ariaHidden
+    end
+
+    action GetAriaHidden returns text
+        return ariaHidden
     end
 
     /*

@@ -303,7 +303,6 @@ class BoxPlot is Chart
             end
 
             // Area covering entire group panel
-//            GroupPanel panel
             group:SetName(group:GetName() + " group, ")
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
             group:SetFocusable(true)
@@ -358,13 +357,12 @@ class BoxPlot is Chart
                         if j = 3
                             item:SetColor(previousColor)
                         else
-                            item:SetColor(previousColor:Black())
+                            item:SetColor(GetBorderColor()) 
                         end
                         j = j + 1
                     end
                     i = i + 1
                 end
-//                temp:GetLabel():LostSelection()
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             else

@@ -137,28 +137,29 @@ class VerticalAxisPanel is Control
         of  the chart.
     */
     private action GenerateSummary returns text
+        text description = ""
         if labels:GetSize() > 0
+            SetName("Y axis")
             if titleText not= ""
-                SetName(titleText + " axis")
+                description = description + "shows " + titleText + " and "
             end 
             if textLabels not= undefined
                 if labels:GetSize() = 1
-                    text list = "The label is " + labels:Get(labels:GetSize()-1):GetText()
-                    SetDescription(" has " + textLabels:GetSize() + " text label. " + list)
+                    description = description + "has a value of " + labels:Get(labels:GetSize()-1):GetText() + "."
                 else
-                    text list = "The labels are "
+                    description = description + "has values "
                     integer i = 0
                     repeat while i < labels:GetSize()-1
-                        list = list + labels:Get(i):GetText() + ", "
+                        description = description + labels:Get(i):GetText() + ", "
                         i = i + 1
                     end
-                    list = list + "and " + labels:Get(labels:GetSize()-1):GetText() + ". "
-                    SetDescription(" has " + textLabels:GetSize() + " text labels. " + list)
+                    description = description + "and " + labels:Get(labels:GetSize()-1):GetText() + "."
                 end
             else
-                SetDescription(" ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + ". ")
+                description = description + "ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + "."
             end
         end
+        SetDescription(description)
         return GetDescription()
     end
 

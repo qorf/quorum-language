@@ -111,12 +111,13 @@ class HistogramWriter is ChartWriter
 
                 Group barGroupSVG
                 if chart:HasGroups()
-                    barGroupSVG:SetID(canvas:GetID() + "-" + currentBarGroup:GetHashCode())
+                    barGroupSVG:SetID(canvas:GetID() + "_" + currentBarGroup:GetHashCode())
                     barGroupSVG:SetStyleClass("quorum-chart-bargroup")
                     barGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     barGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
                         barGroupSVG:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
+                        barGroupSVG:SetAriaHidden("false")
                     end
                     canvas:Add(barGroupSVG)
 
@@ -128,6 +129,9 @@ class HistogramWriter is ChartWriter
                     barGroup:SetFill(transparent)
                     barGroup:SetStyleClass("quorum-chart-rect")
                     barGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        barGroup:SetAriaHidden("true")
+                    end
                     barGroupSVG:Add(barGroup)
     
                     if currentBarGroup:GetSelectionBracket():GetSize() = 3
@@ -140,6 +144,9 @@ class HistogramWriter is ChartWriter
                             bracket:SetFill(transparent) // Should be transparent until selected
                             bracket:SetStyleClass("quorum-chart-selection-bracket")
                             bracket:SetTabIndex(-1)
+                            if HasAccessibility()
+                                bracket:SetAriaHidden("true")
+                            end
                             barGroupSVG:Add(bracket)    
                             k = k + 1
                         end
@@ -159,6 +166,9 @@ class HistogramWriter is ChartWriter
                         arrow:SetFill(transparent) // Should be transparent until selected
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
                         arrow:SetTabIndex(-1)
+                        if HasAccessibility()
+                            arrow:SetAriaHidden("true")
+                        end
                         barGroupSVG:Add(arrow)
                     end
                 end
@@ -168,7 +178,7 @@ class HistogramWriter is ChartWriter
                     Bar currentBar = currentBarGroup:Get(j)
     
                     Group barSVG
-                    barSVG:SetID(canvas:GetID() + "-" + currentBar:GetSeries():GetHashCode() + "-" + currentBar:GetHashCode())
+                    barSVG:SetID(canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode())
                     barSVG:SetStyleClass("quorum-chart-bar")
                     barSVG:SetFill(currentBar:GetColor())
                     if currentBar:GetColor():GetAlpha() not= 1.0
@@ -177,6 +187,7 @@ class HistogramWriter is ChartWriter
                     barSVG:SetTabIndex(-1)
                     if HasAccessibility()
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                        barSVG:SetAriaHidden("false")
                     end
                     if chart:HasGroups()
                         barGroupSVG:Add(barSVG)
@@ -189,11 +200,16 @@ class HistogramWriter is ChartWriter
                     bar:SetHeight(currentBar:GetHeight())
                     bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                     bar:SetFill(currentBar:GetColor())
+                    bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
+                    bar:SetStrokeWidth(currentBar:GetBorderThickness())
                     if currentBar:GetColor():GetAlpha() not= 1.0
                         bar:SetFillOpacity(currentBar:GetColor():GetAlpha())
                     end
                     bar:SetStyleClass("quorum-chart-rect")
                     bar:SetTabIndex(-1)
+                    if HasAccessibility()
+                        bar:SetAriaHidden("true")
+                    end
                     barSVG:Add(bar)
     
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
@@ -206,9 +222,12 @@ class HistogramWriter is ChartWriter
                             labelSVG:SetFontSize(label:GetFontSize() + "px")
                             labelSVG:SetFontFamily("Arial")
                             labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                            labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
+                            if HasAccessibility()
+                                labelSVG:SetAriaHidden("true")
+                            end
                             barSVG:Add(labelSVG)
                         end
                     end 
@@ -225,9 +244,12 @@ class HistogramWriter is ChartWriter
                             k = k + 2
                         end
                         arrow:SetFill(transparent) // Should be transparent until selected 
-                        arrow:SetID(canvas:GetID() + "-" + currentBar:GetSelectionArrow():GetHashCode())
+                        arrow:SetID(canvas:GetID() + "_" + currentBar:GetSelectionArrow():GetHashCode())
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
                         arrow:SetTabIndex(-1)
+                        if HasAccessibility()
+                            arrow:SetAriaHidden("true")
+                        end
                         barSVG:Add(arrow)
                     end
 
@@ -245,12 +267,13 @@ class HistogramWriter is ChartWriter
                         Bar currentBar = cast(Bar, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
         
                         Group barSVG
-                        barSVG:SetID(canvas:GetID() + "-" + chart:GetSubChartAreas():Get(i):GetHashCode() + "-" + currentBar:GetHashCode())
+                        barSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode())
                         barSVG:SetStyleClass("quorum-chart-bar")
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                            barSVG:SetAriaHidden("false")
                         end
                         canvas:Add(barSVG)
     
@@ -259,8 +282,13 @@ class HistogramWriter is ChartWriter
                         bar:SetHeight(currentBar:GetHeight())
                         bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
                         bar:SetFill(currentBar:GetColor())
+                        bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
+                        bar:SetStrokeWidth(currentBar:GetBorderThickness())
                         bar:SetStyleClass("quorum-chart-rect")
                         bar:SetTabIndex(-1)
+                        if HasAccessibility()
+                            bar:SetAriaHidden("true")
+                        end
                         barSVG:Add(bar)
     
                         if currentBar:ShowAnnotation() or chart:ShowAnnotations()
@@ -273,9 +301,12 @@ class HistogramWriter is ChartWriter
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                labelSVG:SetID(canvas:GetID() + "-" + label:GetHashCode())
+                                labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
                                 labelSVG:SetStyleClass("quorum-chart-text")
                                 labelSVG:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    labelSVG:SetAriaHidden("true")
+                                end
                                 barSVG:Add(labelSVG)
                             end
                         end 
@@ -292,9 +323,12 @@ class HistogramWriter is ChartWriter
                                 k = k + 2
                             end
                             arrow:SetFill(transparent) // Should be transparent until selected
-                            arrow:SetID(canvas:GetID() + "-" + currentBar:GetSelectionArrow():GetHashCode())
+                            arrow:SetID(canvas:GetID() + "_" + currentBar:GetSelectionArrow():GetHashCode())
                             arrow:SetStyleClass("quorum-chart-selection-arrow")
                             arrow:SetTabIndex(-1)
+                            if HasAccessibility()
+                                arrow:SetAriaHidden("true")
+                            end
                             barSVG:Add(arrow)
                         end
                     end
@@ -323,10 +357,10 @@ class HistogramWriter is ChartWriter
             repeat while i < barGroups:GetSize()
                 if histogram:HasGroups()
                     ListItem barGroupNav 
-                    barGroupNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):GetHashCode() + "-nav")
+                    barGroupNav:SetIdentifier(canvas:GetID() + "_" + barGroups:Get(i):GetHashCode() + "_nav")
                     barGroupNav:AddAttribute("role","treeitem")
                     barGroupNav:AddClassAttribute("quorum-chart-treeitem")
-                    barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):GetHashCode())
+                    barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + barGroups:Get(i):GetHashCode())
                     barGroupNav:AddAttribute("aria-expanded","false")
                     barGroupNav:SetTabIndex("-1")
                     barGroupsUL:Add(barGroupNav)
@@ -342,10 +376,10 @@ class HistogramWriter is ChartWriter
                 j = 0
                 repeat while j < barGroups:Get(i):GetSize()
                     ListItem barNav 
-                    barNav:SetIdentifier(canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode() + "-nav")
+                    barNav:SetIdentifier(canvas:GetID() + "_" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "_" + barGroups:Get(i):Get(j):GetHashCode() + "_nav")
                     barNav:AddAttribute("role","treeitem")
                     barNav:AddClassAttribute("quorum-chart-treeitem")
-                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "-" + barGroups:Get(i):Get(j):GetHashCode())
+                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "_" + barGroups:Get(i):Get(j):GetHashCode())
                     barNav:SetTabIndex("-1")
                     currentGrouping:Add(barNav)
     
@@ -364,10 +398,10 @@ class HistogramWriter is ChartWriter
                 if (chartArea:GetChartAreaItems():Get(i) is Bar)
                     Item bar = chartArea:GetChartAreaItems():Get(i)
                     ListItem barNav 
-                    barNav:SetIdentifier(canvas:GetID() + "-" + chartArea:GetHashCode() + "-" + bar:GetHashCode() + "-nav")
+                    barNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode() + "_nav")
                     barNav:AddAttribute("role","treeitem")
                     barNav:AddClassAttribute("quorum-chart-treeitem")
-                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + chartArea:GetHashCode() + "-" + bar:GetHashCode())
+                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode())
                     barNav:SetTabIndex("-1")
                     subChartAreaItemsUL:Add(barNav)
                 end

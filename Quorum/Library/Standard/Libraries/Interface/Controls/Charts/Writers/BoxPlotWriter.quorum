@@ -101,10 +101,11 @@ class BoxPlotWriter is ChartWriter
                     plotGroup:SetHeight(group:GetHeight())
                     plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
                     plotGroup:SetFill(transparent)
-                    plotGroup:SetID(canvas:GetID() + "-" + group:GetHashCode())
+                    plotGroup:SetID(canvas:GetID() + "_" + group:GetHashCode())
                     plotGroup:SetTabIndex(-1)
                     if HasAccessibility()
                         plotGroup:SetAriaLabel(group:GetName() + group:GetDescription())
+                        plotGroup:SetAriaHidden("true")
                     end
                     GetGroupPanels():Add(plotGroup)
                     canvas:Add(plotGroup)
@@ -136,10 +137,11 @@ class BoxPlotWriter is ChartWriter
                     plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
                     plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
                         plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
                     end 
                     canvas:Add(plotArea)                         
               
@@ -148,11 +150,14 @@ class BoxPlotWriter is ChartWriter
                     Rectangle iqrBox
                     iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
                     iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
-                    iqrBox:SetFill(plot:GetColor())
-                    iqrBox:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(3):GetHashCode())
+                    iqrBox:SetFill(items:Get(3):GetColor())
+                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
+                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
+                    iqrBox:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(3):GetHashCode())
                     iqrBox:SetTabIndex(-1)
                     if HasAccessibility()
                         iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
+                        iqrBox:SetAriaHidden("true")
                     end 
                     canvas:Add(iqrBox)
 
@@ -160,29 +165,35 @@ class BoxPlotWriter is ChartWriter
                     index = 1
                     repeat while index < items:GetSize()
                         if index not= 3 //skip IQR
-                            if index > 10 // This is the median dot shape to be initialized now and added in the next layer.
+                            if index > 10 and items:Get(index) is ChartPoint// This is the median dot shape to be initialized now and added in the next layer.
+                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+
                                 Circle outlier
-                                number radius = items:Get(index):GetHeight()/2
+                                number radius = currentPoint:GetHeight()/2
                                 outlier:SetRadius(radius)
-                                outlier:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                                outlier:SetFill(plot:GetColor())  
-                                outlier:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
-                                outlier:SetStroke("black")
-                                outlier:SetStrokeWidth(1)
+                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
+                                outlier:SetFill(currentPoint:GetColor())
+                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 outlier:SetTabIndex(-1)
                                 if HasAccessibility()
                                     outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    outlier:SetAriaHidden("true")
                                 end 
                                 canvas:Add(outlier)
                             else
                                 Rectangle plotLine
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill("black")
-                                plotLine:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetFill(items:Get(index):GetColor())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
                                     plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
                                 end 
                                 canvas:Add(plotLine)
                             end
@@ -223,10 +234,11 @@ class BoxPlotWriter is ChartWriter
                     plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
                     plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
                     plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotArea:SetTabIndex(-1)
                     if HasAccessibility()
                         plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
                     end 
                     canvas:Add(plotArea)                   
               
@@ -235,11 +247,14 @@ class BoxPlotWriter is ChartWriter
                     Rectangle iqrBox
                     iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
                     iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
-                    iqrBox:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(3):GetHashCode())
-                    iqrBox:SetFill(plot:GetColor())
+                    iqrBox:SetFill(items:Get(3):GetColor())
+                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
+                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
+                    iqrBox:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(3):GetHashCode())
                     iqrBox:SetTabIndex(-1)
                     if HasAccessibility()
                         iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
+                        iqrBox:SetAriaHidden("true")
                     end 
                     canvas:Add(iqrBox)
 
@@ -248,17 +263,20 @@ class BoxPlotWriter is ChartWriter
                     repeat while index < items:GetSize()
                         if index not= 3 //skip IQR
                             if index > 10 // This is the median dot shape to be initialized now and added in the next layer.
+                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+
                                 Circle outlier
-                                number radius = items:Get(index):GetHeight()/2
+                                number radius = currentPoint:GetHeight()/2
                                 outlier:SetRadius(radius)
-                                outlier:SetPosition(items:Get(index):GetGlobalX() + radius, TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight() + radius)
-                                outlier:SetFill(plot:GetColor())  
-                                outlier:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
-                                outlier:SetStroke("black")
-                                outlier:SetStrokeWidth(1)
+                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
+                                outlier:SetFill(currentPoint:GetColor())
+                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 outlier:SetTabIndex(-1)
                                 if HasAccessibility()
                                     outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    outlier:SetAriaHidden("true")
                                 end 
                                 canvas:Add(outlier)
                             else
@@ -266,10 +284,13 @@ class BoxPlotWriter is ChartWriter
                                 plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
                                 plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
                                 plotLine:SetFill(items:Get(index):GetColor())
-                                plotLine:SetID(canvas:GetID()+ "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + items:Get(index):GetHashCode())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
                                 plotLine:SetTabIndex(-1)
                                 if HasAccessibility()
                                     plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
                                 end 
                                 canvas:Add(plotLine)
                             end
@@ -299,9 +320,9 @@ class BoxPlotWriter is ChartWriter
             repeat while i < plotGroups:GetSize()
                 if boxPlot:HasGroups()
                     ListItem plotGroupNav 
-                    plotGroupNav:SetIdentifier(canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode() + "-nav")
+                    plotGroupNav:SetIdentifier(canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode() + "_nav")
                     plotGroupNav:AddAttribute("role","treeitem")
-                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plotGroups:Get(i):GetHashCode())
+                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode())
                     plotGroupNav:AddAttribute("aria-expanded","false")
                     plotGroupNav:SetTabIndex("-1")
                     plotGroupsUL:Add(plotGroupNav)
@@ -317,9 +338,9 @@ class BoxPlotWriter is ChartWriter
                 repeat while j < plotGroups:Get(i):GetSize()
                     Plot plot = plotGroups:Get(i):Get(j)
                     ListItem plotNav 
-                    plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
+                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
                     plotNav:AddAttribute("role","treeitem")
-                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                     plotNav:AddAttribute("aria-expanded","false")
                     plotNav:SetTabIndex("-1")
                     currentGrouping:Add(plotNav)
@@ -333,9 +354,9 @@ class BoxPlotWriter is ChartWriter
                         // Add navigation for all parts.
                         if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                             ListItem itemNav 
-                            itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                             itemNav:AddAttribute("role","treeitem")
-                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                             itemNav:SetTabIndex("-1")
                             itemsUL:Add(itemNav)
                         end
@@ -355,9 +376,9 @@ class BoxPlotWriter is ChartWriter
                 Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
 
                 ListItem plotNav 
-                plotNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode() + "-nav")
+                plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
                 plotNav:AddAttribute("role","treeitem")
-                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotArea():GetHashCode())
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
                 plotNav:AddAttribute("aria-expanded","false")
                 plotNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(plotNav)
@@ -371,9 +392,9 @@ class BoxPlotWriter is ChartWriter
                     // Add navigation for all parts.
                     if k not= 2 and k not= 4 and k not= 5 and k not= 9// Skip the elements not included in the navigation
                         ListItem itemNav 
-                        itemNav:SetIdentifier(canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode() + "-nav")
+                        itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                         itemNav:AddAttribute("role","treeitem")
-                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + plot:GetHashCode() + "-" + plot:GetSeries():GetHashCode() + "-" + plot:GetPlotItems():Get(k):GetHashCode())
+                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                         itemNav:SetTabIndex("-1")
                         itemsUL:Add(itemNav)
                     end
