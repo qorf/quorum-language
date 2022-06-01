@@ -1,0 +1,160 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.LinePath
+use Libraries.Game.GameStateManager
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.BezierCurve
+
+class Path is ScalableVectorGraphicsObject
+
+    constant text objectName = "path"
+    LinePath rawPath = undefined
+
+    integer canvasWidth = 0
+    integer canvasHeight = 0
+
+    /*
+    This action sets the LinePath that will be used to define this path.
+    This should be set before using ToText.
+
+    Attribute: Parameter path The LinePath that this path should copy.
+    */
+    action SetPath(LinePath path)
+        rawPath = path
+    end
+
+    /*
+    This action returns the LinePath used to define the path.
+    This is undefined by default, and must be set using SetPath.
+
+    Attribute: Returns The LinePath that this path is copying.
+    */
+    action GetPath returns LinePath
+        return rawPath
+    end
+
+    /*
+    This action tells the Path how large the canvas it will be added to is.
+    This is needed to correctly position the Path on the canvas.
+
+    Attribute: Parameter width The width of the SVG canvas.
+    Attribute: Parameter height The height of the SVG canvas.
+    */
+    action SetCanvasSize(integer width, integer height)
+        canvasWidth = width
+        canvasHeight = height
+    end
+
+    /*
+        This action writes out all of the necessary tags and attributes that make up this
+        ellipse. This action will be called automatically by the parent ScalableVectorGraphics,
+        as such this action does not need to be used directly by the user.
+
+        Attribute: Returns the formatted string of all tags and attributes for this shape
+    */
+    action ToText returns text
+        if canvasHeight = 0
+            check
+                GameStateManager manager
+                canvasHeight = manager:GetGame():GetScreenHeight()
+            detect error
+                // If any errors occur (no Game is available, for example) just use the path's height as an approximation.
+                canvasHeight = cast(integer, rawPath:GetHeight())
+            end
+        end
+
+        text result = ""
+
+        if rawPath:GetBorderThickness() > 0
+            Color borderColor = rawPath:GetBorderColor():GetBottomLeft()
+            result = result + GetPathText(borderColor, rawPath:GetLineThickness() + rawPath:GetBorderThickness())
+        end
+
+        Color color = rawPath:GetBackgroundColor():GetBottomLeft()
+        result = result + GetPathText(color, rawPath:GetLineThickness())
+
+        return result
+    end
+
+    private action GetPathText(Color color, number thickness) returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        result = "<" + objectName + " d=" + dq
+        Vector2 point = GetPoint(0, canvasHeight)
+        result = result + "M" + point:GetX() + " " + point:GetY()
+
+        if rawPath:IsCurving()
+            Iterator<BezierCurve> curves = rawPath:GetCurveIterator()
+            repeat while curves:HasNext()
+                BezierCurve curve = curves:Next()
+                Vector2 control1
+                control1:Set(curve:GetControlPoint1():GetX() + rawPath:GetGlobalX(), canvasHeight - (curve:GetControlPoint1():GetY() + rawPath:GetGlobalY()))
+                Vector2 control2
+                control2:Set(curve:GetControlPoint2():GetX() + rawPath:GetGlobalX(), canvasHeight - (curve:GetControlPoint2():GetY() + rawPath:GetGlobalY()))
+                Vector2 endPoint
+                endPoint:Set(curve:GetPoint2():GetX() + rawPath:GetGlobalX(), canvasHeight - (curve:GetPoint2():GetY() + rawPath:GetGlobalY()))
+                result = result + " C " + control1:GetX() + " " + control1:GetY() + ", " + control2:GetX() + " " + control2:GetY() + ", " + endPoint:GetX() + " " + endPoint:GetY()
+            end
+        else
+            integer i = 1
+            repeat while i < rawPath:GetPointCount()
+                point = GetPoint(i, canvasHeight)
+                result = result + " L" + point:GetX() + " " + point:GetY()
+                i = i + 1
+            end
+        end
+
+        result = result + dq + " fill=" + dq + "transparent" + dq
+        result = result + " stroke=" + dq + "rgba(" + color:GetRed() * 255 + "," + color:GetGreen() * 255 + "," + color:GetBlue() * 255 + "," + color:GetAlpha() * 255 + ")" + dq
+        result = result + " stroke-width=" + dq + thickness + dq
+        
+        result = result + GlobalAttributesToText()
+        if GetTitle() not= "" or GetDescription() not= ""
+            result = result + ">" + newLine
+            if GetTitle() not= ""
+                Title title
+                title:SetTitle(GetTitle())
+                result = result + tab + tab + title:ToText() + newLine
+            end
+            if GetDescription() not= ""
+                Description desc
+                desc:SetDescription(GetDescription())
+                result = result + tab + tab + desc:ToText() + newLine
+            end
+            result = result + tab
+        end
+
+        result = result + GetCloseTag(objectName, IsContainer())
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
+        return result
+    end
+
+    private action GetPoint(integer index, integer canvasHeight) returns Vector2
+        return GetPoint(rawPath:GetCatmullRomPoint(index), canvasHeight)
+    end
+
+    private action GetPoint(Vector2 oldPoint, integer canvasHeight) returns Vector2
+        Vector2 newPoint
+
+        if rawPath:IsMappedToRegion()
+            number x = (oldPoint:GetX() - rawPath:GetMappedLeft()) * (rawPath:GetWidth() / (rawPath:GetMappedRight() - rawPath:GetMappedLeft()))
+            number y = (oldPoint:GetY() - rawPath:GetMappedBottom()) * (rawPath:GetHeight() / (rawPath:GetMappedTop() - rawPath:GetMappedBottom()))
+            x = x + rawPath:GetGlobalX()
+            y = canvasHeight - (y + rawPath:GetGlobalY())
+            newPoint:Set(x, y)
+        else
+            newPoint:Set(oldPoint:GetX() + rawPath:GetGlobalX(), canvasHeight - (oldPoint:GetY() + rawPath:GetGlobalY()))
+        end
+
+        return newPoint
+    end
+end

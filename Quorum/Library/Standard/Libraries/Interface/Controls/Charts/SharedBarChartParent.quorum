@@ -12,7 +12,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 /*
     The SharedBarChartParent class is Chart object that inherits from Control and like other
@@ -59,7 +59,7 @@ class SharedBarChartParent is Chart
     integer barBorderStyle = 0
 
     // Used to render a trend line. Undefined if no trend line is being rendered.
-    Path trendLine = undefined
+    LinePath trendLine = undefined
 
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -734,7 +734,10 @@ class SharedBarChartParent is Chart
     end
 
     /*
+    This action shows or hides a trend line over the bars in the chart.
+    By default, the trend line is hidden.
 
+    Attribute: Parameter show True to display the trend line, or false to hide it.
     */
     action ShowTrendLine(boolean show)
         if show = (trendLine not= undefined)
@@ -742,7 +745,7 @@ class SharedBarChartParent is Chart
         end
 
         if show
-            Path path
+            LinePath path
             trendLine = path
             path:SetPercentageWidth(1.0)
             path:SetPercentageHeight(1.0)
@@ -753,16 +756,21 @@ class SharedBarChartParent is Chart
     end
 
     /*
+    This action returns whether or not this chart is currently showing a trend line.
 
+    Attribute: Returns True if this chart is displaying a trend line, or false if there is no trend line.
     */
     action HasTrendLine returns boolean
         return trendLine not= undefined
     end
 
     /*
-    
+    This action returns the trend line of this chart as a LinePath. If there is no trend line, this will return
+    undefined instead.
+
+    Attribute: Returns The trend line of this chart, or undefined if there is no trend line.
     */
-    action GetTrendLine returns Path
+    action GetTrendLine returns LinePath
         return trendLine
     end
 end

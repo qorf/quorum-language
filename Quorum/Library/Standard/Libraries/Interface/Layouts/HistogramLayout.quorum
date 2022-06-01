@@ -12,7 +12,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.ControlLabel
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 
 class HistogramLayout is SharedBarChartLayout
@@ -366,10 +366,10 @@ class HistogramLayout is SharedBarChartLayout
 
         if chart:HasTrendLine()
             if trendLinePoints:GetSize() < 2
-                Path trendLine = chart:GetTrendLine()
+                LinePath trendLine = chart:GetTrendLine()
                 trendLine:Hide()
             else
-                Path trendLine = chart:GetTrendLine()
+                LinePath trendLine = chart:GetTrendLine()
                 trendLine:Show()
                 trendLine:SetSize(chartAreaContainer:GetWidth() * trendLine:GetPercentageWidth() + trendLine:GetPixelWidth() * trendLine:GetInterfaceScale(), chartAreaContainer:GetHeight() * trendLine:GetPercentageHeight() + trendLine:GetPixelHeight() * trendLine:GetInterfaceScale())
                 trendLine:SetPosition(chartAreaContainer:GetWidth() * trendLine:GetPercentageX() + trendLine:GetPixelX() * trendLine:GetInterfaceScale(), chartAreaContainer:GetHeight() * trendLine:GetPercentageY() + trendLine:GetPixelY() * trendLine:GetInterfaceScale())
