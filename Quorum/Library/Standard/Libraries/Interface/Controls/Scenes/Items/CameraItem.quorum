@@ -1,0 +1,22 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Game.Graphics.Camera
+
+class CameraItem is EditorItem
+
+    Camera camera = undefined
+
+    on create
+        SetName("Camera Controller")
+    end
+
+    action SetCamera(Camera camera)
+        me:camera = camera
+    end
+
+    action GetCamera returns Camera
+        return camera
+    end
+
+end

@@ -1,0 +1,63 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Game.Graphics.TextureRegion
+
+class ItemBlueprint
+
+    text name = "Unnamed"
+    text description = ""
+    boolean physicsEnabled = false
+    integer responsiveness = -1
+    number paletteScale = 1.0
+    number paletteCrop = 0.0
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end 
+
+    action GetDescription returns text
+        return description
+    end
+
+    action SetDescription(text description)
+        me:description = description
+    end
+
+    action SetPhysicsEnabled(boolean enabled)
+        physicsEnabled = enabled
+    end
+
+    action IsPhysicsEnabled returns boolean
+        return physicsEnabled
+    end
+
+    action SetResponsiveness(integer responsive)
+        responsiveness = responsive
+    end
+
+    action GetResponsiveness returns integer
+        return responsiveness
+    end
+
+    blueprint action GetPaletteIcon returns TextureRegion
+
+    action GetPaletteScale returns number
+        return paletteScale
+    end
+
+    action SetPaletteScale(number paletteScale)
+        me:paletteScale = paletteScale
+    end
+
+    action GetPaletteCrop returns number
+        return paletteCrop
+    end
+
+    action SetPaletteCrop(number paletteCrop)
+        me:paletteCrop = paletteCrop
+    end
+end

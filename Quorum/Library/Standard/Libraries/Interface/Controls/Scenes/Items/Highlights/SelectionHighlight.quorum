@@ -1,0 +1,136 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Interface.Item
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+
+class SelectionHighlight is EditorItem
+
+    blueprint action GetItem returns Item
+
+    action SetName(text name)
+        Item item = GetItem()
+        if item not= undefined and item:GetName() not= name
+            item:SetName(name)
+        end
+        parent:EditorItem:SetName(name)
+    end
+
+    action IsEditorPhysicsEnabled returns boolean
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:PHYSICS_ENABLED)
+            return item:GetProperty(properties:PHYSICS_ENABLED):GetBoolean()
+        end
+        return false
+    end
+
+    action SetEditorPhysicsEnabled(boolean enable)
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:PHYSICS_ENABLED)
+            JavaScriptObjectNotation json = item:GetProperty(properties:PHYSICS_ENABLED)
+            json:SetBoolean(enable)
+        else
+            JavaScriptObjectNotation json
+            json:SetBoolean(enable)
+            item:SetProperty(properties:PHYSICS_ENABLED, json)
+        end
+    end
+
+    action GetEditorResponsiveness returns integer
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:RESPONSIVENESS)
+            return item:GetProperty(properties:RESPONSIVENESS):GetInteger()
+        end
+
+        // The default value is UNMOVABLE, or 0.
+        return 0
+    end
+
+    action SetEditorResponsiveness(integer responsive)
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:RESPONSIVENESS)
+            JavaScriptObjectNotation json = item:GetProperty(properties:RESPONSIVENESS)
+            json:SetInteger(responsive)
+        else
+            JavaScriptObjectNotation json
+            json:SetInteger(responsive)
+            item:SetProperty(properties:RESPONSIVENESS, json)
+        end
+    end
+
+    action GetEditorMass returns number
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:MASS)
+            return item:GetProperty(properties:MASS):GetNumber()
+        end
+
+        return 0
+    end
+
+    action SetEditorMass(number mass)
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:MASS)
+            JavaScriptObjectNotation json = item:GetProperty(properties:MASS)
+            json:SetNumber(mass)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(mass)
+            item:SetProperty(properties:MASS, json)
+        end
+    end
+
+    action GetEditorFriction returns number
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:FRICTION)
+            return item:GetProperty(properties:FRICTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    action SetEditorFriction(number friction)
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:FRICTION)
+            JavaScriptObjectNotation json = item:GetProperty(properties:FRICTION)
+            json:SetNumber(friction)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(friction)
+            item:SetProperty(properties:FRICTION, json)
+        end
+    end
+
+    action GetEditorRestitution returns number
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:RESTITUTION)
+            return item:GetProperty(properties:RESTITUTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    action SetEditorRestitution(number restitution)
+        SceneProperties properties
+        Item item = GetItem()
+        if item:HasProperty(properties:RESTITUTION)
+            JavaScriptObjectNotation json = item:GetProperty(properties:RESTITUTION)
+            json:SetNumber(restitution)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(restitution)
+            item:SetProperty(properties:RESTITUTION, json)
+        end
+    end
+end
