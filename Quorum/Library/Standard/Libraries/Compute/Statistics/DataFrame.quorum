@@ -2348,7 +2348,7 @@ class DataFrame
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() = 1
+        if selection:GetColumnSize() not= 1
             alert("Must have a dependent variable having a column")
         end
 
@@ -2358,6 +2358,7 @@ class DataFrame
 
         Regression groups
         //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
         selection:CopyTo(cast(FactorInput, groups))
         groups:Calculate(me)
         return groups
