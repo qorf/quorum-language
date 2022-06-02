@@ -7,25 +7,25 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Iterator
 
 /*
-The Path class represents a series of curved or straight lines connecting a set of points.
-Each Path is a Control, and can be used on its own or in conjunction with layouts and/or
-InterfaceOptions. Like a Drawable, the Path object has a bounding rectangle within a Game.
-The Path can only draw lines inside of this rectangle, so it's important to use SetSize on
-the Path so it has an area to draw in.
+The LinePath class represents a series of curved or straight lines connecting a set of points.
+Each LinePath is a Control, and can be used on its own or in conjunction with layouts and/or
+InterfaceOptions. Like a Drawable, the LinePath object has a bounding rectangle within a Game.
+The LinePath can only draw lines inside of this rectangle, so it's important to use SetSize on
+the LinePath so it has an area to draw in.
 
-To set the colors of the Path, use SetBackgroundColor to change the color of the lines,
+To set the colors of the LinePath, use SetBackgroundColor to change the color of the lines,
 SetIconColor to change the color of the points, and SetBorderColor to change the color of
 the outlining.
 
 Attribute: Example
 use Libraries.Game.Game
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
     Color color
-    Path path
+    LinePath path
 
     action Main
         // The window for this Game can be resized by clicking and dragging the edges.
@@ -34,12 +34,12 @@ class Main is Game
     end
 
     action CreateGame
-        // It is very important to set a size on the Path!
-        // The Path takes up a rectangle on the screen just like a Drawable.
-        // The points and lines of the Path can only be drawn inside this rectangle.
+        // It is very important to set a size on the LinePath!
+        // The LinePath takes up a rectangle on the screen just like a Drawable.
+        // The points and lines of the LinePath can only be drawn inside this rectangle.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Set visual values for the Path, including colors and thickness of the lines, points, and border
+        // Set visual values for the LinePath, including colors and thickness of the lines, points, and border
         path:SetBorderThickness(5)
         path:SetBackgroundColor(color:Red())
         path:SetIconColor(color:Pink())
@@ -47,7 +47,7 @@ class Main is Game
         path:SetLineThickness(7)
         path:SetPointThickness(14)
 
-        // By setting this to true, the Path will draw each point in addition to the lines
+        // By setting this to true, the LinePath will draw each point in addition to the lines
         path:SetDrawPoints(true)
 
         // Add several points to the path.
@@ -62,7 +62,7 @@ class Main is Game
         path:Add(720, 200)
 
         // Using the MapToRegion action will instruct the path to render all of the points inside
-        // the Path's rectangle (set using SetSize previously) as if it were on a specific coordinate
+        // the LinePath's rectangle (set using SetSize previously) as if it were on a specific coordinate
         // grid, no matter the size of the rectangle. In this case, the X-axis will always be from 0
         // to 750, and the Y-axis will always be from 0 to 500.
         path:MapToRegion(0, 750, 0, 500)
@@ -71,12 +71,12 @@ class Main is Game
     end
 
     action Update(number seconds)
-        // On each frame, set the Path to the size of the window (in case the user resizes it)
+        // On each frame, set the LinePath to the size of the window (in case the user resizes it)
         path:SetSize(GetScreenWidth(), GetScreenHeight())
     end
 end
 */
-class Path is Control
+class LinePath is Control
 
     /*
     TO-DO:
@@ -104,7 +104,7 @@ class Path is Control
 
     /*
     The space the points should be mapped to. If the value is NotANumber, the dimensions
-    of the Path object will be used instead.
+    of the LinePath object will be used instead.
     */
     number mappedLeft = tension:GetNotANumberValue()
     number mappedRight = tension:GetNotANumberValue()
@@ -121,27 +121,27 @@ class Path is Control
     end
 
     /*
-    This action sets the array of points the Path should use to draw.
-    This will replace any previously loaded points in the Path.
+    This action sets the array of points the LinePath should use to draw.
+    This will replace any previously loaded points in the LinePath.
 
-    Attribute: Parameter points An array of points for the Path to draw between.
+    Attribute: Parameter points An array of points for the LinePath to draw between.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
         // Make an array and add 3 points to it.
@@ -170,27 +170,27 @@ end
     end
 
     /*
-    This action adds an array of points to the end of the Path. This doesn't
-    remove any previously existing points in the Path, unlike SetVectorPoints().
+    This action adds an array of points to the end of the LinePath. This doesn't
+    remove any previously existing points in the LinePath, unlike SetVectorPoints().
 
-    Attribute: Parameter points An array of points to be added to the end of the Path.
+    Attribute: Parameter points An array of points to be added to the end of the LinePath.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
         // Make an array and add 3 points to it.
@@ -225,26 +225,26 @@ end
     end
 
     /*
-    This action sets the points to be drawn between by the Path. The points are provided as
-    x/y coordinate pairs in the array. This action will replace any previously set points in the Path.
+    This action sets the points to be drawn between by the LinePath. The points are provided as
+    x/y coordinate pairs in the array. This action will replace any previously set points in the LinePath.
 
     Attribute: Parameter array An array of numbers, representing the x/y coordinates of a series of points.    
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Array
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
         // Make an array and add 3 points to it: (100, 100), (300, 200), and (500, 450).
@@ -271,27 +271,27 @@ end
     end
 
 /*
-    This action adds points to the end of the Path. The points are provided as
-    x/y coordinate pairs in the array. This action doesn't replace any previously set points in the Path,
+    This action adds points to the end of the LinePath. The points are provided as
+    x/y coordinate pairs in the array. This action doesn't replace any previously set points in the LinePath,
     unlike SetPoints().
 
     Attribute: Parameter array An array of numbers, representing the x/y coordinates of a series of points.    
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Array
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
         // Make an array and add 3 points to it: (100, 100), (300, 200), and (500, 450).
@@ -324,28 +324,28 @@ end
     end    
 
     /*
-    This action adds a point to the end of the Path.
+    This action adds a point to the end of the LinePath.
 
-    Attribute: Parameter point A new point to add to the end of the Path.
+    Attribute: Parameter point A new point to add to the end of the LinePath.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Compute.Vector2
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Make 3 points and add them to the Path.
+        // Make 3 points and add them to the LinePath.
         Vector2 point1
         Vector2 point2
         Vector2 point3
@@ -369,28 +369,28 @@ end
     end
 
     /*
-    This action adds a point to the end of the Path.    
+    This action adds a point to the end of the LinePath.    
 
     Attribute: Parameter x The x-coordinate of the new point.
     Attribute: Parameter y The y-coordinate of the new point.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -408,31 +408,31 @@ end
     end
 
     /*
-    The Empty action removes all points from the Path. The Path will not draw anything until new points are added.
+    The Empty action removes all points from the LinePath. The LinePath will not draw anything until new points are added.
 
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
 
-        // Using the Empty call will remove all old points from the Path.
+        // Using the Empty call will remove all old points from the LinePath.
         path:Empty()
 
         // We can choose to add new points after removing the old ones.
@@ -504,7 +504,7 @@ end
     private action CalculateCurves
         if points:GetSize() = 1
             // We could make a special case here to render a single dot, but for now just throw an error.
-            alert("I cannot render a Path with only one point.")
+            alert("I cannot render a LinePath with only one point.")
         end
 
         // Insert/remove curves until we have the correct amount.
@@ -619,7 +619,7 @@ end
     and second-to-last input points across the beginning and end, respectively,
     to get the extra points.
     */
-    private action GetCatmullRomPoint(integer index) returns Vector2
+    action GetCatmullRomPoint(integer index) returns Vector2
         if index = -1
             return catmullRomStart
         end
@@ -630,8 +630,19 @@ end
     end
 
     /*
+    This action returns the number of points contained in this LinePath. This does not
+    include the two extra points generated by the Catmull-Rom spline algorithm -- it
+    is the count of user-provided, "real" points.
+
+    Attribute: Returns How many "real" points are in this LinePath.
+    */
+    action GetPointCount returns integer
+        return points:GetSize()
+    end
+
+    /*
     Translate the values in the given Vector2 from the mapped space (the custom region set by the user via the mapping action)
-    to the real space (pixel values contained within the dimensions of the Path object).
+    to the real space (pixel values contained within the dimensions of the LinePath object).
     */
     private action TranslateToMappedSpace(Vector2 point, number leftBound, number rightBound, number bottomBound, number topBound)
         number x = (point:GetX() - leftBound) * (GetWidth() / (rightBound - leftBound))
@@ -641,16 +652,16 @@ end
 
     /*
     This action returns the base thickness of the lines, in pixels. The thickness of the lines remains constant even if the
-    Path is mapped to a smaller or larger region, but the thickness value does not include adjustments made by interface scaling.
+    LinePath is mapped to a smaller or larger region, but the thickness value does not include adjustments made by interface scaling.
 
     Attribute: Returns The thickness of the lines, in pixels.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
@@ -666,27 +677,27 @@ end
     end
 
     /*
-    This action sets how thick the lines of the Path should be, in pixels.
+    This action sets how thick the lines of the LinePath should be, in pixels.
 
     Attribute: Parameter lineThickness How thick the lines should be, in pixels.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -705,16 +716,16 @@ end
 
     /*
     This action returns the base thickness of the points, in pixels. The thickness of the points remains constant even if the
-    Path is mapped to a smaller or larger region, but the thickness value does not include adjustments made by interface scaling.
+    LinePath is mapped to a smaller or larger region, but the thickness value does not include adjustments made by interface scaling.
 
     Attribute: Returns The thickness of the points, in pixels.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
@@ -730,27 +741,27 @@ end
     end
 
     /*
-    This action sets how thick the points of the Path should be, in pixels.
+    This action sets how thick the points of the LinePath should be, in pixels.
 
     Attribute: Parameter pointThickness How thick the points should be, in pixels.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -776,22 +787,22 @@ end
     Attribute: Parameter drawPoints True to draw the points, false to hide them.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -812,17 +823,17 @@ end
     end
 
     /*
-    This action returns true if the Path is drawing points, or false if it is hiding them.
+    This action returns true if the LinePath is drawing points, or false if it is hiding them.
     By default, this is false.
 
     Attribute: Returns True if points are being drawn, or false otherwise.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
@@ -838,28 +849,28 @@ end
     end
 
     /*
-    This action determines if the Path should use curved lines or straight ones.
+    This action determines if the LinePath should use curved lines or straight ones.
     By default, this value is true (curved lines).
 
     Attribute: Parameter curve True to make the path use curved lines, or false to use straight lines.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -881,24 +892,24 @@ end
     end
 
     /*
-    This action returns true if the Path using curved lines, or false if the Path is using straight ones.
+    This action returns true if the LinePath using curved lines, or false if the LinePath is using straight ones.
     By default, this action returns true.
 
-    Attribute: Returns True if the Path uses curved lines, or false otherwise.
+    Attribute: Returns True if the LinePath uses curved lines, or false otherwise.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        output "By default, it is " + path:IsDrawingPoints() + " that the Path uses curved lines."
+        output "By default, it is " + path:IsDrawingPoints() + " that the LinePath uses curved lines."
     end
 end
     */
@@ -907,29 +918,29 @@ end
     end
 
     /*
-    This action gets an iterator over the points in the Path.
+    This action gets an iterator over the points in the LinePath.
     
-    Attribute: Returns An iterator over the points in the Path.
+    Attribute: Returns An iterator over the points in the LinePath.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Iterator
 use Libraries.Compute.Vector2
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -952,24 +963,24 @@ end
     Attribute: Returns An iterator of bezier curves between the points.
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.BezierCurve
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(100, 400)
         path:Add(300, 100)
         path:Add(500, 400)
@@ -987,37 +998,37 @@ end
     end
 
     /*
-    This action maps the Path's points to a specific coordinate region. This can be
-    convenient if you want the Path to consistently render points between some specific
-    values, regardless of the dimensions of the Path object itself.
+    This action maps the LinePath's points to a specific coordinate region. This can be
+    convenient if you want the LinePath to consistently render points between some specific
+    values, regardless of the dimensions of the LinePath object itself.
 
-    If no mapping region is set, the points in the Path will default to using the dimensions
-    of the Path object for their coordinate space (between 0 and the width/height for x/y
+    If no mapping region is set, the points in the LinePath will default to using the dimensions
+    of the LinePath object for their coordinate space (between 0 and the width/height for x/y
     coordinates, respectively).
 
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(-200, 1000)
         path:Add(0, 800)
         path:Add(200, 400)
 
-        // By mapping to this region, we'll render our line as if the bottom-left of the Path rectangle is at (-250, 300) and the top-right is at (250, 1100).
+        // By mapping to this region, we'll render our line as if the bottom-left of the LinePath rectangle is at (-250, 300) and the top-right is at (250, 1100).
         path:MapToRegion(-250, 250, 300, 1100)
 
         // Add the path to the Game.
@@ -1033,34 +1044,93 @@ end
     end
 
     /*
+    This action returns whether or not this LinePath is currently mapping to a region. By default, this
+    is false.
+
+    Attribute: Returns True if this LinePath is mapping to a region, or false otherwise.
+    */
+    action IsMappedToRegion returns boolean
+        // Either all four values will be NaN, or none of them will be. Just check one arbitrarily.
+        return mappedLeft:IsNotANumber() = false
+    end
+
+    /*
+    This action returns the x coordinate of the left side of the mapped region (the minimum X value).
+    Note that if this LinePath is not currently mapping to a region, the returned value will be "not a 
+    number". It is highly recommended to check if the region is mapped using "IsMappingToRegion" before
+    using this value.
+
+    Attribute: Returns The x-coordinate of the left side of the mapped region (the minimum X value).
+    */
+    action GetMappedLeft returns number
+        return mappedLeft
+    end
+
+    /*
+    This action returns the x coordinate of the right side of the mapped region (the maximum X value).
+    Note that if this LinePath is not currently mapping to a region, the returned value will be "not a 
+    number". It is highly recommended to check if the region is mapped using "IsMappingToRegion" before
+    using this value.
+
+    Attribute: Returns The x-coordinate of the right side of the mapped region (the maximum X value).
+    */
+    action GetMappedRight returns number
+        return mappedRight
+    end
+
+    /*
+    This action returns the y coordinate of the bottom side of the mapped region (the minimum Y value).
+    Note that if this LinePath is not currently mapping to a region, the returned value will be "not a 
+    number". It is highly recommended to check if the region is mapped using "IsMappingToRegion" before
+    using this value.
+
+    Attribute: Returns The y-coordinate of the bottom side of the mapped region (the minimum Y value).
+    */
+    action GetMappedBottom returns number
+        return mappedBottom
+    end
+
+    /*
+    This action returns the y coordinate of the top side of the mapped region (the maximum Y value).
+    Note that if this LinePath is not currently mapping to a region, the returned value will be "not a 
+    number". It is highly recommended to check if the region is mapped using "IsMappingToRegion" before
+    using this value.
+
+    Attribute: Returns The y-coordinate of the top side of the mapped region (the maximum Y value).
+    */
+    action GetMappedTop returns number
+        return mappedTop
+    end
+
+    /*
     This action resets any region mapping applied by MapToRegion(). Points inside the
-    Path will be positioned inside the dimensions of the Path using standard pixel positioning.
-    This is the default behavior for the Path class -- this action is only useful if MapToRegion
+    LinePath will be positioned inside the dimensions of the LinePath using standard pixel positioning.
+    This is the default behavior for the LinePath class -- this action is only useful if MapToRegion
     has been used previously.
 
     Attribute: Example
 use Libraries.Game.Game
-use Libraries.Game.Graphics.Path
+use Libraries.Game.Graphics.LinePath
 
 class Main is Game
 
-    Path path
+    LinePath path
 
     action Main
         StartGame()
     end
 
     action CreateGame
-        // Set the size of the Path's bounding rectangle, so it knows where it's allowed to draw.
-        // Like all Item2Ds, the Path's position defaults to 0,0.
+        // Set the size of the LinePath's bounding rectangle, so it knows where it's allowed to draw.
+        // Like all Item2Ds, the LinePath's position defaults to 0,0.
         path:SetSize(GetScreenWidth(), GetScreenHeight())
 
-        // Add 3 new points as x/y coordinate pairs to the Path.
+        // Add 3 new points as x/y coordinate pairs to the LinePath.
         path:Add(-200, 1000)
         path:Add(0, 800)
         path:Add(200, 400)
 
-        // By mapping to this region, we'll render our line as if the bottom-left of the Path rectangle is at (-250, 300) and the top-right is at (250, 1100).
+        // By mapping to this region, we'll render our line as if the bottom-left of the LinePath rectangle is at (-250, 300) and the top-right is at (250, 1100).
         path:MapToRegion(-250, 250, 300, 1100)
 
         // After setting the mapping region, we can reset it to default behavior.

@@ -20,6 +20,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
+use Libraries.Data.Formats.ScalableVectorGraphics.Path
 
 /*
     The HistogramWriter class is part of the set of writers that allow for Charts
@@ -93,6 +94,7 @@ class HistogramWriter is ChartWriter
         Histogram histogram
         histogram = cast(Histogram, chart)
         AddBars(canvas, histogram)
+        AddTrendLine(canvas, histogram)
     end
 
     /*
@@ -336,6 +338,13 @@ class HistogramWriter is ChartWriter
                 i = i + 1
             end
         end
+
+        if chart:HasTrendLine()
+            Path svgPath
+            svgPath:SetCanvasSize(GetChartWidth(), GetChartHeight())
+            svgPath:SetPath(chart:GetTrendLine())
+            canvas:Add(svgPath)
+        end
     end
 
     action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
@@ -406,6 +415,12 @@ class HistogramWriter is ChartWriter
                 end
                 i = i + 1
             end
+        end
+    end
+
+    private action AddTrendLine(ScalableVectorGraphics canvas, Histogram chart)
+        if chart:HasTrendLine() = false
+            return now
         end
     end
 end
