@@ -90,6 +90,30 @@ class DatabaseMetaData
     end
 
 /*
+    Searches for table by name and returns true if the DatabaseTable is found.
+
+    Attribute: Example
+    
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+    use Libraries.Data.Database.DatabaseTable
+    
+    Database database
+    database:Connect("localhost", "myDatabase", "user", "SuperSecret456")
+    
+    DatabaseMetaData meta = database:GetDatabaseMetaData()
+    
+    output meta:HasTable("myDB_table")
+*/
+    action HasTable(text name) returns boolean
+        if tables:IsEmpty()
+            QueryDatabaseForTables()
+        end
+
+        return tables:HasKey(name)
+    end
+
+/*
     Returns the Iterator for iterating through the database tables. The iterator simplifies
     making a repeat statement for looping through all the database tables.
 

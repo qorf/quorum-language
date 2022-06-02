@@ -534,7 +534,9 @@ class Painter2D
     end
 
     /*
-
+    This action queues an Item2D for rendering. Because Item2Ds (other than Drawables)
+    cannot normally be rendered, this will have no effect unless the Item2D is either
+    a Drawable or the Item2D has custom drawing enabled.
     */
     action QueueForDrawing(Item2D item)
         if item is Drawable

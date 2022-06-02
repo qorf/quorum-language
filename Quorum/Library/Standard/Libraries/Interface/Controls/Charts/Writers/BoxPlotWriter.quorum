@@ -1,0 +1,407 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Vector
+use Libraries.Interface.Layouts.BoxPlotLayout
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.UnorderedList
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
+/*
+    The BoxPlotChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Benjamin Murphy & Shyann Calhoun, Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BoxPlot
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+
+    BoxPlot chart = frame:BoxPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:Display()
+    chart:Save("myBoxPlot.svg")
+
+*/
+class BoxPlotWriter is ChartWriter
+
+    action WriteOutChart(BoxPlot chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(BoxPlot chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(BoxPlot chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
+
+    action WriteOutChart(BoxPlot chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area ")
+        end
+    end
+
+    /*
+        This action adds the content of the Violin Plot
+    */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        BoxPlot plot
+        plot = cast(BoxPlot, chart)
+        AddBoxes(canvas, plot)
+    end
+
+    /*
+        This action adds the content of the Box Plot
+    */
+    private action AddBoxes(ScalableVectorGraphics canvas, BoxPlot chart)
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
+
+        if not chart:IsSeparated()
+            Array <PlotGroup> plotGroups = chart:GetPlotGroups()
+
+            integer i = 0
+            repeat while i < plotGroups:GetSize()
+                PlotGroup group = plotGroups:Get(i)
+
+                if chart:HasGroups()
+                    Rectangle plotGroup
+                    plotGroup:SetWidth(group:GetWidth())
+                    plotGroup:SetHeight(group:GetHeight())
+                    plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
+                    plotGroup:SetFill(transparent)
+                    plotGroup:SetID(canvas:GetID() + "_" + group:GetHashCode())
+                    plotGroup:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotGroup:SetAriaLabel(group:GetName() + group:GetDescription())
+                        plotGroup:SetAriaHidden("true")
+                    end
+                    GetGroupPanels():Add(plotGroup)
+                    canvas:Add(plotGroup)
+    
+                end
+
+                integer k = 0
+                repeat while k < group:GetSize()
+                    Plot plot = group:Get(k)
+                    Array<ChartDrawable> items = plot:GetPlotItems()
+                    /* Indices for items of individual box plot
+                        0: PLOT AREA (ENTIRE REGION)
+                        1: MINIMUM LINE
+                        2: LOWER WHISKER
+                        3: INTERQUARTILE RANGE
+                        4: RIGHT BORDER OF IQR
+                        5: LEFT BORDER OF IQR
+                        6: Q1 LINE
+                        7: MEDIAN LINE
+                        8: Q3 LINE
+                        9: UPPER WHISKER    
+                        10: MAXIMUM LINE 
+                        11+: OUTLIER POINTS
+                    */   
+
+                    // LAYER ONE   
+                    // Index 0: This is the transparent box around the entire plot used for navigation.
+                    Rectangle plotArea
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
+                    end 
+                    canvas:Add(plotArea)                         
+              
+                    // LAYER TWO 
+                    // Index 3: The IQR box. We want the IQR box to sit under the other elements      
+                    Rectangle iqrBox
+                    iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
+                    iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
+                    iqrBox:SetFill(items:Get(3):GetColor())
+                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
+                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
+                    iqrBox:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(3):GetHashCode())
+                    iqrBox:SetTabIndex(-1)
+                    if HasAccessibility()
+                        iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
+                        iqrBox:SetAriaHidden("true")
+                    end 
+                    canvas:Add(iqrBox)
+
+                    // LAYER THREE
+                    index = 1
+                    repeat while index < items:GetSize()
+                        if index not= 3 //skip IQR
+                            if index > 10 and items:Get(index) is ChartPoint// This is the median dot shape to be initialized now and added in the next layer.
+                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+
+                                Circle outlier
+                                number radius = currentPoint:GetHeight()/2
+                                outlier:SetRadius(radius)
+                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
+                                outlier:SetFill(currentPoint:GetColor())
+                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                outlier:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    outlier:SetAriaHidden("true")
+                                end 
+                                canvas:Add(outlier)
+                            else
+                                Rectangle plotLine
+                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
+                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
+                                plotLine:SetFill(items:Get(index):GetColor())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                plotLine:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
+                                end 
+                                canvas:Add(plotLine)
+                            end
+                        end
+                        index = index + 1
+                    end    
+                    k = k + 1
+                end  
+                i = i + 1
+            end
+        else
+            integer i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                integer j = 0
+                repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                    Plot plot
+                    plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
+                    
+                    Array<ChartDrawable> items = plot:GetPlotItems()
+                    /* Indices for items of individual box plot
+                        0: PLOT AREA (ENTIRE REGION)
+                        1: MINIMUM LINE
+                        2: LOWER WHISKER
+                        3: INTERQUARTILE RANGE
+                        4: RIGHT BORDER OF IQR
+                        5: LEFT BORDER OF IQR
+                        6: Q1 LINE
+                        7: MEDIAN LINE
+                        8: Q3 LINE
+                        9: UPPER WHISKER    
+                        10: MAXIMUM LINE 
+                        11+: OUTLIER POINTS
+                    */   
+
+                    // LAYER ONE   
+                    // Index 0: This is the transparent box around the entire plot used for navigation.
+                    Rectangle plotArea
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
+                        plotArea:SetAriaHidden("true")
+                    end 
+                    canvas:Add(plotArea)                   
+              
+                    // LAYER TWO 
+                    // Index 3: The IQR box. We want the IQR box to sit under the other elements      
+                    Rectangle iqrBox
+                    iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
+                    iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
+                    iqrBox:SetFill(items:Get(3):GetColor())
+                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
+                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
+                    iqrBox:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(3):GetHashCode())
+                    iqrBox:SetTabIndex(-1)
+                    if HasAccessibility()
+                        iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
+                        iqrBox:SetAriaHidden("true")
+                    end 
+                    canvas:Add(iqrBox)
+
+                    // LAYER THREE
+                    index = 1
+                    repeat while index < items:GetSize()
+                        if index not= 3 //skip IQR
+                            if index > 10 // This is the median dot shape to be initialized now and added in the next layer.
+                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+
+                                Circle outlier
+                                number radius = currentPoint:GetHeight()/2
+                                outlier:SetRadius(radius)
+                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
+                                outlier:SetFill(currentPoint:GetColor())
+                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                outlier:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    outlier:SetAriaHidden("true")
+                                end 
+                                canvas:Add(outlier)
+                            else
+                                Rectangle plotLine
+                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
+                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
+                                plotLine:SetFill(items:Get(index):GetColor())
+                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
+                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
+                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                plotLine:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                    plotLine:SetAriaHidden("true")
+                                end 
+                                canvas:Add(plotLine)
+                            end
+                        end
+                        index = index + 1
+                    end   
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        BoxPlot boxPlot
+        boxPlot = cast(BoxPlot, chart)
+
+        if not chart:IsSeparated()
+            Array<PlotGroup> plotGroups = boxPlot:GetPlotGroups()
+    
+            UnorderedList plotGroupsUL
+            plotGroupsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(plotGroupsUL)
+            
+            UnorderedList currentGrouping = plotGroupsUL
+            i = 0
+            repeat while i < plotGroups:GetSize()
+                if boxPlot:HasGroups()
+                    ListItem plotGroupNav 
+                    plotGroupNav:SetIdentifier(canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode() + "_nav")
+                    plotGroupNav:AddAttribute("role","treeitem")
+                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode())
+                    plotGroupNav:AddAttribute("aria-expanded","false")
+                    plotGroupNav:SetTabIndex("-1")
+                    plotGroupsUL:Add(plotGroupNav)
+        
+                    
+                    UnorderedList plotsUL
+                    plotsUL:AddAttribute("role","group")
+                    plotGroupNav:AddNestedTag(plotsUL)
+                    currentGrouping = plotsUL
+                end
+            
+                j = 0
+                repeat while j < plotGroups:Get(i):GetSize()
+                    Plot plot = plotGroups:Get(i):Get(j)
+                    ListItem plotNav 
+                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
+                    plotNav:AddAttribute("role","treeitem")
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                    plotNav:AddAttribute("aria-expanded","false")
+                    plotNav:SetTabIndex("-1")
+                    currentGrouping:Add(plotNav)
+
+                    UnorderedList itemsUL
+                    itemsUL:AddAttribute("role","group")
+                    plotNav:AddNestedTag(itemsUL)
+
+                    k = 1
+                    repeat while k < plot:GetPlotItems():GetSize()
+                        // Add navigation for all parts.
+                        if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
+                            ListItem itemNav 
+                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
+                            itemNav:AddAttribute("role","treeitem")
+                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
+                            itemNav:SetTabIndex("-1")
+                            itemsUL:Add(itemNav)
+                        end
+                        k = k + 1
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        else
+            UnorderedList subChartAreaItemsUL
+            subChartAreaItemsUL:AddAttribute("role","group")
+            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
+
+            i = 0
+            repeat while i < chartArea:GetChartAreaItems():GetSize()
+                Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
+
+                ListItem plotNav 
+                plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
+                plotNav:AddAttribute("role","treeitem")
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                plotNav:AddAttribute("aria-expanded","false")
+                plotNav:SetTabIndex("-1")
+                subChartAreaItemsUL:Add(plotNav)
+
+                UnorderedList itemsUL
+                itemsUL:AddAttribute("role","group")
+                plotNav:AddNestedTag(itemsUL)
+
+                k = 1
+                repeat while k < plot:GetPlotItems():GetSize()
+                    // Add navigation for all parts.
+                    if k not= 2 and k not= 4 and k not= 5 and k not= 9// Skip the elements not included in the navigation
+                        ListItem itemNav 
+                        itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
+                        itemNav:AddAttribute("role","treeitem")
+                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
+                        itemNav:SetTabIndex("-1")
+                        itemsUL:Add(itemNav)
+                    end
+                    k = k + 1
+                end
+                i = i + 1
+            end
+        end
+    end
+end

@@ -59,7 +59,12 @@ class Line is ScalableVectorGraphicsObject
             result = result + tab
         end
 
-        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        result = result + GetCloseTag(objectName, IsContainer())
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
         return result
     end
 

@@ -1,0 +1,140 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
+
+class ChartPoint is ChartDrawable
+    number percentX = 0
+    number percentY = 0
+    number valueX = 0
+    number valueY = 0
+    text name = ""
+    Series series = undefined
+    
+    Icon parentRegion = undefined
+    Icon icon
+
+    on create
+        SetCornerRounding(1, 1, 1, 1)
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetPercentX returns number
+        return percentX
+    end
+
+    action SetPercentX(number percentX)
+        me:percentX = percentX
+    end
+
+    action GetPercentY returns number
+        return percentY
+    end
+
+    action SetPercentY(number percentY)
+        me:percentY = percentY
+    end
+
+    action GetValueX returns number
+        return valueX
+    end
+
+    action SetValueX(number valueX)
+        me:valueX = valueX
+    end
+
+    action GetValueY returns number
+        return valueY
+    end
+
+    action SetValueY(number valueY)
+        me:valueY = valueY
+    end
+
+    action SetParentRegion(Icon region)
+        parentRegion = region
+    end
+
+    action GetParentRegion returns Icon
+        return parentRegion
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        // Render this Drawable with the Control Shader.
+        if GetShaderProgram() = undefined
+            ShaderManager manager
+            ShaderProgram program = undefined
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+            SetShaderProgram(program)
+        end
+
+        if GetTexture() = undefined
+            LoadFilledRectangle(2, 2, GetBackgroundColor())
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetBorderColor()
+        end
+
+        return parent:Control:GetBorderColor()
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        return parent:Drawable:GetColorGroup()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetPointBorderThickness()
+        end
+
+        return parent:Control:GetBorderThickness()
+    end
+
+end

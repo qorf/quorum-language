@@ -9,6 +9,7 @@ use Libraries.Interface.Views.SelectionHighlightView
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
+use Libraries.Interface.Views.ControlShaderView
 
 /*
 The ListItem class is used internally to represent an entry in a list. Users
@@ -53,13 +54,9 @@ class ListItem is Control
         icon:SetPercentageWidth(1.0)
         icon:SetPercentageHeight(1.0)
 
-        Color color
-        SetFontColor(color:Black())
-        SetSelectionFontColor(color:White())
-        SetSelectionColor(color:CustomColor(9/255.0, 80/255.0, 208/255.0, 1))
-
         SetInputGroup("ListItem")
         SetName("List Item")
+        SetInterfaceOptionsKey("ListItem")
         SetAccessibilityCode(parent:Item:LIST_ITEM)
     end
 
@@ -116,13 +113,8 @@ class ListItem is Control
         parent:Control:LoadGraphics(properties)
 
         if GetView2D() = undefined
-            SelectionHighlightView view
-            if properties:GetSelectionColor() not= undefined
-                view:Initialize(properties:GetSelectionColor())
-            else
-                Color color
-                view:Initialize(color:CustomColor(9/255.0, 80/255.0, 208/255.0, 1))
-            end
+            ControlShaderView view
+            view:Initialize()
             SetView2D(view)
         end
 

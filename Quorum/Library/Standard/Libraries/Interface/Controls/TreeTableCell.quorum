@@ -15,6 +15,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Views.ControlShaderView
 
 class TreeTableCell is Control
     
@@ -58,6 +59,7 @@ class TreeTableCell is Control
         end
 
         SetInputGroup("TreeTableCell")
+        SetInterfaceOptionsKey("TreeTableCell")
         SetClipping(true)
         label:SetPositionOnBaseLine(false)
         Add(label)
@@ -78,6 +80,8 @@ class TreeTableCell is Control
         expandBehavior:SetCell(me)
         expandButton:SetBehavior(expandBehavior)
         expandButton:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+
+        SetBorderThickness(1)
     end
 
     action GetDefaultFontName returns text
@@ -93,17 +97,11 @@ class TreeTableCell is Control
         parent:Control:LoadGraphics(properties)
         
         if GetView2D() = undefined
-            LabelBoxView view
-            Color color
-            view:Initialize(color:White(), color:Black())
-            view:SetBorderThickness(1)
-
+            ControlShaderView view
+            view:Initialize()
             SetView2D(view)
         end
 
-        View2D view = GetView2D()
-        ColorGroup backgroundColor = undefined
-        Color textColor = undefined
         TreeTable table = GetTreeTable()
         LayoutProperties tableProperties = undefined
 
@@ -111,30 +109,12 @@ class TreeTableCell is Control
             tableProperties = table:GetDefaultLayoutProperties()
         end
 
-        if properties not= undefined and properties:GetBackgroundColor() not= undefined
-            backgroundColor = properties:GetBackgroundColor()
-        elseif tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
-            backgroundColor = tableProperties:GetBackgroundColor()
+        if IsRenderingSelection()
+            label:SetColor(GetSelectionFontColor())
         else
-            Color color
-            backgroundColor = color:White()
+            label:SetColor(GetFontColor())
         end
 
-        if properties not= undefined and properties:GetFontColor() not= undefined
-            textColor = properties:GetFontColor()
-        elseif tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
-            textColor = tableProperties:GetFontColor()
-        else
-            Color color
-            textColor = color:Black()
-        end
-
-        if GetView2D() is LabelBoxView
-            LabelBoxView labelBox = cast(LabelBoxView, GetView2D())
-            labelBox:SetBackgroundColor(backgroundColor)
-        end
-
-        label:SetColor(textColor)
         label:SetLeftPadding(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
@@ -182,6 +162,34 @@ class TreeTableCell is Control
                 expandButton:Show()
             end
 
+            if GetAccentColor() not= undefined
+                expandButton:SetBackgroundColor(GetAccentColor())
+                if expandButton:GetView2D() is DefaultTreeMenuView
+                    DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                    defaultView:SetColor(GetAccentColor())
+                end
+            elseif IsRenderingSelection()
+                if IsRenderingFocus()
+                    expandButton:SetBackgroundColor(GetSelectionFontColor())
+                    if expandButton:GetView2D() is DefaultTreeMenuView
+                        DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                        defaultView:SetColor(GetSelectionFontColor())
+                    end
+                else
+                    expandButton:SetBackgroundColor(GetUnfocusedSelectionFontColor())
+                    if expandButton:GetView2D() is DefaultTreeMenuView
+                        DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                        defaultView:SetColor(GetUnfocusedSelectionFontColor())
+                    end
+                end
+            else
+                expandButton:SetBackgroundColor(GetFontColor())
+                if expandButton:GetView2D() is DefaultTreeMenuView
+                    DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                    defaultView:SetColor(GetFontColor())
+                end
+            end
+
             LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
             expandButton:SetLeftPadding(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
         end
@@ -198,80 +206,72 @@ class TreeTableCell is Control
 
     action GainedSelection
         parent:Control:GainedSelection()
-        TreeTable table = GetTreeTable()
-        LayoutProperties tableProperties = undefined
-        LayoutProperties properties = GetDefaultLayoutProperties()
 
-        if table not= undefined
-            tableProperties = table:GetDefaultLayoutProperties()
+        label:SetColor(GetSelectionFontColor())
+        if GetAccentColor() = undefined
+            expandButton:SetBackgroundColor(GetSelectionFontColor())
+            if expandButton:GetView2D() is DefaultTreeMenuView
+                DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                defaultView:SetColor(GetSelectionFontColor())
+            end
         end
-
-        ColorGroup backgroundColor = undefined
-        Color textColor = undefined
-
-        if properties not= undefined and properties:GetSelectionColor() not= undefined
-            backgroundColor = properties:GetSelectionColor()
-        elseif tableProperties not= undefined and tableProperties:GetSelectionColor() not= undefined
-            backgroundColor = tableProperties:GetSelectionColor()
-        else
-            Color color
-            backgroundColor = color:Blue()
-        end
-
-        if properties not= undefined and properties:GetSelectionFontColor() not= undefined
-            textColor = properties:GetSelectionFontColor()
-        elseif tableProperties not= undefined and tableProperties:GetSelectionFontColor() not= undefined
-            textColor = tableProperties:GetSelectionFontColor()
-        else
-            Color color
-            textColor = color:White()
-        end
-
-        if GetView2D() is LabelBoxView
-            LabelBoxView view = cast(LabelBoxView, GetView2D())
-            view:SetBackgroundColor(backgroundColor)
-        end
-
-        label:SetColor(textColor)
     end
 
     action LostSelection
         parent:Control:LostSelection()
+
+        label:SetColor(GetFontColor())
+        if GetAccentColor() = undefined
+            expandButton:SetBackgroundColor(GetFontColor())
+            if expandButton:GetView2D() is DefaultTreeMenuView
+                DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+                defaultView:SetColor(GetFontColor())
+            end
+        end
+    end
+
+    /*
+    This action informs the cell to adjust its colors based on focus loss, if necessary.
+    This is called automatically by the TreeTable class. Most users will not need to call this manually.
+    */
+    action TreeTableLostFocus
+        if IsRenderingSelection()
+            label:SetColor(GetUnfocusedSelectionFontColor())
+        end
+    end
+
+    /*
+    This action informs the cell to adjust its colors based on focus change, if necessary.
+    This is called automatically by the TreeTable class. Most users will not need to call this manually.
+    */
+    action TreeTableGainedFocus
+        if IsRenderingSelection()
+            label:SetColor(GetSelectionFontColor())
+        end
+    end
+
+    action IsRenderingSelection returns boolean
+        return IsSelected()
+    end
+
+    action IsRenderingFocus returns boolean
         TreeTable table = GetTreeTable()
-        LayoutProperties tableProperties = undefined
-        LayoutProperties properties = GetDefaultLayoutProperties()
+        return table not= undefined and table:IsRenderingFocus()
+    end
 
-        if table not= undefined
-            tableProperties = table:GetDefaultLayoutProperties()
+    /*
+    This action returns true if the cell is currently selected, or false otherwise.
+    If this cell hasn't been added to a TreeTable, this action will always return false.
+
+    Attribute: Returns Whether or not this cell is currently selected.
+    */
+    action IsSelected returns boolean
+        TreeTable table = GetTreeTable()
+        if table = undefined
+            return false
         end
 
-        ColorGroup backgroundColor = undefined
-        Color textColor = undefined
-
-        if properties not= undefined and properties:GetBackgroundColor() not= undefined
-            backgroundColor = properties:GetBackgroundColor()
-        elseif tableProperties not= undefined and tableProperties:GetBackgroundColor() not= undefined
-            backgroundColor = tableProperties:GetBackgroundColor()
-        else
-            Color color
-            backgroundColor = color:White()
-        end
-
-        if properties not= undefined and properties:GetFontColor() not= undefined
-            textColor = properties:GetFontColor()
-        elseif tableProperties not= undefined and tableProperties:GetFontColor() not= undefined
-            textColor = tableProperties:GetFontColor()
-        else
-            Color color
-            textColor = color:Black()
-        end
-
-        if GetView2D() is LabelBoxView
-            LabelBoxView view = cast(LabelBoxView, GetView2D())
-            view:SetBackgroundColor(backgroundColor)
-        end
-
-        label:SetColor(textColor)
+        return table:GetSelection():Get() = me
     end
 
     action ClickedMouse

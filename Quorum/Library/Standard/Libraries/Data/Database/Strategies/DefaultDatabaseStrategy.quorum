@@ -46,6 +46,7 @@ class DefaultDatabaseStrategy is DatabaseStrategy
     private system action InsertNative(Insert query) returns integer
     private system action UpdateNative(Update query) returns integer
     private system action DeleteNative(Delete query) returns integer
+    private system action GetLastInsertedIDNative returns integer
     system action GetDatabaseMetaData returns DatabaseMetaData
 
     action Close
@@ -100,4 +101,9 @@ class DefaultDatabaseStrategy is DatabaseStrategy
     action Delete(Delete query) returns integer
         return DeleteNative(query)
     end
+
+    action GetLastInsertedID returns integer
+        return GetLastInsertedIDNative()
+    end
+
 end

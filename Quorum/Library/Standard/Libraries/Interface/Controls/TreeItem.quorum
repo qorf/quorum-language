@@ -7,13 +7,9 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.TreeChangeEvent
-use Libraries.Interface.Views.View2D
-use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Layouts.TreeLayout
 use Libraries.Interface.Layouts.TreeItemLayout
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
-use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Game.Graphics.Texture
@@ -42,6 +38,7 @@ class TreeItem is Control
 
     on create
         SetInputGroup("TreeItem")
+        SetInterfaceOptionsKey("TreeItem")
 
         LayoutProperties treeItemProperties = GetDefaultLayoutProperties()
         treeItemProperties:SetHorizontalLayoutMode(treeItemProperties:FIT_CONTENTS)
@@ -53,6 +50,13 @@ class TreeItem is Control
         panelProperties = panel:GetDefaultLayoutProperties()
 
         SetAccessibilityCode(parent:Item:TREE_ITEM)
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        if contents not= undefined
+            contents:SetInterfaceOptionsKey(key)
+        end
     end
 
     action GetDefaultFontName returns text
@@ -232,6 +236,7 @@ class TreeItem is Control
         end
 
         contents = content
+        content:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         content:SetTreeItem(me)
         parent:Item2D:Add(0, contents)
     end

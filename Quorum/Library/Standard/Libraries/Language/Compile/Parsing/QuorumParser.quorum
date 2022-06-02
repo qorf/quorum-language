@@ -1574,7 +1574,9 @@ class QuorumParser
         if next:category = constants:ID
             SetLocationToToken(context:objectLocation, next)
             Token look = tokenIterator:LookAhead(1)
-            if look:category = constants:COLON //this is an object call
+            //if the lookahead is undefined, a later rule will capture this
+            //here we just do not want to crash under this condition.
+            if look not= undefined and look:category = constants:COLON //this is an object call
                 context:objectName = next:value
                 tokenIterator:Next()
 
@@ -3603,6 +3605,10 @@ class QuorumParser
                     SendDefaultError("Expected ) (right paren) " + moreInformationActionCall, codes:PARSER_ACTION_CALL_BAD_RIGHT_PAREN)
                     return undefined 
                 end
+            //The rest of the system should try to process this, but this is a common problem so give a good message.
+            elseif next:category = constants:PERIOD
+                SendDefaultError("Expected either a left paren (an action) or a colon (for an action call on an object) " + moreInformationActionCall, codes:PARSER_ACTION_CALL_PERIOD)
+                return undefined 
             else //this ID is followed by something not allowed in ActionCall
                  //attempt to let the rest of the system calculate this
                 return context

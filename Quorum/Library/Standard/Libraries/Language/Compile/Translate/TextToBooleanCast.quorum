@@ -21,7 +21,7 @@ class TextToBooleanCast is ExplicitCastOpcode
         text DQ = result:GetDoubleQuote()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + opcodeToCast:WriteJavaScript() + " == " + DQ + "true" + DQ + " ? true : false"
+            result = result + "global_cast_text_to_boolean(" + opcodeToCast:WriteJavaScript() + ")"
         end
         return result
     end

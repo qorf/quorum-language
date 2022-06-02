@@ -1,0 +1,83 @@
+package Libraries.Game.Graphics.Shaders
+
+class ControlFragmentShader is Shader
+
+    constant text SHADER_NAME = "Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetCode(GetOpenGLVersion() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+in LOWP vec4 v_color;
+in vec2 v_texCoords;
+uniform sampler2D u_texture;
+uniform vec4 u_rounding;
+uniform vec4 u_enabledBorders;
+uniform vec4 u_borderColor;
+uniform float u_borderThickness;
+uniform float u_aspectRatio;
+uniform float u_antiAliasDistance;
+uniform bool u_renderBorders;
+layout (location = 0) out vec4 outputColor;
+
+// Calculate how far a point is from the outer shell of a rounded rectangle.
+// The rounding vector contains edge roundness values for:
+// x: top-right
+// y: bottom-right
+// z: top-left
+// w: bottom-left
+float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding)
+{
+    // We calculate as though the point is in the top-right quadrant.
+    // If this isn't true, we need adjust which of the edge rounding values we use.
+    rounding.xy = (point.x > 0.0) ? rounding.xy : rounding.zw;
+    rounding.x = (point.y > 0.0) ? rounding.x : rounding.y;
+    
+    // We take the absolute value of the point to ensure we're calculating from the top-right quadrant
+    vec2 calc = abs(point) - dimensions + rounding.x;
+    return min(max(calc.x, calc.y), 0.0) + length(max(calc, 0.0)) - rounding.x;
+}
+
+void main()
+{
+    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
+    point.x *= u_aspectRatio;
+    vec2 dimensions = vec2(u_aspectRatio, 1.0);
+
+    float distance = signedDistanceFunction(point, dimensions, u_rounding);
+    vec4 resultColor;
+
+    if (u_renderBorders)
+    {
+        // The enabled borders vector stores values for the sides in the following order:
+        // x: right
+        // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
+        // z: left
+        // w: bottom (y-negative)
+        vec4 borderDepths = vec4(u_enabledBorders.x * u_borderThickness, u_enabledBorders.y * u_borderThickness, u_enabledBorders.z * u_borderThickness, u_enabledBorders.w * u_borderThickness);
+        vec2 fillPoint = point - vec2(borderDepths.x - borderDepths.z, borderDepths.y - borderDepths.w);
+        vec2 fillDimensions = vec2(dimensions.x - borderDepths.x - borderDepths.z, dimensions.y - borderDepths.y - borderDepths.w);
+        float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, u_rounding);
+    
+        resultColor = mix(u_borderColor * texture(u_texture, v_texCoords), vec4(u_borderColor.rgb, 0.0), smoothstep(0.0, u_antiAliasDistance, distance));
+        resultColor = mix(v_color * texture(u_texture, v_texCoords), resultColor, smoothstep(0.0, u_antiAliasDistance, fillDistance));
+    }
+    else
+    {
+        resultColor = v_color * texture(u_texture, v_texCoords);
+        resultColor = mix(resultColor, vec4(resultColor.rgb, 0.0), smoothstep(0.0, u_antiAliasDistance, distance));
+    }
+
+    outputColor = resultColor;
+}")
+    end
+
+end

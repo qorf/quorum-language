@@ -51,6 +51,12 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             return;
         }
         
+        let accessibility = game.GetAccessibility();
+        if (accessibility)
+        {
+            accessibility.plugin_.Setup();
+        }
+        
         game.InitializeLayers();
         game.CreateGame();
         
@@ -105,6 +111,19 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                     plugins_quorum_Libraries_Sound_Audio_.StopAllSources();
                 }
 
+
+                // The canvas is created when running a Game so destroy this one so a new one can be created by another program
+                display.Destroy();
+
+                // The GameStateManager needs to reinitialized when another application is ran
+                // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
+                if (plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_) {
+                    delete plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_;
+                }
+                if (plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_) {
+                    delete plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_;
+                }
+
                 // Reset values to their null defaults when the game ends.
                 // If a new game starts on the same page, we don't want left over data.
                 frameInterval = 0;
@@ -148,6 +167,11 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     this.Exit = function()
     {
         game.Set_Libraries_Game_Game__exitRequested_(true);
+    };
+
+    this.Log$quorum_text = function(value)
+    {
+        console.log(value);
     };
     
 }

@@ -371,7 +371,9 @@ class TextureRegion is Disposable
     This action will dispose of the Texture stored in this TextureRegion.
     */
     action Dispose
-        texture:Dispose()
+        if texture not= undefined
+            texture:Dispose()
+        end
     end
 
 end

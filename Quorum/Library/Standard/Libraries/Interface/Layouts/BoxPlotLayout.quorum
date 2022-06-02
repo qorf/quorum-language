@@ -3,8 +3,6 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.BoxPlot
-use Libraries.Interface.Controls.Charts.PlotGroup
-use Libraries.Interface.Controls.Charts.Plot
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.LayoutProperties
@@ -16,12 +14,16 @@ use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.Texture
 use Libraries.Compute.Vector
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Graphics.Plot
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Game.Graphics.ColorGroup
 
 /*
     This class determines the visual layout for the chart.
     
 
-    Attribute: Author Shyann Calhoun
+    Attribute: Author Shyann Calhoun, Hannah Williams
 
     Attribute: Example
 
@@ -63,8 +65,8 @@ class BoxPlotLayout is ChartLayout
 
         BoxPlot chart = cast(BoxPlot, control)
         Array <PlotGroup> plotGroups = chart:GetPlotGroups()
-        Color invis
-        invis:SetColor(0,0,0,0)
+        Color transparent
+        transparent:SetColor(0,0,0,0)
         number percent = 0.0
         number yMax = chart:GetYAxisMaximum()
         number yMin = chart:GetYAxisMinimum()
@@ -72,17 +74,30 @@ class BoxPlotLayout is ChartLayout
         number xMin = chart:GetXAxisMinimum()
 
         boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
+        boolean separateBySeries = chart:IsSeparatedBySeries()
         boolean separateByFactor = chart:IsSeparatedByFactor()
+        boolean useFactor = (chart:GetFactorList() not= undefined)
 
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
-            integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/plotGroups:GetSize()
-            integer height = cast(integer, chartAreaContainer:GetHeight()) - cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
+            integer numberOfPanels = plotGroups:GetSize()
+            if separateByFactor
+                numberOfPanels = chart:GetSeriesList():GetSize()
+            end
+//            if separateBySeries and not useFactor
+//                numberOfPanels = 1
+//            end
+            if separateBySeries and not useFactor
+                numberOfPanels = chart:GetSeriesList():GetSize()
+            end
+
+            integer panelwidth = cast(integer, chartAreaContainer:GetWidth())/numberOfPanels
+            integer height = cast(integer, chartAreaContainer:GetHeight())
             number range = (yMax-yMin)
             number rangeMin = yMin
             if horizontal
-                panelwidth = cast(integer, chartAreaContainer:GetHeight())/plotGroups:GetSize()
-                height = cast(integer, chartAreaContainer:GetWidth()) - cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
+                panelwidth = cast(integer, chartAreaContainer:GetHeight())/numberOfPanels
+                height = cast(integer, chartAreaContainer:GetWidth())
                 range = (xMax-xMin)
                 rangeMin = xMin
             end
@@ -95,27 +110,27 @@ class BoxPlotLayout is ChartLayout
                 //Give each group an alloted section  
                 integer startpanelw = panelwidth*i
                 //Outer box
-                group:GetItem():LoadRectangle(panelwidth,height,invis)
-                group:GetItem():SetPosition(startpanelw,0)
+                group:LoadRectangle(panelwidth,height,transparent)
+                group:SetPosition(startpanelw,0)
                 if horizontal
-                    group:GetItem():LoadRectangle(height,panelwidth,invis)
-                    group:GetItem():SetPosition(0,startpanelw)
+                    group:LoadRectangle(height,panelwidth,transparent)
+                    group:SetPosition(0,startpanelw)
                 end
 
                 if group:GetSize() > 0
-                    integer groups = plotGroups:GetSize()
-                    integer plots = group:GetSize()
+                    integer groupCount = plotGroups:GetSize()
+                    integer plotCount = group:GetSize()
 
-                    integer plotsPerPanel = plots
-                    if separateByFactor
+                    integer plotsPerPanel = plotCount
+                    if chart:IsSeparated()
                         plotsPerPanel = 1
-                    end 
+                    end
 
                     integer width = cast(integer, panelwidth/plotsPerPanel)
                     integer center = cast(integer, width/2) 
                     integer size = cast(integer, width/4)
 
-                    number linePercent = (0.0025)*plotsPerPanel*groups
+                    number linePercent = (0.0025)*plotsPerPanel*groupCount
                     if linePercent > 0.05
                         linePercent = 0.05
                     end
@@ -128,20 +143,22 @@ class BoxPlotLayout is ChartLayout
                     line = halfline*2
 
                     integer k = 0
-                    repeat while k < plots
+                    repeat while k < plotCount
                         Plot plot = group:Get(k)
-                        number median = plot:GetInfoAt(0)
-                        number lowerQuartile = plot:GetInfoAt(1)
-                        number upperQuartile = plot:GetInfoAt(2)
-                        number minimum = plot:GetInfoAt(3)
-                        number maximum = plot:GetInfoAt(4)
-            
                         //Give each chart an alloted section  
                         integer startw = width*k + startpanelw
-                        if separateByFactor
-                            startw = startpanelw
+                        if separateBySeries
+
+                            if useFactor
+                                startw = startpanelw
+                            else
+                                //startw = width*k
+                                //do nothing for now.
+                            end
+                        elseif separateByFactor
+                            startw = width*k
                         end
-    
+
                         /* Indices for items of individual box plot
                             0: PLOT AREA (ENTIRE REGION)
                             1: MINIMUM LINE
@@ -156,78 +173,88 @@ class BoxPlotLayout is ChartLayout
                             10: MAXIMUM LINE 
                             11+: OUTLIER POINTS
                         */
-                        
+                    
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
-                        Array<Drawable> item = plot:GetPlotItems()
-                        Color darkColor
-                        darkColor:SetColor(0,0,0,1)
-                        Color lightColor = plot:GetIcon():GetColor()
+                        Array<ChartDrawable> item = plot:GetPlotItems()
+                        Color lightColor = plot:GetColor()
+                        ColorGroup darkColor = chart:GetBorderColor()
     
                         //Outer box
-                        item:Get(0):LoadRectangle(width,height,invis)
-                        item:Get(0):SetPosition(startw,0)
-                        if horizontal
-                            item:Get(0):LoadRectangle(height,width,invis)
-                            item:Get(0):SetPosition(0,startw)
+                        if plot:GetPlotArea() not= undefined
+                            plot:GetPlotArea():LoadRectangle(width,height,transparent)
+                            plot:GetPlotArea():SetPosition(startw,0)
+                            if horizontal
+                                plot:GetPlotArea():LoadRectangle(height,width,transparent)
+                                plot:GetPlotArea():SetPosition(0,startw)
+                            end
                         end
             
-                        //Minimum
-                        percent = (minimum - rangeMin)/range // used for 1-2
-                        item:Get(1):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(1):SetPosition(startw+size,cast(integer, percent*height)-halfline)
-            
-                        //Lower Whisker
-                        item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale), darkColor)
-                        item:Get(2):SetPosition(startw+center, cast(integer, percent*height))
-            
-                        //IQR Region
-                        percent = (lowerQuartile - rangeMin)/range // used for 3-6
-                        item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
-                        item:Get(3):SetPosition(startw+size, cast(integer, percent*height)-halfline)
-            
-                        //Right IQR line
-                        item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
-                        item:Get(4):SetPosition(startw+size+center, cast(integer, percent*height), -1)
-            
-                        //Left IQR line
-                        item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
-                        item:Get(5):SetPosition(startw+size, cast(integer, percent*height), -1)
-            
-                        //Q1
-                        item:Get(6):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(6):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
-            
-                        //Median
-                        percent = (median - rangeMin)/range // used for 7
-                        item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(7):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
-            
-                        //Q3
-                        percent = (upperQuartile - rangeMin)/range // used for 8-9
-                        item:Get(8):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(8):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
-            
-                        //Upper Whisker
-                        item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
-                        item:Get(9):SetPosition(startw+center, cast(integer, percent*height))
-            
-                        //Max
-                        percent = (maximum - rangeMin)/range // used for 10
-                        item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
-                        item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
 
-                        if horizontal
-                            integer l = 1
-                            repeat while l < 11
-                                number temp = item:Get(l):GetX()
-                                item:Get(l):SetX(item:Get(l):GetY())
-                                item:Get(l):SetY(temp)
-                                
-                                integer w = cast(integer, item:Get(l):GetWidth())
-                                integer h = cast(integer, item:Get(l):GetHeight())
-                                item:Get(l):SetWidth(h)
-                                item:Get(l):SetHeight(w)                    
-                                l = l + 1
+                        if not plot:IsUndefined()
+                            number median = plot:GetInfoAt(0)
+                            number lowerQuartile = plot:GetInfoAt(1)
+                            number upperQuartile = plot:GetInfoAt(2)
+                            number minimum = plot:GetInfoAt(3)
+                            number maximum = plot:GetInfoAt(4)
+
+                            //Minimum
+                            percent = (minimum - rangeMin)/range // used for 1-2
+                            item:Get(1):LoadFilledRectangle(center+line, line, darkColor)
+                            item:Get(1):SetPosition(startw+size,cast(integer, percent*height)-halfline)
+                
+                            //Lower Whisker
+                            item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale), darkColor)
+                            item:Get(2):SetPosition(startw+center, cast(integer, percent*height))
+                
+                            //IQR Region
+                            percent = (lowerQuartile - rangeMin)/range // used for 3-6
+                            item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
+                            item:Get(3):SetPosition(startw+size, cast(integer, percent*height)-halfline)
+                
+                            //Right IQR line
+                            item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                            item:Get(4):SetPosition(startw+size+center, cast(integer, percent*height), -1)
+                
+                            //Left IQR line
+                            item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
+                            item:Get(5):SetPosition(startw+size, cast(integer, percent*height), -1)
+                
+                            //Q1
+                            item:Get(6):LoadFilledRectangle(center+line, line, darkColor)
+                            item:Get(6):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                
+                            //Median
+                            percent = (median - rangeMin)/range // used for 7
+                            item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
+                            item:Get(7):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                
+                            //Q3
+                            percent = (upperQuartile - rangeMin)/range // used for 8-9
+                            item:Get(8):LoadFilledRectangle(center+line, line, darkColor)
+                            item:Get(8):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                
+                            //Upper Whisker
+                            item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
+                            item:Get(9):SetPosition(startw+center, cast(integer, percent*height))
+                
+                            //Max
+                            percent = (maximum - rangeMin)/range // used for 10
+                            item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
+                            item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
+    
+                            if horizontal
+                                integer l = 1
+                                repeat while l < 11
+                                    number temp = item:Get(l):GetX()
+                                    item:Get(l):SetX(item:Get(l):GetY())
+                                    item:Get(l):SetY(temp)
+                                    
+                                    integer w = cast(integer, item:Get(l):GetWidth())
+                                    integer h = cast(integer, item:Get(l):GetHeight())
+                                    item:Get(l):SetWidth(h)
+                                    item:Get(l):SetHeight(w)                    
+                                    l = l + 1
+                                end
                             end
                         end
             
@@ -240,11 +267,11 @@ class BoxPlotLayout is ChartLayout
                                 number y = outliers:Get(outlierIndex)
                                 percent = (y - rangeMin)/range
                                 integer radius = line
-                                item:Get(j):LoadFilledCircle(radius, darkColor)
-                                item:Get(j):SetPosition(startw+center-halfline, cast(integer, percent*height)-line)
-                                if horizontal 
-                                    item:Get(j):LoadFilledCircle(radius, darkColor)
-                                    item:Get(j):SetPosition(cast(integer, percent*height)-line, startw+center-halfline)
+                                item:Get(j):SetSize(radius * 4, radius * 4)
+                                item:Get(j):SetColor(lightColor)
+                                item:Get(j):SetPosition(startw+center-line, cast(integer, percent*height)-line * 2)
+                                if horizontal
+                                    item:Get(j):SetPosition(cast(integer, percent*height)-line * 2, startw+center-line)
                                 end
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1

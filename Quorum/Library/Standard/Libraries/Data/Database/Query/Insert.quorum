@@ -35,6 +35,7 @@ class Insert is Query
     Array<text> columnTargets
     Array<Parameter> values
 
+    boolean ignore = false
 
     /*
         Add a column
@@ -49,6 +50,49 @@ class Insert is Query
 
     private action AddValue(Parameter value)
         values:Add(value)
+    end
+
+
+    /*
+        Sets the query to ignore errors when inserting a record. This is useful when inserting into a column where each
+        value must be unique. If ignore is true and there is a duplicate entry then the program won't throw an error.
+
+        Attribute: Parameter ignore If true the query will ignore errors on inserting, otherwise an error while throw an error
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("orderNumber", 115)
+
+        query:SetIgnore(true)
+
+    */
+    action SetIgnore(boolean ignore)
+        me:ignore = ignore
+    end
+
+    /*
+        Add a column target along with the value that will be associated to it.
+
+        Attribute: Returns Returns true if the query will ignore errors when inserting and continue to keep the program running
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("orderNumber", 115)
+
+        query:SetIgnore(true)
+        output query:GetIgnore()
+
+    */
+    action GetIgnore returns boolean
+        return ignore
     end
 
     /*
@@ -114,6 +158,95 @@ class Insert is Query
         columnTargets:Add(column)
         text dq = value:GetDoubleQuote()
         Parameter param
+        param:SetToText(value)
+        AddValue(param)
+    end
+
+    /*
+        Add a column target along with the value that will be associated to it.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:Add("shipped", false)
+
+    */
+    action Add(text column, boolean value)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetToBoolean(value)
+        AddValue(param)
+    end
+
+    /*
+        Add a column target that will be set to undefined.
+
+        Attribute: Parameter column The name of the column to set
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("Orders")
+        query:AddUndefined("description")
+
+    */
+    action AddUndefined(text column)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetToUndefined()
+        AddValue(param)
+    end
+
+    /*
+        Add a column target along with a value that will be hashed using SHA1.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("files")
+        query:AddSecureHashAlgorithm1("hash", "my message")
+
+    */
+    action AddSecureHashAlgorithm1(text column, text value)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetFunction("SHA1")
+        param:SetToText(value)
+        AddValue(param)
+    end
+
+    /*
+        Add a column target along with a value that will be hashed using MD5.
+
+        Attribute: Parameter column The name of the column to which the value will belong to
+        Attribute: Parameter value The value to insert under the named column
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Insert
+
+        Insert query
+        query:SetTable("files")
+        query:AddMessageDigestAlgorithm5("hash", "my message")
+
+    */
+    action AddMessageDigestAlgorithm5(text column, text value)
+        columnTargets:Add(column)
+        Parameter param
+        param:SetFunction("MD5")
         param:SetToText(value)
         AddValue(param)
     end
@@ -217,7 +350,9 @@ class Insert is Query
         EmptyPreparedParameters()
         DatabaseMetaData meta = GetDatabaseMetaData()
         text query = "INSERT INTO "
-
+        if me:ignore
+            query = "INSERT IGNORE INTO "
+        end
         // check if table is valid
         text table = GetTable()
         if table = "" or table = undefined
@@ -269,7 +404,11 @@ class Insert is Query
             else
                 value = param:GetValueAsText()
             end
-            query = query + value
+            if param:GetFunction() = undefined
+                query = query + value
+            else
+                query = query + param:GetFunction() + "(" + value + ")"
+            end
             if i not= values:GetSize() - 1
                 query = query+", "
             else

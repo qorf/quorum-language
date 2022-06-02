@@ -16,11 +16,17 @@ class SceneManager
 
     private action ConvertToNumber32BitArray(JavaScriptObjectNotation json) returns Number32BitArray
         Number32BitArray array
-        array:SetSize(json:GetSize())
+        JavaScriptObjectNotation points = undefined
+        //this item contains an array with one element
+        //this element contains the array of points.
+        if json:GetSize() > 0
+            points = json:Get(0)
+        end
+        array:SetSize(points:GetSize())
 
         i = 0
-        repeat while i < json:GetSize()
-            JavaScriptObjectNotation value = json:Get(i)
+        repeat while i < points:GetSize()
+            JavaScriptObjectNotation value = points:Get(i)
             number num = 0
             if value:IsInteger()
                 num = value:GetInteger()

@@ -41,6 +41,13 @@ class Accessibility
     blueprint action DescriptionChanged(Item item)
 
     /*
+        This action indicates that an item's position and/or size changed.
+
+        Attribute: Parameter item the item that changed.
+    */
+    blueprint action BoundsChanged(Item item)
+
+    /*
         This action indicates that a text field in password mode had its value changed.
 
         Attribute: Parameter field a particular field that had its password changed.

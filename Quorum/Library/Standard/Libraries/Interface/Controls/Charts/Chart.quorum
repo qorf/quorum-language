@@ -6,7 +6,6 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartOptions
@@ -21,6 +20,8 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Charts.ChartDisplay
 use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
+use Libraries.System.DateTime
+use Libraries.Interface.Views.ControlShaderView
 
 /*
 
@@ -77,38 +78,51 @@ class Chart is Control
     private boolean horizontalOrientation = false
     private boolean verticalOrientation = false
     private boolean orientationChanged = false
+    private boolean orientationCapable = true
 
     // Title Area Components
     private number titleAreaHeightPercent = 0.05
-    private ControlLabel title = undefined
+    private ChartLabel title = undefined
     private text titleText = "Chart Title"
     private boolean showTitle = true 
     private integer titlefontsize = 0
     private boolean titleFontSizeOverride = false
-//    private text titleLocation = "center" // - not implemented yet
+    private boolean allFontSizeOverride = false
+//    private text titleLocation = "center" 
 
-//    // Subtitle Area Components - not implemented yet
-//    private number subtitleAreaHeightPercent = 0.025
-//    private ControlLabel subtitle = undefined
-//    private text subtitleText = "Chart Subtitle"
-//    private boolean showSubtitle = true 
-//    private integer subtitlefontsize = 0
-//    private boolean subtitleFontSizeOverride = false
+    // Subtitle Area Components - not implemented yet
+    private number subtitleAreaHeightPercent = 0
+    private ChartLabel subtitle = undefined
+    private text subtitleText = "Subtitle"
+    private boolean showSubtitle = false
+    private integer subtitlefontsize = 0
+    private boolean subtitleFontSizeOverride = false
 //    private text subtitleLocation = "center"
 
     // Chart Area Components
-    private ChartAreaPanel chartArea
-    private Array <ChartAreaPanel> subChartAreas
     private Drawable background = undefined
-    private Array<Icon> groupPanels
+    private ChartAreaPanel chartArea
+    private Array<GroupPanel> groupPanels
     private integer paddedChartOffset = 0
     private integer numberOfChartAreas = 1
-    private boolean separateByFactor = false
-    private boolean defaultSeparation = false
-    private boolean overrideDefaultSeparation = false
+    private integer regLineDensity = 0
+    private Color regLineColor = undefined
+    private boolean regressionCapable = false
     private boolean hasGroups = false
     private boolean defaultShowBrackets = false
     private boolean overrideDefaultShowBrackets = false
+    private boolean showAnnotations = false
+
+    // Chart Area Facetting
+    private Array <ChartAreaPanel> subChartAreas
+    private boolean separationCapable = true
+    private boolean separateByFactor = false
+    private boolean separateBySeries = false
+    private boolean defaultSeparateBySeries = false
+    private boolean defaultSeparateByFactor = false
+    private boolean overrideDefaultSeparation = false
+    private boolean showSubChartAreaBorders = true
+    private Array<text> factorList = undefined
 
     // X-Axis Components
     private HorizontalAxisPanel horizontalPanel
@@ -122,6 +136,7 @@ class Chart is Control
     private number horizontalPanelWidthPercent = 0.75
     private number horizontalPanelHeightPercent = 0.05
     private integer xLabelsRotation = 0
+    private boolean xAxisIsIndependent = true
 
     // Y-Axis Components
     private VerticalAxisPanel verticalPanel
@@ -140,12 +155,20 @@ class Chart is Control
     private boolean showLegend = true
     private boolean legendLabelFontSizeOverride = false
     private boolean legendTitleFontSizeOverride = false
+    private boolean showLinearRegression = false
     private number legendPanelWidthPercent = 0.05
     private number legendPanelHeightPercent = 0.05
+
+    // How thick the borders of points should be, in pixels.
+    // Only used if the chart renders points. Otherwise, this does nothing.
+    number pointBorderThickness = 0
 
     on create
         chartArea:SetName("Chart Area")
         Add(chartArea)
+
+        // Get default colors from the InterfaceOptions.
+        SetInterfaceOptionsKey("Chart")
     end
 
     action IsAccessibleParent returns boolean
@@ -170,15 +193,20 @@ class Chart is Control
         // Load background of display window
         if GetBackground() = undefined
             Drawable background
-            background:LoadFilledRectangle(cast(integer, GetWidth()) ,cast(integer, GetHeight()), color:White())
+            background:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()))
             SetBackground(background)
             Add(background)
         end
 
+        // Always ensure the background is the right color, whether it's newly loaded or not.
+        GetBackground():SetColor(GetBackgroundColor())
+
         // Load background/border of chart area
         chartArea:LoadChartAreaView()
         
-        if defaultSeparation and not overrideDefaultSeparation
+        if defaultSeparateBySeries and not overrideDefaultSeparation
+            SeparateBySeries()
+        elseif defaultSeparateByFactor and not overrideDefaultSeparation
             SeparateByFactor()
         end
 
@@ -187,29 +215,63 @@ class Chart is Control
             horizontalPanel:ShowGroupBrackets(true)
         end
 
-        // Default highlight color is selection color (currently blue)
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
-        end
-
         // Load sub chart areas and sub axis panels
         if numberOfChartAreas > 1
+            if separateByFactor
+                Array<text> newLabels 
+                integer size = GetSeriesList():GetSize()
+                integer j = 0
+                repeat while j < size
+                    newLabels:Add(GetSeriesList():Get(j):GetName())
+                    j = j + 1
+                end
+                if xAxisIsIndependent
+                    horizontalPanel:SetTextLabels(newLabels)
+                    horizontalPanel:SetTitleText(legend:GetTitleText())
+                    horizontalPanel:NumericalOverrideLabels(false) //Set to false since new labels may not be numerical anymore
+                else
+                    verticalPanel:SetTextLabels(newLabels)
+                    verticalPanel:SetTitleText(legend:GetTitleText())
+                    verticalPanel:NumericalOverrideLabels(false) //Set to false since new labels may not be numerical anymore
+                end      
+            end
             integer i = 0
             repeat while i < numberOfChartAreas
                 ChartAreaPanel subArea
-                integer index = GetSeriesList():GetSize()-(i+1)
-                if separateByFactor and (index >= 0)
-                    subArea:SetSeries(GetSeriesList():Get(index))
-                    subArea:SetIsShowing(true)
-                    chartArea:Add(subArea)
+                if separateByFactor
+                    if i < GetFactorList():GetSize()
+                        subArea:SetName(GetFactorList():Get(i))
+                        ChartLabel newLabel
+                        newLabel:SetText(subArea:GetName())
+                        subArea:SetLabel(newLabel)
+                        subArea:Add(newLabel)
+                        chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
+                    end
                 end
+                if separateBySeries 
+                    if i < GetSeriesList():GetSize()
+                        subArea:SetName(GetSeriesList():Get(i):GetName())
+                        ChartLabel newLabel
+                        newLabel:SetText(subArea:GetName())
+                        subArea:SetLabel(newLabel)
+                        subArea:Add(newLabel)
+                        chartArea:Add(subArea)
+                    else
+                        subArea:Hide()
+                    end
+                end
+
                 subChartAreas:Add(subArea)
                 if i < verticalPanel:GetNumberOfSections()
                     VerticalAxisPanel subYAxis
+                    subYAxis:SetName("Sub y-axis")
                     subVerticalPanels:Add(subYAxis)
                 end
                 if i < horizontalPanel:GetNumberOfSections()
                     HorizontalAxisPanel subXAxis
+                    subXAxis:SetName("Sub x-axis")
                     subHorizontalPanels:Add(subXAxis)
                 end
                 i = i + 1
@@ -219,9 +281,19 @@ class Chart is Control
         if IsShowingTitle()
             titleAreaHeightPercent = 0.10
             if GetTitleLabel() = undefined
-                ControlLabel newLabel
+                ChartLabel newLabel
                 SetTitleLabel(newLabel)
                 newLabel:SetText(titleText)
+                Add(newLabel)
+            end
+        end
+
+        if IsShowingSubtitle()
+            subtitleAreaHeightPercent = 0.05
+            if GetSubtitleLabel() = undefined
+                ChartLabel newLabel
+                SetSubtitleLabel(newLabel)
+                newLabel:SetText(subtitleText)
                 Add(newLabel)
             end
         end
@@ -239,80 +311,124 @@ class Chart is Control
         end
 
         legend:ApplySeriesColor()
+        legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
-            legend:LoadLegend(me, properties)
             Add(legend)
         end
 
         Add(chartArea)
+        if IsShowingLinearRegression()
+            LoadRegressionLines()
+        end
         SetNeedsUpdate(true)
         Resize()
         SetNextFocus(GetNextFocus())
         SetPreviousFocus(GetPreviousFocus())
     end
-    
+
     /*
         This action will flip the axis min/max and any labels associated.  
         Then the un-used axis will be deactivated so it won't interfere with the
         accessibility navigation.
     */
     private action FlipAxisInfo()
-        number temp = horizontalPanel:GetMaximum()
+        number tempNum = 0
+        integer tempInt = 0
+        boolean tempBool = true
+        text tempText = ""
+        DateTime tempDate
+        Array <text> tempLabels
+
+        // Axis offset
+        tempNum = horizontalPanel:GetPaddingOffset()
+        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
+        verticalPanel:SetPaddingOffset(tempNum)
+
+
+        // Range values
+        tempNum = horizontalPanel:GetMaximum()
         horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
-        verticalPanel:SetMaximum(temp)
+        verticalPanel:SetMaximum(tempNum)
 
-        temp = horizontalPanel:GetMinimum()
+        tempNum = horizontalPanel:GetMinimum()
         horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
-        verticalPanel:SetMinimum(temp)
+        verticalPanel:SetMinimum(tempNum)
 
-        Array <text> templabels = horizontalPanel:GetOverrideLabels()
-        horizontalPanel:SetOverrideLabels(verticalPanel:GetOverrideLabels())
-        verticalPanel:SetOverrideLabels(templabels)
-
-        temp = horizontalPanel:GetTickInterval()
-        horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
-        verticalPanel:SetTickInterval(temp)
-
-        integer tempint = horizontalPanel:GetTickCount()
-        horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
-        verticalPanel:SetTickCount(tempint)
-
-        boolean tempflag = horizontalPanel:GetOverrideDefaultTickCount()
-        horizontalPanel:OverrideDefaultTickCount(verticalPanel:GetOverrideDefaultTickCount())
-        verticalPanel:OverrideDefaultTickCount(tempflag)
-
-        tempflag = horizontalPanel:GetOverrideDefaultInterval()
-        horizontalPanel:OverrideDefaultInterval(verticalPanel:GetOverrideDefaultInterval())
-        verticalPanel:OverrideDefaultInterval(tempflag)
-
-        tempflag = horizontalPanel:NumericalOverrideLabels()
-        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
-        verticalPanel:NumericalOverrideLabels(tempflag)
-
-        tempflag = horizontalPanel:ShowGroupBrackets()
-        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
-        verticalPanel:ShowGroupBrackets(tempflag)
-
-        tempflag = horizontalPanel:ShowTicks()
-        horizontalPanel:ShowTicks(verticalPanel:ShowTicks())
-        verticalPanel:ShowTicks(tempflag)
-
-        tempflag = horizontalPanel:OverrideDefaultMin()
+        tempBool = horizontalPanel:OverrideDefaultMin()
         horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
-        verticalPanel:OverrideDefaultMin(tempflag)
+        verticalPanel:OverrideDefaultMin(tempBool)
 
-        tempflag = horizontalPanel:OverrideDefaultMax()
+        tempBool = horizontalPanel:OverrideDefaultMax()
         horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
-        verticalPanel:OverrideDefaultMax(tempflag)
+        verticalPanel:OverrideDefaultMax(tempBool)
 
-        text temptext = horizontalPanel:GetTitleText()
+
+        // DateRange values
+        DateTime tempdate = horizontalPanel:GetMaximumDate()
+        horizontalPanel:SetMaximumDate(verticalPanel:GetMaximumDate())
+        verticalPanel:SetMaximumDate(tempdate)
+
+        tempdate = horizontalPanel:GetMinimumDate()
+        horizontalPanel:SetMinimumDate(verticalPanel:GetMinimumDate())
+        verticalPanel:SetMinimumDate(tempdate)
+
+
+        // Tick information
+        tempNum = horizontalPanel:GetTickInterval()
+        horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
+        verticalPanel:SetTickInterval(tempNum)
+
+        tempBool = horizontalPanel:OverrideDefaultInterval()
+        horizontalPanel:OverrideDefaultInterval(verticalPanel:OverrideDefaultInterval())
+        verticalPanel:OverrideDefaultInterval(tempBool)
+
+        tempInt = horizontalPanel:GetTickCount()
+        horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
+        verticalPanel:SetTickCount(tempInt)
+
+        tempBool = horizontalPanel:OverrideDefaultTickCount()
+        horizontalPanel:OverrideDefaultTickCount(verticalPanel:OverrideDefaultTickCount())
+        verticalPanel:OverrideDefaultTickCount(tempBool)
+
+        tempBool = horizontalPanel:ShowTicks()
+        horizontalPanel:ShowTicks(verticalPanel:ShowTicks())
+        verticalPanel:ShowTicks(tempBool)
+
+        // Brackets
+        tempBool = horizontalPanel:ShowGroupBrackets()
+        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
+        verticalPanel:ShowGroupBrackets(tempBool)
+
+
+        // Labels
+        tempLabels = horizontalPanel:GetTextLabels()
+        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
+        verticalPanel:SetTextLabels(tempLabels)
+
+        tempBool = horizontalPanel:ShowLabels()
+        horizontalPanel:ShowLabels(verticalPanel:ShowLabels())
+        verticalPanel:ShowLabels(tempBool)
+
+        tempBool = horizontalPanel:NumericalOverrideLabels()
+        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
+        verticalPanel:NumericalOverrideLabels(tempBool)
+
+
+        // Title
+        tempText = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
-        verticalPanel:SetTitleText(temptext)
+        verticalPanel:SetTitleText(tempText)
 
-        temptext = horizontalPanel:GetNumberFormat()
+
+        // Number format
+        tempText = horizontalPanel:GetNumberFormat()
         horizontalPanel:SetNumberFormat(verticalPanel:GetNumberFormat())
-        verticalPanel:SetNumberFormat(temptext)
+        verticalPanel:SetNumberFormat(tempText)
+
+        if xAxisIsIndependent
+            xAxisIsIndependent = false
+        end
     end
 
     private action DisposeDrawables()
@@ -328,6 +444,7 @@ class Chart is Control
             background = undefined
         end
 
+        GetChartArea():Empty()
         GetLegend():Empty()
         GetVerticalPanel():Empty()
         GetHorizontalPanel():Empty()
@@ -378,14 +495,6 @@ class Chart is Control
         return chartArea
     end
 
-    action SetChartAreaBorderColor(ColorGroup color)
-        chartArea:SetBorderColor(color)
-    end
-
-    action SetChartAreaBackgroundColor(ColorGroup color)
-        chartArea:SetBackgroundColor(color)
-    end
-
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -393,6 +502,22 @@ class Chart is Control
     */
     action GetSubChartAreas returns Array<ChartAreaPanel>
         return subChartAreas
+    end
+
+    /*
+    This action allows user to show the borders around each sub chart area.
+    By default this setting is set to true in most cases (with the exception of pie charts).
+    */
+    action ShowSubChartAreaBorders(boolean showSubChartAreaBorders)
+        me:showSubChartAreaBorders = showSubChartAreaBorders
+    end
+
+    /*
+    This action allows user to show the borders around each sub chart area.
+    By default this setting is set to true.
+    */
+    action ShowSubChartAreaBorders returns boolean
+        return showSubChartAreaBorders
     end
 
     /*
@@ -409,8 +534,40 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetGroupPanels returns Array<Icon>
+    private action GetNumberOfVisibleChartAreas returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < subChartAreas:GetSize()
+            if subChartAreas:Get(i):IsShowing()
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action is used by the layout to position the graphical components of 
+    the Chart. Layout is handled automatically so users don't need to use this
+    action directly.
+    */
+    action GetGroupPanels returns Array<GroupPanel>
         return groupPanels
+    end
+
+    action AddGroupPanel(GroupPanel group)
+        groupPanels:Add(group)
+    end
+
+    /*
+    Attribute: True if all annotations for chart drawables are showing.
+    */
+    action ShowAnnotations returns boolean
+        return showAnnotations
+    end
+
+    action ShowAnnotations(boolean show)
+        showAnnotations = show
     end
 
     action GetChartAreaWidthPercent returns number
@@ -550,6 +707,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             horizontalPanel:SetNumberFormat(format)
+            horizontalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -557,6 +715,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             verticalPanel:SetNumberFormat(format)
+            verticalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -577,16 +736,23 @@ class Chart is Control
     end
 
     /*
-    These actions are used to offset the start of the tick placement
-    if the chart has added white space on either side of the chart area.
-
-    Attribute: Sets/Returns the pixel offset. 
+        These actions are used to offset the start of the tick placement
+        if the chart has added white space on either side of the chart area.
     */
-    action GetPaddedChartOffset returns integer
-        return paddedChartOffset
+    action SetYAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            verticalPanel:SetPaddingOffset(percent)
+        else
+            alert("Percent can be between 0 and 1")
+        end
     end
-    action SetPaddedChartOffset(integer offset)
-        paddedChartOffset = offset
+
+    action SetXAxisPaddedOffsetPercent(number percent)
+        if percent >= 0  and percent <= 1
+            horizontalPanel:SetPaddingOffset(percent)
+        else
+            alert("Percent can be between 0 and 1")
+        end
     end
 
     /*
@@ -596,6 +762,9 @@ class Chart is Control
 
     Attribute: Orientation controls
     */
+    private action OrientationCapable(boolean orientationCapable)
+        me:orientationCapable = orientationCapable
+    end
 
     private action SetDefaultOrientationToHorizontal
         verticalOrientation = false
@@ -608,18 +777,24 @@ class Chart is Control
     end
 
     action SetOrientationToHorizontal
-        if not orientationChanged and not horizontalOrientation
-            orientationChanged = true
-            horizontalOrientation = true
-            verticalOrientation = false
+        if orientationCapable
+            if not orientationChanged and not horizontalOrientation
+                orientationChanged = true
+                horizontalOrientation = true
+                verticalOrientation = false
+                FlipAxisInfo()
+            end
         end
     end
 
     action SetOrientationToVertical
-        if not orientationChanged and not verticalOrientation
-            orientationChanged = true
-            horizontalOrientation = false
-            verticalOrientation = true
+        if orientationCapable
+            if not orientationChanged and not verticalOrientation
+                orientationChanged = true
+                horizontalOrientation = false
+                verticalOrientation = true
+                FlipAxisInfo()
+            end
         end
     end
 
@@ -638,16 +813,18 @@ class Chart is Control
         Would result in the y-axis having the title "My Y title" and the x-axis having the title "My X title"
     */
     action FlipOrientation()
-        if not orientationChanged
-            orientationChanged = true
-            if verticalOrientation
-                verticalOrientation = false
-                horizontalOrientation = true
-            else
-                verticalOrientation = true
-                horizontalOrientation = false
+        if orientationCapable
+            if not orientationChanged
+                orientationChanged = true
+                if verticalOrientation
+                    verticalOrientation = false
+                    horizontalOrientation = true
+                else
+                    verticalOrientation = true
+                    horizontalOrientation = false
+                end
+                FlipAxisInfo()
             end
-            FlipAxisInfo()
         end
     end
 
@@ -663,49 +840,169 @@ class Chart is Control
         return verticalOrientation
     end
 
+
+    /*
+        Returns an array of the factor/group names 
+    */
+    action GetFactorList returns Array<text>
+        return factorList
+    end
+    action SetFactorList(Array <text> factorList)
+        me:factorList = factorList
+    end
+
+    /*
+        SeparateByFactor will attempt to create faceted sub chart area panels. 
+        Each factor/group (independent variable) will get it's own panel.
+        Each sub area will contain all elements associated with that factor.
+    */
+    action SeparateByFactor(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
     action SeparateByFactor()
         SeparateByFactor(1)
     end
 
     action SeparateByFactor(integer requestedColumns)
-        integer numberOfFactors = GetSeriesList():GetSize()
-        boolean singleRow = false
-        if numberOfFactors > 1
-            if requestedColumns > 1
-                if requestedColumns > numberOfFactors
-                    horizontalPanel:SplitIntoSections(numberOfFactors)
-                    singleRow = true
-                else
-                    horizontalPanel:SplitIntoSections(requestedColumns)
+        if separationCapable and requestedColumns > 0 and GetFactorList() not= undefined
+            integer numberOfFacets = GetFactorList():GetSize()
+            boolean singleRow = false
+            if numberOfFacets > 1
+                if requestedColumns > 1
+                    if requestedColumns > numberOfFacets
+                        horizontalPanel:SplitIntoSections(numberOfFacets)
+                        singleRow = true
+                    else
+                        horizontalPanel:SplitIntoSections(requestedColumns)
+                    end
+                end
+                if not singleRow
+                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
                 end
             end
-            if not singleRow
-                verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFactors)/requestedColumns)))
+            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+            if numberOfChartAreas > 1
+                separateByFactor = true
+                separateBySeries = false
             end
+            overrideDefaultSeparation = true
         end
-        numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
-        if numberOfChartAreas > 1
-            separateByFactor = true
-        end
-        overrideDefaultSeparation = true
     end
 
     action IsSeparatedByFactor returns boolean
         return separateByFactor
     end
 
-    action SeparateByFactor(boolean flag)
-        if flag = true
-            defaultSeparation = true
-        else
-            defaultSeparation = false
+    private action SeparateFactorByDefault(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
+    /*
+        SeparateBySeries will attempt to create faceted sub chart area panels 
+        Each series entry in the legend will get it's own chart area.
+        Each sub area will contain all elements associated with that series
+    */
+    action SeparateBySeries(boolean flag)
+        defaultSeparateBySeries = flag
+    end
+
+    action SeparateBySeries
+        SeparateBySeries(1)
+    end
+
+    action SeparateBySeries(integer requestedColumns)
+        if separationCapable and requestedColumns > 0
+            integer numberOfFacets = GetSeriesList():GetSize()
+            boolean singleRow = false
+            if numberOfFacets > 1
+                if requestedColumns > 1
+                    if requestedColumns > numberOfFacets
+                        horizontalPanel:SplitIntoSections(numberOfFacets)
+                        singleRow = true
+                    else
+                        horizontalPanel:SplitIntoSections(requestedColumns)
+                    end
+                end
+                if not singleRow
+                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
+                end
+            end
+            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+            if numberOfChartAreas > 1
+                separateBySeries = true
+                separateByFactor = false
+            end
+            overrideDefaultSeparation = true
         end
     end
 
-    private action SetDefaultSeparation(boolean flag)
-        defaultSeparation = flag
+    action IsSeparatedBySeries returns boolean
+        return separateBySeries
     end
 
+    private action SeparateSeriesByDefault(boolean flag)
+        defaultSeparateBySeries = flag
+    end
+
+//    /*
+//        SeparateByColumn will attempt to create faceted sub chart area panels 
+//        Each column of the dataframe (dependent variable) will get it's own chart area.
+//        Each sub area will contain all elements associated with that column
+//    */
+//    action SeparateByColumn(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+//
+//    action SeparateByColumn
+//        SeparateByColumn(1)
+//    end
+//
+//    action SeparateByColumn(integer requestedColumns)
+//        if separationCapable and requestedColumns > 0
+//            integer numberOfFacets = GetColumnList():GetSize()
+//            boolean singleRow = false
+//            if numberOfFacets > 1
+//                if requestedColumns > 1
+//                    if requestedColumns > numberOfFacets
+//                        horizontalPanel:SplitIntoSections(numberOfFacets)
+//                        singleRow = true
+//                    else
+//                        horizontalPanel:SplitIntoSections(requestedColumns)
+//                    end
+//                end
+//                if not singleRow
+//                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
+//                end
+//            end
+//            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+//            if numberOfChartAreas > 1
+//                separateByColumn = true
+//                separateByFactor = false
+//            end
+//            overrideDefaultSeparation = true
+//        end
+//    end
+//
+//    action IsSeparatedByColumn returns boolean
+//        return separateByColumn
+//    end
+//
+//    private action SeparateColumnByDefault(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+
+    action IsSeparated returns boolean
+        return (separateBySeries or separateByFactor)
+    end
+
+    private action SeparationCapable(boolean separationCapable)
+        me:separationCapable = separationCapable
+    end
+
+    private action XAxisIsIndependent returns boolean
+        return xAxisIsIndependent
+    end
 
     /*
     This action is used by the layout to position the graphical components of 
@@ -713,28 +1010,36 @@ class Chart is Control
     action directly.
     */
     action OverrideXLabelsWithText(Array<text> labels)
-        horizontalPanel:SetOverrideLabels(labels)
+        horizontalPanel:SetTextLabels(labels)
     end
 
     action OverrideYLabelsWithText(Array<text> labels)
-        verticalPanel:SetOverrideLabels(labels)
+        verticalPanel:SetTextLabels(labels)
     end
 
-    action GetYLabels returns Array<ControlLabel>
+    action GetYLabels returns Array<ChartLabel>
         return verticalPanel:GetLabels()
     end
 
-    action SetYLabels(Array<ControlLabel> newLabels)
+    action SetYLabels(Array<ChartLabel> newLabels)
         verticalPanel:SetLabels(newLabels)
     end
 
-    action GetXLabels returns Array<ControlLabel>
+    action ShowYLabels(boolean show)
+        verticalPanel:ShowLabels(show)
+    end  
+
+    action GetXLabels returns Array<ChartLabel>
         return horizontalPanel:GetLabels()
     end
 
-    action SetXLabels(Array<ControlLabel> newLabels)
+    action SetXLabels(Array<ChartLabel> newLabels)
         horizontalPanel:SetLabels(newLabels)
     end
+
+    action ShowXLabels(boolean show)
+        horizontalPanel:ShowLabels(show)
+    end  
 
     action RotateXLabels(integer degrees) // "360 -" because it rotates opposite of how you'd imagine.
         xLabelsRotation = 360 - degrees
@@ -758,10 +1063,15 @@ class Chart is Control
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
-    action GetTitleLabel returns ControlLabel
+
+    /* 
+        Label for the chart title
+    */
+    action GetTitleLabel returns ChartLabel
         return title
     end
-    private action SetTitleLabel(ControlLabel label)
+
+    private action SetTitleLabel(ChartLabel label)
         me:title = label
     end
 
@@ -798,6 +1108,53 @@ class Chart is Control
         return titleAreaHeightPercent
     end
     
+    /* 
+        Label for the chart subtitle
+    */
+    action GetSubtitleLabel returns ChartLabel
+        return subtitle
+    end
+
+    private action SetSubtitleLabel(ChartLabel label)
+        me:subtitle = label
+    end
+
+    /*
+        Sets the title of the chart
+    */
+    action SetSubtitle(text name)
+        subtitleText = name
+        if name not= ""
+            showSubtitle = true
+        end
+    end
+    /*
+        Attribute: Returns the title of the chart
+    */
+    action GetSubtitle returns text
+        return subtitleText
+    end
+    /*
+        When true the chart title will be visible
+    */
+    action ShowSubtitle(boolean show)
+        showSubtitle = show
+    end
+    /*
+        Attribute: Returns true if the chart title is showing
+    */
+    action IsShowingSubtitle() returns boolean
+        return showSubtitle
+    end
+    /*
+        Attribute: Returns percent of screen height alloted for the title
+        This is handled automatically so users don't need to use this
+        action directly.
+    */
+    action GetSubtitleAreaHeightPercent returns number
+        return subtitleAreaHeightPercent
+    end
+
     /*
         Set the title for the X-Axis of the Chart.
     */
@@ -844,6 +1201,89 @@ class Chart is Control
 
     action IsShowingYAxis() returns boolean
         return showYAxis
+    end
+
+    action IsShowingLinearRegression returns boolean
+        return showLinearRegression
+    end
+
+    action ShowLinearRegression(boolean show)
+        if regressionCapable
+            showLinearRegression = show
+            GetLegend():ShowRegression(show)
+        else
+            showLinearRegression = false
+            output "This type of chart cannot support linear regression lines."
+        end
+    end
+
+    private action RegressionCapable(boolean regressionCapable)
+        me:regressionCapable = regressionCapable
+    end
+
+    private action LoadRegressionLines()
+        integer i = 0
+        repeat while i < GetSeriesList():GetSize()
+            RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
+            if line not= undefined
+                line:SetColor(GetSeriesList():Get(i):GetColor())
+                if IsSeparatedBySeries()
+                    integer k = 0
+                    repeat while k < GetNumberOfChartAreas()
+                        if GetSeriesList():Get(i):GetName() = GetSubChartAreas():Get(k):GetName()
+                            GetSubChartAreas():Get(k):Add(line)
+                            GetSubChartAreas():Get(k):AddChartAreaItem(line)
+                        end
+                        k = k + 1
+                    end
+                    if regLineDensity > 0
+                        line:SetLineDensity(regLineDensity)
+                    else
+                        if GetSubChartAreas():GetSize() > 0
+                            regLineDensity = cast(integer, GetSubChartAreas():Get(0):GetWidth() * 0.0025)
+                            if regLineDensity < 2
+                                regLineDensity = 2
+                            end
+                            line:SetLineDensity(regLineDensity)
+                        end
+                    end
+                else
+                    GetChartArea():Add(line)
+                    if regLineDensity > 0
+                        line:SetLineDensity(regLineDensity)
+                    else
+                        regLineDensity = cast(integer, GetChartArea():GetWidth() * 0.0025)
+                        if regLineDensity < 2
+                            regLineDensity = 2
+                        end
+                        line:SetLineDensity(regLineDensity)
+                    end
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Set and get the line density.
+    */
+    action SetRegressionLineDensity(integer density)
+        regLineDensity = density
+    end
+
+    action GetRegressionLineDensity() returns integer
+        return regLineDensity
+    end
+
+    /*
+        Set and get the regression line color.
+    */
+    action SetRegressionLineColor(Color color)
+        regLineColor = color
+    end
+
+    action GetRegressionLineColor() returns Color
+        return regLineColor
     end
 
     action ShowGroupBrackets(boolean flag)
@@ -1035,12 +1475,12 @@ class Chart is Control
         return legend:GetSeriesList()
     end
 
-    action AddSeries(Series series)
-        legend:GetSeriesList():Add(series)
-    end
-
     action SetSeriesList(Array <Series> series)
         legend:SetSeriesList(series)
+    end
+
+    action AddSeries(Series series)
+        legend:GetSeriesList():Add(series)
     end
 
     action SetColorPaletteToCalm()
@@ -1140,17 +1580,11 @@ class Chart is Control
     end
 
     /*
-        Gets the default selection color (highlighting) the chart items
-    */
-    action GetHighlightColor() returns Color
-        return highlightColor
-    end
-
-    /*
         Sets the default selection color (highlighting) the chart items
     */
     action SetHighlightColor(Color color)
         highlightColor = color
+        options:SetSelectionColor(color)
     end
 
     action Resize
@@ -1159,34 +1593,55 @@ class Chart is Control
         end
 
         // Create default tick sizes. 
-        // Having a min of 12 for the long side, ensures 4 for short side, 
-        // which ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
-        // If minor gridlines aren't showing, then the min can go to 6.
-        integer xTickHeight = cast(integer, GetHeight()*0.01)
-        if me:IsShowingMinorXGridLines()
-            if xTickHeight < 12
-                xTickHeight = 12
-            end
-        else
-            if xTickHeight < 6
-                xTickHeight = 6
-            end
-        end
-        horizontalPanel:SetTickWidth(cast(integer, xTickHeight/3))  
-        horizontalPanel:SetTickHeight(xTickHeight)
+        // Having a min of 4 pixels for short side, ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
+        // If gridlines aren't showing, then the min can go down.
 
-        integer yTickWidth = cast(integer, GetWidth()*0.01)
-        if me:IsShowingMinorYGridLines()
-            if yTickWidth < 12
-                yTickWidth = 12
-            end
-        else
-            if yTickWidth < 6
-                yTickWidth = 6
+        integer xTickWidth = 0
+        if horizontalPanel:GetTickCount() > 0
+            xTickWidth = cast(integer, (GetWidth()*0.75)/(horizontalPanel:GetTickCount()+horizontalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (xTickWidth*3) > cast(integer, GetHeight()*0.01)
+                xTickWidth = cast(integer, (GetHeight()*0.01)/3)
             end
         end
-        verticalPanel:SetTickWidth(yTickWidth)  
-        verticalPanel:SetTickHeight(cast(integer, yTickWidth/3))
+        if me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 4
+                xTickWidth = 4
+            end
+        elseif not me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 2
+                xTickWidth = 2
+            end
+        elseif not me:IsShowingMinorXGridLines() and not me:IsShowingMajorXGridLines()
+            if xTickWidth < 1
+                xTickWidth = 1
+            end
+        end
+        horizontalPanel:SetTickWidth(xTickWidth)  
+        horizontalPanel:SetTickHeight(xTickWidth*3)
+
+
+        integer yTickHeight = 0
+        if verticalPanel:GetTickCount() > 0
+            yTickHeight = cast(integer, (GetHeight()*0.75)/(verticalPanel:GetTickCount()+verticalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (yTickHeight*3) > cast(integer, GetWidth()*0.01)
+                yTickHeight = cast(integer, (GetWidth()*0.01)/3)
+            end
+        end
+        if me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 4
+                yTickHeight = 4
+            end
+        elseif not me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 2
+                yTickHeight = 2
+            end
+        elseif not me:IsShowingMinorYGridLines() and not me:IsShowingMajorYGridLines()
+            if yTickHeight < 1
+                yTickHeight = 1
+            end
+        end
+        verticalPanel:SetTickWidth(yTickHeight*3)  
+        verticalPanel:SetTickHeight(yTickHeight)
  
         // If the title font size is manually set then we can try to accomodate the title area percent
         // This has to be done before the axis panels because they use titleAreaHeightPercent in their calculations.
@@ -1206,6 +1661,24 @@ class Chart is Control
             end
         end
 
+        // If the sub title font size is manually set then we can try to accomodate the title area percent
+        // This has to be done before the axis panels because they use subtitleAreaHeightPercent in their calculations.
+        if IsShowingSubtitle()
+            if GetSubtitleLabel() not= undefined
+                if subtitleFontSizeOverride
+                    integer fontsize = subtitlefontsize
+                    if fontsize = 0
+                        fontsize = cast(integer, GetFontSize()*0.75)
+                    end
+                    GetSubtitleLabel():SetFontSize(fontsize)
+                    number newTitleAreaHeightPercent = GetSubtitleLabel():GetHeight()/GetHeight()
+                    if newTitleAreaHeightPercent > subtitleAreaHeightPercent
+                        subtitleAreaHeightPercent = newTitleAreaHeightPercent
+                    end
+                end
+            end
+        end
+
         //This is where all the font sizes and axis padding will be set
         AdjustForXAxis()
         AdjustForYAxis()
@@ -1220,6 +1693,19 @@ class Chart is Control
                 if GetTitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
                     fontsize = cast(integer, GetTitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetTitleLabel():GetWidth()))
                     GetTitleLabel():SetFontSize(fontsize)
+                end
+            end
+        end
+
+        // If any default font sizing ended up being too large; try to adjust.
+        // If the title font size is default the title area percent will be 10% of the height
+        if IsShowingSubtitle() and GetSubtitleLabel() not= undefined
+            if not subtitleFontSizeOverride
+                integer fontsize = cast(integer, GetHeight()*(subtitleAreaHeightPercent/2))
+                GetSubtitleLabel():SetFontSize(fontsize)
+                if GetSubtitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
+                    fontsize = cast(integer, GetSubtitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetSubtitleLabel():GetWidth()))
+                    GetSubtitleLabel():SetFontSize(fontsize)
                 end
             end
         end
@@ -1262,7 +1748,10 @@ class Chart is Control
 
             if horizontalPanel:GetTitleLabel() not= undefined
                 if not xTitleFontSizeOverride // This is the auto-sized X-Axis Label
-                    horizontalPanel:GetTitleLabel():SetFontSize(cast(integer, titleautofontsize))
+                    if allFontSizeOverride
+                        titleautofontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent)
+                    end
+                    horizontalPanel:GetTitleLabel():SetFontSize(titleautofontsize)
                 else
                     integer fontsize = horizontalPanel:GetTitleFontSize()
                     if fontsize = 0
@@ -1278,18 +1767,21 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, horizontalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if horizontalPanel:GetLabelCount() > 0
+            if horizontalPanel:GetLabelCount() > 0 and horizontalPanel:ShowLabels()
                 integer labelautofontsize = cast(integer, (GetWidth()*horizontalPanelWidthPercent)/horizontalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
                 end
 
                 if not xLabelFontSizeOverride
+                    if allFontSizeOverride
+                        labelautofontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent*0.75)
+                    end
                     horizontalPanel:SetLabelFontSize(labelautofontsize)
                 else
                     integer fontsize = horizontalPanel:GetLabelFontSize()
                     if fontsize = 0
-                        fontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent)
+                        fontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent*0.75)
                     end
                     horizontalPanel:SetLabelFontSize(fontsize)
                 end
@@ -1315,7 +1807,7 @@ class Chart is Control
             horizontalPanelHeightPercent = 0.05
         end
         horizontalPanel:SetSize(GetWidth()*horizontalPanelWidthPercent, GetHeight()*horizontalPanelHeightPercent)
-        verticalPanelHeightPercent = 1-horizontalPanelHeightPercent-titleAreaHeightPercent
+        verticalPanelHeightPercent = 1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)
         legendPanelHeightPercent = verticalPanelHeightPercent
     end
 
@@ -1331,7 +1823,10 @@ class Chart is Control
 
             if verticalPanel:GetTitleLabel() not= undefined
                 if not yTitleFontSizeOverride // This is the auto-sized Y-Axis Label
-                    verticalPanel:GetTitleLabel():SetFontSize(cast(integer, titleautofontsize))
+                    if allFontSizeOverride
+                        titleautofontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
+                    end
+                    verticalPanel:GetTitleLabel():SetFontSize(titleautofontsize)
                 else
                     integer fontsize = verticalPanel:GetTitleFontSize()
                     if fontsize = 0
@@ -1347,13 +1842,16 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, verticalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if verticalPanel:GetLabelCount() > 0
-                integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-titleAreaHeightPercent))/verticalPanel:GetLabelCount())
+            if verticalPanel:GetLabelCount() > 0 and verticalPanel:ShowLabels()
+                integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
                 end
 
                 if not yLabelFontSizeOverride
+                    if allFontSizeOverride
+                        labelautofontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent*0.75)
+                    end
                     verticalPanel:SetLabelFontSize(labelautofontsize)
                 else
                     integer fontsize = verticalPanel:GetLabelFontSize()
@@ -1379,132 +1877,123 @@ class Chart is Control
         if IsShowingLegend()
             legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
             integer minimumSpace = 0
-            integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2.5))
+            integer minimumWidthSpace = 0
+            integer minimumHeightSpace = 0
+            number labelHeight = 0
+            number labelWidth = 0
 
             if legend:DisplayOnLeft() or legend:DisplayOnRight()
-                number newWidestLabel = 0.0
+                integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
-                    if not legendTitleFontSizeOverride // This is the auto-sized Y-Axis Label
-                        legend:GetTitleLabel():SetFontSize(cast(integer, titleautofontsize))
+                    if not legendTitleFontSizeOverride // This is the auto-sized legend title
+                        if allFontSizeOverride
+                            titleautofontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
+                        end
+                        legend:SetTitleFontSize(titleautofontsize)
                     else
                         integer fontsize = legend:GetTitleFontSize()
-                        if fontsize = 0
+                        if fontsize <= 0
                             fontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
                         end
-                        legend:GetTitleLabel():SetFontSize(fontsize)
-                    end
-                    if legend:GetTitleLabel():GetWidth() > newWidestLabel
-                        newWidestLabel = legend:GetTitleLabel():GetWidth()
+                        legend:SetTitleFontSize(fontsize)
                     end
                 end
     
-                number labelHeight = 0.0
-                number labelWidth = 0.0
                 number newWidthSum = 0.0
                 number newHeightSum = 0.0
                 if not legend:GetSeriesList():IsEmpty()
-                    integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-titleAreaHeightPercent))/legend:GetSeriesList():GetSize())
+                    integer labelautofontsize = cast(integer, GetWidth()*0.025)
                     if labelautofontsize > cast(integer, titleautofontsize*0.75)
                         labelautofontsize = cast(integer, titleautofontsize*0.75)
                     end
-    
-                    integer i = 0
-                    repeat while i < legend:GetSeriesList():GetSize()
-                        if legend:GetSeriesList():Get(i):GetLabel() not= undefined
-                            if not legendLabelFontSizeOverride
-                                legend:GetSeriesList():Get(i):GetLabel():SetFontSize(labelautofontsize)
-                            else
-                                integer fontsize = legend:GetLabelFontSize()
-                                if fontsize = 0
-                                    fontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
-                                end
-                                legend:GetSeriesList():Get(i):GetLabel():SetFontSize(fontsize)
-                            end
-                            labelHeight = legend:GetSeriesList():Get(i):GetLabel():GetHeight()
-                            labelWidth = legend:GetSeriesList():Get(i):GetLabel():GetWidth()
-                            if labelWidth > newWidestLabel
-                                newWidestLabel = labelWidth
-                            end
-                            newHeightSum = newHeightSum + labelHeight
-                            newWidthSum = newWidthSum + labelWidth
+                    if not legendLabelFontSizeOverride
+                        if allFontSizeOverride
+                            labelautofontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent*0.75) //75% of legend title
                         end
-                        i = i + 1
+                        legend:SetLabelFontSize(labelautofontsize)
+                    else
+                        integer fontsize = legend:GetLabelFontSize()
+                        if fontsize <= 0
+                            fontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent*0.75)
+                        end
+                        legend:SetLabelFontSize(fontsize)
                     end
-                    legend:SetSumOfLabelHeights(newHeightSum)
-                    legend:SetSumOfLabelWidths(newWidthSum)
-                    legend:SetWidestLabel(newWidestLabel)
-    
-                    minimumSpace = minimumSpace + cast(integer, legend:GetWidestLabel() + labelHeight*3)
+                    legend:CalculateMinimumSpace()
+                    minimumWidthSpace = cast(integer, legend:GetMinimumWidth())
+                    minimumHeightSpace = cast(integer, legend:GetMinimumHeight())
+
+                    // Check and adjust default font size again if the minimum height exceeds the allowed space.
+                    if not legendLabelFontSizeOverride and minimumHeightSpace > verticalPanelHeightPercent*GetHeight()
+                        labelautofontsize = cast(integer, labelautofontsize*(verticalPanelHeightPercent*GetHeight()/minimumHeightSpace))
+                        legend:SetLabelFontSize(labelautofontsize)
+                        if not legendTitleFontSizeOverride
+                            legend:SetTitleFontSize(cast(integer, labelautofontsize*1.25))
+                        end
+                        legend:CalculateMinimumSpace()
+                        minimumWidthSpace = cast(integer, legend:GetMinimumWidth())
+                        minimumHeightSpace = cast(integer, legend:GetMinimumHeight())
+                    end
                 end
     
-                legendPanelWidthPercent = minimumSpace / GetWidth()
+                legendPanelWidthPercent = minimumWidthSpace / GetWidth()
                 number remainingChartArea = math:Round(1 - legendPanelWidthPercent - verticalPanelWidthPercent - 0.025, 2) // 0.025 for margin padding
                 SetChartAreaWidthPercent(remainingChartArea)
                 horizontalPanel:SetWidth(remainingChartArea*GetWidth())
 
             else //legend:DisplayOnTop() or legend:DisplayOnBottom()
-                number newWidthSum = 0.0
-                number tallestLabel = 0.0
+                integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
-                    if not legendTitleFontSizeOverride // This is the auto-sized Y-Axis Label
-                        legend:GetTitleLabel():SetFontSize(cast(integer, titleautofontsize))
+                    if not legendTitleFontSizeOverride // This is the auto-sized legend title
+                        if allFontSizeOverride
+                            titleautofontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent)
+                        end
+                        legend:SetTitleFontSize(cast(integer, titleautofontsize))
                     else
                         integer fontsize = legend:GetTitleFontSize()
-                        if fontsize = 0
-                            fontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
+                        if fontsize <= 0
+                            fontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent)
                         end
-                        legend:GetTitleLabel():SetFontSize(fontsize)
+                        legend:SetTitleFontSize(fontsize)
                     end
-                    newWidthSum = newWidthSum + legend:GetTitleLabel():GetWidth()
-
-                    minimumSpace = minimumSpace + cast(integer, legend:GetTitleLabel():GetHeight())
                 end
-    
-                number labelHeight = 0.0
-                number labelWidth = 0.0
-                number newHeightSum = 0.0
-                number newWidestLabel = 0.0
+
                 if not legend:GetSeriesList():IsEmpty()
-                    integer labelautofontsize = cast(integer, (GetHeight()*(1-verticalPanelHeightPercent-0.05))/legend:GetSeriesList():GetSize())
+                    integer labelautofontsize = cast(integer, GetHeight()*0.025)
                     if labelautofontsize > cast(integer, titleautofontsize*0.75)
                         labelautofontsize = cast(integer, titleautofontsize*0.75)
                     end
-    
-                    integer i = 0
-                    repeat while i < legend:GetSeriesList():GetSize()
-                        if legend:GetSeriesList():Get(i):GetLabel() not= undefined
-                            if not legendLabelFontSizeOverride
-                                legend:GetSeriesList():Get(i):GetLabel():SetFontSize(labelautofontsize)
-                            else
-                                integer fontsize = legend:GetLabelFontSize()
-                                if fontsize = 0
-                                    fontsize = cast(integer, GetFontSize()*verticalPanelHeightPercent)
-                                end
-                                legend:GetSeriesList():Get(i):GetLabel():SetFontSize(fontsize)
-                            end
-                            labelHeight = legend:GetSeriesList():Get(i):GetLabel():GetHeight()
-                            labelWidth = legend:GetSeriesList():Get(i):GetLabel():GetWidth()
-                            if labelWidth > newWidestLabel
-                                newWidestLabel = labelWidth
-                            end
-                            if labelHeight > tallestLabel
-                                tallestLabel = labelHeight
-                            end
-                            newHeightSum = newHeightSum + labelHeight
-                            newWidthSum = newWidthSum + labelWidth
-                        end
-                        i = i + 1
-                    end
-                    legend:SetSumOfLabelHeights(newHeightSum)
-                    legend:SetSumOfLabelWidths(newWidthSum)
-                    legend:SetWidestLabel(newWidestLabel)
-    
 
-                    minimumSpace = minimumSpace + cast(integer, tallestLabel*2)
+                    if not legendLabelFontSizeOverride
+                        if allFontSizeOverride
+                            labelautofontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent*0.75)
+                        end
+                        legend:SetLabelFontSize(labelautofontsize)
+                    else
+                        integer fontsize = legend:GetLabelFontSize()
+                        if fontsize <= 0
+                            fontsize = cast(integer, GetFontSize()*horizontalPanelWidthPercent*0.75)
+                        end
+                        legend:SetLabelFontSize(fontsize)
+                    end
+                    legend:CalculateMinimumSpace()
+                    minimumWidthSpace = cast(integer, legend:GetMinimumWidth())
+                    minimumHeightSpace = cast(integer, legend:GetMinimumHeight())
+
+                    // Check and adjust default font size again if the minimum width exceeds the allowed space.
+                    if not legendLabelFontSizeOverride and minimumWidthSpace > horizontalPanelWidthPercent*GetWidth()
+                        labelautofontsize = cast(integer, labelautofontsize*(horizontalPanelWidthPercent*GetWidth()/minimumWidthSpace))
+                        legend:SetLabelFontSize(labelautofontsize)
+                        if not legendTitleFontSizeOverride
+                            legend:SetTitleFontSize(cast(integer, labelautofontsize*1.25))
+                        end
+                        legend:CalculateMinimumSpace()
+                        minimumWidthSpace = cast(integer, legend:GetMinimumWidth())
+                        minimumHeightSpace = cast(integer, legend:GetMinimumHeight())
+                    end
                 end
     
-                legendPanelHeightPercent = minimumSpace / GetHeight()
-                number remainingChartAreaHeight = math:Round(1 - legendPanelHeightPercent - horizontalPanelHeightPercent - titleAreaHeightPercent, 2) // 0.10 for title padding
+                legendPanelHeightPercent = minimumHeightSpace / GetHeight()
+                number remainingChartAreaHeight = math:Round(1 - legendPanelHeightPercent - horizontalPanelHeightPercent - (titleAreaHeightPercent+subtitleAreaHeightPercent), 2) // 0.10 for title padding
                 SetChartAreaHeightPercent(remainingChartAreaHeight)
                 verticalPanel:SetHeight(remainingChartAreaHeight*GetHeight())
 
@@ -1523,19 +2012,20 @@ class Chart is Control
     end
 
     action SetFontSize(integer size)
-        xLabelFontSizeOverride = true
-        xTitleFontSizeOverride = true
-        yLabelFontSizeOverride = true
-        yTitleFontSizeOverride = true
+        allFontSizeOverride = true
         titleFontSizeOverride = true
-        legendLabelFontSizeOverride = true
-        legendTitleFontSizeOverride = true
+        subtitleFontSizeOverride = true
         parent:Control:SetFontSize(size)
     end
 
     action SetTitleFontSize(integer size)
         titleFontSizeOverride = true
         titlefontsize = size
+    end
+
+    action SetSubtitleFontSize(integer size)
+        subtitleFontSizeOverride = true
+        subtitlefontsize = size
     end
 
     action SetXTitleFontSize(integer size)
@@ -1595,23 +2085,31 @@ class Chart is Control
                     element:SetZ(previousZ)
                     i = i + 1
                 end
+//                temp:GetLabel():LostSelection()
+                temp:GetEntryIcon():SetColor(previousColor)
+                temp:GetEntryBox():SetColor(0,0,0,0)
+            elseif target is RegressionLine
+                RegressionLine temp = cast(RegressionLine, target)
+                temp:SetZ(previousZ)
+                temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
+                temp:SetColor(previousColor)  
+            elseif target is ChartLabel
+                ChartLabel temp = cast(ChartLabel, target)
+                temp:LostSelection()
+            elseif target is ChartAreaPanel
+                Control temp = cast(Control, target)
                 temp:LostSelection()
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                    view:Initialize(previousBackgroundColor, previousColorGroup)
-                    temp:SetView2D(view)
+                    // Remove the View set during Gained selection
+                    temp:SetView2D(undefined)
                 end
             end
         end
@@ -1641,30 +2139,50 @@ class Chart is Control
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Drawable element = temp:GetItemAt(i)
-                    element:SetColor(GetHighlightColor())
+                    element:SetColor(GetSelectionColor())
                     element:SetZ(-1)
                     i = i + 1
                 end
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
+            elseif target is RegressionLine
+                RegressionLine temp = cast(RegressionLine, target)
+                previousZ = temp:GetZ()
+                previousColor = temp:GetColor()
+                temp:SetZ(-5)
+                temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetIcon():SetColor(GetSelectionColor())
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()
                 previousColor = temp:GetColor()
                 temp:SetZ(-1)
-                temp:SetColor(GetHighlightColor())
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
+                temp:SetColor(GetSelectionColor())
+            elseif target is ChartLabel
+                ChartLabel temp = cast(ChartLabel, target)
                 temp:GainedSelection()
+            elseif target is ChartAreaPanel
+                Control temp = cast(Control, target)
+                temp:GainedSelection()
+            elseif target:Equals(me)
+                /*
+                Do whatever specialized work we want to do to show overall focus/selection on the Chart here.
+                Importantly, we do not want to override the color properties of the overall chart, like we would
+                if we fell into the last case below.
+                */
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     previousBackgroundColor = properties:GetBackgroundColor()
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(GetHighlightColor():White(), GetHighlightColor())
+                    Color transparency
+                    transparency:SetColor(0, 0, 0, 0)
+                    ControlShaderView view
+                    view:Initialize()
+                    temp:SetBackgroundColor(transparency)
+                    temp:SetBorderColor(GetSelectionColor())
                     temp:SetView2D(view)
                 end
             end
@@ -1940,7 +2458,7 @@ class Chart is Control
     action Display(boolean exit)
         ChartDisplay game
         game:SetExitOnStart(exit)
-        game:SetScreenSize(2000,1000) //Default size.
+        game:SetScreenSize(1200,1000) //Default size.
         game:SetChart(me)
         game:StartGame()
     end
@@ -1956,6 +2474,24 @@ class Chart is Control
         game:SetScreenSize(width,height)
         game:SetChart(me)
         game:StartGame()
+    end
+
+    /*
+    This action returns the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action GetPointBorderThickness returns number
+        return pointBorderThickness
+    end
+
+    /*
+    This action sets the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action SetPointBorderThickness(number pointBorderThickness)
+        me:pointBorderThickness = pointBorderThickness
     end
 
 end

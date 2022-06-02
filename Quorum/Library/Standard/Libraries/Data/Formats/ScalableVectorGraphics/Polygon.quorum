@@ -26,7 +26,7 @@ use Libraries.Containers.Support.Pair
 */
 class Polygon is ScalableVectorGraphicsObject
     constant text objectName = "polygon"
-    private Array<Pair<integer>> points
+    private Array<Pair<number>> points
 
 
     /*
@@ -68,7 +68,12 @@ class Polygon is ScalableVectorGraphicsObject
             end
             result = result + tab
         end
-        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        result = result + GetCloseTag(objectName, IsContainer()) 
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
         return result
     end
 
@@ -86,13 +91,13 @@ class Polygon is ScalableVectorGraphicsObject
         Polygon polygon
         polygon:AddPoint(50,50)
     */
-    action AddPoint(integer x, integer y)
-        Pair<integer> point
+    action AddPoint(number x, number y)
+        Pair<number> point
         point:Set(x, y)
         points:Add(point)
     end
     
-    action GetPoints() returns Array<Pair<integer>>
+    action GetPoints() returns Array<Pair<number>>
         return points
     end
 

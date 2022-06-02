@@ -755,6 +755,18 @@ class TreeTable is Control, FirstLetterNavigator
                 Select(0, 0)
             end
         end
+
+        TreeTableCell cell = selection:Get()
+        if cell not= undefined
+            cell:TreeTableGainedFocus()
+        end
+    end
+
+    action LostFocus(FocusEvent event)
+        TreeTableCell cell = selection:Get()
+        if cell not= undefined
+            cell:TreeTableLostFocus()
+        end
     end
 
     private action NotifyTreeTableChangeListeners(TreeTableChangeEvent event)

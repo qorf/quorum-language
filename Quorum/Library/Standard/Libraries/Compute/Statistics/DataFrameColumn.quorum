@@ -5,8 +5,12 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.IntegerColumn
 use Libraries.Compute.Statistics.Columns.BooleanColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.DateTimeColumn
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.System.DateTime
+use Libraries.Containers.Support.Comparison
+use Libraries.Language.Compile.Interpreter.Result
 
 /*
     This class represents a column on the system. Columns do not have a type themselves,
@@ -36,10 +40,11 @@ use Libraries.Containers.HashTable
     DataFrameColumn col = frame:GetColumn(0)
     output col:ToText()
 */
-class DataFrameColumn 
+class DataFrameColumn is Comparison
     /* This is the name of the column. */
     text header = ""
     integer undefinedSize = 0
+    Comparison comparison = undefined
     
     /*
         This gets the header for this column.
@@ -65,6 +70,51 @@ class DataFrameColumn
         Attribute: Parameter value The value to be converted to the proper type for this kind of column.
     */
     action Add(text value)
+    end
+
+    /*
+        If the column has undefined values, this action replaces all rows that have undefined with 
+        a value selected from text. If the text value is invalid for this column, the call is ignored.
+
+        Attribute: Parameter value The value to be replaced.
+    */
+    action ReplaceUndefined(text value)
+    end
+
+    /*
+        Columns may optionally add data from the Runtime system. 
+        In this case, columns may optionally choose to accept or reject a particular Libraries.Language.Compile.Interpreter.Result based on type. 
+        If the column is rejected, an undefined value is placed at the new position. The Result object
+        must have a corresponding Libraries.Language.Compile.Symbol.Type.
+
+        Attribute: Parameter value The Libraries.Language.Compile.Interpreter.Result to be converted to the proper type for this kind of column.
+    */
+    action AddAsResult(Result value)
+    end
+
+    /*
+        Returns whether or not the result is checkable inside sub-types.This action generally should not be used.
+
+        Attribute: Parameter value The Libraries.Language.Compile.Interpreter.Result to check
+        Attribute: Returns whether or not it is valid
+    */
+    action IsResultCheckable(Result value) returns boolean
+        if value not= undefined and value:type not= undefined
+            return true
+        else
+            return false
+        end
+    end
+
+    /*
+        This action sets the index to Libraries.Language.Compile.Interpreter.Result if and only if the
+        column accepts values of this type. If it does not, undefined is placed at this index.
+
+        Attrribute: Parameter index the item to be converted
+        Attribute: Parameter value the value to be placed in the column
+    */
+    action SetAsResult(integer index, Result value)
+        alert("Cannot convert value at position " + index + " to text.")
     end
 
     /*
@@ -131,6 +181,17 @@ class DataFrameColumn
     end
 
     /*
+        This action detects whether this column ultimately stores dates/times inside of it. This
+        type of information is implementation dependent, as arbitrary columns can store
+        these values however they see fit.
+        
+        Attribute: Returns true if this column stores dates/times
+    */
+    action IsDateTimeColumn returns boolean
+        return false
+    end
+
+    /*
         Regardless of the type of the column, this action attempts
         to convert the item at the index to a number. 
 
@@ -168,6 +229,16 @@ class DataFrameColumn
     */
     action GetAsInteger(integer index) returns integer
         alert("Cannot convert value at position " + index + " to an integer.")
+    end
+
+    /*
+        Regardless of the type of the column, this action attempts
+        to convert the item at the index to a date time. 
+
+        Attrribute: Parameter index the item to be converted
+    */
+    action GetAsDateTime(integer index) returns DateTime
+        alert("Cannot convert value at position " + index + " to DateTime.")
     end
 
     /*
@@ -408,6 +479,16 @@ class DataFrameColumn
     blueprint action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
 
     /*
+        This action copies the type of the data frame, but does not copy over its
+        rows. The header name is retained.
+
+        Attribute: Returns the column of the appropriate type but without the data.
+    */
+    action CopyEmpty returns DataFrameColumn
+        return Copy(0, -1)
+    end
+
+    /*
         This action sets the size of the column to the parameter and then fills it with undefined values. 
 
         Attribute: Parameter size the size of the column.
@@ -427,6 +508,14 @@ class DataFrameColumn
     */
     action GetUndefinedSize returns integer
         return undefinedSize
+    end
+
+    /*  
+        This action returns a boolean on if the column is undefined.
+        Attribute: Returns true if the undefined size is equal to the size. Meaning every row is undefined.
+    */
+    action IsUndefined returns boolean
+        return (GetSize() = GetUndefinedSize())
     end
 
     /*
@@ -471,5 +560,75 @@ class DataFrameColumn
     */
     action GetUndefinedText returns text
         return "undefined"
+    end
+
+    /*
+        We can get the comparison used by the sorting routines. By default, this is undefined.
+        When undefined, alphabetical sorting is used.
+    */
+    action GetSortComparison returns Comparison
+        return comparison
+    end
+
+    /*
+        This action takes an index sorted array and splits the column into two columns,
+        returning copies. The first one contains all of the items from the indexes in the array.
+        The second one is the items that were not in the array.
+    */
+    action SplitByRows(Array<integer> sortedArray) returns Array<DataFrameColumn>
+        Array<DataFrameColumn> columns
+        DataFrameColumn in = Copy(0, -1)
+        DataFrameColumn out = Copy(0, -1)
+        i = 0
+        row = 0
+        repeat while i < sortedArray:GetSize()
+            integer index = sortedArray:Get(i)
+            if row = index
+                in:Add(me:GetAsText(index)) //force making a copy in the split
+                row = row + 1
+                i = i + 1
+            else
+                //keep putting rows in out until we're done
+                out:Add(me:GetAsText(row))
+                row = row + 1
+                repeat while index not= row and row < me:GetSize()
+                    out:Add(me:GetAsText(row))
+                    row = row + 1
+                end
+            end
+            
+        end
+
+        //for any remaining rows, toss them in out
+        repeat while row < me:GetSize()
+            out:Add(me:GetAsText(row))
+            row = row + 1
+        end
+
+        columns:Add(in)
+        columns:Add(out)
+        return columns
+    end
+
+    /*
+        We can manually set a comparison, which is then passed to the 
+        default sorting routines if sorting occurs.
+    */
+    action SetSortComparison(Comparison comparison)
+        me:comparison = comparison
+    end
+
+    action Compare(Object a, Object b) returns integer
+        //first handle the case where items are undefined
+        if a = undefined and b = undefined
+            return 0
+        elseif a = undefined and b not= undefined
+            return -1
+        elseif a not= undefined and b = undefined
+            return 1
+        end
+
+        //both items are defined, so now do the normal sort
+        return a:Compare(b)
     end
 end

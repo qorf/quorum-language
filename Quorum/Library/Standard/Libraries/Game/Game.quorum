@@ -190,6 +190,10 @@ use Libraries.System.SystemHelper
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Options.LightModeOptions
+use Libraries.Interface.Events.GestureEvent
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -225,6 +229,7 @@ class Game
     FocusManager focusManager
     Accessibility accessibility = undefined
     EditManager editManager
+    InterfaceOptions interfaceOptions = undefined
 
     public boolean exitRequested = false
 
@@ -255,6 +260,11 @@ class Game
 
     // Used to save to and load from scene files.
     SceneManager sceneManager = undefined
+
+    on create
+        LightModeOptions options
+        interfaceOptions = options
+    end
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -1354,11 +1364,16 @@ class Game
         InputTable chartTable
         chartTable:SetIdentifier("Chart")
 
+        InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(leftArrow, chartNavigateBehavior)
         chartTable:Add(rightArrow, chartNavigateBehavior)
         chartTable:Add(upArrow, chartNavigateBehavior)
         chartTable:Add(downArrow, chartNavigateBehavior)
+        chartTable:Add(swipeSet, chartNavigateBehavior)
         AddInputTable(chartTable)
 
         InputTable menuItemTable
@@ -1881,7 +1896,7 @@ class Game
 
         action Main
             WebConfiguration configuration
-            configuration:canvasID = "game-canvas"
+            configuration:containerID = "game-container"
             configuration:capFramesPerSecond = true
             configuration:framesPerSecondLimit = 45
             SetConfiguration(configuration)
@@ -2712,6 +2727,68 @@ class Game
     end
 
     /*
+    This action adds a GestureListener to the Game. The gesture listener will be
+    notified when the user performs a gesture on mobile devices, so long as the event
+    is not handled by any items in the layers.
+
+    Attribute: Parameter listener The GestureListener to add to the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.GestureListener
+
+        class Main is Game
+
+            GestureListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddGestureListener(listener)
+            end
+            
+        end
+    */
+    action AddGestureListener(GestureListener listener)
+        gameInput:AddGestureListener(listener)
+    end
+
+    /*
+    This action removes a GestureListener from the Game. The listener will no
+    longer receive GestureEvents from the Game. If the given GestureListener is not
+    a part of the Game, this action will have no effect.
+
+    Attribute: Parameter listener The GestureListener to be removed from the Game.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Interface.Events.GestureListener
+
+        class Main is Game
+
+            GestureListener listener
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                AddGestureListener(listener)
+
+                RemoveGestureListener(listener)
+            end
+            
+        end
+    */
+    action RemoveGestureListener(GestureListener listener)
+        gameInput:RemoveGestureListener(listener)
+    end
+
+    /*
     This action sets windowed size of the game (the default size is 800 by 600).
     This action can be called before calling StartGame() to set the initial
     window size. If this action is used when the game is in fullscreen, it will
@@ -3000,9 +3077,11 @@ class Game
     end
 
     /*
-    This action sets the name of the game displayed at the top of the window. 
-    The default name is "Game". This action should be called before calling
-    StartGame(). This will have no effect on non-Desktop platforms.
+    This action sets the name of the game. The default name is "Game".
+    This action should be called before calling StartGame().
+    On desktop platforms, this name is displayed at the top of the window.
+    On the web, it is only used for accessibility. This action currently has
+    no effect on other platforms.
 
     Attribute: Parameter name The name to display on the Game window.
 
@@ -3020,6 +3099,7 @@ class Game
     */
     action SetGameName(text name)
         desktopConfig:title = name
+        webConfig:title = name
     end
 
     /*
@@ -4580,14 +4660,14 @@ class Game
     end
 
     /*
-    The SetWebCanvasName action determines which canvas to use on a webpage.
-    When the game runs, it will be displayed on the designated canvas. If no
-    canvas name is given, the engine will attempt to find a canvas with the
-    default name, "QuorumGraphicsCanvas". If the engine can't find a canvas with
-    the set name, it will not run. This action has no effect if called inside a
+    The SetWebContainerID action determines which container to use on a webpage.
+    When the game runs, it will be displayed in the designated container. If no
+    container ID is given, the engine will attempt to find a container with the
+    default ID, "QuorumUIContainer". If the engine can't find a container with
+    the set ID, it will not run. This action has no effect if called inside a
     game that isn't being run online.
 
-    Attribute: Parameter name The name of the canvas to display graphics on.
+    Attribute: Parameter id The ID of the canvas to display the game in.
     
     Attribute: Example
 
@@ -4597,14 +4677,14 @@ class Game
     class Main is Game
 
         action Main
-            SetWebCanvasName("myCanvas")
+            SetWebContainerID("myContainer")
             StartGame()
         end
     end
     */
-    action SetWebCanvasName(text name)
+    action SetWebContainerID(text id)
         WebConfiguration config = GetWebConfiguration()
-        config:canvasID = name
+        config:containerID = id
     end
 
     /*
@@ -5359,4 +5439,71 @@ class Game
         me:firstLetterNavigationTime = firstLetterNavigationTime
     end
 
+    /*
+    This action sets the InterfaceOptions being used by the game, providing default colors and properties
+    for Controls. This affects all Controls currently in the game or that are added later.
+
+    Attribute: Parameter options The new InterfaceOptions to use for the Game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Options.DarkModeOptions
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // DarkModeOptions is one kind of InterfaceOptions we could use for our game.
+            // It will use darker colors to draw interface elements, like Buttons, by default.
+            DarkModeOptions options
+            SetInterfaceOptions(options)
+        end
+    end
+    */
+    action SetInterfaceOptions(InterfaceOptions options)
+        interfaceOptions = options
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            if layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                layer2D:ReloadControlGraphics()
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action returns the InterfaceOptions currently being used by the game. The InterfaceOptions
+    provide default colors and properties for Controls in the game.
+
+    Attribute: Returns The current InterfaceOptions in use by the game.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Interface.Options.InterfaceOptions
+    
+    class Main is Game
+    
+        Color color
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            InterfaceOptions options = GetInterfaceOptions()
+    
+            // Once we have the options, we can modify them to adjust how our Controls appear by default.
+            options:SetButtonBackgroundColor(color:Pink())
+        end
+    end
+    */
+    action GetInterfaceOptions returns InterfaceOptions
+        return interfaceOptions
+    end
 end

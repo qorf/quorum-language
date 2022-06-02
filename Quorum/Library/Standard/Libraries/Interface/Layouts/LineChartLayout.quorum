@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.ControlLabel
 
 /*
     This is the layout class for Line Chart. 
@@ -28,8 +29,10 @@ class LineChartLayout is TwoVariableChartLayout
 
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
-        number width = chartAreaContainer:GetWidth() - 2*chart:GetHorizontalPanel():GetPaddingOffset()
-        number height = chartAreaContainer:GetHeight() - 2*chart:GetVerticalPanel():GetPaddingOffset()
+        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+        number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
+        number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
 
         number xMin = chart:GetXAxisMinimum()
         number xMax = chart:GetXAxisMaximum()
@@ -53,6 +56,7 @@ class LineChartLayout is TwoVariableChartLayout
                 lineDensity = 2
             end
         end
+        chart:SetLineDensity(lineDensity)
 
         integer i = 0
         repeat while i < lines:GetSize()
@@ -70,9 +74,18 @@ class LineChartLayout is TwoVariableChartLayout
                 end
                 point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
                 point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
-                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + chart:GetHorizontalPanel():GetPaddingOffset()
-                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + chart:GetVerticalPanel():GetPaddingOffset()
+                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + xAxisPaddingOffset
+                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
                 point:SetPosition(x, y)
+
+                if point:ShowAnnotation() or chart:ShowAnnotations()
+                    ControlLabel pointLabel = point:GetAnnotation()
+                    if pointLabel not= undefined
+                        integer annotX = cast(integer, x+pointRadius-(pointLabel:GetWidth()/2))
+                        integer annotY = cast(integer, y+point:GetHeight())
+                        pointLabel:SetPosition(annotX, annotY)
+                    end
+                end
                 j = j + 1
             end
 
@@ -116,5 +129,8 @@ class LineChartLayout is TwoVariableChartLayout
             i = i + 1
         end
 
+        if chart:IsShowingLinearRegression()
+            LayoutRegressionLines(chart, chartAreaContainer)
+        end
     end
 end

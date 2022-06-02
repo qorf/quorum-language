@@ -16,8 +16,7 @@ class DefaultTreeMenuView is Drawable, ToggleView
     action Initialize(integer width, integer height)
         SetName("DefaultTreeMenuView")
         Color color
-        color:SetColor(140.0 / 255.0, 140.0 / 255.0, 140.0 / 255.0, 1.0)
-        Texture texture = GenerateTriangle(200, 20, color)
+        Texture texture = GenerateTriangle(200, 20, color:White())
         Load(texture)
     end
 
@@ -30,7 +29,7 @@ class DefaultTreeMenuView is Drawable, ToggleView
         
         integer middle = buffer * 2
         middle = cast(integer, size / 2.0)
-        map:FillTriangle(size / 4,buffer,size / 4,size - buffer,middle + size / 4,middle,color)
+        map:FillTriangle(size / 4, buffer, size / 4, size - buffer, middle + size / 4, middle, color)
         Texture texture
         texture:LoadFromPixelMap(map)
         return texture

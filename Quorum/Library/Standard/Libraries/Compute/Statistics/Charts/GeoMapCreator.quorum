@@ -1,0 +1,170 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.GeoMap
+use Libraries.Interface.Controls.Charts.MapReader
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Region
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Interface.Controls.Charts.Series
+
+/*
+    This class is used to create a GeoMap Chart from columns of data in a DataFrame.
+    There is one way to make a geomap chart from the data frame using this class:
+        1. One factor (must be the region names to correspond with the map) AND one column of text or numerical data.
+
+    Attribute: Author 472 GeoMap Team
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Charts.GeoMapCreator
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    frame:AddSelectedFactors("Factor Name")
+    frame:AddSelectedColumns("Data Name")
+
+    //create map and load in data frame
+    GeoMapCreator creator
+    frame:GetSelection():CopyTo(cast(ColumnInput, creator))
+    frame:GetSelection():CopyTo(cast(FactorInput, creator))
+    chart = cast(GeoMap, creator:Create(frame))
+*/
+class GeoMapCreator is DataFrameChartCreator, ColumnInput, FactorInput
+        
+    private text mapDataFilePath = "../Data/Map Boundary Data/boundaryData.csv"
+
+    private MapReader mapReader
+
+    action Create(DataFrame frame) returns Chart
+        GeoMap chart
+
+        //read in map data from .csv
+        mapReader:Read(mapDataFilePath)
+
+        //extract for processing
+        Array <text> regionNames = mapReader:GetRegionNames()
+        HashTable<text, Region> regionTable = mapReader:GetRegionTable()//table regions mapped to name ("Nevada")
+
+        //gather features from data frame
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        boolean numericalFlag = false
+
+        if columns = 1 and factors = 1
+            DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            
+            // Get the value associated with each region if the value is numerical. (Just an example)
+            if column:IsNumberColumn()
+                numericalFlag = true
+                number minValue = 0
+                number maxValue = 0
+                boolean initialized = false
+
+                integer i = 0
+                repeat while i < column:GetSize()
+                    if not factor:IsUndefined(i) and not column:IsUndefined(i)
+                        if not regionTable:HasKey(factor:GetAsText(i))
+                            output "Error! Region <" + factor:GetAsText(i) + "> does not exist in region table. It probably should!"
+                        else
+                            number newValue = column:GetAsNumber(i) + regionTable:GetValue(factor:GetAsText(i)):GetNumberValue()
+                            if not initialized
+                                minValue = newValue
+                                maxValue = newValue
+                                initialized = true
+                            else
+                                if newValue < minValue
+                                    minValue = newValue
+                                end
+                                if newValue > maxValue
+                                    maxValue = newValue
+                                end
+                            end
+                            regionTable:GetValue(factor:GetAsText(i)):SetNumberValue(newValue)
+                            regionTable:GetValue(factor:GetAsText(i)):SetHasValue(true)
+                        end
+                    end
+                    i = i + 1
+                end
+
+                chart:SetMaxValue(maxValue)
+                chart:SetMinValue(minValue)
+            else//if column:IsTextColumn()
+                
+                integer i = 0
+                repeat while i < column:GetSize()
+                    if not factor:IsUndefined(i) and not column:IsUndefined(i)
+                        if not regionTable:HasKey(factor:GetAsText(i))
+                            output "Error! Region <" + factor:GetAsText(i) + "> does not exist in region table. It probably should!"
+                        else
+                            text currentValue = regionTable:GetValue(factor:GetAsText(i)):GetTextValue()
+                            if currentValue not= undefined
+                                output "Error! Duplicate factors. Will overwrite with the latest entry."
+                            end
+                            text frameValue = column:GetAsText(i)
+                            regionTable:GetValue(factor:GetAsText(i)):SetTextValue(frameValue)
+                            regionTable:GetValue(factor:GetAsText(i)):SetHasValue(true)
+                        end
+                    end
+                    i = i + 1
+                end
+            end
+            
+            //pass data along to chart
+            chart:UseNumericalData(numericalFlag)
+            chart:SetRegionNames(regionNames)
+            chart:SetRegionTable(regionTable)
+
+            Array <Series> seriesList = chart:CreateSeries(numericalFlag)
+            chart:GetLegend():SetName(column:GetHeader())
+            chart:SetLegendTitle(column:GetHeader())
+            chart:SetSeriesList(seriesList)
+     
+            SetScale(chart, mapReader:GetMinYValue(), mapReader:GetMaxYValue(), mapReader:GetMinXValue(), mapReader:GetMaxXValue())
+            chart:SetAspectRatio(mapReader:GetMaxXValue() - mapReader:GetMinXValue(), mapReader:GetMaxYValue() - mapReader:GetMinYValue())
+            return chart
+        elseif columns > 1 and factors = 1
+            alert("Multiple columns are not supported yet.")
+        else            
+            alert("GeoMapCreator does not support the number of column/factors that were selected")
+        end
+        
+        return undefined
+    end //action
+
+
+    /*
+        Set the delimiters used to separate each piece of information inside boundary source file.
+        Attribute: Author Richard Osborn
+
+        Attribute: Parameter entry Delimiter used for each individual entry
+        Attribute: Parameter coordinate Delimiter used to separate x and y coordinates from each other
+        Attribute: Parameter vertex Delimiter to separate (x, y) pairs from each other
+        Attribute: Parameter boundary Delimiter to separate polygons such as islands.
+    
+    */
+    public action SetMapFileDelimiters(text entry, text coordinate, text vertex, text boundary)
+        mapReader:entryDelimiter = entry
+        mapReader:xyDelimiter = coordinate
+        mapReader:vertexDelimiter = vertex
+        mapReader:boundaryDelimiter = boundary
+    end //action
+
+    private action SetScale(GeoMap chart, number ymin, number ymax, number xmin, number xmax)
+        chart:SetYAxisMinimum(ymin)
+        chart:SetYAxisMaximum(ymax)
+        chart:SetXAxisMinimum(xmin)
+        chart:SetXAxisMaximum(xmax)
+    end
+
+    action SetMapDataFilePath(text mapDataFilePath)
+        me:mapDataFilePath = mapDataFilePath
+    end
+end //class

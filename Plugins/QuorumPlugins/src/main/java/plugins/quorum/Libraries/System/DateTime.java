@@ -15,7 +15,7 @@ import java.util.TimeZone;
 public class DateTime {
     public java.lang.Object me_ = null;
 
-    private boolean now = true; // if false, user has called SetEpochTime()
+    public boolean now = true; // if false, user has called SetEpochTime()
     private TimeZone timezone = new SimpleTimeZone(Calendar.getInstance().getTimeZone().getOffset(System.currentTimeMillis()), "local timezone");
     private long epochTime = 0; // only used if user has called SetEpochTime()*/
     private Calendar cal;

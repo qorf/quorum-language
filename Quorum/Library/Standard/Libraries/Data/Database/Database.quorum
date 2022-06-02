@@ -290,6 +290,27 @@ class Database
     end
 
 /*
+    This action closes the active connection to the database. If there are any uncommited changes
+    they will be commited.
+
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:IsConnected()
+
+    db:Close()
+
+    output db:IsConnected()
+*/
+    action GetLastInsertedID returns integer
+        return strategy:GetLastInsertedID()
+    end
+
+/*
     This takes an Update query and sends it to the database and returns the result.
     An Update allows for changing the data in rows that already exist on the database.
     For more information and how to do an Update look into the documentation of the 
@@ -369,6 +390,25 @@ class Database
         return meta
     end
 
+/*
+    Returns the true if the Database has a specified table
+
+    Attribute: Returns Returns true if the table exists on the database false otherwise.
+    Attribute: Example
+
+    use Libraries.Data.Database.Database
+    use Libraries.Data.Database.DatabaseMetaData
+
+    Database db
+    db:Connect("localhost","myDB","root","superSecretPassword")
+
+    output db:HasTable("myTable")
+*/
+    action HasTable(text table) returns boolean
+        RefreshMeta()
+        return meta:HasTable(table)
+    end
+
     /* INTERNAL
         Queries need meta data in order to check if the query is valid such as if a column exists.
         This action is called to set the tmeta data on a query before the text of the query is generated.
@@ -434,6 +474,14 @@ class Database
     db:DropTable(drop)
 */
     action DropTable(DropTable drop)
+        // if there is no table then don't send a query
+        RefreshMeta()
+        DatabaseMetaData meta = GetDatabaseMetaData()
+        DatabaseTable table = meta:GetTable(drop:GetTable())
+        if table = undefined
+            return now
+        end
+
         SetMeta(drop)
         strategy:DropTable(drop)
         RefreshMeta()

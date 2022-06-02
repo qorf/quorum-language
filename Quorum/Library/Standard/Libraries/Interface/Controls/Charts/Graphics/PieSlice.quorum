@@ -1,0 +1,51 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+/*
+The PieSlice class is a Wedge (ChartDrawable) that stores information 
+for each indiviual slice. Slice contains a numerical value to determine the size 
+of the slice within a pie chart.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.PieSlice
+class Main
+    action Main
+        // Make slice
+        PieSlice slice
+    
+        // Set value
+        slice:SetValue(20.0)
+    
+        // Get value
+        number x = slice:GetValue()
+    end
+end
+*/
+class PieSlice is Wedge
+    number value = 0
+
+    /*
+    This action returns the actual value associated with this slice.
+    The parent PieBox has a total value to which this value will be compared
+    to get a percent for the appropriate size.
+
+    Attribute: Returns a number value
+    */
+    action GetValue returns number
+        return value
+    end
+
+    action SetValue(number value)
+        me:value = value
+        if GetPieBox() not= undefined
+            GetPieBox():RecalculateGroupValues()
+        end
+    end
+
+    /*
+    Link to the parent PieBox
+    */
+    action GetPieBox returns PieBox
+        return cast(PieBox, GetGroup())
+    end
+end

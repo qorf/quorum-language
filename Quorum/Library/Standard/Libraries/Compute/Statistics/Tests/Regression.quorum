@@ -19,6 +19,7 @@ use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
 
 /*
     This class conducts an Ordinary Least Squares regression on a DataFrame. By default, an 
@@ -584,13 +585,27 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
         return betaProbabilityValues
     end
 
+    action GetRegressionDegreesOfFreedom returns integer
+        return beta:GetSize() - 1 //ignore the dependent variable
+    end
+
+    action GetResidualDegreesOfFreedom returns integer
+        return GetResiduals():GetSize() - beta:GetSize()
+    end
     /*
         This action summarizes the result and places it into formal academic language, in 
         APA format.
     */
     action GetFormalSummary returns text
-        text result = "We conducted a multi-variate regression "
+        text result = "A multiple linear regression was calculated, "
+
+        StatisticsFormatting format
         
+        result = result + "R-squared = " + format:FormatProbabilityValue(GetEffectSize()) + ", F("
+
+        result = result + "" + GetRegressionDegreesOfFreedom() + ", " 
+        result = result + GetResidualDegreesOfFreedom() + ") = "
+        result = result + format:FormatProbabilityValue(GetCriticalValue()) + ", p = " + format:FormatProbabilityValue(GetProbabilityValue())
 
         return result
     end

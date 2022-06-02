@@ -1,0 +1,151 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.GroupPanel
+
+/*
+The BarGroup class is a data structure that stores information for each 
+group (array) of bars at a certain tick or by a certain factor marked 
+by its label. This class also contains an Icon that is used for accessibility.
+
+Attribute: Example
+
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+class Main
+        action Main
+        // Make a group
+        BarGroup group
+        
+        // Add a bar
+        Bar bar
+        group:AddBar(bar)
+        
+        // Get a bar and set its value
+        group:Get(0):SetValue(20.0)
+    end
+end
+*/
+
+class BarGroup is GroupPanel
+    number totalValueOfGroup = 0
+    number totalPositiveValue = 0 // Used in determining height of positive value bar when stacked
+    number totalNegativeValue = 0 // Used in determining height of negative value bar when stacked
+    number maxBarValue = 0
+    number minBarValue = 0
+    Bar maxBar = undefined
+    Array <Drawable> selectionBracket
+    Drawable selectionArrow
+    Array<number> vertices
+
+    action AddBar(Bar bar)
+        AddItem(bar)
+        RecalculateGroupValues()
+    end
+
+    action AddBar(text name, number value)
+        Bar bar
+        bar:SetName(name)
+        bar:SetValue(value)
+        AddItem(bar)
+        RecalculateGroupValues()
+    end
+
+    action Get(integer index) returns Bar
+        return cast(Bar, GetItemAt(index))
+    end
+
+    action GetBars returns Array<Bar>
+        return cast(Array<Bar>, GetGroupItems())
+    end
+
+    action Empty()
+        totalValueOfGroup = 0
+        totalPositiveValue = 0 
+        totalNegativeValue = 0 
+        maxBarValue = 0
+        minBarValue = 0        
+        parent:GroupPanel:Empty()
+    end
+
+    /*
+        These actions will help the chart determine the best aesthetic range
+        of automatically calculated min and max as well as limit the user from
+        decreasing/increasing the axis min and max beyond the end-range bar values.
+    */
+    action GetValue returns number
+        return totalValueOfGroup
+    end
+
+    action GetNegativeValue returns number
+        return totalNegativeValue
+    end
+
+    action GetPositiveValue returns number
+        return totalPositiveValue
+    end
+
+    action GetMaxBarValue returns number
+        return maxBarValue
+    end
+
+    action GetMinBarValue returns number
+        return minBarValue
+    end
+
+    action GetMaxBar returns Bar
+        return maxBar
+    end
+
+    /*
+        Since the user can alter the value of the bar manually, 
+        Anytime a bar is added or it's value changes the totals 
+        for this group will be recalculated.
+    */
+    action RecalculateGroupValues
+        totalValueOfGroup = 0
+        totalPositiveValue = 0 
+        totalNegativeValue = 0 
+        maxBarValue = 0
+        minBarValue = 0   
+        Array<Bar> bars = GetBars()
+        integer i = 0
+        repeat while i < bars:GetSize()
+            value = bars:Get(i):GetValue()
+            if i = 0
+                maxBarValue = value
+                maxBar = bars:Get(i)
+            end
+
+            if value > maxBarValue
+                maxBarValue = value
+                maxBar = bars:Get(i)
+            end
+            if value < minBarValue
+                minBarValue = value
+            end
+            totalValueOfGroup = totalValueOfGroup + value
+            if value < 0
+                totalNegativeValue = totalNegativeValue + value
+            else
+                totalPositiveValue = totalPositiveValue + value
+            end    
+            i = i + 1
+        end
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
+    end
+end

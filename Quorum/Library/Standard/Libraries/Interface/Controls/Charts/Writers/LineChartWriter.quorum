@@ -1,0 +1,400 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Icon
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.UnorderedList
+use Libraries.Data.Formats.ScalableVectorGraphics.Group
+
+/*
+    The LineChartWriter class is part of the set of writers that allow for Charts
+    to save their representation in the form ScalableVectorGraphics. This class will write out
+    all of the necessary text needed to write out an SVG file that will contain the chart.
+
+    Attribute: Author Tim Kluthe
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.LineChart
+    use Libraries.Interface.Controls.Charts.LineChartWriter
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(0,1)
+    LineChart chart = frame:LineChart()
+    chart:SetTitle("My Awesome Title")
+    chart:SetXAxisTitle("Time")
+    chart:Display()
+
+    LineChartWriter writer
+    output writer:WriteOutChart(chart)
+*/
+class LineChartWriter is ChartWriter
+
+    action WriteOutChart(LineChart chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(LineChart chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(cast(Chart,chart), file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(LineChart chart) returns text
+        return WriteOutChart(cast(Chart,chart))
+    end
+
+    action WriteOutChart(LineChart chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        LineChart lineChart
+        lineChart = cast(LineChart, chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel("Chart Area " + lineChart:GetChartArea():GetDescription())
+        end
+    end
+
+    /*
+        This action adds the content of the LineChart
+    */
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        LineChart lineChart
+        lineChart = cast(LineChart, chart)
+        AddPointsAndLines(canvas, lineChart)
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
+    end
+
+    /*
+        This action adds the content of the LineChart to the SVG
+    */
+
+    private action AddPointsAndLines(ScalableVectorGraphics canvas, LineChart chart)
+        Color transparent
+        transparent:SetColor(0, 0, 0, 0)
+
+        i = 0
+        repeat while i < chart:GetRegions():GetSize()
+            Icon currentRegion = chart:GetRegions():Get(i)
+
+            Rectangle region
+            region:SetWidth(currentRegion:GetWidth())
+            region:SetHeight(currentRegion:GetHeight())
+            region:SetPosition(currentRegion:GetGlobalX(), TranslatePositionY(currentRegion) - currentRegion:GetHeight()) 
+            region:SetFill(transparent)
+            region:SetID(canvas:GetID() + "_" + currentRegion:GetHashCode())
+            region:SetStyleClass("quorum-chart-region")
+            region:SetTabIndex(-1)
+            if HasAccessibility()
+                region:SetAriaLabel(currentRegion:GetName() + currentRegion:GetDescription())
+                region:SetAriaHidden("true")
+            end
+            canvas:Add(region)
+
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < chart:GetAllLines():GetSize()
+            ChartLine line = chart:GetLine(i)
+
+            if line = undefined
+                return now
+            end
+
+            Array<ChartPoint> points = line:GetPoints()
+            Array<LineSegment> lines = line:GetLines()
+
+            Group tempChartLine
+            tempChartLine:SetID(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
+            tempChartLine:SetStyleClass("quorum-chart-line")
+            tempChartLine:SetTabIndex(-1)
+            if HasAccessibility()
+                tempChartLine:SetAriaLabel(line:GetName() + line:GetDescription())
+                tempChartLine:SetAriaHidden("true")
+            end
+            canvas:Add(tempChartLine)
+
+            if line:GetPointsFlag()
+                integer j = 0
+                repeat while j < points:GetSize()
+                    ChartPoint point = points:Get(j)
+                    number radius = point:GetHeight()/2
+    
+                    Circle tempPoint
+                    tempPoint:SetRadius(radius)
+                    tempPoint:SetPosition(point:GetGlobalX()+radius, TranslatePositionY(point)) 
+                    tempPoint:SetFill(point:GetColor())
+                    tempPoint:SetStroke(cast(Color, point:GetBorderColor()))
+                    tempPoint:SetStrokeWidth(point:GetBorderThickness())
+                    tempPoint:SetID(canvas:GetID() + "_" + point:GetHashCode())
+                    tempPoint:SetStyleClass("quorum-chart-circle")
+                    tempPoint:SetTabIndex(-1)
+                    if HasAccessibility()
+                        tempPoint:SetAriaLabel(point:GetName() + point:GetDescription())
+                        tempPoint:SetAriaHidden("true")
+                    end
+                    tempChartLine:Add(tempPoint)
+
+                    if point:ShowAnnotation() or chart:ShowAnnotations()
+                        ChartLabel label = point:GetAnnotation()
+                        if label not= undefined
+                            Label labelSVG
+                            labelSVG:SetText(label:GetText())
+                            labelSVG:SetTextAnchor("left")
+                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                            labelSVG:SetFontFamily("Arial")
+                            labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                            labelSVG:SetStyleClass("quorum-chart-text")
+                            labelSVG:SetTabIndex(-1)
+                            if HasAccessibility()
+                                labelSVG:SetAriaHidden("true")
+                            end
+                            canvas:Add(labelSVG)
+                        end
+                    end
+                    j = j + 1
+                end
+            end
+
+            integer j = 0
+            repeat while j < lines:GetSize()
+                LineSegment lineSegment = lines:Get(j)
+                ChartPoint firstPoint = lineSegment:GetPoint1()
+                ChartPoint secondPoint = lineSegment:GetPoint2()
+                number radius = firstPoint:GetShape():GetRadius()
+
+                Line tempLine
+                tempLine:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                tempLine:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                tempLine:SetStroke(lineSegment:GetColor())
+                tempLine:SetStrokeWidth(lineSegment:GetHeight())
+                tempLine:SetID(canvas:GetID() + "_" + "_" + lineSegment:GetHashCode())
+                tempLine:SetStyleClass("quorum-chart-linesegment")
+                tempLine:SetTabIndex(-1)
+                if HasAccessibility()
+                    tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
+                    tempLine:SetAriaHidden("true")
+                end
+                tempChartLine:Add(tempLine)
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
+        
+        LineChart lineChart
+        lineChart = cast(LineChart, chart)
+    
+        ChartItem chartItem = lineChart:GetChartAreaItem()
+        if not chart:IsSeparatedByFactor()
+            ChartItem firstItem = chartItem:GetChildItem()
+
+            if firstItem not= undefined
+                if firstItem:GetFocusTarget() is ChartLine
+                    AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
+                end
+            end
+            
+        else
+            ChartItem firstSubChartAreaItem = chartItem:GetChildItem()
+            if firstSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, firstSubChartAreaItem:GetFocusTarget()) = chartArea
+                ChartItem firstItem = firstSubChartAreaItem:GetChildItem()
+
+                if firstItem not= undefined
+                    if firstItem:GetFocusTarget() is ChartLine
+                        AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
+                    end
+                end
+            end
+
+            ChartItem nextSubChartAreaItem = firstSubChartAreaItem:GetNext()
+            repeat while nextSubChartAreaItem not= undefined and nextSubChartAreaItem not= firstSubChartAreaItem
+                if nextSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, nextSubChartAreaItem:GetFocusTarget()) = chartArea
+                    ChartItem firstItem = nextSubChartAreaItem:GetChildItem()
+    
+                    if firstItem not= undefined
+                        if firstItem:GetFocusTarget() is ChartLine
+                            AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
+                        end
+                    end
+                end
+
+                nextSubChartAreaItem = nextSubChartAreaItem:GetNext()
+            end
+        end
+    end
+
+    
+
+    action AddChartLineAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        UnorderedList groupUL
+        groupUL:AddAttribute("role","group")
+        groupUL:AddClassAttribute("quorum-chart-group")
+        chartListItem:AddNestedTag(groupUL)
+
+        ChartLine line = cast(ChartLine, firstItem:GetFocusTarget())
+
+        ListItem firstLineNav
+        firstLineNav:SetIdentifier(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode() + "_nav")
+        firstLineNav:AddAttribute("role","treeitem")
+        firstLineNav:AddClassAttribute("quorum-chart-treeitem")
+        firstLineNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
+        firstLineNav:AddAttribute("aria-expanded","false")
+        firstLineNav:SetTabIndex("-1")
+        groupUL:Add(firstLineNav)
+
+        if firstItem:GetChildItem() not= undefined
+            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint or firstItem:GetChildItem():GetFocusTarget() is LineSegment
+                AddPointsAndLinesAccessibility(canvas, firstItem:GetChildItem(), firstLineNav)
+            else
+                AddRegionLayerAccessibility(canvas, firstItem:GetChildItem(), firstLineNav)
+            end
+        end
+
+        ChartItem nextItem = firstItem:GetNext()
+        repeat while nextItem not= undefined and nextItem not= firstItem
+            line = cast(ChartLine, nextItem:GetFocusTarget())
+            ListItem lineNav
+            lineNav:SetIdentifier(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode() + "_nav")
+            lineNav:AddAttribute("role","treeitem")
+            lineNav:AddClassAttribute("quorum-chart-treeitem")
+            lineNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
+            lineNav:AddAttribute("aria-expanded","false")
+            lineNav:SetTabIndex("-1")
+            groupUL:Add(lineNav)
+
+            if nextItem:GetChildItem() not= undefined
+                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint or nextItem:GetChildItem():GetFocusTarget() is LineSegment
+                    AddPointsAndLinesAccessibility(canvas, nextItem:GetChildItem(), lineNav)
+                else
+                    AddRegionLayerAccessibility(canvas, nextItem:GetChildItem(), lineNav)
+                end
+            end
+
+            nextItem = nextItem:GetNext()
+        end
+    end
+
+    action AddRegionLayerAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        UnorderedList groupUL
+        groupUL:AddAttribute("role","group")
+        groupUL:AddClassAttribute("quorum-chart-group")
+        chartListItem:AddNestedTag(groupUL)
+
+        Icon region = cast(Icon, firstItem:GetFocusTarget())
+
+        ListItem firstRegionNav
+        firstRegionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
+        firstRegionNav:AddAttribute("role","treeitem")
+        firstRegionNav:AddClassAttribute("quorum-chart-treeitem")
+        firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
+        firstRegionNav:AddAttribute("aria-expanded","false")
+        firstRegionNav:SetTabIndex("-1")
+        groupUL:Add(firstRegionNav)
+
+        if firstItem:GetChildItem() not= undefined
+            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint or firstItem:GetChildItem():GetFocusTarget() is LineSegment
+                AddPointsAndLinesAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
+            else
+                AddRegionLayerAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
+            end
+        end
+
+        ChartItem nextItem = firstItem:GetNext()
+        repeat while nextItem not= undefined and nextItem not= firstItem
+            region = cast(Icon, nextItem:GetFocusTarget())
+            ListItem regionNav
+            regionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
+            regionNav:AddAttribute("role","treeitem")
+            regionNav:AddClassAttribute("quorum-chart-treeitem")
+            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
+            regionNav:AddAttribute("aria-expanded","false")
+            regionNav:SetTabIndex("-1")
+            groupUL:Add(regionNav)
+
+            if nextItem:GetChildItem() not= undefined
+                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint or nextItem:GetChildItem():GetFocusTarget() is LineSegment
+                    AddPointsAndLinesAccessibility(canvas, nextItem:GetChildItem(), regionNav)
+                else
+                    AddRegionLayerAccessibility(canvas, nextItem:GetChildItem(), regionNav)
+                end
+            end
+
+            nextItem = nextItem:GetNext()
+        end
+    end
+
+    action AddPointsAndLinesAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        UnorderedList groupUL
+        groupUL:AddAttribute("role","group")
+        groupUL:AddClassAttribute("quorum-chart-group")
+        chartListItem:AddNestedTag(groupUL)
+
+        text identifier = ""
+
+        if firstItem:GetFocusTarget() is ChartPoint
+            ChartPoint point = cast(ChartPoint, firstItem:GetFocusTarget())
+            identifier = canvas:GetID() + "_" + point:GetHashCode()
+        elseif firstItem:GetFocusTarget() is LineSegment
+            LineSegment lineSegment = cast(LineSegment, firstItem:GetFocusTarget())
+            identifier = canvas:GetID() + "_" + lineSegment:GetHashCode()
+        end
+
+        ListItem firstPointOrLineNav
+        firstPointOrLineNav:SetIdentifier(identifier + "_nav")
+        firstPointOrLineNav:AddAttribute("role","treeitem")
+        firstPointOrLineNav:AddClassAttribute("quorum-chart-treeitem")
+        firstPointOrLineNav:AddAttribute("aria-labelledby",identifier)
+        firstPointOrLineNav:SetTabIndex("-1")
+        groupUL:Add(firstPointOrLineNav)
+
+        ChartItem nextItem = firstItem:GetNext()
+        repeat while nextItem not= undefined and nextItem not= firstItem
+            identifier = ""
+
+            if nextItem:GetFocusTarget() is ChartPoint
+                ChartPoint point = cast(ChartPoint, nextItem:GetFocusTarget())
+                identifier = canvas:GetID() + "_" + point:GetHashCode()
+            elseif nextItem:GetFocusTarget() is LineSegment
+                LineSegment lineSegment = cast(LineSegment, nextItem:GetFocusTarget())
+                identifier = canvas:GetID() + "_" + lineSegment:GetHashCode()
+            end
+
+            ListItem pointOrLineNav
+            pointOrLineNav:SetIdentifier(identifier + "_nav")
+            pointOrLineNav:AddAttribute("role","treeitem")
+            pointOrLineNav:AddClassAttribute("quorum-chart-treeitem")
+            pointOrLineNav:AddAttribute("aria-labelledby",identifier)
+            pointOrLineNav:SetTabIndex("-1")
+            groupUL:Add(pointOrLineNav)
+
+            nextItem = nextItem:GetNext()
+        end
+    end
+end

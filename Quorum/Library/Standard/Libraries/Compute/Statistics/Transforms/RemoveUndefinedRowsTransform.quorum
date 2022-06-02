@@ -4,6 +4,8 @@ use Libraries.Compute.Statistics.DataFrameTransform
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameSelection
+use Libraries.Containers.HashTable
 
 /*
     This action takes the data from the current DataFrame and then removes all undefined
@@ -28,9 +30,28 @@ use Libraries.Containers.Array
 */
 class RemoveUndefinedRowsTransform is DataFrameTransform
     boolean ignoreFirst = true
+    boolean accountForSelectedColumns = false
+    HashTable<integer, Object> selectionHash = undefined
+
+    action HashSelection(DataFrameSelection selection)
+        HashTable<integer, Object> s
+        selectionHash = s
+
+        //this essentially makes a unique hash
+        i = 0
+        repeat while i < selection:GetColumnSize()
+            integer col = selection:GetColumn(i)
+            selectionHash:Add(col, undefined)
+            i = i + 1
+        end
+    end
 
     action Transform(DataFrame frame) returns DataFrame 
         DataFrame newFrame = frame:Copy()
+        DataFrameSelection selection = frame:GetSelection()
+        if accountForSelectedColumns
+            HashSelection(selection)
+        end
 
         //traverse every row and check each spot for an undefined value
         integer row = 0
@@ -63,12 +84,15 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
             row = row + 1
         end
 
-        i = 0
-        repeat while i < sizes:GetSize()
-            integer size = sizes:Get(i) + 1
-            DataFrameColumn col = newFrame:GetColumn(i)
-            col:SetSize(size)
-            i = i + 1
+        //if we skipped any values, we need to re-calculate the total sizes
+        if skip > 0
+            i = 0
+            repeat while i < sizes:GetSize()
+                integer size = sizes:Get(i) + 1
+                DataFrameColumn col = newFrame:GetColumn(i)
+                col:SetSize(size)
+                i = i + 1
+            end
         end
         
         return newFrame
@@ -118,12 +142,18 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
         //get the row for each column
         repeat while column < frame:GetSize()
             DataFrameColumn dc = frame:GetColumn(column)
-            if row < dc:GetSize()
-                if dc:IsUndefined(row)
-                    column = frame:GetSize()
-                    return true
+
+            //Either we are allowing for all columns or we are taking into account a selection and thus
+            //need to check if the columns are in the list.
+            if not accountForSelectedColumns or (accountForSelectedColumns and selectionHash:HasKey(column))
+                if row < dc:GetSize()
+                    if dc:IsUndefined(row)
+                        column = frame:GetSize()
+                        return true
+                    end
                 end
             end
+            
             column = column + 1
         end
         return false
@@ -137,5 +167,13 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
     /* Sets whether the first row should be ignored. */
     action SetIgnoreFirst(boolean ignoreFirst)
         me:ignoreFirst = ignoreFirst
+    end
+
+    action IsAccountForSelectedColumns returns boolean
+        return accountForSelectedColumns
+    end
+
+    action SetAccountForSelectedColumns(boolean accountForSelectedColumns)
+        me:accountForSelectedColumns = accountForSelectedColumns
     end
 end

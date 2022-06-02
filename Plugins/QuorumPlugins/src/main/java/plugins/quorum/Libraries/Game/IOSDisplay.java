@@ -17,9 +17,7 @@ import org.robovm.apple.glkit.GLKViewDrawableDepthFormat;
 import org.robovm.apple.glkit.GLKViewDrawableStencilFormat;
 import org.robovm.apple.glkit.GLKViewDrawableMultisample;
 import org.robovm.apple.opengles.OpenGLES;
-import org.robovm.apple.uikit.UIEvent;
-import org.robovm.apple.uikit.UIInterfaceOrientation;
-import org.robovm.apple.uikit.UIInterfaceOrientationMask;
+import org.robovm.apple.uikit.*;
 import org.robovm.apple.coregraphics.CGPoint;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.coregraphics.CGSize;
@@ -41,14 +39,87 @@ import quorum.Libraries.Game.IOSConfiguration_;
  *
  * @author alleew
  */
-public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewControllerDelegate
+public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewControllerDelegate, UIGestureRecognizerDelegate
 {
     public java.lang.Object me_ = null;
     
     // Is this necessary? Original libgdx code below:
     // private static final String tag = "IOSGraphics";
     private static final String tag = "IOSDisplay";
-    
+
+    /*
+    Method used to determine if a recognizer is allowed to transition to "begin" state.
+    When this is called, the system has already recognized the gesture -- it's only asking for permission.
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624213-gesturerecognizershouldbegin
+    */
+    @Override
+    public boolean shouldBegin(UIGestureRecognizer uiGestureRecognizer)
+    {
+        return true;
+    }
+
+    /*
+    Method used to determine if two gesture recognizers are allowed to trigger off the same inputs.
+    By default this is false, but we want to capture all gestures and send them up to Quorum, so we always return true.
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624208-gesturerecognizer
+    */
+    @Override
+    public boolean shouldRecognizeSimultaneously(UIGestureRecognizer uiGestureRecognizer, UIGestureRecognizer uiGestureRecognizer1)
+    {
+        return true;
+    }
+
+    /*
+    A method to restrict gestures so they only trigger if a different gesture fails to validate. The only case of this
+    we care about (related to single tap and double tap) is handled elsewhere, so we always return false (the default).
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624229-gesturerecognizer
+    */
+    @Override
+    public boolean shouldRequireFailure(UIGestureRecognizer uiGestureRecognizer, UIGestureRecognizer uiGestureRecognizer1)
+    {
+        return false;
+    }
+
+    /*
+    Another method to relate the success of a gesture to the failure of another. We return the default value (false).
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624222-gesturerecognizer
+    */
+    @Override
+    public boolean shouldBeRequiredToFail(UIGestureRecognizer uiGestureRecognizer, UIGestureRecognizer uiGestureRecognizer1)
+    {
+        return false;
+    }
+
+    /*
+    Used to check if the gesture recognizer has permission to process this input. We always allow processing.
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624214-gesturerecognizer
+    */
+    @Override
+    public boolean shouldReceiveTouch(UIGestureRecognizer uiGestureRecognizer, UITouch uiTouch)
+    {
+        return true;
+    }
+
+    /*
+    Used to check if the gesture recognizer has permission to process this input. We always allow processing.
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/1624216-gesturerecognizer
+    */
+    @Override
+    public boolean shouldReceivePress(UIGestureRecognizer uiGestureRecognizer, UIPress uiPress)
+    {
+        return true;
+    }
+
+    /*
+    Used to check if the gesture recognizer has permission to process this input. We always allow processing.
+    See: https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/3538976-gesturerecognizer
+    */
+    @Override
+    public boolean shouldReceiveEvent(UIGestureRecognizer uiGestureRecognizer, UIEvent uiEvent)
+    {
+        return true;
+    }
+
     static class IOSUIViewController extends GLKViewController
     {
         final IOSApplication app;
@@ -290,12 +361,16 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         }
         
         view.setMultipleTouchEnabled(true);
-        
+
+        // Set up gesture recognition and input callbacks.
+        InitializeGestures(view);
+
+        // Create the view controller.
         viewController = new IOSUIViewController(app, this);
         viewController.setView(view);
         viewController.setDelegate(this);
         viewController.setPreferredFramesPerSecond(config.Get_Libraries_Game_IOSConfiguration__preferredFramesPerSecond_());
-        
+
         this.app = app;
         this.input = input;
         
@@ -367,6 +442,63 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         framesStart = lastFrameTime;
         
         appPaused = false;
+    }
+
+    private void InitializeGestures(GLKView view)
+    {
+        // Set up single and double tap recognizers.
+        UITapGestureRecognizer doubleTapRecognizer = new UITapGestureRecognizer();
+        doubleTapRecognizer.setNumberOfTapsRequired(2);
+        doubleTapRecognizer.addListener(new OnDoubleTapListener());
+        view.addGestureRecognizer(doubleTapRecognizer);
+
+        UITapGestureRecognizer tapRecognizer = new UITapGestureRecognizer();
+        tapRecognizer.setNumberOfTapsRequired(1);
+        tapRecognizer.requireGestureRecognizerToFail(doubleTapRecognizer);
+        tapRecognizer.addListener(new OnTapListener());
+        view.addGestureRecognizer(tapRecognizer);
+
+        // Swipe and pan recognizers.
+        UISwipeGestureRecognizer rightSwipeRecognizer = new UISwipeGestureRecognizer();
+        rightSwipeRecognizer.addListener(new OnSwipeListener());
+        rightSwipeRecognizer.setDelegate(this);
+        rightSwipeRecognizer.setDirection(new UISwipeGestureRecognizerDirection(UISwipeGestureRecognizerDirection.Right.value()));
+        view.addGestureRecognizer(rightSwipeRecognizer);
+
+        UISwipeGestureRecognizer leftSwipeRecognizer = new UISwipeGestureRecognizer();
+        leftSwipeRecognizer.addListener(new OnSwipeListener());
+        leftSwipeRecognizer.setDelegate(this);
+        leftSwipeRecognizer.setDirection(new UISwipeGestureRecognizerDirection(UISwipeGestureRecognizerDirection.Left.value()));
+        view.addGestureRecognizer(leftSwipeRecognizer);
+
+        UISwipeGestureRecognizer downSwipeRecognizer = new UISwipeGestureRecognizer();
+        downSwipeRecognizer.addListener(new OnSwipeListener());
+        downSwipeRecognizer.setDelegate(this);
+        downSwipeRecognizer.setDirection(new UISwipeGestureRecognizerDirection(UISwipeGestureRecognizerDirection.Down.value()));
+        view.addGestureRecognizer(downSwipeRecognizer);
+
+        UISwipeGestureRecognizer upSwipeRecognizer = new UISwipeGestureRecognizer();
+        upSwipeRecognizer.addListener(new OnSwipeListener());
+        upSwipeRecognizer.setDelegate(this);
+        upSwipeRecognizer.setDirection(new UISwipeGestureRecognizerDirection(UISwipeGestureRecognizerDirection.Up.value()));
+        view.addGestureRecognizer(upSwipeRecognizer);
+
+        // ADD SWIPES FOR EACH DIRECTION HERE
+
+        UIPanGestureRecognizer panRecognizer = new UIPanGestureRecognizer();
+        panRecognizer.addListener(new OnPanListener());
+        panRecognizer.setDelegate(this);
+        view.addGestureRecognizer(panRecognizer);
+
+        // Long press recognizer.
+        UILongPressGestureRecognizer pressRecognizer = new UILongPressGestureRecognizer();
+        pressRecognizer.addListener(new OnLongPressListener());
+        view.addGestureRecognizer(pressRecognizer);
+
+        // Pinch recognizer.
+        UIPinchGestureRecognizer pinchRecognizer = new UIPinchGestureRecognizer();
+        pinchRecognizer.addListener(new OnPinchListener());
+        view.addGestureRecognizer(pinchRecognizer);
     }
     
     public void Resume()
@@ -562,6 +694,69 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     public boolean IsFullscreen()
     {
         return true;
+    }
+
+    private class OnTapListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            input.AddSingleTapEvent(gestureRecognizer);
+        }
+    }
+
+    private class OnDoubleTapListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            input.AddDoubleTapEvent(gestureRecognizer);
+        }
+    }
+
+    private class OnSwipeListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            input.AddSwipeEvent(gestureRecognizer);
+        }
+    }
+
+    private class OnPanListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            input.AddPanEvent(gestureRecognizer);
+        }
+    }
+
+    private class OnLongPressListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            input.AddLongPressEvent(gestureRecognizer);
+        }
+    }
+
+    private class OnPinchListener implements UIGestureRecognizer.OnGestureListener
+    {
+        @Override
+        public void onGesture(UIGestureRecognizer gestureRecognizer)
+        {
+            UIGestureRecognizerState state = gestureRecognizer.getState();
+
+            if (state.value() == 1)
+                input.AddPinchBeginEvent(gestureRecognizer);
+            else if (state.value() == 2)
+                input.AddPinchContinueEvent(gestureRecognizer);
+            else if (state.value() == 3)
+                input.AddPinchEndEvent(gestureRecognizer);
+            else
+                IOSApplication.GlobalLog("WARNING: Couldn't identify pinch, state = " + state.value() + " or " + state.name());
+        }
     }
 
 }

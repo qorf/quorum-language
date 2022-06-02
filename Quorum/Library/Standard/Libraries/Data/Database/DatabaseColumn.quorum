@@ -68,6 +68,10 @@ class DatabaseColumn
             Type result
             result:SetToText()
             return result
+        elseif constants:IsBoolean(type)
+            Type result
+            result:SetToBoolean()
+            return result
         elseif constants:IsUndefined(type)
             Type result
             result:SetToUndefined()

@@ -3,21 +3,40 @@ package Libraries.Interface.Layouts
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.BarChart
-use Libraries.Interface.Controls.Charts.BarGroup
-use Libraries.Interface.Controls.Charts.Bar
+use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.Bar
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.ControlLabel
 
 class BarChartLayout is SharedBarChartLayout
-    integer outerEdgePadding = 0
-    integer betweenGroupPadding = 0
-    integer betweenBarPadding = 0
-    integer barWidth = 0
     Math math
+    Color transparent
+
+    number width = 0
+    number height = 0
+    number groupX = 0 // Must be a number since rounding can seriously affect it
+    integer groupY = 0
+    number groupWidth = 0 // Must be a number since rounding can seriously affect it
+    integer groupHeight = 0
+
+    number barX = 0 // Must be a number since rounding can seriously affect it
+    integer barY = 0
+    number barWidth = 0 // Must be a number since rounding can seriously affect it
+    integer barHeight = 0
+
+    number betweenGroupPadding = 0 
+    number betweenBarPadding = 0
+        
+    boolean stacked = false
+    boolean horizontal = false // Default is vertical for bar charts
+    boolean separateBySeries = false
+    boolean separateByColumn = false
+    boolean separateByFactor = false
 
     /*
         This action will calculate the size and placement of the elements (bars) within the chart 
@@ -30,175 +49,358 @@ class BarChartLayout is SharedBarChartLayout
 
         BarChart chart = cast(BarChart, control)
 
+        transparent:SetColor(0, 0, 0, 0)
+
         Array<BarGroup> barGroups = chart:GetBarGroups()
-        
-        number height = 0
-        number width = 0
-
-        integer currentXPosition = 0
-        integer currentYPosition = 0
-        number yMax = chart:GetYAxisMaximum()
-        number yMin = chart:GetYAxisMinimum()
-        number xMax = chart:GetXAxisMaximum()
-        number xMin = chart:GetXAxisMinimum()
-        number rangeMax = 0
-        number rangeMin = 0
-
-        boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
-        boolean stacked = chart:GetStackedFlag()
-        boolean separateByFactor = chart:IsSeparatedByFactor()
-
         if barGroups:GetSize() > 0
-            integer numberOfGroups = barGroups:GetSize()
-            integer numberOfBars = chart:GetNumberOfBars()
-            
-            if stacked
-                numberOfBars = numberOfGroups
-            end
-            if separateByFactor
-                numberOfBars = numberOfGroups
-                stacked = false
-            end
-
+        
+            separateBySeries = chart:IsSeparatedBySeries()
+            separateByFactor = chart:IsSeparatedByFactor()
+    
+            integer tickHeight = 0
+            integer tickWidth = 0
+            number yMax = chart:GetYAxisMaximum()
+            number yMin = chart:GetYAxisMinimum()
+            number xMax = chart:GetXAxisMaximum()
+            number xMin = chart:GetXAxisMinimum()
+            number rangeMax = 0
+            number rangeMin = 0
+    
+            stacked = chart:GetStackedFlag()
+            horizontal = chart:GetHorizontalFlag() // Default is vertical
             if horizontal
-                currentYPosition = cast(integer, chart:GetVerticalPanel():GetAxis():GetWidth())
-                width = chartAreaContainer:GetHeight()
-                height = chartAreaContainer:GetWidth() - currentYPosition
+                integer paddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+                width = chartAreaContainer:GetHeight() - paddingOffset
+                height = chartAreaContainer:GetWidth()
                 rangeMax = xMax
                 rangeMin = xMin
+                tickHeight = chart:GetVerticalPanel():GetTickHeight()
+                tickWidth = chart:GetVerticalPanel():GetTickWidth()
             else
-                if chart:GetHorizontalPanel():GetAxis() not= undefined
-                    currentYPosition = cast(integer, chart:GetHorizontalPanel():GetAxis():GetHeight())
-                end
-                width = chartAreaContainer:GetWidth()
-                height = chartAreaContainer:GetHeight() - currentYPosition
+                integer paddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+                width = chartAreaContainer:GetWidth() - paddingOffset
+                height = chartAreaContainer:GetHeight()
                 rangeMax = yMax
                 rangeMin = yMin
-            end
-            resetYPosition = currentYPosition
-
-            // Space on each side of the inner chart (5%)
-            outerEdgePadding = cast(integer, ((width * 0.05) / 2))
-
-            if numberOfGroups > 1
-                // Space spread evenly between each bar group (20%)
-                betweenGroupPadding = cast(integer, math:Round((width * 0.20) / (numberOfGroups-1),true))
-            end
-
-            if numberOfBars not= numberOfGroups
-                // Space spread evenly between each bar with the bar groups (5%)
-                betweenBarPadding = cast(integer, ((width * 0.05) / (numberOfBars - numberOfGroups)))
+                tickHeight = chart:GetHorizontalPanel():GetTickHeight()
+                tickWidth = chart:GetHorizontalPanel():GetTickWidth()
             end
             
-            // Total white space alloted for inner chart area
-            integer totalOuterPadding = cast(integer, outerEdgePadding*2)
-            integer totalBetweenGroupPadding = cast(integer, betweenGroupPadding*(numberOfGroups-1))
-            integer totalBetweenBarPadding = cast(integer, betweenBarPadding*(numberOfBars - numberOfGroups))
-            
-            // Remaining non-white space to be evenly divided amongst all bars
-            number remainingArea = width - totalOuterPadding - totalBetweenGroupPadding - totalBetweenBarPadding
-            barWidth = cast(integer, math:Round(remainingArea / numberOfBars, true))
+            integer numberOfGroups = barGroups:GetSize()
+            if separateByFactor
+                numberOfGroups = 1
+            elseif separateBySeries
+                stacked = false // Can't stack bars if they are all one color
+            end
+            groupWidth = width/numberOfGroups
 
-            // Recalculate the outer padding since we rounded several times.
-            outerEdgePadding = cast(integer, (width - totalBetweenGroupPadding - totalBetweenBarPadding - (barWidth*numberOfBars))/2)
+            number currentXPosition = 0 // Must be a number since rounding can seriously affect it
+            integer currentYPosition = cast(integer, ((0-rangeMin)/(rangeMax-rangeMin)) * height) // Find the 0 position on axis
+            integer negativeYPosition = currentYPosition
+            integer resetYPosition = currentYPosition
+            integer resetXPosition = 0
 
-            chart:SetPaddedChartOffset(outerEdgePadding - cast(integer, betweenGroupPadding/2))
-
-            Color transparent
-            transparent:SetColor(0, 0, 0, 0)
-            
-            Icon currentBar = barGroups:Get(0):Get(0):GetIcon()
-            currentXPosition = currentXPosition + outerEdgePadding
-
-            // Tracking area of each bar group for group icon
-            integer groupX = currentXPosition    // x-axis coordinate
-            integer groupY = currentYPosition    // y-axis coordinate
-            integer barHeight = 0
-            integer groupWidth = 0               // width of entire group
-            integer groupHeight = 0              // height of entire group
-        
             integer i = 0
             repeat while i < barGroups:GetSize()
                 BarGroup currentGroup = barGroups:Get(i)
-                integer j = 0
-                repeat while j < currentGroup:GetSize()
-                    Bar bar 
-                    // We want to stack/display so it keeps the same order as the legend
-                    if stacked
-                        if horizontal
-                            bar = currentGroup:Get(j)
-                        else
-                            bar = currentGroup:Get(currentGroup:GetSize()-1-j)
-                        end
-                    else
-                        if horizontal
-                            bar = currentGroup:Get(barGroups:Get(i):GetSize()-1-j)
-                        else
-                            bar = currentGroup:Get(j)
-                        end
+
+                groupX = i*groupWidth  
+                groupY = 0   
+ 
+                currentXPosition = groupX
+                if separateByFactor
+                    currentXPosition = resetXPosition
+                end
+
+                if currentGroup:GetSize() > 0
+                    integer numberOfBars = currentGroup:GetSize()
+                    if stacked or separateBySeries
+                        numberOfBars = 1
                     end
 
-                    currentBar = bar:GetIcon()
-                    barHeight = cast(integer, ((bar:GetValue()-rangeMin)/(rangeMax-rangeMin)) * height)
-                    if barHeight >= 0 
-                        // Set bar height (percentage)
-                        number percent = (bar:GetValue()-rangeMin)/(rangeMax-rangeMin)
-                        bar:SetHeight(percent)
-    
-                        //Find max height for barGroup Icon
-                        if(barHeight > groupHeight)
-                            groupHeight = barHeight
+                    betweenBarPadding = 0
+                    betweenGroupPadding = cast(integer, groupWidth*0.05) // 5% of group area will be white space on either side.
+
+                    if separateByFactor
+                        if numberOfBars > 1
+                            betweenGroupPadding = 0    
+                        end          
+                    elseif not chart:IsSeparated()
+                        if numberOfBars > 1
+                            betweenBarPadding = cast(integer, (groupWidth*0.10)/(numberOfBars))
                         end
-    
+                    end
+                    barWidth = (groupWidth-(betweenBarPadding*(numberOfBars-1))-(betweenGroupPadding*2))/numberOfBars
+                end
+            
+                currentXPosition = currentXPosition + betweenGroupPadding
+                if stacked
+                    currentYPosition = cast(integer, ((0-rangeMin)/(rangeMax-rangeMin)) * height) // Find the 0 position on axis
+                    negativeCurrentYPosition = currentYPosition
+                end
+
+                integer j = 0
+                repeat while j < currentGroup:GetSize()
+                    Bar currentBar
+                    // We want to stack/display in the same order as the legend (some cases may not yet)
+                    if stacked 
                         if horizontal
-                            currentBar:LoadFilledRectangle(barHeight, barWidth, currentBar:GetColor())
-                            currentBar:SetPosition(currentYPosition, currentXPosition)
+                            currentBar = currentGroup:Get(j)
                         else
-                            currentBar:LoadFilledRectangle(barWidth, barHeight, currentBar:GetColor())
-                            currentBar:SetPosition(currentXPosition, currentYPosition)
+                            currentBar = currentGroup:Get(currentGroup:GetSize()-1-j)
                         end
 
-                        if not separateByFactor
-                            if stacked
-                                currentYPosition = currentYPosition + barHeight
+                        if currentBar:GetValue() < 0
+                            barHeight = math:AbsoluteValue(cast(integer, (currentBar:GetValue()/(rangeMax-rangeMin)) * height))
+                            negativeYPosition = negativeYPosition - barHeight
+                            if barHeight >= 0 
+                                if horizontal
+                                    currentBar:LoadFilledRectangle(barHeight, cast(integer, barWidth), currentBar:GetColor())
+                                    currentBar:SetPosition(negativeYPosition, currentXPosition)
+                                else
+                                    currentBar:LoadFilledRectangle(cast(integer, barWidth), barHeight, currentBar:GetColor())
+                                    currentBar:SetPosition(currentXPosition, negativeYPosition)
+                                end
+                            end                            
+                        else
+                            barHeight = cast(integer, (currentBar:GetValue()/(rangeMax-rangeMin)) * height)
+                            if barHeight >= 0 
+                                if horizontal
+                                    currentBar:LoadFilledRectangle(barHeight, cast(integer, barWidth), currentBar:GetColor())
+                                    currentBar:SetPosition(currentYPosition, currentXPosition)
+                                else
+                                    currentBar:LoadFilledRectangle(cast(integer, barWidth), barHeight, currentBar:GetColor())
+                                    currentBar:SetPosition(currentXPosition, currentYPosition)
+                                end
+                            end
+                            currentYPosition = currentYPosition + barHeight
+                        end
+                    else 
+                        if horizontal
+                            if separateByFactor
+                                currentBar = currentGroup:Get(j)
                             else
-                                currentXPosition = currentXPosition + barWidth + betweenBarPadding
+                                currentBar = currentGroup:Get(barGroups:Get(i):GetSize()-1-j)
+                            end
+                        else
+                            currentBar = currentGroup:Get(j)
+                        end
+
+                        currentYPosition = cast(integer, ((0 - rangeMin)/(rangeMax-rangeMin)) * height)
+                        if currentBar:GetValue() < 0
+                            barHeight = math:AbsoluteValue(cast(integer, ((currentBar:GetValue()-0)/(rangeMax-rangeMin)) * height))
+                            currentYPosition = currentYPosition - barHeight
+                        else
+                            barHeight = cast(integer, ((currentBar:GetValue() - 0)/(rangeMax-rangeMin)) * height)
+                        end
+
+                        if barHeight >= 0 
+                            if horizontal
+                                currentBar:LoadFilledRectangle(barHeight, cast(integer, barWidth), currentBar:GetColor())
+                                currentBar:SetPosition(currentYPosition, currentXPosition)
+                            else
+                                currentBar:LoadFilledRectangle(cast(integer, barWidth), barHeight, currentBar:GetColor())
+                                currentBar:SetPosition(currentXPosition, currentYPosition)
                             end
                         end
-                    else
-                        if not stacked and not separateByFactor
+                        if currentBar:ShowAnnotation() or chart:ShowAnnotations()
+                            ControlLabel barLabel = currentBar:GetAnnotation()
+                            if barLabel not= undefined
+                                if horizontal
+                                    integer annotY = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetHeight()/2.0))
+                                    if currentBar:GetValue() < 0
+                                        barLabel:SetPosition(currentYPosition - barLabel:GetWidth(), annotY)
+                                    else
+                                        barLabel:SetPosition(currentYPosition + barHeight, annotY)
+                                    end
+                                else
+                                    integer annotX = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetWidth()/2.0))
+                                    if currentBar:GetValue() < 0
+                                        barLabel:SetPosition(annotX, currentYPosition - barLabel:GetHeight())
+                                    else
+                                        barLabel:SetPosition(annotX, currentYPosition + barHeight)
+                                    end
+                                end
+                            end
+                        end
+
+                        if not separateBySeries
                             currentXPosition = currentXPosition + barWidth + betweenBarPadding
                         end
+                    end 
+
+                    // Load and place the bar selection arrow
+                    if horizontal
+                        integer arrowSize = cast(integer, currentBar:GetHeight()/4)
+                        if arrowSize < tickHeight*2
+                            arrowSize = tickHeight*2
+                        end
+                        integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth() + tickHeight)
+                        if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
+                            x1 = x1 + cast(integer, currentBar:GetAnnotation():GetWidth())
+                        end
+                        integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight()/2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 + arrowSize
+                        integer y3 = y1 - arrowSize
+
+                        Drawable arrow = currentBar:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, currentBar:GetColor())
+                        arrow:Hide()
+                        currentBar:SetSelectionArrowVertices(vertices)
+                    else
+                        integer arrowSize = cast(integer, currentBar:GetWidth()/4)
+                        if arrowSize < tickWidth*2
+                            arrowSize = tickWidth*2
+                        end
+                        integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth()/2)
+                        integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight() + tickWidth)
+                        if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
+                            y1 = y1 + cast(integer, currentBar:GetAnnotation():GetHeight())
+                        end
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 - arrowSize
+                        integer y3 = y1 + arrowSize
+
+                        Drawable arrow = currentBar:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, currentBar:GetColor())
+                        arrow:Hide()
+                        currentBar:SetSelectionArrowVertices(vertices)
                     end
                     j = j + 1
                 end
-
-                // Creating Bar Group Icon
-                Icon newIcon = currentGroup:GetIcon()
-                LayoutProperties properties = newIcon:GetDefaultLayoutProperties()
-                if stacked or separateByFactor
+                
+                if stacked or chart:IsSeparated()
                     if horizontal 
-                        newIcon:LoadRectangle(currentYPosition, barWidth+betweenGroupPadding, transparent)
-                        newIcon:SetPosition(0, groupX-cast(integer, betweenGroupPadding/2))
+                        currentGroup:LoadRectangle(currentYPosition, cast(integer, groupWidth), transparent)
+                        currentGroup:SetPosition(groupY, groupX)          
                     else
-                        newIcon:LoadRectangle(barWidth+betweenGroupPadding, currentYPosition, transparent)
-                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2), 0)
+                        currentGroup:LoadRectangle(cast(integer, groupWidth), currentYPosition, transparent)
+                        currentGroup:SetPosition(groupX, groupY)
                     end
-                    currentXPosition = currentXPosition + barWidth + betweenGroupPadding
                 else
-                    groupWidth = currentXPosition - betweenBarPadding - groupX + betweenGroupPadding
-                    currentXPosition = currentXPosition + betweenGroupPadding - betweenBarPadding
+                    groupHeight = cast(integer, ((currentGroup:GetMaxBarValue()-rangeMin)/(rangeMax-rangeMin)) * height)
                     if horizontal
-                        newIcon:LoadRectangle(cast(integer, groupHeight), cast(integer, groupWidth), transparent)
-                        newIcon:SetPosition(groupY, groupX-cast(integer, betweenGroupPadding/2))
+                        if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetWidth())
+                        end
+                        currentGroup:LoadRectangle(groupHeight, cast(integer, groupWidth), transparent)
+                        currentGroup:SetPosition(groupY, groupX)
                     else
-                        newIcon:LoadRectangle(cast(integer, groupWidth), cast(integer, groupHeight), transparent)
-                        newIcon:SetPosition(groupX-cast(integer, betweenGroupPadding/2) , groupY)
+                        if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetHeight())
+                        end
+                        currentGroup:LoadRectangle(cast(integer, groupWidth), groupHeight, transparent)
+                        currentGroup:SetPosition(groupX, groupY)
                     end
                 end
+
+
+                // Load and place the group selection bracket/arrow
+                integer x = cast(integer, currentGroup:GetX())
+                integer y = cast(integer, currentGroup:GetY())
+                integer w = cast(integer, currentGroup:GetWidth())
+                integer h = cast(integer, currentGroup:GetHeight())
+                if horizontal
+                    if currentGroup:GetSelectionBracket():GetSize() = 3
+                        Drawable top = currentGroup:GetSelectionBracket():Get(0)
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        top:SetPosition(x + w - tickWidth + tickHeight, y + h - tickHeight)
+                        top:Hide()
+    
+                        Drawable side = currentGroup:GetSelectionBracket():Get(1)
+                        side:LoadFilledRectangle(tickHeight, h, chart:GetSelectionColor())
+                        side:SetPosition(x + w + tickHeight, y)
+                        side:Hide()
+
+                        Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        bottom:SetPosition(x + w - tickWidth + tickHeight, y)
+                        bottom:Hide()
+
+                        integer arrowSize = cast(integer, h/8)
+                        if arrowSize < tickHeight*2
+                            arrowSize = tickHeight*2
+                        end
+                        integer x1 = cast(integer, side:GetX() + tickHeight*2)
+                        integer y1 = cast(integer, side:GetY() + side:GetHeight()/2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 + arrowSize
+                        integer y3 = y1 - arrowSize
+
+                        Drawable arrow = currentGroup:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
+                        arrow:Hide()
+                        currentGroup:SetSelectionArrowVertices(vertices)
+                    end 
+                else
+                    if currentGroup:GetSelectionBracket():GetSize() = 3
+                        Drawable top = currentGroup:GetSelectionBracket():Get(0)
+                        top:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        top:SetPosition(x, y + h - tickHeight + tickWidth)
+                        top:Hide()
+    
+                        Drawable side = currentGroup:GetSelectionBracket():Get(1)
+                        side:LoadFilledRectangle(w, tickWidth, chart:GetSelectionColor())
+                        side:SetPosition(x, y + h + tickWidth)
+                        side:Hide()
+
+                        Drawable bottom = currentGroup:GetSelectionBracket():Get(2)
+                        bottom:LoadFilledRectangle(tickWidth, tickHeight, chart:GetSelectionColor())
+                        bottom:SetPosition(x + w - tickWidth, y + h - tickHeight + tickWidth)
+                        bottom:Hide()
+
+                        integer arrowSize = cast(integer, w/8)
+                        if arrowSize < tickWidth*2
+                            arrowSize = tickWidth*2
+                        end
+                        integer x1 = cast(integer, side:GetX() + side:GetWidth()/2)
+                        integer y1 = cast(integer, side:GetY() + tickWidth*2)
+                        integer x2 = x1 + arrowSize
+                        integer y2 = y1 + arrowSize
+                        integer x3 = x1 - arrowSize
+                        integer y3 = y1 + arrowSize
+
+                        Drawable arrow = currentGroup:GetSelectionArrow()
+                        Array<number> vertices
+                        vertices:Add(x1)
+                        vertices:Add(y1)
+                        vertices:Add(x2)
+                        vertices:Add(y2)
+                        vertices:Add(x3)
+                        vertices:Add(y3)
+                        arrow:LoadShape(vertices, chart:GetSelectionColor())
+                        arrow:Hide()
+                        currentGroup:SetSelectionArrowVertices(vertices)
+                    end  
+                end
+
                 currentYPosition = resetYPosition
-                groupHeight = 0
-                groupX = currentXPosition
+                negativeYPosition = resetYPosition
                 i = i + 1
             end
         end

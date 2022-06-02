@@ -696,6 +696,9 @@ class ShaderProgram
     end
 
     action Draw(Drawable drawable, integer startIndex, integer totalIndices)
+        drawable:SetMeshIndex(startIndex)
+        drawable:SetIndicesCount(totalIndices)
+
         ShaderMapping candidate = drawable:GetShaderMapping()
         if candidate = undefined
             candidate = shaderMapping

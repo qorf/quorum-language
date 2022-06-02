@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
+class LineSegment is ChartDrawable
+    ChartPoint point1
+    ChartPoint point2
+
+    on create
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action GetPoint1 returns ChartPoint
+        return point1
+    end
+
+    action SetPoint1(ChartPoint point)
+        me:point1 = point
+    end
+
+    action GetPoint2 returns ChartPoint
+        return point2
+    end
+
+    action SetPoint2(ChartPoint point)
+        me:point2 = point
+    end
+
+    /*
+    Sets/changes the color for this line segment.
+    */
+    action SetColor(Color lineColor)
+        point1:SetColor(lineColor)
+        point2:SetColor(lineColor)
+        parent:Drawable:SetColor(lineColor)
+    end
+end
