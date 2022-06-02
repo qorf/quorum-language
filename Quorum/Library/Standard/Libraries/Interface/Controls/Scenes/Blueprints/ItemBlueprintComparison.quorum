@@ -1,0 +1,21 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class ItemBlueprintComparison is Comparison
+    action Compare(Object a, Object b) returns integer
+        if not (a is ItemBlueprint and b is ItemBlueprint)
+            return a:Compare(b)
+        end
+
+        ItemBlueprint ia = cast(ItemBlueprint, a)
+        ItemBlueprint ib = cast(ItemBlueprint, b)
+        text nameA = ia:GetName()
+        text nameB = ib:GetName()
+        if nameA = undefined or nameB = undefined
+            return 0 //if they don't exist, ignore it and claim they are equal.
+        end
+        return nameA:Compare(nameB)
+    end
+end

@@ -1,0 +1,20 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.System.File
+
+class Custom3DPrimitiveBlueprint is CustomItemBlueprint, ModelBlueprint
+
+    /*
+    Returns true if the given file is of a valid file type
+    for this blueprint, or false otherwise.
+    */
+    action IsFileValid(File file) returns boolean
+        if file = undefined
+            return false
+        end
+
+        text extension = file:GetFileExtension()
+        return extension:EqualsIgnoringCase("jpg") or extension:EqualsIgnoringCase("png") or extension:EqualsIgnoringCase("jpeg")
+    end
+
+end

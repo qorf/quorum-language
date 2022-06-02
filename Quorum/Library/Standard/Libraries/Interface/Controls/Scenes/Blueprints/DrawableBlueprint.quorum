@@ -1,0 +1,116 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class DrawableBlueprint is ItemBlueprint
+
+    TextureRegion texture = undefined
+    ColorGroup color = undefined
+    number width = 0
+    number height = 0
+    number scaleX = 1
+    number scaleY = 1
+    number rotation = 0
+
+    integer preferredGridWidth = 0
+    integer preferredGridHeight = 0
+
+    integer drawableType = -1
+
+    action SetTexture(TextureRegion texture)
+        me:texture = texture
+    end
+
+    action GetTexture returns TextureRegion
+        return texture
+    end
+
+    action GetPaletteIcon returns TextureRegion
+        return GetTexture()
+    end
+
+    action SetColor(ColorGroup color)
+        me:color = color
+    end
+
+    action GetColor returns ColorGroup
+        return color
+    end
+
+    action SetWidth(number width)
+        me:width = width
+    end
+
+    action GetWidth returns number
+        return width
+    end
+
+    action SetHeight(number height)
+        me:height = height
+    end
+
+    action GetHeight returns number
+        return height
+    end
+
+    action SetSize(number width, number height)
+        SetWidth(width)
+        SetHeight(height)
+    end
+
+    action SetScaleX(number scaleX)
+        me:scaleX = scaleX
+    end
+
+    action GetScaleX returns number
+        return scaleX
+    end
+
+    action SetScaleY(number scaleY)
+        me:scaleY = scaleY
+    end
+
+    action GetScaleY returns number
+        return scaleY
+    end
+
+    action SetScale(number scaleX, number scaleY)
+        SetScaleX(scaleX)
+        SetScaleY(scaleY)
+    end
+
+    action GetRotation returns number
+        return rotation
+    end
+
+    action SetRotation(number rotation)
+        me:rotation = rotation
+    end
+
+    action GetPreferredGridWidth returns integer
+        return preferredGridWidth
+    end
+
+    action SetPreferredGridWidth(integer preferredGridWidth)
+        me:preferredGridWidth = preferredGridWidth
+    end
+
+    action GetPreferredGridHeight returns integer
+        return preferredGridHeight
+    end
+
+    action SetPreferredGridHeight(integer preferredGridHeight)
+        me:preferredGridHeight = preferredGridHeight
+    end
+
+    action SetDrawableType(integer type)
+        drawableType = type
+    end
+
+    action GetDrawableType returns integer
+        return drawableType
+    end
+
+end

@@ -1,0 +1,29 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.System.File
+
+class CustomModelBlueprint is CustomItemBlueprint, ModelBlueprint
+
+    action SetFile(File file)
+        parent:CustomItemBlueprint:SetFile(file)
+        parent:ModelBlueprint:SetModelFile(file)
+    end
+
+    action SetModelFile(File file)
+        SetFile(file)
+    end
+
+    /*
+    Returns true if the given file is of a valid file type
+    for this blueprint, or false otherwise.
+    */
+    action IsFileValid(File file) returns boolean
+        if file = undefined
+            return false
+        end
+
+        text extension = file:GetFileExtension()
+        return extension:EqualsIgnoringCase("obj") or extension:EqualsIgnoringCase("g3db")
+    end
+
+end

@@ -1,0 +1,69 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Texture
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class PointLightBlueprint is ItemBlueprint
+
+    TextureRegion paletteIcon = undefined
+    
+    // This texture is placed on a cube that acts as a placeholder inside the scene editor.
+    Texture modelTexture = undefined
+    
+    number red = 1
+    number green = 1
+    number blue = 1
+    
+    number intensity = 5
+
+
+    action GetPaletteIcon returns TextureRegion
+        return paletteIcon
+    end
+
+    action SetPaletteIcon(TextureRegion paletteIcon)
+        me:paletteIcon = paletteIcon
+    end
+
+    action GetModelTexture returns Texture
+        return modelTexture
+    end
+
+    action SetModelTexture(Texture modelTexture)
+        me:modelTexture = modelTexture
+    end
+
+    action GetRed returns number
+        return red
+    end
+
+    action SetRed(number red)
+        me:red = red
+    end
+
+    action GetGreen returns number
+        return green
+    end
+
+    action SetGreen(number green)
+        me:green = green
+    end
+
+    action GetBlue returns number
+        return blue
+    end
+
+    action SetBlue(number blue)
+        me:blue = blue
+    end
+
+    action GetIntensity returns number
+        return intensity
+    end
+
+    action SetIntensity(number intensity)
+        me:intensity = intensity
+    end
+
+end

@@ -1,0 +1,27 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.System.File
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+/*
+An item blueprint that takes an input file to load a custom asset.
+*/
+class CustomItemBlueprint is ItemBlueprint
+
+    File file
+
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    /*
+    Returns true if the given file is of a valid file type
+    for this blueprint, or false otherwise.
+    */
+    blueprint action IsFileValid(File file) returns boolean
+
+end

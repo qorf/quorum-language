@@ -1,0 +1,166 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.System.File
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class ModelBlueprint is ItemBlueprint
+
+    number width = 0
+    number height = 0
+    number depth = 0
+
+    number scaleX = 1
+    number scaleY = 1
+    number scaleZ = 1
+
+    number yaw = 0
+    number pitch = 0
+    number roll = 0
+
+    Color color
+
+    integer modelType = -1
+    File modelFile = undefined
+
+    TextureRegion paletteIcon = undefined
+
+    on create
+        color:SetColor(1, 1, 1, 1)
+    end
+
+    action GetModelType returns integer
+        return modelType
+    end
+
+    action SetModelType(integer modelType)
+        me:modelType = modelType
+    end
+
+    action GetModelFile returns File
+        return modelFile
+    end
+
+    action SetModelFile(File modelFile)
+        me:modelFile = modelFile
+        
+        if modelFile not= undefined
+            SceneProperties properties
+            SetModelType(properties:CUSTOM)
+        end
+    end
+
+    action SetColor(Color color)
+        me:color:SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha())
+    end
+
+    action SetColor(number red, number green, number blue, number alpha)
+        color:SetColor(red, green, blue, alpha)
+    end
+
+    action SetDimensions(number width, number height, number depth)
+        me:width = width
+        me:height = height
+        me:depth = depth
+    end
+
+    action SetScale(number x, number y, number z)
+        scaleX = x
+        scaleY = y
+        scaleZ = z
+    end
+
+    action SetRotation(number yaw, number pitch, number roll)
+        me:yaw = yaw
+        me:pitch = pitch
+        me:roll = roll
+    end
+
+    action GetWidth returns number
+        return width
+    end
+
+    action SetWidth(number width)
+        me:width = width
+    end
+
+    action GetHeight returns number
+        return height
+    end
+
+    action SetHeight(number height)
+        me:height = height
+    end
+
+    action GetDepth returns number
+        return depth
+    end
+
+    action SetDepth(number depth)
+        me:depth = depth
+    end
+
+    action GetScaleX returns number
+        return scaleX
+    end
+
+    action SetScaleX(number scaleX)
+        me:scaleX = scaleX
+    end
+
+    action GetScaleY returns number
+        return scaleY
+    end
+
+    action SetScaleY(number scaleY)
+        me:scaleY = scaleY
+    end
+
+    action GetScaleZ returns number
+        return scaleZ
+    end
+
+    action SetScaleZ(number scaleZ)
+        me:scaleZ = scaleZ
+    end
+
+    action GetYaw returns number
+        return yaw
+    end
+
+    action SetYaw(number yaw)
+        me:yaw = yaw
+    end
+
+    action GetPitch returns number
+        return pitch
+    end
+
+    action SetPitch(number pitch)
+        me:pitch = pitch
+    end
+
+    action GetRoll returns number
+        return roll
+    end
+
+    action SetRoll(number roll)
+        me:roll = roll
+    end
+
+    action GetPaletteIcon returns TextureRegion
+        return paletteIcon
+    end
+
+    action SetPaletteIcon(TextureRegion paletteIcon)
+        me:paletteIcon = paletteIcon
+    end
+
+    action GetColor returns Color
+        return color
+    end
+
+end

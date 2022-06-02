@@ -1,0 +1,106 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Texture
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class Audio3DBlueprint is ItemBlueprint
+
+    TextureRegion paletteIcon = undefined
+    
+    // This texture is placed on a cube that acts as a placeholder inside the scene editor.
+    Texture modelTexture = undefined
+    
+    text source = ""
+
+    number maxVolumeDistance = 1
+    number rolloffRate = 1
+    
+    number volume = 1
+    number pitch = 1
+    
+    boolean playOnLoad = false
+    boolean looping = false
+    boolean doppler = true
+
+    action GetPaletteIcon returns TextureRegion
+        return paletteIcon
+    end
+
+    action SetPaletteIcon(TextureRegion paletteIcon)
+        me:paletteIcon = paletteIcon
+    end
+
+    action GetModelTexture returns Texture
+        return modelTexture
+    end
+
+    action SetModelTexture(Texture modelTexture)
+        me:modelTexture = modelTexture
+    end
+
+    action GetSource returns text
+        return source
+    end
+
+    action SetSource(text source)
+        me:source = source
+    end
+
+    action GetMaxVolumeDistance returns number
+        return maxVolumeDistance
+    end
+
+    action SetMaxVolumeDistance(number maxVolumeDistance)
+        me:maxVolumeDistance = maxVolumeDistance
+    end
+
+    action GetRolloffRate returns number
+        return rolloffRate
+    end
+
+    action SetRolloffRate(number rolloffRate)
+        me:rolloffRate = rolloffRate
+    end
+
+    action GetVolume returns number
+        return volume
+    end
+
+    action SetVolume(number volume)
+        me:volume = volume
+    end
+
+    action GetPitch returns number
+        return pitch
+    end
+
+    action SetPitch(number pitch)
+        me:pitch = pitch
+    end
+
+    action GetPlayOnLoad returns boolean
+        return playOnLoad
+    end
+
+    action SetPlayOnLoad(boolean playOnLoad)
+        me:playOnLoad = playOnLoad
+    end
+
+    action GetLooping returns boolean
+        return looping
+    end
+
+    action SetLooping(boolean looping)
+        me:looping = looping
+    end
+
+    action GetDoppler returns boolean
+        return doppler
+    end
+
+    action SetDoppler(boolean doppler)
+        me:doppler = doppler
+    end
+
+end
