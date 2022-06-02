@@ -142,7 +142,6 @@ class ChartWriter
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
-        chartCanvas:SetRole("img")
 
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
@@ -212,7 +211,6 @@ class ChartWriter
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
-        chartCanvas:SetRole("img")
 
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
@@ -402,6 +400,13 @@ class ChartWriter
 
     action GetChartArea() returns Rectangle
         return chartArea
+    end
+
+    /*
+        This action gets the subchart area list.
+    */
+    action GetSubChartAreas() returns Array<Rectangle>
+        return subChartAreas
     end
 
     /*

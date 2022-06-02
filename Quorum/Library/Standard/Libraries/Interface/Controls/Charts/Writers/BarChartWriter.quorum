@@ -96,26 +96,32 @@ class BarChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Group chartContent
+        chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
+        chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+        chartContent:SetTabIndex(0)
+        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContent:SetIsOneLine(true)
+        chartContent:SetRole("application")
+        canvas:Add(chartContent)
+
+        text description = GetChartArea():GetAriaLabel() + "."
+
         if not chart:IsSeparated()
-            Group chartContent
-            chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
-            chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-            chartContent:SetAriaHidden("false")
-            chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
-            chartContent:SetIsOneLine(true)
-            canvas:Add(chartContent)
-
-            text description = GetChartArea():GetAriaLabel() + "."
-
-            if chart:HasGroups()
-                description = description + " To navigate the chart, press Enter to move into the list of categories."
-                description = description + " While in the category list, use Left/Right to move between the categories in list order, use Enter to move into the list of bars for that category, use Escape to return to the chart area."
-            else
-                description = description + " To navigate the chart, press Enter to move into the list of bars."
-                description = description + " While in the bar list, use Left/Right to move between the bars in list order, use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+            
+            if HasAccessibility()
+                //Not Separated but has Groups
+                if chart:HasGroups()
+                    description = description + " To navigate the chart, press Enter to move into the list of groups."
+                    description = description + " While in the group list, use Left/Right to move between the groups in list order, use Enter to move into the list of bars for that category, use Escape to return to the chart area."
+                //Not Separate and no Groups
+                else
+                    description = description + " To navigate the chart, press Enter to move into the list of bars."
+                    description = description + " While in the bar list, use Left/Right to move between the bars in list order, use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+                end
+                chartContent:SetAriaLabel(description)
+                chartContent:SetAriaHidden("false")
             end
-            chartContent:SetAriaLabel(description)
             i = 0
             repeat while i < chart:GetBarGroups():GetSize()
                 BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
@@ -129,8 +135,8 @@ class BarChartWriter is ChartWriter
                     if HasAccessibility()
                         description = currentBarGroup:GetName() + currentBarGroup:GetDescription()
                         if i = 0
-                            description = description + " To navigate the list of categories, use Left/Right to move between categories in list order," 
-                            description = description + " use Enter to move into the list of bars for that category, use Escape to return to the chart area."
+                            description = description + " To navigate the list of groups, use Left/Right to move between groups in list order," 
+                            description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
                         end    
                         barGroupSVG:SetAriaLabel(description)
                         barGroupSVG:SetAriaHidden("false")
@@ -204,7 +210,7 @@ class BarChartWriter is ChartWriter
                         if j = 0
                             description = description + " To navigate the list of bars, use Left/Right to move between bars in list order, use Up/Down to move between bars by value order,"
                             if chart:HasGroups()
-                                description = description + " use Escape to return to the category list."
+                                description = description + " use Escape to return to the group list."
                             else
                                 description = description + " use Escape to return to the chart area."
                             end
@@ -278,8 +284,62 @@ class BarChartWriter is ChartWriter
                 i = i + 1
             end
         else
+            if HasAccessibility()
+                //Separated, each Series is also separated by the Factor levels
+                if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()  
+                    description = description + " To navigate the chart, press Enter to move into the list of bars."
+                    description = description + " While in the bar list, use Left/Right to move between the bars in list order," 
+                    description = description + " use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+                //Separated, by the Factor levels with multiple Series per subplot
+                elseif not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                    description = description + " To navigate the chart, press Enter to move into the list of groups."
+                    description = description + " While in the group list, use Left/Right to move between the groups in list order," 
+                    description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
+                //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                else
+                    description = description + " To navigate the chart, press Enter to move into the list of groups."
+                    description = description + " While in the series list, use Left/Right to move between the series in list order," 
+                    description = description + " use Enter to move into the list of bars for that series, use Escape to return to the chart area."
+                end
+                chartContent:SetAriaLabel(description)
+                chartContent:SetAriaHidden("false")
+            end
+
             i = 0
             repeat while i < chart:GetSubChartAreas():GetSize()
+                Group subChartContent
+                subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContent:SetTabIndex(-1)
+                chartContent:Add(subChartContent)
+                subChartContent:SetStyleClass("quorum-chart-region") 
+            
+                if HasAccessibility()
+                    description = GetSubChartAreas():Get(i):GetAriaLabel() + "."
+                    //Separated, by the Factor levels with multiple Series per subplot
+                    if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
+                        if i = 0
+                            description = description + " To navigate the list of groups, use Left/Right to move between groups in list order," 
+                            description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
+                        end
+                        subChartContent:SetAriaLabel(description)
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                    elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
+                        if i = 0
+                            description = description + " To navigate the list of series, use Left/Right to move between series in list order,"
+                            description = description + " use Enter to move into the list of bars for that series, use Escape to return to the chart area."
+                        end
+                        subChartContent:SetAriaLabel(description)
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    else
+                        subChartContent:SetAriaHidden("true")
+                    end
+                end
                 j = 0
                 repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
                     if (chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j) is Bar)
@@ -287,14 +347,30 @@ class BarChartWriter is ChartWriter
                       
                         Group barSVG
                         barSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode())
-                        barSVG:SetStyleClass("quorum-chart-bar")
+                        barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
-                            barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                            description = currentBar:GetName() + currentBar:GetDescription() + "."
+                            
+                            if j = 0
+                                description = description + " To navigate the list of bars, use Left/Right to move between bars in list order, use Up/Down to move between bars by value order,"
+                                if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                                    description = description + " use Escape to return to the group list."
+                                elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                                    description = description + " use Escape to return to the series list."
+                                else
+                                    description = description + " use Escape to return to the chart area."
+                                end
+                            end
+                            barSVG:SetAriaLabel(description)
                             barSVG:SetAriaHidden("false")
                         end
-                        canvas:Add(barSVG)
+                        if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                            chartContent:Add(barSVG)
+                        else
+                            subChartContent:Add(barSVG)
+                        end
     
                         Rectangle bar
                         bar:SetWidth(currentBar:GetWidth())
