@@ -108,21 +108,19 @@ Number.prototype.GetText$NumberPrimitive = function() {
   return res;
 };
 Number.prototype.Compare$quorum_Libraries_Language_Object$NumberPrimitive = function(value) {
-    var result = new quorum_Libraries_Language_Support_CompareResult_();
     var b = global_CheckCast(value, "Libraries.Language.Types.Number");
     
     var me = this.valueOf();
     var other = b.GetValue();
     if ((me == other)) {
-        result.result = result.EQUAL;
+        return 0;
     }
     else if ((me < other)) {
-        result.result = result.SMALLER;
+        return -1;
     }
     else {
-        result.result = result.LARGER;
+        return 1;
     }
-    return result;
 };
 Number.prototype.Equals$quorum_Libraries_Language_Object$NumberPrimitive = function (value) {
     var b = global_CheckCast(value, "Libraries.Language.Types.Number");
