@@ -34,11 +34,14 @@ use Libraries.Compute.Statistics.DateTimeParsers.TimestampParser
     frame:Load(file, loader) 
 */
 class CommaSeparatedLoader is DataFrameLoader
-    
-    action Load(DataFrame frame, File file)
+    action Load(DataFrame frame, text value)
         SeparatedValue reader
-        reader:Read(file)
+        reader:Read(value)
 
+        Read(frame, reader)
+    end
+
+    private action Read(DataFrame frame, SeparatedValue reader)
         Array<text> header = undefined
         //first, by default, grab the header row
         if reader:GetSize() > 0
@@ -118,6 +121,13 @@ class CommaSeparatedLoader is DataFrameLoader
             i = i + 1
         end
         frame:SetColumns(newColumns)
+    end
+
+    action Load(DataFrame frame, File file)
+        SeparatedValue reader
+        reader:Read(file)
+
+        Read(frame, reader)
     end
 
     /*
