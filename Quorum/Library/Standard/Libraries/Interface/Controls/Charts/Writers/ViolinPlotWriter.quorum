@@ -149,7 +149,7 @@ class ViolinPlotWriter is ChartWriter
                     end 
                     canvas:Add(plotArea)                       
               
-                    // Index 11: The violin shape, will be loaded as a polygon in the SVG          
+                    // Plot: The violin shape, will be loaded as a polygon in the SVG          
                     Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
                     Polygon violin
                     integer index = 0
@@ -162,9 +162,9 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(items:Get(11):GetColor())
-                    violin:SetStroke(cast(Color, items:Get(11):GetBorderColor()))
-                    violin:SetStrokeWidth(items:Get(11):GetBorderThickness())
+                    violin:SetFill(plot:GetColor())
+                    violin:SetStroke(cast(Color, plot:GetBorderColor()))
+                    violin:SetStrokeWidth(plot:GetBorderThickness())
                     violin:SetTabIndex(-1)
                     if HasAccessibility()
                         violin:SetAriaHidden("true")
@@ -254,7 +254,7 @@ class ViolinPlotWriter is ChartWriter
                     end 
                     canvas:Add(plotArea)                                  
                 
-                    // Index 11: The violin shape, will be loaded as a polygon in the SVG. It is not directly included in the navigation tree as of now.        
+                    // Plot: The violin shape, will be loaded as a polygon in the SVG. It is not directly included in the navigation tree as of now.        
                     Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
                     Polygon violin
                     integer index = 0
@@ -264,9 +264,9 @@ class ViolinPlotWriter is ChartWriter
                         violin:AddPoint(xCoor, yCoor)
                         index = index + 1
                     end 
-                    violin:SetFill(items:Get(11):GetColor())
-                    violin:SetStroke(cast(Color, items:Get(11):GetBorderColor()))
-                    violin:SetStrokeWidth(items:Get(11):GetBorderThickness())
+                    violin:SetFill(plot:GetColor())
+                    violin:SetStroke(cast(Color, plot:GetBorderColor()))
+                    violin:SetStrokeWidth(plot:GetBorderThickness())
                     violin:SetTabIndex(-1)
                     if HasAccessibility()
                         violin:SetAriaHidden("true")

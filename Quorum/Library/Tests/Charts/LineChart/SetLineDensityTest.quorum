@@ -1,0 +1,14 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.LineChart
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedColumns("Column1")
+frame:AddSelectedColumns("Column2")
+
+LineChart chart = frame:LineChart()
+chart:SetTitle("Set Line Density To 6 Test")
+chart:SetSubtitle("Two Columns")
+chart:SetLineDensity(6)
+chart:Display()
+chart:Save("chart.svg")

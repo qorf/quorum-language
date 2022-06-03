@@ -366,9 +366,9 @@ class ViolinPlot is Chart
         This sets the inteval size to calculate the normal distributions
     */
     action SetBandWidth(number value)
-        number limit = GetYAxisMaximum()
+        number limit = GetYAxisMaximum() - GetYAxisMinimum()
         if GetHorizontalFlag()
-            limit = GetXAxisMaximum()
+            limit = GetXAxisMaximum() - GetXAxisMinimum()
         end
         if value > 0 
             if value < limit
@@ -387,10 +387,17 @@ class ViolinPlot is Chart
         return bandWidth
     end
 
+//    /*
+//        Sets a flag that determines if a plot should be split for 2 column, one factor 
+//    */
+//    action IsSplit(boolean flag)
+//        splitPlot = flag
+//    end
+
     /*
         Sets a flag that determines if a plot should be split for 2 column, one factor 
     */
-    action IsSplit(boolean flag)
+    action SplitPlot(boolean flag)
         splitPlot = flag
     end
 

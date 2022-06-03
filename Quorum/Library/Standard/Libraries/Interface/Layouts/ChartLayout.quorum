@@ -250,7 +250,7 @@ class ChartLayout is Layout
         integer originPointX = cast(integer, verticalContainer:GetWidth())
         integer originPointY = 0
 
-        integer paddingOffset = cast(integer, mainVerticalContainer:GetPaddingOffset()*verticalContainer:GetHeight())
+        integer paddingOffset = cast(integer, mainVerticalContainer:GetPaddingOffsetPercent()*verticalContainer:GetHeight())
         chartHeight = chartHeight - 2*paddingOffset
         originPointY = originPointY + paddingOffset
 
@@ -444,7 +444,7 @@ class ChartLayout is Layout
         integer originPointX = 0
         integer originPointY = cast(integer, horizontalContainer:GetHeight())
 
-        integer paddingOffset = cast(integer, mainHorizontalContainer:GetPaddingOffset()*horizontalContainer:GetWidth())
+        integer paddingOffset = cast(integer, mainHorizontalContainer:GetPaddingOffsetPercent()*horizontalContainer:GetWidth())
         chartWidth = chartWidth - 2*paddingOffset
         originPointX = originPointX + paddingOffset
 
@@ -868,8 +868,8 @@ class ChartLayout is Layout
 
     private action LayoutRegressionLines(Chart chart, Control chartAreaContainer)
         if chart:IsShowingLinearRegression()
-            integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
-            integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+            integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+            integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
             number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
             number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
             number xMin = chart:GetXAxisMinimum()

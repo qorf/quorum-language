@@ -111,7 +111,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 DateTimeColumn dates = cast(DateTimeColumn, frame:GetColumn(factor:GetHeader()):Copy(true, true))
                 if dates:GetSize() > 0
                     xMin = 0 
-                    xMax = dates:Get(i-1):GetDayDifference(dates:Get(0))
+                    xMax = dates:Get(dates:GetSize()-1):GetDayDifference(dates:Get(0))
                     xdateMin = dates:Get(0)
                     xdateMax = dates:Get(dates:GetSize()-1)
                     chart:GetHorizontalPanel():SetMinimumDate(xdateMin)
@@ -162,15 +162,12 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 i = i + 1
             end 
             xMin = 0
-            xMax = i
+            xMax = i-1
         end
     
         xAxisMinimum = xMin
         xAxisMaximum = xMax
         
-        number yMin = 0.0   
-        number yMax = 0.0
-
         Array<text> seriesNames
         i = 0
         repeat while i < columns
@@ -221,19 +218,11 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         valueForName = valueForName + point:GetValueY()
                         point:SetValueY(valueForName)
                     end
-                    if(valueForName > yMax)
-                        yMax = valueForName
-                    end
-                    if(valueForName < yMin)
-                        yMin = valueForName
-                    end
                 end
                 j = j + 1
             end
             i = i + 1
         end
-        yAxisMinimum = yMin
-        yAxisMaximum = yMax
         
         if dateFactor
             Array<text> groupKeyArray = groupFactor:CopyToKeyArray()
@@ -306,12 +295,28 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end    
         end
 
+        number yMin = 0.0   
+        number yMax = 0.0
+
         // Series
         Array <Series> seriesList
         i = 0
         repeat while i < seriesNames:GetSize()
             seriesList:Add(seriesFactor:GetValue(seriesNames:Get(i)))
             lineFactor:GetValue(seriesNames:Get(i)):SortPoints()
+            lineMaxY = lineFactor:GetValue(seriesNames:Get(i)):GetLineMax():GetValueY()
+            lineMinY = lineFactor:GetValue(seriesNames:Get(i)):GetLineMin():GetValueY()
+            if i = 0
+                yMax = lineMaxY
+                yMin = lineMinY
+            end
+            if(lineMaxY > yMax)
+                yMax = lineMaxY
+            end
+            if(lineMinY < yMin)
+                yMin = lineMinY
+            end
+
             chart:AddChartLine(lineFactor:GetValue(seriesNames:Get(i)))
             if not textFactor
                 Array<DataFrameColumn> regColumns 
@@ -346,6 +351,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             i = i + 1
         end
+        yAxisMinimum = yMin
+        yAxisMaximum = yMax
 
         chart:SetSeriesList(seriesList)
         SetScale(chart, yAxisMinimum, yAxisMaximum, xAxisMinimum, xAxisMaximum)

@@ -1,0 +1,11 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.BarChart
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedFactors("Factor1")
+
+BarChart chart = frame:BarChart()
+chart:SetTitle("No Columns - One Factor")
+chart:Display()
+chart:Save("chart.svg")

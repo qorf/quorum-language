@@ -1,0 +1,16 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.ViolinPlot
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedColumns("Column1")
+frame:AddSelectedColumns("Column2")
+frame:AddSelectedFactors("Factor1")
+
+ViolinPlot chart = frame:ViolinPlot()
+chart:SetTitle("Split Plot Horizontal Test")
+chart:SetSubtitle("Two Columns - One Factor")
+chart:SplitPlot(true)
+chart:SetOrientationToHorizontal()
+chart:Display()
+chart:Save("chart.svg")

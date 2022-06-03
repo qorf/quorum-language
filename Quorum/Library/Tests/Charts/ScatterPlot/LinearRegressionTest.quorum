@@ -1,0 +1,15 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.ScatterPlot
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedColumns("Column1")
+frame:AddSelectedColumns("Column2")
+frame:AddSelectedFactors("Factor1")
+
+ScatterPlot chart = frame:ScatterPlot()
+chart:SetTitle("Linear Regression Test")
+chart:SetSubtitle("Two Columns - One Factor")
+chart:ShowLinearRegression(true)
+chart:Display()
+chart:Save("chart.svg")

@@ -123,8 +123,8 @@ class Histogram is SharedBarChartParent
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        number min = dataMin
-        number max = dataMax
+        number min = 0
+        number max = 0
 
         if GetHorizontalFlag() // Default is vertical
             min = GetVerticalPanel():GetMinimum()
@@ -137,7 +137,7 @@ class Histogram is SharedBarChartParent
 
         // Take range and divide it amongst bins and round up to get the default bin width
         if binCountOverride //Bin count override supercedes bin width override
-            if max < 2.5
+            if max < 2.5 and max > -2.5
                 decimalScale = true
                 binWidth = math:Round(range / cast(number, binCount),3)
                 if GetHorizontalFlag()
@@ -161,7 +161,7 @@ class Histogram is SharedBarChartParent
             end
         else
             if binWidthOverride
-                if max < 2.5
+                if max < 2.5 and max > -2.5
                     decimalScale = true
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                     if GetHorizontalFlag()
@@ -182,15 +182,16 @@ class Histogram is SharedBarChartParent
                         max = math:Ceiling(max)
                         range = max - min
                     end
-                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                    binCount = cast(integer, math:Ceiling(range/binWidth))
                 end
-                if max = dataMax
+                if min+binCount*binWidth = dataMax //If the max value lands exactly on the edge of the last bin, make one more bin.
                     max = max + binWidth
+                    binCount = binCount + 1
                 end
             else
                 //Default binwidth and bincount (don't count undefined column values)
                 binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
-                if max < 2.5
+                if max < 2.5 and max > -2.5
                     decimalScale = true
                     binWidth = math:Round(range / cast(number, binCount),1)
                     if GetHorizontalFlag()
@@ -204,9 +205,10 @@ class Histogram is SharedBarChartParent
                     max = math:Ceiling(max)
                     range = max - min
                     binWidth = math:Ceiling(range  / cast(number, binCount))
-                    binCount = cast(integer, math:Ceiling(range / binWidth))+1
-                    if max = dataMax and (max mod binWidth = 0)
+                    binCount = cast(integer, math:Ceiling(range / binWidth))
+                    if min+binCount*binWidth = dataMax //If the max value lands exactly on the edge of the last bin, make one more bin.
                         max = max + binWidth
+                        binCount = binCount + 1
                     end
                 end
             end
@@ -283,7 +285,7 @@ class Histogram is SharedBarChartParent
             end
     
             i = 0
-            floor = 0.0
+            floor = min
             repeat while i < count:GetSize() and floor < max
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
@@ -355,6 +357,7 @@ class Histogram is SharedBarChartParent
     end
 
     private action SetScale(number ymin, number ymax, number xmin, number xmax)
+        output "ymin: "+ymin+" ymax: "+ymax+" xmin: "+xmin+" xmax: "+xmax 
         if GetHorizontalFlag()
             parent:SharedBarChartParent:SetYAxisMaximum(ymax)
             parent:SharedBarChartParent:SetYAxisMinimum(ymin)

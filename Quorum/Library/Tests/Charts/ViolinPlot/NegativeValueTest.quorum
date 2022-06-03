@@ -1,0 +1,13 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.ViolinPlot
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedColumns("Negative1")
+frame:AddSelectedFactors("Factor1")
+
+ViolinPlot chart = frame:ViolinPlot()
+chart:SetTitle("Negative Value Test")
+chart:SetSubtitle("One Column - One Factor")
+chart:Display()
+chart:Save("chart.svg")

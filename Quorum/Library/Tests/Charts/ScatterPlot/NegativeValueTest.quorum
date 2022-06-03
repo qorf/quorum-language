@@ -1,0 +1,13 @@
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.ScatterPlot
+
+DataFrame frame
+frame:Load("Library/Tests/Charts/Resources/ChartTestData.csv")
+frame:AddSelectedColumns("Negative1")
+frame:AddSelectedColumns("Negative2")
+
+ScatterPlot chart = frame:ScatterPlot()
+chart:SetTitle("Negative Value Test")
+chart:SetSubtitle("Two Columns")
+chart:Display()
+chart:Save("chart.svg")
