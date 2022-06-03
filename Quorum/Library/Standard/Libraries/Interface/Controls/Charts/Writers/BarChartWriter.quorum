@@ -623,22 +623,24 @@ class BarChartWriter is ChartWriter
                 end
                 i = i + 1
             end
-            if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
-                subChartAreas:Get(i):GetChartAreaItems():Sort(comparison)
-                scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
-                j = 0
-                repeat while j< subChartAreas:Get(i):GetChartAreaItems():GetSize() - 1
-                    if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
-                        Bar currentBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
-                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
+            if i < subChartAreas:GetSize()
+                if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
+                    subChartAreas:Get(i):GetChartAreaItems():Sort(comparison)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
+                    j = 0
+                    repeat while j< subChartAreas:Get(i):GetChartAreaItems():GetSize() - 1
+                        if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                            Bar currentBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
+                        end
+                        j = j + 1
                     end
-                    j = j + 1
-                end
-
-                if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
-                    Bar lastBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
-                    scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
-                    scriptText = scriptText + tab + "}" + newLine
+    
+                    if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                        Bar lastBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
+                        scriptText = scriptText + tab + "}" + newLine
+                    end
                 end
             end
 

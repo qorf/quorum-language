@@ -357,7 +357,6 @@ class Histogram is SharedBarChartParent
     end
 
     private action SetScale(number ymin, number ymax, number xmin, number xmax)
-        output "ymin: "+ymin+" ymax: "+ymax+" xmin: "+xmin+" xmax: "+xmax 
         if GetHorizontalFlag()
             parent:SharedBarChartParent:SetYAxisMaximum(ymax)
             parent:SharedBarChartParent:SetYAxisMinimum(ymin)
