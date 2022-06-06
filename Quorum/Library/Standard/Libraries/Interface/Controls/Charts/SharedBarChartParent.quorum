@@ -58,6 +58,10 @@ class SharedBarChartParent is Chart
     number barBorderThickness = 0
     integer barBorderStyle = 0
 
+    // Terminology for navigation instructions
+    private text chartItemText = "bar"
+    private text chartItemsText = "bars"
+
     // Used to render a trend line. Undefined if no trend line is being rendered.
     LinePath trendLine = undefined
 
@@ -104,6 +108,9 @@ class SharedBarChartParent is Chart
                 BarGroup barGroupIcon = barGroups:Get(i)
                 barGroupIcon:SetName(groupname + " group, ")
                 barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, has " + barGroups:Get(i):GetSize() + " bars.")
+                if i = 0
+                    AddGroupPanelInstructions(barGroupIcon, barGroupIcon:GetDescription())
+                end
                 barGroupIcon:SetFocusable(true)
                 barGroupIcon:SetAccessibilityCode(parent:Item:ITEM)
                 barGroupIcon:SetNextFocus(GetNextFocus())
@@ -166,6 +173,7 @@ class SharedBarChartParent is Chart
                     temp:SetName(barname + " bar, ")
                     temp:SetDescription(valueText + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
                 end
+                AddChartItemInstructions(temp,temp:GetDescription())
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
                 temp:SetNextFocus(GetNextFocus())
@@ -440,7 +448,8 @@ class SharedBarChartParent is Chart
         chartArea:SetFocusTarget(me:GetChartArea())
         chartArea:SetParent(summary)
         chartArea:SetContainer(me)
-        me:GetChartArea():SetDescription(" with " + numberOfBars + bartext)
+
+        AddChartAreaInstructions(" with " + numberOfBars + bartext)
     
         // If any of these are not showing the tree will skip them in the navigation        
         if IsShowingYAxis() 
@@ -458,13 +467,13 @@ class SharedBarChartParent is Chart
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
-                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
+                AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts.")
+                AddSubChartAreaInstructions(GetSubChartAreas():Get(0), " chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts.")
 
                 //Bars within SubChartArea
                 ChartItem firstBar
@@ -473,7 +482,6 @@ class SharedBarChartParent is Chart
                     firstArea:SetChild(firstBar)
                     firstBar:SetParent(firstArea)
                     firstBar:SetFocusTarget(chartAreaItems:Get(0))
-                    chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + " 1 of " + chartAreaItems:GetSize() + " bars.")
                 end
 
                 integer j = 1
@@ -515,7 +523,6 @@ class SharedBarChartParent is Chart
                         nextArea:SetChild(firstBar)
                         firstBar:SetParent(nextArea)
                         firstBar:SetFocusTarget(chartAreaItems:Get(0))
-                        chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + " 1 of " + chartAreaItems:GetSize() + " bars.")
                     end
     
                     j = 1
@@ -773,4 +780,13 @@ class SharedBarChartParent is Chart
     action GetTrendLine returns LinePath
         return trendLine
     end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
+    end
+
 end
