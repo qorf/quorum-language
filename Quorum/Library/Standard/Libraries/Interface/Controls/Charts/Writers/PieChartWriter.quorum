@@ -95,103 +95,10 @@ class PieChartWriter is ChartWriter
             Math math
             PieBox pieBox = chart:GetPieBoxes():Get(0)
     
-            if pieBox not= undefined
+            if pieBox not= undefined and pieBox:GetChartArea() not= undefined
                 centerX = pieBox:GetX() + pieBox:GetWidth()/2 + cast(integer, pieBox:GetChartArea():GetGlobalX())
-                centerY = pieBox:GetY() + pieBox:GetHeight()/2 + cast(integer, TranslatePositionY(pieBox:GetChartArea()) - pieBox:GetChartArea():GetHeight())
-            end
-    
-            number prevX = 0 //Used on donut hole (inner radius)
-            number prevY = 0 //Used on donut hole (inner radius)
-            number newX = 0 //Used on donut hole (inner radius)
-            number newY = 0 //Used on donut hole (inner radius)
-            number currentTheta = -90 // This starts it at the top
-            number x = 0
-            number y = 0
-            integer i = 0
-            repeat while i < pieBox:GetSize()
-                Wedge slice // this is an SVG wedge not chart graphics wedge
-                //Set outer radius
-                number radius = pieBox:Get(i):GetOuterRadius()
-                number innerRadius = pieBox:Get(i):GetInnerRadius()
-                slice:SetOuterRadius(radius)
-
-                //Start point of outer arc
-                x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
-                slice:SetStart(x, y)
-
-                //End point of outer arc
-                number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
-                currentTheta = currentTheta + percent * 360
-                x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
-                slice:SetEnd(x, y)
-    
-                // This will account for the offset if the pie chart has a donut hole.
-                if innerRadius > 0
-                    slice:SetInnerRadius(innerRadius)  
-    
-                    //End point of inner arc
-                    if i = 0
-                        prevX = centerX
-                        prevY = centerY - innerRadius
-                    end
-                    slice:SetInnerEnd(prevX, prevY)
-                    
-                    //Start point of inner arc
-                    newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
-                    newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
-                    slice:SetCenter(newX, newY)
-    
-                    prevX = newX
-                    prevY = newY
-                else
-                    // Center point if inner radius is not used.
-                    slice:SetCenter(centerX, centerY)
-                end
-                slice:SetFill(pieBox:Get(i):GetColor())
-                slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
-                slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
-                slice:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
-                slice:SetStyleClass("quorum-chart-wedge")
-                slice:SetTabIndex(-1)
-                if HasAccessibility()
-                    slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
-                    slice:SetAriaHidden("true")
-                end
-                canvas:Add(slice)
-
-                if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
-                    ChartLabel label = pieBox:Get(i):GetAnnotation()
-                    if label not= undefined
-                        Label labelSVG
-                        labelSVG:SetText(label:GetText())
-                        labelSVG:SetTextAnchor("left")
-                        labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                        labelSVG:SetFontSize(label:GetFontSize() + "px")
-                        labelSVG:SetFontFamily("Arial")
-                        labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                        labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
-                        labelSVG:SetStyleClass("quorum-chart-text")
-                        labelSVG:SetTabIndex(-1)
-                        if HasAccessibility()
-                            labelSVG:SetAriaHidden("true")
-                        end
-                        canvas:Add(labelSVG)
-                    end
-                end
-                i = i + 1
-            end
-        else
-            Math math
-            integer index = 0
-            repeat while index < chart:GetPieBoxes():GetSize()
-                PieBox pieBox = chart:GetPieBoxes():Get(index)
-                if pieBox not= undefined
-                    centerX = pieBox:GetX() + pieBox:GetWidth()/2 + cast(integer, pieBox:GetChartArea():GetGlobalX())
-                    centerY = pieBox:GetY() + pieBox:GetHeight()/2 + cast(integer, TranslatePositionY(pieBox:GetChartArea()) - pieBox:GetChartArea():GetHeight())
-                end
-    
+                centerY = pieBox:GetY() + pieBox:GetHeight()/2 + cast(integer, TranslatePositionY(pieBox:GetChartArea()) - pieBox:GetChartArea():GetHeight())            
+        
                 number prevX = 0 //Used on donut hole (inner radius)
                 number prevY = 0 //Used on donut hole (inner radius)
                 number newX = 0 //Used on donut hole (inner radius)
@@ -206,19 +113,19 @@ class PieChartWriter is ChartWriter
                     number radius = pieBox:Get(i):GetOuterRadius()
                     number innerRadius = pieBox:Get(i):GetInnerRadius()
                     slice:SetOuterRadius(radius)
-
+    
                     //Start point of outer arc
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                     slice:SetStart(x, y)
-
+    
                     //End point of outer arc
                     number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
                     currentTheta = currentTheta + percent * 360
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                     slice:SetEnd(x, y)
-    
+        
                     // This will account for the offset if the pie chart has a donut hole.
                     if innerRadius > 0
                         slice:SetInnerRadius(innerRadius)  
@@ -244,7 +151,7 @@ class PieChartWriter is ChartWriter
                     slice:SetFill(pieBox:Get(i):GetColor())
                     slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
-                    slice:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
+                    slice:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
                     slice:SetStyleClass("quorum-chart-wedge")
                     slice:SetTabIndex(-1)
                     if HasAccessibility()
@@ -252,7 +159,7 @@ class PieChartWriter is ChartWriter
                         slice:SetAriaHidden("true")
                     end
                     canvas:Add(slice)
-
+    
                     if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
                         ChartLabel label = pieBox:Get(i):GetAnnotation()
                         if label not= undefined
@@ -271,8 +178,101 @@ class PieChartWriter is ChartWriter
                             end
                             canvas:Add(labelSVG)
                         end
-                    end 
+                    end
                     i = i + 1
+                end
+            end
+        else
+            Math math
+            integer index = 0
+            repeat while index < chart:GetPieBoxes():GetSize()
+                PieBox pieBox = chart:GetPieBoxes():Get(index)
+                if pieBox not= undefined and pieBox:GetChartArea() not= undefined
+                    centerX = pieBox:GetX() + pieBox:GetWidth()/2 + cast(integer, pieBox:GetChartArea():GetGlobalX())
+                    centerY = pieBox:GetY() + pieBox:GetHeight()/2 + cast(integer, TranslatePositionY(pieBox:GetChartArea()) - pieBox:GetChartArea():GetHeight())
+    
+                    number prevX = 0 //Used on donut hole (inner radius)
+                    number prevY = 0 //Used on donut hole (inner radius)
+                    number newX = 0 //Used on donut hole (inner radius)
+                    number newY = 0 //Used on donut hole (inner radius)
+                    number currentTheta = -90 // This starts it at the top
+                    number x = 0
+                    number y = 0
+                    integer i = 0
+                    repeat while i < pieBox:GetSize()
+                        Wedge slice // this is an SVG wedge not chart graphics wedge
+                        //Set outer radius
+                        number radius = pieBox:Get(i):GetOuterRadius()
+                        number innerRadius = pieBox:Get(i):GetInnerRadius()
+                        slice:SetOuterRadius(radius)
+    
+                        //Start point of outer arc
+                        x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                        y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                        slice:SetStart(x, y)
+    
+                        //End point of outer arc
+                        number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
+                        currentTheta = currentTheta + percent * 360
+                        x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                        y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                        slice:SetEnd(x, y)
+        
+                        // This will account for the offset if the pie chart has a donut hole.
+                        if innerRadius > 0
+                            slice:SetInnerRadius(innerRadius)  
+            
+                            //End point of inner arc
+                            if i = 0
+                                prevX = centerX
+                                prevY = centerY - innerRadius
+                            end
+                            slice:SetInnerEnd(prevX, prevY)
+                            
+                            //Start point of inner arc
+                            newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
+                            newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
+                            slice:SetCenter(newX, newY)
+            
+                            prevX = newX
+                            prevY = newY
+                        else
+                            // Center point if inner radius is not used.
+                            slice:SetCenter(centerX, centerY)
+                        end
+                        slice:SetFill(pieBox:Get(i):GetColor())
+                        slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
+                        slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+                        slice:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
+                        slice:SetStyleClass("quorum-chart-wedge")
+                        slice:SetTabIndex(-1)
+                        if HasAccessibility()
+                            slice:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
+                            slice:SetAriaHidden("true")
+                        end
+                        canvas:Add(slice)
+    
+                        if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
+                            ChartLabel label = pieBox:Get(i):GetAnnotation()
+                            if label not= undefined
+                                Label labelSVG
+                                labelSVG:SetText(label:GetText())
+                                labelSVG:SetTextAnchor("left")
+                                labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                labelSVG:SetFontSize(label:GetFontSize() + "px")
+                                labelSVG:SetFontFamily("Arial")
+                                labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                                labelSVG:SetStyleClass("quorum-chart-text")
+                                labelSVG:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    labelSVG:SetAriaHidden("true")
+                                end
+                                canvas:Add(labelSVG)
+                            end
+                        end 
+                        i = i + 1
+                    end
                 end
                 index = index + 1
             end
