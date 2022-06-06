@@ -341,9 +341,13 @@ class Chart is Control
         Array <text> tempLabels
 
         // Axis offset
-        tempNum = horizontalPanel:GetPaddingOffset()
-        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
-        verticalPanel:SetPaddingOffset(tempNum)
+        tempNum = horizontalPanel:GetPaddingOffsetPercent()
+        horizontalPanel:SetPaddingOffsetPercent(verticalPanel:GetPaddingOffsetPercent())
+        verticalPanel:SetPaddingOffsetPercent(tempNum)
+
+        tempBool = horizontalPanel:OverrideDefaultPaddingOffset()
+        horizontalPanel:OverrideDefaultPaddingOffset(verticalPanel:OverrideDefaultPaddingOffset())
+        verticalPanel:OverrideDefaultPaddingOffset(tempBool)
 
 
         // Range values
@@ -741,7 +745,8 @@ class Chart is Control
     */
     action SetYAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            verticalPanel:SetPaddingOffset(percent)
+            verticalPanel:SetPaddingOffsetPercent(percent)
+            verticalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end
@@ -749,7 +754,8 @@ class Chart is Control
 
     action SetXAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            horizontalPanel:SetPaddingOffset(percent)
+            horizontalPanel:SetPaddingOffsetPercent(percent)
+            horizontalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end

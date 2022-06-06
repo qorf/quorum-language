@@ -29,8 +29,8 @@ class LineChartLayout is TwoVariableChartLayout
 
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
-        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
-        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
         number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
         number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
 

@@ -5,6 +5,7 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.Support.ArrayIterator
 use Libraries.Language.Support.CompareResult
 use Libraries.Containers.Support.Comparison
+use Libraries.Compute.Random
 
 /*
 The Array class is a data structure that stores items in contiguous memory. An
@@ -229,6 +230,147 @@ class Array <Type>
         else
             InvalidLocationError error
             alert(error)
+        end
+    end
+
+    /*
+        This action shuffles the values in the array randomly.
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        constant integer max = 20
+        Array<integer> values
+        i = 0
+        repeat while i < max
+            values:Add(i)
+            i = i + 1
+        end
+        
+        values:Shuffle()
+        
+        i = 0
+        repeat while i < max
+            output values:Get(i)
+            i = i + 1
+        end
+    */
+    action Shuffle
+        Shuffle(0, GetSize() - 1, false, 0)
+    end
+
+    /*
+        This action shuffles the values in the array randomly. In this version, a seed for a random
+        number generator is used.
+
+        Attribute: Parameter seed The seed for the random number generator
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        constant integer max = 20
+        Array<integer> values
+        i = 0
+        repeat while i < max
+            values:Add(i)
+            i = i + 1
+        end
+        
+        values:Shuffle(0) //a random seed of 0
+        
+        i = 0
+        repeat while i < max
+            output values:Get(i)
+            i = i + 1
+        end
+    */
+    action Shuffle(number seed)
+        Shuffle(0, GetSize() - 1, true, seed)
+    end
+
+    /*
+        This action shuffles the values in the array randomly. In this version, a minimum and maximum
+        part of the array is provided. If those values are outside the bounds of the array, they are 
+        clamped to correct values.
+
+        Attribute: Parameter minimum The smallest index to shuffle
+        Attribute: Parameter maximum The largest index to shuffle
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        constant integer max = 20
+        Array<integer> values
+        i = 0
+        repeat while i < max
+            values:Add(i)
+            i = i + 1
+        end
+        
+        values:Shuffle(3, 7) //Only shuffle part of the array
+        
+        i = 0
+        repeat while i < max
+            output values:Get(i)
+            i = i + 1
+        end
+    */
+    action Shuffle(integer minimum, integer maximum)
+        Shuffle(minimum, maximum, false, 0)
+    end
+
+    /*
+        This action shuffles the values in the array randomly. In this version, a minimum and maximum
+        part of the array is provided. If those values are outside the bounds of the array, they are 
+        clamped to correct values. This version also uses a random number seed.
+
+        Attribute: Parameter minimum The smallest index to shuffle
+        Attribute: Parameter maximum The largest index to shuffle
+        Attribute: Parameter seed The seed for the random number generator
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        constant integer max = 20
+        Array<integer> values
+        i = 0
+        repeat while i < max
+            values:Add(i)
+            i = i + 1
+        end
+        
+        values:Shuffle(3, 7, 0) //Only shuffle part of the array and pass a random seed
+        
+        i = 0
+        repeat while i < max
+            output values:Get(i)
+            i = i + 1
+        end
+    */
+    action Shuffle(integer minimum, integer maximum, number seed)
+        Shuffle(minimum, maximum, true, seed)
+    end
+
+    /* This is a helper action for the shuffle actions and should not be called directly. */
+    private action Shuffle(integer minimum, integer maximum, boolean hasSeed, number seed)
+        Random random
+        if hasSeed
+            random:SetSeed(seed)
+        end
+    
+        if minimum < 0
+            minimum = 0
+        end
+
+        if maximum > GetSize() - 1
+            maximum = GetSize() - 1
+        end
+
+        i = maximum
+        repeat while i >= minimum
+            integer value = random:RandomIntegerBetween(minimum, i)
+            //do the swap
+            Type top = Get(i)
+            Type temp = Get(value)
+            Set(i, temp)
+            Set(value, top)
+            i = i - 1
         end
     end
 

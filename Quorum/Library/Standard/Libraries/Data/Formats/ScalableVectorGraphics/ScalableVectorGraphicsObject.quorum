@@ -48,6 +48,10 @@ class ScalableVectorGraphicsObject
     private text ariaLabelledBy = ""
     private text ariaDescribedBy = ""
     private text ariaHidden = ""
+
+    //event handlers
+    private text onFocus = ""
+    private text onBlur = ""
     
 
     //helper attributes
@@ -115,6 +119,12 @@ class ScalableVectorGraphicsObject
         end
         if ariaHidden not= ""
             result = result + " aria-hidden="+dq+ariaHidden+dq
+        end
+        if onFocus not= ""
+            result = result + " onfocus="+dq+onFocus+dq
+        end
+        if onBlur not= ""
+            result = result + " onblur="+dq+onBlur+dq
         end
         return result
     end
@@ -778,6 +788,48 @@ class ScalableVectorGraphicsObject
 
     action GetAriaHidden returns text
         return ariaHidden
+    end
+
+    /*
+        This action will give a focus event handler attribute to the SVG element. This focus can be for general use
+        by a web browser.
+
+        Attribute: Parameter onFocus The onfocus for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Group group
+        group:SetOnFocus("console.log('hello world');")
+    */
+    action SetOnFocus(text onFocus)
+        me:onFocus = onFocus
+    end
+
+    action GetOnFocus returns text
+        return onFocus
+    end
+
+    /*
+        This action will give a blur event handler attribute to the SVG element. This blur can be for general use
+        by a web browser.
+
+        Attribute: Parameter onBlur The onblur for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Group group
+        group:SetOnBlur("console.log('hello world');")
+    */
+    action SetOnBlur(text onBlur)
+        me:onBlur = onBlur
+    end
+
+    action GetOnBlur returns text
+        return onBlur
     end
 
     /*

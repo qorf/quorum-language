@@ -142,7 +142,6 @@ class ChartWriter
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
-        chartCanvas:SetRole("img")
 
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
@@ -212,7 +211,6 @@ class ChartWriter
         chartCanvas:SetStyleClass("quorum-chart")
         chartCanvas:SetTabIndex(-1)
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
-        chartCanvas:SetRole("img")
 
         //Generate SVG elements for each piece of the chart
         AddBackground(chartCanvas, chart)
@@ -405,6 +403,13 @@ class ChartWriter
     end
 
     /*
+        This action gets the subchart area list.
+    */
+    action GetSubChartAreas() returns Array<Rectangle>
+        return subChartAreas
+    end
+
+    /*
         This action sets the y labels.
     */
     action SetXLabels(Array<Label> xLabels)
@@ -438,7 +443,9 @@ class ChartWriter
     */
     private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
-        background:SetFill(cast(Color, chart:GetBackground():GetColor()))
+        if chart:GetBackground() not= undefined
+            background:SetFill(cast(Color, chart:GetBackground():GetColor()))
+        end
         background:SetSize(100,100, "%")
         background:SetPosition(0, 0, "%")
         background:SetID(canvas:GetID() + "_" + background:GetHashCode())
@@ -747,37 +754,41 @@ class ChartWriter
         This action adds a chart title to the canvas
     */
     private action AddChartTitle(ScalableVectorGraphics canvas, Chart chart)
-        chartTitle:SetText(chart:GetTitle())
-        chartTitle:SetTextAnchor("left")
-        chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))// - chart:GetTitleLabel():GetHeight()/2)
-        chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
-        chartTitle:SetFontFamily("Arial")
-        chartTitle:SetFill(cast(Color, chart:GetTitleLabel():GetFontColor()))
-        chartTitle:SetID(canvas:GetID() + "_" + chartTitle:GetHashCode())
-        chartTitle:SetStyleClass("quorum-chart-text")
-        chartTitle:SetTabIndex(-1)
-        if HasAccessibility()
-            chartTitle:SetAriaHidden("true")
+        if chart:GetTitleLabel() not= undefined
+            chartTitle:SetText(chart:GetTitle())
+            chartTitle:SetTextAnchor("left")
+            chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))// - chart:GetTitleLabel():GetHeight()/2)
+            chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
+            chartTitle:SetFontFamily("Arial")
+            chartTitle:SetFill(cast(Color, chart:GetTitleLabel():GetFontColor()))
+            chartTitle:SetID(canvas:GetID() + "_" + chartTitle:GetHashCode())
+            chartTitle:SetStyleClass("quorum-chart-text")
+            chartTitle:SetTabIndex(-1)
+            if HasAccessibility()
+                chartTitle:SetAriaHidden("true")
+            end
+            canvas:Add(chartTitle)
         end
-        canvas:Add(chartTitle)
     end
 
     /*
         This action adds a chart subtitle to the canvas
     */
     private action AddChartSubtitle(ScalableVectorGraphics canvas, Chart chart)
-        chartSubtitle:SetText(chart:GetSubtitle())
-        chartSubtitle:SetTextAnchor("left")
-        chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()))// - chart:GetSubtitleLabel():GetHeight()/2)
-        chartSubtitle:SetFontSize(chart:GetSubtitleLabel():GetFontSize() + "px")
-        chartSubtitle:SetFontFamily("Arial")
-        chartSubtitle:SetFill(cast(Color, chart:GetSubtitleLabel():GetFontColor()))
-        chartSubtitle:SetID(canvas:GetID() + "_" + chartSubtitle:GetHashCode())
-        chartSubtitle:SetTabIndex(-1)
-        if HasAccessibility()
-            chartSubtitle:SetAriaHidden("true")
+        if chart:GetSubtitleLabel() not= undefined
+            chartSubtitle:SetText(chart:GetSubtitle())
+            chartSubtitle:SetTextAnchor("left")
+            chartSubtitle:SetPosition(chart:GetSubtitleLabel():GetGlobalX(), TranslatePositionY(chart:GetSubtitleLabel()))// - chart:GetSubtitleLabel():GetHeight()/2)
+            chartSubtitle:SetFontSize(chart:GetSubtitleLabel():GetFontSize() + "px")
+            chartSubtitle:SetFontFamily("Arial")
+            chartSubtitle:SetFill(cast(Color, chart:GetSubtitleLabel():GetFontColor()))
+            chartSubtitle:SetID(canvas:GetID() + "_" + chartSubtitle:GetHashCode())
+            chartSubtitle:SetTabIndex(-1)
+            if HasAccessibility()
+                chartSubtitle:SetAriaHidden("true")
+            end
+            canvas:Add(chartSubtitle)
         end
-        canvas:Add(chartSubtitle)
     end
 
     /*

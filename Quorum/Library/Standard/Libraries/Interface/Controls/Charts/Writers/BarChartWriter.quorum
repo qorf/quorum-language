@@ -96,26 +96,41 @@ class BarChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Group chartContent
+        chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
+        chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+        chartContent:SetTabIndex(0)
+        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContent:SetIsOneLine(true)
+        chartContent:SetRole("application")
+        canvas:Add(chartContent)
+        Rectangle chartContentBoundingBox
+        chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
+        chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
+        chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetStroke(transparent)
+        if HasAccessibility()
+            chartContentBoundingBox:SetAriaHidden("true")
+        end
+        chartContent:Add(chartContentBoundingBox)
+
+        text description = GetChartArea():GetAriaLabel() + "."
+
         if not chart:IsSeparated()
-            Group chartContent
-            chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
-            chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-            chartContent:SetAriaHidden("false")
-            chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
-            chartContent:SetIsOneLine(true)
-            canvas:Add(chartContent)
-
-            text description = GetChartArea():GetAriaLabel() + "."
-
-            if chart:HasGroups()
-                description = description + " To navigate the chart, press Enter to move into the list of categories."
-                description = description + " While in the category list, use Left/Right to move between the categories in list order, use Enter to move into the list of bars for that category, use Escape to return to the chart area."
-            else
-                description = description + " To navigate the chart, press Enter to move into the list of bars."
-                description = description + " While in the bar list, use Left/Right to move between the bars in list order, use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+            
+            if HasAccessibility()
+                //Not Separated but has Groups
+                if chart:HasGroups()
+                    description = description + " To navigate the chart, press Enter to move into the list of groups."
+                    description = description + " While in the group list, use Left/Right to move between the groups in list order, use Enter to move into the list of bars for that category, use Escape to return to the chart area."
+                //Not Separate and no Groups
+                else
+                    description = description + " To navigate the chart, press Enter to move into the list of bars."
+                    description = description + " While in the bar list, use Left/Right to move between the bars in list order, use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+                end
+                chartContent:SetAriaLabel(description)
+                chartContent:SetAriaHidden("false")
             end
-            chartContent:SetAriaLabel(description)
             i = 0
             repeat while i < chart:GetBarGroups():GetSize()
                 BarGroup currentBarGroup = chart:GetBarGroups():Get(i)
@@ -129,14 +144,17 @@ class BarChartWriter is ChartWriter
                     if HasAccessibility()
                         description = currentBarGroup:GetName() + currentBarGroup:GetDescription()
                         if i = 0
-                            description = description + " To navigate the list of categories, use Left/Right to move between categories in list order," 
-                            description = description + " use Enter to move into the list of bars for that category, use Escape to return to the chart area."
+                            description = description + " To navigate the list of groups, use Left/Right to move between groups in list order," 
+                            description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
                         end    
                         barGroupSVG:SetAriaLabel(description)
                         barGroupSVG:SetAriaHidden("false")
                     end
 
                     chartContent:Add(barGroupSVG)
+                    
+                    text barGroupFocus = ""
+                    text barGroupBlur = ""
 
                     // The group area, used for hover 
                     Rectangle barGroup
@@ -161,10 +179,13 @@ class BarChartWriter is ChartWriter
                             bracket:SetFill(transparent) // Should be transparent until selected
                             bracket:SetStyleClass("quorum-chart-selection-bracket")
                             bracket:SetTabIndex(-1)
+                            bracket:SetID(barGroupSVG:GetID() + "_bracket" + k)
                             if HasAccessibility()
                                 bracket:SetAriaHidden("true")
+                                barGroupFocus = barGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
+                                barGroupBlur = barGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
                             end
-                            barGroupSVG:Add(bracket)    
+                            canvas:Add(bracket)    
                             k = k + 1
                         end
                     end
@@ -182,11 +203,23 @@ class BarChartWriter is ChartWriter
                         end
                         arrow:SetFill(transparent) // Should be transparent until selected
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetID(barGroupSVG:GetID() + "_arrow")
                         arrow:SetTabIndex(-1)
                         if HasAccessibility()
                             arrow:SetAriaHidden("true")
+                            barGroupFocus = barGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
+                            barGroupBlur = barGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
                         end
-                        barGroupSVG:Add(arrow)
+                        canvas:Add(arrow)
+                    end
+                    
+                    if HasAccessibility()
+                        if barGroupFocus not= ""
+                            barGroupSVG:SetOnFocus(barGroupFocus)
+                        end
+                        if barGroupBlur not= ""
+                            barGroupSVG:SetOnBlur(barGroupBlur)
+                        end
                     end
                 end
                 
@@ -204,7 +237,7 @@ class BarChartWriter is ChartWriter
                         if j = 0
                             description = description + " To navigate the list of bars, use Left/Right to move between bars in list order, use Up/Down to move between bars by value order,"
                             if chart:HasGroups()
-                                description = description + " use Escape to return to the category list."
+                                description = description + " use Escape to return to the group list."
                             else
                                 description = description + " use Escape to return to the chart area."
                             end
@@ -218,6 +251,9 @@ class BarChartWriter is ChartWriter
                         chartContent:Add(barSVG)
                     end
 
+                    text barFocus = ""
+                    text barBlur = ""
+
                     Rectangle bar
                     bar:SetWidth(currentBar:GetWidth())
                     bar:SetHeight(currentBar:GetHeight())
@@ -226,9 +262,12 @@ class BarChartWriter is ChartWriter
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeWidth(currentBar:GetBorderThickness())
                     bar:SetStyleClass("quorum-chart-rect")
+                    bar:SetID(barSVG:GetID() + "_bar")
                     bar:SetTabIndex(-1)
                     if HasAccessibility()
                         bar:SetAriaHidden("true")
+                        barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                        barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                     end
                     barSVG:Add(bar)
     
@@ -242,13 +281,15 @@ class BarChartWriter is ChartWriter
                             labelSVG:SetFontSize(label:GetFontSize() + "px")                            
                             labelSVG:SetFontFamily("Arial")
                             labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                            labelSVG:SetID(barSVG:GetID() + "_annotation")
                             labelSVG:SetStyleClass("quorum-chart-text")
                             labelSVG:SetTabIndex(-1)
                             if HasAccessibility()
                                 labelSVG:SetAriaHidden("true")
+                                barFocus = barFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                barBlur = barBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                             end
-                            barSVG:Add(labelSVG)
+                            canvas:Add(labelSVG)
                         end
                     end 
 
@@ -266,10 +307,22 @@ class BarChartWriter is ChartWriter
                         arrow:SetFill(transparent) // Should be transparent until selected 
                         arrow:SetStyleClass("quorum-chart-selection-arrow")
                         arrow:SetTabIndex(-1)
+                        arrow:SetID(barSVG:GetID() + "_arrow")
                         if HasAccessibility()
                             arrow:SetAriaHidden("true")
+                            barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
+                            barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
                         end
-                        barSVG:Add(arrow)
+                        canvas:Add(arrow)
+                    end
+
+                    if HasAccessibility()
+                        if barFocus not= ""
+                            barSVG:SetOnFocus(barFocus)
+                        end
+                        if barBlur not= ""
+                            barSVG:SetOnBlur(barBlur)
+                        end
                     end
 
                     j = j + 1
@@ -278,8 +331,74 @@ class BarChartWriter is ChartWriter
                 i = i + 1
             end
         else
+            if HasAccessibility()
+                //Separated, each Series is also separated by the Factor levels
+                if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()  
+                    description = description + " To navigate the chart, press Enter to move into the list of bars."
+                    description = description + " While in the bar list, use Left/Right to move between the bars in list order," 
+                    description = description + " use Up/Down to move between the bars in value order, use Escape to return to the chart area."
+                //Separated, by the Factor levels with multiple Series per subplot
+                elseif not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                    description = description + " To navigate the chart, press Enter to move into the list of groups."
+                    description = description + " While in the group list, use Left/Right to move between the groups in list order," 
+                    description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
+                //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                else
+                    description = description + " To navigate the chart, press Enter to move into the list of series."
+                    description = description + " While in the series list, use Left/Right to move between the series in list order," 
+                    description = description + " use Enter to move into the list of bars for that series, use Escape to return to the chart area."
+                end
+                chartContent:SetAriaLabel(description)
+                chartContent:SetAriaHidden("false")
+            end
+
             i = 0
             repeat while i < chart:GetSubChartAreas():GetSize()
+                Group subChartContent
+                subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContent:SetTabIndex(-1)
+                subChartContent:SetStyleClass("quorum-chart-region")
+                Rectangle subChartContentBoundingBox
+                subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContentBoundingBox:SetFill(transparent)
+                subChartContentBoundingBox:SetStroke(transparent)
+                if HasAccessibility()
+                    subChartContentBoundingBox:SetAriaHidden("true")
+                end
+                subChartContent:Add(subChartContentBoundingBox)
+
+                if HasAccessibility()
+                    description = GetSubChartAreas():Get(i):GetAriaLabel() + "."
+                    //Separated, by the Factor levels with multiple Series per subplot
+                    if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
+                        if i = 0
+                            description = description + " To navigate the list of groups, use Left/Right to move between groups in list order," 
+                            description = description + " use Enter to move into the list of bars for that group, use Escape to return to the chart area."
+                        end
+                        subChartContent:SetAriaLabel(description)
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                    elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
+                        if i = 0
+                            description = description + " To navigate the list of series, use Left/Right to move between series in list order,"
+                            description = description + " use Enter to move into the list of bars for that series, use Escape to return to the chart area."
+                        end
+                        subChartContent:SetAriaLabel(description)
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    else
+                        subChartContent:SetAriaHidden("true")
+                    end
+                else
+                    chartContent:Add(subChartContent)
+                end
                 j = 0
                 repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
                     if (chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j) is Bar)
@@ -287,14 +406,33 @@ class BarChartWriter is ChartWriter
                       
                         Group barSVG
                         barSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode())
-                        barSVG:SetStyleClass("quorum-chart-bar")
+                        barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
-                            barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
+                            description = currentBar:GetName() + currentBar:GetDescription() + "."
+                            
+                            if j = 0
+                                description = description + " To navigate the list of bars, use Left/Right to move between bars in list order, use Up/Down to move between bars by value order,"
+                                if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                                    description = description + " use Escape to return to the group list."
+                                elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                                    description = description + " use Escape to return to the series list."
+                                else
+                                    description = description + " use Escape to return to the chart area."
+                                end
+                            end
+                            barSVG:SetAriaLabel(description)
                             barSVG:SetAriaHidden("false")
                         end
-                        canvas:Add(barSVG)
+                        if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                            chartContent:Add(barSVG)
+                        else
+                            subChartContent:Add(barSVG)
+                        end
+
+                        text barFocus = ""
+                        text barBlur = ""
     
                         Rectangle bar
                         bar:SetWidth(currentBar:GetWidth())
@@ -304,9 +442,12 @@ class BarChartWriter is ChartWriter
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeWidth(currentBar:GetBorderThickness())
                         bar:SetStyleClass("quorum-chart-rect")
+                        bar:SetID(barSVG:GetID() + "_bar")
                         bar:SetTabIndex(-1)
                         if HasAccessibility()
                             bar:SetAriaHidden("true")
+                            barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                            barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                         end
                         barSVG:Add(bar)
 
@@ -320,13 +461,15 @@ class BarChartWriter is ChartWriter
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                                labelSVG:SetID(barSVG:GetID() + "_annotation")
                                 labelSVG:SetStyleClass("quorum-chart-text")
                                 labelSVG:SetTabIndex(-1)
                                 if HasAccessibility()
                                     labelSVG:SetAriaHidden("true")
+                                    barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                                    barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                                 end
-                                barSVG:Add(labelSVG)
+                                canvas:Add(labelSVG)
                             end
                         end 
 
@@ -344,10 +487,21 @@ class BarChartWriter is ChartWriter
                             arrow:SetFill(transparent) // Should be transparent until selected
                             arrow:SetStyleClass("quorum-chart-selection-arrow")
                             arrow:SetTabIndex(-1)
+                            arrow:SetID(barSVG:GetID() + "_arrow")
                             if HasAccessibility()
                                 arrow:SetAriaHidden("true")
+                                barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
                             end
-                            barSVG:Add(arrow)
+                            canvas:Add(arrow)
+                        end
+                        if HasAccessibility()
+                            if barFocus not= ""
+                                barSVG:SetOnFocus(barFocus)
+                            end
+                            if barBlur not= ""
+                                barSVG:SetOnBlur(barBlur)
+                            end
                         end
                     end
                     j = j + 1
@@ -441,10 +595,59 @@ class BarChartWriter is ChartWriter
         scriptText = newLine + "if (typeof quorum_chart_value_order == 'undefined' || quorum_chart_value_order == null)" + newLine
         scriptText = scriptText  + tab + "var quorum_chart_value_order = {};" + newLine + newLine
         scriptText = scriptText + "quorum_chart_value_order." + canvas:GetID() + " = {" + newLine
-        
-        if chart:HasGroups()
+
+        if chart:IsSeparated()
+            Array<ChartAreaPanel> subChartAreas = barChart:GetSubChartAreas():CopyToArray()
+            BarComparison comparison
+            comparison:SetAscending(true)
+
+            i = 0
+            repeat while i < subChartAreas:GetSize() - 1
+                if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
+                    subChartAreas:Get(i):GetChartAreaItems():Sort(comparison)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
+                    j = 0
+                    repeat while j< subChartAreas:Get(i):GetChartAreaItems():GetSize() - 1
+                        if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                            Bar currentBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
+                        end
+                        j = j + 1
+                    end
+
+                    if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                        Bar lastBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
+                        scriptText = scriptText + tab + "}," + newLine
+                    end
+                end
+                i = i + 1
+            end
+            if i < subChartAreas:GetSize()
+                if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
+                    subChartAreas:Get(i):GetChartAreaItems():Sort(comparison)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
+                    j = 0
+                    repeat while j< subChartAreas:Get(i):GetChartAreaItems():GetSize() - 1
+                        if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                            Bar currentBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
+                        end
+                        j = j + 1
+                    end
+    
+                    if subChartAreas:Get(i):GetChartAreaItems():Get(j) is Bar
+                        Bar lastBar = cast(Bar, subChartAreas:Get(i):GetChartAreaItems():Get(j))
+                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
+                        scriptText = scriptText + tab + "}" + newLine
+                    end
+                end
+            end
+
+        elseif chart:HasGroups()
             Array<BarGroup> barGroups = barChart:GetBarGroups():CopyToArray()
             BarComparison comparison
+            comparison:SetAscending(true)
 
             if barGroups:GetSize() > 0
                 i = 0
@@ -483,21 +686,30 @@ class BarChartWriter is ChartWriter
         else
             Array<BarGroup> barGroups = barChart:GetBarGroups():CopyToArray()
             BarGroupComparison comparison
+            comparison:SetAscending(true)
             barGroups:Sort(comparison)
             i = 0
-            repeat while i < barGroups:GetSize()
+            repeat while i < barGroups:GetSize() - 1
                 if barGroups:Get(i):GetSize() > 0
                     j = 0
-                    repeat while j < barGroups:Get(i):GetSize() - 1
+                    repeat while j < barGroups:Get(i):GetSize()
                         Bar currentBar = barGroups:Get(i):Get(j)
                         scriptText = scriptText + tab + canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
                         j = j + 1
                     end
-                    
-                    Bar lastBar = barGroups:Get(i):Get(j)
-                    scriptText = scriptText + tab + canvas:GetID() + "_" + lastBar:GetSeries():GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
                 end
                 i = i + 1
+            end
+            if barGroups:Get(i):GetSize() > 0
+                j = 0
+                repeat while j < barGroups:Get(i):GetSize() - 1
+                    Bar currentBar = barGroups:Get(i):Get(j)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode() + ": " + currentBar:GetValue() + "," + newLine
+                    j = j + 1
+                end
+                
+                Bar lastBar = barGroups:Get(i):Get(j)
+                scriptText = scriptText + tab + canvas:GetID() + "_" + lastBar:GetSeries():GetHashCode() + "_" + lastBar:GetHashCode() + ": " + lastBar:GetValue() + newLine
             end
         end
         scriptText = scriptText + "};" + newLine
