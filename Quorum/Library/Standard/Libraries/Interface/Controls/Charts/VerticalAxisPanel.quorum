@@ -57,9 +57,6 @@ class VerticalAxisPanel is Control
     ChartOptions options
     Math math
     private integer numberOfSections = 1
-    private number paddingOffsetPercent = -1
-    private number defaultPaddingOffsetPercent = 0
-    private boolean blockPaddingOffset = false
     private boolean appendPercent = false
 
     // Title
@@ -94,6 +91,11 @@ class VerticalAxisPanel is Control
     private boolean showTicks = false
     private boolean showLabels = true
     private ColorGroup axisColor = undefined
+
+    // Axis Padding
+    private number paddingOffsetPercent = 0
+    private boolean overrideDefaultPaddingOffsetPercent = false
+    private boolean blockPaddingOffset = false    
 
     // Range controls
     private number min = 0.0
@@ -381,8 +383,12 @@ class VerticalAxisPanel is Control
         number scaleWidth = CalculateScaleWidth(chart)
         labelCount = 0
 
-        if not blockPaddingOffset
-            defaultPaddingOffsetPercent = 0.5/tickCount
+        if not blockPaddingOffset and not overrideDefaultPaddingOffsetPercent and tickCount > 0
+            paddingOffsetPercent = 0.5/tickCount
+        end
+
+        if blockPaddingOffset
+            paddingOffsetPercent = 0
         end
         
         integer k = 0
@@ -1301,28 +1307,31 @@ class VerticalAxisPanel is Control
         me:numberOfSections = numberOfSections
     end
 
-    action SetPaddingOffset(number paddingOffset)
+    /*
+        These actions control the white space (padding/offset) on either side of the axis.
+    */
+    action BlockPaddingOffset(boolean flag)
+        blockPaddingOffset = flag
+    end
+
+    action SetPaddingOffsetPercent(number paddingOffset)
         if paddingOffset >= 0
             me:paddingOffsetPercent = paddingOffset
         end
     end
 
-    action GetPaddingOffset returns number
-        if blockPaddingOffset
-            return 0
-        else
-            if paddingOffsetPercent >= 0
-                return paddingOffsetPercent
-            else
-                return defaultPaddingOffsetPercent
-            end
-        end
+    action GetPaddingOffsetPercent returns number
+        return paddingOffsetPercent
     end
 
-    action BlockPaddingOffset(boolean flag)
-        blockPaddingOffset = flag
+    action OverrideDefaultPaddingOffset(boolean override)
+        overrideDefaultPaddingOffsetPercent = override
     end
-    
+
+    action OverrideDefaultPaddingOffset returns boolean
+        return overrideDefaultPaddingOffsetPercent
+    end
+
     action SetTickDigits(integer digits)
         options:SetTickDigits(digits)
     end

@@ -367,7 +367,7 @@ class ViolinPlotLayout is ChartLayout
 
                         number bandWidth = chart:GetBandWidth()
                         if bandWidth = 0
-                            bandWidth = rangeMax*0.03
+                            bandWidth = range*0.03 //rangeMax*0.03
                             chart:SetBandWidth(cast(integer, bandWidth))
                         end
                         
