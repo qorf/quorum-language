@@ -12,7 +12,6 @@ use Libraries.System.FileWriter
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Vector
-use Libraries.Interface.Layouts.BoxPlotLayout
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Web.Page.ListItem
@@ -20,6 +19,11 @@ use Libraries.Web.Page.UnorderedList
 use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Data.Formats.ScalableVectorGraphics.Group
+use Libraries.Interface.Item
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Script
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 
 /*
     The BoxPlotChartWriter class is part of the set of writers that allow for Charts
@@ -67,8 +71,11 @@ class BoxPlotWriter is ChartWriter
     action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
         parent:ChartWriter:AddChartArea(canvas,chart)
 
+        BoxPlot boxPlot
+        boxPlot = cast(BoxPlot, chart)
+
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area ")
+            GetChartArea():SetAriaLabel("Chart Area " + boxPlot:GetNumberOfPlots() + " plots.")
         end
     end
 
@@ -88,6 +95,28 @@ class BoxPlotWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Group chartContent
+        chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
+        chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+        chartContent:SetTabIndex(0)
+        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContent:SetIsOneLine(true)
+        chartContent:SetRole("application")
+        canvas:Add(chartContent)
+        Rectangle chartContentBoundingBox
+        chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
+        chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
+        chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetStroke(transparent)
+        if HasAccessibility()
+            chartContentBoundingBox:SetAriaHidden("true")
+            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            chartContent:SetAriaHidden("false")
+        end
+        chartContent:Add(chartContentBoundingBox)
+
+        text description = GetChartArea():GetAriaLabel() + "."
+
         if not chart:IsSeparated()
             Array <PlotGroup> plotGroups = chart:GetPlotGroups()
 
@@ -95,26 +124,98 @@ class BoxPlotWriter is ChartWriter
             repeat while i < plotGroups:GetSize()
                 PlotGroup group = plotGroups:Get(i)
 
-                if chart:HasGroups()
+                Group plotGroupSVG
+                if chart:HasGroups()                
+                    plotGroupSVG:SetID(canvas:GetID() + "_" + group:GetHashCode())
+                    plotGroupSVG:SetStyleClass("quorum-chart-plotgroup quorum-chart-category-list")
+                    plotGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
+                    plotGroupSVG:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotGroupSVG:SetAriaLabel(group:GetName() + group:GetDescription())
+                        plotGroupSVG:SetAriaHidden("false")
+                    end
+                    chartContent:Add(plotGroupSVG)
+
+                    text plotGroupFocus = ""
+                    text plotGroupBlur = ""
+
+                    // The group area, used for hover 
                     Rectangle plotGroup
                     plotGroup:SetWidth(group:GetWidth())
                     plotGroup:SetHeight(group:GetHeight())
                     plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
                     plotGroup:SetFill(transparent)
-                    plotGroup:SetID(canvas:GetID() + "_" + group:GetHashCode())
+                    plotGroup:SetStyleClass("quorum-chart-selection-box")
                     plotGroup:SetTabIndex(-1)
+                    plotGroup:SetID(plotGroupSVG:GetID() + "_box")
                     if HasAccessibility()
-                        plotGroup:SetAriaLabel(group:GetName() + group:GetDescription())
                         plotGroup:SetAriaHidden("true")
+                        plotGroupFocus = plotGroupFocus + "gainFocus('" + plotGroup:GetID() + "'); "
+                        plotGroupBlur = plotGroupBlur + "loseFocus('" + plotGroup:GetID() + "'); "
                     end
-                    GetGroupPanels():Add(plotGroup)
-                    canvas:Add(plotGroup)
+                    plotGroupSVG:Add(plotGroup)
     
+                    // Add group selection symbols here!
+    
+                    if HasAccessibility()
+                        if plotGroupFocus not= ""
+                            plotGroupSVG:SetOnFocus(plotGroupFocus)
+                        end
+                        if plotGroupBlur not= ""
+                            plotGroupSVG:SetOnBlur(plotGroupBlur)
+                        end
+                    end
                 end
 
-                integer k = 0
-                repeat while k < group:GetSize()
-                    Plot plot = group:Get(k)
+                integer j = 0
+                repeat while j < group:GetSize()
+                    Plot plot = group:Get(j)
+
+                    Group plotSVG
+                    plotSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
+                    plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")
+                    plotSVG:SetFill(plot:GetColor())
+                    plotSVG:SetTabIndex(-1)
+                    if HasAccessibility()   
+                        plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
+                        plotSVG:SetAriaHidden("false")
+                    end
+                    if chart:HasGroups()
+                        plotGroupSVG:Add(plotSVG)
+                    else
+                        chartContent:Add(plotSVG)
+                    end
+
+                    text plotFocus = ""
+                    text plotBlur = ""
+
+                    // The plot area, used for hover
+                    Rectangle plotArea
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetStyleClass("quorum-chart-selection-box")
+                    plotArea:SetID(plotSVG:GetID() + "_box")
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaHidden("true")
+                        plotFocus = plotFocus + "gainFocus('" + plotArea:GetID() + "'); "
+                        plotBlur = plotBlur + "loseFocus('" + plotArea:GetID() + "'); "
+                    end 
+                    plotSVG:Add(plotArea)  
+
+                    // Add plot selection symbols here!
+
+                    if HasAccessibility()
+                        if plotFocus not= ""
+                            plotSVG:SetOnFocus(plotFocus)
+                        end
+                        if plotBlur not= ""
+                            plotSVG:SetOnBlur(plotBlur)
+                        end
+                    end       
+
+                    // Plot items 
                     Array<ChartDrawable> items = plot:GetPlotItems()
                     /* Indices for items of individual box plot
                         0: PLOT AREA (ENTIRE REGION)
@@ -131,87 +232,239 @@ class BoxPlotWriter is ChartWriter
                         11+: OUTLIER POINTS
                     */   
 
-                    // LAYER ONE   
-                    // Index 0: This is the transparent box around the entire plot used for navigation.
-                    Rectangle plotArea
-                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
-                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
-                    plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
-                    plotArea:SetTabIndex(-1)
-                    if HasAccessibility()
-                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
-                        plotArea:SetAriaHidden("true")
-                    end 
-                    canvas:Add(plotArea)                         
-              
-                    // LAYER TWO 
-                    // Index 3: The IQR box. We want the IQR box to sit under the other elements      
-                    Rectangle iqrBox
-                    iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
-                    iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
-                    iqrBox:SetFill(items:Get(3):GetColor())
-                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
-                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
-                    iqrBox:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(3):GetHashCode())
-                    iqrBox:SetTabIndex(-1)
-                    if HasAccessibility()
-                        iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
-                        iqrBox:SetAriaHidden("true")
-                    end 
-                    canvas:Add(iqrBox)
+                    integer k = 1
+                    repeat while k < items:GetSize()
+                        ChartDrawable currentItem = items:Get(k)
 
-                    // LAYER THREE
-                    index = 1
-                    repeat while index < items:GetSize()
-                        if index not= 3 //skip IQR
-                            if index > 10 and items:Get(index) is ChartPoint// This is the median dot shape to be initialized now and added in the next layer.
-                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+                        if currentItem not= undefined 
+    
+                            Group itemSVG
+                            itemSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
+                            itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plot-list")
+                            itemSVG:SetFill(currentItem:GetColor())
+                            itemSVG:SetTabIndex(-1)
+                            if HasAccessibility()   
+                                itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
+                                itemSVG:SetAriaHidden("false")
+                            end
+                            if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                plotSVG:Add(itemSVG)
+                            else
+                                canvas:Add(itemSVG)
+                            end
 
+                            text itemFocus = ""
+                            text itemBlur = ""
+
+                            if k > 10 and currentItem is ChartPoint// These are the outlier dots
                                 Circle outlier
-                                number radius = currentPoint:GetHeight()/2
+                                number radius = currentItem:GetHeight()/2
                                 outlier:SetRadius(radius)
-                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
-                                outlier:SetFill(currentPoint:GetColor())
-                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
-                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
-                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
+                                outlier:SetFill(currentItem:GetColor())
+                                outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentItem:GetBorderThickness())
+                                outlier:SetStyleClass("quorum-chart-circle")
+                                outlier:SetID(itemSVG:GetID() + "_item")
                                 outlier:SetTabIndex(-1)
                                 if HasAccessibility()
-                                    outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
                                     outlier:SetAriaHidden("true")
+                                    itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
+                                    itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
                                 end 
-                                canvas:Add(outlier)
+                                itemSVG:Add(outlier)
                             else
                                 Rectangle plotLine
-                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
-                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill(items:Get(index):GetColor())
-                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
-                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
-                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                plotLine:SetSize(currentItem:GetWidth(), currentItem:GetHeight())
+                                plotLine:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight())
+                                plotLine:SetFill(currentItem:GetColor())
+                                plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
+                                plotLine:SetStyleClass("quorum-chart-rect")
+                                plotLine:SetID(itemSVG:GetID() + "_item")
                                 plotLine:SetTabIndex(-1)
-                                if HasAccessibility()
-                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                if HasAccessibility() 
                                     plotLine:SetAriaHidden("true")
+                                    itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
+                                    itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
                                 end 
-                                canvas:Add(plotLine)
+                                itemSVG:Add(plotLine)
                             end
+
+                            if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                if currentItem:ShowAnnotation() or chart:ShowAnnotations()
+                                    ChartLabel label = currentItem:GetAnnotation()
+                                    if label not= undefined
+                                        Label labelSVG
+                                        labelSVG:SetText(label:GetText())
+                                        labelSVG:SetTextAnchor("left")
+                                        labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                        labelSVG:SetFontSize(label:GetFontSize() + "px")                            
+                                        labelSVG:SetFontFamily("Arial")
+                                        labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                        labelSVG:SetID(itemSVG:GetID() + "_annotation")
+                                        labelSVG:SetStyleClass("quorum-chart-text")
+                                        labelSVG:SetTabIndex(-1)
+                                        if HasAccessibility()
+                                            labelSVG:SetAriaHidden("true")
+                                            itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                            itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                        end
+                                        canvas:Add(labelSVG)
+                                    end
+                                end 
+
+                                // Add item selection symbols here!
+                                if currentItem:GetSelectionArrow() not= undefined
+                                    Array <number> vertices = currentItem:GetSelectionArrowVertices()
+                                    number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
+                                    number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
+            
+                                    Polygon arrow
+                                    integer m = 0
+                                    repeat while m < vertices:GetSize()
+                                        arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                        m = m + 2
+                                    end
+                                    arrow:SetFill(transparent) // Should be transparent until selected 
+                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                    arrow:SetTabIndex(-1)
+                                    arrow:SetID(itemSVG:GetID() + "_arrow")
+                                    if HasAccessibility()
+                                        arrow:SetAriaHidden("true")
+                                        itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                        itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                    end
+                                    canvas:Add(arrow)
+                                end
+
+                                if currentItem:GetSelectionBracket():GetSize() = 3
+                                    integer m = 0
+                                    repeat while m < currentItem:GetSelectionBracket():GetSize()
+                                        Rectangle bracket
+                                        bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
+                                        bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
+                                        bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
+                                        bracket:SetFill(transparent) // Should be transparent until selected
+                                        bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                        bracket:SetTabIndex(-1)
+                                        bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+                                        if HasAccessibility()
+                                            bracket:SetAriaHidden("true")
+                                            itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
+                                            itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
+                                        end
+                                        canvas:Add(bracket)    
+                                        m = m + 1
+                                    end
+                                end
+                            end
+        
+                            if HasAccessibility()
+                                if itemFocus not= ""
+                                    itemSVG:SetOnFocus(itemFocus)
+                                end
+                                if itemBlur not= ""
+                                    itemSVG:SetOnBlur(itemBlur)
+                                end
+                            end 
                         end
-                        index = index + 1
+                        k = k + 1
                     end    
-                    k = k + 1
+                    j = j + 1
                 end  
                 i = i + 1
             end
         else
-            integer i = 0
+            i = 0
             repeat while i < chart:GetSubChartAreas():GetSize()
+                Group subChartContent
+                subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContent:SetTabIndex(-1)
+                subChartContent:SetStyleClass("quorum-chart-region")
+                Rectangle subChartContentBoundingBox
+                subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContentBoundingBox:SetFill(transparent)
+                subChartContentBoundingBox:SetStroke(transparent)
+                subChartContentBoundingBox:SetTabIndex(-1)
+                if HasAccessibility()
+                    subChartContentBoundingBox:SetAriaHidden("true")
+                end
+                subChartContent:Add(subChartContentBoundingBox)
+
+                if HasAccessibility()
+                    //Separated, by the Factor levels with multiple Series per subplot
+                    if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
+                        subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                    elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
+                        subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    else
+                        subChartContent:SetAriaHidden("true")
+                    end
+                else
+                    chartContent:Add(subChartContent)
+                end
+
                 integer j = 0
                 repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
-                    Plot plot
-                    plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
-                    
+                    Plot plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
+
+                    Group plotSVG
+                    plotSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode())
+                    plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")
+                    plotSVG:SetFill(plot:GetColor())
+                    plotSVG:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription() + ".")
+                        plotSVG:SetAriaHidden("false")
+                    end
+                    if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                        chartContent:Add(plotSVG)
+                    else
+                        subChartContent:Add(plotSVG)
+                    end
+
+                    text plotFocus = ""
+                    text plotBlur = ""
+
+                    // The plot area, used for hover
+                    Rectangle plotArea
+                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
+                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
+                    plotArea:SetFill(transparent)
+                    plotArea:SetStyleClass("quorum-chart-selection-box")
+                    plotArea:SetID(plotSVG:GetID() + "_box")
+                    plotArea:SetTabIndex(-1)
+                    if HasAccessibility()
+                        plotArea:SetAriaHidden("true")
+                        plotFocus = plotFocus + "gainFocus('" + plotArea:GetID() + "'); "
+                        plotBlur = plotBlur + "loseFocus('" + plotArea:GetID() + "'); "
+                    end 
+                    plotSVG:Add(plotArea)  
+
+                    // Add plot selection symbols here!
+
+                    if HasAccessibility()
+                        if plotFocus not= ""
+                            plotSVG:SetOnFocus(plotFocus)
+                        end
+                        if plotBlur not= ""
+                            plotSVG:SetOnBlur(plotBlur)
+                        end
+                    end       
+
+                    // Plot items 
                     Array<ChartDrawable> items = plot:GetPlotItems()
                     /* Indices for items of individual box plot
                         0: PLOT AREA (ENTIRE REGION)
@@ -226,77 +479,146 @@ class BoxPlotWriter is ChartWriter
                         9: UPPER WHISKER    
                         10: MAXIMUM LINE 
                         11+: OUTLIER POINTS
-                    */   
+                    */ 
+                    integer k = 1
+                    repeat while k < items:GetSize()
+                        ChartDrawable currentItem = items:Get(k)
 
-                    // LAYER ONE   
-                    // Index 0: This is the transparent box around the entire plot used for navigation.
-                    Rectangle plotArea
-                    plotArea:SetSize(plot:GetPlotArea():GetWidth(),plot:GetPlotArea():GetHeight())
-                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight())
-                    plotArea:SetFill(transparent)
-                    plotArea:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
-                    plotArea:SetTabIndex(-1)
-                    if HasAccessibility()
-                        plotArea:SetAriaLabel(plot:GetPlotArea():GetName() + plot:GetPlotArea():GetDescription())
-                        plotArea:SetAriaHidden("true")
-                    end 
-                    canvas:Add(plotArea)                   
-              
-                    // LAYER TWO 
-                    // Index 3: The IQR box. We want the IQR box to sit under the other elements      
-                    Rectangle iqrBox
-                    iqrBox:SetSize(items:Get(3):GetWidth(),items:Get(3):GetHeight())
-                    iqrBox:SetPosition(items:Get(3):GetGlobalX(), TranslatePositionY(items:Get(3)) - items:Get(3):GetHeight())
-                    iqrBox:SetFill(items:Get(3):GetColor())
-                    iqrBox:SetStroke(cast(Color, items:Get(3):GetBorderColor()))
-                    iqrBox:SetStrokeWidth(items:Get(3):GetBorderThickness())
-                    iqrBox:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(3):GetHashCode())
-                    iqrBox:SetTabIndex(-1)
-                    if HasAccessibility()
-                        iqrBox:SetAriaLabel(items:Get(3):GetName() + items:Get(3):GetDescription())
-                        iqrBox:SetAriaHidden("true")
-                    end 
-                    canvas:Add(iqrBox)
+                        if currentItem not= undefined //and currentItem:GetSeries() not= undefined
+    
+                            Group itemSVG
+                            itemSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
+                            itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plot-list")
+                            itemSVG:SetFill(currentItem:GetColor())
+                            itemSVG:SetTabIndex(-1)
+                            if HasAccessibility()   
+                                itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
+                                itemSVG:SetAriaHidden("false")
+                            end
+                            if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                plotSVG:Add(itemSVG)
+                            else
+                                canvas:Add(itemSVG)
+                            end
 
-                    // LAYER THREE
-                    index = 1
-                    repeat while index < items:GetSize()
-                        if index not= 3 //skip IQR
-                            if index > 10 // This is the median dot shape to be initialized now and added in the next layer.
-                                ChartPoint currentPoint = cast(ChartPoint, items:Get(index))
+                            text itemFocus = ""
+                            text itemBlur = ""
 
+                            if k > 10 and currentItem is ChartPoint// These are the outlier dots
                                 Circle outlier
-                                number radius = currentPoint:GetHeight()/2
+                                number radius = currentItem:GetHeight()/2
                                 outlier:SetRadius(radius)
-                                outlier:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint) - currentPoint:GetHeight() + radius) 
-                                outlier:SetFill(currentPoint:GetColor())
-                                outlier:SetStroke(cast(Color, currentPoint:GetBorderColor()))
-                                outlier:SetStrokeWidth(currentPoint:GetBorderThickness())
-                                outlier:SetID(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
+                                outlier:SetFill(currentItem:GetColor())
+                                outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                outlier:SetStrokeWidth(currentItem:GetBorderThickness())
+                                outlier:SetStyleClass("quorum-chart-circle")
+                                outlier:SetID(itemSVG:GetID() + "_item")
                                 outlier:SetTabIndex(-1)
                                 if HasAccessibility()
-                                    outlier:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
                                     outlier:SetAriaHidden("true")
+                                    itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
+                                    itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
                                 end 
-                                canvas:Add(outlier)
+                                itemSVG:Add(outlier)
                             else
                                 Rectangle plotLine
-                                plotLine:SetSize(items:Get(index):GetWidth(),items:Get(index):GetHeight())
-                                plotLine:SetPosition(items:Get(index):GetGlobalX(), TranslatePositionY(items:Get(index)) - items:Get(index):GetHeight())
-                                plotLine:SetFill(items:Get(index):GetColor())
-                                plotLine:SetStroke(cast(Color, items:Get(index):GetBorderColor()))
-                                plotLine:SetStrokeWidth(items:Get(index):GetBorderThickness())
-                                plotLine:SetID(canvas:GetID()+ "_" + plot:GetHashCode() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + items:Get(index):GetHashCode())
+                                plotLine:SetSize(currentItem:GetWidth(), currentItem:GetHeight())
+                                plotLine:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight())
+                                plotLine:SetFill(currentItem:GetColor())
+                                plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
+                                plotLine:SetStyleClass("quorum-chart-rect")
+                                plotLine:SetID(itemSVG:GetID() + "_item")
                                 plotLine:SetTabIndex(-1)
-                                if HasAccessibility()
-                                    plotLine:SetAriaLabel(items:Get(index):GetName() + items:Get(index):GetDescription())
+                                if HasAccessibility() 
                                     plotLine:SetAriaHidden("true")
+                                    itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
+                                    itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
                                 end 
-                                canvas:Add(plotLine)
+                                itemSVG:Add(plotLine)
                             end
+
+                            if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                if currentItem:ShowAnnotation() or chart:ShowAnnotations()
+                                    ChartLabel label = currentItem:GetAnnotation()
+                                    if label not= undefined
+                                        Label labelSVG
+                                        labelSVG:SetText(label:GetText())
+                                        labelSVG:SetTextAnchor("left")
+                                        labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                        labelSVG:SetFontSize(label:GetFontSize() + "px")                            
+                                        labelSVG:SetFontFamily("Arial")
+                                        labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                        labelSVG:SetID(itemSVG:GetID() + "_annotation")
+                                        labelSVG:SetStyleClass("quorum-chart-text")
+                                        labelSVG:SetTabIndex(-1)
+                                        if HasAccessibility()
+                                            labelSVG:SetAriaHidden("true")
+                                            itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                            itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                        end
+                                        canvas:Add(labelSVG)
+                                    end
+                                end 
+
+                                // Add item selection symbols here!
+                                if currentItem:GetSelectionArrow() not= undefined
+                                    Array <number> vertices = currentItem:GetSelectionArrowVertices()
+                                    number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
+                                    number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
+            
+                                    Polygon arrow
+                                    integer m = 0
+                                    repeat while m < vertices:GetSize()
+                                        arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                        m = m + 2
+                                    end
+                                    arrow:SetFill(transparent) // Should be transparent until selected 
+                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                    arrow:SetTabIndex(-1)
+                                    arrow:SetID(itemSVG:GetID() + "_arrow")
+                                    if HasAccessibility()
+                                        arrow:SetAriaHidden("true")
+                                        itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                        itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                    end
+                                    canvas:Add(arrow)
+                                end
+
+                                if currentItem:GetSelectionBracket():GetSize() = 3
+                                    integer m = 0
+                                    repeat while m < currentItem:GetSelectionBracket():GetSize()
+                                        Rectangle bracket
+                                        bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
+                                        bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
+                                        bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
+                                        bracket:SetFill(transparent) // Should be transparent until selected
+                                        bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                        bracket:SetTabIndex(-1)
+                                        bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+                                        if HasAccessibility()
+                                            bracket:SetAriaHidden("true")
+                                            itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
+                                            itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
+                                        end
+                                        canvas:Add(bracket)    
+                                        m = m + 1
+                                    end
+                                end
+                            end
+        
+                            if HasAccessibility()
+                                if itemFocus not= ""
+                                    itemSVG:SetOnFocus(itemFocus)
+                                end
+                                if itemBlur not= ""
+                                    itemSVG:SetOnBlur(itemBlur)
+                                end
+                            end 
                         end
-                        index = index + 1
-                    end   
+                        k = k + 1
+                    end 
                     j = j + 1
                 end
                 i = i + 1
@@ -313,15 +635,17 @@ class BoxPlotWriter is ChartWriter
     
             UnorderedList plotGroupsUL
             plotGroupsUL:AddAttribute("role","group")
+            plotGroupsUL:AddClassAttribute("quorum-chart-group")
             chartAreaItem:AddNestedTag(plotGroupsUL)
             
             UnorderedList currentGrouping = plotGroupsUL
-            i = 0
+            integer i = 0
             repeat while i < plotGroups:GetSize()
                 if boxPlot:HasGroups()
                     ListItem plotGroupNav 
                     plotGroupNav:SetIdentifier(canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode() + "_nav")
                     plotGroupNav:AddAttribute("role","treeitem")
+                    plotGroupNav:AddClassAttribute("quorum-chart-treeitem")
                     plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode())
                     plotGroupNav:AddAttribute("aria-expanded","false")
                     plotGroupNav:SetTabIndex("-1")
@@ -330,33 +654,37 @@ class BoxPlotWriter is ChartWriter
                     
                     UnorderedList plotsUL
                     plotsUL:AddAttribute("role","group")
+                    plotsUL:AddClassAttribute("quorum-chart-group")
                     plotGroupNav:AddNestedTag(plotsUL)
                     currentGrouping = plotsUL
                 end
             
-                j = 0
+                integer j = 0
                 repeat while j < plotGroups:Get(i):GetSize()
                     Plot plot = plotGroups:Get(i):Get(j)
                     ListItem plotNav 
-                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
+                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_nav")
                     plotNav:AddAttribute("role","treeitem")
-                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                    plotNav:AddClassAttribute("quorum-chart-treeitem")
+                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
                     plotNav:AddAttribute("aria-expanded","false")
                     plotNav:SetTabIndex("-1")
                     currentGrouping:Add(plotNav)
 
                     UnorderedList itemsUL
                     itemsUL:AddAttribute("role","group")
+                    itemsUL:AddClassAttribute("quorum-chart-group")
                     plotNav:AddNestedTag(itemsUL)
 
-                    k = 1
+                    integer k = 1
                     repeat while k < plot:GetPlotItems():GetSize()
                         // Add navigation for all parts.
                         if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
                             ListItem itemNav 
-                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
+                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                             itemNav:AddAttribute("role","treeitem")
-                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
+                            itemNav:AddClassAttribute("quorum-chart-treeitem")
+                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                             itemNav:SetTabIndex("-1")
                             itemsUL:Add(itemNav)
                         end
@@ -369,32 +697,36 @@ class BoxPlotWriter is ChartWriter
         else
             UnorderedList subChartAreaItemsUL
             subChartAreaItemsUL:AddAttribute("role","group")
+            subChartAreaItemsUL:AddClassAttribute("quorum-chart-group")
             chartAreaItem:AddNestedTag(subChartAreaItemsUL)
 
-            i = 0
+            integer i = 0
             repeat while i < chartArea:GetChartAreaItems():GetSize()
                 Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
 
                 ListItem plotNav 
-                plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode() + "_nav")
+                plotNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_nav")
                 plotNav:AddAttribute("role","treeitem")
-                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotArea():GetHashCode())
+                plotNav:AddClassAttribute("quorum-chart-treeitem")
+                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode())
                 plotNav:AddAttribute("aria-expanded","false")
                 plotNav:SetTabIndex("-1")
                 subChartAreaItemsUL:Add(plotNav)
 
                 UnorderedList itemsUL
                 itemsUL:AddAttribute("role","group")
+                itemsUL:AddClassAttribute("quorum-chart-group")
                 plotNav:AddNestedTag(itemsUL)
 
-                k = 1
+                integer k = 1
                 repeat while k < plot:GetPlotItems():GetSize()
                     // Add navigation for all parts.
                     if k not= 2 and k not= 4 and k not= 5 and k not= 9// Skip the elements not included in the navigation
                         ListItem itemNav 
-                        itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
+                        itemNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
                         itemNav:AddAttribute("role","treeitem")
-                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetHashCode() + "_" + chartArea:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
+                        itemNav:AddClassAttribute("quorum-chart-treeitem")
+                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
                         itemNav:SetTabIndex("-1")
                         itemsUL:Add(itemNav)
                     end
@@ -403,5 +735,10 @@ class BoxPlotWriter is ChartWriter
                 i = i + 1
             end
         end
+    end
+
+
+    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+        //Not sure what other ordering would be best for box plots.
     end
 end

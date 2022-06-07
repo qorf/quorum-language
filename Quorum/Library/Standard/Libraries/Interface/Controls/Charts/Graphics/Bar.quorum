@@ -35,8 +35,6 @@ end
 
 class Bar is ChartDrawable
     number value = 0 
-    Drawable selectionArrow
-    Array<number> vertices
     BitwiseOperations bits
 
     /*
@@ -62,18 +60,6 @@ class Bar is ChartDrawable
     */
     action GetBarGroup returns BarGroup
         return cast(BarGroup, GetGroup())
-    end
-
-    action GetSelectionArrow returns Drawable
-        return selectionArrow
-    end
-
-    action SetSelectionArrowVertices(Array <number> vertices)
-        me:vertices = vertices
-    end
-
-    action GetSelectionArrowVertices returns Array<number>
-        return vertices
     end
 
     action LoadGraphics(LayoutProperties properties)

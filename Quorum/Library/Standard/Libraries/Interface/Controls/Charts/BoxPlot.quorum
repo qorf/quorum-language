@@ -122,83 +122,11 @@ class BoxPlot is Chart
             integer k = 0
             repeat while k < group:GetSize()
                 Plot plot = group:Get(k)
-
-                ChartDrawable minimumLine
-                ChartDrawable lowerWhisker 
-                ChartDrawable interQuartileRange
-                ChartDrawable rightBorder // Right side of IQR
-                ChartDrawable leftBorder  // Left side of IQR
-                ChartDrawable firstQuartileLine
-                ChartDrawable medianLine
-                ChartDrawable thirdQuartileLine
-                ChartDrawable upperWhisker 
-                ChartDrawable maximumLine
-                ChartDrawable filler
-
-                if not plot:IsUndefined()
-                    number median = plot:GetInfoAt(0)
-                    number firstQ = plot:GetInfoAt(1)
-                    number thirdQ = plot:GetInfoAt(2)
-                    number minimum = plot:GetInfoAt(3)
-                    number maximum = plot:GetInfoAt(4)
-                    number iqr = thirdQ - firstQ
-    
-                    // Minimum Line 
-                    minimumLine:SetFocusable(true)
-                    minimumLine:SetAccessibilityCode(0)
-                    minimumLine:SetName("Minimum")
-                    minimumLine:SetDescription(" " + minimum)
-                    if CheckIfInteger(minimum)
-                        minimumLine:SetDescription(" " + cast(integer, minimum))
-                    end
-
-                    // Interquartile Range Region Area
-                    interQuartileRange:SetFocusable(true)
-                    interQuartileRange:SetAccessibilityCode(0)
-                    interQuartileRange:SetName("Interquartile range")
-                    interQuartileRange:SetDescription(" " + iqr)
-                    if CheckIfInteger(iqr)
-                        interQuartileRange:SetDescription(" " + cast(integer, iqr))
-                    end
-    
-                    // Lower Quartile Line Q1
-                    firstQuartileLine:SetFocusable(true)
-                    firstQuartileLine:SetAccessibilityCode(0)
-                    firstQuartileLine:SetName("1st Quartile")
-                    firstQuartileLine:SetDescription(" " + firstQ)
-                    if CheckIfInteger(firstQ)
-                        firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
-                    end
-    
-                    // Median Line (denser) 
-                    medianLine:SetFocusable(true)
-                    medianLine:SetAccessibilityCode(0)
-                    medianLine:SetName("Median")
-                    medianLine:SetDescription(" " + median)
-                    if CheckIfInteger(median)
-                        medianLine:SetDescription(" " + cast(integer, median))
-                    end
-    
-                    // Upper Quartile Line Q3
-                    thirdQuartileLine:SetFocusable(true)
-                    thirdQuartileLine:SetAccessibilityCode(0)
-                    thirdQuartileLine:SetName("3rd Quartile")
-                    thirdQuartileLine:SetDescription(" " + thirdQ)
-                    if CheckIfInteger(thirdQ)
-                        thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
-                    end
-    
-                    // Maximum Line
-    
-                    maximumLine:SetFocusable(true)
-                    maximumLine:SetAccessibilityCode(0)
-                    maximumLine:SetName("Maximum")
-                    maximumLine:SetDescription(" " + maximum)
-                    if CheckIfInteger(maximum)
-                        maximumLine:SetDescription(" " + cast(integer, maximum))
-                    end
-
-                end
+                AddChartItemInstructions(plot,plot:GetDescription())
+                plot:SetFocusable(true)
+                plot:SetAccessibilityCode(parent:Item:ITEM)
+                plot:SetNextFocus(GetNextFocus())
+                plot:SetPreviousFocus(GetPreviousFocus())
 
                 // Plot Area Outline Panel
                 Icon plotArea
@@ -239,6 +167,108 @@ class BoxPlot is Chart
                     chartArea = GetChartArea()
                 end
 
+                ChartDrawable minimumLine
+                ChartDrawable lowerWhisker 
+                ChartDrawable interQuartileRange
+                ChartDrawable rightBorder // Right side of IQR
+                ChartDrawable leftBorder  // Left side of IQR
+                ChartDrawable firstQuartileLine
+                ChartDrawable medianLine
+                ChartDrawable thirdQuartileLine
+                ChartDrawable upperWhisker 
+                ChartDrawable maximumLine
+                ChartDrawable filler
+
+                if not plot:IsUndefined()
+                    number median = plot:GetInfoAt(0)
+                    number firstQ = plot:GetInfoAt(1)
+                    number thirdQ = plot:GetInfoAt(2)
+                    number minimum = plot:GetInfoAt(3)
+                    number maximum = plot:GetInfoAt(4)
+                    number iqr = thirdQ - firstQ
+    
+                    // Minimum Line 
+                    minimumLine:SetFocusable(true)
+                    minimumLine:SetAccessibilityCode(0)
+                    minimumLine:SetNextFocus(GetNextFocus())
+                    minimumLine:SetPreviousFocus(GetPreviousFocus())
+                    minimumLine:SetName("Minimum")
+                    minimumLine:SetDescription(" " + minimum)
+                    if CheckIfInteger(minimum)
+                        minimumLine:SetDescription(" " + cast(integer, minimum))
+                    end
+                    chartArea:Add(minimumLine:GetSelectionArrow())
+
+                    // Interquartile Range Region Area
+                    interQuartileRange:SetFocusable(true)
+                    interQuartileRange:SetAccessibilityCode(0)
+                    interQuartileRange:SetNextFocus(GetNextFocus())
+                    interQuartileRange:SetPreviousFocus(GetPreviousFocus())
+                    interQuartileRange:SetName("Interquartile range")
+                    interQuartileRange:SetDescription(" " + iqr)
+                    if CheckIfInteger(iqr)
+                        interQuartileRange:SetDescription(" " + cast(integer, iqr))
+                    end
+                    chartArea:Add(interQuartileRange:GetSelectionArrow())
+                    Drawable topBrack
+                    interQuartileRange:GetSelectionBracket():Add(topBrack)
+                    chartArea:Add(topBrack)
+                    Drawable sideBrack
+                    interQuartileRange:GetSelectionBracket():Add(sideBrack) 
+                    chartArea:Add(sideBrack)
+                    Drawable bottomBrack
+                    interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
+                    chartArea:Add(bottomBrack)  
+    
+                    // Lower Quartile Line Q1
+                    firstQuartileLine:SetFocusable(true)
+                    firstQuartileLine:SetAccessibilityCode(0)
+                    firstQuartileLine:SetNextFocus(GetNextFocus())
+                    firstQuartileLine:SetPreviousFocus(GetPreviousFocus())
+                    firstQuartileLine:SetName("1st Quartile")
+                    firstQuartileLine:SetDescription(" " + firstQ)
+                    if CheckIfInteger(firstQ)
+                        firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
+                    end
+                    chartArea:Add(firstQuartileLine:GetSelectionArrow())
+    
+                    // Median Line (denser) 
+                    medianLine:SetFocusable(true)
+                    medianLine:SetAccessibilityCode(0)
+                    medianLine:SetNextFocus(GetNextFocus())
+                    medianLine:SetPreviousFocus(GetPreviousFocus())
+                    medianLine:SetName("Median")
+                    medianLine:SetDescription(" " + median)
+                    if CheckIfInteger(median)
+                        medianLine:SetDescription(" " + cast(integer, median))
+                    end
+                    chartArea:Add(medianLine:GetSelectionArrow())
+    
+                    // Upper Quartile Line Q3
+                    thirdQuartileLine:SetFocusable(true)
+                    thirdQuartileLine:SetAccessibilityCode(0)
+                    thirdQuartileLine:SetNextFocus(GetNextFocus())
+                    thirdQuartileLine:SetPreviousFocus(GetPreviousFocus())
+                    thirdQuartileLine:SetName("3rd Quartile")
+                    thirdQuartileLine:SetDescription(" " + thirdQ)
+                    if CheckIfInteger(thirdQ)
+                        thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
+                    end
+                    chartArea:Add(thirdQuartileLine:GetSelectionArrow())
+    
+                    // Maximum Line
+                    maximumLine:SetFocusable(true)
+                    maximumLine:SetAccessibilityCode(0)
+                    maximumLine:SetNextFocus(GetNextFocus())
+                    maximumLine:SetPreviousFocus(GetPreviousFocus())
+                    maximumLine:SetName("Maximum")
+                    maximumLine:SetDescription(" " + maximum)
+                    if CheckIfInteger(maximum)
+                        maximumLine:SetDescription(" " + cast(integer, maximum))
+                    end
+                    chartArea:Add(maximumLine:GetSelectionArrow())
+                end
+
                 // Add to chart
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
@@ -251,6 +281,7 @@ class BoxPlot is Chart
                 chartArea:Add(maximumLine)
                 chartArea:Add(interQuartileRange)  //Place on top of others
                 chartArea:Add(plotArea)
+                chartArea:Add(plot)
                 //Add the outliers
     
                 /* Indices for items of individual box plot
@@ -294,7 +325,10 @@ class BoxPlot is Chart
                         end
                         outlier:SetFocusable(true)
                         outlier:SetAccessibilityCode(0)
+                        outlier:SetNextFocus(GetNextFocus())
+                        outlier:SetPreviousFocus(GetPreviousFocus())
                         chartArea:Add(outlier)
+                        chartArea:Add(outlier:GetSelectionArrow())
                         plot:AddItem(outlier)
                         j = j + 1
                     end
@@ -306,9 +340,14 @@ class BoxPlot is Chart
             group:SetName(group:GetName() + " group, ")
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
             group:SetFocusable(true)
-            group:SetAccessibilityCode(0)
+            group:SetAccessibilityCode(parent:Item:ITEM)
+            group:SetNextFocus(GetNextFocus())
+            group:SetPreviousFocus(GetPreviousFocus())
             chartArea:Add(group)
             GetGroupPanels():Add(group)
+            if i = 0
+                AddGroupPanelInstructions(group, group:GetDescription())
+            end
             i = i + 1
         end
     end
@@ -365,6 +404,17 @@ class BoxPlot is Chart
                 end
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
+            elseif target is ChartDrawable
+                ChartDrawable item = cast(ChartDrawable, target)  
+                if item:GetSelectionArrow() not= undefined          
+                    item:GetSelectionArrow():Hide()
+                end
+                if item:GetSelectionBracket():GetSize() = 3          
+                    item:GetSelectionBracket():Get(0):Hide()
+                    item:GetSelectionBracket():Get(1):Hide()
+                    item:GetSelectionBracket():Get(2):Hide()
+                end
+                parent:Chart:LostSelection(ci)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -405,9 +455,19 @@ class BoxPlot is Chart
                     end
                     i = i + 1
                 end
-//                temp:GetLabel():GainedSelection()
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
+            elseif target is ChartDrawable
+                ChartDrawable item = cast(ChartDrawable, target)  
+                if item:GetSelectionArrow() not= undefined          
+                    item:GetSelectionArrow():Show()
+                end
+                if item:GetSelectionBracket():GetSize() = 3          
+                    item:GetSelectionBracket():Get(0):Show()
+                    item:GetSelectionBracket():Get(1):Show()
+                    item:GetSelectionBracket():Get(2):Show()
+                end
+                parent:Chart:GainedSelection(ci)
             else
                 parent:Chart:GainedSelection(ci)
             end            
@@ -471,6 +531,13 @@ class BoxPlot is Chart
     */
     action GetPlotGroups returns Array<PlotGroup>
         return plotGroups
+    end
+
+    /*
+        Returns the number of boxes currently added to the Box Plot
+    */
+    action GetNumberOfPlots returns integer
+        return numberOfPlots
     end
 
     /* 
