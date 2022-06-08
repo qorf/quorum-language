@@ -1,28 +1,28 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.System.File
-use Libraries.Interface.Controls.Charts.BoxPlot
-use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
-use Libraries.Data.Formats.ScalableVectorGraphics.Line
-use Libraries.Containers.Array
-use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
-use Libraries.Data.Formats.ScalableVectorGraphics.Label
-use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.System.FileWriter
 use Libraries.Compute.Math
-use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Vector
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Script
+use Libraries.Containers.Array
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Data.Formats.ScalableVectorGraphics.Group
-use Libraries.Interface.Item
-use Libraries.Web.Page.Division
-use Libraries.Web.Page.Script
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 
 /*
@@ -108,6 +108,7 @@ class BoxPlotWriter is ChartWriter
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
         chartContentBoundingBox:SetFill(transparent)
         chartContentBoundingBox:SetStroke(transparent)
+        chartContentBoundingBox:SetTabIndex(-1)
         if HasAccessibility()
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())

@@ -324,6 +324,7 @@ class BoxPlotLayout is ChartLayout
             vertices:Add(y3)
             arrow:LoadShape(vertices, item:GetColor())
             arrow:Hide()
+            arrow:SetZ(-1)
             item:SetSelectionArrowVertices(vertices)            
         else
             integer x1 = cast(integer, item:GetX() + item:GetWidth() + 2)
@@ -344,6 +345,7 @@ class BoxPlotLayout is ChartLayout
             vertices:Add(y3)
             arrow:LoadShape(vertices, item:GetColor())
             arrow:Hide()
+            arrow:SetZ(-1)
             item:SetSelectionArrowVertices(vertices)
         end
     end
@@ -361,16 +363,19 @@ class BoxPlotLayout is ChartLayout
                 top:LoadFilledRectangle(tickWidth, tickHeight, item:GetSelectionColor())
                 top:SetPosition(x, y + h - tickHeight + tickWidth)
                 top:Hide()
+                top:SetZ(-1)
     
                 Drawable side = item:GetSelectionBracket():Get(1)
                 side:LoadFilledRectangle(w, tickWidth, item:GetSelectionColor())
                 side:SetPosition(x, y + h + tickWidth)
                 side:Hide()
+                side:SetZ(-1)
     
                 Drawable bottom = item:GetSelectionBracket():Get(2)
                 bottom:LoadFilledRectangle(tickWidth, tickHeight, item:GetSelectionColor())
                 bottom:SetPosition(x + w - tickWidth, y + h - tickHeight + tickWidth)
                 bottom:Hide()
+                bottom:SetZ(-1)
     
                 integer x1 = cast(integer, side:GetX() + side:GetWidth()/2)
                 integer y1 = cast(integer, side:GetY() + tickWidth*2)
@@ -389,6 +394,7 @@ class BoxPlotLayout is ChartLayout
                 vertices:Add(y3)
                 arrow:LoadShape(vertices, item:GetSelectionColor())
                 arrow:Hide()
+                arrow:SetZ(-1)
                 item:SetSelectionArrowVertices(vertices)
             end             
         else
@@ -397,16 +403,19 @@ class BoxPlotLayout is ChartLayout
                 top:LoadFilledRectangle(tickWidth, tickHeight, item:GetSelectionColor())
                 top:SetPosition(x + w - tickWidth + tickHeight, y + h - tickHeight)
                 top:Hide()
+                top:SetZ(-1)
     
                 Drawable side = item:GetSelectionBracket():Get(1)
                 side:LoadFilledRectangle(tickHeight, h, item:GetSelectionColor())
                 side:SetPosition(x + w + tickHeight, y)
                 side:Hide()
+                side:SetZ(-1)
     
                 Drawable bottom = item:GetSelectionBracket():Get(2)
                 bottom:LoadFilledRectangle(tickWidth, tickHeight, item:GetSelectionColor())
                 bottom:SetPosition(x + w - tickWidth + tickHeight, y)
                 bottom:Hide()
+                bottom:SetZ(-1)
     
                 integer x1 = cast(integer, side:GetX() + tickHeight*2)
                 integer y1 = cast(integer, side:GetY() + side:GetHeight()/2)
@@ -425,6 +434,7 @@ class BoxPlotLayout is ChartLayout
                 vertices:Add(y3)
                 arrow:LoadShape(vertices, item:GetSelectionColor())
                 arrow:Hide()
+                arrow:SetZ(-1)
                 item:SetSelectionArrowVertices(vertices)
             end 
         end

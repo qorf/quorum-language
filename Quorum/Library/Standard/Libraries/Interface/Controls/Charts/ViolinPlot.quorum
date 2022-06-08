@@ -114,83 +114,11 @@ class ViolinPlot is Chart
             integer k = 0
             repeat while k < group:GetSize()
                 Plot plot = group:Get(k)
-
-                ChartDrawable minimumLine
-                ChartDrawable lowerWhisker 
-                ChartDrawable interQuartileRange
-                ChartDrawable rightBorder // Right side of IQR - not used
-                ChartDrawable leftBorder  // Left side of IQR - not used
-                ChartDrawable firstQuartileLine
-                ChartDrawable medianDot
-                ChartDrawable thirdQuartileLine
-                ChartDrawable upperWhisker 
-                ChartDrawable maximumLine
-                ChartDrawable filler
-
-                if not plot:IsUndefined()
-                    number median = plot:GetInfoAt(0)
-                    number firstQ = plot:GetInfoAt(1)
-                    number thirdQ = plot:GetInfoAt(2)
-                    number minimum = plot:GetInfoAt(3)
-                    number maximum = plot:GetInfoAt(4)
-                    number iqr = thirdQ - firstQ
-    
-                    // Minimum Line 
-                    minimumLine:SetFocusable(true)
-                    minimumLine:SetAccessibilityCode(0)
-                    minimumLine:SetName("Minimum")
-                    minimumLine:SetDescription(" " + minimum)
-                    if CheckIfInteger(minimum)
-                        minimumLine:SetDescription(" " + cast(integer, minimum))
-                    end
-
-                    // Interquartile Range Region Area
-                    interQuartileRange:SetFocusable(true)
-                    interQuartileRange:SetAccessibilityCode(0)
-                    interQuartileRange:SetName("Interquartile range")
-                    interQuartileRange:SetDescription(" " + iqr)
-                    if CheckIfInteger(iqr)
-                        interQuartileRange:SetDescription(" " + cast(integer, iqr))
-                    end
-    
-                    // Lower Quartile Line Q1
-                    firstQuartileLine:SetFocusable(true)
-                    firstQuartileLine:SetAccessibilityCode(0)
-                    firstQuartileLine:SetName("1st Quartile")
-                    firstQuartileLine:SetDescription(" " + firstQ)
-                    if CheckIfInteger(firstQ)
-                        firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
-                    end
-    
-                    // Median dot (denser) 
-                    medianDot:SetFocusable(true)
-                    medianDot:SetAccessibilityCode(0)
-                    medianDot:SetName("Median")
-                    medianDot:SetDescription(" " + median)
-                    if CheckIfInteger(median)
-                        medianDot:SetDescription(" " + cast(integer, median))
-                    end
-    
-                    // Upper Quartile Line Q3
-                    thirdQuartileLine:SetFocusable(true)
-                    thirdQuartileLine:SetAccessibilityCode(0)
-                    thirdQuartileLine:SetName("3rd Quartile")
-                    thirdQuartileLine:SetDescription(" " + thirdQ)
-                    if CheckIfInteger(thirdQ)
-                        thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
-                    end
-    
-                    // Maximum Line
-    
-                    maximumLine:SetFocusable(true)
-                    maximumLine:SetAccessibilityCode(0)
-                    maximumLine:SetName("Maximum")
-                    maximumLine:SetDescription(" " + maximum)
-                    if CheckIfInteger(maximum)
-                        maximumLine:SetDescription(" " + cast(integer, maximum))
-                    end
-
-                end
+                AddChartItemInstructions(plot,plot:GetDescription())
+                plot:SetFocusable(true)
+                plot:SetAccessibilityCode(parent:Item:ITEM)
+                plot:SetNextFocus(GetNextFocus())
+                plot:SetPreviousFocus(GetPreviousFocus())
 
                 // Plot Area Outline Panel
                 Icon plotArea
@@ -230,9 +158,99 @@ class ViolinPlot is Chart
                 else
                     chartArea = GetChartArea()
                 end
+                chartArea:Add(plot) // This is to be the actual violin shape
+
+                ChartDrawable minimumLine
+                ChartDrawable lowerWhisker 
+                ChartDrawable interQuartileRange
+                ChartDrawable rightBorder // Right side of IQR - not used
+                ChartDrawable leftBorder  // Left side of IQR - not used
+                ChartDrawable firstQuartileLine
+                ChartPoint medianDot
+                ChartDrawable thirdQuartileLine
+                ChartDrawable upperWhisker 
+                ChartDrawable maximumLine
+                ChartDrawable filler
+
+                if not plot:IsUndefined()
+                    number median = plot:GetInfoAt(0)
+                    number firstQ = plot:GetInfoAt(1)
+                    number thirdQ = plot:GetInfoAt(2)
+                    number minimum = plot:GetInfoAt(3)
+                    number maximum = plot:GetInfoAt(4)
+                    number iqr = thirdQ - firstQ
+    
+                    // Minimum Line 
+                    minimumLine:SetFocusable(true)
+                    minimumLine:SetAccessibilityCode(0)
+                    minimumLine:SetName("Minimum")
+                    minimumLine:SetDescription(" " + minimum)
+                    if CheckIfInteger(minimum)
+                        minimumLine:SetDescription(" " + cast(integer, minimum))
+                    end
+                    chartArea:Add(minimumLine:GetSelectionArrow())
+
+                    // Interquartile Range Region Area
+                    interQuartileRange:SetFocusable(true)
+                    interQuartileRange:SetAccessibilityCode(0)
+                    interQuartileRange:SetName("Interquartile range")
+                    interQuartileRange:SetDescription(" " + iqr)
+                    if CheckIfInteger(iqr)
+                        interQuartileRange:SetDescription(" " + cast(integer, iqr))
+                    end
+                    chartArea:Add(interQuartileRange:GetSelectionArrow())
+                    Drawable topBrack
+                    interQuartileRange:GetSelectionBracket():Add(topBrack)
+                    chartArea:Add(topBrack)
+                    Drawable sideBrack
+                    interQuartileRange:GetSelectionBracket():Add(sideBrack) 
+                    chartArea:Add(sideBrack)
+                    Drawable bottomBrack
+                    interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
+                    chartArea:Add(bottomBrack)  
+    
+                    // Lower Quartile Line Q1
+                    firstQuartileLine:SetFocusable(true)
+                    firstQuartileLine:SetAccessibilityCode(0)
+                    firstQuartileLine:SetName("1st Quartile")
+                    firstQuartileLine:SetDescription(" " + firstQ)
+                    if CheckIfInteger(firstQ)
+                        firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
+                    end
+                    chartArea:Add(firstQuartileLine:GetSelectionArrow())                    
+    
+                    // Median dot (denser) 
+                    medianDot:SetFocusable(true)
+                    medianDot:SetAccessibilityCode(0)
+                    medianDot:SetName("Median")
+                    medianDot:SetDescription(" " + median)
+                    if CheckIfInteger(median)
+                        medianDot:SetDescription(" " + cast(integer, median))
+                    end
+                    chartArea:Add(medianDot:GetSelectionArrow())
+    
+                    // Upper Quartile Line Q3
+                    thirdQuartileLine:SetFocusable(true)
+                    thirdQuartileLine:SetAccessibilityCode(0)
+                    thirdQuartileLine:SetName("3rd Quartile")
+                    thirdQuartileLine:SetDescription(" " + thirdQ)
+                    if CheckIfInteger(thirdQ)
+                        thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
+                    end
+                    chartArea:Add(thirdQuartileLine:GetSelectionArrow())
+    
+                    // Maximum Line
+                    maximumLine:SetFocusable(true)
+                    maximumLine:SetAccessibilityCode(0)
+                    maximumLine:SetName("Maximum")
+                    maximumLine:SetDescription(" " + maximum)
+                    if CheckIfInteger(maximum)
+                        maximumLine:SetDescription(" " + cast(integer, maximum))
+                    end
+                    chartArea:Add(maximumLine:GetSelectionArrow())
+                end
     
                 // Add to chart
-                chartArea:Add(plot) // This is to be the actual violin shape
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
@@ -281,8 +299,13 @@ class ViolinPlot is Chart
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " violin plots.")
             group:SetFocusable(true)
             group:SetAccessibilityCode(0)
+            group:SetNextFocus(GetNextFocus())
+            group:SetPreviousFocus(GetPreviousFocus())
             chartArea:Add(group)
             GetGroupPanels():Add(group)
+            if i = 0
+                AddGroupPanelInstructions(group, group:GetDescription())
+            end
             i = i + 1
         end
     end
@@ -320,7 +343,20 @@ class ViolinPlot is Chart
         Item target = ci:GetFocusTarget()
 
         if target not= undefined
-            parent:Chart:LostSelection(ci)
+            if target is ChartDrawable
+                ChartDrawable item = cast(ChartDrawable, target)  
+                if item:GetSelectionArrow() not= undefined          
+                    item:GetSelectionArrow():Hide()
+                end
+                if item:GetSelectionBracket():GetSize() = 3          
+                    item:GetSelectionBracket():Get(0):Hide()
+                    item:GetSelectionBracket():Get(1):Hide()
+                    item:GetSelectionBracket():Get(2):Hide()
+                end
+                parent:Chart:LostSelection(ci)
+            else
+                parent:Chart:LostSelection(ci)
+            end
         end
     end
 
@@ -344,7 +380,20 @@ class ViolinPlot is Chart
 
         if target not= undefined
             target:Focus()
-            parent:Chart:GainedSelection(ci)          
+            if target is ChartDrawable
+                ChartDrawable item = cast(ChartDrawable, target)  
+                if item:GetSelectionArrow() not= undefined          
+                    item:GetSelectionArrow():Show()
+                end
+                if item:GetSelectionBracket():GetSize() = 3          
+                    item:GetSelectionBracket():Get(0):Show()
+                    item:GetSelectionBracket():Get(1):Show()
+                    item:GetSelectionBracket():Get(2):Show()
+                end
+                parent:Chart:GainedSelection(ci)
+            else
+                parent:Chart:GainedSelection(ci)
+            end          
         end
     end
     
@@ -427,6 +476,7 @@ class ViolinPlot is Chart
         if group:GetSize() > 1
             HasGroups(true)
         end
+        numberOfPlots = numberOfPlots + group:GetSize()
     end
    
     /*
@@ -434,6 +484,13 @@ class ViolinPlot is Chart
     */
     action GetPlotGroups returns Array<PlotGroup>
         return plotGroups
+    end
+
+    /*
+        Returns the number of boxes currently added to the Box Plot
+    */
+    action GetNumberOfPlots returns integer
+        return numberOfPlots
     end
 
     /* 
