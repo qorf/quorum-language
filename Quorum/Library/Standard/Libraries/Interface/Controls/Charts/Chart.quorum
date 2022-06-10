@@ -22,6 +22,7 @@ use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
 
@@ -161,7 +162,7 @@ class Chart is Control
 
     // Terminology for navigation instructions
     private text groupText = "group"
-    private text groupsText = "group"
+    private text groupsText = "groups"
     private text seriesText = "series"
     private text chartItemText = "chart item"
     private text chartItemsText = "chart items"
@@ -2098,7 +2099,6 @@ class Chart is Control
                     element:SetZ(previousZ)
                     i = i + 1
                 end
-//                temp:GetLabel():LostSelection()
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is RegressionLine
@@ -2107,6 +2107,28 @@ class Chart is Control
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetIcon():SetColor(previousColor)
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Hide()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Hide()
+                    temp:GetSelectionBracket():Get(1):Hide()
+                    temp:GetSelectionBracket():Get(2):Hide()
+                end
+            elseif target is ChartDrawable
+                ChartDrawable temp = cast(ChartDrawable, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Hide()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Hide()
+                    temp:GetSelectionBracket():Get(1):Hide()
+                    temp:GetSelectionBracket():Get(2):Hide()
+                end
+                temp:SetZ(previousZ)
+                temp:SetColor(previousColor)
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
@@ -2146,6 +2168,7 @@ class Chart is Control
         Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
+//            output "" + target:GetName() + target:GetDescription()
             if target is Series
                 Series temp = cast(Series, target)
                 previousColor = temp:GetColor()
@@ -2166,6 +2189,30 @@ class Chart is Control
                 temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
                 temp:GetIcon():SetColor(GetSelectionColor())
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Show()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Show()
+                    temp:GetSelectionBracket():Get(1):Show()
+                    temp:GetSelectionBracket():Get(2):Show()
+                end
+            elseif target is ChartDrawable
+                ChartDrawable temp = cast(ChartDrawable, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Show()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Show()
+                    temp:GetSelectionBracket():Get(1):Show()
+                    temp:GetSelectionBracket():Get(2):Show()
+                end
+                previousZ = temp:GetZ()
+                previousColor = temp:GetColor()
+                temp:SetZ(-1)
+                temp:SetColor(GetSelectionColor())
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()

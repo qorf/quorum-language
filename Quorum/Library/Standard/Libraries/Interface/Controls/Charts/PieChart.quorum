@@ -60,6 +60,12 @@ class PieChart is Chart
     ChartOptions options
     Math math
 
+    // Terminology for navigation instructions
+    private text groupText = "pie"
+    private text groupsText = "pies"
+    private text chartItemText = "slice"
+    private text chartItemsText = "slices"
+
     on create
         PieChartLayout layout
         SetLayout(layout)
@@ -634,9 +640,9 @@ class PieChart is Chart
             end
         end
         if GetName() = "Pie Chart"
-            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + count + " " + countText)
         else
-            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", pie chart with " + count + " " + countText)
         end
         return GetDescription()
     end
@@ -683,13 +689,13 @@ class PieChart is Chart
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
-                GetChartArea():SetDescription(" with " + subAreaCount + " pies.")
+                AddChartAreaInstructions(" with " + subAreaCount + " pies.")
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetDescription(" pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
+                AddSubChartAreaInstructions(GetSubChartAreas():Get(0), " pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
 
                 //Slices within SubChartArea
                 ChartItem firstSlice
@@ -698,7 +704,7 @@ class PieChart is Chart
                     firstArea:SetChild(firstSlice)
                     firstSlice:SetParent(firstArea)
                     firstSlice:SetFocusTarget(chartAreaItems:Get(0))
-                    chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
+                    AddChartItemInstructions(chartAreaItems:Get(0), chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
                 end
 
                 integer j = 1
@@ -741,7 +747,7 @@ class PieChart is Chart
                         nextArea:SetChild(firstSlice)
                         firstSlice:SetParent(nextArea)
                         firstSlice:SetFocusTarget(chartAreaItems:Get(0))
-                        chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
+                        AddChartItemInstructions(chartAreaItems:Get(0), chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
                     end
     
                     j = 1
@@ -765,14 +771,14 @@ class PieChart is Chart
         else
             PieBox box = pieBoxes:Get(0)
             integer count = box:GetSize()
-            GetChartArea():SetDescription(" with " + count + " slices")
+            AddChartAreaInstructions(" with " + count + " slices")
             if count > 0
                 ChartItem firstSlice
                 firstSlice:SetContainer(me)
                 chartArea:SetChild(firstSlice)
                 firstSlice:SetParent(chartArea)
                 firstSlice:SetFocusTarget(box:Get(0))
-                box:Get(0):SetDescription(box:Get(0):GetDescription() + ", 1 of " + count + " slices.")
+                AddChartItemInstructions(box:Get(0), box:Get(0):GetDescription() + ", 1 of " + count + " slices.")
     
                 integer i = 1
                 ChartItem previousSlice = firstSlice
@@ -819,5 +825,21 @@ class PieChart is Chart
             PieChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
         end
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+    
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 end

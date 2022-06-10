@@ -1,28 +1,28 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Containers.Support.Comparison
-use Libraries.Interface.Controls.Charts.Graphics.Bar
+use Libraries.Interface.Controls.Charts.Graphics.PieSlice
 
-class BarComparison is Comparison
+class PieSliceComparison is Comparison
     boolean ascending = false
 
     action Compare(Object left, Object right) returns integer
-        Bar bar1 = cast(Bar, left)
-        Bar bar2 = cast(Bar, right)
+        PieSlice slice1 = cast(PieSlice, left)
+        PieSlice slice2 = cast(PieSlice, right)
 
         if ascending
-            if bar1:GetValue() > bar2:GetValue()
+            if slice1:GetValue() > slice2:GetValue()
                 return parent:Comparison:LARGER
-            elseif bar1:GetValue() < bar2:GetValue()
+            elseif slice1:GetValue() < slice2:GetValue()
                 return parent:Comparison:SMALLER
             else
                 return parent:Comparison:EQUAL
             end
         else
-            if bar1:GetValue() > bar2:GetValue()
-                return parent:Comparison:SMALLER
-            elseif bar1:GetValue() < bar2:GetValue()
+            if slice1:GetValue() > slice2:GetValue()
                 return parent:Comparison:LARGER
+            elseif slice1:GetValue() < slice2:GetValue()
+                return parent:Comparison:SMALLER
             else
                 return parent:Comparison:EQUAL
             end

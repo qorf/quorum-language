@@ -55,6 +55,9 @@ use Libraries.Game.Graphics.ColorGroup
 */
 
 class BoxPlotLayout is ChartLayout
+    boolean horizontal = false // Default is vertical for box plots
+    boolean separateBySeries = false
+    boolean separateByFactor = false
     /*
         This action determines the layout of the chart area
     */
@@ -73,9 +76,9 @@ class BoxPlotLayout is ChartLayout
         number xMax = chart:GetXAxisMaximum()
         number xMin = chart:GetXAxisMinimum()
 
-        boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
-        boolean separateBySeries = chart:IsSeparatedBySeries()
-        boolean separateByFactor = chart:IsSeparatedByFactor()
+        horizontal = chart:GetHorizontalFlag() // Default is vertical
+        separateBySeries = chart:IsSeparatedBySeries()
+        separateByFactor = chart:IsSeparatedByFactor()
         boolean useFactor = (chart:GetFactorList() not= undefined)
 
         // These calculate the necessary dimensions of the boxplots
@@ -109,13 +112,7 @@ class BoxPlotLayout is ChartLayout
 
                 //Give each group an alloted section  
                 integer startpanelw = panelwidth*i
-                //Outer box
-                group:LoadRectangle(panelwidth,height,transparent)
-                group:SetPosition(startpanelw,0)
-                if horizontal
-                    group:LoadRectangle(height,panelwidth,transparent)
-                    group:SetPosition(0,startpanelw)
-                end
+                integer groupHeight = 0
 
                 if group:GetSize() > 0
                     integer groupCount = plotGroups:GetSize()
@@ -178,18 +175,7 @@ class BoxPlotLayout is ChartLayout
                         Array<ChartDrawable> item = plot:GetPlotItems()
                         Color lightColor = plot:GetColor()
                         ColorGroup darkColor = chart:GetBorderColor()
-    
-                        //Outer box
-                        if plot:GetPlotArea() not= undefined
-                            plot:GetPlotArea():LoadRectangle(width,height,transparent)
-                            plot:GetPlotArea():SetPosition(startw,0)
-                            if horizontal
-                                plot:GetPlotArea():LoadRectangle(height,width,transparent)
-                                plot:GetPlotArea():SetPosition(0,startw)
-                            end
-                        end
-            
-
+   
                         if not plot:IsUndefined()
                             number median = plot:GetInfoAt(0)
                             number lowerQuartile = plot:GetInfoAt(1)
@@ -241,7 +227,30 @@ class BoxPlotLayout is ChartLayout
                             percent = (maximum - rangeMin)/range // used for 10
                             item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
                             item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
-    
+
+                            integer plotAreaHeight = cast(integer, item:Get(10):GetY()+item:Get(10):GetHeight())
+                            if plot:GetPlotArea() not= undefined
+                                if horizontal
+                                    plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
+                                    plot:GetPlotArea():SetPosition(0,startw)
+                                    plot:SetSize(plotAreaHeight, width)
+                                    plot:SetPosition(0,startw)
+                                else
+                                    plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
+                                    plot:GetPlotArea():SetPosition(startw,0)
+                                    plot:SetSize(width, plotAreaHeight)
+                                    plot:SetPosition(startw,0)
+                                end
+                                // Load bracket and arrow for plot
+                                LoadChartDrawableSelectionArrow(chart, plot, cast(integer, width/4), false)
+                            end
+                            if k = 0
+                                groupHeight = cast(integer, plot:GetPlotArea():GetHeight())
+                            end
+                            if plotAreaHeight > groupHeight
+                                groupHeight = plotAreaHeight
+                            end
+
                             if horizontal
                                 integer l = 1
                                 repeat while l < 11
@@ -256,6 +265,21 @@ class BoxPlotLayout is ChartLayout
                                     l = l + 1
                                 end
                             end
+
+                            integer arrowSize = line*4
+                            // Load selection arrows and brackets
+                            // Load bracket and arrow for iqr
+                            LoadChartDrawableSelectionBracketAndArrow(chart, item:Get(3), arrowSize, true)
+                            // Load and place the min line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item:Get(1), arrowSize, true)
+                            // Load and place the q1 line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item:Get(6), arrowSize, true)
+                            // Load and place the median line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item:Get(7), arrowSize, true)
+                            // Load and place the q3 line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item:Get(8), arrowSize, true)
+                            // Load and place the max line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item:Get(10), arrowSize, true)
                         end
             
                         if chart:GetOutliersFlag()
@@ -273,6 +297,10 @@ class BoxPlotLayout is ChartLayout
                                 if horizontal
                                     item:Get(j):SetPosition(cast(integer, percent*height)-line * 2, startw+center-line)
                                 end
+
+                                integer arrowSize = line*4
+                                // Load and place the outlier selection arrow
+                                LoadChartDrawableSelectionArrow(chart, item:Get(j), arrowSize, true)
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1
                             end
@@ -280,6 +308,16 @@ class BoxPlotLayout is ChartLayout
                         k = k + 1
                     end 
                 end  
+
+                //Outer group box
+                group:LoadRectangle(panelwidth,groupHeight,transparent)
+                group:SetPosition(startpanelw,0)
+                if horizontal
+                    group:LoadRectangle(groupHeight,panelwidth,transparent)
+                    group:SetPosition(0,startpanelw)
+                end
+                // Load and place the group selection bracket/arrow
+                LoadGroupSelectionBracketAndArrow(chart, group)
                 i = i + 1
             end
         end

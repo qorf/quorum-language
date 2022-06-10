@@ -173,7 +173,6 @@ class SharedBarChartParent is Chart
                     temp:SetName(barname + " bar, ")
                     temp:SetDescription(valueText + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
                 end
-                AddChartItemInstructions(temp,temp:GetDescription())
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
                 temp:SetNextFocus(GetNextFocus())
@@ -272,20 +271,7 @@ class SharedBarChartParent is Chart
         end
         Item target = item:GetFocusTarget()
         if target not= undefined
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Hide()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Hide()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Hide()
-            else
-                parent:Chart:LostSelection(item)
-            end
+            parent:Chart:LostSelection(item)
         end 
     end
 
@@ -308,20 +294,7 @@ class SharedBarChartParent is Chart
         Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Show()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Show()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Show()
-            else
-                parent:Chart:GainedSelection(item)  
-            end          
+            parent:Chart:GainedSelection(item)         
         end
     end
 
@@ -482,6 +455,7 @@ class SharedBarChartParent is Chart
                     firstArea:SetChild(firstBar)
                     firstBar:SetParent(firstArea)
                     firstBar:SetFocusTarget(chartAreaItems:Get(0))
+                    AddChartItemInstructions(chartAreaItems:Get(0),chartAreaItems:Get(0):GetDescription())
                 end
 
                 integer j = 1
@@ -523,6 +497,7 @@ class SharedBarChartParent is Chart
                         nextArea:SetChild(firstBar)
                         firstBar:SetParent(nextArea)
                         firstBar:SetFocusTarget(chartAreaItems:Get(0))
+                        AddChartItemInstructions(chartAreaItems:Get(0),chartAreaItems:Get(0):GetDescription())
                     end
     
                     j = 1
@@ -560,6 +535,7 @@ class SharedBarChartParent is Chart
                         firstGroup:SetChild(firstBar)
                         firstBar:SetParent(firstGroup)
                         firstBar:SetFocusTarget(barGroups:Get(0):Get(0))
+                        AddChartItemInstructions(barGroups:Get(0):Get(0),barGroups:Get(0):Get(0):GetDescription())
                     end
                     integer j = 1
                     ChartItem previousBar = firstBar
@@ -594,6 +570,7 @@ class SharedBarChartParent is Chart
                         group:SetChild(firstBar)
                         firstBar:SetParent(group)
                         firstBar:SetFocusTarget(barGroups:Get(i):Get(0))
+                        AddChartItemInstructions(barGroups:Get(i):Get(0),barGroups:Get(i):Get(0):GetDescription())
                     end
                     integer j = 1
                     ChartItem previousBar = firstBar
@@ -619,6 +596,7 @@ class SharedBarChartParent is Chart
                         chartArea:SetChild(firstBar)
                         firstBar:SetParent(chartArea)
                         firstBar:SetFocusTarget(barGroups:Get(0):Get(0))
+                        AddChartItemInstructions(barGroups:Get(0):Get(0),barGroups:Get(0):Get(0):GetDescription())
                     end
                     integer i = 1
                     ChartItem previousBar = firstBar
