@@ -95,6 +95,14 @@ class Plot is ChartDrawable
 //        end
     end
 
+    action GetMedian returns number
+        if info:GetSize() > 0
+            return info:Get(0)
+        else
+            return -1
+        end
+    end
+
     action GetInfo returns Array<number>
         return info
     end
