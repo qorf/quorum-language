@@ -1595,98 +1595,9 @@ class ChartWriter
         return divRegion
     end
 
-    action AddYAxisAccessibility(Chart chart, Array<Label> yLabels, ListItem yAxisLabelItem)
-        VerticalAxisPanel verticalContainer
-        verticalContainer = chart:GetVerticalPanel()
-        //boolean usingGrouping = (chart:GetGroupPanels():GetSize() > 0) and verticalContainer:UseTextLabelOverride()
-        UnorderedList yAxisGroup
-        yAxisGroup:AddAttribute("role","group")
-        yAxisGroup:AddClassAttribute("quorum-chart-group")
-        yAxisLabelItem:AddNestedTag(yAxisGroup)
-        
-        i = 0
-        repeat while i < yLabels:GetSize()
-            ListItem labelNav
-            labelNav:SetIdentifier(yLabels:Get(i):GetID() + "_nav")
-            labelNav:AddAttribute("role","treeitem")
-            labelNav:AddClassAttribute("quorum-chart-treeitem")
-            labelNav:AddAttribute("aria-labelledby",yLabels:Get(i):GetID())
-            labelNav:SetTabIndex("-1")
-            yAxisGroup:Add(labelNav)
-
-            i = i + 1
-        end
-    end
-
-    blueprint action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-
     action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
         Script script
         division:Add(script)
-    end
-
-    action AddXAxisAccessibility(Chart chart,  Array<Label> xLabels, ListItem xAxisLabelItem)
-        UnorderedList xAxisGroup
-        xAxisGroup:AddAttribute("role","group")
-        xAxisGroup:AddClassAttribute("quorum-chart-group")
-        xAxisLabelItem:AddNestedTag(xAxisGroup)
-
-        i = 0
-        repeat while i < xLabels:GetSize()
-            ListItem labelNav 
-            labelNav:SetIdentifier(xLabels:Get(i):GetID() + "_nav")
-            labelNav:AddAttribute("role","treeitem")
-            labelNav:AddClassAttribute("quorum-chart-treeitem")
-            labelNav:AddAttribute("aria-labelledby",xLabels:Get(i):GetID())
-            labelNav:SetTabIndex("-1")
-            xAxisGroup:Add(labelNav)
-
-            i = i + 1
-        end
-    end
-
-    action AddLegendAccessibility(ScalableVectorGraphics canvas, Chart chart, ListItem legendItem)
-        UnorderedList legendGroup
-        legendGroup:AddAttribute("role","group")
-        legendGroup:AddClassAttribute("quorum-chart-group")
-        legendItem:AddNestedTag(legendGroup)
-
-        Legend legend = chart:GetLegend()
-        i = 0
-        repeat while i < legend:GetSeriesList():GetSize()
-            Series currentSeries = legend:GetSeriesList():Get(i)
-
-            ListItem seriesItem 
-            seriesItem:SetIdentifier(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_nav")
-            seriesItem:AddAttribute("role","treeitem")
-            seriesItem:AddClassAttribute("quorum-chart-treeitem")
-            seriesItem:AddAttribute("aria-labelledby",canvas:GetID() + "_" + currentSeries:GetHashCode())
-            seriesItem:SetTabIndex("-1")
-            legendGroup:Add(seriesItem)
-
-            if chart:GetLegend():IsShowingRegression()
-                RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
-                if line not= undefined
-                    ListItem regEqItem 
-                    regEqItem:SetIdentifier(canvas:GetID() + "_" + line:GetEquationLabel():GetHashCode() + "_nav")
-                    regEqItem:AddAttribute("role","treeitem")
-                    regEqItem:AddClassAttribute("quorum-chart-treeitem")
-                    regEqItem:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetEquationLabel():GetHashCode())
-                    regEqItem:SetTabIndex("-1")
-                    legendGroup:Add(regEqItem)
-
-                    ListItem regR2Item 
-                    regR2Item:SetIdentifier(canvas:GetID() + "-" + line:GetRSquaredLabel():GetHashCode() + "_nav")
-                    regR2Item:AddAttribute("role","treeitem")
-                    regR2Item:AddClassAttribute("quorum-chart-treeitem")
-                    regR2Item:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetRSquaredLabel():GetHashCode())
-                    regR2Item:SetTabIndex("-1")
-                    legendGroup:Add(regR2Item)
-                end
-            end
-
-            i = i + 1
-        end
     end
 
     action AddRegressionLines(ScalableVectorGraphics canvas, Chart chart)

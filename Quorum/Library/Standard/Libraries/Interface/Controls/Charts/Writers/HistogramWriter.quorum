@@ -114,6 +114,7 @@ class HistogramWriter is ChartWriter
         chartContent:SetIsOneLine(true)
         chartContent:SetRole("application")
         canvas:Add(chartContent)
+
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
@@ -126,8 +127,6 @@ class HistogramWriter is ChartWriter
             chartContent:SetAriaHidden("false")
         end
         chartContent:Add(chartContentBoundingBox)
-
-        text description = GetChartArea():GetAriaLabel() + "."
 
         if not chart:IsSeparated()
             
@@ -325,6 +324,7 @@ class HistogramWriter is ChartWriter
                 subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
                 subChartContent:SetTabIndex(-1)
                 subChartContent:SetStyleClass("quorum-chart-region")
+
                 Rectangle subChartContentBoundingBox
                 subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                 subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
@@ -467,84 +467,12 @@ class HistogramWriter is ChartWriter
         end
     end
 
-    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-        
-        Histogram histogram
-        histogram = cast(Histogram, chart)
-
-        if not chart:IsSeparated()
-            Array<BarGroup> barGroups = histogram:GetBarGroups()
-    
-            UnorderedList barGroupsUL
-            barGroupsUL:AddAttribute("role","group")
-            barGroupsUL:AddClassAttribute("quorum-chart-group")
-            chartAreaItem:AddNestedTag(barGroupsUL)
-            
-            UnorderedList currentGrouping = barGroupsUL
-            i = 0
-            repeat while i < barGroups:GetSize()
-                if histogram:HasGroups()
-                    ListItem barGroupNav 
-                    barGroupNav:SetIdentifier(canvas:GetID() + "_" + barGroups:Get(i):GetHashCode() + "_nav")
-                    barGroupNav:AddAttribute("role","treeitem")
-                    barGroupNav:AddClassAttribute("quorum-chart-treeitem")
-                    barGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + barGroups:Get(i):GetHashCode())
-                    barGroupNav:AddAttribute("aria-expanded","false")
-                    barGroupNav:SetTabIndex("-1")
-                    barGroupsUL:Add(barGroupNav)
-        
-                    
-                    UnorderedList barsUL
-                    barsUL:AddAttribute("role","group")
-                    barsUL:AddClassAttribute("quorum-chart-group")
-                    barGroupNav:AddNestedTag(barsUL)
-                    currentGrouping = barsUL
-                end
-                
-                j = 0
-                repeat while j < barGroups:Get(i):GetSize()
-                    ListItem barNav 
-                    barNav:SetIdentifier(canvas:GetID() + "_" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "_" + barGroups:Get(i):Get(j):GetHashCode() + "_nav")
-                    barNav:AddAttribute("role","treeitem")
-                    barNav:AddClassAttribute("quorum-chart-treeitem")
-                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + barGroups:Get(i):Get(j):GetSeries():GetHashCode() + "_" + barGroups:Get(i):Get(j):GetHashCode())
-                    barNav:SetTabIndex("-1")
-                    currentGrouping:Add(barNav)
-    
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        else
-            UnorderedList subChartAreaItemsUL
-            subChartAreaItemsUL:AddAttribute("role","group")
-            subChartAreaItemsUL:AddClassAttribute("quorum-chart-group")
-            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
-
-            i = 0
-            repeat while i < chartArea:GetChartAreaItems():GetSize()
-                if (chartArea:GetChartAreaItems():Get(i) is Bar)
-                    Item bar = chartArea:GetChartAreaItems():Get(i)
-                    ListItem barNav 
-                    barNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode() + "_nav")
-                    barNav:AddAttribute("role","treeitem")
-                    barNav:AddClassAttribute("quorum-chart-treeitem")
-                    barNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + bar:GetHashCode())
-                    barNav:SetTabIndex("-1")
-                    subChartAreaItemsUL:Add(barNav)
-                end
-                i = i + 1
-            end
-        end
-    end
-
     private action AddTrendLine(ScalableVectorGraphics canvas, Histogram chart)
         if chart:HasTrendLine() = false
             return now
         end
     end
 
-    
     action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
         Histogram histogram
         histogram = cast(Histogram, chart)
