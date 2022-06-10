@@ -64,9 +64,9 @@ class BarChart is SharedBarChartParent
     private action GenerateSummary returns text
         text grouptext = ""
         if HasGroups()
-            text groups = " categories and "
+            text groups = " groups and "
             if GetBarGroups():GetSize() = 1
-                groups = " category and "
+                groups = " group and "
             end
             grouptext = GetBarGroups():GetSize() + groups
         end

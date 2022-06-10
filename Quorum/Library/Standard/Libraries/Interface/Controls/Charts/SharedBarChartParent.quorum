@@ -173,7 +173,6 @@ class SharedBarChartParent is Chart
                     temp:SetName(barname + " bar, ")
                     temp:SetDescription(valueText + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
                 end
-                AddChartItemInstructions(temp,temp:GetDescription())
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
                 temp:SetNextFocus(GetNextFocus())
@@ -272,20 +271,7 @@ class SharedBarChartParent is Chart
         end
         Item target = item
         if target not= undefined
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Hide()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Hide()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Hide()
-            else
-                parent:Chart:LostSelection(item)
-            end
+            parent:Chart:LostSelection(item)
         end 
     end
 
@@ -308,20 +294,7 @@ class SharedBarChartParent is Chart
         Item target = item
         if target not= undefined
             target:Focus()
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Show()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Show()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Show()
-            else
-                parent:Chart:OnSelectionChange(item)  
-            end          
+            parent:Chart:OnSelectionChange(item)
         end
     end
 
@@ -482,6 +455,7 @@ class SharedBarChartParent is Chart
                     firstBar:SetContainer(me)
                     firstArea:SetEnterItem(firstBar)
                     firstBar:SetEscapeItem(firstArea)
+                    AddChartItemInstructions(firstBar, firstBar:GetDescription())
 
                     integer j = 1
                     ChartItem previousBar = firstBar
@@ -580,6 +554,7 @@ class SharedBarChartParent is Chart
                     if barGroups:Get(0):GetSize() > 0
                         ChartItem firstBar = barGroups:Get(0):Get(0)
                         firstBar:SetContainer(me)
+                        AddChartItemInstructions(firstBar, firstBar:GetDescription())
 
                         firstGroup:SetEnterItem(firstBar)
                         firstBar:SetEscapeItem(firstGroup)
@@ -660,12 +635,11 @@ class SharedBarChartParent is Chart
                         i = i + 1
                     end
                 end        
-        
-                
             else
                 if barGroups:GetSize() > 0
                     if barGroups:Get(0):GetSize() > 0
                         ChartItem firstBar = barGroups:Get(0):Get(0)
+                        AddChartItemInstructions(firstBar, firstBar:GetDescription())
                         firstBar:SetContainer(me)
                         chartArea:SetEnterItem(firstBar)
                         firstBar:SetEscapeItem(chartArea)

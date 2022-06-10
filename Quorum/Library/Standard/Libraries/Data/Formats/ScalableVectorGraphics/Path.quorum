@@ -138,8 +138,8 @@ class Path is ScalableVectorGraphicsObject
         return result
     end
 
-    private action GetPoint(integer index, integer canvasHeight) returns Vector2
-        return GetPoint(rawPath:GetCatmullRomPoint(index), canvasHeight)
+    action GetPoint(integer index, integer canvasHeight) returns Vector2
+        return GetPoint(rawPath:GetPoint(index), canvasHeight)
     end
 
     private action GetPoint(Vector2 oldPoint, integer canvasHeight) returns Vector2

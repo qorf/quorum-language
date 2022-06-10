@@ -9,6 +9,7 @@ use Libraries.Interface.Controls.Charts.ChartLabel
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.ChartItem
+use Libraries.Containers.Array
 
 
 /*
@@ -28,11 +29,30 @@ class ChartDrawable is ChartItem, Drawable
     Color customColor = undefined
     ChartLabel annotation = undefined
     boolean showAnnotation = false
+    Array <Drawable> selectionBracket //may or may not be used
+    Drawable selectionArrow //may or may not be used
+    Array<number> vertices
 
     on create
         // Color the item as gray in case it never gets added to a series.
         Color color
         SetColor(color:LightGray())
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
     end
 
     /*

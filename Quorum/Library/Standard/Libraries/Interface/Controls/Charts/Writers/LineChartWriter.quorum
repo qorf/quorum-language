@@ -185,21 +185,23 @@ class LineChartWriter is ChartWriter
                 LineSegment lineSegment = lines:Get(j)
                 ChartPoint firstPoint = lineSegment:GetPoint1()
                 ChartPoint secondPoint = lineSegment:GetPoint2()
-                number radius = firstPoint:GetShape():GetRadius()
+                if firstPoint not= undefined and secondPoint not= undefined
+                    number radius = firstPoint:GetHeight()/2
 
-                Line tempLine
-                tempLine:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                tempLine:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
-                tempLine:SetStroke(lineSegment:GetColor())
-                tempLine:SetStrokeWidth(lineSegment:GetHeight())
-                tempLine:SetID(canvas:GetID() + "_" + "_" + lineSegment:GetHashCode())
-                tempLine:SetStyleClass("quorum-chart-linesegment")
-                tempLine:SetTabIndex(-1)
-                if HasAccessibility()
-                    tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
-                    tempLine:SetAriaHidden("true")
+                    Line tempLine
+                    tempLine:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                    tempLine:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                    tempLine:SetStroke(lineSegment:GetColor())
+                    tempLine:SetStrokeWidth(lineSegment:GetHeight())
+                    tempLine:SetID(canvas:GetID() + "_" + "_" + lineSegment:GetHashCode())
+                    tempLine:SetStyleClass("quorum-chart-linesegment")
+                    tempLine:SetTabIndex(-1)
+                    if HasAccessibility()
+                        tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
+                        tempLine:SetAriaHidden("true")
+                    end
+                    tempChartLine:Add(tempLine)
                 end
-                tempChartLine:Add(tempLine)
                 j = j + 1
             end
             i = i + 1

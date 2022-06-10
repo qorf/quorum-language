@@ -295,29 +295,32 @@ class StandardInput is GameInput
                 end
             end
 
-            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE and mouseEvent:GetSource() not= undefined
-                dragEvent:Set(dragEvent:DRAGGING_BEGAN, mouseEvent:GetX(), mouseEvent:GetY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, mouseEvent:GetSource(), undefined)
-            elseif mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE and dragEvent:GetSource() not= undefined
-                if startedDrag = false
+            // If we found something willing to handle the mouse event, it can receive the drag
+            if mouseEvent:WasEventHandled()
+                if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE and mouseEvent:GetSource() not= undefined
+                    dragEvent:Set(dragEvent:DRAGGING_BEGAN, mouseEvent:GetX(), mouseEvent:GetY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, mouseEvent:GetSource(), undefined)
+                elseif mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE and dragEvent:GetSource() not= undefined
+                    if startedDrag = false
+                        ProcessDragEvent(dragEvent)
+                        startedDrag = true
+                    end
+    
+                    dragEvent:Set(dragEvent:DRAGGING_CONTINUED, dragEvent:GetStartX(), dragEvent:GetStartY(),
+                        mouseEvent:GetX(), mouseEvent:GetY(),
+                        mouseEvent:GetX() - dragEvent:GetX(), mouseEvent:GetY() - dragEvent:GetY(),
+                        dragEvent:GetSource(), dragEvent:GetDestination())
+    
                     ProcessDragEvent(dragEvent)
-                    startedDrag = true
+                elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                    dragEvent:Set(dragEvent:DROPPED, dragEvent:GetStartX(), dragEvent:GetStartY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, dragEvent:GetSource(), dragEvent:GetDestination())
+                    ProcessDragEvent(dragEvent)
+    
+                    startedDrag = false
+                    dragEvent:Set(-1, 0, 0, 0, 0, 0, 0, undefined, undefined)
                 end
 
-                dragEvent:Set(dragEvent:DRAGGING_CONTINUED, dragEvent:GetStartX(), dragEvent:GetStartY(),
-                    mouseEvent:GetX(), mouseEvent:GetY(),
-                    mouseEvent:GetX() - dragEvent:GetX(), mouseEvent:GetY() - dragEvent:GetY(),
-                    dragEvent:GetSource(), dragEvent:GetDestination())
-
-                ProcessDragEvent(dragEvent)
-            elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
-                dragEvent:Set(dragEvent:DROPPED, dragEvent:GetStartX(), dragEvent:GetStartY(), mouseEvent:GetX(), mouseEvent:GetY(), 0, 0, dragEvent:GetSource(), dragEvent:GetDestination())
-                ProcessDragEvent(dragEvent)
-
-                startedDrag = false
-                dragEvent:Set(-1, 0, 0, 0, 0, 0, 0, undefined, undefined)
-            end
-
-            if not mouseEvent:WasEventHandled()
+            // If we didn't find something to handle the mouse event, let mouse listeners know
+            else
                 NotifyMouseListeners(mouseEvent)
             end
 

@@ -18,6 +18,9 @@ Attribute: Author Hannah Williams
 class GroupPanel is ChartDrawable
     ChartAreaPanel chartArea = undefined // When separated by factor this will correspond to the correct sub chart area
     private Array<ChartDrawable> items
+    Array <Drawable> selectionBracket
+    Drawable selectionArrow
+    Array<number> vertices
 
     action AddItem(ChartDrawable item)
         item:SetGroup(me)
@@ -53,5 +56,21 @@ class GroupPanel is ChartDrawable
 
     action GetChartArea returns ChartAreaPanel
         return chartArea
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
     end
 end
