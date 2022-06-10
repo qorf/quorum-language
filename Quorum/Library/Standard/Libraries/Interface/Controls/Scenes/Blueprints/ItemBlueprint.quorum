@@ -2,6 +2,15 @@ package Libraries.Interface.Controls.Scenes.Blueprints
 
 use Libraries.Game.Graphics.TextureRegion
 
+
+/*
+    The ItemBlueprint class represents a set of fields used to build a preview 
+    in the scene editor. Through Blueprints and previews the user can add new items 
+    into their scenes. This class only has several basic fields needed to make a 
+    preview such as a name and description. The classes that inherit from this class 
+    have more information about the specific item being added such as a drawable 
+    or a model from a file.
+*/
 class ItemBlueprint
 
     text name = "Unnamed"
@@ -11,52 +20,123 @@ class ItemBlueprint
     number paletteScale = 1.0
     number paletteCrop = 0.0
 
+
+    /*
+        This action returns the name of the blueprint.
+
+        Attribute: Returns The name of this blueprint
+    */
     action GetName returns text
         return name
     end
+    /*
+        This action sets the name of the blueprint.
 
+        Attribute: Parameter name The new name of this blueprint
+    */
     action SetName(text name)
         me:name = name
     end 
 
+    /*
+        This action returns the text description of the blueprint.
+
+        Attribute: Returns The description of this blueprint
+    */
     action GetDescription returns text
         return description
     end
 
+    /*
+        This action sets the text description of the blueprint.
+
+        Attribute: Parameter description The new description of this blueprint
+    */
     action SetDescription(text description)
         me:description = description
     end
 
+    /*
+        This action sets the physics enabled field of this blueprint.
+
+        Attribute: Parameter enabled If true this blueprint has physics enabled by default for this item
+    */
     action SetPhysicsEnabled(boolean enabled)
         physicsEnabled = enabled
     end
 
+    /*
+        This action returns the physics enabled field of this blueprint.
+
+        Attribute: Returns The physics enabled field 
+    */
     action IsPhysicsEnabled returns boolean
         return physicsEnabled
     end
 
+    /*
+        This action sets the responsiveness field of this blueprint.
+
+        Attribute: Parameter responsive An integer for how this item will respond to other physics objects
+    */
     action SetResponsiveness(integer responsive)
         responsiveness = responsive
     end
 
+    /*
+        This action returns the responsiveness field of this blueprint.
+
+        Attribute: Returns The responsiveness field 
+    */
     action GetResponsiveness returns integer
         return responsiveness
     end
 
+    /*
+        This action would return the texture for an icon of this blueprint. The icon
+        can be used in a palette so the user can see what item looks like before being added
+        to the scene. 
+
+        Attribute: Returns The texture for an icon 
+    */
     blueprint action GetPaletteIcon returns TextureRegion
 
+    /*
+        This action returns the scale of the icon so the icon can be sized properly when
+        in a palette. 
+
+        Attribute: Returns The scale to be used in a palette
+    */
     action GetPaletteScale returns number
         return paletteScale
     end
 
+    /*
+        This action sets the scale of the icon so the icon can be sized properly when
+        in a palette. 
+
+        Attribute: Parameter paletteScale The scale to be used in a palette
+    */
     action SetPaletteScale(number paletteScale)
         me:paletteScale = paletteScale
     end
 
+    /*
+        This action returns how much to crop the palette image so it can be fitted into 
+        an icon properly. 
+
+        Attribute: Returns A number representing how much to crop the icon
+    */
     action GetPaletteCrop returns number
         return paletteCrop
     end
 
+    /*
+        This action sets how much to crop the palette image so it can be fitted into 
+        an icon properly. 
+
+        Attribute: Parameter paletteCrop The amount to crop the palette icon
+    */
     action SetPaletteCrop(number paletteCrop)
         me:paletteCrop = paletteCrop
     end
