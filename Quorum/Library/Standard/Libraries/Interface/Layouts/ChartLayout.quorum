@@ -22,7 +22,7 @@ use Libraries.Interface.Controls.Charts.HorizontalAxisPanel
 use Libraries.Interface.Controls.Charts.VerticalAxisPanel
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.ChartAreaPanel
-use Libraries.Interface.Controls.Charts.RegressionLine
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 
 class ChartLayout is Layout
@@ -83,6 +83,14 @@ class ChartLayout is Layout
                 VerticalAxisPanel verticalContainer = chart:GetVerticalPanel()
                 Legend legendContainer = chart:GetLegend()
                 ChartAreaPanel chartAreaContainer = chart:GetChartArea()
+
+                if horizontalContainer:GetDefaultLayoutProperties():NeedsRendering()
+                    horizontalContainer:LoadGraphics(horizontalContainer:GetDefaultLayoutProperties())
+                end
+
+                if verticalContainer:GetDefaultLayoutProperties():NeedsRendering()
+                    verticalContainer:LoadGraphics(verticalContainer:GetDefaultLayoutProperties())
+                end
 
                 originPointX = 0
                 originPointY = 0
@@ -746,7 +754,7 @@ class ChartLayout is Layout
                             labelY = iconY
                             currentLabel:SetPosition(labelX, labelY)
 
-                            currentIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                            currentIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
                             currentIcon:LoadFilledRectangle(iconSize, seriesList:Get(i):GetRegressionLine():GetLineDensity(), currentIcon:GetColor())
                             currentIcon:SetPosition(iconX , iconY+padding)
 
@@ -835,7 +843,7 @@ class ChartLayout is Layout
                                 widestLabel = currentLabel:GetWidth()
                             end
 
-                            currentIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                            currentIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
                             currentIcon:LoadFilledRectangle(iconSize, seriesList:Get(i):GetRegressionLine():GetLineDensity(), currentIcon:GetColor())
                             currentIcon:SetPosition(iconX , iconY+padding)
 
@@ -958,7 +966,7 @@ class ChartLayout is Layout
         
                         if chart:GetRegressionLineColor() not= undefined
                             line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), chart:GetRegressionLineColor())
-                            line:GetIcon():SetColor(chart:GetRegressionLineColor())
+                            line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
                         else
                             line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), line:GetColor())
                         end

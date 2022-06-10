@@ -1,8 +1,9 @@
 package Libraries.Interface.Controls.Charts
+
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.ColorGroup
 
-class ChartLabel is ControlLabel
+class ChartLabel is ControlLabel, ChartItem
 
     // Try to get the chart this is attached to via the parent hierarchy.
     action GetParentChart returns Chart
@@ -38,5 +39,15 @@ class ChartLabel is ControlLabel
         end
 
         return parent:Control:GetFontColor()
+    end
+
+    action GainedSelection
+        parent:ChartItem:GainedSelection()
+        parent:ControlLabel:GainedSelection()
+    end
+
+    action LostSelection
+        parent:ChartItem:LostSelection()
+        parent:ControlLabel:LostSelection()
     end
 end

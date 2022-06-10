@@ -207,7 +207,8 @@ class LineChartWriter is ChartWriter
     end
 
     action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-        
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         LineChart lineChart
         lineChart = cast(LineChart, chart)
     
@@ -248,11 +249,14 @@ class LineChartWriter is ChartWriter
                 nextSubChartAreaItem = nextSubChartAreaItem:GetNext()
             end
         end
+        */
     end
 
     
 
     action AddChartLineAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -299,9 +303,12 @@ class LineChartWriter is ChartWriter
 
             nextItem = nextItem:GetNext()
         end
+        */
     end
 
     action AddRegionLayerAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -348,9 +355,12 @@ class LineChartWriter is ChartWriter
 
             nextItem = nextItem:GetNext()
         end
+        */
     end
 
     action AddPointsAndLinesAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -396,5 +406,6 @@ class LineChartWriter is ChartWriter
 
             nextItem = nextItem:GetNext()
         end
+        */
     end
 end

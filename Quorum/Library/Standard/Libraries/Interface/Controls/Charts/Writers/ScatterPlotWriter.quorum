@@ -159,7 +159,8 @@ class ScatterPlotWriter is ChartWriter
     end
 
     action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-        
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         ScatterPlot scatterplot
         scatterplot = cast(ScatterPlot, chart)
     
@@ -211,10 +212,12 @@ class ScatterPlotWriter is ChartWriter
                 nextSubChartAreaItem = nextSubChartAreaItem:GetNext()
             end
         end
-
+        */
     end
 
     action AddRegionLayerAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -261,9 +264,12 @@ class ScatterPlotWriter is ChartWriter
 
             nextItem = nextItem:GetNext()
         end
+        */
     end
 
     action AddPointsAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         UnorderedList groupUL
         groupUL:AddAttribute("role","group")
         groupUL:AddClassAttribute("quorum-chart-group")
@@ -294,5 +300,6 @@ class ScatterPlotWriter is ChartWriter
 
             nextItem = nextItem:GetNext()
         end
+        */
     end
 end

@@ -204,6 +204,8 @@ class GeoMap is Chart, FirstLetterNavigator
     end
 
     action GenerateInfoTree
+        alert("NYI: This chart doesn't support the new accessibility system yet.")
+        /*
         if GetDefaultLayoutProperties():NeedsRendering()
             return now //we haven't loaded graphics yet, so bail.
         end
@@ -270,6 +272,7 @@ class GeoMap is Chart, FirstLetterNavigator
 
         ChartSelection selection = GetSelection()
         selection:Set(summary)
+        */
     end
 
     /*
@@ -311,9 +314,9 @@ class GeoMap is Chart, FirstLetterNavigator
     end
 
     /* 
-        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        OnSelectionChange is a supplemental action to the parent Chart's OnSelectionChange.
         Any items specific to only this type of chart or if an item needs different highlighting
-        instructions than that of the parent class, it will have their GainedSelection defined here.
+        instructions than that of the parent class, it will have their OnSelectionChange defined here.
 
         Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
@@ -322,7 +325,7 @@ class GeoMap is Chart, FirstLetterNavigator
 
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem item)
+    action OnSelectionChange(ChartItem item)
         if item = undefined
             return now
         end
@@ -346,7 +349,7 @@ class GeoMap is Chart, FirstLetterNavigator
                 previousColor = temp:GetColor()
                 temp:SetColor(GetSelectionColor())
             else
-                parent:Chart:GainedSelection(item)
+                parent:Chart:OnSelectionChange(item)
             end         
         end
     end

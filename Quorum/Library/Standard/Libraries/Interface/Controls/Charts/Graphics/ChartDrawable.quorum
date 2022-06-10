@@ -8,6 +8,7 @@ use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.ChartLabel
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.ChartItem
 
 
 /*
@@ -20,7 +21,7 @@ ChartDrawable holds the annotation for the drawable.
 Attribute: Author Hannah Williams
 */
 
-class ChartDrawable is Icon    
+class ChartDrawable is ChartItem, Drawable
     ChartAreaPanel chartArea = undefined // If separated, this will correspond to the correct sub chart area
     Series series = undefined
     GroupPanel group = undefined

@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Random
 use Libraries.System.DateTime
 use Libraries.System.FileWriter
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 class ChartWriter
     private number axisPointX = 105
@@ -1459,7 +1460,7 @@ class ChartWriter
 
             if legend:IsShowingRegression()
                 if seriesList:Get(i):GetRegressionLine() not= undefined
-                    Icon currentIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                    Icon currentIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
                     Rectangle svgElementRegIcon
                     
                     svgElementRegIcon:SetWidth(currentIcon:GetWidth())

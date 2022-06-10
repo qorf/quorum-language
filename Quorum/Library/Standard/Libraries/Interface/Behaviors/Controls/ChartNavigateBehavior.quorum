@@ -13,6 +13,8 @@ class ChartNavigateBehavior is Behavior
     constant integer RIGHT = 1
     constant integer DOWN = 2
     constant integer UP = 3
+    constant integer ENTER = 4
+    constant integer ESCAPE = 5
 
     action Run(BehaviorEvent event)
         if event:GetItem() is Chart
@@ -30,6 +32,10 @@ class ChartNavigateBehavior is Behavior
                     direction = UP
                 elseif keycode = keyEvent:DOWN
                     direction = DOWN
+                elseif keycode = keyEvent:ENTER or keycode = keyEvent:NUMPAD_ENTER
+                    direction = ENTER
+                elseif keycode = keyEvent:ESCAPE
+                    direction = ESCAPE
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
@@ -49,13 +55,17 @@ class ChartNavigateBehavior is Behavior
             end
 
             if direction = UP
-                chart:SelectPrevious()
+                chart:SelectionUp()
             elseif direction = DOWN
-                chart:SelectNext()
+                chart:SelectionDown()
             elseif direction = LEFT
-                chart:CloseItem()
+                chart:SelectionLeft()
             elseif direction = RIGHT
-                chart:OpenItem()
+                chart:SelectionRight()
+            elseif direction = ENTER
+                chart:SelectionEnter()
+            elseif direction = ESCAPE
+                chart:SelectionEscape()
             end
         end
     end

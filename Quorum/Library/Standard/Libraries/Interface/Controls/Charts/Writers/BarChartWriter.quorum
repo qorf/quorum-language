@@ -538,7 +538,7 @@ class BarChartWriter is ChartWriter
             i = 0
             repeat while i < subChartAreas:GetSize() - 1
                 if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
-                    Array<Item> chartAreaItems = subChartAreas:Get(i):GetChartAreaItems():CopyToArray()
+                    Array<ChartItem> chartAreaItems = subChartAreas:Get(i):GetChartAreaItems():CopyToArray()
                     chartAreaItems:Sort(comparison)
                     scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
                     j = 0
@@ -561,7 +561,7 @@ class BarChartWriter is ChartWriter
 
             if i < subChartAreas:GetSize()
                 if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0
-                    Array<Item> chartAreaItems = subChartAreas:Get(i):GetChartAreaItems():CopyToArray()
+                    Array<ChartItem> chartAreaItems = subChartAreas:Get(i):GetChartAreaItems():CopyToArray()
                     chartAreaItems:Sort(comparison)
                     scriptText = scriptText + tab + canvas:GetID() + "_" + subChartAreas:Get(i):GetHashCode() + ": {" + newLine
                     j = 0

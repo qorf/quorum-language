@@ -19,11 +19,11 @@ use Libraries.Game.Graphics.ColorGroup
     Attribute: Hannah Williams
 */
 
-class ChartAreaPanel is Control
+class ChartAreaPanel is ChartItem
     private LayoutProperties properties = undefined
     private Series series = undefined
     private ChartLabel label = undefined
-    private Array <Item> chartAreaItems
+    private Array<ChartItem> chartAreaItems
     private boolean isShowing = false
 
     ColorGroup backgroundColor = undefined
@@ -58,11 +58,11 @@ class ChartAreaPanel is Control
         end
     end
 
-    action GetChartAreaItems returns Array <Item>
+    action GetChartAreaItems returns Array<ChartItem>
         return chartAreaItems
     end
 
-    action AddChartAreaItem(Item item)
+    action AddChartAreaItem(ChartItem item)
         chartAreaItems:Add(item)
     end
 

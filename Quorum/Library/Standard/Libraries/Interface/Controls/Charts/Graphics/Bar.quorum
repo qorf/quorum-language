@@ -107,8 +107,25 @@ class Bar is ChartDrawable
         return parent:Control:GetBorderColor()
     end
 
+    action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionBorderColor()
+        end
+
+        return parent:Control:GetBorderColor()
+    end
+
     action GetBackgroundColor returns ColorGroup
         return parent:Drawable:GetColorGroup()
+    end
+
+    action GetSelectionColor returns ColorGroup
+        return GetBackgroundColor()
     end
 
     action GetBorderThickness returns number
