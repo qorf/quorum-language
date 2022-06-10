@@ -72,6 +72,12 @@ class BoxPlot is Chart
     private number maxOutlierValue = 0
     private number minOutlierValue = 0
 
+    // Terminology for navigation instructions
+    private text chartItemText = "plot"
+    private text chartItemsText = "plots"
+    private text groupText = "plot group"
+    private text groupsText = "plot groups"
+
     on create
         BoxPlotLayout layout
         SetLayout(layout)
@@ -119,35 +125,17 @@ class BoxPlot is Chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
+            text groupname = plotGroups:Get(i):GetName()
+            text chartAreaName = ""
             integer k = 0
             repeat while k < group:GetSize()
                 Plot plot = group:Get(k)
-                AddChartItemInstructions(plot,plot:GetDescription())
-                plot:SetFocusable(true)
-                plot:SetAccessibilityCode(parent:Item:ITEM)
-                plot:SetNextFocus(GetNextFocus())
-                plot:SetPreviousFocus(GetPreviousFocus())
 
                 // Plot Area Outline Panel
                 Icon plotArea
-                plotArea:SetName(plot:GetName() + ", ")
-                plotArea:SetDescription((k+1) + " of " + group:GetSize() + " plots")
-                plotArea:SetFocusable(true)
-                plotArea:SetAccessibilityCode(0)
                 plot:SetPlotArea(plotArea)
-
-                if not HasGroups()
-                    plotArea:SetName(group:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " plots")
-                end
     
                 if IsSeparated()
-                    if IsSeparatedByFactor()
-                        plotArea:SetName(plot:GetName() + ", ")
-                    elseif IsSeparatedBySeries()
-                        plotArea:SetName(group:GetName() + ", ")
-                    end
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " plots")
                     integer j = 0
                     repeat while j < GetNumberOfChartAreas()
                         if IsSeparatedBySeries()
@@ -163,6 +151,7 @@ class BoxPlot is Chart
                         end
                         j = j + 1
                     end
+                    chartAreaName = chartArea:GetName()
                 else
                     chartArea = GetChartArea()
                 end
@@ -333,6 +322,67 @@ class BoxPlot is Chart
                         j = j + 1
                     end
                 end
+
+                // Set the plot description
+                plot:SetFocusable(true)
+                plot:SetAccessibilityCode(parent:Item:ITEM)
+                plot:SetNextFocus(GetNextFocus())
+                plot:SetPreviousFocus(GetPreviousFocus())
+                plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
+                text plotDescription = ""
+                plotDescription = plotDescription + medianLine:GetDescription() + ","
+                plotDescription = plotDescription + " box from " + firstQuartileLine:GetDescription() + " to " + thirdQuartileLine:GetDescription() + ","
+                plotDescription = plotDescription + " whiskers from " + minimumLine:GetDescription() + " to " + maximumLine:GetDescription()
+                if GetOutliersFlag() and plot:GetOutliers():GetSize() > 0
+                    if plot:GetOutliers():GetSize() = 1
+                        plotDescription = plotDescription + ", " + plot:GetOutliers():GetSize() + " outlier, "
+                    else
+                        plotDescription = plotDescription + ", " + plot:GetOutliers():GetSize() + " outliers, "
+                    end
+                else
+                    plotDescription = plotDescription + ", "
+                end
+                if IsSeparated() 
+                    if IsSeparatedBySeries()
+                        plotDescription = plotDescription + (i+1) + " of " + plotGroups:GetSize() + " plots inside " + chartAreaName + " chart area."
+                    elseif IsSeparatedByFactor()
+                        plotDescription = plotDescription + (k+1) + " of " + group:GetSize() + " plots inside " + chartAreaName + " chart area."
+                    end
+                else
+                    if HasGroups()
+                        plotDescription = plotDescription + (k+1) + " of " + group:GetSize() + " plots inside " + groupname + " group."
+                    else
+                        plotDescription = plotDescription + (i+1) + " of " + plotGroups:GetSize() + " plots."
+                    end
+                end
+                plot:SetDescription(plotDescription)
+                if not IsSeparated()
+                    if HasGroups() 
+                        if k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    else
+                        if i = 0 and k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    end
+                else
+                    if IsSeparatedByFactor()
+                        if k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    elseif IsSeparatedBySeries()
+                        if i = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    end
+                end
+
+                // Set selection arrow for plot
+                chartArea:Add(plot:GetSelectionArrow())
+
+                // Set Navigation Instruction for first plot item (minimum)
+                AddPlotItemInstructions(minimumLine, minimumLine:GetDescription())
                 k = k + 1
             end
 
@@ -344,11 +394,48 @@ class BoxPlot is Chart
             group:SetNextFocus(GetNextFocus())
             group:SetPreviousFocus(GetPreviousFocus())
             chartArea:Add(group)
-            GetGroupPanels():Add(group)
             if i = 0
                 AddGroupPanelInstructions(group, group:GetDescription())
             end
+            chartArea:Add(group:GetSelectionArrow())
+
+            Drawable top
+            group:GetSelectionBracket():Add(top)
+            chartArea:Add(top)
+
+            Drawable side
+            group:GetSelectionBracket():Add(side) 
+            chartArea:Add(side)
+
+            Drawable bottom
+            group:GetSelectionBracket():Add(bottom) 
+            chartArea:Add(bottom)  
+
+            GetGroupPanels():Add(group)
             i = i + 1
+        end
+
+        // Set chart area(s) description
+        if IsSeparated()
+            GetChartArea():SetDescription(" with " + GetNumberOfChartAreas() + " sub charts.")
+            AddChartAreaInstructions(GetChartArea():GetDescription())
+            integer subAreaCount = GetSubChartAreas():GetSize()
+            i = 0
+            repeat while i < subAreaCount
+                integer itemCount = GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                GetSubChartAreas():Get(i):SetDescription(" chart area with " + itemCount + " box plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
+                if i = 0
+                    AddSubChartAreaInstructions(GetSubChartAreas():Get(i), GetSubChartAreas():Get(i):GetDescription())
+                end
+                i = i + 1
+            end
+        else
+            if HasGroups()
+                me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " plot groups.")
+            else
+                me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " box plots.")
+            end
+            AddChartAreaInstructions(GetChartArea():GetDescription())
         end
     end
 
@@ -404,17 +491,6 @@ class BoxPlot is Chart
                 end
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
-            elseif target is ChartDrawable
-                ChartDrawable item = cast(ChartDrawable, target)  
-                if item:GetSelectionArrow() not= undefined          
-                    item:GetSelectionArrow():Hide()
-                end
-                if item:GetSelectionBracket():GetSize() = 3          
-                    item:GetSelectionBracket():Get(0):Hide()
-                    item:GetSelectionBracket():Get(1):Hide()
-                    item:GetSelectionBracket():Get(2):Hide()
-                end
-                parent:Chart:LostSelection(ci)
             else
                 parent:Chart:LostSelection(ci)
             end
@@ -457,17 +533,6 @@ class BoxPlot is Chart
                 end
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
-            elseif target is ChartDrawable
-                ChartDrawable item = cast(ChartDrawable, target)  
-                if item:GetSelectionArrow() not= undefined          
-                    item:GetSelectionArrow():Show()
-                end
-                if item:GetSelectionBracket():GetSize() = 3          
-                    item:GetSelectionBracket():Get(0):Show()
-                    item:GetSelectionBracket():Get(1):Show()
-                    item:GetSelectionBracket():Get(2):Show()
-                end
-                parent:Chart:GainedSelection(ci)
             else
                 parent:Chart:GainedSelection(ci)
             end            
@@ -658,11 +723,6 @@ class BoxPlot is Chart
         chartArea:SetContainer(me)
 
         chartArea:SetDisplayName("Box Plot")
-        if HasGroups()
-            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " groups")
-        else
-            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " box plots")
-        end
     
         // If any of these are not showing the tree will skip them in the navigation        
         if IsShowingYAxis()
@@ -681,13 +741,13 @@ class BoxPlot is Chart
             ChartItem firstArea
             firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
-                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
+//                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
                 chartArea:SetChild(firstArea)
                 firstArea:SetParent(chartArea)
                 firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
+//                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
 
                 //Plots within Chart Areas
                 if chartAreaItems:GetSize() > 0 
@@ -708,8 +768,8 @@ class BoxPlot is Chart
                         end
                         
                         next_target:SetContainer(me)
-                        next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
-                        next_target:SetFocusTarget(plot:GetPlotArea())  
+                        next_target:SetDisplayName(plot:GetName()) 
+                        next_target:SetFocusTarget(plot)  
                         next_target:SetParent(firstArea)
                         prev_target = next_target    
                         ChartItem previous
@@ -760,7 +820,7 @@ class BoxPlot is Chart
                     previousArea = nextArea
                     nextArea:SetDisplayName(chartSubArea:GetName())
                     Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
+//                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
 
                     //Plots within Plot Groups
                     if chartAreaItems:GetSize() > 0 
@@ -780,9 +840,9 @@ class BoxPlot is Chart
                                 prev_target:SetNext(next_target)
                             end
     
-                            next_target:SetContainer(me)
-                            next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plot:GetPlotArea())  
+                            next_target:SetContainer(me) 
+                            next_target:SetDisplayName(plot:GetName()) 
+                            next_target:SetFocusTarget(plot)
                             next_target:SetParent(nextArea)
                             prev_target = next_target      
                             ChartItem previous
@@ -847,8 +907,8 @@ class BoxPlot is Chart
                             end
                             
                             next_target:SetContainer(me)
-                            next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plotGroups:Get(0):Get(k):GetPlotArea())  
+                            next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetName()) 
+                            next_target:SetFocusTarget(plotGroups:Get(0):Get(k))  
                             next_target:SetParent(firstGroup)
                             prev_target = next_target    
                             ChartItem previous
@@ -912,8 +972,8 @@ class BoxPlot is Chart
                             end
     
                             next_target:SetContainer(me)
-                            next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plotGroups:Get(i):Get(k):GetPlotArea())  
+                            next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetName()) 
+                            next_target:SetFocusTarget(plotGroups:Get(i):Get(k))  
                             next_target:SetParent(group)
                             prev_target = next_target      
                             ChartItem previous
@@ -965,8 +1025,8 @@ class BoxPlot is Chart
                     end
     
                     next_target:SetContainer(me)
-                    next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetPlotArea():GetName()) 
-                    next_target:SetFocusTarget(plotGroups:Get(k):Get(0):GetPlotArea())  
+                    next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetName()) 
+                    next_target:SetFocusTarget(plotGroups:Get(k):Get(0))  
                     next_target:SetParent(chartArea)
                     prev_target = next_target      
                     ChartItem previous
@@ -1032,5 +1092,33 @@ class BoxPlot is Chart
             BoxPlotWriter chartWriter
             chartWriter:WriteOutChart(me,file)
         end
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
+    end
+
+    /*
+    This action generates the instruction text for a plot item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddPlotItemInstructions(Item chartItem, text description)
+        description = description + " To navigate the list of plot summary items, use Left/Right to move between plot summary items in list order," 
+        description = description + " use Escape to return to the " + GetChartItemsText() + " list."
+        chartItem:SetDescription(description)
     end
 end

@@ -271,20 +271,7 @@ class SharedBarChartParent is Chart
         end
         Item target = item:GetFocusTarget()
         if target not= undefined
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Hide()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Hide()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Hide()
-            else
-                parent:Chart:LostSelection(item)
-            end
+            parent:Chart:LostSelection(item)
         end 
     end
 
@@ -307,20 +294,7 @@ class SharedBarChartParent is Chart
         Item target = item:GetFocusTarget()
         if target not= undefined
             target:Focus()
-            if target is BarGroup
-                BarGroup group = cast(BarGroup, target)
-                group:GetSelectionArrow():Show()
-                integer i = 0
-                repeat while i < group:GetSelectionBracket():GetSize()
-                    group:GetSelectionBracket():Get(i):Show()
-                    i = i + 1
-                end
-            elseif target is Bar
-                Bar bar = cast(Bar, target)
-                bar:GetSelectionArrow():Show()
-            else
-                parent:Chart:GainedSelection(item)  
-            end          
+            parent:Chart:GainedSelection(item)         
         end
     end
 
