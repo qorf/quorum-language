@@ -17,6 +17,7 @@ use Libraries.Web.Page.ListItem
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Icon
 use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
     The ScatterPlotWriter class is part of the set of writers that allow for Charts
@@ -96,7 +97,7 @@ class ScatterPlotWriter is ChartWriter
 
         i = 0
         repeat while i < chart:GetRegions():GetSize()
-            Icon currentRegion = chart:GetRegions():Get(i)
+            ChartDrawable currentRegion = chart:GetRegions():Get(i)
 
             Rectangle region
             region:SetWidth(currentRegion:GetWidth())

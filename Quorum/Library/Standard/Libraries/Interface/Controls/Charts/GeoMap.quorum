@@ -291,7 +291,7 @@ class GeoMap is Chart, FirstLetterNavigator
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
         if target not= undefined
             if target is Series
                 Series temp = cast(Series, target)
@@ -329,7 +329,7 @@ class GeoMap is Chart, FirstLetterNavigator
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
