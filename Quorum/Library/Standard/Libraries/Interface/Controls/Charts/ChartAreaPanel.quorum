@@ -140,6 +140,14 @@ class ChartAreaPanel is ChartItem
         me:label = label
     end
 
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
     // Try to get the chart this is attached to via the parent hierarchy.
     private action GetParentChart returns Chart
         Item2D parentItem = GetParent()

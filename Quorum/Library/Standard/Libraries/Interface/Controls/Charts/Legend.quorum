@@ -118,34 +118,74 @@ class Legend is ChartItem
             firstEntry:SetContainer(chart)
             SetEnterItem(firstEntry)
             seriesList:Get(0):SetName(seriesList:Get(0):GetName())
-            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
+
+            description = seriesList:Get(0):GetSize() + " points"
             firstEntry:SetEscapeItem(me)
+
             if showRegression
                 if seriesList:Get(0):GetRegressionLine() not= undefined
                     // Regression equation
                     ChartItem equation = seriesList:Get(0):GetRegressionLine()
                     equation:SetContainer(chart)
+
                     equation:SetEscapeItem(firstEntry)
                     firstEntry:SetEnterItem(equation)
-                    equation:SetName(seriesList:Get(0):GetName()+" regression line.")
-                    equation:SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
+                    seriesList:Get(0):GetRegressionLine():SetName(seriesList:Get(0):GetName()+" regression line.")
+                    seriesList:Get(0):GetRegressionLine():SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
+                    description = description + ", regression line " + seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText()  + ", "
 
                     // R-squared
                     ChartItem r2 = seriesList:Get(0):GetRegressionLine():GetRSquaredLabel()
                     r2:SetContainer(chart)
+//<<<<<<< HEAD
+//                    r2:SetEscapeItem(firstEntry)
+//                    r2:SetLeftItem(equation)
+//                    equation:SetRightItem(r2)
+//                end
+//            end
+//
+//            integer i = 1
+//            ChartItem previous = firstEntry
+//            repeat while i < seriesList:GetSize()
+//                ChartItem entry = seriesList:Get(i)
+//                entry:SetContainer(chart)
+//                firstEntry:SetName(seriesList:Get(i):GetName())
+//                firstEntry:SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
+//                entry:SetEscapeItem(me)
+//                if showRegression
+//                    if seriesList:Get(i):GetRegressionLine() not= undefined
+//                        // Regression equation
+//                        ChartItem equation = seriesList:Get(i):GetRegressionLine()
+//                        equation:SetContainer(chart)
+//                        equation:SetEscapeItem(entry)
+//                        entry:SetEnterItem(equation)
+//                        equation:SetName(seriesList:Get(i):GetName()+" regression line.")
+//                        equation:SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+//    
+//                        // R-squared
+//                        ChartItem r2 = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+//                        r2:SetContainer(chart)
+//                        r2:SetEscapeItem(entry)
+//                        r2:SetLeftItem(equation)
+//                        equation:SetRightItem(r2)
+//                    end
+//=======
                     r2:SetEscapeItem(firstEntry)
                     r2:SetLeftItem(equation)
                     equation:SetRightItem(r2)
+                    description = description + " r squared " + seriesList:Get(0):GetRegressionLine():GetRSquaredLabel():GetText()
                 end
             end
+            description = description + ", 1 of " + seriesList:GetSize() + " series."
+            seriesList:Get(0):SetDescription(description)
 
             integer i = 1
             ChartItem previous = firstEntry
             repeat while i < seriesList:GetSize()
+                description = seriesList:Get(i):GetSize() + " points"
                 ChartItem entry = seriesList:Get(i)
                 entry:SetContainer(chart)
-                firstEntry:SetName(seriesList:Get(i):GetName())
-                firstEntry:SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
+                seriesList:Get(i):SetName(seriesList:Get(i):GetName())
                 entry:SetEscapeItem(me)
                 if showRegression
                     if seriesList:Get(i):GetRegressionLine() not= undefined
@@ -154,8 +194,9 @@ class Legend is ChartItem
                         equation:SetContainer(chart)
                         equation:SetEscapeItem(entry)
                         entry:SetEnterItem(equation)
-                        equation:SetName(seriesList:Get(i):GetName()+" regression line.")
-                        equation:SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+                        seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line")
+                        seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+                        description = description + ", regression line " + seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText()  + ", "
     
                         // R-squared
                         ChartItem r2 = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
@@ -163,8 +204,15 @@ class Legend is ChartItem
                         r2:SetEscapeItem(entry)
                         r2:SetLeftItem(equation)
                         equation:SetRightItem(r2)
+                        description = description + " r squared " + seriesList:Get(i):GetRegressionLine():GetRSquaredLabel():GetText()
                     end
+    //                previous:SetRightItem(entry)
+    //                entry:SetLeftItem(previous)
+    //                previous = entry
+    //                i = i + 1
                 end
+                description = description + ", " + (i+1) + " of " + seriesList:GetSize() + " series."
+                seriesList:Get(i):SetDescription(description)
                 previous:SetRightItem(entry)
                 entry:SetLeftItem(previous)
                 previous = entry

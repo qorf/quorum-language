@@ -169,6 +169,10 @@ class TwoVariableChart is Chart
 
         // Scatter Plot
         if points:GetSize() > 0
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByX(true)
+            points:Sort(comparison)
             integer i = 0
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
@@ -563,13 +567,27 @@ class TwoVariableChart is Chart
         end
         if points:GetSize() = 1
             linetext = "point"
+        elseif GetSeriesList():GetSize() > 1
+            pointText = "total points"
         end
         if lines:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
-            me:GetChartArea():SetDescription("with" + lines:GetSize() + " " + lineText + ".")
+            AddChartAreaInstructions(" with" + lines:GetSize() + " " + lineText + ".")
         elseif points:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
-            me:GetChartArea():SetDescription("with" + points:GetSize() + " " + pointText + ".")
+            text description = ""
+            if GetSeriesList():GetSize() > 1
+                description = description + " with " + GetSeriesList():GetSize() + " series and " + points:GetSize() + " " + pointText + "."
+            else 
+                description = description + " with " + points:GetSize() + " " + pointText
+                if GetSeriesList():GetSize() > 0 and GetSeriesList():Get(0):GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                    description = description + ", " + GetSeriesList():Get(0):GetRegressionLine():GetName() + GetSeriesList():Get(0):GetRegressionLine():GetDescription() 
+                    description = description + ", " + GetSeriesList():Get(0):GetRegressionLine():GetRSquaredLabel():GetName() + GetSeriesList():Get(0):GetRegressionLine():GetRSquaredLabel():GetDescription() + "."
+                else
+                    description = description + "."
+                end
+            end
+            AddChartAreaInstructions(description)
         end
     
         // If any of these are not showing the tree will skip them in the navigation        
@@ -599,6 +617,10 @@ class TwoVariableChart is Chart
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                     GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " line, 1 of " + subAreaCount + " sub charts.")
                     ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
+
+                    AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
+                    AddSubChartAreaInstructions(GetSubChartAreas():Get(0), " chart area with " + chartAreaItems:GetSize() + " line, 1 of " + subAreaCount + " sub charts.")
+
                     if chartAreaItems:GetSize() > 0
                         if (chartAreaItems:Get(0) is ChartLine)
                             ChartLine line = cast(ChartLine, chartAreaItems:Get(0))
@@ -689,20 +711,32 @@ class TwoVariableChart is Chart
 
         // Generate Scatter Plot Info
         if points:GetSize() > 0
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByX(true)
+
             if IsSeparated()
                 integer subAreaCount = GetNumberOfVisibleChartAreas()
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
-                    GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
+
+                    AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
                     chartArea:SetEnterItem(firstArea)
                     firstArea:SetEscapeItem(chartArea)
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                    GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " points, 1 of " + subAreaCount + " sub charts.")
-                    ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
+                    text description = " chart area with " + chartAreaItems:GetSize() + " points"
+                    if GetSubChartAreas():Get(0):GetSeries() not= undefined and GetSubChartAreas():Get(0):GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                        description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetDescription() 
+                        description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
+                    end
+                    description = description + ", 1 of " + subAreaCount + " sub charts."
+                    AddSubChartAreaInstructions(GetSubChartAreas():Get(0),description)
                     Array<ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
-                    SubdivideQuadrant(GetSubChartAreas():Get(0), firstArea, newIcon, firstAreaPoints, 0)
+                    firstAreaPoints:Sort(comparison)
+                    AddPoints(firstArea, firstAreaPoints)
+
 
                     integer i = 1
                     ChartItem previousArea = firstArea
@@ -717,17 +751,53 @@ class TwoVariableChart is Chart
                             previousArea = nextArea
                             nextArea:SetDisplayName(chartSubArea:GetName())
                             chartAreaItems = chartSubArea:GetChartAreaItems()
-                            chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " points, " + (i+1) + " of " + subAreaCount + " sub charts.")
-                            newIcon = NewRegionIcon(0,0,1,1)
-                            Array<ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
-                            SubdivideQuadrant(chartSubArea, nextArea, newIcon, nextAreaPoints, 0)
+                            description = " chart area with " + chartAreaItems:GetSize() + " points"
+                            if chartSubArea:GetSeries() not= undefined and chartSubArea:GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                                description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetDescription() 
+                                description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
+                            end
+                            description = description + ", " + (i+1) + " of " + subAreaCount + " sub charts."
+                            chartSubArea:SetDescription(description)
+    //                        ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
+                            Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
+                            nextAreaPoints:Sort(comparison)
+                            AddPoints(firstArea, nextAreaPoints)
                         end
-                        i = i + 1
                     end
                 end
             else
-                ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
-                SubdivideQuadrant(GetChartArea(), chartArea, newIcon, points, 0)
+                if GetSeriesList():GetSize() > 0
+                    ChartItem firstSeries = GetSeriesList():Get(0)
+                    firstSeries:SetContainer(me)
+
+                    chartArea:SetEnterItem(firstSeries)
+                    firstSeries:SetEscapeItem(chartArea)
+                    firstSeries:SetDisplayName(GetSeriesList():Get(0):GetName())
+                    Array<ChartDrawable> chartAreaItems = GetSeriesList():Get(0):GetChartAreaItems()
+                    chartAreaItems:Sort(comparison)
+                    AddGroupPanelInstructions(GetSeriesList():Get(0),GetSeriesList():Get(0):GetDescription())
+                    Array<ChartPoint> firstSeriesPoints = CastToPoints(chartAreaItems)
+                    AddPoints(firstSeries, firstSeriesPoints)
+
+                    integer i = 1
+                    ChartItem previousSeries = firstSeries
+                    repeat while i < GetSeriesList():GetSize()
+                        Series series = GetSeriesList():Get(i)
+                        ChartItem nextSeries = series
+                        nextSeries:SetContainer(me)
+                        nextSeries:SetEscapeItem(chartArea)
+                        previousSeries:SetRightItem(nextSeries)
+                        nextSeries:SetLeftItem(previousSeries)
+                        previousSeries = nextSeries
+                        nextSeries:SetDisplayName(series:GetName())
+                        chartAreaItems = series:GetChartAreaItems()
+                        chartAreaItems:Sort(comparison)
+                        Array<ChartPoint> nextSeriesPoints = CastToPoints(chartAreaItems)
+                        nextSeriesPoints:Sort(comparison)
+                        AddPoints(firstSeries, nextSeriesPoints)
+                        i = i + 1
+                    end
+                end
             end
         end
         chartAreaItem = chartArea
@@ -818,9 +888,10 @@ class TwoVariableChart is Chart
                     firstPointItem:SetContainer(me)
                     firstPointItem:SetDisplayName(" , " + math:Round(ps:Get(0):GetPercentY() * GetYAxisMaximum(), 1) + ", 1 of " + ps:GetSize() + " points in this chunk. ")
                     firstPointItem:SetParent(item)
+
                     item:SetEnterItem(firstPointItem)
-                    
-                    firstPoint:SetDescription(firstPointItem:GetDisplayName())
+    
+                    AddChartItemInstructions(firstPoint, firstPointItem:GetDisplayName())
                     prevPoint = firstPointItem
                 end
 
@@ -1105,11 +1176,45 @@ class TwoVariableChart is Chart
         end
     end
 
-    action SetQuadrantThreshold(integer threshold)
-        quadrantThreshold = threshold
-    end
+
+    action AddPoints(ChartItem parentItem, Array<ChartPoint> points)
+       
+        if points:IsEmpty() = false
+            ChartPoint firstPoint = points:Get(0)
+            ChartItem firstPointItem = firstPoint
+            firstPointItem:SetContainer(me)
+            firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetValueY(), options:GetTickDigits())
+                + ", 1 of " + points:GetSize())
+            firstPoint:SetName(firstPointItem:GetDisplayName())
+            AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
+            firstPointItem:SetEscapeItem(parentItem)
+            parentItem:SetEnterItem(firstPointItem)
     
-    action GetQuadrantThreshold returns integer
+            integer i = 1
+            ChartItem previous = firstPointItem
+            repeat while i < points:GetSize()
+                ChartPoint point = points:Get(i)
+                ChartItem pointItem = point
+
+                pointItem:SetContainer(me)
+                pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetValueY(), options:GetTickDigits())
+                    + ", " + (i + 1) + " of " + points:GetSize())
+                point:SetName(pointItem:GetDisplayName())
+                pointItem:SetEscapeItem(parentItem)
+                pointItem:SetLeftItem(previous)
+                previous:SetRightItem(pointItem)
+                previous = pointItem
+                i = i + 1
+            end
+        end
+    end
+
+
+action SetQuadrantThreshold(integer threshold)
+    quadrantThreshold = threshold
+end
+
+action GetQuadrantThreshold returns integer
         return quadrantThreshold
     end
 

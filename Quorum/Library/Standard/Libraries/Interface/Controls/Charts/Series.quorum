@@ -103,6 +103,10 @@ class Series is ChartDrawable
         return items:GetSize()
     end
 
+    action GetChartAreaItems() returns Array<ChartDrawable>
+        return items
+    end
+
     action Empty()
         items:Empty()
     end

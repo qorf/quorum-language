@@ -1391,7 +1391,7 @@ class ChartWriter
             Group entryGroupSVG
             if entryBox not= undefined and entryBox:IsShowing()
                 
-                entryGroupSVG:SetID(canvas:GetID() + "-" + seriesList:Get(i):GetHashCode())
+                entryGroupSVG:SetID(canvas:GetID() + "_" + seriesList:Get(i):GetHashCode() + "_legend")
                 entryGroupSVG:SetStyleClass("quorum-chart-legendentry")
                 entryGroupSVG:SetFill(cast(Color, chart:GetSelectionColor())) //This color will be used to fill selection upon focus/hover
                 entryGroupSVG:SetTabIndex(-1)
@@ -1612,8 +1612,8 @@ class ChartWriter
                 svgElementRegLine:SetStroke(line:GetColor())
                 svgElementRegLine:SetStrokeWidth(line:GetHeight())
                 svgElementRegLine:SetTabIndex(-1)
-                svgElementRegLine:SetID(canvas:GetID() + "_" + line:GetHashCode())
-                svgElementRegLine:SetStyleClass("quorum-chart-rect")
+                svgElementRegLine:SetID(canvas:GetID() + "_" + chart:GetSeriesList():Get(i):GetHashCode() + "_regression")
+                svgElementRegLine:SetStyleClass("quorum-chart-linesegment")
 
                 if HasAccessibility()
                     svgElementRegLine:SetAriaHidden("true")
