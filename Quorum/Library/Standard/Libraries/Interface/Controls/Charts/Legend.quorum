@@ -119,7 +119,7 @@ class Legend is Control
         if seriesList:GetSize() > 0
             legendArea:SetChild(firstEntry)
             seriesList:Get(0):SetName(seriesList:Get(0):GetName())
-            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
+            description = ", 1 of " + seriesList:GetSize() + " series"
             firstEntry:SetParent(legendArea)
             firstEntry:SetFocusTarget(seriesList:Get(0))
             if showRegression
@@ -131,6 +131,7 @@ class Legend is Control
                     firstEntry:SetChild(equation)
                     seriesList:Get(0):GetRegressionLine():SetName(seriesList:Get(0):GetName()+" regression line.")
                     seriesList:Get(0):GetRegressionLine():SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
+                    description = description + ", regression line " + seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText()  + ", "
                     equation:SetFocusTarget(seriesList:Get(0):GetRegressionLine())
 
                     // R-squared
@@ -140,9 +141,12 @@ class Legend is Control
                     r2:SetPrevious(equation)
                     equation:SetNext(r2)
                     r2:SetFocusTarget(seriesList:Get(0):GetRegressionLine():GetRSquaredLabel())
+                    description = description + " r squared " + seriesList:Get(0):GetRegressionLine():GetRSquaredLabel():GetText()
                     firstEntry:SetLastChild(r2)
                 end
             end
+            description = description + "."
+            seriesList:Get(0):SetDescription(description)
         end
         integer i = 1
         ChartItem previous = firstEntry
@@ -160,7 +164,7 @@ class Legend is Control
                     equation:SetContainer(chart)
                     equation:SetParent(entry)
                     entry:SetChild(equation)
-                    seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line.")
+                    seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line")
                     seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
                     equation:SetFocusTarget(seriesList:Get(i):GetRegressionLine())
 
