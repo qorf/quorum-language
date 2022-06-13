@@ -729,7 +729,13 @@ class TwoVariableChart is Chart
                     firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                    AddSubChartAreaInstructions(GetSubChartAreas():Get(0)," chart area with " + chartAreaItems:GetSize() + " points, 1 of " + subAreaCount + " sub charts.")
+                    text description = " chart area with " + chartAreaItems:GetSize() + " points"
+                    if GetSubChartAreas():Get(0):GetSeries() not= undefined and GetSubChartAreas():Get(0):GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                        description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetDescription() 
+                        description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
+                    end
+                    description = description + ", 1 of " + subAreaCount + " sub charts."
+                    AddSubChartAreaInstructions(GetSubChartAreas():Get(0),description)
                     Array <ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
                     firstAreaPoints:Sort(comparison)
                     AddPoints(firstArea, firstAreaPoints)
@@ -749,7 +755,13 @@ class TwoVariableChart is Chart
                         previousArea = nextArea
                         nextArea:SetDisplayName(chartSubArea:GetName())
                         Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                        chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " points, " + (i+1) + " of " + subAreaCount + " sub charts.")
+                        text description = " chart area with " + chartAreaItems:GetSize() + " points"
+                        if chartSubArea:GetSeries() not= undefined and chartSubArea:GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                            description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetDescription() 
+                            description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
+                        end
+                        description = description + ", " + (i+1) + " of " + subAreaCount + " sub charts."
+                        chartSubArea:SetDescription(description)
                         Icon newIcon = NewRegionIcon(0,0,1,1)
                         Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
                         nextAreaPoints:Sort(comparison)
@@ -786,7 +798,6 @@ class TwoVariableChart is Chart
                         nextSeries:SetDisplayName(series:GetName())
                         chartAreaItems = series:GetChartAreaItems()
                         chartAreaItems:Sort(comparison)
-                        AddGroupPanelInstructions(series, series:GetDescription())
                         Array <ChartPoint> nextSeriesPoints = CastToPoints(chartAreaItems)
                         nextSeriesPoints:Sort(comparison)
                         AddPoints(firstSeries, nextSeriesPoints)
