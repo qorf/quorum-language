@@ -2,11 +2,19 @@ package Libraries.Interface.Controls.Scenes.Blueprints
 
 use Libraries.System.File
 
+/*
+    The Custom3DPrimitiveBlueprint class is an ItemBlueprint that takes an input file 
+    to load an image that will be used as a texture for a 3D primitive such as a cube
+    or sphere.
+*/
 class Custom3DPrimitiveBlueprint is CustomItemBlueprint, ModelBlueprint
 
     /*
-    Returns true if the given file is of a valid file type
-    for this blueprint, or false otherwise.
+        Returns true if the given file is of a valid file type
+        for this blueprint, or false otherwise. Since this is for
+        a 3D primitive the file needs a jpg, png, or jpeg extension.
+
+        Attribute: Parameter file The file for the custom image
     */
     action IsFileValid(File file) returns boolean
         if file = undefined

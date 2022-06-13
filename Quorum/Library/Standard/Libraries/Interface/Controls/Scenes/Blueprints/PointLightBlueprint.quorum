@@ -4,6 +4,12 @@ use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.Texture
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 
+/*
+    The PointLightBleprint is a blueprint for an object in a 3D space that emits light. This class
+    contains fields for the color and intensity of the light that will be visible in the scene when 
+    ran in a Game. In the editor this blueprint will create a preview model from a texture so the position
+    of the light is easier to view. 
+*/
 class PointLightBlueprint is ItemBlueprint
 
     TextureRegion paletteIcon = undefined
@@ -17,51 +23,110 @@ class PointLightBlueprint is ItemBlueprint
     
     number intensity = 5
 
+    /*
+        This action returns the texture to be used as an icon in a palette
 
+        Attribute: Returns A texture for an icon for this model
+    */
     action GetPaletteIcon returns TextureRegion
         return paletteIcon
     end
 
+    /*
+        This action sets the texture to be used as an icon in a palette
+
+        Attribute: Parameter paletteIcon An icon texture for this model
+    */
     action SetPaletteIcon(TextureRegion paletteIcon)
         me:paletteIcon = paletteIcon
     end
 
+    /*
+        This action returns the texture to be used as on the model visible only in the editor
+
+        Attribute: Returns A texture for the model in the editor
+    */
     action GetModelTexture returns Texture
         return modelTexture
     end
 
+    /*
+        This action sets the texture to be used as on the model visible only in the editor
+
+        Attribute: Parameter modelTexture A texture for the editor model
+    */
     action SetModelTexture(Texture modelTexture)
         me:modelTexture = modelTexture
     end
 
+    /*
+        This action returns the amount of red in the point light. 1.0 means full red.
+    
+        Attribute: Returns Amount of red in the point light
+    */
     action GetRed returns number
         return red
     end
 
+    /*
+        This action sets the amount of red in the point light. 1.0 means full red.
+    
+        Attribute: Parameter red Amount of red in the point light
+    */
     action SetRed(number red)
         me:red = red
     end
 
+    /*
+        This action returns the amount of green in the point light. 1.0 means full green.
+    
+        Attribute: Returns Amount of green in the point light
+    */
     action GetGreen returns number
         return green
     end
 
+    /*
+        This action sets the amount of green in the point light. 1.0 means full green.
+    
+        Attribute: Parameter green Amount of green in the point light
+    */
     action SetGreen(number green)
         me:green = green
     end
 
+    /*
+        This action returns the amount of blue in the point light. 1.0 means full blue.
+    
+        Attribute: Returns Amount of blue in the point light
+    */
     action GetBlue returns number
         return blue
     end
 
+    /*
+        This action sets the amount of blue in the point light. 1.0 means full blue.
+    
+        Attribute: Parameter blue Amount of blue in the point light
+    */
     action SetBlue(number blue)
         me:blue = blue
     end
 
+    /*
+        This action returns the intensity of the point light which affects brightness.
+    
+        Attribute: Returns The intensity of point light
+    */
     action GetIntensity returns number
         return intensity
     end
 
+    /*
+        This action sets the intensity of the point light which affects brightness.
+    
+        Attribute: Parameter intensity The intensity of point light
+    */
     action SetIntensity(number intensity)
         me:intensity = intensity
     end
