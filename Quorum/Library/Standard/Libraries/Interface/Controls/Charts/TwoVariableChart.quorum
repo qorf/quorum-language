@@ -304,6 +304,8 @@ class TwoVariableChart is Chart
                 ChartLine temp = cast(ChartLine, target)
                 temp:SetColor(previousColor)
                 temp:SetZ(previousZ)
+            elseif target is ChartPoint
+                // Do nothing, let the points handle themselves.
             elseif target is ChartDrawable
                 target:Hide()
             else
@@ -360,6 +362,8 @@ class TwoVariableChart is Chart
                 previousZ = temp:GetZ()
                 temp:SetColor(GetSelectionColor())
                 temp:SetZ(-1)
+            elseif target is ChartPoint
+                // Do nothing, let the points handle themselves.
             elseif target is ChartDrawable
                 target:Show()
             else
