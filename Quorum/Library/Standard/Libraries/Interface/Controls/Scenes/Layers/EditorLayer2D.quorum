@@ -1,0 +1,233 @@
+package Libraries.Interface.Controls.Scenes.Layers
+
+use Libraries.Game.Layer2D
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.Previews.CameraPreview2D
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
+use Libraries.Interface.Controls.Scenes.Items.Grid2D
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+
+class EditorLayer2D is Layer2D, EditorLayer
+
+    SceneConstants constants
+
+    /*
+    The camera preview describes the basic position and dimensions of the camera in the scene.
+    It does NOT represent the editor camera! This represents where the camera will be if
+    you loaded the scene into a game and ran it outside of the editor.
+    */
+    CameraPreview2D preview
+
+    EditorCursor2D cursor
+
+    Grid2D grid
+    boolean gridSnapEnabled = true
+
+    on create
+        preview:SetSize(constants:CAMERA_PREVIEW_2D_DEFAULT_WIDTH, constants:CAMERA_PREVIEW_2D_DEFAULT_HEIGHT)
+        Add(preview)
+        preview:SetPosition(0, 0)
+
+        grid:SetGridSize(GetCamera():GetWidth() + grid:GetGridUnitSize(), GetCamera():GetHeight() + grid:GetGridUnitSize())
+        Add(grid)
+        UpdateGridPosition()
+
+        cursor:Load(me)
+        Add(cursor)
+
+        ShowEditorComponents(false)
+    end
+
+    action ProcessMouseEvent(MouseEvent event) returns Item
+        SceneEditor_LIBRARY controller = GetSceneEditor()
+        if controller = undefined or (not controller:GetSelectedLayer():Equals(me))
+            return undefined
+        end
+
+        Item item = parent:Layer2D:ProcessMouseEvent(event)
+        return item
+    end
+
+    action GetCameraPreview returns CameraPreview2D
+        return preview
+    end
+
+    action SetCameraPreviewX(number x)
+        preview:SetX(x)
+    end
+
+    action SetCameraPreviewY(number y)
+        preview:SetY(y)
+    end
+
+    action SetCameraPreviewPosition(number x, number y)
+        preview:SetPosition(x, y)
+    end
+
+    action SetCameraPreviewWidth(number width)
+        preview:SetWidth(width)
+    end
+
+    action SetCameraPreviewHeight(number height)
+        preview:SetHeight(height)
+    end
+
+    action SetCameraPreviewSize(number width, number height)
+        preview:SetSize(width, height)
+    end
+
+    action GetCameraPreviewX returns number
+        return preview:GetX()
+    end
+
+    action GetCameraPreviewY returns number
+        return preview:GetY()
+    end
+
+    action GetCameraPreviewWidth returns number
+        return preview:GetWidth()
+    end
+
+    action GetCameraPreviewHeight returns number
+        return preview:GetHeight()
+    end
+
+    action Resize(ResizeEvent event)
+        // Don't respond to resizing here -- allow the VisualSceneController to handle it for us.
+    end
+
+    action SetGridSnapping(boolean enabled)
+        if enabled
+            grid:Show()
+        else
+            grid:Hide()
+        end
+
+        gridSnapEnabled = enabled
+    end
+
+    action SetGridUnitSize(number units)
+        grid:SetGridUnitSize(cast(integer, units))
+        cursor:SetGridUnitSize(cast(integer, units))
+    end
+
+    action GetGridUnitSize returns number
+        return grid:GetGridUnitSize()
+    end
+
+    action IsGridSnapping returns boolean
+        return gridSnapEnabled
+    end
+
+    action GetNearestGridCoordinate(number coordinate) returns number
+        return grid:GetNearestGridCoordinate(coordinate)
+    end
+
+    action GetNextGridCoordinate(number coordinate) returns number
+        return grid:GetNextGridCoordinate(coordinate)
+    end
+
+    action GetPreviousGridCoordinate(number coordinate) returns number
+        return grid:GetPreviousGridCoordinate(coordinate)
+    end
+
+    action Update(number seconds)
+        SceneEditor_LIBRARY controller = GetSceneEditor()
+        integer x = cast(integer, controller:GetGlobalX())
+        integer y = cast(integer, controller:GetGlobalY())
+        integer width = cast(integer, controller:GetWidth())
+        integer height = cast(integer, controller:GetHeight())
+        if GetViewportX() not= x or GetViewportY() not= y or GetViewportWidth() not= width or GetViewportHeight() not= height
+            SetViewport(x, y, width, height)
+            UpdateGridSize()            
+        end
+
+        parent:Layer2D:Update(seconds)
+    end
+
+    action IsGridCoordinate(number value) returns boolean
+        return grid:IsGridCoordinate(value)
+    end
+
+    action UpdateGridPosition
+        Camera camera = GetCamera()
+        number zoom = 1
+        if camera is OrthographicCamera
+            OrthographicCamera orthographic = cast(OrthographicCamera, camera)
+            zoom = orthographic:GetZoom()
+        end
+
+        number x = camera:GetPosition():GetX() - (camera:GetWidth() / zoom) / 2.0
+        number y = camera:GetPosition():GetY() - (camera:GetHeight() / zoom) / 2.0
+
+        if not grid:IsGridCoordinate(x)
+            x = grid:GetPreviousGridCoordinate(x)
+        end
+        if not grid:IsGridCoordinate(y)
+            y = grid:GetPreviousGridCoordinate(y)
+        end
+
+        grid:SetPosition(x, y)
+    end
+
+    action UpdateGridSize
+        Camera camera = GetCamera()
+        number width = camera:GetWidth()
+        number height = camera:GetHeight()
+
+        if camera is OrthographicCamera
+            OrthographicCamera orthographic = cast(OrthographicCamera, camera)
+            width = width / orthographic:GetZoom()
+            height = height / orthographic:GetZoom()
+        end
+
+        grid:SetGridSize(width, height)
+
+        UpdateGridPosition()
+    end
+
+    action GetCursor returns EditorCursor
+        return cursor
+    end
+
+    action ShowEditorComponents(boolean shouldShow)
+        if shouldShow
+            preview:Show()
+            grid:Show()
+            UpdateGridPosition()
+        else
+            preview:Hide()
+            grid:Hide()
+            cursor:Hide()
+        end
+    end
+
+    action Add(Item2D item)
+        parent:Layer2D:Add(item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+
+    action Add(integer index, Item2D item)
+        parent:Layer2D:Add(index, item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+
+    action AddToFront(Item2D item)
+        parent:Layer2D:AddToFront(item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+end

@@ -1,0 +1,88 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Game.Item2DDepthComparison
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+
+class EditorCursor2D is EditorCursor, Drawable
+
+    EditorLayer2D editorLayer = undefined
+
+    // How many world units wide/tall the current grid units are.
+    number gridUnitSize = 0
+
+    // How many grid units wide or tall the cursor currently is.
+    integer gridWidth = 1
+    integer gridHeight = 1
+
+    // Used to sort items underneath the cursor.
+    Item2DDepthComparison depthSorter
+    
+    action Load(EditorLayer2D layer)
+        editorLayer = layer
+
+        SceneConstants constants    
+        LoadFilledRectangle(100, 100, constants:CURSOR_2D_COLOR)
+        SetZ(constants:CURSOR_2D_DEPTH)
+        SetGridUnitSize(layer:GetGridUnitSize())
+    end
+
+    action SetGridUnitSize(number size)
+        gridUnitSize = size
+        SetSize(gridUnitSize * gridWidth, gridUnitSize * gridHeight)
+    end
+
+    /*
+    Expands the size of the selection by one grid unit on both the x and y axes.
+    */
+    action IncreaseSize
+        gridWidth = gridWidth + 1
+        gridHeight = gridHeight + 1
+        SetSize(gridUnitSize * gridWidth, gridUnitSize * gridHeight)
+    end
+
+    /*
+
+    */
+    action DecreaseSize
+        if gridWidth > 1
+            gridWidth = gridWidth - 1
+        end
+        if gridHeight > 1
+            gridHeight = gridHeight - 1
+        end
+
+        SetSize(gridUnitSize * gridWidth, gridUnitSize * gridHeight)
+    end
+
+    action GetItemsAtCursor returns Array<Item>
+        Array<Item> array
+        SceneConstants constants
+
+        Iterator<Item2D> iterator = editorLayer:GetIterator()
+        number x1 = GetX()
+        number x2 = GetX() + GetWidth()
+        number y1 = GetY()
+        number y2 = GetY() + GetHeight()
+        repeat while iterator:HasNext()
+            Item2D item = iterator:Next()
+            if item:HasProperty(constants:EDITOR_TAG) = false and item:GetX() < x2 and (item:GetX() + item:GetWidth()) > x1 and item:GetY() < y2 and (item:GetY() + item:GetHeight()) > y1
+                array:Add(item)
+            end
+        end
+
+        array:Sort(depthSorter)
+
+        return array
+    end
+
+    action GetEditorLayer returns EditorLayer
+        return editorLayer
+    end
+
+end
