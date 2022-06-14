@@ -640,9 +640,9 @@ class PieChart is Chart
             end
         end
         if GetName() = "Pie Chart"
-            SetDescription(" with " + count + " " + countText)
+            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
         else
-            SetDescription(", pie chart with " + count + " " + countText)
+            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
         end
         return GetDescription()
     end
@@ -665,18 +665,17 @@ class PieChart is Chart
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
         summary:SetRightItem(chartArea)
-        summary:SetEnterItem(chartArea)
         summary:SetContainer(me)
-        chartArea:SetEscapeItem(summary)
+        chartArea:SetLeftItem(summary)
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Pie Chart")
     
-        // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
-        end
+        // If any of these are not showing the tree will skip them in the navigation 
         if IsShowingXAxis()
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end       
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)

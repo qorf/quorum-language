@@ -175,37 +175,30 @@ class HorizontalAxisPanel is ChartItem
         Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        xAxis:SetEscapeItem(summary)
+        xAxis:SetUpItem(summary)
+        summary:SetDownItem(xAxis)
         xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
-        chartArea:SetRightItem(xAxis)
-        xAxis:SetLeftItem(chartArea)
+        xAxis:SetRightItem(chartArea)
         if chart:IsShowingYAxis()
-            xAxis:SetRightItem(yAxis)
-            yAxis:SetLeftItem(xAxis)
-        else
-            xAxis:SetRightItem(chartArea)   
-            chartArea:SetLeftItem(xAxis)   
+            xAxis:SetDownItem(yAxis)
+            yAxis:SetUpItem(xAxis)
+        elseif chart:IsShowingLegend()
+            xAxis:SetDownItem(chart:GetLegend())   
+            chart:GetLegend():SetUpItem(xAxis)   
         end   
         
         if not chart:IsSeparated()
             // Labels
             ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
-            if labels:GetSize() > 0
-                xAxis:SetEnterItem(firstLabel)
-                firstLabel:SetEscapeItem(xAxis)
-            end
     
             i = 1
             ChartItem previousLabel = firstLabel
             repeat while i < labels:GetSize()
                 ChartItem labelNode = labels:Get(i)
                 labelNode:SetContainer(chart)
-                labelNode:SetEscapeItem(xAxis)
-                previousLabel:SetRightItem(labelNode)
-                labelNode:SetLeftItem(previousLabel)
                 previousLabel = labelNode
                 i = i + 1
             end
@@ -215,27 +208,18 @@ class HorizontalAxisPanel is ChartItem
             SetName(titleText + " axis, ")
             ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
-            if labels:GetSize() > 0
-                xAxis:SetEnterItem(firstLabel)
-                firstLabel:SetEscapeItem(xAxis)
-            end
     
             i = 1
             ChartItem previousLabel = firstLabel
             repeat while i < labels:GetSize()
                 ChartItem labelNode = labels:Get(i)
                 labelNode:SetContainer(chart)
-                labelNode:SetEscapeItem(xAxis)
-                previousLabel:SetRightItem(labelNode)
-                labelNode:SetLeftItem(previousLabel)
                 previousLabel = labelNode
                 i = i + 1
             end
         else
             //SubPanel axis
             ChartItem firstSubPanel = chart:GetSubHorizontalPanels():Get(0)
-            xAxis:SetEnterItem(firstSubPanel)
-            firstSubPanel:SetEscapeItem(xAxis)
             firstSubPanel:SetContainer(chart)
             firstSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
             chart:GetSubHorizontalPanels():Get(0):SetName("Sub " + titleText + " axis, ")
@@ -244,17 +228,12 @@ class HorizontalAxisPanel is ChartItem
             if labels:GetSize() > 0
                 ChartItem firstLabel = labels:Get(0)
                 firstLabel:SetContainer(chart)
-                firstSubPanel:SetEnterItem(firstLabel)
-                firstLabel:SetEscapeItem(firstSubPanel)
         
                 j = 1
                 ChartItem previousLabel = firstLabel
                 repeat while j < labels:GetSize()
                     ChartItem labelNode = labels:Get(j)
                     labelNode:SetContainer(chart)
-                    labelNode:SetEscapeItem(firstSubPanel)
-                    previousLabel:SetRightItem(labelNode)
-                    labelNode:SetLeftItem(previousLabel)
                     previousLabel = labelNode
                     j = j + 1
                 end
@@ -265,29 +244,21 @@ class HorizontalAxisPanel is ChartItem
             repeat while i < chart:GetSubHorizontalPanels():GetSize()
                 ChartItem currentSubPanel = chart:GetSubHorizontalPanels():Get(i)
                 currentSubPanel:SetContainer(chart)
-                currentSubPanel:SetEscapeItem(xAxis)
                 currentSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(i):GenerateSummary())
                 chart:GetSubHorizontalPanels():Get(i):SetName("Sub " + titleText + " axis, ")
                 chart:GetSubHorizontalPanels():Get(i):SetDescription(currentSubPanel:GetDisplayName() + " " + (i+1) + " of " + numberOfSections + " sub axes.")
-                previousSubPanel:SetRightItem(currentSubPanel)
-                currentSubPanel:SetLeftItem(previousSubPanel)
                 previousSubPanel = currentSubPanel
 
                 labels = chart:GetSubHorizontalPanels():Get(i):GetLabels()
                 if labels:GetSize() > 0
                     ChartItem firstLabel = labels:Get(0)
                     firstLabel:SetContainer(chart)
-                    currentSubPanel:SetEnterItem(firstLabel)
-                    firstLabel:SetEscapeItem(currentSubPanel)
         
                     j = 1
                     ChartItem previousLabel = firstLabel
                     repeat while j < labels:GetSize()
                         ChartItem labelNode = labels:Get(j)
                         labelNode:SetContainer(chart)
-                        labelNode:SetEscapeItem(currentSubPanel)
-                        previousLabel:SetRightItem(labelNode)
-                        labelNode:SetLeftItem(previousLabel)
                         previousLabel = labelNode
                         j = j + 1
                     end

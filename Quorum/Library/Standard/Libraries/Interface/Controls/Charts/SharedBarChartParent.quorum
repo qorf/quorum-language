@@ -410,27 +410,27 @@ class SharedBarChartParent is Chart
         if numberOfBars = 1
             bartext = " bar"    
         end
-
+        
+        
         ChartItem summary = me
 
 
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetDownItem(chartArea)
+        summary:SetRightItem(chartArea)
 
         chartArea:SetDisplayName("Chart Area with " + numberOfBars + bartext)
-        chartArea:SetUpItem(summary)
-        chartArea:SetEscapeItem(summary)
+        chartArea:SetLeftItem(summary)
         chartArea:SetContainer(me)
 
         AddChartAreaInstructions(" with " + numberOfBars + bartext)
     
-        // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis() 
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
-        end
+        // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis() 
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end        
+        if IsShowingYAxis() 
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)

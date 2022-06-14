@@ -614,10 +614,10 @@ class ViolinPlot is Chart
         of  the chart.
     */
     action GenerateSummary returns text
-        text lineText = "Groups"
+        text lineText = "groups"
         text plotText = "violin plots"
         if GetGroupPanels():GetSize() = 1
-            linetext = "Group"
+            linetext = "group"
             plotText = "violin plot"
         end
         if HasGroups()
@@ -648,10 +648,10 @@ class ViolinPlot is Chart
 
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetEnterItem(chartArea)
+        summary:SetRightItem(chartArea)
         summary:SetContainer(me)
 
-        chartArea:SetEscapeItem(summary)
+        chartArea:SetLeftItem(summary)
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Violin Plot")
 //        if HasGroups()
@@ -660,12 +660,12 @@ class ViolinPlot is Chart
 //            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots")
 //        end
     
-        // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
-        end
+        // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)

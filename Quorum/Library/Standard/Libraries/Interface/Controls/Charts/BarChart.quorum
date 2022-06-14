@@ -75,9 +75,9 @@ class BarChart is SharedBarChartParent
             bartext = GetNumberOfBars() + " bar"
         end
         if GetName() = "Bar Chart"
-            SetDescription("with " + grouptext + bartext)
+            SetDescription("with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
         else
-            SetDescription("Bar chart with " + grouptext + bartext)
+            SetDescription("Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
         end
         return GetDescription()
     end
