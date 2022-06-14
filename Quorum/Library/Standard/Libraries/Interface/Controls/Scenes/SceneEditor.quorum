@@ -24,8 +24,10 @@ use Libraries.Containers.HashTable
 use Libraries.Game.Game
 use Libraries.System.File
 use Libraries.Interface.Controls.Button
-
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 
 
 /*
@@ -173,6 +175,10 @@ class SceneEditor_LIBRARY is Control
         return constants
     end
 
+    action UpdateEditorCameraTarget
+
+    end
+
     action Update(number seconds)
 
     end
@@ -194,7 +200,7 @@ class SceneEditor_LIBRARY is Control
 
     end
 
-    action CancelNewItemPreview(EditorItem preview)
+    action CancelItemPreview(ItemPreview preview)
 
     end
 
@@ -462,6 +468,44 @@ class SceneEditor_LIBRARY is Control
 
     action SetSelectedItem(EditorItem item)
 //        selection:SetSelection(item)
+    end
+
+    action SetSelectedLayer(EditorLayer layer)
+
+    end
+
+    action SetSelection(EditorLayer layer, EditorItem item)
+
+    end
+
+    action GetSelectedItem returns EditorItem
+        return undefined
+    end
+
+    action GetSelectedLayer returns EditorLayer
+        return undefined
+    end
+
+    /*
+    This action sets the cursor to either be visible or hidden, as is appropriate
+    based on the current editor context. For example, if a layer is active and no
+    items are selected, it will show the cursor, or hide it if there are already
+    selected items.
+
+    This is called automatically by the SceneEditorSelection when the selection
+    changes.
+    */
+    action UpdateCursorVisibility
+
+    end
+
+    action GetCursor returns EditorCursor
+        EditorLayer layer = GetSelectedLayer()
+        if layer = undefined
+            return undefined
+        end
+
+        return layer:GetCursor()
     end
 
     action GetNameCount(text name) returns integer
