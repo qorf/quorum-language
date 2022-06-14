@@ -935,6 +935,7 @@ class TwoVariableChart is Chart
                             nextAreaPoints:Sort(comparison)
                             AddPoints(firstArea, nextAreaPoints)
                         end
+                        i = i + 1
                     end
                 end
             else
@@ -966,7 +967,7 @@ class TwoVariableChart is Chart
                         chartAreaItems:Sort(comparison)
                         Array<ChartPoint> nextSeriesPoints = CastToPoints(chartAreaItems)
                         nextSeriesPoints:Sort(comparison)
-                        AddPoints(firstSeries, nextSeriesPoints)
+                        AddPoints(series, nextSeriesPoints)
                         i = i + 1
                     end
                 end

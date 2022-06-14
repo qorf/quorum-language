@@ -473,6 +473,7 @@ class SharedBarChartParent is Chart
                     // Iterate through the bars again, this time in ascending value order.
                     Array<ChartItem> sortedBars = chartAreaItems:CopyToArray()
                     BarComparison barCompare
+                    barCompare:SetAscending(true)
                     sortedBars:Sort(barCompare)
                     previousBar = sortedBars:Get(0)
 
@@ -508,6 +509,7 @@ class SharedBarChartParent is Chart
                             firstBar:SetContainer(me)
                             nextArea:SetEnterItem(firstBar)
                             firstBar:SetEscapeItem(nextArea)
+                            AddChartItemInstructions(firstBar, firstBar:GetDescription())
 
                             j = 1
                             ChartItem previousBar = firstBar
@@ -525,6 +527,7 @@ class SharedBarChartParent is Chart
                             // Iterate through the bars again, this time in ascending value order.
                             Array<ChartItem> sortedBars = subAreaItems:CopyToArray()
                             BarComparison barCompare
+                            barCompare:SetAscending(true)
                             sortedBars:Sort(barCompare)
                             previousBar = sortedBars:Get(0)
 
@@ -574,6 +577,7 @@ class SharedBarChartParent is Chart
                         // Iterate through the bars again, this time in ascending value order.
                         Array<Bar> sortedBars = barGroups:Get(0):GetBars():CopyToArray()
                         BarComparison barCompare
+                        barCompare:SetAscending(true)
                         sortedBars:Sort(barCompare)
                         previousBar = sortedBars:Get(0)
 
@@ -603,6 +607,7 @@ class SharedBarChartParent is Chart
                             firstBar:SetContainer(me)
                             group:SetEnterItem(firstBar)
                             firstBar:SetEscapeItem(group)
+                            AddChartItemInstructions(firstBar, firstBar:GetDescription())
 
                             integer j = 1
                             ChartItem previousBar = firstBar
@@ -619,6 +624,7 @@ class SharedBarChartParent is Chart
                             // Iterate through the bars again, this time in ascending value order.
                             Array<Bar> sortedBars = barGroups:Get(i):GetBars():CopyToArray()
                             BarComparison barCompare
+                            barCompare:SetAscending(true)
                             sortedBars:Sort(barCompare)
                             previousBar = sortedBars:Get(0)
 
