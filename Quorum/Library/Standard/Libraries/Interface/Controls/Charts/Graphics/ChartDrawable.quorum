@@ -137,4 +137,28 @@ class ChartDrawable is ChartItem, Drawable
         return cast(Chart, parentItem)
     end
 
+
+    action GainedSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Show()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Show()
+            GetSelectionBracket():Get(1):Show()
+            GetSelectionBracket():Get(2):Show()
+        end
+        parent:ChartItem:GainedSelection()
+    end
+
+    action LostSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Hide()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Hide()
+            GetSelectionBracket():Get(1):Hide()
+            GetSelectionBracket():Get(2):Hide()
+        end
+        parent:ChartItem:LostSelection()
+    end
 end
