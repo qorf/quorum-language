@@ -25,6 +25,7 @@ use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.TwoVariableChart
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -1102,6 +1103,9 @@ class ChartLayout is Layout
             if sideArrow
                 x1 = cast(integer, item:GetX() + item:GetWidth()/2)
                 y1 = cast(integer, item:GetY() + item:GetHeight() + tickHeight)
+                if chart is TwoVariableChart and chart:ShowAnnotations() and item:GetAnnotation() not= undefined
+                    y1 = y1 + cast(integer, item:GetAnnotation():GetHeight())
+                end
                 x2 = x1 + arrowSize
                 y2 = y1 + arrowSize
                 x3 = x1 - arrowSize

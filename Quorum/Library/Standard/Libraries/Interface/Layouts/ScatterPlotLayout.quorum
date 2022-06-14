@@ -59,7 +59,11 @@ class ScatterPlotLayout is TwoVariableChartLayout
                 end
             end
 
-            LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+            if chart:GetHorizontalFlag()
+                LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+            else
+                LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
+            end
             i = i + 1
         end
 

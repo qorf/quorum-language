@@ -2121,17 +2121,7 @@ class Chart is ChartItem
                     temp:GetSelectionBracket():Get(2):Hide()
                 end
             elseif target is ChartDrawable
-                ChartDrawable temp = cast(ChartDrawable, target)  
-                if temp:GetSelectionArrow() not= undefined          
-                    temp:GetSelectionArrow():Hide()
-                end
-                if temp:GetSelectionBracket():GetSize() = 3          
-                    temp:GetSelectionBracket():Get(0):Hide()
-                    temp:GetSelectionBracket():Get(1):Hide()
-                    temp:GetSelectionBracket():Get(2):Hide()
-                end
-                temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
+                // Do nothing. Let the ChartDrawable handle itself.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
@@ -2199,19 +2189,7 @@ class Chart is ChartItem
                     temp:GetSelectionBracket():Get(2):Show()
                 end
             elseif target is ChartDrawable
-                ChartDrawable temp = cast(ChartDrawable, target)  
-                if temp:GetSelectionArrow() not= undefined          
-                    temp:GetSelectionArrow():Show()
-                end
-                if temp:GetSelectionBracket():GetSize() = 3          
-                    temp:GetSelectionBracket():Get(0):Show()
-                    temp:GetSelectionBracket():Get(1):Show()
-                    temp:GetSelectionBracket():Get(2):Show()
-                end
-                previousZ = temp:GetZ()
-                previousColor = temp:GetColor()
-                temp:SetZ(-1)
-                temp:SetColor(GetSelectionColor())
+                // Do nothing by default. The ChartDrawable handles its own selection event.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()
