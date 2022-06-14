@@ -158,7 +158,7 @@ class ScatterPlotWriter is ChartWriter
 
                     j = 0
                     repeat while j < currentSeries:GetSize()
-                        if currentSeries:GetItemAt(i) is ChartPoint
+                        if currentSeries:GetItemAt(j) is ChartPoint
                             ChartPoint currentPoint = cast(ChartPoint, currentSeries:GetItemAt(j))
                             number radius = currentPoint:GetHeight()/2
 

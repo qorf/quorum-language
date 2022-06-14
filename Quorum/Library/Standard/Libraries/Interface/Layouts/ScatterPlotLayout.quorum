@@ -58,6 +58,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
                     pointLabel:SetPosition(annotX, annotY)
                 end
             end
+
+            LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
             i = i + 1
         end
 
