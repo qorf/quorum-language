@@ -1,0 +1,32 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.DialogLayer
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class ItemPreview is EditorItem
+
+    ItemBlueprint schematic = undefined
+
+    action SetItemBlueprint(ItemBlueprint itemBlueprint)
+        schematic = itemBlueprint
+    end
+
+    action GetItemBlueprint returns ItemBlueprint
+        return schematic
+    end
+
+    action LostFocus(FocusEvent event)
+        if event:GetNewFocus() is Item2D
+            Item2D item = cast(Item2D, event:GetNewFocus())
+            if item:GetLayer() is DialogLayer
+                return now
+            end
+        end
+
+        GetSceneEditor():CancelItemPreview(me)
+    end
+
+end

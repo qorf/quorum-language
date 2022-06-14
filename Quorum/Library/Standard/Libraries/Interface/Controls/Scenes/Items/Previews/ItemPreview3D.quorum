@@ -1,0 +1,25 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+
+class NewItemPreview3D is ItemPreview, EditorItem3D
+
+    on create
+        SetInputGroup("NewItemPreview3D")
+    end
+
+    action GetAccessibleParent returns Item
+        return parent:EditorItem:GetAccessibleParent()
+    end
+
+    blueprint action ConvertToModel returns Model
+
+end
