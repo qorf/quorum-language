@@ -1,0 +1,157 @@
+package Libraries.Interface.Selections
+
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+
+class SceneEditorSelection is Selection
+    
+    EditorItem selectedItem = undefined
+    EditorLayer selectedLayer = undefined
+
+    boolean itemChanged = false
+    boolean layerChanged = false
+
+    action Initialize(SceneEditor_LIBRARY controller)
+        Initialize(controller, controller:GetName())
+    end
+
+    action SetSelection(EditorItem item)
+        if selectedItem not= undefined
+            selectedItem:LostSelection()
+        end
+
+        selectedItem = item
+        itemChanged = true
+        UpdateDisplayName()
+
+        if selectedItem not= undefined
+            selectedItem:GainedSelection()
+        end
+    end
+
+    action SetSelection(EditorLayer layer)
+        if selectedLayer not= undefined
+            selectedLayer:LostSelection()
+        end
+
+        selectedLayer = layer
+        layerChanged = true
+        UpdateDisplayName()
+
+        if selectedLayer not= undefined
+            selectedLayer:GainedSelection()
+        end
+    end
+
+    action SetSelection(EditorLayer layer, EditorItem item)
+        if layer = selectedLayer
+            if item not= selectedItem
+                SetSelection(item)
+            end
+            return now
+        elseif item = selectedItem
+            SetSelection(layer)
+        end
+
+        if selectedItem not= undefined
+            selectedItem:LostSelection()
+        end
+
+        if selectedLayer not= undefined
+            selectedLayer:LostSelection()
+        end
+
+        selectedLayer = layer
+        selectedItem = item
+        layerChanged = true
+        itemChanged = true
+        UpdateDisplayName()
+
+        if selectedLayer not= undefined
+            selectedLayer:GainedSelection()
+        end
+
+        if selectedItem not= undefined
+            selectedItem:GainedSelection()
+        end
+    end
+
+    private action UpdateDisplayName
+        if selectedLayer = undefined or selectedItem = undefined
+            SceneEditor_LIBRARY scene = GetSceneEditor()
+            if scene not= undefined
+                SetDisplayName(scene:GetName())
+            else
+                SetDisplayName("")
+            end
+        else
+            SetDisplayName(selectedItem:GetName() + " - " + selectedLayer:GetName())
+        end
+
+        if itemChanged
+            SceneEditor_LIBRARY scene = GetSceneEditor()
+            scene:SetCursorToItem(selectedItem)
+            scene:UpdateEditorCameraTarget()
+        end
+
+        itemChanged = false
+        layerChanged = false
+
+        GetSceneEditor():UpdateCursorVisibility()
+    end
+
+    action GetSelectedItem returns EditorItem
+        return selectedItem
+    end
+
+    action GetSelectedLayer returns EditorLayer
+        return selectedLayer
+    end
+
+    /*
+    Returns true only when a SelectionEvent is being processed where
+    the item changed. After the event has been processed, this returns
+    false.
+    */
+    action ItemChanged returns boolean
+        return itemChanged
+    end
+
+    /*
+    Returns true only when a SelectionEvent is being processed where
+    the layer changed. After the event has been processed, this returns
+    false.
+    */
+    action LayerChanged returns boolean
+        return layerChanged
+    end
+
+    action IsItemSelected returns boolean
+        return selectedItem not= undefined
+    end
+
+    action IsLayerSelected returns boolean
+        return selectedLayer not= undefined
+    end
+
+    action IsEmpty returns boolean
+        return selectedLayer = undefined
+    end
+
+    action Empty
+        SetSelection(undefined, undefined)
+    end
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        Item item = GetItem()
+        if item is SceneEditor_LIBRARY
+            return cast(SceneEditor_LIBRARY, item)
+        else
+            return undefined
+        end
+    end
+
+end
