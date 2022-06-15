@@ -56,6 +56,7 @@ class PieChart is Chart
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
+    integer previousBorder = 0
 
     ChartOptions options
     Math math
@@ -257,6 +258,10 @@ class PieChart is Chart
         Item target = item
 
         if target not= undefined
+            if target is PieSlice
+                PieSlice slice = cast(PieSlice, target)
+                slice:SetColor(previousColor)
+            end
             parent:Chart:LostSelection(item)
         end
     end
@@ -280,6 +285,11 @@ class PieChart is Chart
         Item target = item
         if target not= undefined
             target:Focus()
+            if target is PieSlice
+                PieSlice slice = cast(PieSlice, target)
+                previousColor = slice:GetColor()
+                slice:SetColor(GetSelectionColor())
+            end
             parent:Chart:OnSelectionChange(item)        
         end
     end
