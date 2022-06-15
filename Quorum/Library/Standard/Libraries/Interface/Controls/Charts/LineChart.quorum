@@ -31,7 +31,12 @@ use Libraries.System.File
         end
     end
 */
-class LineChart is TwoVariableChart    
+class LineChart is TwoVariableChart 
+    // Terminology for navigation instructions 
+    private text groupText = "line"
+    private text groupsText = "lines"
+    private text chartItemText = "point"
+    private text chartItemsText = "points"  
     on create
         LineChartLayout layout
         SetLayout(layout)
@@ -100,6 +105,23 @@ class LineChart is TwoVariableChart
             LineChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
         end
+    end
+
+    
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 
 end
