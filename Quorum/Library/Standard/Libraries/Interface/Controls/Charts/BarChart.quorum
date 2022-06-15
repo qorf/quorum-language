@@ -64,9 +64,9 @@ class BarChart is SharedBarChartParent
     private action GenerateSummary returns text
         text grouptext = ""
         if HasGroups()
-            text groups = " categories and "
+            text groups = " groups and "
             if GetBarGroups():GetSize() = 1
-                groups = " category and "
+                groups = " group and "
             end
             grouptext = GetBarGroups():GetSize() + groups
         end
@@ -75,9 +75,9 @@ class BarChart is SharedBarChartParent
             bartext = GetNumberOfBars() + " bar"
         end
         if GetName() = "Bar Chart"
-            SetDescription("with " + grouptext + bartext)
+            SetDescription("with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription("Bar chart with " + grouptext + bartext)
+            SetDescription(", Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end

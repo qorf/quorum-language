@@ -13,6 +13,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 /*
     This is the layout class for Line Chart. 
@@ -29,8 +30,8 @@ class LineChartLayout is TwoVariableChartLayout
 
         LineChart chart = cast(LineChart, control)
         Array<ChartLine> lines = chart:GetAllLines()
-        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
-        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
         number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
         number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
 
@@ -63,6 +64,7 @@ class LineChartLayout is TwoVariableChartLayout
             if lines:Get(i):GetPoints() = undefined
                 return now
             end
+            LoadLineSelectionArrowVertices(chart, lines:Get(i))
 
             integer j = 0
             repeat while j < lines:Get(i):GetPoints():GetSize()
@@ -85,6 +87,12 @@ class LineChartLayout is TwoVariableChartLayout
                         integer annotY = cast(integer, y+point:GetHeight())
                         pointLabel:SetPosition(annotX, annotY)
                     end
+                end
+
+                if chart:GetHorizontalFlag()
+                    LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+                else
+                    LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
                 end
                 j = j + 1
             end
@@ -132,5 +140,26 @@ class LineChartLayout is TwoVariableChartLayout
         if chart:IsShowingLinearRegression()
             LayoutRegressionLines(chart, chartAreaContainer)
         end
+    end
+
+    /*
+        Interface action for setting the selection arrow for the line using the first point 
+    */
+    private action LoadLineSelectionArrowVertices(Chart chart, ChartLine line)
+        ChartDrawable lineArea
+        lineArea:SetSize(line:GetLineStart():GetWidth(), line:GetLineStart():GetHeight())
+        lineArea:SetPosition(line:GetLineStart():GetX(), line:GetLineStart():GetY())
+
+        if chart:GetHorizontalFlag()
+            LoadChartDrawableSelectionArrow(chart, lineArea, cast(integer, line:GetLineStart():GetWidth()), true)
+        else
+            LoadChartDrawableSelectionArrow(chart, lineArea, cast(integer, line:GetLineStart():GetWidth()), false)
+        end
+        Array<number> vertices = lineArea:GetSelectionArrowVertices()
+        Drawable arrow = line:GetSelectionArrow()
+        arrow:LoadShape(vertices, line:GetSelectionColor())
+        arrow:Hide()
+        arrow:SetZ(-1)
+        line:SetSelectionArrowVertices(vertices) 
     end
 end

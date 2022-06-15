@@ -22,6 +22,9 @@ use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
 
 /*
 
@@ -59,14 +62,13 @@ use Libraries.Interface.Views.ControlShaderView
         end
     end
 */
-class Chart is Control
+class Chart is ChartItem
     private Math math
     private Color color
     private ChartOptions options
 
     // Chart Accessibilty
     private boolean treeNeedsUpdate = true
-    private ChartItem infoTreeRoot //The root chart item for all charts
     private ChartSelection selection
     private Color highlightColor = undefined
     private ColorGroup previousColorGroup = undefined
@@ -159,9 +161,16 @@ class Chart is Control
     private number legendPanelWidthPercent = 0.05
     private number legendPanelHeightPercent = 0.05
 
+    // Terminology for navigation instructions
+    private text groupText = "group"
+    private text groupsText = "groups"
+    private text seriesText = "series"
+    private text chartItemText = "chart item"
+    private text chartItemsText = "chart items"
+
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
-    number pointBorderThickness = 0
+    number pointBorderThickness = 1
 
     on create
         chartArea:SetName("Chart Area")
@@ -253,6 +262,7 @@ class Chart is Control
                 if separateBySeries 
                     if i < GetSeriesList():GetSize()
                         subArea:SetName(GetSeriesList():Get(i):GetName())
+                        subArea:SetSeries(GetSeriesList():Get(i))
                         ChartLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
@@ -341,9 +351,13 @@ class Chart is Control
         Array <text> tempLabels
 
         // Axis offset
-        tempNum = horizontalPanel:GetPaddingOffset()
-        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
-        verticalPanel:SetPaddingOffset(tempNum)
+        tempNum = horizontalPanel:GetPaddingOffsetPercent()
+        horizontalPanel:SetPaddingOffsetPercent(verticalPanel:GetPaddingOffsetPercent())
+        verticalPanel:SetPaddingOffsetPercent(tempNum)
+
+        tempBool = horizontalPanel:OverrideDefaultPaddingOffset()
+        horizontalPanel:OverrideDefaultPaddingOffset(verticalPanel:OverrideDefaultPaddingOffset())
+        verticalPanel:OverrideDefaultPaddingOffset(tempBool)
 
 
         // Range values
@@ -741,7 +755,8 @@ class Chart is Control
     */
     action SetYAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            verticalPanel:SetPaddingOffset(percent)
+            verticalPanel:SetPaddingOffsetPercent(percent)
+            verticalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end
@@ -749,7 +764,8 @@ class Chart is Control
 
     action SetXAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            horizontalPanel:SetPaddingOffset(percent)
+            horizontalPanel:SetPaddingOffsetPercent(percent)
+            horizontalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end
@@ -1079,6 +1095,7 @@ class Chart is Control
         Sets the title of the chart
     */
     action SetTitle(text name)
+        SetName(name)
         titleText = name
     end
     /*
@@ -2073,7 +2090,8 @@ class Chart is Control
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
@@ -2085,7 +2103,6 @@ class Chart is Control
                     element:SetZ(previousZ)
                     i = i + 1
                 end
-//                temp:GetLabel():LostSelection()
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is RegressionLine
@@ -2093,17 +2110,29 @@ class Chart is Control
                 temp:SetZ(previousZ)
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
+                temp:GetRegressionIcon():SetColor(previousColor)
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Hide()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Hide()
+                    temp:GetSelectionBracket():Get(1):Hide()
+                    temp:GetSelectionBracket():Get(2):Hide()
+                end
+            elseif target is ChartDrawable
+                // Do nothing. Let the ChartDrawable handle itself.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
                 temp:SetColor(previousColor)  
             elseif target is ChartLabel
-                ChartLabel temp = cast(ChartLabel, target)
-                temp:LostSelection()
+                // Do nothing. Let the ChartLabel handle itself.
             elseif target is ChartAreaPanel
-                Control temp = cast(Control, target)
-                temp:LostSelection()
+                // Do nothing.
+            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
+                // Do nothing.
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -2126,11 +2155,8 @@ class Chart is Control
 
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem item)
-        if item = undefined
-            return now
-        end
-        Item target = item:GetFocusTarget()
+    action OnSelectionChange(ChartItem item)
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
@@ -2152,7 +2178,19 @@ class Chart is Control
                 temp:SetZ(-5)
                 temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetSelectionColor())
+                temp:GetRegressionIcon():SetColor(GetSelectionColor())
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Show()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Show()
+                    temp:GetSelectionBracket():Get(1):Show()
+                    temp:GetSelectionBracket():Get(2):Show()
+                end
+            elseif target is ChartDrawable
+                // Do nothing by default. The ChartDrawable handles its own selection event.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()
@@ -2160,17 +2198,20 @@ class Chart is Control
                 temp:SetZ(-1)
                 temp:SetColor(GetSelectionColor())
             elseif target is ChartLabel
-                ChartLabel temp = cast(ChartLabel, target)
-                temp:GainedSelection()
+                // Do nothing by default. The ChartLabel handles its own selection event.
             elseif target is ChartAreaPanel
-                Control temp = cast(Control, target)
-                temp:GainedSelection()
+                /*
+                Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
+                Importantly, we do not want to override the color properties like we would if we fell into the last case below.
+                */
             elseif target:Equals(me)
                 /*
                 Do whatever specialized work we want to do to show overall focus/selection on the Chart here.
                 Importantly, we do not want to override the color properties of the overall chart, like we would
                 if we fell into the last case below.
                 */
+            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
+                // Do nothing by default. The axis panel handles its own selection event.
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
@@ -2211,146 +2252,158 @@ class Chart is Control
         selection:Set(item)
     end
 
+
     /*
-        This action tells the chart to select the next item in its navigation path.
+        This action moves the selection to the right within the chart.
     */
-    action SelectNext
+    action SelectionRight
         ChartSelection selection = GetSelection()
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
+            selection:Set(me)
             return now
         end
 
-        ChartItem next
-        if selected:IsOpen()
-            next = selected:GetChildItem()
-        else
-            next = selected:GetNext()
-        end
-        if next = undefined
-            ChartItem parentItem = selected:GetParentItem()
-            repeat while parentItem:GetNext() = undefined
-                if parentItem = infoTreeRoot
-                    return now
-                end
-                parentItem = parentItem:GetParentItem()
-            end
-            next = parentItem:GetNext()
-        end
-        selection:Set(next)
-    end
-    
-    /*
-        This action tells the chart to select the previous item in its navigation path.
-    */
-    action SelectPrevious
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetPrevious()
+        ChartItem next = selected:GetRightItem()
         if next not= undefined
-            repeat while next:IsOpen()
-                next = next:GetLastChild()
-                if next = undefined
-                    return now
-                end
-            end
+            selection:Set(next)
         end
-        if next = undefined
-            next = selected:GetParentItem()
-            if next = undefined
-                return now
-            end
-        end
-
-        selection:Set(next)
     end
-
-    /*
-        This action tells the chart to select a child in its list, if it has one.
-    */
-    action SelectChild
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetChildItem()
-        if next = undefined
-            return now
-        end
-
-        selection:Set(next)
-    end
-
-    /*
-        This action tells the chart to select the parent of the current item.
-    */
-    action SelectParent
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetParentItem()
-        if next = undefined
-            return now
-        end
-
-        selection:Set(next)
-    end
-
-    /*
-        This action opens the chart item if it has children
-        If it has children and is already open it moves to first child.
-    */
-    action OpenItem
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        if not selected:Open() and selected:IsOpenable()
-            ChartItem next = selected:GetChildItem()
-            if next = undefined
-                return now
-            end
     
-            selection:Set(next)
-        end
-    end
-
     /*
-        This action opens the chart item if it is open
-        If it has children and is already open it moves to first child.
+        This action moves the selection to the left within the chart.
     */
-    action CloseItem
+    action SelectionLeft
         ChartSelection selection = GetSelection()
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
+            selection:Set(me)
             return now
         end
 
-        if not selected:Close()
-            ChartItem next = selected:GetParentItem()
-            if next = undefined
-                return now
-            end
+        ChartItem next = selected:GetLeftItem()
+        if next not= undefined
             selection:Set(next)
         end
     end
 
     /*
-        Attribute: Returns the root chart item
+        This action moves the selection down within the chart.
     */
-    action GetInfoTreeRoot returns ChartItem
-        return infoTreeRoot
+    action SelectionDown
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetDownItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection up within the chart.
+    */
+    action SelectionUp
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetUpItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to enter the current grouping or panel.
+    */
+    action SelectionEnter
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetEnterItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to the "escape" item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionEscape
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetEscapeItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to the "next" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionNextFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item next = selected:GetNextFocus()
+        if next not= undefined and next is ChartItem
+            
+            selection:Set(cast(ChartItem, next))
+        end
+    end
+
+    /*
+        This action moves the selection to the "previous" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionPreviousFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item previous = selected:GetPreviousFocus()
+        if previous not= undefined and previous is ChartItem
+            
+            selection:Set(cast(ChartItem, previous))
+        end
+    end
+
+    action GetContainer returns Chart
+        return me
+    end
+
+    action SetContainer(Chart container)
+        if container not= me
+            alert("I cannot contain a chart inside of another chart.")
+        end
+
+        // If the chart is asked to contain itself, do nothing.
     end
 
     /*
@@ -2492,6 +2545,121 @@ class Chart is Control
     */
     action SetPointBorderThickness(number pointBorderThickness)
         me:pointBorderThickness = pointBorderThickness
+    end
+
+    /*
+    This action generates the instruction text for the Chart Area description.
+
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartAreaInstructions(text description)
+        
+        if not IsSeparated()
+            //Not Separated but has Groups
+            if HasGroups()
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+            //Not Separate and no Groups
+            else
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order,"
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
+            end
+        else
+            //Separated, each Series is also separated by the Factor levels
+            if IsSeparatedBySeries() and IsSeparatedByFactor()  
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order," 
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
+            //Separated, by the Factor levels with multiple Series per subplot
+            elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+            //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+            else
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
+            end
+        end
+        me:GetChartArea():SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a sub chart area description.
+
+    Attribute: Parameter subChartArea The sub chart area that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
+        //Separated, by the Factor levels with multiple Series per subplot
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetGroupsText() + ", use Left Right to move between " + GetGroupsText() + " in list order," 
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+        //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetSeriesText() + ", use Left Right to move between " + GetSeriesText() + " in list order,"
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
+        end
+        subChartArea:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a chart item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartItemInstructions(Item chartItem, text description)
+
+        description = description + " To navigate the list of " + GetChartItemsText() + ", use Left Right to move between " + GetChartItemsText() + " in list order," 
+        description = description + " use Up Down to move between " + GetChartItemsText() + " by value order,"
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " use Escape to return to the chart area."
+        else
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        end
+        chartItem:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a group panel description.
+
+    Attribute: Parameter groupPanel The group panel that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
+
+        description = description + " To navigate the list of " + GetGroupsText() + ", use Left Right to move between " + GetGroupsText() + " in list order," 
+        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+        
+        groupPanel:SetDescription(description)
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetSeriesText returns text
+        return seriesText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 
 end

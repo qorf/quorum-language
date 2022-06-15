@@ -68,7 +68,7 @@ class HistogramLayout is SharedBarChartLayout
 
 
             if horizontal
-                integer paddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+                integer paddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
                 width = chartAreaContainer:GetHeight() - paddingOffset
                 height = chartAreaContainer:GetWidth() 
                 rangeMax = chart:GetXAxisMaximum()
@@ -77,7 +77,7 @@ class HistogramLayout is SharedBarChartLayout
                 tickHeight = chart:GetVerticalPanel():GetTickHeight()
                 tickWidth = chart:GetVerticalPanel():GetTickWidth()
             else
-                integer paddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
+                integer paddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
                 width = chartAreaContainer:GetWidth() - paddingOffset
                 height = chartAreaContainer:GetHeight()
                 rangeMax = chart:GetYAxisMaximum()
@@ -112,8 +112,10 @@ class HistogramLayout is SharedBarChartLayout
             groupWidth = barWidth + (betweenGroupPadding*2)
             number overlayDiv = 0 //used to place bars when not overlayed
             if not overlayed and not stacked and not separateBySeries
-                overlayDiv = barWidth/barGroups:Get(0):GetSize()
-                barWidth = cast(integer, overlayDiv)
+                if barGroups:Get(0):GetSize() not= 0
+                    overlayDiv = barWidth/barGroups:Get(0):GetSize()
+                    barWidth = cast(integer, overlayDiv)
+                end
             end
             
             Bar currentBar 

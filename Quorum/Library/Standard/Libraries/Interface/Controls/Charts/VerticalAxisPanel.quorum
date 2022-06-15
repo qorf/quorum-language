@@ -23,6 +23,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Compute.Math
 use Libraries.System.DateTime
+use Libraries.Interface.Views.ControlShaderView
 
 /*
     This class represents the vertical axis panel area on the charts.
@@ -53,13 +54,10 @@ use Libraries.System.DateTime
     end
 */
 
-class VerticalAxisPanel is Control
+class VerticalAxisPanel is ChartItem
     ChartOptions options
     Math math
     private integer numberOfSections = 1
-    private number paddingOffsetPercent = -1
-    private number defaultPaddingOffsetPercent = 0
-    private boolean blockPaddingOffset = false
     private boolean appendPercent = false
 
     // Title
@@ -95,6 +93,11 @@ class VerticalAxisPanel is Control
     private boolean showLabels = true
     private ColorGroup axisColor = undefined
 
+    // Axis Padding
+    private number paddingOffsetPercent = 0
+    private boolean overrideDefaultPaddingOffsetPercent = false
+    private boolean blockPaddingOffset = false    
+
     // Range controls
     private number min = 0.0
     private number max = 0.0
@@ -114,13 +117,13 @@ class VerticalAxisPanel is Control
 
         Color transparent
         transparent:SetColor(0,0,0,0)
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(transparent)
-        properties:SetBorderColor(transparent)
-        properties:SetBorderThickness(4)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetBorderColor(transparent)
+        SetBorderThickness(4)
         Font font = GetDefaultFont()
-        properties:SetFont(font)
-        properties:SetFontSize(GetDefaultFontSize())
+        SetFont(font)
+        SetFontSize(GetDefaultFontSize())
         SetName("y axis")
 
         SetFocusable(true)
@@ -172,41 +175,42 @@ class VerticalAxisPanel is Control
         Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        summary:SetChild(yAxis)
-        summary:SetNext(yAxis)
-        yAxis:SetFocusTarget(me)
-        yAxis:SetParent(summary)
+        
         yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
         
-        chartArea:SetPrevious(yAxis)
-        chartArea:SetNext(yAxis)
-        yAxis:SetNext(chartArea)
-        yAxis:SetPrevious(chartArea)     
+        yAxis:SetNextFocus(chartArea)
+        yAxis:SetPreviousFocus(summary)
+        //yAxis:SetRightItem(chartArea)  
+
+        if chart:IsShowingXAxis()
+            xAxis:SetDownItem(yAxis)
+            yAxis:SetUpItem(xAxis)
+        else
+            summary:SetDownItem(yAxis)
+            yAxis:SetUpItem(summary)
+        end
+
+        if chart:IsShowingLegend()
+            yAxis:SetDownItem(chart:GetLegend())   
+            chart:GetLegend():SetUpItem(yAxis)   
+        end 
         
         if not chart:IsSeparated()
             // Labels
-            ChartItem firstLabel
-            firstLabel:SetContainer(chart)
             if labels:GetSize() > 0
-                yAxis:SetChild(firstLabel)
-                firstLabel:SetParent(yAxis)
-                firstLabel:SetFocusTarget(labels:Get(0))
+                ChartItem firstLabel = labels:Get(0)
+                firstLabel:SetContainer(chart)
+
+                i = 1
+                ChartItem previousLabel = firstLabel
+                repeat while i < labels:GetSize()
+                    ChartItem labelNode = labels:Get(i)
+                    labelNode:SetContainer(chart)
+                    previousLabel = labelNode
+                    i = i + 1
+                end
             end
-    
-            i = 1
-            ChartItem previousLabel = firstLabel
-            repeat while i < labels:GetSize()
-                ChartItem labelNode
-                labelNode:SetContainer(chart)
-                labelNode:SetParent(yAxis)
-                labelNode:SetFocusTarget(labels:Get(i))
-                previousLabel:SetNext(labelNode)
-                labelNode:SetPrevious(previousLabel)
-                previousLabel = labelNode
-                i = i + 1
-            end
-            yAxis:SetLastChild(previousLabel)
         elseif chart:GetSubVerticalPanels():GetSize() = 1
             Array<ChartLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
             if textLabels not= undefined
@@ -214,61 +218,40 @@ class VerticalAxisPanel is Control
             end
             SetDescription(chart:GetSubVerticalPanels():Get(0):GenerateSummary())
             SetName(titleText + " axis, ")
-            ChartItem firstLabel
+            ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
-            if labels:GetSize() > 0
-                yAxis:SetChild(firstLabel)
-                firstLabel:SetParent(yAxis)
-                firstLabel:SetFocusTarget(labels:Get(0))
-            end
     
             i = 1
             ChartItem previousLabel = firstLabel
             repeat while i < labels:GetSize()
-                ChartItem labelNode
+                ChartItem labelNode = labels:Get(i)
                 labelNode:SetContainer(chart)
-                labelNode:SetParent(yAxis)
-                labelNode:SetFocusTarget(labels:Get(i))
-                previousLabel:SetNext(labelNode)
-                labelNode:SetPrevious(previousLabel)
                 previousLabel = labelNode
                 i = i + 1
             end
-            yAxis:SetLastChild(previousLabel)
         else
             //SubPanel axis
             if textLabels not= undefined
                 chart:GetSubVerticalPanels():Get(0):SetTextLabels(chart:GetSubVerticalPanels():Get(0):GetLabels())
             end
-            ChartItem firstSubPanel
-            yAxis:SetChild(firstSubPanel)
-            firstSubPanel:SetParent(yAxis)
+            ChartItem firstSubPanel = chart:GetSubVerticalPanels():Get(0)
             firstSubPanel:SetContainer(chart)
-            firstSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(0))
             firstSubPanel:SetDisplayName(chart:GetSubVerticalPanels():Get(0):GenerateSummary())
             chart:GetSubVerticalPanels():Get(0):SetName("Sub " + titleText + " axis, ")
             chart:GetSubVerticalPanels():Get(0):SetDescription(firstSubPanel:GetDisplayName() + " 1 of " + numberOfSections + " sub axes.")  
             Array<ChartLabel> labels = chart:GetSubVerticalPanels():Get(0):GetLabels()
             if labels:GetSize() > 0
-                ChartItem firstLabel
+                ChartItem firstLabel = labels:Get(0)
                 firstLabel:SetContainer(chart)
-                firstSubPanel:SetChild(firstLabel)
-                firstLabel:SetParent(firstSubPanel)
-                firstLabel:SetFocusTarget(labels:Get(0))
         
                 j = 1
                 ChartItem previousLabel = firstLabel
                 repeat while j < labels:GetSize()
-                    ChartItem labelNode
+                    ChartItem labelNode = labels:Get(j)
                     labelNode:SetContainer(chart)
-                    labelNode:SetParent(firstSubPanel)
-                    labelNode:SetFocusTarget(labels:Get(j))
-                    previousLabel:SetNext(labelNode)
-                    labelNode:SetPrevious(previousLabel)
                     previousLabel = labelNode
                     j = j + 1
                 end
-                firstSubPanel:SetLastChild(previousLabel)
             end
     
             i = 1
@@ -277,43 +260,30 @@ class VerticalAxisPanel is Control
                 if textLabels not= undefined
                     chart:GetSubVerticalPanels():Get(i):SetTextLabels(chart:GetSubVerticalPanels():Get(i):GetLabels())
                 end
-                ChartItem currentSubPanel
+                ChartItem currentSubPanel = chart:GetSubVerticalPanels():Get(i)
                 currentSubPanel:SetContainer(chart)
-                currentSubPanel:SetParent(yAxis)
-                currentSubPanel:SetFocusTarget(chart:GetSubVerticalPanels():Get(i))
                 currentSubPanel:SetDisplayName(chart:GetSubVerticalPanels():Get(i):GenerateSummary())
                 chart:GetSubVerticalPanels():Get(i):SetName("Sub " + titleText + " axis, ")
                 chart:GetSubVerticalPanels():Get(i):SetDescription(currentSubPanel:GetDisplayName() + " " + (i+1) + " of " + numberOfSections + " sub axes.")
-                previousSubPanel:SetNext(currentSubPanel)
-                currentSubPanel:SetPrevious(previousSubPanel)
                 previousSubPanel = currentSubPanel
                 
                 labels = chart:GetSubVerticalPanels():Get(i):GetLabels()
                 if labels:GetSize() > 0
-                    ChartItem firstLabel
+                    ChartItem firstLabel = labels:Get(0)
                     firstLabel:SetContainer(chart)
-                    currentSubPanel:SetChild(firstLabel)
-                    firstLabel:SetParent(currentSubPanel)
-                    firstLabel:SetFocusTarget(labels:Get(0))
         
                     j = 1
                     ChartItem previousLabel = firstLabel
                     repeat while j < labels:GetSize()
-                        ChartItem labelNode
+                        ChartItem labelNode = labels:Get(j)
                         labelNode:SetContainer(chart)
-                        labelNode:SetParent(currentSubPanel)
-                        labelNode:SetFocusTarget(labels:Get(j))
-                        previousLabel:SetNext(labelNode)
-                        labelNode:SetPrevious(previousLabel)
                         previousLabel = labelNode
                         j = j + 1
                     end
-                    currentSubPanel:SetLastChild(previousLabel)
                 end
     
                 i = i + 1
             end
-            yAxis:SetLastChild(previousSubPanel)
             SetName(titleText + " axis, ")
             SetDescription(" with " + chart:GetSubVerticalPanels():GetSize() + " sub axes")
         end
@@ -328,7 +298,27 @@ class VerticalAxisPanel is Control
         if properties = undefined
             return now
         end
+
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
         parent:Control:LoadGraphics(properties)
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionColor()
+        end
+
+        return parent:Control:GetSelectionBorderColor()
     end
 
     /*
@@ -381,8 +371,12 @@ class VerticalAxisPanel is Control
         number scaleWidth = CalculateScaleWidth(chart)
         labelCount = 0
 
-        if not blockPaddingOffset
-            defaultPaddingOffsetPercent = 0.5/tickCount
+        if not blockPaddingOffset and not overrideDefaultPaddingOffsetPercent and tickCount > 0
+            paddingOffsetPercent = 0.5/tickCount
+        end
+
+        if blockPaddingOffset
+            paddingOffsetPercent = 0
         end
         
         integer k = 0
@@ -1301,28 +1295,31 @@ class VerticalAxisPanel is Control
         me:numberOfSections = numberOfSections
     end
 
-    action SetPaddingOffset(number paddingOffset)
+    /*
+        These actions control the white space (padding/offset) on either side of the axis.
+    */
+    action BlockPaddingOffset(boolean flag)
+        blockPaddingOffset = flag
+    end
+
+    action SetPaddingOffsetPercent(number paddingOffset)
         if paddingOffset >= 0
             me:paddingOffsetPercent = paddingOffset
         end
     end
 
-    action GetPaddingOffset returns number
-        if blockPaddingOffset
-            return 0
-        else
-            if paddingOffsetPercent >= 0
-                return paddingOffsetPercent
-            else
-                return defaultPaddingOffsetPercent
-            end
-        end
+    action GetPaddingOffsetPercent returns number
+        return paddingOffsetPercent
     end
 
-    action BlockPaddingOffset(boolean flag)
-        blockPaddingOffset = flag
+    action OverrideDefaultPaddingOffset(boolean override)
+        overrideDefaultPaddingOffsetPercent = override
     end
-    
+
+    action OverrideDefaultPaddingOffset returns boolean
+        return overrideDefaultPaddingOffsetPercent
+    end
+
     action SetTickDigits(integer digits)
         options:SetTickDigits(digits)
     end

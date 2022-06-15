@@ -37,6 +37,10 @@ class Plot is ChartDrawable
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
 
+    on create
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
     /* Indices info of individual plot values (info)
         0: MEDIAN
         1: Q1 LOWER QUARTILE
@@ -93,6 +97,14 @@ class Plot is ChartDrawable
 //        if GetPlotGroup() not= undefined
 //            GetPlotGroup():RecalculateGroupValues()
 //        end
+    end
+
+    action GetMedian returns number
+        if info:GetSize() > 0
+            return info:Get(0)
+        else
+            return -1
+        end
     end
 
     action GetInfo returns Array<number>

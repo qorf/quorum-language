@@ -43,6 +43,9 @@ use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 class ViolinPlotLayout is ChartLayout
     private Math math
+    boolean horizontal = false // Default is vertical for box plots
+    boolean separateBySeries = false
+    boolean separateByFactor = false
 
     action LayoutChartContent(Chart control, Control chartAreaContainer)
         if not (control is ViolinPlot)
@@ -60,9 +63,9 @@ class ViolinPlotLayout is ChartLayout
         number xMax = chart:GetXAxisMaximum()
         number xMin = chart:GetXAxisMinimum()
 
-        boolean horizontal = chart:GetHorizontalFlag() // Default is vertical
-        boolean separateBySeries = chart:IsSeparatedBySeries()
-        boolean separateByFactor = chart:IsSeparatedByFactor()
+        horizontal = chart:GetHorizontalFlag() // Default is vertical
+        separateBySeries = chart:IsSeparatedBySeries()
+        separateByFactor = chart:IsSeparatedByFactor()
         boolean useFactor = (chart:GetFactorList() not= undefined)
 
         // These calculate the necessary dimensions of the violinplots
@@ -98,13 +101,7 @@ class ViolinPlotLayout is ChartLayout
 
                 //Give each group an alloted section  
                 integer startpanelw = panelwidth*i
-                //Outer box
-                group:LoadRectangle(panelwidth,height,transparent)
-                group:SetPosition(startpanelw,0)
-                if horizontal
-                    group:LoadRectangle(height,panelwidth,transparent)
-                    group:SetPosition(0,startpanelw)
-                end
+                integer groupHeight = 0
 
                 if group:GetSize() > 0
                     integer groups = plotGroups:GetSize()
@@ -131,7 +128,7 @@ class ViolinPlotLayout is ChartLayout
                     integer center = cast(integer, width/2) 
                     integer centerOffset = center
                     integer size = cast(integer, width/4)
-                    number linePercent = (0.005)*plotsPerPanel*groups
+                    number linePercent = (0.0025)*plotsPerPanel*groups
                     if linePercent > 0.05
                         linePercent = 0.05
                     end
@@ -186,23 +183,6 @@ class ViolinPlotLayout is ChartLayout
                         //(0,0) in bottom left corner, width grows in the rightward direction and height grows in the upward direction
                         Array<ChartDrawable> item = plot:GetPlotItems()                       
                         Color darkColor = transparent:Black():Copy() 
-
-                        //Outer box
-                        if split 
-                            plot:GetPlotArea():LoadRectangle(center,height,transparent)
-                            plot:GetPlotArea():SetPosition(startw,0)
-                            if horizontal
-                                plot:GetPlotArea():LoadRectangle(height,center,transparent)
-                                plot:GetPlotArea():SetPosition(0,startw)
-                            end
-                        else 
-                            plot:GetPlotArea():LoadRectangle(width,height,transparent)
-                            plot:GetPlotArea():SetPosition(startw,0)
-                            if horizontal
-                                plot:GetPlotArea():LoadRectangle(height,width,transparent)
-                                plot:GetPlotArea():SetPosition(0,startw)
-                            end
-                        end
     
                         integer centerline = center - midline //This is to center the vertical lines over the very middle of the plot area
                         integer shift = 0
@@ -272,14 +252,6 @@ class ViolinPlotLayout is ChartLayout
                             Array<ChartDrawable> item2 = plot2:GetPlotItems()
                             x = x + shift
 
-                            //Outer box
-                            plot2:GetPlotArea():LoadRectangle(center,height,transparent)
-                            plot2:GetPlotArea():SetPosition(x ,0)
-                            if horizontal 
-                                plot2:GetPlotArea():LoadRectangle(height,center,transparent)
-                                plot2:GetPlotArea():SetPosition(0, x)
-                            end
-
                             median = plot2:GetInfoAt(0)
                             lowerQuartile = plot2:GetInfoAt(1)
                             upperQuartile = plot2:GetInfoAt(2)
@@ -335,6 +307,23 @@ class ViolinPlotLayout is ChartLayout
                             item2:Get(7):LoadFilledCircle(line, transparent:White())
                             item2:Get(7):SetPosition(item2:Get(3):GetX() + midline ,cast(integer, percent*height)) // center inside IQR
 
+                            //Outer box
+                            integer plotAreaHeight = cast(integer, ((plot2:GetMaxOutlierValue() - rangeMin)/range)*height)
+                            plot2:GetPlotArea():LoadRectangle(center,plotAreaHeight,transparent)
+                            plot2:GetPlotArea():SetPosition(x ,0)
+                            if horizontal 
+                                plot2:GetPlotArea():LoadRectangle(plotAreaHeight,center,transparent)
+                                plot2:GetPlotArea():SetPosition(0, x)
+                            end
+                            if k = 0
+                                groupHeight = cast(integer, plot2:GetPlotArea():GetHeight())
+                            end
+                            if plotAreaHeight > groupHeight
+                                groupHeight = plotAreaHeight
+                            end
+                            // Load arrow for plot
+                            LoadPlotSelectionArrowVertices(chart, plot2)
+
                             if horizontal
                                 integer l = 1
                                 repeat while l < 11
@@ -349,7 +338,54 @@ class ViolinPlotLayout is ChartLayout
                                     l = l + 1
                                 end
                             end
+
+                            integer arrowSize = line*4
+                            // Load selection arrows and brackets
+                            // Load bracket and arrow for iqr
+                            LoadChartDrawableSelectionBracketAndArrow(chart, item2:Get(3), arrowSize, true)
+                            // Load and place the min line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item2:Get(1), arrowSize, true)
+                            // Load and place the q1 line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item2:Get(6), arrowSize, true)
+                            // Load and place the median line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item2:Get(7), arrowSize, true)
+                            // Load and place the q3 line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item2:Get(8), arrowSize, true)
+                            // Load and place the max line selection arrow
+                            LoadChartDrawableSelectionArrow(chart, item2:Get(10), arrowSize, true)
                         end
+
+                        if split
+                            integer plotAreaHeight = cast(integer, ((plot:GetMaxOutlierValue() - rangeMin)/range)*height)
+                            plot:GetPlotArea():LoadRectangle(center,plotAreaHeight,transparent)
+                            plot:GetPlotArea():SetPosition(startw,0)
+                            if horizontal
+                                plot:GetPlotArea():LoadRectangle(plotAreaHeight,center,transparent)
+                                plot:GetPlotArea():SetPosition(0,startw)
+                            end
+                            if plotAreaHeight > groupHeight
+                                groupHeight = plotAreaHeight
+                            end
+                            // Load arrow for plot
+                            LoadPlotSelectionArrowVertices(chart, plot)
+                        else
+                            integer plotAreaHeight = cast(integer, ((plot:GetMaxOutlierValue() - rangeMin)/range)*height)
+                            plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
+                            plot:GetPlotArea():SetPosition(startw,0)
+                            if horizontal
+                                plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
+                                plot:GetPlotArea():SetPosition(0,startw)
+                            end
+                            if k = 0
+                                groupHeight = cast(integer, plot:GetPlotArea():GetHeight())
+                            end
+                            if plotAreaHeight > groupHeight
+                                groupHeight = plotAreaHeight
+                            end
+                            // Load arrow for plot
+                            LoadPlotSelectionArrowVertices(chart, plot)
+                        end
+
                         if horizontal
                             integer l = 1
                             repeat while l < 11
@@ -365,9 +401,24 @@ class ViolinPlotLayout is ChartLayout
                             end
                         end
 
+                        integer arrowSize = line*4
+                        // Load selection arrows and brackets
+                        // Load bracket and arrow for iqr
+                        LoadChartDrawableSelectionBracketAndArrow(chart, item:Get(3), arrowSize, true)
+                        // Load and place the min line selection arrow
+                        LoadChartDrawableSelectionArrow(chart, item:Get(1), arrowSize, true)
+                        // Load and place the q1 line selection arrow
+                        LoadChartDrawableSelectionArrow(chart, item:Get(6), arrowSize, true)
+                        // Load and place the median line selection arrow
+                        LoadChartDrawableSelectionArrow(chart, item:Get(7), arrowSize, true)
+                        // Load and place the q3 line selection arrow
+                        LoadChartDrawableSelectionArrow(chart, item:Get(8), arrowSize, true)
+                        // Load and place the max line selection arrow
+                        LoadChartDrawableSelectionArrow(chart, item:Get(10), arrowSize, true)
+
                         number bandWidth = chart:GetBandWidth()
                         if bandWidth = 0
-                            bandWidth = rangeMax*0.03
+                            bandWidth = range*0.03 //rangeMax*0.03
                             chart:SetBandWidth(cast(integer, bandWidth))
                         end
                         
@@ -574,6 +625,16 @@ class ViolinPlotLayout is ChartLayout
                         k = k + 1
                     end 
                 end  
+
+                //Outer group box
+                group:LoadRectangle(panelwidth,groupHeight,transparent)
+                group:SetPosition(startpanelw,0)
+                if horizontal
+                    group:LoadRectangle(groupHeight,panelwidth,transparent)
+                    group:SetPosition(0,startpanelw)
+                end
+                // Load and place the group selection bracket/arrow
+                LoadGroupSelectionBracketAndArrow(chart, group)
                 i = i + 1
             end
         end
@@ -641,5 +702,23 @@ class ViolinPlotLayout is ChartLayout
         end 
         estimates:Add(largest)
         return estimates
+    end
+
+
+    /*
+        Interface action for setting the selection arrow for the plot using the size of plot area. 
+    */
+    private action LoadPlotSelectionArrowVertices(Chart chart, Plot plot)
+        ChartDrawable plotArea
+        plotArea:SetSize(plot:GetPlotArea():GetWidth(), plot:GetPlotArea():GetHeight())
+        plotArea:SetPosition(plot:GetPlotArea():GetX(), plot:GetPlotArea():GetY())
+
+        LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetWidth()/4), false)
+        Array<number> vertices = plotArea:GetSelectionArrowVertices()
+        Drawable arrow = plot:GetSelectionArrow()
+        arrow:LoadShape(vertices, plot:GetSelectionColor())
+        arrow:Hide()
+        arrow:SetZ(-1)
+        plot:SetSelectionArrowVertices(vertices) 
     end
 end

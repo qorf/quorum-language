@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 /*
 The Series class is a data structure that stores information for each 
@@ -32,7 +33,7 @@ class Main
 end
 */
 
-class Series is Icon //is Drawable
+class Series is ChartDrawable
     ChartAreaPanel chartArea = undefined // If separated by series, this will correspond to the correct sub chart area
     private ChartLabel label
     private Icon entryIcon // The small colored shape appearing in the legend for this entry.
@@ -100,6 +101,10 @@ class Series is Icon //is Drawable
 
     action GetSize() returns integer
         return items:GetSize()
+    end
+
+    action GetChartAreaItems() returns Array<ChartDrawable>
+        return items
     end
 
     action Empty()

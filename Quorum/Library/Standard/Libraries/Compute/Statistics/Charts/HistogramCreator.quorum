@@ -82,6 +82,11 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             InterQuartileRange range
             column:Calculate(range)
+            if n = 0
+                min = range:GetMinimum()
+                max = range:GetMaximum()
+            end
+
             if(range:GetMinimum() < min)
                 min = range:GetMinimum()
             end

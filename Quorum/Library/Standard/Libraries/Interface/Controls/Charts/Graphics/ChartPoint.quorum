@@ -18,7 +18,7 @@ class ChartPoint is ChartDrawable
     text name = ""
     Series series = undefined
     
-    Icon parentRegion = undefined
+    ChartDrawable parentRegion = undefined
     Icon icon
 
     on create
@@ -65,11 +65,11 @@ class ChartPoint is ChartDrawable
         me:valueY = valueY
     end
 
-    action SetParentRegion(Icon region)
+    action SetParentRegion(ChartDrawable region)
         parentRegion = region
     end
 
-    action GetParentRegion returns Icon
+    action GetParentRegion returns ChartDrawable
         return parentRegion
     end
 

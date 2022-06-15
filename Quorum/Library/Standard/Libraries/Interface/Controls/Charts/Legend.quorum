@@ -21,9 +21,10 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 
-class Legend is Control
+class Legend is ChartItem
     private LayoutProperties properties = undefined
     ChartOptions options
     ChartLabel title = undefined
@@ -72,11 +73,11 @@ class Legend is Control
         navigated and what extra information might be sent to the screen reader.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        ChartItem legendArea
-        legendArea:SetDisplayName(GetName())
-        legendArea:SetFocusTarget(me)
-        legendArea:SetParent(summary)
-
+        SetDisplayName(GetName())
+        
+        SetNextFocus(chartArea)
+        SetPreviousFocus(summary)
+        //SetRightItem(chartArea)
         text description = ""
         if titleText not= ""
             description = description + "shows " + titleText + " and "
@@ -96,90 +97,74 @@ class Legend is Control
         end
         me:SetDescription(description)
 
-        legendArea:SetContainer(chart)
+        SetContainer(chart)
 
-        if chart:IsShowingXAxis()
-            xAxis:SetNext(legendArea)
-            legendArea:SetPrevious(xAxis)
-        else
-            chartArea:SetNext(legendArea)
-            legendArea:SetPrevious(chartArea)
-        end
         if chart:IsShowingYAxis()
-            legendArea:SetNext(yAxis)
-            yAxis:SetPrevious(legendArea)
+            yAxis:SetDownItem(me)
+            SetUpItem(yAxis)
+        elseif chart:IsShowingXAxis()
+            xAxis:SetDownItem(me)
+            SetUpItem(xAxis)
         else
-            legendArea:SetNext(chartArea)
-            chartArea:SetPrevious(legendArea)
+            summary:SetDownItem(me)
+            SetUpItem(summary)
         end
 
         // Legend Entries
-        ChartItem firstEntry
-        firstEntry:SetContainer(chart)
         if seriesList:GetSize() > 0
-            legendArea:SetChild(firstEntry)
+            ChartItem firstEntry = seriesList:Get(0)
+            firstEntry:SetContainer(chart)
             seriesList:Get(0):SetName(seriesList:Get(0):GetName())
-            seriesList:Get(0):SetDescription(", 1 of " + seriesList:GetSize() + " series.")
-            firstEntry:SetParent(legendArea)
-            firstEntry:SetFocusTarget(seriesList:Get(0))
+
+            description = seriesList:Get(0):GetSize() + " points"
+
             if showRegression
                 if seriesList:Get(0):GetRegressionLine() not= undefined
                     // Regression equation
-                    ChartItem equation
+                    ChartItem equation = seriesList:Get(0):GetRegressionLine()
                     equation:SetContainer(chart)
-                    equation:SetParent(firstEntry)
-                    firstEntry:SetChild(equation)
+
                     seriesList:Get(0):GetRegressionLine():SetName(seriesList:Get(0):GetName()+" regression line.")
                     seriesList:Get(0):GetRegressionLine():SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
-                    equation:SetFocusTarget(seriesList:Get(0):GetRegressionLine())
+                    description = description + ", regression line " + seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText()  + ", "
 
                     // R-squared
-                    ChartItem r2
+                    ChartItem r2 = seriesList:Get(0):GetRegressionLine():GetRSquaredLabel()
                     r2:SetContainer(chart)
-                    r2:SetParent(firstEntry)
-                    r2:SetPrevious(equation)
-                    equation:SetNext(r2)
-                    r2:SetFocusTarget(seriesList:Get(0):GetRegressionLine():GetRSquaredLabel())
-                    firstEntry:SetLastChild(r2)
+                    description = description + " r squared " + seriesList:Get(0):GetRegressionLine():GetRSquaredLabel():GetText()
                 end
             end
-        end
-        integer i = 1
-        ChartItem previous = firstEntry
-        repeat while i < seriesList:GetSize()
-            ChartItem entry
-            entry:SetContainer(chart)
-            seriesList:Get(i):SetName(seriesList:Get(i):GetName())
-            seriesList:Get(i):SetDescription(", " + (i+1) + " of " + seriesList:GetSize() + " series.")
-            entry:SetParent(legendArea)
-            entry:SetFocusTarget(seriesList:Get(i))
-            if showRegression
-                if seriesList:Get(i):GetRegressionLine() not= undefined
-                    // Regression equation
-                    ChartItem equation
-                    equation:SetContainer(chart)
-                    equation:SetParent(entry)
-                    entry:SetChild(equation)
-                    seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line.")
-                    seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
-                    equation:SetFocusTarget(seriesList:Get(i):GetRegressionLine())
+            description = description + ", 1 of " + seriesList:GetSize() + " series."
+            seriesList:Get(0):SetDescription(description)
 
-                    // R-squared
-                    ChartItem r2
-                    r2:SetContainer(chart)
-                    r2:SetParent(entry)
-                    r2:SetPrevious(equation)
-                    equation:SetNext(r2)
-                    r2:SetFocusTarget(seriesList:Get(i):GetRegressionLine():GetRSquaredLabel())
-                    entry:SetLastChild(r2)
+            integer i = 1
+            ChartItem previous = firstEntry
+            repeat while i < seriesList:GetSize()
+                description = seriesList:Get(i):GetSize() + " points"
+                ChartItem entry = seriesList:Get(i)
+                entry:SetContainer(chart)
+                seriesList:Get(i):SetName(seriesList:Get(i):GetName())
+                if showRegression
+                    if seriesList:Get(i):GetRegressionLine() not= undefined
+                        // Regression equation
+                        ChartItem equation = seriesList:Get(i):GetRegressionLine()
+                        equation:SetContainer(chart)
+                        seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line")
+                        seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+                        description = description + ", regression line " + seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText()  + ", "
+    
+                        // R-squared
+                        ChartItem r2 = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                        r2:SetContainer(chart)
+                        description = description + " r squared " + seriesList:Get(i):GetRegressionLine():GetRSquaredLabel():GetText()
+                    end
                 end
+                description = description + ", " + (i+1) + " of " + seriesList:GetSize() + " series."
+                seriesList:Get(i):SetDescription(description)
+                previous = entry
+                i = i + 1
             end
-            previous:SetNext(entry)
-            entry:SetPrevious(previous)
-            previous = entry
-            i = i + 1
         end
-        legendArea:SetLastChild(previous)
     end
 
     /*
@@ -244,7 +229,7 @@ class Legend is Control
                     r2Label:SetAccessibilityCode(parent:Item:ITEM)
                     Add(r2Label)
     
-                    Icon regressionIcon = seriesList:Get(i):GetRegressionLine():GetIcon()
+                    Icon regressionIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
                     if seriesList:Get(i):GetColor() not= undefined
                         regressionIcon:SetColor(seriesList:Get(i):GetColor())
                         Add(regressionIcon)

@@ -113,6 +113,24 @@ class Rectangle is ScalableVectorGraphicsObject
     end
 
     /*
+        This action sets the width and height of the rectangle.
+
+        Attribute: Parameter width The width of the rectangle. 
+        Attribute: Parameter height The height of the rectangle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Rectangle rectangle
+        rectangle:SetSize("75","75")
+    */
+    action SetSize(text width, text height)
+        me:width = width
+        me:height = height
+    end
+
+    /*
         This action sets the width of the rectangle.
 
         Attribute: Parameter width The width of the rectangle. 
@@ -225,6 +243,25 @@ class Rectangle is ScalableVectorGraphicsObject
     action SetPosition(number x, number y)
         me:x = "" + x
         me:y = "" + y
+    end
+
+    /*
+        This action sets the position of the rectangle. Note that rectangles in SVG are positioned based
+        on the top left vertex.
+
+        Attribute: Parameter x The x position of the rectangle. 
+        Attribute: Parameter y The y position of the rectangle.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Rectangle rectangle
+        rectangle:SetPosition("75","75")
+    */
+    action SetPosition(text x, text y)
+        me:x = x
+        me:y = y
     end
 
     /*

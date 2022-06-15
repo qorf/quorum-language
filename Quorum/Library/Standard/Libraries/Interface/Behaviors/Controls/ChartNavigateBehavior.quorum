@@ -6,6 +6,7 @@ use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.InputMonitor
 
 class ChartNavigateBehavior is Behavior
 
@@ -13,13 +14,18 @@ class ChartNavigateBehavior is Behavior
     constant integer RIGHT = 1
     constant integer DOWN = 2
     constant integer UP = 3
+    constant integer ENTER = 4
+    constant integer ESCAPE = 5
+    constant integer SHIFT_TAB = 6
+    constant integer TAB = 7
 
     action Run(BehaviorEvent event)
         if event:GetItem() is Chart
             integer direction = -1
             Chart chart = cast(Chart, event:GetItem())
-
+            InputMonitor monitor
             KeyboardEvent keyEvent = event:GetKeyboardEvent()
+
             if keyEvent not= undefined
                 integer keycode = keyEvent:keyCode
                 if keycode = keyEvent:LEFT
@@ -30,6 +36,14 @@ class ChartNavigateBehavior is Behavior
                     direction = UP
                 elseif keycode = keyEvent:DOWN
                     direction = DOWN
+                elseif keycode = keyEvent:ENTER or keycode = keyEvent:NUMPAD_ENTER
+                    direction = ENTER
+                elseif keycode = keyEvent:ESCAPE
+                    direction = ESCAPE
+                elseif (monitor:IsKeyPressed(keyEvent:SHIFT_LEFT) or monitor:IsKeyPressed(keyEvent:SHIFT_RIGHT)) and keycode = keyEvent:TAB
+                    direction = SHIFT_TAB
+                elseif keycode = keyEvent:TAB
+                    direction = TAB
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
@@ -49,13 +63,21 @@ class ChartNavigateBehavior is Behavior
             end
 
             if direction = UP
-                chart:SelectPrevious()
+                chart:SelectionUp()
             elseif direction = DOWN
-                chart:SelectNext()
+                chart:SelectionDown()
             elseif direction = LEFT
-                chart:CloseItem()
+                chart:SelectionLeft()
             elseif direction = RIGHT
-                chart:OpenItem()
+                chart:SelectionRight()
+            elseif direction = ENTER
+                chart:SelectionEnter()
+            elseif direction = ESCAPE
+                chart:SelectionEscape()
+            elseif direction = SHIFT_TAB
+                chart:SelectionPreviousFocus()
+            elseif direction = TAB
+                chart:SelectionNextFocus()
             end
         end
     end

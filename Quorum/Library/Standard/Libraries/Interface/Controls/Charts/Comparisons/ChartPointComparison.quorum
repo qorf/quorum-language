@@ -3,22 +3,99 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Containers.Support.Comparison
 
 class ChartPointComparison is Comparison
+    boolean ascending = false
+    boolean sortByX = true
 
     action Compare(Object left, Object right) returns integer
-        ChartPoint point1 = cast(ChartPoint, left)
-        ChartPoint point2 = cast(ChartPoint, right)
-        if point1:GetPercentX() < point2:GetPercentX()
-            return parent:Comparison:SMALLER
-        elseif point1:GetPercentX() > point2:GetPercentY()
-            return parent:Comparison:LARGER
+        ChartPoint point1
+        ChartPoint point2
+        if left is ChartPoint
+            point1 = cast(ChartPoint, left)
         else
-            if point1:GetPercentY() < point2:GetPercentY()
-                return parent:Comparison:SMALLER
-            elseif point1:GetPercentY() < point2:GetPercentY()
-                return parent:Comparison:LARGER
+            return parent:Comparison:EQUAL
+        end
+        if right is ChartPoint
+            point2 = cast(ChartPoint, right)
+        else
+            return parent:Comparison:EQUAL
+        end
+
+        if ascending
+            if sortByX
+                if point1:GetValueX() < point2:GetValueX()
+                    return parent:Comparison:SMALLER
+                elseif point1:GetValueX() > point2:GetValueX()
+                    return parent:Comparison:LARGER
+                else
+                    if point1:GetValueY() < point2:GetValueY()
+                        return parent:Comparison:SMALLER
+                    elseif point1:GetValueY() > point2:GetValueY()
+                        return parent:Comparison:LARGER
+                    else
+                        return parent:Comparison:EQUAL
+                    end
+                end
             else
-                return parent:Comparison:EQUAL
+                if point1:GetValueY() < point2:GetValueY()
+                    return parent:Comparison:SMALLER
+                elseif point1:GetValueY() > point2:GetValueY()
+                    return parent:Comparison:LARGER
+                else
+                    if point1:GetValueX() < point2:GetValueX()
+                        return parent:Comparison:SMALLER
+                    elseif point1:GetValueX() < point2:GetValueX()
+                        return parent:Comparison:LARGER
+                    else
+                        return parent:Comparison:EQUAL
+                    end
+                end
             end
+        else
+            if sortByX
+                if point1:GetValueX() < point2:GetValueX()
+                    return parent:Comparison:LARGER
+                elseif point1:GetValueX() > point2:GetValueX()
+                    return parent:Comparison:SMALLER
+                else
+                    if point1:GetValueY() < point2:GetValueY()
+                        return parent:Comparison:LARGER
+                    elseif point1:GetValueY() > point2:GetValueY()
+                        return parent:Comparison:SMALLER
+                    else
+                        return parent:Comparison:EQUAL
+                    end
+                end
+            else
+                if point1:GetValueY() < point2:GetValueY()
+                    return parent:Comparison:LARGER
+                elseif point1:GetValueY() > point2:GetValueY()
+                    return parent:Comparison:SMALLER
+                else
+                    if point1:GetValueX() < point2:GetValueX()
+                        return parent:Comparison:LARGER
+                    elseif point1:GetValueX() < point2:GetValueX()
+                        return parent:Comparison:SMALLER
+                    else
+                        return parent:Comparison:EQUAL
+                    end
+                end
+            end
+        end
+    end
+
+    action SetAscending(boolean ascending)
+        me:ascending = ascending
+    end
+
+    action SetSortByX(boolean sortByX)
+        me:sortByX = sortByX
+    end
+
+    action SetSortByY(boolean sortByY)
+        if sortByY
+            me:sortByX = false
+        else
+            me:sortByX = true
         end
     end
 

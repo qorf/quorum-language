@@ -23,6 +23,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Compute.Math
 use Libraries.System.DateTime
+use Libraries.Interface.Views.ControlShaderView
 
 /*
     This class represents the horizontal axis panel area on the charts.
@@ -53,13 +54,10 @@ use Libraries.System.DateTime
     end
 */
 
-class HorizontalAxisPanel is Control
+class HorizontalAxisPanel is ChartItem
     ChartOptions options
     Math math
     private integer numberOfSections = 1
-    private number paddingOffsetPercent = -1
-    private number defaultPaddingOffsetPercent = 0
-    private boolean blockPaddingOffset = false
     private boolean appendPercent = false
 
     // Title
@@ -95,6 +93,11 @@ class HorizontalAxisPanel is Control
     private boolean showLabels = true
     private ColorGroup axisColor = undefined
 
+    // Axis Padding
+    private number paddingOffsetPercent = 0
+    private boolean overrideDefaultPaddingOffsetPercent = false
+    private boolean blockPaddingOffset = false    
+
     // Range controls
     private number min = 0.0
     private number max = 0.0
@@ -114,13 +117,13 @@ class HorizontalAxisPanel is Control
 
         Color transparent
         transparent:SetColor(0,0,0,0)
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(transparent)
-        properties:SetBorderColor(transparent)
-        properties:SetBorderThickness(4)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetBorderColor(transparent)
+        SetBorderThickness(4)
         Font font = GetDefaultFont()
-        properties:SetFont(font)
-        properties:SetFontSize(GetDefaultFontSize())
+        SetFont(font)
+        SetFontSize(GetDefaultFontSize())
         SetName("x axis")
 
         SetFocusable(true)
@@ -172,142 +175,99 @@ class HorizontalAxisPanel is Control
         Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        xAxis:SetFocusTarget(me)
-        xAxis:SetParent(summary)
+        xAxis:SetUpItem(summary)
+        summary:SetDownItem(xAxis)
         xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
-        chartArea:SetNext(xAxis)
-        xAxis:SetPrevious(chartArea)
+        xAxis:SetNextFocus(chartArea)
+        xAxis:SetPreviousFocus(summary)
+        //xAxis:SetRightItem(chartArea)
         if chart:IsShowingYAxis()
-            xAxis:SetNext(yAxis)
-            yAxis:SetPrevious(xAxis)
-        else
-            xAxis:SetNext(chartArea)   
-            chartArea:SetPrevious(xAxis)   
+            xAxis:SetDownItem(yAxis)
+            yAxis:SetUpItem(xAxis)
+        elseif chart:IsShowingLegend()
+            xAxis:SetDownItem(chart:GetLegend())   
+            chart:GetLegend():SetUpItem(xAxis)   
         end   
         
         if not chart:IsSeparated()
             // Labels
-            ChartItem firstLabel
+            ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
-            if labels:GetSize() > 0
-                xAxis:SetChild(firstLabel)
-                firstLabel:SetParent(xAxis)
-                firstLabel:SetFocusTarget(labels:Get(0))
-            end
     
             i = 1
             ChartItem previousLabel = firstLabel
             repeat while i < labels:GetSize()
-                ChartItem labelNode
+                ChartItem labelNode = labels:Get(i)
                 labelNode:SetContainer(chart)
-                labelNode:SetParent(xAxis)
-                labelNode:SetFocusTarget(labels:Get(i))
-                previousLabel:SetNext(labelNode)
-                labelNode:SetPrevious(previousLabel)
                 previousLabel = labelNode
                 i = i + 1
             end
-            xAxis:SetLastChild(previousLabel)
         elseif chart:GetSubHorizontalPanels():GetSize() = 1
             Array<ChartLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
             SetDescription(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
             SetName(titleText + " axis, ")
-            ChartItem firstLabel
+            ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
-            if labels:GetSize() > 0
-                xAxis:SetChild(firstLabel)
-                firstLabel:SetParent(xAxis)
-                firstLabel:SetFocusTarget(labels:Get(0))
-            end
     
             i = 1
             ChartItem previousLabel = firstLabel
             repeat while i < labels:GetSize()
-                ChartItem labelNode
+                ChartItem labelNode = labels:Get(i)
                 labelNode:SetContainer(chart)
-                labelNode:SetParent(xAxis)
-                labelNode:SetFocusTarget(labels:Get(i))
-                previousLabel:SetNext(labelNode)
-                labelNode:SetPrevious(previousLabel)
                 previousLabel = labelNode
                 i = i + 1
             end
-            xAxis:SetLastChild(previousLabel)
         else
             //SubPanel axis
-            ChartItem firstSubPanel
-            xAxis:SetChild(firstSubPanel)
-            firstSubPanel:SetParent(xAxis)
+            ChartItem firstSubPanel = chart:GetSubHorizontalPanels():Get(0)
             firstSubPanel:SetContainer(chart)
-            firstSubPanel:SetFocusTarget(chart:GetSubHorizontalPanels():Get(0))
             firstSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
             chart:GetSubHorizontalPanels():Get(0):SetName("Sub " + titleText + " axis, ")
             chart:GetSubHorizontalPanels():Get(0):SetDescription(firstSubPanel:GetDisplayName() + " 1 of " + numberOfSections + " sub axes.")  
             Array<ChartLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
             if labels:GetSize() > 0
-                ChartItem firstLabel
+                ChartItem firstLabel = labels:Get(0)
                 firstLabel:SetContainer(chart)
-                firstSubPanel:SetChild(firstLabel)
-                firstLabel:SetParent(firstSubPanel)
-                firstLabel:SetFocusTarget(labels:Get(0))
         
                 j = 1
                 ChartItem previousLabel = firstLabel
                 repeat while j < labels:GetSize()
-                    ChartItem labelNode
+                    ChartItem labelNode = labels:Get(j)
                     labelNode:SetContainer(chart)
-                    labelNode:SetParent(firstSubPanel)
-                    labelNode:SetFocusTarget(labels:Get(j))
-                    previousLabel:SetNext(labelNode)
-                    labelNode:SetPrevious(previousLabel)
                     previousLabel = labelNode
                     j = j + 1
                 end
-                firstSubPanel:SetLastChild(previousLabel)
             end
     
             i = 1
             ChartItem previousSubPanel = firstSubPanel
             repeat while i < chart:GetSubHorizontalPanels():GetSize()
-                ChartItem currentSubPanel
+                ChartItem currentSubPanel = chart:GetSubHorizontalPanels():Get(i)
                 currentSubPanel:SetContainer(chart)
-                currentSubPanel:SetParent(xAxis)
-                currentSubPanel:SetFocusTarget(chart:GetSubHorizontalPanels():Get(i))
                 currentSubPanel:SetDisplayName(chart:GetSubHorizontalPanels():Get(i):GenerateSummary())
                 chart:GetSubHorizontalPanels():Get(i):SetName("Sub " + titleText + " axis, ")
                 chart:GetSubHorizontalPanels():Get(i):SetDescription(currentSubPanel:GetDisplayName() + " " + (i+1) + " of " + numberOfSections + " sub axes.")
-                previousSubPanel:SetNext(currentSubPanel)
-                currentSubPanel:SetPrevious(previousSubPanel)
                 previousSubPanel = currentSubPanel
 
                 labels = chart:GetSubHorizontalPanels():Get(i):GetLabels()
                 if labels:GetSize() > 0
-                    ChartItem firstLabel
+                    ChartItem firstLabel = labels:Get(0)
                     firstLabel:SetContainer(chart)
-                    currentSubPanel:SetChild(firstLabel)
-                    firstLabel:SetParent(currentSubPanel)
-                    firstLabel:SetFocusTarget(labels:Get(0))
         
                     j = 1
                     ChartItem previousLabel = firstLabel
                     repeat while j < labels:GetSize()
-                        ChartItem labelNode
+                        ChartItem labelNode = labels:Get(j)
                         labelNode:SetContainer(chart)
-                        labelNode:SetParent(currentSubPanel)
-                        labelNode:SetFocusTarget(labels:Get(j))
-                        previousLabel:SetNext(labelNode)
-                        labelNode:SetPrevious(previousLabel)
                         previousLabel = labelNode
                         j = j + 1
                     end
-                    currentSubPanel:SetLastChild(previousLabel)
                 end
     
                 i = i + 1
             end
-            xAxis:SetLastChild(previousSubPanel)
             SetName(titleText + " axis, ")
             SetDescription(" with " + chart:GetSubHorizontalPanels():GetSize() + " sub axes")
         end
@@ -322,7 +282,27 @@ class HorizontalAxisPanel is Control
         if properties = undefined
             return now
         end
+
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
         parent:Control:LoadGraphics(properties)
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionColor()
+        end
+
+        return parent:Control:GetSelectionBorderColor()
     end
 
     /*
@@ -375,8 +355,12 @@ class HorizontalAxisPanel is Control
         number scaleWidth = CalculateScaleWidth()
         labelCount = 0
 
-        if not blockPaddingOffset
-            defaultPaddingOffsetPercent = 0.5/tickCount
+        if not blockPaddingOffset and not overrideDefaultPaddingOffsetPercent and tickCount > 0
+            paddingOffsetPercent = 0.5/tickCount
+        end
+
+        if blockPaddingOffset
+            paddingOffsetPercent = 0
         end
         
         integer k = 0
@@ -1302,37 +1286,30 @@ class HorizontalAxisPanel is Control
         return labelRotation
     end
 
-//    action SetDefaultPaddingOffset(number paddingOffset)
-//        if paddingOffset >= 0
-//            me:paddingOffsetPercent = paddingOffset
-//        end
-//    end
+    /*
+        These actions control the white space (padding/offset) on either side of the axis.
+    */
+    action BlockPaddingOffset(boolean flag)
+        blockPaddingOffset = flag
+    end
 
-    action SetPaddingOffset(number paddingOffset)
+    action SetPaddingOffsetPercent(number paddingOffset)
         if paddingOffset >= 0
             me:paddingOffsetPercent = paddingOffset
         end
     end
 
-    action GetPaddingOffset returns number
-        if blockPaddingOffset
-            return 0
-        else
-            if paddingOffsetPercent >= 0
-                return paddingOffsetPercent
-            else
-                return defaultPaddingOffsetPercent
-            end
-        end
+    action GetPaddingOffsetPercent returns number
+        return paddingOffsetPercent
     end
 
-    action BlockPaddingOffset(boolean flag)
-        blockPaddingOffset = flag
+    action OverrideDefaultPaddingOffset(boolean override)
+        overrideDefaultPaddingOffsetPercent = override
     end
 
-//    action OverrideDefaultPaddingOffset returns boolean
-//        return overrideDefaultPadding
-//    end
+    action OverrideDefaultPaddingOffset returns boolean
+        return overrideDefaultPaddingOffsetPercent
+    end
 
     action SetTickDigits(integer digits)
         options:SetTickDigits(digits)

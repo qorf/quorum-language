@@ -8,6 +8,8 @@ use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.ChartLabel
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.ChartItem
+use Libraries.Containers.Array
 
 
 /*
@@ -20,18 +22,37 @@ ChartDrawable holds the annotation for the drawable.
 Attribute: Author Hannah Williams
 */
 
-class ChartDrawable is Icon    
+class ChartDrawable is ChartItem, Drawable
     ChartAreaPanel chartArea = undefined // If separated, this will correspond to the correct sub chart area
     Series series = undefined
     GroupPanel group = undefined
     Color customColor = undefined
     ChartLabel annotation = undefined
     boolean showAnnotation = false
+    Array <Drawable> selectionBracket //may or may not be used
+    Drawable selectionArrow //may or may not be used
+    Array<number> vertices
 
     on create
         // Color the item as gray in case it never gets added to a series.
         Color color
         SetColor(color:LightGray())
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
     end
 
     /*
@@ -116,4 +137,28 @@ class ChartDrawable is Icon
         return cast(Chart, parentItem)
     end
 
+
+    action GainedSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Show()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Show()
+            GetSelectionBracket():Get(1):Show()
+            GetSelectionBracket():Get(2):Show()
+        end
+        parent:ChartItem:GainedSelection()
+    end
+
+    action LostSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Hide()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Hide()
+            GetSelectionBracket():Get(1):Hide()
+            GetSelectionBracket():Get(2):Hide()
+        end
+        parent:ChartItem:LostSelection()
+    end
 end

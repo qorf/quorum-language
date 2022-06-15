@@ -1,32 +1,32 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Containers.Support.Comparison
-use Libraries.Interface.Controls.Charts.Graphics.BarGroup
+use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 
-class BarGroupComparison is Comparison
+class PlotGroupComparison is Comparison
     boolean ascending = false
 
-    // This currently sorts single-bar bar groups in descending bar size order.
+    // This currently sorts single-plot plot groups in descending bar size order.
     // Whenever sort is used with this, be sure to update axis labels.
     action Compare(Object left, Object right) returns integer
-        BarGroup group1 = cast(BarGroup, left)
-        BarGroup group2 = cast(BarGroup, right)
+        PlotGroup group1 = cast(PlotGroup, left)
+        PlotGroup group2 = cast(PlotGroup, right)
         if group1:GetSize() = 0 or group2:GetSize() = 0
             return parent:Comparison:EQUAL
         end
 
         if ascending
-            if group1:Get(0):GetValue() > group2:Get(0):GetValue()
+            if group1:Get(0):GetMedian() > group2:Get(0):GetMedian()
                 return parent:Comparison:LARGER
-            elseif group1:Get(0):GetValue() < group2:Get(0):GetValue()
+            elseif group1:Get(0):GetMedian() < group2:Get(0):GetMedian()
                 return parent:Comparison:SMALLER
             else
                 return parent:Comparison:EQUAL
             end
         else
-            if group1:Get(0):GetValue() > group2:Get(0):GetValue()
+            if group1:Get(0):GetMedian() > group2:Get(0):GetMedian()
                 return parent:Comparison:SMALLER
-            elseif group1:Get(0):GetValue() < group2:Get(0):GetValue()
+            elseif group1:Get(0):GetMedian() < group2:Get(0):GetMedian()
                 return parent:Comparison:LARGER
             else
                 return parent:Comparison:EQUAL

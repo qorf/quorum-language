@@ -6,6 +6,13 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.BezierCurveShaderProgram
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Game.Layer
+use Libraries.Compute.Vector3
+use Libraries.Containers.Iterator
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseWheelListener
 
 /*
 This class represents a cubic Bezier curve. In other words, it represents a curved line that begins
@@ -50,6 +57,10 @@ class BezierCurve is Icon
 
     number lineThickness = 2
     number pointThickness = 6
+
+    on create
+        SetName("Curve")
+    end
 
     private action Initialize
         initialized = true

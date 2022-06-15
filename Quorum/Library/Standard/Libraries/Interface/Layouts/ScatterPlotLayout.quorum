@@ -20,8 +20,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
             return now
         end
 
-        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffset()*chartAreaContainer:GetWidth())
-        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffset()*chartAreaContainer:GetHeight())
+        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
         number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
         number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
         number xMin = chart:GetXAxisMinimum()
@@ -57,6 +57,12 @@ class ScatterPlotLayout is TwoVariableChartLayout
                     integer annotY = cast(integer, y+point:GetHeight())
                     pointLabel:SetPosition(annotX, annotY)
                 end
+            end
+
+            if chart:GetHorizontalFlag()
+                LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+            else
+                LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
             end
             i = i + 1
         end

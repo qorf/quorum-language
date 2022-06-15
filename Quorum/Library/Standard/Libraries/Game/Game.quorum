@@ -1368,12 +1368,20 @@ class Game
         GestureEvent gestures
         swipeSet:SetGestureInput(gestures:SWIPE)
 
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(leftArrow, chartNavigateBehavior)
         chartTable:Add(rightArrow, chartNavigateBehavior)
         chartTable:Add(upArrow, chartNavigateBehavior)
         chartTable:Add(downArrow, chartNavigateBehavior)
+        chartTable:Add(enterSet, chartNavigateBehavior)
+        chartTable:Add(numpadEnterSet, chartNavigateBehavior)
+        chartTable:Add(escapeSet, chartNavigateBehavior)
         chartTable:Add(swipeSet, chartNavigateBehavior)
+        chartTable:Add(tabFocus, chartNavigateBehavior)
+        chartTable:Add(shiftTabFocus, chartNavigateBehavior)
         AddInputTable(chartTable)
 
         InputTable menuItemTable
@@ -1413,9 +1421,6 @@ class Game
 
         menuRootTable:Add(spaceBar, menuRunBehavior)
         menuRootTable:Add(enter, menuRunBehavior)
-
-        InputSet escapeSet
-        escapeSet:SetKeyboardInput(keys:ESCAPE)
         
         menuRootTable:Add(escapeSet, menuCloseBehavior)
 

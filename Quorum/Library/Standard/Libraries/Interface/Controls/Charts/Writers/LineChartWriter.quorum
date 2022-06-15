@@ -17,6 +17,12 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Web.Page.ListItem
 use Libraries.Web.Page.UnorderedList
 use Libraries.Data.Formats.ScalableVectorGraphics.Group
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Item
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Script
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 
 /*
     The LineChartWriter class is part of the set of writers that allow for Charts
@@ -89,312 +95,727 @@ class LineChartWriter is ChartWriter
     /*
         This action adds the content of the LineChart to the SVG
     */
-
     private action AddPointsAndLines(ScalableVectorGraphics canvas, LineChart chart)
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
-
-        i = 0
-        repeat while i < chart:GetRegions():GetSize()
-            Icon currentRegion = chart:GetRegions():Get(i)
-
-            Rectangle region
-            region:SetWidth(currentRegion:GetWidth())
-            region:SetHeight(currentRegion:GetHeight())
-            region:SetPosition(currentRegion:GetGlobalX(), TranslatePositionY(currentRegion) - currentRegion:GetHeight()) 
-            region:SetFill(transparent)
-            region:SetID(canvas:GetID() + "_" + currentRegion:GetHashCode())
-            region:SetStyleClass("quorum-chart-region")
-            region:SetTabIndex(-1)
-            if HasAccessibility()
-                region:SetAriaLabel(currentRegion:GetName() + currentRegion:GetDescription())
-                region:SetAriaHidden("true")
-            end
-            canvas:Add(region)
-
-            i = i + 1
-        end
         
-        i = 0
-        repeat while i < chart:GetAllLines():GetSize()
-            ChartLine line = chart:GetLine(i)
+        Group chartContent
+        chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
+        chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+        chartContent:SetTabIndex(0)
+        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContent:SetIsOneLine(true)
+        chartContent:SetRole("application")
+        canvas:Add(chartContent)
 
-            if line = undefined
-                return now
-            end
+        Rectangle chartContentBoundingBox
+        chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
+        chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
+        chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetStroke(transparent)
+        chartContentBoundingBox:SetTabIndex(-1)
+        if HasAccessibility()
+            chartContentBoundingBox:SetAriaHidden("true")
+            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            chartContent:SetAriaHidden("false")
+        end
+        chartContent:Add(chartContentBoundingBox)
 
-            Array<ChartPoint> points = line:GetPoints()
-            Array<LineSegment> lines = line:GetLines()
+        if not chart:IsSeparated()
+            i = 0
+            repeat while i < chart:GetAllLines():GetSize()
+                ChartLine currentLine = chart:GetAllLines():Get(i)
+                Series currentSeries = currentLine:GetSeries()
 
-            Group tempChartLine
-            tempChartLine:SetID(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
-            tempChartLine:SetStyleClass("quorum-chart-line")
-            tempChartLine:SetTabIndex(-1)
-            if HasAccessibility()
-                tempChartLine:SetAriaLabel(line:GetName() + line:GetDescription())
-                tempChartLine:SetAriaHidden("true")
-            end
-            canvas:Add(tempChartLine)
-
-            if line:GetPointsFlag()
-                integer j = 0
-                repeat while j < points:GetSize()
-                    ChartPoint point = points:Get(j)
-                    number radius = point:GetHeight()/2
-    
-                    Circle tempPoint
-                    tempPoint:SetRadius(radius)
-                    tempPoint:SetPosition(point:GetGlobalX()+radius, TranslatePositionY(point)) 
-                    tempPoint:SetFill(point:GetColor())
-                    tempPoint:SetStroke(cast(Color, point:GetBorderColor()))
-                    tempPoint:SetStrokeWidth(point:GetBorderThickness())
-                    tempPoint:SetID(canvas:GetID() + "_" + point:GetHashCode())
-                    tempPoint:SetStyleClass("quorum-chart-circle")
-                    tempPoint:SetTabIndex(-1)
+                if currentLine:GetPoints():GetSize() > 0
+                    Group seriesSVG
+                    seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
+                    seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
+                    seriesSVG:SetFill(cast(Color, chart:GetSelectionColor()))
+                    seriesSVG:SetTabIndex(-1)
                     if HasAccessibility()
-                        tempPoint:SetAriaLabel(point:GetName() + point:GetDescription())
-                        tempPoint:SetAriaHidden("true")
+                        seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
+                        seriesSVG:SetAriaHidden("false")
                     end
-                    tempChartLine:Add(tempPoint)
+                    if chart:GetSeriesList():GetSize() > 1
+                        chartContent:Add(seriesSVG)
+                    end
+                    text seriesFocus = ""
+                    text seriesBlur = ""
 
-                    if point:ShowAnnotation() or chart:ShowAnnotations()
-                        ChartLabel label = point:GetAnnotation()
-                        if label not= undefined
-                            Label labelSVG
-                            labelSVG:SetText(label:GetText())
-                            labelSVG:SetTextAnchor("left")
-                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                            labelSVG:SetFontSize(label:GetFontSize() + "px")
-                            labelSVG:SetFontFamily("Arial")
-                            labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                            labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
-                            labelSVG:SetStyleClass("quorum-chart-text")
-                            labelSVG:SetTabIndex(-1)
-                            if HasAccessibility()
-                                labelSVG:SetAriaHidden("true")
-                            end
-                            canvas:Add(labelSVG)
+                    if HasAccessibility()
+                        RegressionLine line = currentLine:GetSeries():GetRegressionLine()
+                        if line not= undefined
+                            seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
+                            seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
+                        end
+
+                        Icon entryBox = currentLine:GetSeries():GetEntryBox()
+            
+                        if entryBox not= undefined and entryBox:IsShowing()
+                            seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_legend" + "'); "
+                            seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_legend" + "'); "
                         end
                     end
-                    j = j + 1
+
+                    if currentLine:GetSelectionArrow() not= undefined
+                        Array <number> vertices = currentLine:GetSelectionArrowVertices()
+                        number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
+                        number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
+
+                        Polygon arrow
+                        integer m = 0
+                        repeat while m < vertices:GetSize()
+                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                            m = m + 2
+                        end
+                        arrow:SetFill(transparent) // Should be transparent until selected 
+                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetTabIndex(-1)
+                        arrow:SetID(seriesSVG:GetID() + "_arrow")
+                        if HasAccessibility()
+                            arrow:SetAriaHidden("true")
+                            seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
+                            seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
+                        end
+                        canvas:Add(arrow)
+                    end
+
+                    j = 0
+                    repeat while j < currentLine:GetPoints():GetSize()
+                        ChartPoint currentPoint = currentLine:GetPoints():Get(j)
+                        number radius = currentPoint:GetHeight()/2
+
+                        Group pointSVG
+                        pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
+                        pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                        pointSVG:SetFill(currentPoint:GetColor())
+                        pointSVG:SetTabIndex(-1)
+                        if HasAccessibility()
+                            pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
+                            pointSVG:SetAriaHidden("false")
+                        end
+                        if chart:GetSeriesList():GetSize() > 1
+                            seriesSVG:Add(pointSVG)
+                        else
+                            chartContent:Add(pointSVG)
+                        end
+
+                        text pointFocus = ""
+                        text pointBlur = ""
+
+                        if currentLine:GetPointsFlag()
+                            Circle point
+                            point:SetRadius(radius)
+                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                            point:SetFill(currentPoint:GetColor())
+                            point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                            point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                            point:SetID(pointSVG:GetID() + "_point")
+                            point:SetStyleClass("quorum-chart-circle")
+                            point:SetTabIndex(-1)
+                            if HasAccessibility()
+                                point:SetAriaHidden("true")
+                                pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                            end
+                            pointSVG:Add(point)
+                        end
+                
+                        if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
+                            ChartLabel label = currentPoint:GetAnnotation()
+                            if label not= undefined
+                                Label labelSVG
+                                labelSVG:SetText(label:GetText())
+                                labelSVG:SetTextAnchor("left")
+                                labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                labelSVG:SetFontSize(label:GetFontSize() + "px")
+                                labelSVG:SetFontFamily("Arial")
+                                labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                labelSVG:SetID(pointSVG:GetID() + "_annotation")
+                                labelSVG:SetStyleClass("quorum-chart-text")
+                                labelSVG:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    labelSVG:SetAriaHidden("true")
+                                    pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                    pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                end
+                                canvas:Add(labelSVG)
+                            end
+                        end
+
+                        if currentPoint:GetSelectionArrow() not= undefined
+                            Array <number> vertices = currentPoint:GetSelectionArrowVertices()
+                            number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
+                            number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
+    
+                            Polygon arrow
+                            integer m = 0
+                            repeat while m < vertices:GetSize()
+                                arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                m = m + 2
+                            end
+                            arrow:SetFill(transparent) // Should be transparent until selected 
+                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetTabIndex(-1)
+                            arrow:SetID(pointSVG:GetID() + "_arrow")
+                            if HasAccessibility()
+                                arrow:SetAriaHidden("true")
+                                pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
+                            end
+                            canvas:Add(arrow)
+                        end
+
+                        if HasAccessibility()
+                            if pointFocus not= ""
+                                pointSVG:SetOnFocus(pointFocus)
+                            end
+                            if pointBlur not= ""
+                                pointSVG:SetOnBlur(pointBlur)
+                            end
+                        end 
+
+                        // Add line segment
+                        if j < currentLine:GetLines():GetSize() and currentLine:GetLines():Get(j) is LineSegment
+                            LineSegment currentSegment = cast(LineSegment, currentLine:GetLines():Get(j))
+                            ChartPoint firstPoint = currentSegment:GetPoint1()
+                            ChartPoint secondPoint = currentSegment:GetPoint2()
+                            radius = firstPoint:GetHeight()/2
+    
+                            Group segmentSVG
+//                            segmentSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentSegment:GetHashCode())
+                            segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
+                            segmentSVG:SetFill(currentSegment:GetColor())
+                            segmentSVG:SetTabIndex(-1)
+                            if HasAccessibility()
+                                segmentSVG:SetAriaHidden("false")
+                            end
+                            if chart:GetSeriesList():GetSize() > 1
+                                seriesSVG:Add(segmentSVG)
+                            else
+                                chartContent:Add(segmentSVG)
+                            end
+
+                            text segmentFocus = ""
+                            text segmentBlur = ""
+        
+                            Line segment
+                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                            segment:SetFill(currentSegment:GetColor())
+                            segment:SetStroke(currentSegment:GetColor())
+                            segment:SetStrokeWidth(currentSegment:GetHeight())
+                            segment:SetID(segmentSVG:GetID() + "_segment")
+                            segment:SetStyleClass("quorum-chart-linesegment")
+                            segment:SetTabIndex(-1)
+                            if HasAccessibility()
+                                segment:SetAriaHidden("true")
+                                segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
+                                segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
+                            end
+                            segmentSVG:Add(segment)
+
+                            if HasAccessibility()
+                                if segmentFocus not= ""
+                                    segmentSVG:SetOnFocus(segmentFocus)
+                                end
+                                if segmentBlur not= ""
+                                    segmentSVG:SetOnBlur(segmentBlur)
+                                end
+                            end 
+                        end
+                        j = j + 1
+                    end
+
+                    if HasAccessibility()
+                        if seriesFocus not= ""
+                            seriesSVG:SetOnFocus(seriesFocus)
+                        end
+                        if seriesBlur not= ""
+                            seriesSVG:SetOnBlur(seriesBlur)
+                        end
+                    end            
                 end
+                i = i + 1
             end
+        else
+            i = 0
+            repeat while i < chart:GetSubChartAreas():GetSize()
+                Group subChartContent
+                subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContent:SetTabIndex(-1)
+                subChartContent:SetStyleClass("quorum-chart-region")
 
-            integer j = 0
-            repeat while j < lines:GetSize()
-                LineSegment lineSegment = lines:Get(j)
-                ChartPoint firstPoint = lineSegment:GetPoint1()
-                ChartPoint secondPoint = lineSegment:GetPoint2()
-                number radius = firstPoint:GetShape():GetRadius()
-
-                Line tempLine
-                tempLine:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                tempLine:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
-                tempLine:SetStroke(lineSegment:GetColor())
-                tempLine:SetStrokeWidth(lineSegment:GetHeight())
-                tempLine:SetID(canvas:GetID() + "_" + "_" + lineSegment:GetHashCode())
-                tempLine:SetStyleClass("quorum-chart-linesegment")
-                tempLine:SetTabIndex(-1)
+                Rectangle subChartContentBoundingBox
+                subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
+                subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
+                subChartContentBoundingBox:SetFill(transparent)
+                subChartContentBoundingBox:SetStroke(transparent)
+                subChartContentBoundingBox:SetTabIndex(-1)
                 if HasAccessibility()
-                    tempLine:SetAriaLabel(lineSegment:GetName() + lineSegment:GetDescription())
-                    tempLine:SetAriaHidden("true")
+                    subChartContentBoundingBox:SetAriaHidden("true")
                 end
-                tempChartLine:Add(tempLine)
-                j = j + 1
+                
+                if HasAccessibility()
+                    //Separated, by the Factor levels with multiple Series per subplot
+                    if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-category-list") 
+                        subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+                    elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
+                        subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
+                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-series-list") 
+                        subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetAriaHidden("false")
+                        chartContent:Add(subChartContent)
+                    else
+                        subChartContent:SetAriaHidden("true")
+                    end
+                else
+                    chartContent:Add(subChartContent)
+                end
+
+                text seriesFocus = ""
+                text seriesBlur = ""
+
+                if HasAccessibility()
+                    RegressionLine line = chart:GetSubChartAreas():Get(i):GetSeries():GetRegressionLine()
+                    if line not= undefined
+                        seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "_regression" + "'); "
+                        seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "_regression" + "'); "
+                    end
+                end
+
+                if chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize() > 0
+                    if chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(0) is ChartLine
+                        ChartLine currentLine = cast(ChartLine, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(0))
+
+                        if currentLine:GetPoints():GetSize() > 0
+                            if HasAccessibility()
+                                RegressionLine line = currentLine:GetSeries():GetRegressionLine()
+                                if line not= undefined
+                                    seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_regression" + "'); "
+                                    seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_regression" + "'); "
+                                end
+        
+                                Icon entryBox = currentLine:GetSeries():GetEntryBox()
+                    
+                                if entryBox not= undefined and entryBox:IsShowing()
+                                    seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_legend" + "'); "
+                                    seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_legend" + "'); "
+                                end
+                            end
+
+                            if currentLine:GetSelectionArrow() not= undefined
+                                Array <number> vertices = currentLine:GetSelectionArrowVertices()
+                                number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
+                                number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
+        
+                                Polygon arrow
+                                integer m = 0
+                                repeat while m < vertices:GetSize()
+                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                    m = m + 2
+                                end
+                                arrow:SetFill(transparent) // Should be transparent until selected 
+                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                arrow:SetTabIndex(-1)
+                                arrow:SetID(subChartContent:GetID() + "_arrow")
+                                if HasAccessibility()
+                                    arrow:SetAriaHidden("true")
+                                    seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                    seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                end
+                                canvas:Add(arrow)
+                            end
+
+                            j = 0
+                            repeat while j < currentLine:GetPoints():GetSize()
+                                if currentLine:GetPoints():Get(j) is ChartPoint
+                                    ChartPoint currentPoint = cast(ChartPoint, currentLine:GetPoints():Get(j))
+                                    number radius = currentPoint:GetHeight()/2
+        
+                                    Group pointSVG
+                                    pointSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
+                                    pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                                    pointSVG:SetFill(currentPoint:GetColor())
+                                    pointSVG:SetTabIndex(-1)
+                                    if HasAccessibility()
+                                        pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
+                                        pointSVG:SetAriaHidden("false")
+                                    end
+                                    subChartContent:Add(pointSVG)
+
+                                    text pointFocus = ""
+                                    text pointBlur = ""
+
+                                    if currentLine:GetPointsFlag()
+                                        Circle point
+                                        point:SetRadius(radius)
+                                        point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                                        point:SetFill(currentPoint:GetColor())
+                                        point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                        point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                        point:SetID(pointSVG:GetID() + "_point")
+                                        point:SetStyleClass("quorum-chart-circle")
+                                        point:SetTabIndex(-1)
+                                        if HasAccessibility()
+                                            point:SetAriaHidden("true")
+                                            pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                            pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                                        end
+                                        pointSVG:Add(point)
+                                    end
+                
+                                    if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
+                                        ChartLabel label = currentPoint:GetAnnotation()
+                                        if label not= undefined
+                                            Label labelSVG
+                                            labelSVG:SetText(label:GetText())
+                                            labelSVG:SetTextAnchor("left")
+                                            labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                            labelSVG:SetFontSize(label:GetFontSize() + "px")
+                                            labelSVG:SetFontFamily("Arial")
+                                            labelSVG:SetFill(cast(Color, label:GetFontColor()))
+                                            labelSVG:SetID(pointSVG:GetID() + "_annotation")
+                                            labelSVG:SetStyleClass("quorum-chart-text")
+                                            labelSVG:SetTabIndex(-1)
+                                            if HasAccessibility()
+                                                labelSVG:SetAriaHidden("true")
+                                                pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                                pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                            end
+                                            canvas:Add(labelSVG)
+                                        end
+                                    end
+
+                                    if currentPoint:GetSelectionArrow() not= undefined
+                                        Array <number> vertices = currentPoint:GetSelectionArrowVertices()
+                                        number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
+                                        number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
+                
+                                        Polygon arrow
+                                        integer m = 0
+                                        repeat while m < vertices:GetSize()
+                                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                            m = m + 2
+                                        end
+                                        arrow:SetFill(transparent) // Should be transparent until selected 
+                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                        arrow:SetTabIndex(-1)
+                                        arrow:SetID(pointSVG:GetID() + "_arrow")
+                                        if HasAccessibility()
+                                            arrow:SetAriaHidden("true")
+                                            pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                            pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                        end
+                                        canvas:Add(arrow)
+                                    end
+
+                                    if HasAccessibility()
+                                        if pointFocus not= ""
+                                            pointSVG:SetOnFocus(pointFocus)
+                                        end
+                                        if pointBlur not= ""
+                                            pointSVG:SetOnBlur(pointBlur)
+                                        end
+                                    end 
+
+                                    // Add line segment
+                                    if j < currentLine:GetLines():GetSize() 
+                                        if currentLine:GetLines():Get(j) is LineSegment
+                                            LineSegment currentSegment = cast(LineSegment, currentLine:GetLines():Get(j))
+                                            ChartPoint firstPoint = currentSegment:GetPoint1()
+                                            ChartPoint secondPoint = currentSegment:GetPoint2()
+                                            radius = firstPoint:GetHeight()/2
+                
+                                            Group segmentSVG
+//                                            segmentSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentSegment:GetHashCode())
+                                            segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
+                                            segmentSVG:SetFill(currentSegment:GetColor())
+                                            segmentSVG:SetTabIndex(-1)
+                                            if HasAccessibility()
+                                                segmentSVG:SetAriaHidden("false")
+                                            end
+                                            subChartContent:Add(segmentSVG)
+
+                                            text segmentFocus = ""
+                                            text segmentBlur = ""
+                
+                                            Line segment
+                                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                                            segment:SetFill(currentSegment:GetColor())
+                                            segment:SetStroke(currentSegment:GetColor())
+                                            segment:SetStrokeWidth(currentSegment:GetHeight())
+                                            segment:SetID(segmentSVG:GetID() + "_segment")
+                                            segment:SetStyleClass("quorum-chart-linesegment")
+                                            segment:SetTabIndex(-1)
+                                            if HasAccessibility()
+                                                segment:SetAriaHidden("true")
+                                                segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
+                                                segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
+                                            end
+                                            canvas:Add(segment)
+                
+                                            if HasAccessibility()
+                                                if segmentFocus not= ""
+                                                    segmentSVG:SetOnFocus(segmentFocus)
+                                                end
+                                                if segmentBlur not= ""
+                                                    segmentSVG:SetOnBlur(segmentBlur)
+                                                end
+                                            end 
+                                        end
+                                    end
+                                end
+                                j = j + 1
+                            end
+                        end
+                    end
+                end
+                    
+                if HasAccessibility()
+                    if seriesFocus not= ""
+                        subChartContent:SetOnFocus(seriesFocus)
+                    end
+                    if seriesBlur not= ""
+                        subChartContent:SetOnBlur(seriesBlur)
+                    end
+                end   
+        
+                i = i + 1
             end
-            i = i + 1
         end
     end
 
-    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-        
+    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
         LineChart lineChart
         lineChart = cast(LineChart, chart)
-    
-        ChartItem chartItem = lineChart:GetChartAreaItem()
-        if not chart:IsSeparatedByFactor()
-            ChartItem firstItem = chartItem:GetChildItem()
+        Script script
 
-            if firstItem not= undefined
-                if firstItem:GetFocusTarget() is ChartLine
-                    AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
-                end
-            end
-            
-        else
-            ChartItem firstSubChartAreaItem = chartItem:GetChildItem()
-            if firstSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, firstSubChartAreaItem:GetFocusTarget()) = chartArea
-                ChartItem firstItem = firstSubChartAreaItem:GetChildItem()
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+        text tab = scriptText:GetTab()
+        text dq = scriptText:GetDoubleQuote()
 
-                if firstItem not= undefined
-                    if firstItem:GetFocusTarget() is ChartLine
-                        AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
-                    end
-                end
-            end
+        scriptText = newLine + "if (typeof quorum_chart_value_order == 'undefined' || quorum_chart_value_order == null)" + newLine
+        scriptText = scriptText  + tab + "var quorum_chart_value_order = {};" + newLine + newLine
 
-            ChartItem nextSubChartAreaItem = firstSubChartAreaItem:GetNext()
-            repeat while nextSubChartAreaItem not= undefined and nextSubChartAreaItem not= firstSubChartAreaItem
-                if nextSubChartAreaItem:GetFocusTarget() is ChartAreaPanel and cast(ChartAreaPanel, nextSubChartAreaItem:GetFocusTarget()) = chartArea
-                    ChartItem firstItem = nextSubChartAreaItem:GetChildItem()
-    
-                    if firstItem not= undefined
-                        if firstItem:GetFocusTarget() is ChartLine
-                            AddChartLineAccessibility(canvas, firstItem, chartAreaItem)
+        //Ordered list for X values
+        scriptText = scriptText + "quorum_chart_value_order." + canvas:GetID() + "_x" + " = {" + newLine
+
+        if chart:IsSeparated()
+            Array<ChartAreaPanel> subChartAreas = lineChart:GetSubChartAreas()
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByX(true)
+            if subChartAreas:GetSize() > 0
+                i = 0
+                repeat while i < subChartAreas:GetSize() - 1
+                    if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0 and subChartAreas:Get(i):GetChartAreaItems():Get(0) is ChartLine
+                        Series currentSeries = subChartAreas:Get(i):GetSeries()
+                        ChartLine currentLine = cast(ChartLine, subChartAreas:Get(i):GetChartAreaItems():Get(0))
+                        Array<ChartPoint> points = currentLine:GetPoints():CopyToArray()
+                        if points:GetSize() > 0
+                            points:Sort(comparison)
+                            scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                            j = 0
+                            repeat while j < points:GetSize() - 1
+                                ChartPoint currentPoint = points:Get(j)
+                                scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueX() + "," + newLine
+                                j = j + 1
+                            end
+        
+                            ChartPoint lastPoint = points:Get(j)
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
+                            scriptText = scriptText + tab + "}," + newLine
                         end
                     end
+                    i = i + 1
                 end
 
-                nextSubChartAreaItem = nextSubChartAreaItem:GetNext()
-            end
-        end
-    end
+                if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0 and subChartAreas:Get(i):GetChartAreaItems():Get(0) is ChartLine
+                    Series currentSeries = subChartAreas:Get(i):GetSeries()
+                    ChartLine currentLine = cast(ChartLine, subChartAreas:Get(i):GetChartAreaItems():Get(0))
+                    Array<ChartPoint> points = currentLine:GetPoints():CopyToArray()
 
+                    if points:GetSize() > 0
+                        points:Sort(comparison)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                        j = 0
+                        repeat while j < points:GetSize() - 1
+                            ChartPoint currentPoint = points:Get(j)
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueX() + "," + newLine
+                            j = j + 1
+                        end
+        
+                        ChartPoint lastPoint = points:Get(j)
+                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
+                        scriptText = scriptText + tab + "}" + newLine
+                    end
+                end
+            end
+        else
+            Array<ChartLine> seriesList = lineChart:GetAllLines()
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByX(true)
+            
+            if seriesList:GetSize() > 0
+                i = 0
+                repeat while i < seriesList:GetSize() - 1
+                    Series currentSeries = seriesList:Get(i):GetSeries()
+                    Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
+                    if points:GetSize() > 0
+                        points:Sort(comparison)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                        j = 0
+                        repeat while j < points:GetSize() - 1
+                            ChartPoint currentPoint = points:Get(j)
+                            scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueX() + "," + newLine
+                            j = j + 1
+                        end
+
+                        ChartPoint lastPoint = points:Get(j)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
+                        scriptText = scriptText + tab + "}," + newLine
+                    end
+                    i = i + 1
+                end
     
+                Series currentSeries = seriesList:Get(i):GetSeries()
+                Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
+                points:Sort(comparison)
+                if seriesList:GetSize() > 1
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                end
+                j = 0
+                repeat while j < points:GetSize() - 1
+                    ChartPoint currentPoint = points:Get(j)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueX() + "," + newLine
+                    j = j + 1
+                end
 
-    action AddChartLineAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
-        UnorderedList groupUL
-        groupUL:AddAttribute("role","group")
-        groupUL:AddClassAttribute("quorum-chart-group")
-        chartListItem:AddNestedTag(groupUL)
-
-        ChartLine line = cast(ChartLine, firstItem:GetFocusTarget())
-
-        ListItem firstLineNav
-        firstLineNav:SetIdentifier(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode() + "_nav")
-        firstLineNav:AddAttribute("role","treeitem")
-        firstLineNav:AddClassAttribute("quorum-chart-treeitem")
-        firstLineNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
-        firstLineNav:AddAttribute("aria-expanded","false")
-        firstLineNav:SetTabIndex("-1")
-        groupUL:Add(firstLineNav)
-
-        if firstItem:GetChildItem() not= undefined
-            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint or firstItem:GetChildItem():GetFocusTarget() is LineSegment
-                AddPointsAndLinesAccessibility(canvas, firstItem:GetChildItem(), firstLineNav)
-            else
-                AddRegionLayerAccessibility(canvas, firstItem:GetChildItem(), firstLineNav)
-            end
-        end
-
-        ChartItem nextItem = firstItem:GetNext()
-        repeat while nextItem not= undefined and nextItem not= firstItem
-            line = cast(ChartLine, nextItem:GetFocusTarget())
-            ListItem lineNav
-            lineNav:SetIdentifier(canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode() + "_nav")
-            lineNav:AddAttribute("role","treeitem")
-            lineNav:AddClassAttribute("quorum-chart-treeitem")
-            lineNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + line:GetSeries():GetHashCode() + "_" + line:GetHashCode())
-            lineNav:AddAttribute("aria-expanded","false")
-            lineNav:SetTabIndex("-1")
-            groupUL:Add(lineNav)
-
-            if nextItem:GetChildItem() not= undefined
-                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint or nextItem:GetChildItem():GetFocusTarget() is LineSegment
-                    AddPointsAndLinesAccessibility(canvas, nextItem:GetChildItem(), lineNav)
-                else
-                    AddRegionLayerAccessibility(canvas, nextItem:GetChildItem(), lineNav)
+                ChartPoint lastPoint = points:Get(j)
+                scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
+                
+                if seriesList:GetSize() > 1
+                    scriptText = scriptText + tab + "}" + newLine
                 end
             end
-
-            nextItem = nextItem:GetNext()
         end
-    end
+        scriptText = scriptText + "};" + newLine + newLine
 
-    action AddRegionLayerAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
-        UnorderedList groupUL
-        groupUL:AddAttribute("role","group")
-        groupUL:AddClassAttribute("quorum-chart-group")
-        chartListItem:AddNestedTag(groupUL)
+        //Ordered list for Y values
+        scriptText = scriptText + "quorum_chart_value_order." + canvas:GetID() + "_y" + " = {" + newLine
 
-        Icon region = cast(Icon, firstItem:GetFocusTarget())
+        if chart:IsSeparated()
+            Array<ChartAreaPanel> subChartAreas = lineChart:GetSubChartAreas()
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByY(true)
+            if subChartAreas:GetSize() > 0
+                i = 0
+                repeat while i < subChartAreas:GetSize() - 1
+                    if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0 and subChartAreas:Get(i):GetChartAreaItems():Get(0) is ChartLine
+                       Series currentSeries = subChartAreas:Get(i):GetSeries()
+                        ChartLine currentLine = cast(ChartLine, subChartAreas:Get(i):GetChartAreaItems():Get(0))
+                        Array<ChartPoint> points = currentLine:GetPoints():CopyToArray()
+                        if points:GetSize() > 0
+                            points:Sort(comparison)
+                            scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                            j = 0
+                            repeat while j < points:GetSize() - 1
+                                ChartPoint currentPoint = points:Get(j)
+                                scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueY() + "," + newLine
+                                j = j + 1
+                            end
+        
+                            ChartPoint lastPoint = points:Get(j)
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
+                            scriptText = scriptText + tab + "}," + newLine
+                        end
+                    end
+                    i = i + 1
+                end
+    
+                if subChartAreas:Get(i):GetChartAreaItems():GetSize() > 0 and subChartAreas:Get(i):GetChartAreaItems():Get(0) is ChartLine
+                    Series currentSeries = subChartAreas:Get(i):GetSeries()
+                    ChartLine currentLine = cast(ChartLine, subChartAreas:Get(i):GetChartAreaItems():Get(0))
+                    Array<ChartPoint> points = currentLine:GetPoints():CopyToArray()
 
-        ListItem firstRegionNav
-        firstRegionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
-        firstRegionNav:AddAttribute("role","treeitem")
-        firstRegionNav:AddClassAttribute("quorum-chart-treeitem")
-        firstRegionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
-        firstRegionNav:AddAttribute("aria-expanded","false")
-        firstRegionNav:SetTabIndex("-1")
-        groupUL:Add(firstRegionNav)
-
-        if firstItem:GetChildItem() not= undefined
-            if firstItem:GetChildItem():GetFocusTarget() is ChartPoint or firstItem:GetChildItem():GetFocusTarget() is LineSegment
-                AddPointsAndLinesAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
-            else
-                AddRegionLayerAccessibility(canvas, firstItem:GetChildItem(), firstRegionNav)
-            end
-        end
-
-        ChartItem nextItem = firstItem:GetNext()
-        repeat while nextItem not= undefined and nextItem not= firstItem
-            region = cast(Icon, nextItem:GetFocusTarget())
-            ListItem regionNav
-            regionNav:SetIdentifier(canvas:GetID() + "_" + region:GetHashCode() + "_nav")
-            regionNav:AddAttribute("role","treeitem")
-            regionNav:AddClassAttribute("quorum-chart-treeitem")
-            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + region:GetHashCode())
-            regionNav:AddAttribute("aria-expanded","false")
-            regionNav:SetTabIndex("-1")
-            groupUL:Add(regionNav)
-
-            if nextItem:GetChildItem() not= undefined
-                if nextItem:GetChildItem():GetFocusTarget() is ChartPoint or nextItem:GetChildItem():GetFocusTarget() is LineSegment
-                    AddPointsAndLinesAccessibility(canvas, nextItem:GetChildItem(), regionNav)
-                else
-                    AddRegionLayerAccessibility(canvas, nextItem:GetChildItem(), regionNav)
+                    if points:GetSize() > 0
+                        points:Sort(comparison)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                        j = 0
+                        repeat while j < points:GetSize() - 1
+                            ChartPoint currentPoint = points:Get(j)
+                            scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueY() + "," + newLine
+                            j = j + 1
+                        end
+        
+                        ChartPoint lastPoint = points:Get(j)
+                        scriptText = scriptText + tab + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
+                        scriptText = scriptText + tab + "}" + newLine
+                    end
                 end
             end
-
-            nextItem = nextItem:GetNext()
-        end
-    end
-
-    action AddPointsAndLinesAccessibility(ScalableVectorGraphics canvas, ChartItem firstItem, ListItem chartListItem)
-        UnorderedList groupUL
-        groupUL:AddAttribute("role","group")
-        groupUL:AddClassAttribute("quorum-chart-group")
-        chartListItem:AddNestedTag(groupUL)
-
-        text identifier = ""
-
-        if firstItem:GetFocusTarget() is ChartPoint
-            ChartPoint point = cast(ChartPoint, firstItem:GetFocusTarget())
-            identifier = canvas:GetID() + "_" + point:GetHashCode()
-        elseif firstItem:GetFocusTarget() is LineSegment
-            LineSegment lineSegment = cast(LineSegment, firstItem:GetFocusTarget())
-            identifier = canvas:GetID() + "_" + lineSegment:GetHashCode()
-        end
-
-        ListItem firstPointOrLineNav
-        firstPointOrLineNav:SetIdentifier(identifier + "_nav")
-        firstPointOrLineNav:AddAttribute("role","treeitem")
-        firstPointOrLineNav:AddClassAttribute("quorum-chart-treeitem")
-        firstPointOrLineNav:AddAttribute("aria-labelledby",identifier)
-        firstPointOrLineNav:SetTabIndex("-1")
-        groupUL:Add(firstPointOrLineNav)
-
-        ChartItem nextItem = firstItem:GetNext()
-        repeat while nextItem not= undefined and nextItem not= firstItem
-            identifier = ""
-
-            if nextItem:GetFocusTarget() is ChartPoint
-                ChartPoint point = cast(ChartPoint, nextItem:GetFocusTarget())
-                identifier = canvas:GetID() + "_" + point:GetHashCode()
-            elseif nextItem:GetFocusTarget() is LineSegment
-                LineSegment lineSegment = cast(LineSegment, nextItem:GetFocusTarget())
-                identifier = canvas:GetID() + "_" + lineSegment:GetHashCode()
+        else
+            Array<ChartLine> seriesList = lineChart:GetAllLines()
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            comparison:SetSortByY(true)
+            
+            if seriesList:GetSize() > 0
+                i = 0
+                repeat while i < seriesList:GetSize() - 1
+                    Series currentSeries = seriesList:Get(i):GetSeries()
+                    Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
+                    if points:GetSize() > 0
+                        points:Sort(comparison)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                        j = 0
+                        repeat while j < points:GetSize() - 1
+                            ChartPoint currentPoint = points:Get(j)
+                            scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueY() + "," + newLine
+                            j = j + 1
+                        end
+                        
+                        ChartPoint lastPoint = points:Get(j)
+                        scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
+                        scriptText = scriptText + tab + "}," + newLine
+                    end
+                    i = i + 1
+                end
+    
+                Series currentSeries = seriesList:Get(i):GetSeries()
+                Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
+                points:Sort(comparison)
+                if seriesList:GetSize() > 1
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
+                end
+                j = 0
+                repeat while j < points:GetSize() - 1
+                    ChartPoint currentPoint = points:Get(j)
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode() + ": " + currentPoint:GetValueY() + "," + newLine
+                    j = j + 1
+                end
+                ChartPoint lastPoint = points:Get(j)
+                scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
+                if seriesList:GetSize() > 1
+                    scriptText = scriptText + tab + "}" + newLine
+                end
             end
-
-            ListItem pointOrLineNav
-            pointOrLineNav:SetIdentifier(identifier + "_nav")
-            pointOrLineNav:AddAttribute("role","treeitem")
-            pointOrLineNav:AddClassAttribute("quorum-chart-treeitem")
-            pointOrLineNav:AddAttribute("aria-labelledby",identifier)
-            pointOrLineNav:SetTabIndex("-1")
-            groupUL:Add(pointOrLineNav)
-
-            nextItem = nextItem:GetNext()
         end
+        scriptText = scriptText + "};" + newLine + newLine
+
+        script:AddText(scriptText)
+        division:Add(script)
     end
 end
