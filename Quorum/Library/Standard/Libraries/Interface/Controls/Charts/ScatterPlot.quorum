@@ -74,9 +74,9 @@ class ScatterPlot is TwoVariableChart
             pointText = "point"
         end
         if GetName() = "Scatter Plot"
-            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription("Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -121,46 +121,7 @@ class ScatterPlot is TwoVariableChart
         end
     end
 
-    /*
-    This action generates the instruction text for the Chart Area description.
-
-    Attribute: Parameter description The base portion of the description that will appear before the instructions
-    */
-    action AddChartAreaInstructions(text description)
-        
-        if not IsSeparated()
-            //Not Separated but has Groups
-            if HasGroups() or GetSeriesList():GetSize() > 1
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + "."
-                description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
-            //Not Separate and no Groups
-            else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + "."
-                description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in value order on the X axis,"
-                description = description + " use Up Down to move between the " + GetChartItemsText() + " in value order on the Y axis, use Escape to return to the chart area."
-            end
-        else
-            //Separated, each Series is also separated by the Factor levels
-            if IsSeparatedBySeries() and IsSeparatedByFactor()  
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + "."
-                description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in value order on the X axis," 
-                description = description + " use Up Down to move between the " + GetChartItemsText() + " in value order on the Y axis, use Escape to return to the chart area."
-            //Separated, by the Factor levels with multiple Series per subplot
-            elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + "."
-                description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
-            //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
-            else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + "."
-                description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
-            end
-        end
-        me:GetChartArea():SetDescription(description)
-    end
-
+    
     /*
     This action generates the instruction text for a sub chart area description.
 

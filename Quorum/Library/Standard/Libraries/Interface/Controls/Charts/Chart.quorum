@@ -1095,6 +1095,7 @@ class Chart is ChartItem
         Sets the title of the chart
     */
     action SetTitle(text name)
+        SetName(name)
         titleText = name
     end
     /*
@@ -2377,6 +2378,44 @@ class Chart is ChartItem
         end
     end
 
+    /*
+        This action moves the selection to the "next" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionNextFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item next = selected:GetNextFocus()
+        if next not= undefined and next is ChartItem
+            
+            selection:Set(cast(ChartItem, next))
+        end
+    end
+
+    /*
+        This action moves the selection to the "previous" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionPreviousFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item previous = selected:GetPreviousFocus()
+        if previous not= undefined and previous is ChartItem
+            
+            selection:Set(cast(ChartItem, previous))
+        end
+    end
+
     action GetContainer returns Chart
         return me
     end
@@ -2540,31 +2579,31 @@ class Chart is ChartItem
         if not IsSeparated()
             //Not Separated but has Groups
             if HasGroups()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + "."
-                description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
             //Not Separate and no Groups
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + "."
-                description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order,"
-                description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order,"
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
             end
         else
             //Separated, each Series is also separated by the Factor levels
             if IsSeparatedBySeries() and IsSeparatedByFactor()  
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + "."
-                description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order," 
-                description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order," 
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Escape to return to the chart area."
             //Separated, by the Factor levels with multiple Series per subplot
             elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + "."
-                description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
             //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + "."
-                description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
-                description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
             end
         end
         me:GetChartArea():SetDescription(description)

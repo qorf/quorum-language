@@ -2,6 +2,7 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Events.FocusEvent
 
 /*
     This class represents one region inside of a chart. This can be anything, 
@@ -36,6 +37,22 @@ class ChartItem is Control
     action GetDisplayName returns text
         return information
     end
+
+    /*
+        This action is fired if the item received the focus.
+    */
+//    action GainedFocus(FocusEvent event)
+//        GainedSelection()
+//        parent:Control:GainedFocus(event)
+//    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+//    action LostFocus(FocusEvent event)
+//       LostSelection()
+//        parent:Control:LostFocus(event)
+//    end
 
     action GainedSelection
         if GetContainer() not= undefined

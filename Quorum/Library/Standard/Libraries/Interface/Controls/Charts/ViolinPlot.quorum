@@ -620,12 +620,23 @@ class ViolinPlot is Chart
             linetext = "group"
             plotText = "violin plot"
         end
-        if HasGroups()
-            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
-            + ". " + "Use the arrow keys to navigate the chart.")
+        
+        if GetName() = "Box Plot"
+            if HasGroups()
+                SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
+                + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            else
+                SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
+                + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            end
         else
-            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
-            + ". " + "Use the arrow keys to navigate the chart.")
+            if HasGroups()
+                SetDescription(", Violin Plot with " + GetGroupPanels():GetSize() + " " + lineText 
+                + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            else
+                SetDescription(", ViolinPlot with " + GetGroupPanels():GetSize() + " " + plotText 
+                + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            end
         end
         return GetDescription()
     end
@@ -648,10 +659,10 @@ class ViolinPlot is Chart
 
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetRightItem(chartArea)
+        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
 
-        chartArea:SetLeftItem(summary)
+        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Violin Plot")
 //        if HasGroups()
@@ -678,6 +689,7 @@ class ViolinPlot is Chart
             if GetNumberOfChartAreas() > 0
                 ChartItem firstArea = GetSubChartAreas():Get(0)
                 firstArea:SetContainer(me)
+                firstArea:SetPreviousFocus(summary)
 //                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
                 chartArea:SetEnterItem(firstArea)
                 firstArea:SetEscapeItem(chartArea)
@@ -709,6 +721,7 @@ class ViolinPlot is Chart
                         end
                         
                         next_target:SetContainer(me)
+                        next_target:SetPreviousFocus(summary)
                         next_target:SetDisplayName(plot:GetName())
                         next_target:SetEscapeItem(firstArea)
                         prev_target = next_target    
@@ -730,6 +743,7 @@ class ViolinPlot is Chart
                                     previous:SetRightItem(next)
                                 end
                                 next:SetContainer(me)
+                                next:SetPreviousFocus(summary)
                                 next:SetDisplayName(item:GetName())
                                 next:SetEscapeItem(next_target)
                                 
@@ -749,6 +763,7 @@ class ViolinPlot is Chart
                     if chartSubArea:IsShowing()
                         ChartItem nextArea = chartSubArea
                         nextArea:SetContainer(me)
+                        nextArea:SetPreviousFocus(summary)
                         nextArea:SetEscapeItem(chartArea)
                         previousArea:SetRightItem(nextArea)
                         nextArea:SetLeftItem(previousArea)
@@ -780,6 +795,7 @@ class ViolinPlot is Chart
                                 end
         
                                 next_target:SetContainer(me)
+                                next_target:SetPreviousFocus(summary)
                                 next_target:SetDisplayName(plot:GetName())
                                 next_target:SetEscapeItem(nextArea)
                                 prev_target = next_target      
@@ -800,6 +816,7 @@ class ViolinPlot is Chart
                                             previous:SetRightItem(next)
                                         end
                                         next:SetContainer(me)
+                                        next:SetPreviousFocus(summary)
                                         next:SetDisplayName(item:GetName())
                                         next:SetEscapeItem(next_target)
                                         
@@ -821,6 +838,7 @@ class ViolinPlot is Chart
                 if plotGroups:GetSize() > 0
                     ChartItem firstGroup = plotGroups:Get(0)
                     firstGroup:SetContainer(me)
+                    firstGroup:SetPreviousFocus(summary)
                     chartArea:SetEnterItem(firstGroup)
                     firstGroup:SetEscapeItem(chartArea)
         
@@ -839,6 +857,7 @@ class ViolinPlot is Chart
                             end
                             
                             next_target:SetContainer(me)
+                            next_target:SetPreviousFocus(summary)
                             next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetName()) 
                             next_target:SetEscapeItem(firstGroup)
                             prev_target = next_target
@@ -859,6 +878,7 @@ class ViolinPlot is Chart
                                         previous:SetRightItem(next)
                                     end
                                     next:SetContainer(me)
+                                    next:SetPreviousFocus(summary)
                                     next:SetDisplayName(item:GetName())
                                     next:SetEscapeItem(next_target)
                                     
@@ -876,6 +896,7 @@ class ViolinPlot is Chart
                     repeat while i < plotGroups:GetSize()
                         ChartItem group = plotGroups:Get(i)
                         group:SetContainer(me)
+                        group:SetPreviousFocus(summary)
                         group:SetEscapeItem(chartArea)
                         previousGroup:SetRightItem(group)
                         group:SetLeftItem(previousGroup)
@@ -896,6 +917,7 @@ class ViolinPlot is Chart
                                 end
         
                                 next_target:SetContainer(me)
+                                next_target:SetPreviousFocus(summary)
                                 next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetName())
                                 next_target:SetEscapeItem(group)
                                 prev_target = next_target
@@ -916,6 +938,7 @@ class ViolinPlot is Chart
                                             previous:SetRightItem(next)
                                         end
                                         next:SetContainer(me)
+                                        next:SetPreviousFocus(summary)
                                         next:SetDisplayName(item:GetName())
                                         next:SetEscapeItem(next_target)
                                         
@@ -944,6 +967,7 @@ class ViolinPlot is Chart
                     end
     
                     next_target:SetContainer(me)
+                    next_target:SetPreviousFocus(summary)
                     next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetName()) 
                     next_target:SetEscapeItem(chartArea)
                     prev_target = next_target      
@@ -964,6 +988,7 @@ class ViolinPlot is Chart
                                 previous:SetRightItem(next)
                             end
                             next:SetContainer(me)
+                            next:SetPreviousFocus(summary)
                             next:SetDisplayName(item:GetName())
                             next:SetEscapeItem(next_target)
                             
@@ -1021,6 +1046,28 @@ class ViolinPlot is Chart
 
     action GetChartItemsText returns text
         return chartItemsText
+    end
+
+    /*
+    This action generates the instruction text for a chart item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartItemInstructions(Item chartItem, text description)
+
+        description = description + " To navigate the list of " + GetChartItemsText() + ", use Left Right to move between " + GetChartItemsText() + " in list order," 
+        description = description + " use Up Down to move between " + GetChartItemsText() + " by median value order,"
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " use Escape to return to the chart area."
+        else
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        end
+        chartItem:SetDescription(description)
     end
 
     /*

@@ -567,10 +567,10 @@ class TwoVariableChart is Chart
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetRightItem(chartArea)
+        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
 
-        chartArea:SetLeftItem(summary)
+        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
 
         text lineText = "lines"
@@ -621,6 +621,7 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
+                    firstArea:SetPreviousFocus(summary)
 
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
                     chartArea:SetEnterItem(firstArea)
@@ -638,6 +639,7 @@ class TwoVariableChart is Chart
 
                         ChartItem chartLineItem = chartLine
                         chartLineItem:SetContainer(me)
+                        chartLineItem:SetPreviousFocus(summary)
                         firstArea:SetEnterItem(chartLineItem)
                         chartLineItem:SetEscapeItem(firstArea)
 
@@ -647,6 +649,7 @@ class TwoVariableChart is Chart
                                 ChartPoint firstPoint = chartLine:GetPoints():Get(0)
                                 ChartItem firstPointItem = firstPoint
                                 firstPointItem:SetContainer(me)
+                                firstPointItem:SetPreviousFocus(summary)
                                 chartLineItem:SetEnterItem(firstPointItem)
                                 firstPointItem:SetEscapeItem(chartLineItem)
                 
@@ -656,6 +659,7 @@ class TwoVariableChart is Chart
                                     ChartPoint point = chartLine:GetPoints():Get(j)
                                     ChartItem pointItem = point
                                     pointItem:SetContainer(me)
+                                    pointItem:SetPreviousFocus(summary)
                                     pointItem:SetEscapeItem(chartLineItem)
                                     pointItem:SetLeftItem(previousPointItem)
             
@@ -669,6 +673,7 @@ class TwoVariableChart is Chart
                                 LineSegment firstLine = chartLine:GetLines():Get(0)
                                 ChartItem firstLineItem = firstLine
                                 firstLineItem:SetContainer(me)
+                                firstLineItem:SetPreviousFocus(summary)
                                 chartLineItem:SetEnterItem(firstLineItem)
                                 firstLineItem:SetEscapeItem(chartLineItem)
                 
@@ -678,6 +683,7 @@ class TwoVariableChart is Chart
                                     LineSegment line = chartLine:GetLines():Get(j)
                                     ChartItem lineItem = line
                                     lineItem:SetContainer(me)
+                                    lineItem:SetPreviousFocus(summary)
                                     lineItem:SetEscapeItem(chartLineItem)
                                     lineItem:SetLeftItem(previousLineItem)
                 
@@ -696,6 +702,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
+                            nextArea:SetPreviousFocus(summary)
                             nextArea:SetParent(chartArea)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
@@ -709,6 +716,7 @@ class TwoVariableChart is Chart
     
                                 ChartItem chartLineItem = chartLine
                                 chartLineItem:SetContainer(me)
+                                chartLineItem:SetPreviousFocus(summary)
                                 nextArea:SetEnterItem(chartLineItem)
                                 chartLineItem:SetEscapeItem(nextArea)
                         
@@ -718,6 +726,7 @@ class TwoVariableChart is Chart
                                         ChartPoint firstPoint = chartLine:GetPoints():Get(0)
                                         ChartItem firstPointItem = firstPoint
                                         firstPointItem:SetContainer(me)
+                                        firstPointItem:SetPreviousFocus(summary)
                                         chartLineItem:SetEnterItem(firstPointItem)
                                         firstPointItem:SetEscapeItem(chartLineItem)
                         
@@ -727,6 +736,7 @@ class TwoVariableChart is Chart
                                             ChartPoint point = chartLine:GetPoints():Get(j)
                                             ChartItem pointItem = point
                                             pointItem:SetContainer(me)
+                                            pointItem:SetPreviousFocus(summary)
                                             pointItem:SetEscapeItem(chartLineItem)
                                             pointItem:SetLeftItem(previousPointItem)
                     
@@ -740,6 +750,7 @@ class TwoVariableChart is Chart
                                         LineSegment firstLine = chartLine:GetLines():Get(0)
                                         ChartItem firstLineItem = firstLine
                                         firstLineItem:SetContainer(me)
+                                        firstLineItem:SetPreviousFocus(summary)
                                         chartLineItem:SetEnterItem(firstLineItem)
                                         firstLineItem:SetEscapeItem(chartLineItem)
                         
@@ -749,6 +760,7 @@ class TwoVariableChart is Chart
                                             LineSegment line = chartLine:GetLines():Get(j)
                                             ChartItem lineItem = line
                                             lineItem:SetContainer(me)
+                                            lineItem:SetPreviousFocus(summary)
                                             lineItem:SetEscapeItem(chartLineItem)
                                             lineItem:SetLeftItem(previousLineItem)
                     
@@ -767,6 +779,7 @@ class TwoVariableChart is Chart
                 ChartLine firstChartLine = lines:Get(0)
                 ChartItem firstChartLineItem = firstChartLine
                 firstChartLineItem:SetContainer(me)
+                firstChartLineItem:SetPreviousFocus(summary)
                 chartArea:SetEnterItem(firstChartLineItem)
                 firstChartLineItem:SetEscapeItem(chartArea)
 
@@ -776,6 +789,7 @@ class TwoVariableChart is Chart
                         ChartPoint firstPoint = lines:Get(0):GetPoints():Get(0)
                         ChartItem firstPointItem = firstPoint
                         firstPointItem:SetContainer(me)
+                        firstPointItem:SetPreviousFocus(summary)
                         firstChartLineItem:SetEnterItem(firstPointItem)
                         firstPointItem:SetEscapeItem(firstChartLineItem)
         
@@ -785,6 +799,7 @@ class TwoVariableChart is Chart
                             ChartPoint point = lines:Get(0):GetPoints():Get(j)
                             ChartItem pointItem = point
                             pointItem:SetContainer(me)
+                            pointItem:SetPreviousFocus(summary)
                             pointItem:SetEscapeItem(firstChartLineItem)
                             pointItem:SetLeftItem(previousPointItem)
     
@@ -798,6 +813,7 @@ class TwoVariableChart is Chart
                         LineSegment firstLine = lines:Get(0):GetLines():Get(0)
                         ChartItem firstLineItem = firstLine
                         firstLineItem:SetContainer(me)
+                        firstLineItem:SetPreviousFocus(summary)
                         firstChartLineItem:SetEnterItem(firstLineItem)
                         firstLineItem:SetEscapeItem(firstChartLineItem)
         
@@ -807,6 +823,7 @@ class TwoVariableChart is Chart
                             LineSegment line = lines:Get(0):GetLines():Get(j)
                             ChartItem lineItem = line
                             lineItem:SetContainer(me)
+                            lineItem:SetPreviousFocus(summary)
                             lineItem:SetEscapeItem(firstChartLineItem)
                             lineItem:SetLeftItem(previousLineItem)
     
@@ -823,6 +840,7 @@ class TwoVariableChart is Chart
                     ChartLine chartLine = lines:Get(i)
                     ChartItem chartLineItem = chartLine
                     chartLineItem:SetContainer(me)
+                    chartLineItem:SetPreviousFocus(summary)
                     chartLineItem:SetEscapeItem(chartArea)
                     chartLineItem:SetLeftItem(previousChartLineItem)
                     
@@ -832,6 +850,7 @@ class TwoVariableChart is Chart
                             ChartPoint firstPoint = lines:Get(i):GetPoints():Get(0)
                             ChartItem firstPointItem = firstPoint
                             firstPointItem:SetContainer(me)
+                            firstPointItem:SetPreviousFocus(summary)
                             chartLineItem:SetEnterItem(firstPointItem)
                             firstPointItem:SetEscapeItem(chartLineItem)
             
@@ -841,6 +860,7 @@ class TwoVariableChart is Chart
                                 ChartPoint point = lines:Get(i):GetPoints():Get(j)
                                 ChartItem pointItem = point
                                 pointItem:SetContainer(me)
+                                pointItem:SetPreviousFocus(summary)
                                 pointItem:SetEscapeItem(chartLineItem)
                                 pointItem:SetLeftItem(previousPointItem)
         
@@ -854,6 +874,7 @@ class TwoVariableChart is Chart
                             LineSegment firstLine = lines:Get(i):GetLines():Get(0)
                             ChartItem firstLineItem = firstLine
                             firstLineItem:SetContainer(me)
+                            firstLineItem:SetPreviousFocus(summary)
                             chartLineItem:SetEnterItem(firstLineItem)
                             firstLineItem:SetEscapeItem(chartLineItem)
             
@@ -863,6 +884,7 @@ class TwoVariableChart is Chart
                                 LineSegment line = lines:Get(i):GetLines():Get(j)
                                 ChartItem lineItem = line
                                 lineItem:SetContainer(me)
+                                lineItem:SetPreviousFocus(summary)
                                 lineItem:SetEscapeItem(chartLineItem)
                                 lineItem:SetLeftItem(previousLineItem)
         
@@ -891,6 +913,7 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
+                    firstArea:SetPreviousFocus(summary)
 
                     AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
                     chartArea:SetEnterItem(firstArea)
@@ -906,7 +929,7 @@ class TwoVariableChart is Chart
                     AddSubChartAreaInstructions(GetSubChartAreas():Get(0),description)
                     Array<ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
                     firstAreaPoints:Sort(comparison)
-                    AddPoints(firstArea, firstAreaPoints)
+                    AddPoints(summary, firstArea, firstAreaPoints)
 
 
                     integer i = 1
@@ -916,6 +939,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
+                            nextArea:SetPreviousFocus(summary)
                             nextArea:SetEscapeItem(chartArea)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
@@ -932,7 +956,7 @@ class TwoVariableChart is Chart
     //                        ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
                             Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
                             nextAreaPoints:Sort(comparison)
-                            AddPoints(firstArea, nextAreaPoints)
+                            AddPoints(summary, firstArea, nextAreaPoints)
                         end
                         i = i + 1
                     end
@@ -941,6 +965,7 @@ class TwoVariableChart is Chart
                 if GetSeriesList():GetSize() > 0
                     ChartItem firstSeries = GetSeriesList():Get(0)
                     firstSeries:SetContainer(me)
+                    firstSeries:SetPreviousFocus(summary)
 
                     chartArea:SetEnterItem(firstSeries)
                     firstSeries:SetEscapeItem(chartArea)
@@ -949,7 +974,7 @@ class TwoVariableChart is Chart
                     chartAreaItems:Sort(comparison)
                     AddGroupPanelInstructions(GetSeriesList():Get(0),GetSeriesList():Get(0):GetDescription())
                     Array<ChartPoint> firstSeriesPoints = CastToPoints(chartAreaItems)
-                    AddPoints(firstSeries, firstSeriesPoints)
+                    AddPoints(summary, firstSeries, firstSeriesPoints)
 
                     integer i = 1
                     ChartItem previousSeries = firstSeries
@@ -957,6 +982,7 @@ class TwoVariableChart is Chart
                         Series series = GetSeriesList():Get(i)
                         ChartItem nextSeries = series
                         nextSeries:SetContainer(me)
+                        nextSeries:SetPreviousFocus(summary)
                         nextSeries:SetEscapeItem(chartArea)
                         previousSeries:SetRightItem(nextSeries)
                         nextSeries:SetLeftItem(previousSeries)
@@ -966,7 +992,7 @@ class TwoVariableChart is Chart
                         chartAreaItems:Sort(comparison)
                         Array<ChartPoint> nextSeriesPoints = CastToPoints(chartAreaItems)
                         nextSeriesPoints:Sort(comparison)
-                        AddPoints(series, nextSeriesPoints)
+                        AddPoints(summary, series, nextSeriesPoints)
                         i = i + 1
                     end
                 end
@@ -1387,12 +1413,13 @@ class TwoVariableChart is Chart
     end
 
 
-    action AddPoints(ChartItem parentItem, Array<ChartPoint> points)
+    action AddPoints(ChartItem summary, ChartItem parentItem, Array<ChartPoint> points)
        
         if points:IsEmpty() = false
             ChartPoint firstPoint = points:Get(0)
             ChartItem firstPointItem = firstPoint
             firstPointItem:SetContainer(me)
+            firstPointItem:SetPreviousFocus(summary)
             firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetValueY(), options:GetTickDigits())
                 + ", 1 of " + points:GetSize())
             firstPoint:SetName(firstPointItem:GetDisplayName())
@@ -1407,6 +1434,7 @@ class TwoVariableChart is Chart
                 ChartItem pointItem = point
 
                 pointItem:SetContainer(me)
+                pointItem:SetPreviousFocus(summary)
                 pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetValueY(), options:GetTickDigits())
                     + ", " + (i + 1) + " of " + points:GetSize())
                 point:SetName(pointItem:GetDisplayName())

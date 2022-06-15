@@ -74,7 +74,10 @@ class Legend is ChartItem
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         SetDisplayName(GetName())
-        SetRightItem(chartArea)
+        
+        SetNextFocus(chartArea)
+        SetPreviousFocus(summary)
+        //SetRightItem(chartArea)
         text description = ""
         if titleText not= ""
             description = description + "shows " + titleText + " and "
