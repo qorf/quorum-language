@@ -158,6 +158,29 @@ class LineChartWriter is ChartWriter
                         end
                     end
 
+                    if currentLine:GetSelectionArrow() not= undefined
+                        Array <number> vertices = currentLine:GetSelectionArrowVertices()
+                        number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
+                        number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
+
+                        Polygon arrow
+                        integer m = 0
+                        repeat while m < vertices:GetSize()
+                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                            m = m + 2
+                        end
+                        arrow:SetFill(transparent) // Should be transparent until selected 
+                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                        arrow:SetTabIndex(-1)
+                        arrow:SetID(seriesSVG:GetID() + "_arrow")
+                        if HasAccessibility()
+                            arrow:SetAriaHidden("true")
+                            seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
+                            seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
+                        end
+                        canvas:Add(arrow)
+                    end
+
                     j = 0
                     repeat while j < currentLine:GetPoints():GetSize()
                         ChartPoint currentPoint = currentLine:GetPoints():Get(j)
@@ -261,12 +284,11 @@ class LineChartWriter is ChartWriter
                             radius = firstPoint:GetHeight()/2
     
                             Group segmentSVG
-                            segmentSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentSegment:GetHashCode())
+//                            segmentSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentSegment:GetHashCode())
                             segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
                             segmentSVG:SetFill(currentSegment:GetColor())
                             segmentSVG:SetTabIndex(-1)
                             if HasAccessibility()
-                                segmentSVG:SetAriaLabel(currentSegment:GetName() + currentSegment:GetDescription())
                                 segmentSVG:SetAriaHidden("false")
                             end
                             if chart:GetSeriesList():GetSize() > 1
@@ -281,62 +303,18 @@ class LineChartWriter is ChartWriter
                             Line segment
                             segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
                             segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                            segment:SetFill(currentSegment:GetColor())
                             segment:SetStroke(currentSegment:GetColor())
                             segment:SetStrokeWidth(currentSegment:GetHeight())
-                            segment:SetID(segmentSVG:GetID() + "_line")
-                            segment:SetStyleClass("quorum-chart-line")
+                            segment:SetID(segmentSVG:GetID() + "_segment")
+                            segment:SetStyleClass("quorum-chart-linesegment")
                             segment:SetTabIndex(-1)
                             if HasAccessibility()
                                 segment:SetAriaHidden("true")
                                 segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
                                 segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
                             end
-                            canvas:Add(segment)
-
-                            if currentSegment:ShowAnnotation() or chart:ShowAnnotations()
-                                ChartLabel label = currentSegment:GetAnnotation()
-                                if label not= undefined
-                                    Label labelSVG
-                                    labelSVG:SetText(label:GetText())
-                                    labelSVG:SetTextAnchor("left")
-                                    labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                                    labelSVG:SetFontSize(label:GetFontSize() + "px")
-                                    labelSVG:SetFontFamily("Arial")
-                                    labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                    labelSVG:SetID(segmentSVG:GetID() + "_annotation")
-                                    labelSVG:SetStyleClass("quorum-chart-text")
-                                    labelSVG:SetTabIndex(-1)
-                                    if HasAccessibility()
-                                        labelSVG:SetAriaHidden("true")
-                                        segmentFocus = segmentFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                        segmentBlur = segmentBlur + "loseFocus('" + labelSVG:GetID() + "'); "
-                                    end
-                                    canvas:Add(labelSVG)
-                                end
-                            end
-
-                            if currentSegment:GetSelectionArrow() not= undefined
-                                Array <number> vertices = currentSegment:GetSelectionArrowVertices()
-                                number Yoffset = TranslatePositionY(currentSegment:GetSelectionArrow())
-                                number Xoffset = currentSegment:GetSelectionArrow():GetGlobalX()
-        
-                                Polygon arrow
-                                integer m = 0
-                                repeat while m < vertices:GetSize()
-                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentSegment:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                                    m = m + 2
-                                end
-                                arrow:SetFill(transparent) // Should be transparent until selected 
-                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                arrow:SetTabIndex(-1)
-                                arrow:SetID(segmentSVG:GetID() + "_arrow")
-                                if HasAccessibility()
-                                    arrow:SetAriaHidden("true")
-                                    segmentFocus = segmentFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                    segmentBlur = segmentBlur + "loseFocus('" + arrow:GetID() + "'); "
-                                end
-                                canvas:Add(arrow)
-                            end
+                            segmentSVG:Add(segment)
 
                             if HasAccessibility()
                                 if segmentFocus not= ""
@@ -411,8 +389,6 @@ class LineChartWriter is ChartWriter
                         seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "_regression" + "'); "
                         seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode() + "_regression" + "'); "
                     end
-                    //seriesFocus = seriesFocus + "gainFocusPoints('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "'); "
-                    //seriesBlur = seriesBlur + "loseFocusPoints('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "'); "
                 end
 
                 if chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize() > 0
@@ -433,6 +409,29 @@ class LineChartWriter is ChartWriter
                                     seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_legend" + "'); "
                                     seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_legend" + "'); "
                                 end
+                            end
+
+                            if currentLine:GetSelectionArrow() not= undefined
+                                Array <number> vertices = currentLine:GetSelectionArrowVertices()
+                                number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
+                                number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
+        
+                                Polygon arrow
+                                integer m = 0
+                                repeat while m < vertices:GetSize()
+                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+                                    m = m + 2
+                                end
+                                arrow:SetFill(transparent) // Should be transparent until selected 
+                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                arrow:SetTabIndex(-1)
+                                arrow:SetID(subChartContent:GetID() + "_arrow")
+                                if HasAccessibility()
+                                    arrow:SetAriaHidden("true")
+                                    seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                    seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                end
+                                canvas:Add(arrow)
                             end
 
                             j = 0
@@ -536,12 +535,11 @@ class LineChartWriter is ChartWriter
                                             radius = firstPoint:GetHeight()/2
                 
                                             Group segmentSVG
-                                            segmentSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
+//                                            segmentSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentSegment:GetHashCode())
                                             segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
-                                            segmentSVG:SetFill(currentPoint:GetColor())
+                                            segmentSVG:SetFill(currentSegment:GetColor())
                                             segmentSVG:SetTabIndex(-1)
                                             if HasAccessibility()
-                                                segmentSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                                 segmentSVG:SetAriaHidden("false")
                                             end
                                             subChartContent:Add(segmentSVG)
@@ -552,63 +550,19 @@ class LineChartWriter is ChartWriter
                                             Line segment
                                             segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
                                             segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                                            segment:SetFill(currentSegment:GetColor())
                                             segment:SetStroke(currentSegment:GetColor())
                                             segment:SetStrokeWidth(currentSegment:GetHeight())
-                                            segment:SetID(segmentSVG:GetID() + "_line")
-                                            segment:SetStyleClass("quorum-chart-line")
+                                            segment:SetID(segmentSVG:GetID() + "_segment")
+                                            segment:SetStyleClass("quorum-chart-linesegment")
                                             segment:SetTabIndex(-1)
                                             if HasAccessibility()
                                                 segment:SetAriaHidden("true")
                                                 segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
                                                 segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
                                             end
-                                            segmentSVG:Add(segment)
+                                            canvas:Add(segment)
                 
-                                            if currentSegment:ShowAnnotation() or chart:ShowAnnotations()
-                                                ChartLabel label = currentSegment:GetAnnotation()
-                                                if label not= undefined
-                                                    Label labelSVG
-                                                    labelSVG:SetText(label:GetText())
-                                                    labelSVG:SetTextAnchor("left")
-                                                    labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
-                                                    labelSVG:SetFontSize(label:GetFontSize() + "px")
-                                                    labelSVG:SetFontFamily("Arial")
-                                                    labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                                    labelSVG:SetID(segmentSVG:GetID() + "_annotation")
-                                                    labelSVG:SetStyleClass("quorum-chart-text")
-                                                    labelSVG:SetTabIndex(-1)
-                                                    if HasAccessibility()
-                                                        labelSVG:SetAriaHidden("true")
-                                                        segmentFocus = segmentFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                                        segmentBlur = segmentBlur + "loseFocus('" + labelSVG:GetID() + "'); "
-                                                    end
-                                                    canvas:Add(labelSVG)
-                                                end
-                                            end
-        
-                                            if currentSegment:GetSelectionArrow() not= undefined
-                                                Array <number> vertices = currentSegment:GetSelectionArrowVertices()
-                                                number Yoffset = TranslatePositionY(currentSegment:GetSelectionArrow())
-                                                number Xoffset = currentSegment:GetSelectionArrow():GetGlobalX()
-                        
-                                                Polygon arrow
-                                                integer m = 0
-                                                repeat while m < vertices:GetSize()
-                                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentSegment:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                                                    m = m + 2
-                                                end
-                                                arrow:SetFill(transparent) // Should be transparent until selected 
-                                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                                arrow:SetTabIndex(-1)
-                                                arrow:SetID(segmentSVG:GetID() + "_arrow")
-                                                if HasAccessibility()
-                                                    arrow:SetAriaHidden("true")
-                                                    segmentFocus = segmentFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                                    segmentBlur = segmentBlur + "loseFocus('" + arrow:GetID() + "'); "
-                                                end
-                                                canvas:Add(arrow)
-                                            end
-
                                             if HasAccessibility()
                                                 if segmentFocus not= ""
                                                     segmentSVG:SetOnFocus(segmentFocus)

@@ -173,4 +173,31 @@ class ChartLine is ChartDrawable
         me:series = series
     end
 
+    action GainedSelection()
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetColor(GetSelectionColor())
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(GetSelectionColor())
+            i = i + 1
+        end
+        parent:ChartDrawable:GainedSelection()
+    end
+
+    action LostSelection()
+        integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetColor(GetColor())
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(GetColor())
+            i = i + 1
+        end
+        parent:ChartDrawable:LostSelection()
+    end
 end

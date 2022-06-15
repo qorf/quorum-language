@@ -37,6 +37,10 @@ class Plot is ChartDrawable
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
 
+    on create
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
     /* Indices info of individual plot values (info)
         0: MEDIAN
         1: Q1 LOWER QUARTILE

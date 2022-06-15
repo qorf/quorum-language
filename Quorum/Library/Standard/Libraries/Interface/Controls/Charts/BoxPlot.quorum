@@ -765,7 +765,7 @@ class BoxPlot is Chart
                         
                         Array<ChartDrawable> items = plot:GetPlotItems() //First plot
                         if k = 0
-                            firstArea:SetRightItem(next_target)
+                            firstArea:SetEnterItem(next_target)
                         else
                             next_target:SetLeftItem(prev_target)
                             prev_target:SetRightItem(next_target)
