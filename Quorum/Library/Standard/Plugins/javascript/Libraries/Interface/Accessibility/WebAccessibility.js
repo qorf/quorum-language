@@ -184,7 +184,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-description", item.GetDescription());
+            element.setAttribute("aria-label", element.getAttribute("aria-label") + ", " + item.GetDescription());
         }
         //console.log("Description Changed");
     };
@@ -642,7 +642,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (itemName != null) {
             para.setAttribute("aria-label", itemName);
         }
-        para.setAttribute("aria-description", item.GetDescription())
+        para.setAttribute("aria-label", para.getAttribute("aria-label") + " " + item.GetDescription())
 
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");
