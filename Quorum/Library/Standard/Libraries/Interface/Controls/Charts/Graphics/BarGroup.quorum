@@ -55,13 +55,13 @@ class BarGroup is GroupPanel
         return cast(Array<Bar>, GetGroupItems())
     end
 
-    action Empty()
+    action EmptyItems()
         totalValueOfGroup = 0
         totalPositiveValue = 0 
         totalNegativeValue = 0 
         maxBarValue = 0
         minBarValue = 0        
-        parent:GroupPanel:Empty()
+        parent:GroupPanel:EmptyItems()
     end
 
     /*

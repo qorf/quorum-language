@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Support.Pair
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
 The Plot class is a data structure that stores information for each 
@@ -38,7 +39,15 @@ class Plot is ChartDrawable
     private number maxOutlierValue = 0
 
     on create
+        ManualLayout manualLayout
+        SetLayout(manualLayout)
+
+        SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
     end
 
     /* Indices info of individual plot values (info)
