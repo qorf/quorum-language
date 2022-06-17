@@ -9,6 +9,13 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
 
+
+/*
+    The Grid2D class is a Drawable that will be drawn in the EditorLayer2D to show the
+    grid. Grid2D is a rectangle texture that wraps to fit a specified grid size. The single
+    rectangle is size to fit the grid unit size and the the entire texture is sized to fit
+    the as much of the layer visible in the window as possible.
+*/
 class Grid2D is Drawable
 
     Math math
@@ -69,6 +76,11 @@ class Grid2D is Drawable
         SetGridSize(GetWidth(), GetHeight())    
     end
 
+    /*
+        This action reloads the rectangle texture used to make the grid. The texture
+        is reloaded as needed and typically the texture would need to be reloaded when
+        the size of grid unit is changed.
+    */
     private action ReloadTexture
         gridTexture:Dispose()
         gridTexture:LoadRectangle(gridUnits, gridUnits)
@@ -76,21 +88,44 @@ class Grid2D is Drawable
         SetRegion(0.0, 0.0, gridWidthScale, gridHeightScale)
     end
 
+    /*
+        GetGridUnitSize returns the size of a single grid unit
+
+        Attribute: Returns The size of a single grid unit
+    */
     action GetGridUnitSize returns number
         return gridUnits
     end
 
+    /*
+        Returns true if the number passed would lie on this grid, false otherwise.
+
+        Attribute: Returns True if the number is on the grid, false otherwise.
+    */
     action IsGridCoordinate(number coordinate) returns boolean
         integer coord = cast(integer, coordinate)
         // If the floating point division returns the same value as integer division, return true
         return (coordinate / gridUnits) = (coord / gridUnits)
     end
 
+    /*
+        Given a number this action returns the nearest coordinate that lies on the grid.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The nearest coordinate on the grid
+    */
     action GetNearestGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         return math:Round(multiple) * gridUnits
     end
 
+    /*
+        Given a number this action returns the nearest coordinate on the grid that is
+        greater than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The next coordinate on the grid
+    */
     action GetNextGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         number value = math:Ceiling(multiple) * gridUnits
@@ -100,6 +135,13 @@ class Grid2D is Drawable
         return value
     end
 
+    /*
+        Given a number this action returns the nearest coordinate on the grid that is
+        less than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The previous coordinate on the grid
+    */
     action GetPreviousGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         number value = math:Floor(multiple) * gridUnits

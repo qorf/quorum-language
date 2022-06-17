@@ -9,6 +9,15 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
 
+/*
+    The EditorCursor2D class is a component of the SceneEditor that serves to 
+    show what is currently being selected in a 2D scene. The cursor itself is
+    not an accessible item but it passes information back to the SceneEditor
+    for accessibility. The EditorCursor2D itself is represented by a block that
+    fits in the grid and it pass to the SceneEditor what Items are it's location
+    and if the user wants to select that item the cursor transitions to the 
+    SelectionHighlight.
+*/
 class EditorCursor2D is EditorCursor, Drawable
 
     EditorLayer2D editorLayer = undefined
@@ -23,6 +32,14 @@ class EditorCursor2D is EditorCursor, Drawable
     // Used to sort items underneath the cursor.
     Item2DDepthComparison depthSorter
     
+
+    /*
+        Load will make the cursor a filled rectangle with the color determined by 
+        SceneConstants and the size of the rectangle is determined by the
+        grid unit size of the passed EditorLayer2D.
+
+        Attribute: Parameter layer The 2D EditorLayer that will determine the dimensions of the cursor
+    */
     action Load(EditorLayer2D layer)
         editorLayer = layer
 
@@ -32,13 +49,16 @@ class EditorCursor2D is EditorCursor, Drawable
         SetGridUnitSize(layer:GetGridUnitSize())
     end
 
+    /*
+        SetGridUnitSize changes the size of single grid unit 
+    */
     action SetGridUnitSize(number size)
         gridUnitSize = size
         SetSize(gridUnitSize * gridWidth, gridUnitSize * gridHeight)
     end
 
     /*
-    Expands the size of the selection by one grid unit on both the x and y axes.
+        Expands the size of the selection by one grid unit on both the x and y axes.
     */
     action IncreaseSize
         gridWidth = gridWidth + 1
@@ -47,7 +67,7 @@ class EditorCursor2D is EditorCursor, Drawable
     end
 
     /*
-
+        Decreases the size of the selection by one grid unit on both the x and y axes.
     */
     action DecreaseSize
         if gridWidth > 1
@@ -60,6 +80,9 @@ class EditorCursor2D is EditorCursor, Drawable
         SetSize(gridUnitSize * gridWidth, gridUnitSize * gridHeight)
     end
 
+    /*
+        GetItemsAtCursor 
+    */
     action GetItemsAtCursor returns Array<Item>
         Array<Item> array
         SceneConstants constants
@@ -81,6 +104,13 @@ class EditorCursor2D is EditorCursor, Drawable
         return array
     end
 
+    /*
+        GetEditorLayer returns the EditorLayer this cursor is using for grid sizing. The EditorLayer
+        used here would also be used to Add the cursor to but the Add call does not happen here because
+        the cursor is not always visible so it is handled elsewhere. 
+
+        Attribute: Returns EditorLayer the cursor is using to size itself
+    */
     action GetEditorLayer returns EditorLayer
         return editorLayer
     end

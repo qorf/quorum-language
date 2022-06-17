@@ -6,6 +6,12 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Controls.Scenes.SceneConstants
 
+/*
+    The CameraPreview2D class is an item drawn to an EditorLayer2D that is meant to 
+    describe the basic position and dimensions of the camera that will be loaded when
+    a Game with a 2D scene is ran. This class is an item made up of four drawables that
+    show the border of what is visible in the 2D scene.
+*/
 class CameraPreview2D is Item2D
 
     Drawable bottomBorder
@@ -35,30 +41,63 @@ class CameraPreview2D is Item2D
         SetZ(constants:CAMERA_PREVIEW_2D_DEPTH)
     end
 
+    /*
+        This action sets the width and height of the preview and resizes the borders
+        as necessary.
+
+        Attribute: Parameter width Width of the preview
+        Attribute: Parameter height Height of the preview
+    */
     action SetSize(number width, number height)
         parent:Item2D:SetSize(width, height)
         UpdateBorders()
     end
 
+    /*
+        This action sets the width of the previewand resizes the borders
+        as necessary.
+
+        Attribute: Parameter width Width of the preview
+    */
     action SetWidth(number width)
         parent:Item2D:SetWidth(width)
         UpdateBorders()
     end
 
+    /*
+        This action sets the height of the preview and resizes the borders
+        as necessary.
+
+        Attribute: Parameter height Height of the preview
+    */
     action SetHeight(number height)
         parent:Item2D:SetHeight(height)
         UpdateBorders()
     end
 
+    /*
+        This action sets the thickness of borders surrounding the preview area.
+
+        Attribute: Parameter thickness thickness of the preview borders
+    */
     action SetBorderThickness(number thickness)
         me:thickness = thickness
         UpdateBorders()
     end
 
+    /*
+        Returns the thickness of the preview borders.
+
+        Attribute: Returns Thickness of the preview borders
+    */
     action GetBorderThickness returns number
         return thickness
     end
 
+    /*
+        UpdateBorders resizes and repositions the borders around the preview
+        so the borders properly fit the preview area. 
+    */
     private action UpdateBorders
         leftBorder:SetSize(thickness, GetHeight())
         rightBorder:SetSize(thickness, GetHeight())
@@ -71,14 +110,34 @@ class CameraPreview2D is Item2D
         topBorder:SetPosition(-thickness, GetHeight())
     end
 
+    /*
+        GetPaddedWidth returns the width of the preview which includes the width
+        of the camera the preview describes and the width of the borders being
+        drawn.
+
+        Attribute: Returns The width of the preview including border thickness
+    */
     action GetPaddedWidth returns number
         return 2 * thickness + GetWidth()
     end
 
+
+    /*
+        GetPaddedHeight returns the height of the preview which includes the height
+        of the camera the preview describes and the thickness of the borders being
+        drawn.
+
+        Attribute: Returns The height of the preview including border thickness
+    */
     action GetPaddedHeight returns number
         return 2 * thickness + GetHeight()
     end
 
+    /*
+        This action is meant to handle mouse events but preview is only meant as an aid
+        not something the user directly clicks on so the event is set to not be handled
+        so items underneath the preview get the mouse event instead. 
+    */
     action ProcessMouseEvent(MouseEvent event)
         /*
         By setting the event handled flag to false, we essentially make

@@ -10,12 +10,22 @@ use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
 use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
 
+/*
+    ItemPreview2D inherits from ItemPreview and is used to build representations of DrawableBlueprints.
+    The texture of the DrawableBlueprint is loaded and altered as detailed by the blueprint. The preview
+    is added to the 2D scene editor at the position of cursor and is not added into the scene until the user
+    confirms it. 
+*/
 class ItemPreview2D is ItemPreview, EditorItem2D
 
     on create
         SetInputGroup("NewItemPreview2D")
     end
 
+    /*
+        The Load action loads a texture specified by the drawable blueprint and sets its properties
+        by what is specified in the blueprint and is positioned to be where the 2D cursor is.
+    */
     action Load(SceneEditor_LIBRARY editor, DrawableBlueprint schematic)
         SetSceneEditor(editor)
         SetItemBlueprint(schematic)
@@ -42,6 +52,12 @@ class ItemPreview2D is ItemPreview, EditorItem2D
         end
     end
 
+/*
+    ConvertToDrawable returns the drawable described by the blueprint as just a pure Drawable
+    so that it can be added to layer and then later saved into the scene. Because previews are
+    designed to be removed when the user focuses on other parts of the program this action is
+    used to make a more permanent addition to the scene. 
+*/
     action ConvertToDrawable returns Drawable
         Drawable drawable
         drawable:Load(me)
