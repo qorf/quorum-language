@@ -84,13 +84,7 @@ class BoxPlotLayout is ChartLayout
         // These calculate the necessary dimensions of the boxplots
         if plotGroups:GetSize() > 0
             integer numberOfPanels = plotGroups:GetSize()
-            if separateByFactor
-                numberOfPanels = chart:GetSeriesList():GetSize()
-            end
-//            if separateBySeries and not useFactor
-//                numberOfPanels = 1
-//            end
-            if separateBySeries and not useFactor
+            if separateByFactor or (separateBySeries and not useFactor)
                 numberOfPanels = chart:GetSeriesList():GetSize()
             end
 
@@ -143,17 +137,18 @@ class BoxPlotLayout is ChartLayout
                     repeat while k < plotCount
                         Plot plot = group:Get(k)
                         //Give each chart an alloted section  
-                        integer startw = width*k + startpanelw
-                        if separateBySeries
-
-                            if useFactor
-                                startw = startpanelw
-                            else
-                                //startw = width*k
-                                //do nothing for now.
+                        integer startw = width*k
+                        if not chart:HasGroups() or chart:IsSeparated()
+                            startw = startpanelw
+                            if separateBySeries
+                                if useFactor
+                                    startw = width*i
+                                else
+                                    startw = startpanelw
+                                end
+                            elseif separateByFactor 
+                                startw = width*k
                             end
-                        elseif separateByFactor
-                            startw = width*k
                         end
 
                         /* Indices for items of individual box plot
@@ -229,23 +224,33 @@ class BoxPlotLayout is ChartLayout
                             item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
 
                             integer plotAreaHeight = cast(integer, item:Get(10):GetY()+item:Get(10):GetHeight())
-                            if plot:GetPlotArea() not= undefined
-                                if horizontal
-                                    plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
-                                    plot:GetPlotArea():SetPosition(0,startw)
-                                    plot:SetSize(plotAreaHeight, width)
-                                    plot:SetPosition(0,startw)
-                                else
-                                    plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
-                                    plot:GetPlotArea():SetPosition(startw,0)
-                                    plot:SetSize(width, plotAreaHeight)
-                                    plot:SetPosition(startw,0)
+                            if separateByFactor and chart:HasGroups()
+                                if plot:GetPlotArea() not= undefined
+                                    if horizontal
+                                        plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
+                                        plot:GetPlotArea():SetPosition(0,startw)
+                                    else
+                                        plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
+                                        plot:GetPlotArea():SetPosition(startw,0)
+                                    end
+                                    // Load arrow for plot
+                                    LoadPlotSelectionArrowVertices(chart, plot)
+                                end                                
+                            else
+                                if plot:GetPlotArea() not= undefined
+                                    if horizontal
+                                        plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
+                                        plot:GetPlotArea():SetPosition(0,startw)
+                                    else
+                                        plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
+                                        plot:GetPlotArea():SetPosition(startw,0)
+                                    end
+                                    // Load arrow for plot
+                                    LoadPlotSelectionArrowVertices(chart, plot)
                                 end
-                                // Load bracket and arrow for plot
-                                LoadChartDrawableSelectionArrow(chart, plot, cast(integer, width/4), false)
                             end
                             if k = 0
-                                groupHeight = cast(integer, plot:GetPlotArea():GetHeight())
+                                groupHeight = plotAreaHeight
                             end
                             if plotAreaHeight > groupHeight
                                 groupHeight = plotAreaHeight
@@ -321,5 +326,26 @@ class BoxPlotLayout is ChartLayout
                 i = i + 1
             end
         end
+    end
+
+    /*
+        Interface action for setting the selection arrow for the plot using the size of plot area. 
+    */
+    private action LoadPlotSelectionArrowVertices(Chart chart, Plot plot)
+        ChartDrawable plotArea
+        plotArea:SetSize(plot:GetPlotArea():GetWidth(), plot:GetPlotArea():GetHeight())
+        plotArea:SetPosition(plot:GetPlotArea():GetX(), plot:GetPlotArea():GetY())
+
+        if horizontal 
+            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetHeight()/4), false)
+        else
+            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetWidth()/4), false)
+        end
+        Array<number> vertices = plotArea:GetSelectionArrowVertices()
+        Drawable arrow = plot:GetSelectionArrow()
+        arrow:LoadShape(vertices, plot:GetSelectionColor())
+        arrow:Hide()
+        arrow:SetZ(-1)
+        plot:SetSelectionArrowVertices(vertices) 
     end
 end

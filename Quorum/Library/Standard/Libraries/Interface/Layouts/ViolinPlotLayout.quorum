@@ -713,7 +713,11 @@ class ViolinPlotLayout is ChartLayout
         plotArea:SetSize(plot:GetPlotArea():GetWidth(), plot:GetPlotArea():GetHeight())
         plotArea:SetPosition(plot:GetPlotArea():GetX(), plot:GetPlotArea():GetY())
 
-        LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetWidth()/4), false)
+        if horizontal 
+            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetHeight()/4), false)
+        else
+            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetWidth()/4), false)
+        end
         Array<number> vertices = plotArea:GetSelectionArrowVertices()
         Drawable arrow = plot:GetSelectionArrow()
         arrow:LoadShape(vertices, plot:GetSelectionColor())
