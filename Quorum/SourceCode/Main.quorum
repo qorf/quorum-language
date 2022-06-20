@@ -438,24 +438,45 @@ class Main is NetworkExchangeListener
                 exchange:SendResponse(response)
                 return now
             end
+
+            constant text MAIN_FILE = "code"
     
             //by default the server sends a parmater called code, with the code in it.
-            if not params:HasKey("code")
+            if not params:HasKey(MAIN_FILE)
                 exchange:SendResponseHeaders(200, response)
                 exchange:SendResponse(response)
                 return now
             end
-            query = params:GetValue("code")
+            query = params:GetValue(MAIN_FILE)
             number start = time:GetEpochTime()
     
             Compiler compiler
             File main
+            main:SetPath("Main.quorum")
             compiler:SetOutputType(compiler:JAVASCRIPT)
             
             CompilerRequest compilerRequest
             
+            Array<text> filesCode
             Array<File> files
             files:Add(main)
+            filesCode:Add(query)
+
+            //now add any other files here
+            Iterator<text> keys = params:GetKeyIterator()
+            repeat while keys:HasNext() 
+                text key = keys:Next()
+                
+                if key not= MAIN_FILE and key not= "Main" //ignore main and code
+                    //the name is the File name
+                    File file
+                    file:SetPath(key + ".quorum")
+                    files:Add(file)
+
+                    text theCode = params:GetValue(key)
+                    filesCode:Add(theCode)
+                end
+            end
     
             compilerRequest:recompile = main
             compilerRequest:recompileValue = query
@@ -463,6 +484,7 @@ class Main is NetworkExchangeListener
             compilerRequest:main = main
             compilerRequest:library = sharedLibrary
             compilerRequest:files = files
+            compilerRequest:filesValues = filesCode
             
             CompilerResult compilerResult = compiler:Compile(compilerRequest)
             CompilerErrorManager manager = compilerResult:compilerErrorManager
