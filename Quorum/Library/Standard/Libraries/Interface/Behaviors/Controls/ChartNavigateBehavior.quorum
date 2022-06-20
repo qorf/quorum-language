@@ -10,10 +10,10 @@ use Libraries.Game.InputMonitor
 
 class ChartNavigateBehavior is Behavior
 
-    constant integer LEFT = 0
-    constant integer RIGHT = 1
-    constant integer DOWN = 2
-    constant integer UP = 3
+    constant integer X_AXIS_NEXT = 0
+    constant integer X_AXIS_PREV = 1
+    constant integer Y_AXIS_PREV = 2
+    constant integer Y_AXIS_NEXT = 3
     constant integer ENTER = 4
     constant integer ESCAPE = 5
     constant integer SHIFT_TAB = 6
@@ -28,14 +28,14 @@ class ChartNavigateBehavior is Behavior
 
             if keyEvent not= undefined
                 integer keycode = keyEvent:keyCode
-                if keycode = keyEvent:LEFT
-                    direction = LEFT
-                elseif keycode = keyEvent:RIGHT
-                    direction = RIGHT
-                elseif keycode = keyEvent:UP
-                    direction = UP
-                elseif keycode = keyEvent:DOWN
-                    direction = DOWN
+                if ((monitor:IsKeyPressed(keyEvent:CONTROL_LEFT) or monitor:IsKeyPressed(keyEvent:CONTROL_RIGHT)) and (keycode = keyEvent:LEFT or keycode = keyEvent:DOWN)) or keycode = keyEvent:PAGE_DOWN
+                    direction = Y_AXIS_PREV
+                elseif ((monitor:IsKeyPressed(keyEvent:CONTROL_LEFT) or monitor:IsKeyPressed(keyEvent:CONTROL_RIGHT)) and (keycode = keyEvent:RIGHT or keycode = keyEvent:UP)) or keycode = keyEvent:PAGE_UP
+                    direction = Y_AXIS_NEXT
+                elseif keycode = keyEvent:LEFT or keycode = keyEvent:DOWN
+                    direction = X_AXIS_PREV
+                elseif keycode = keyEvent:RIGHT or keycode = keyEvent:UP
+                    direction = X_AXIS_NEXT
                 elseif keycode = keyEvent:ENTER or keycode = keyEvent:NUMPAD_ENTER
                     direction = ENTER
                 elseif keycode = keyEvent:ESCAPE
@@ -52,23 +52,23 @@ class ChartNavigateBehavior is Behavior
                 end
 
                 if gesture:GetDirection() = gesture:LEFT
-                    direction = LEFT
+                    direction = X_AXIS_PREV
                 elseif gesture:GetDirection() = gesture:RIGHT
-                    direction = RIGHT
+                    direction = X_AXIS_NEXT
                 elseif gesture:GetDirection() = gesture:UP
-                    direction = UP
+                    direction = Y_AXIS_NEXT
                 elseif gesture:GetDirection() = gesture:DOWN
-                    direction = DOWN
+                    direction = Y_AXIS_PREV
                 end
             end
 
-            if direction = UP
+            if direction = Y_AXIS_NEXT
                 chart:SelectionUp()
-            elseif direction = DOWN
+            elseif direction = Y_AXIS_PREV
                 chart:SelectionDown()
-            elseif direction = LEFT
+            elseif direction = X_AXIS_PREV
                 chart:SelectionLeft()
-            elseif direction = RIGHT
+            elseif direction = X_AXIS_NEXT
                 chart:SelectionRight()
             elseif direction = ENTER
                 chart:SelectionEnter()

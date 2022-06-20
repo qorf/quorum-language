@@ -175,8 +175,8 @@ class HorizontalAxisPanel is ChartItem
         Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
-        xAxis:SetUpItem(summary)
-        summary:SetDownItem(xAxis)
+        xAxis:SetLeftItem(summary)
+        summary:SetRightItem(xAxis)
         xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
@@ -184,11 +184,11 @@ class HorizontalAxisPanel is ChartItem
         xAxis:SetPreviousFocus(summary)
         //xAxis:SetRightItem(chartArea)
         if chart:IsShowingYAxis()
-            xAxis:SetDownItem(yAxis)
-            yAxis:SetUpItem(xAxis)
+            xAxis:SetRightItem(yAxis)
+            yAxis:SetLeftItem(xAxis)
         elseif chart:IsShowingLegend()
-            xAxis:SetDownItem(chart:GetLegend())   
-            chart:GetLegend():SetUpItem(xAxis)   
+            xAxis:SetRightItem(chart:GetLegend())   
+            chart:GetLegend():SetLeftItem(xAxis)   
         end   
         
         if not chart:IsSeparated()

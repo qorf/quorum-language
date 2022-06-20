@@ -1371,6 +1371,22 @@ class Game
         InputSet escapeSet
         escapeSet:SetKeyboardInput(keys:ESCAPE)
 
+        InputSet controlUp
+        controlUp:SetKeyboardInput(keys:UP)
+        controlUp:AddModifier(controlUp:CONTROL)
+
+        InputSet controlDown
+        controlDown:SetKeyboardInput(keys:DOWN)
+        controlDown:AddModifier(controlDown:CONTROL)
+
+        InputSet controlLeft
+        controlLeft:SetKeyboardInput(keys:LEFT)
+        controlLeft:AddModifier(controlDown:CONTROL)
+
+        InputSet controlRight
+        controlRight:SetKeyboardInput(keys:RIGHT)
+        controlRight:AddModifier(controlDown:CONTROL)
+
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(leftArrow, chartNavigateBehavior)
         chartTable:Add(rightArrow, chartNavigateBehavior)
@@ -1382,6 +1398,12 @@ class Game
         chartTable:Add(swipeSet, chartNavigateBehavior)
         chartTable:Add(tabFocus, chartNavigateBehavior)
         chartTable:Add(shiftTabFocus, chartNavigateBehavior)
+        chartTable:Add(controlUp, chartNavigateBehavior)
+        chartTable:Add(controlDown, chartNavigateBehavior)
+        chartTable:Add(controlLeft, chartNavigateBehavior)
+        chartTable:Add(controlRight, chartNavigateBehavior)
+        chartTable:Add(pageUp, chartNavigateBehavior)
+        chartTable:Add(pageDown, chartNavigateBehavior)
         AddInputTable(chartTable)
 
         InputTable menuItemTable

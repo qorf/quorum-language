@@ -100,14 +100,14 @@ class Legend is ChartItem
         SetContainer(chart)
 
         if chart:IsShowingYAxis()
-            yAxis:SetDownItem(me)
-            SetUpItem(yAxis)
+            yAxis:SetRightItem(me)
+            SetLeftItem(yAxis)
         elseif chart:IsShowingXAxis()
-            xAxis:SetDownItem(me)
-            SetUpItem(xAxis)
+            xAxis:SetRightItem(me)
+            SetLeftItem(xAxis)
         else
-            summary:SetDownItem(me)
-            SetUpItem(summary)
+            summary:SetRightItem(me)
+            SetLeftItem(summary)
         end
 
         // Legend Entries
