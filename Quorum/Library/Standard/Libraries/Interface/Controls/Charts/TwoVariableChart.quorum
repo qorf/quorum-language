@@ -122,7 +122,7 @@ class TwoVariableChart is Chart
                 integer j = 0
                 repeat while j < cline:GetLines():GetSize()
                     LineSegment line = cline:GetLines():Get(j)
-                    line:SetFocusable(true)
+//                    line:SetFocusable(true)
                     line:SetAccessibilityCode(parent:Item:ITEM)
                     line:SetNextFocus(GetNextFocus())
                     line:SetPreviousFocus(GetPreviousFocus())

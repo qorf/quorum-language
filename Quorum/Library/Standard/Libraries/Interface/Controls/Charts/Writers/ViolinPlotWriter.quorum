@@ -346,7 +346,7 @@ class ViolinPlotWriter is ChartWriter
     
                             Group itemSVG
                             itemSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
-                            itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plot-list")
+                            itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
                             itemSVG:SetFill(currentItem:GetColor())
                             itemSVG:SetTabIndex(-1)
                             if HasAccessibility()   
@@ -660,7 +660,7 @@ class ViolinPlotWriter is ChartWriter
         
                                 Group itemSVG
                                 itemSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
-                                itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plot-list")
+                                itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
                                 itemSVG:SetFill(currentItem:GetColor())
                                 itemSVG:SetTabIndex(-1)
                                 if HasAccessibility()   
