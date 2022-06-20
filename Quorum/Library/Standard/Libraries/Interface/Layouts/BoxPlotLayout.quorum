@@ -234,7 +234,7 @@ class BoxPlotLayout is ChartLayout
                                         plot:GetPlotArea():SetPosition(startw,0)
                                     end
                                     // Load arrow for plot
-                                    LoadPlotSelectionArrowVertices(chart, plot)
+                                    LoadPlotSelectionArrowVertices(chart, plot, line*8)
                                 end                                
                             else
                                 if plot:GetPlotArea() not= undefined
@@ -246,7 +246,7 @@ class BoxPlotLayout is ChartLayout
                                         plot:GetPlotArea():SetPosition(startw,0)
                                     end
                                     // Load arrow for plot
-                                    LoadPlotSelectionArrowVertices(chart, plot)
+                                    LoadPlotSelectionArrowVertices(chart, plot, line*8)
                                 end
                             end
                             if k = 0
@@ -331,16 +331,12 @@ class BoxPlotLayout is ChartLayout
     /*
         Interface action for setting the selection arrow for the plot using the size of plot area. 
     */
-    private action LoadPlotSelectionArrowVertices(Chart chart, Plot plot)
+    private action LoadPlotSelectionArrowVertices(Chart chart, Plot plot, integer arrowSize)
         ChartDrawable plotArea
         plotArea:SetSize(plot:GetPlotArea():GetWidth(), plot:GetPlotArea():GetHeight())
         plotArea:SetPosition(plot:GetPlotArea():GetX(), plot:GetPlotArea():GetY())
 
-        if horizontal 
-            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetHeight()/4), false)
-        else
-            LoadChartDrawableSelectionArrow(chart, plotArea, cast(integer, plot:GetPlotArea():GetWidth()/4), false)
-        end
+        LoadChartDrawableSelectionArrow(chart, plotArea, arrowSize, false)
         Array<number> vertices = plotArea:GetSelectionArrowVertices()
         Drawable arrow = plot:GetSelectionArrow()
         arrow:LoadShape(vertices, plot:GetSelectionColor())

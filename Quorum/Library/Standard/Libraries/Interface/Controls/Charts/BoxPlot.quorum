@@ -187,7 +187,7 @@ class BoxPlot is Chart
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
                     end
-                    chartArea:Add(minimumLine:GetSelectionArrow())
+                    plot:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
                     interQuartileRange:SetFocusable(true)
@@ -199,16 +199,16 @@ class BoxPlot is Chart
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
                     end
-                    chartArea:Add(interQuartileRange:GetSelectionArrow())
+                    plot:Add(interQuartileRange:GetSelectionArrow())
                     Drawable topBrack
                     interQuartileRange:GetSelectionBracket():Add(topBrack)
-                    chartArea:Add(topBrack)
+                    plot:Add(topBrack)
                     Drawable sideBrack
                     interQuartileRange:GetSelectionBracket():Add(sideBrack) 
-                    chartArea:Add(sideBrack)
+                    plot:Add(sideBrack)
                     Drawable bottomBrack
                     interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
-                    chartArea:Add(bottomBrack)  
+                    plot:Add(bottomBrack)  
     
                     // Lower Quartile Line Q1
                     firstQuartileLine:SetFocusable(true)
@@ -220,7 +220,7 @@ class BoxPlot is Chart
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
                     end
-                    chartArea:Add(firstQuartileLine:GetSelectionArrow())
+                    plot:Add(firstQuartileLine:GetSelectionArrow())
     
                     // Median Line (denser) 
                     medianLine:SetFocusable(true)
@@ -232,7 +232,7 @@ class BoxPlot is Chart
                     if CheckIfInteger(median)
                         medianLine:SetDescription(" " + cast(integer, median))
                     end
-                    chartArea:Add(medianLine:GetSelectionArrow())
+                    plot:Add(medianLine:GetSelectionArrow())
     
                     // Upper Quartile Line Q3
                     thirdQuartileLine:SetFocusable(true)
@@ -244,7 +244,7 @@ class BoxPlot is Chart
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
                     end
-                    chartArea:Add(thirdQuartileLine:GetSelectionArrow())
+                    plot:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
                     maximumLine:SetFocusable(true)
@@ -256,7 +256,7 @@ class BoxPlot is Chart
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
                     end
-                    chartArea:Add(maximumLine:GetSelectionArrow())
+                    plot:Add(maximumLine:GetSelectionArrow())
                 end
 
                 // Add to chart
@@ -380,7 +380,7 @@ class BoxPlot is Chart
                 end
 
                 // Set selection arrow for plot
-                chartArea:Add(plot:GetSelectionArrow())
+                plot:Add(plot:GetSelectionArrow())
 
                 // Set Navigation Instruction for first plot item (minimum)
                 AddPlotItemInstructions(minimumLine, minimumLine:GetDescription())
@@ -714,14 +714,15 @@ class BoxPlot is Chart
         ChartItem yAxis = GetVerticalPanel()
         ChartItem chartArea = GetChartArea()
         ChartItem summary = me
+
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
         summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
-        chartArea:SetPreviousFocus(summary)
-        chartArea:SetContainer(me)
 
         chartArea:SetDisplayName("Box Plot")
+        chartArea:SetPreviousFocus(summary)
+        chartArea:SetContainer(me)
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
@@ -741,70 +742,11 @@ class BoxPlot is Chart
                 ChartItem firstArea = GetSubChartAreas():Get(0)
                 firstArea:SetContainer(me)
                 firstArea:SetPreviousFocus(summary)
-//                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
                 chartArea:SetEnterItem(firstArea)
                 firstArea:SetEscapeItem(chartArea)
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-//                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
-
-                //Plots within Chart Areas
-                if chartAreaItems:GetSize() > 0 
-                    ChartItem prev_target = undefined
-                    integer k = 0
-                    repeat while k < chartAreaItems:GetSize()
-                        Plot plot = undefined
-                        check
-                            plot = cast(Plot, chartAreaItems:Get(k))
-                        detect e is CastError
-                            // If a casting error occurs, then this wasn't a plot, so bail.
-                            return now
-                        end
-
-                        ChartItem next_target = plot
-                        
-                        Array<ChartDrawable> items = plot:GetPlotItems() //First plot
-                        if k = 0
-                            firstArea:SetEnterItem(next_target)
-                        else
-                            next_target:SetLeftItem(prev_target)
-                            prev_target:SetRightItem(next_target)
-                        end
-                        
-                        next_target:SetContainer(me)
-                        next_target:SetPreviousFocus(summary)
-                        next_target:SetDisplayName(plot:GetName())
-                        next_target:SetEscapeItem(firstArea)
-                        prev_target = next_target    
-                        ChartItem previous = undefined
-                        integer target_index = 0
-                        integer index = 1
-                        repeat while index < items:GetSize()
-                            ChartDrawable item = items:Get(index)
-                            ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                            text description = item:GetDescription()
-                    
-                            if description not= ""
-                                ChartItem next = item
-                                if target_index = 0
-                                    next_target:SetEnterItem(next)
-                                else
-                                    next:SetLeftItem(previous)
-                                    previous:SetRightItem(next)
-                                end
-                                next:SetContainer(me)
-                                next:SetPreviousFocus(summary)
-                                next:SetDisplayName(item:GetName())
-                                next:SetEscapeItem(next_target)
-                                
-                                previous = next
-                                target_index = target_index+1 
-                            end
-                            index = index + 1
-                        end
-                        k = k + 1
-                    end
-                end
+                AddPlots(summary, firstArea, CastToPlots(chartAreaItems))
 
                 i = 1
                 ChartItem previousArea = firstArea
@@ -820,70 +762,13 @@ class BoxPlot is Chart
                         previousArea = nextArea
                         nextArea:SetDisplayName(chartSubArea:GetName())
                         Array<ChartItem> chartSubAreaItems = chartSubArea:GetChartAreaItems()
-    //                    chartSubArea:SetDescription(" chart area with " + chartSubAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
-    
-                        //Plots within Plot Groups
-                        if chartSubAreaItems:GetSize() > 0 
-                            ChartItem prev_target = undefined
-                            integer k = 0
-                            repeat while k < chartSubAreaItems:GetSize()
-                                Plot plot = undefined
-                                check
-                                    plot = cast(Plot, chartSubAreaItems:Get(k))
-                                detect e is CastError
-                                    // If a casting error occurs, then this wasn't a plot, so bail.
-                                    return now
-                                end
-                                ChartItem next_target = plot
-                                Array<ChartDrawable> items = plot:GetPlotItems() //First plot
-                                if k = 0
-                                    nextArea:SetEnterItem(next_target)
-                                else
-                                    next_target:SetLeftItem(prev_target)
-                                    prev_target:SetRightItem(next_target)
-                                end
-        
-                                next_target:SetContainer(me) 
-                                next_target:SetPreviousFocus(summary)
-                                next_target:SetDisplayName(plot:GetName())
-                                next_target:SetEscapeItem(nextArea)
-                                prev_target = next_target      
-                                ChartItem previous = undefined
-                                integer target_index = 0
-                                integer index = 1
-                                repeat while index < items:GetSize()
-                                    ChartDrawable item = items:Get(index)
-                                    ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                    text description = item:GetDescription()
-                            
-                                    if description not= ""
-                                        ChartItem next = item
-                                        if target_index = 0
-                                            next_target:SetEnterItem(next)
-                                        else
-                                            next:SetLeftItem(previous)
-                                            previous:SetRightItem(next)
-                                        end
-                                        next:SetContainer(me)
-                                        next:SetPreviousFocus(summary)
-                                        next:SetDisplayName(item:GetName())
-                                        next:SetEscapeItem(next_target)
-                                        
-                                        previous = next
-                                        target_index = target_index+1 
-                                    end
-                                    index = index + 1
-                                end
-                                k = k + 1
-                            end
-                        end
+                        AddPlots(summary, nextArea, CastToPlots(chartSubAreaItems))
                     end
                     i = i + 1
                 end
             end
         else
             if HasGroups()
-                //Plot Groups
                 if plotGroups:GetSize() > 0
                     ChartItem firstGroup = plotGroups:Get(0)
                     firstGroup:SetContainer(me)
@@ -892,55 +777,7 @@ class BoxPlot is Chart
                     chartArea:SetEnterItem(firstGroup)
                     firstGroup:SetEscapeItem(chartArea)
                     firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
-        
-                    //Plots within Plot Groups
-                    if plotGroups:Get(0):GetSize() > 0 
-                        ChartItem prev_target = undefined
-                        integer k = 0
-                        repeat while k < plotGroups:Get(0):GetSize()
-                            ChartItem next_target = plotGroups:Get(0):Get(k)
-                            Array<ChartDrawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
-                            if k = 0
-                                firstGroup:SetEnterItem(next_target)
-                            else
-                                next_target:SetLeftItem(prev_target)
-                                prev_target:SetRightItem(next_target)
-                            end
-                            
-                            next_target:SetContainer(me)
-                            next_target:SetPreviousFocus(summary)
-                            next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetName()) 
-                            next_target:SetEscapeItem(firstGroup)
-                            prev_target = next_target    
-                            ChartItem previous = undefined
-                            integer target_index = 0
-                            integer index = 1
-                            repeat while index < items:GetSize()
-                                ChartDrawable item = items:Get(index)
-                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                text description = item:GetDescription()
-                      
-                                if description not= ""
-                                    ChartItem next = item
-                                    if target_index = 0
-                                        next_target:SetEnterItem(next)
-                                    else
-                                        next:SetLeftItem(previous)
-                                        previous:SetRightItem(next)
-                                    end
-                                    next:SetContainer(me)
-                                    next:SetPreviousFocus(summary)
-                                    next:SetDisplayName(item:GetName())
-                                    next:SetEscapeItem(next_target)
-                                    
-                                    previous = next
-                                    target_index = target_index+1 
-                                end
-                                index = index + 1
-                            end
-                            k = k + 1
-                        end
-                    end
+                    AddPlots(summary, firstGroup, plotGroups:Get(0):GetPlots())
 
                     i = 1
                     ChartItem previousGroup = firstGroup
@@ -953,103 +790,58 @@ class BoxPlot is Chart
                         previousGroup:SetRightItem(group)
                         group:SetLeftItem(previousGroup)
                         previousGroup = group
-        
-                        //Plots within Plot Groups
-                        if plotGroups:Get(i):GetSize() > 0 
-                            ChartItem prev_target = undefined
-                            integer k = 0
-                            repeat while k < plotGroups:Get(i):GetSize()
-                                ChartItem next_target = plotGroups:Get(i):Get(k)
-                                Array<ChartDrawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
-                                if k = 0
-                                    group:SetEnterItem(next_target)
-                                else
-                                    next_target:SetLeftItem(prev_target)
-                                    prev_target:SetRightItem(next_target)
-                                end
-        
-                                next_target:SetContainer(me)
-                                next_target:SetPreviousFocus(summary)
-                                next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetName()) 
-                                next_target:SetEscapeItem(group)
-                                prev_target = next_target      
-                                ChartItem previous = undefined
-                                integer target_index = 0
-                                integer index = 1
-                                repeat while index < items:GetSize()
-                                    ChartDrawable item = items:Get(index)
-                                    ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                    text description = item:GetDescription()
-                          
-                                    if description not= ""
-                                        ChartItem next = item
-                                        if target_index = 0
-                                            next_target:SetEnterItem(next)
-                                        else
-                                            next:SetLeftItem(previous)
-                                            previous:SetRightItem(next)
-                                        end
-                                        next:SetContainer(me)
-                                        next:SetPreviousFocus(summary)
-                                        next:SetDisplayName(item:GetName()) 
-                                        next:SetEscapeItem(next_target)
-                                        
-                                        previous = next
-                                        target_index = target_index+1 
-                                    end
-                                    index = index + 1
-                                end
-                                k = k + 1
-                            end
-                        end
+                        AddPlots(summary, group, plotGroups:Get(i):GetPlots())
                         i = i + 1
                     end
                 end
             else
-                ChartItem prev_target = undefined
-                integer k = 0
-                repeat while k < plotGroups:GetSize()
-                    ChartItem next_target = plotGroups:Get(k):Get(0)
-                    Array<ChartDrawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
-                    if k = 0
-                        chartArea:SetEnterItem(next_target)
-                    else
-                        next_target:SetLeftItem(prev_target)
-                        prev_target:SetRightItem(next_target)
-                    end
-    
-                    next_target:SetContainer(me)
-                    next_target:SetPreviousFocus(summary)
-                    next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetName()) 
-                    next_target:SetEscapeItem(chartArea)
-                    prev_target = next_target      
-                    ChartItem previous = undefined
-                    integer target_index = 0
-                    integer index = 1
-                    repeat while index < items:GetSize()
-                        ChartDrawable item = items:Get(index)
-                        ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                        text description = item:GetDescription()
-                
-                        if description not= ""
-                            ChartItem next = item
-                            if target_index = 0
-                                next_target:SetEnterItem(next)
-                            else
-                                next:SetLeftItem(previous)
-                                previous:SetRightItem(next)
-                            end
-                            next:SetContainer(me)
-                            next:SetPreviousFocus(summary)
-                            next:SetDisplayName(item:GetName())
-                            next:SetEscapeItem(next_target)
-                            
-                            previous = next
-                            target_index = target_index+1 
+                if plotGroups:GetSize() > 0 and plotGroups:Get(0):GetSize() > 0
+                    // Add LEFT/RIGHT navigation
+                    Plot firstPlot = plotGroups:Get(0):Get(0)
+                    AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
+                    firstPlot:SetDisplayName(firstPlot:GetName())
+                    firstPlot:SetContainer(me)
+                    firstPlot:SetPreviousFocus(summary)
+                    firstPlot:SetEscapeItem(chartArea)
+                    chartArea:SetEnterItem(firstPlot)
+            
+                    integer i = 1
+                    ChartItem previousPlot = firstPlot
+                    repeat while i < plotGroups:GetSize()
+                        if plotGroups:Get(i):GetSize() > 0
+                            Plot plot = plotGroups:Get(i):Get(0)
+                            AddPlotItems(summary, plot, plot:GetPlotItems())
+                            plot:SetDisplayName(plot:GetName())
+                            plot:SetContainer(me)
+                            plot:SetPreviousFocus(summary)
+                            plot:SetEscapeItem(chartArea)
+                            plot:SetLeftItem(previousPlot)
+                            previousPlot:SetRightItem(plot)
+                            previousPlot = plot
                         end
-                        index = index + 1
+                        i = i + 1
                     end
-                    k = k + 1
+
+        
+                    // Add UP/DOWN navigation
+                    PlotGroupComparison comparison
+                    comparison:SetAscending(true)
+                    Array<PlotGroup> sortUDPlots = plotGroups:CopyToArray()
+                    sortUDPlots:Sort(comparison)
+                    if sortUDPlots:Get(0):GetSize() > 0
+                        firstPlot = sortUDPlots:Get(0):Get(0)
+                        i = 1
+                        previousPlot = firstPlot
+                        repeat while i < sortUDPlots:GetSize()
+                            if sortUDPlots:Get(i):GetSize() > 0
+                                Plot plot = sortUDPlots:Get(i):Get(0)
+                                plot:SetDownItem(previousPlot)
+                                previousPlot:SetUpItem(plot)
+                                previousPlot = plot
+                            end
+                            i = i + 1
+                        end
+                    end
                 end
             end
         end
@@ -1057,7 +849,109 @@ class BoxPlot is Chart
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
-   
+
+    /* 
+        This action converts sub chart area chart items into an array of plots (if applicable). This is not directly handled by the user.
+    */
+    private action CastToPlots(Array <ChartItem> chartAreaItems) returns Array <Plot>
+        Array <Plot> plots
+        integer i = 0
+        repeat while i < chartAreaItems:GetSize()
+            if (chartAreaItems:Get(i) is Plot)
+                plots:Add(cast(Plot, chartAreaItems:Get(i)))
+            end
+            i = i + 1
+        end
+        return plots
+    end
+
+    /* 
+        This action sets the navigation within an array of plots. This is not directly handled by the user.
+    */
+    private action AddPlots(ChartItem summary, ChartItem parentItem, Array<Plot> plots)
+        if not plots:IsEmpty()
+            // Add LEFT/RIGHT navigation
+            Plot firstPlot = plots:Get(0)
+            AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
+            firstPlot:SetDisplayName(firstPlot:GetName())
+            firstPlot:SetContainer(me)
+            firstPlot:SetPreviousFocus(summary)
+            firstPlot:SetEscapeItem(parentItem)
+            parentItem:SetEnterItem(firstPlot)
+    
+            integer i = 1
+            ChartItem previousPlot = firstPlot
+            repeat while i < plots:GetSize()
+                Plot plot = plots:Get(i)
+                AddPlotItems(summary, plot, plot:GetPlotItems())
+                plot:SetDisplayName(plot:GetName())
+                plot:SetContainer(me)
+                plot:SetPreviousFocus(summary)
+                plot:SetEscapeItem(parentItem)
+                plot:SetLeftItem(previousPlot)
+                previousPlot:SetRightItem(plot)
+                previousPlot = plot
+                i = i + 1
+            end
+
+            // Add UP/DOWN navigation
+            PlotComparison comparison
+            comparison:SetAscending(true)
+            Array<Plot> sortUDPlots = plots:CopyToArray()
+            sortUDPlots:Sort(comparison)
+            firstPlot = sortUDPlots:Get(0)
+            i = 1
+            previousPlot = firstPlot
+            repeat while i < sortUDPlots:GetSize()
+                Plot plot = sortUDPlots:Get(i)
+                plot:SetDownItem(previousPlot)
+                previousPlot:SetUpItem(plot)
+                previousPlot = plot
+                i = i + 1
+            end
+        end
+    end
+
+    /* 
+        This action sets the plot summary items' navigation. This is not directly handled by the user.
+    */
+    private action AddPlotItems(ChartItem summary, ChartItem parentItem, Array <ChartDrawable> items)
+        if not items:IsEmpty()
+            // Add LEFT/RIGHT navigation
+            ChartDrawable firstItem = items:Get(0)
+            text description = firstItem:GetDescription() 
+            integer i = 0
+            repeat while description = "" and i < items:GetSize()
+                firstItem = items:Get(i)
+                description = firstItem:GetDescription()   
+                i = i + 1
+            end
+            firstItem:SetDisplayName(firstItem:GetName())
+            firstItem:SetContainer(me)
+            firstItem:SetPreviousFocus(summary)
+            firstItem:SetEscapeItem(parentItem)
+            parentItem:SetEnterItem(firstItem)
+    
+            ChartItem previousItem = firstItem
+            repeat while i < items:GetSize()
+                ChartDrawable item = items:Get(i)
+                description = item:GetDescription() 
+                if description not= ""
+                    item:SetDisplayName(item:GetName())
+                    item:SetContainer(me)
+                    item:SetPreviousFocus(summary)
+                    item:SetEscapeItem(parentItem)
+                    item:SetLeftItem(previousItem)
+                    previousItem:SetRightItem(item)
+                    item:SetDownItem(previousItem)
+                    previousItem:SetUpItem(item)
+                    previousItem = item
+                end
+                i = i + 1
+            end
+        end
+    end
+
     /* 
         This action converts this chart to a text value that contains information 
         for a scalable vector graphics file. This is useful for saving charts to disk.
