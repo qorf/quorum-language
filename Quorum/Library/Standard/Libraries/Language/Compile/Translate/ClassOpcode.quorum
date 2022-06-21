@@ -1222,7 +1222,8 @@ class ClassOpcode is QuorumOpcode
         if clazz:IsStatic()
             methodWriter:VisitConstant(clazz:GetStaticKey())
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Object", "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/SharedClass", 
+                "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
         end
 
         //call a method on the object, its non-static main
