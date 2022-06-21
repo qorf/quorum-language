@@ -1529,7 +1529,7 @@ class ChartWriter
         //Region Wrapper
         Division divRegion
         divRegion:SetClassAttribute("quorum-wrapper")
-        divRegion:SetStyle("min-width: 200px; max-width: 800px;")
+        //divRegion:SetStyle("")
         divRegion:AddAttribute("role","region")
 
         //Chart Info Wrapper
@@ -1587,7 +1587,7 @@ class ChartWriter
         //Wrapper for SVG to help with scaling size
         Division svgWrapper
         svgWrapper:SetTabIndex("-1")
-        svgWrapper:SetStyle("min-width: 200px; max-width: 800px; user-select: none;")
+        svgWrapper:SetStyle("user-select: none;")
         divRegion:AddNestedTag(svgWrapper)
         svgWrapper:AddText(canvas:ToText())
 
