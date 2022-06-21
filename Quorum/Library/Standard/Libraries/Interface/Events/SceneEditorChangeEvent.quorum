@@ -1,0 +1,47 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Item
+use Libraries.Game.Layer
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+
+class SceneEditorChangeEvent
+
+    public constant integer ADDED = 1
+    public constant integer REMOVED = 2
+
+    SceneEditor_LIBRARY editor = undefined
+    Item item = undefined
+    Item parentItem = undefined
+    EditorLayer layer = undefined
+    integer eventType = 0
+
+    action Set(SceneEditor_LIBRARY editor, Item item, Item parentItem, EditorLayer layer, integer eventType)
+        me:editor = editor
+        me:item = item
+        me:parentItem = parentItem
+        me:layer = layer
+        me:eventType = eventType
+    end
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        return editor
+    end
+
+    action GetItem returns Item
+        return item
+    end
+
+    action GetParentItem returns Item
+        return parentItem
+    end
+
+    action GetLayer returns EditorLayer
+        return layer
+    end
+
+    action GetEventType returns integer
+        return eventType
+    end
+
+end
