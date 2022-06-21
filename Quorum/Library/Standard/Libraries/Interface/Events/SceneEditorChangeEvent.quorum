@@ -5,6 +5,13 @@ use Libraries.Game.Layer
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
 use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
 
+
+/*
+    The SceneEditorChangeEvent class describes an event where the user interacted with the 
+    Scene Editor and added or removed an item from the scene. This class contains information
+    on the Scene Editor affected, the item involved in the event, and the EditorLayer the item was
+    on. 
+*/
 class SceneEditorChangeEvent
 
     public constant integer ADDED = 1
@@ -16,6 +23,16 @@ class SceneEditorChangeEvent
     EditorLayer layer = undefined
     integer eventType = 0
 
+    /*
+        The Set action sets all the fields of the event. When creating a new event this action is called so the 
+        object contains all the information needed for the listeners to react to it.
+
+        Attribute: Parameter editor The Scene Editor where the event happened
+        Attribute: Parameter item The item that was added or removed
+        Attribute: Parameter parentItem The parent item of the affected item
+        Attribute: Parameter layer The EditorLayer affected by the addition or removal of the item
+        Attribute: Parameter eventType The type of event, 1 for ADDED, 2 for REMOVED
+    */
     action Set(SceneEditor_LIBRARY editor, Item item, Item parentItem, EditorLayer layer, integer eventType)
         me:editor = editor
         me:item = item
@@ -24,22 +41,47 @@ class SceneEditorChangeEvent
         me:eventType = eventType
     end
 
+    /*
+        Returns the SceneEditor where the event happened
+
+        Attribute: Returns The scene editor
+    */
     action GetSceneEditor returns SceneEditor_LIBRARY
         return editor
     end
 
+    /*
+        Returns the item that was added or removed
+
+        Attribute: Returns The item that was added or removed
+    */
     action GetItem returns Item
         return item
     end
 
+    /*
+        Returns the parent of the item that triggered the event
+
+        Attribute: Returns The parent item
+    */
     action GetParentItem returns Item
         return parentItem
     end
 
+    /*
+        Returns the EditorLayer affected by the event
+
+        Attribute: Returns The EditorLayer
+    */
     action GetLayer returns EditorLayer
         return layer
     end
 
+    /*
+        Returns the event type. If 1 the item was added, if 2 the item was removed.
+
+        Attribute: Returns The event type
+    */
     action GetEventType returns integer
         return eventType
     end
