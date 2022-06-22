@@ -106,16 +106,6 @@ class ActionOpcode is QuorumOpcode
     
                 methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
             else
-
-                /*
-  public int GetHashCode();
-    Code:
-       0: aload_0
-       1: getfield      #2                  // Field me_:Ljava/lang/Object;
-       4: invokevirtual #3                  // Method java/lang/Object.hashCode:()I
-       7: ireturn
-
-                */
                 if method:GetStaticKey() = "GetHashCode" //inline this action
                     methodWriter:VisitCode()
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
