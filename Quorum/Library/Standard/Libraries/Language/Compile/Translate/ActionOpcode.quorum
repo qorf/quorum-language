@@ -82,26 +82,50 @@ class ActionOpcode is QuorumOpcode
             return now
         end
 
+        //follow the standard procedure for system calls, with the exception of Object, which we inline
         if method:IsSystem()
-            methodWriter:VisitCode()
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
-            methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
-                clazz:GetPluginName(), clazz:ConvertStaticKeyToPluginPathTypeName())
+            //objects are special, for efficiency
+            if not clazz:IsObject()
+                methodWriter:VisitCode()
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
+                    clazz:GetPluginName(), clazz:ConvertStaticKeyToPluginPathTypeName())
+    
+                Iterator<Variable> parameters = method:GetParameterIterator()
+                integer position = 1
+                repeat while parameters:HasNext()
+                    Variable param = parameters:Next()
+                    Type type = param:GetType()
+                    methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
+                    position = position + type:GetBytecodeSize()
+                end
+    
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                    clazz:ConvertStaticKeyToPluginPath(), method:GetName(), 
+                    method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
+    
+                methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+            else
 
-            Iterator<Variable> parameters = method:GetParameterIterator()
-            integer position = 1
-            repeat while parameters:HasNext()
-                Variable param = parameters:Next()
-                Type type = param:GetType()
-                methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
-                position = position + type:GetBytecodeSize()
+                /*
+  public int GetHashCode();
+    Code:
+       0: aload_0
+       1: getfield      #2                  // Field me_:Ljava/lang/Object;
+       4: invokevirtual #3                  // Method java/lang/Object.hashCode:()I
+       7: ireturn
+
+                */
+                if method:GetStaticKey() = "GetHashCode" //inline this action
+                    methodWriter:VisitCode()
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                        "quorum/Libraries/Language/Object", "hashCode", 
+                        "()I", false)
+                    methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+                end
             end
-
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
-                clazz:ConvertStaticKeyToPluginPath(), method:GetName(), 
-                method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
-
-            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+            
         elseif method:IsBlueprint()
             methodWriter:VisitCode()
 

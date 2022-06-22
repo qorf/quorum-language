@@ -1294,7 +1294,8 @@ class ClassOpcode is QuorumOpcode
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_OBJECT, CONSTRUCTOR_JAVA_NAME, "()V", false)
         end
 
-        if clazz:HasSystemAction()
+        //the object class inlines its plugin functionality and thus does not need a plugin.
+        if clazz:HasSystemAction() and not clazz:IsObject()
             WritePlugin(methodWriter)
         end
         
