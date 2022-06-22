@@ -330,6 +330,9 @@ class BoxPlot is Chart
                 plot:SetNextFocus(GetNextFocus())
                 plot:SetPreviousFocus(GetPreviousFocus())
                 plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
+                if not HasGroups()
+                    plot:SetName(group:GetName() + " plot, ")
+                end
                 text plotDescription = ""
                 plotDescription = plotDescription + medianLine:GetDescription() + ","
                 plotDescription = plotDescription + " box from " + firstQuartileLine:GetDescription() + " to " + thirdQuartileLine:GetDescription() + ","
