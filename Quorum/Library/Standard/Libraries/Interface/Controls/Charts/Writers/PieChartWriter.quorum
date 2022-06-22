@@ -160,6 +160,7 @@ class PieChartWriter is ChartWriter
     
                     //End point of outer arc
                     number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
+                    slice:SetPercent(percent)
                     currentTheta = currentTheta + percent * 360
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
