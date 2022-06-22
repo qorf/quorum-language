@@ -106,7 +106,7 @@ class LineChartWriter is ChartWriter
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
         chartContent:SetRole("application")
-        canvas:Add(chartContent)
+        // Add chartContent to the canvas after all non-nav elements (see below)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
@@ -221,6 +221,30 @@ class LineChartWriter is ChartWriter
                             end
                             pointSVG:Add(point)
                         end
+
+                        // Add line segment
+                        if j < currentLine:GetLines():GetSize() 
+                            LineSegment currentSegment = currentLine:GetLines():Get(j)
+                            ChartPoint firstPoint = currentSegment:GetPoint1()
+                            ChartPoint secondPoint = currentSegment:GetPoint2()
+                            radius = firstPoint:GetHeight()/2
+                
+                            Line segment
+                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                            segment:SetFill(currentSegment:GetColor())
+                            segment:SetStroke(currentSegment:GetColor())
+                            segment:SetStrokeWidth(currentSegment:GetHeight())
+                            segment:SetID(seriesSVG:GetID() + "_segment"+j)
+                            segment:SetStyleClass("quorum-chart-linesegment")
+                            segment:SetTabIndex(-1)
+                            if HasAccessibility()
+                                segment:SetAriaHidden("true")
+                                seriesFocus = seriesFocus + "gainFocus('" + segment:GetID() + "'); "
+                                seriesBlur = seriesBlur + "loseFocus('" + segment:GetID() + "'); "
+                            end
+                            canvas:Add(segment)
+                        end
                 
                         if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
                             ChartLabel label = currentPoint:GetAnnotation()
@@ -275,56 +299,6 @@ class LineChartWriter is ChartWriter
                                 pointSVG:SetOnBlur(pointBlur)
                             end
                         end 
-
-                        // Add line segment
-                        if j < currentLine:GetLines():GetSize() and currentLine:GetLines():Get(j) is LineSegment
-                            LineSegment currentSegment = cast(LineSegment, currentLine:GetLines():Get(j))
-                            ChartPoint firstPoint = currentSegment:GetPoint1()
-                            ChartPoint secondPoint = currentSegment:GetPoint2()
-                            radius = firstPoint:GetHeight()/2
-    
-                            Group segmentSVG
-//                            segmentSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentSegment:GetHashCode())
-                            segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
-                            segmentSVG:SetFill(currentSegment:GetColor())
-                            segmentSVG:SetTabIndex(-1)
-                            if HasAccessibility()
-                                segmentSVG:SetAriaHidden("false")
-                            end
-                            if chart:GetSeriesList():GetSize() > 1
-                                seriesSVG:Add(segmentSVG)
-                            else
-                                chartContent:Add(segmentSVG)
-                            end
-
-                            text segmentFocus = ""
-                            text segmentBlur = ""
-        
-                            Line segment
-                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
-                            segment:SetFill(currentSegment:GetColor())
-                            segment:SetStroke(currentSegment:GetColor())
-                            segment:SetStrokeWidth(currentSegment:GetHeight())
-                            segment:SetID(segmentSVG:GetID() + "_segment")
-                            segment:SetStyleClass("quorum-chart-linesegment")
-                            segment:SetTabIndex(-1)
-                            if HasAccessibility()
-                                segment:SetAriaHidden("true")
-                                segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
-                                segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
-                            end
-                            segmentSVG:Add(segment)
-
-                            if HasAccessibility()
-                                if segmentFocus not= ""
-                                    segmentSVG:SetOnFocus(segmentFocus)
-                                end
-                                if segmentBlur not= ""
-                                    segmentSVG:SetOnBlur(segmentBlur)
-                                end
-                            end 
-                        end
                         j = j + 1
                     end
 
@@ -357,6 +331,7 @@ class LineChartWriter is ChartWriter
                 if HasAccessibility()
                     subChartContentBoundingBox:SetAriaHidden("true")
                 end
+                subChartContent:Add(subChartContentBoundingBox)
                 
                 if HasAccessibility()
                     //Separated, by the Factor levels with multiple Series per subplot
@@ -468,8 +443,34 @@ class LineChartWriter is ChartWriter
                                             point:SetAriaHidden("true")
                                             pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                             pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                                            seriesFocus = seriesFocus + "gainFocus('" + point:GetID() + "'); "
+                                            seriesBlur = seriesBlur + "loseFocus('" + point:GetID() + "'); "
                                         end
                                         pointSVG:Add(point)
+                                    end
+
+                                    // Add line segment
+                                    if j < currentLine:GetLines():GetSize() 
+                                        LineSegment currentSegment = currentLine:GetLines():Get(j)
+                                        ChartPoint firstPoint = currentSegment:GetPoint1()
+                                        ChartPoint secondPoint = currentSegment:GetPoint2()
+                                        radius = firstPoint:GetHeight()/2
+                            
+                                        Line segment
+                                        segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
+                                        segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                                        segment:SetFill(currentSegment:GetColor())
+                                        segment:SetStroke(currentSegment:GetColor())
+                                        segment:SetStrokeWidth(currentSegment:GetHeight())
+                                        segment:SetID(subChartContent:GetID() + "_segment"+j)
+                                        segment:SetStyleClass("quorum-chart-linesegment")
+                                        segment:SetTabIndex(-1)
+                                        if HasAccessibility()
+                                            segment:SetAriaHidden("true")
+                                            seriesFocus = seriesFocus + "gainFocus('" + segment:GetID() + "'); "
+                                            seriesBlur = seriesBlur + "loseFocus('" + segment:GetID() + "'); "
+                                        end
+                                        canvas:Add(segment)
                                     end
                 
                                     if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
@@ -525,54 +526,6 @@ class LineChartWriter is ChartWriter
                                             pointSVG:SetOnBlur(pointBlur)
                                         end
                                     end 
-
-                                    // Add line segment
-                                    if j < currentLine:GetLines():GetSize() 
-                                        if currentLine:GetLines():Get(j) is LineSegment
-                                            LineSegment currentSegment = cast(LineSegment, currentLine:GetLines():Get(j))
-                                            ChartPoint firstPoint = currentSegment:GetPoint1()
-                                            ChartPoint secondPoint = currentSegment:GetPoint2()
-                                            radius = firstPoint:GetHeight()/2
-                
-                                            Group segmentSVG
-//                                            segmentSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentSegment:GetHashCode())
-                                            segmentSVG:SetStyleClass("quorum-chart-linesegment quorum-chart-point-list")
-                                            segmentSVG:SetFill(currentSegment:GetColor())
-                                            segmentSVG:SetTabIndex(-1)
-                                            if HasAccessibility()
-                                                segmentSVG:SetAriaHidden("false")
-                                            end
-                                            subChartContent:Add(segmentSVG)
-
-                                            text segmentFocus = ""
-                                            text segmentBlur = ""
-                
-                                            Line segment
-                                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
-                                            segment:SetFill(currentSegment:GetColor())
-                                            segment:SetStroke(currentSegment:GetColor())
-                                            segment:SetStrokeWidth(currentSegment:GetHeight())
-                                            segment:SetID(segmentSVG:GetID() + "_segment")
-                                            segment:SetStyleClass("quorum-chart-linesegment")
-                                            segment:SetTabIndex(-1)
-                                            if HasAccessibility()
-                                                segment:SetAriaHidden("true")
-                                                segmentFocus = segmentFocus + "gainFocus('" + segment:GetID() + "'); "
-                                                segmentBlur = segmentBlur + "loseFocus('" + segment:GetID() + "'); "
-                                            end
-                                            canvas:Add(segment)
-                
-                                            if HasAccessibility()
-                                                if segmentFocus not= ""
-                                                    segmentSVG:SetOnFocus(segmentFocus)
-                                                end
-                                                if segmentBlur not= ""
-                                                    segmentSVG:SetOnBlur(segmentBlur)
-                                                end
-                                            end 
-                                        end
-                                    end
                                 end
                                 j = j + 1
                             end
@@ -592,6 +545,8 @@ class LineChartWriter is ChartWriter
                 i = i + 1
             end
         end
+        // Add chartContent to the canvas after all non-nav elements
+        canvas:Add(chartContent)
     end
 
     action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)

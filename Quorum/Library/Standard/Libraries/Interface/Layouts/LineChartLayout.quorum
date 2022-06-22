@@ -64,7 +64,6 @@ class LineChartLayout is TwoVariableChartLayout
             if lines:Get(i):GetPoints() = undefined
                 return now
             end
-            LoadLineSelectionArrowVertices(chart, lines:Get(i))
 
             integer j = 0
             repeat while j < lines:Get(i):GetPoints():GetSize()
@@ -134,6 +133,8 @@ class LineChartLayout is TwoVariableChartLayout
                 line:SetName("Line segment between " + a:GetName() + " and " + b:GetName())
                 j = j + 1
             end
+
+            LoadLineSelectionArrowVertices(chart, lines:Get(i))
             i = i + 1
         end
 

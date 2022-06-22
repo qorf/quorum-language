@@ -300,6 +300,9 @@ class ViolinPlot is Chart
                 plot:SetNextFocus(GetNextFocus())
                 plot:SetPreviousFocus(GetPreviousFocus())
                 plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
+                if not HasGroups()
+                    plot:SetName(group:GetName() + " plot, ")
+                end
                 text plotDescription = ""
                 plotDescription = plotDescription + medianDot:GetDescription() + ","
                 plotDescription = plotDescription + " data ranges from " + minimumLine:GetDescription() + " to " + maximumLine:GetDescription() + ", "
