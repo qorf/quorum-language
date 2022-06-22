@@ -1532,7 +1532,9 @@ class ClassOpcode is QuorumOpcode
                 convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
         end
         
-        
+        if clazz:IsObject()
+            convertedSource = convertedSource + "this.myHash = 0;" + EOL
+        end
 
         if clazz:HasConstructor()
             convertedSource = convertedSource + constructor:WriteJavaScript()
@@ -1672,8 +1674,10 @@ class ClassOpcode is QuorumOpcode
                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
                     " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
             else 
-                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+                if not clazz:IsObject()
+                    convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                        " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+                end
             end
         end
 
@@ -1711,6 +1715,11 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "this.value = optional == null ? 0.0: optional;"
         elseif value = "Libraries.Language.Types.Text"
             convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
+        end
+
+        if clazz:IsObject()
+            convertedSource = convertedSource + "this.myHash = globalStaticHash;" + EOL
+            convertedSource = convertedSource + "globalStaticHash = globalStaticHash + 1;" + EOL
         end
 
         convertedSource = convertedSource + EOL + "};" + EOL

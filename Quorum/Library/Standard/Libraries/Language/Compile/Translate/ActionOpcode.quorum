@@ -220,18 +220,24 @@ class ActionOpcode is QuorumOpcode
         end
 
         if method:IsSystem() //write to a Javascript plugin
-            result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
-                + "("
-            parameters = method:GetParameterIterator()
-            repeat while parameters:HasNext()
-                Variable param = parameters:Next()
-                result = result + param:GetJavaScriptName()
-                if parameters:HasNext()
-                    result = result + ", "
+            if not clazz:IsObject()
+                result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+                    + "("
+                parameters = method:GetParameterIterator()
+                repeat while parameters:HasNext()
+                    Variable param = parameters:Next()
+                    result = result + param:GetJavaScriptName()
+                    if parameters:HasNext()
+                        result = result + ", "
+                    end
+                end
+    
+                result = result + ");" + EOL
+            else
+                if method:GetStaticKey() = "GetHashCode" //inline this action
+                    result = result + "return this.myHash;" + EOL
                 end
             end
-
-            result = result + ");" + EOL
         elseif method:IsBlueprint()
             result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
                 + "("
