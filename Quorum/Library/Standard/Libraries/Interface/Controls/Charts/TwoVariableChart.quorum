@@ -724,10 +724,9 @@ class TwoVariableChart is Chart
                             end
                             description = description + ", " + (i+1) + " of " + subAreaCount + " sub charts."
                             chartSubArea:SetDescription(description)
-    //                        ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
                             Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
                             nextAreaPoints:Sort(comparison)
-                            AddPoints(summary, firstArea, nextAreaPoints)
+                            AddPoints(summary, nextArea, nextAreaPoints)
                         end
                         i = i + 1
                     end
