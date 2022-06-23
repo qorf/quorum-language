@@ -602,13 +602,7 @@ class TwoVariableChart is Chart
                     if chartAreaItems:GetSize() > 0 and chartAreaItems:Get(0) is ChartLine
                         // Add LEFT/RIGHT/ENTER/ESCAPE navigation
                         ChartLine chartLine = cast(ChartLine, chartAreaItems:Get(0))
-                        ChartItem chartLineItem = chartLine
-                        chartLineItem:SetContainer(me)
-                        chartLineItem:SetPreviousFocus(summary)
-                        firstArea:SetEnterItem(chartLineItem)
-                        chartLineItem:SetEscapeItem(firstArea)
-
-                        AddPoints(summary, chartLineItem, chartLine:GetPoints())
+                        AddPoints(summary, firstArea, chartLine:GetPoints())
                     end
 
                     integer i = 1
@@ -630,13 +624,7 @@ class TwoVariableChart is Chart
                             if chartAreaItems:GetSize() > 0 and chartAreaItems:Get(0) is ChartLine
                                 // Add LEFT/RIGHT/ENTER/ESCAPE navigation
                                 ChartLine chartLine = cast(ChartLine, chartAreaItems:Get(0))
-                                ChartItem chartLineItem = chartLine
-                                chartLineItem:SetContainer(me)
-                                chartLineItem:SetPreviousFocus(summary)
-                                nextArea:SetEnterItem(chartLineItem)
-                                chartLineItem:SetEscapeItem(nextArea)
-
-                                AddPoints(summary, chartLineItem, chartLine:GetPoints())
+                                AddPoints(summary, nextArea, chartLine:GetPoints())
                             end
                         end
                         i = i + 1
@@ -724,10 +712,9 @@ class TwoVariableChart is Chart
                             end
                             description = description + ", " + (i+1) + " of " + subAreaCount + " sub charts."
                             chartSubArea:SetDescription(description)
-    //                        ChartDrawable newIcon = NewRegionIcon(0,0,1,1)
                             Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
                             nextAreaPoints:Sort(comparison)
-                            AddPoints(summary, firstArea, nextAreaPoints)
+                            AddPoints(summary, nextArea, nextAreaPoints)
                         end
                         i = i + 1
                     end

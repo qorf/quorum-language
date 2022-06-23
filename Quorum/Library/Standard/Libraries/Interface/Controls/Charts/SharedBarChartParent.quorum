@@ -171,7 +171,7 @@ class SharedBarChartParent is Chart
                     temp:SetDescription(valueText + ", " + placement)
                 else
                     temp:SetName(barname + " bar, ")
-                    temp:SetDescription(valueText + " " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
+                    temp:SetDescription(valueText + ", " + (i + 1) + " of " + barGroups:GetSize() + " bars.")
                 end
                 temp:SetFocusable(true)
                 temp:SetAccessibilityCode(parent:Item:ITEM)
@@ -466,7 +466,7 @@ class SharedBarChartParent is Chart
                         bar:SetContainer(me)
                         bar:SetPreviousFocus(summary)
                         bar:SetEscapeItem(firstArea)
-                        bar:SetDescription(chartAreaItems:Get(j):GetDescription() + (j+1) + " of " + chartAreaItems:GetSize() + " bars.")
+                        bar:SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " bars.")
                         previousBar:SetRightItem(bar)
                         bar:SetLeftItem(previousBar)
                         previousBar = bar
@@ -523,7 +523,7 @@ class SharedBarChartParent is Chart
                                 bar:SetContainer(me)
                                 bar:SetPreviousFocus(summary)
                                 bar:SetEscapeItem(nextArea)
-                                bar:SetDescription(bar:GetDescription() + (j+1) + " of " + subAreaItems:GetSize() + " bars.")
+                                bar:SetDescription(bar:GetDescription() + ", " + (j+1) + " of " + subAreaItems:GetSize() + " bars.")
                                 previousBar:SetRightItem(bar)
                                 bar:SetLeftItem(previousBar)
                                 previousBar = bar

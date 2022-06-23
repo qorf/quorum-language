@@ -259,19 +259,21 @@ class BoxPlot is Chart
                     plot:Add(maximumLine:GetSelectionArrow())
                 end
 
-                // Add to chart
-                chartArea:Add(rightBorder)
-                chartArea:Add(leftBorder)
-                chartArea:Add(lowerWhisker)
-                chartArea:Add(upperWhisker)
-                chartArea:Add(minimumLine)
-                chartArea:Add(firstQuartileLine)
-                chartArea:Add(medianLine)
-                chartArea:Add(thirdQuartileLine)
-                chartArea:Add(maximumLine)
-                chartArea:Add(interQuartileRange)  //Place on top of others
-                chartArea:Add(plotArea)
-                chartArea:Add(plot)
+                plot:Add(rightBorder)
+                plot:Add(leftBorder)
+                plot:Add(lowerWhisker)
+                plot:Add(upperWhisker)
+                plot:Add(minimumLine)
+                plot:Add(firstQuartileLine)
+                plot:Add(medianLine)
+                plot:Add(thirdQuartileLine)
+                plot:Add(maximumLine)
+                plot:Add(interQuartileRange)  //Place on top of others
+                if HasGroups() and not IsSeparated()
+                    group:Add(plot)
+                else
+                    chartArea:Add(plot)
+                end
                 //Add the outliers
     
                 /* Indices for items of individual box plot
@@ -317,7 +319,7 @@ class BoxPlot is Chart
                         outlier:SetAccessibilityCode(0)
                         outlier:SetNextFocus(GetNextFocus())
                         outlier:SetPreviousFocus(GetPreviousFocus())
-                        chartArea:Add(outlier)
+                        plot:Add(outlier)
                         chartArea:Add(outlier:GetSelectionArrow())
                         plot:AddItem(outlier)
                         j = j + 1
@@ -330,6 +332,9 @@ class BoxPlot is Chart
                 plot:SetNextFocus(GetNextFocus())
                 plot:SetPreviousFocus(GetPreviousFocus())
                 plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
+                if not HasGroups()
+                    plot:SetName(group:GetName() + " plot, ")
+                end
                 text plotDescription = ""
                 plotDescription = plotDescription + medianLine:GetDescription() + ","
                 plotDescription = plotDescription + " box from " + firstQuartileLine:GetDescription() + " to " + thirdQuartileLine:GetDescription() + ","
