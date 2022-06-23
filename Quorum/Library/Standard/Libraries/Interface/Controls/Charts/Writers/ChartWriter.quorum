@@ -19,6 +19,8 @@ use Libraries.Compute.Random
 use Libraries.System.DateTime
 use Libraries.System.FileWriter
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.MetaData
 
 class ChartWriter
     private number axisPointX = 105
@@ -255,6 +257,45 @@ class ChartWriter
         else
             chartCanvas:Write(file)
         end
+    end
+
+    action WriteOutHTML(Chart chart, File file)
+        WebPage page
+
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
+
+        // add necessary scripts
+        Random random
+        
+        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+
+        // add necessary styles
+        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+
+        page:SetWebPageTitle("Quorum Charts: " + chart:GetTitle())
+
+        Division responsiveWrapper
+        responsiveWrapper:AddText(WriteOutChart(chart))
+        if chart:GetWidth() > 200
+            responsiveWrapper:SetStyle("min-width: 200px; max-width: " + chart:GetWidth() + "px")
+        end
+        page:Add(responsiveWrapper)
+
+        file:Write(page:Generate())
     end
 
     /*

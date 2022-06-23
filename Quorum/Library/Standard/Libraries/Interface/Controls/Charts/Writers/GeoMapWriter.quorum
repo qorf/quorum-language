@@ -50,6 +50,10 @@ class GeoMapWriter is ChartWriter
     action WriteOutChart(GeoMap chart, File file)
         WriteOutChart(cast(Chart,chart), file)
     end
+    
+    action WriteOutHTML(BarChart chart, File file)
+        WriteOutHTML(cast(Chart,chart), file)
+    end
 
 
     /*
