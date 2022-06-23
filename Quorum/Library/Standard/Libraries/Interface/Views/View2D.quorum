@@ -7,13 +7,6 @@ class View2D
 
     Item2D item = undefined
 
-    on create
-        if me is Item2D
-            Item2D item = cast(Item2D, cast(Object, me))
-            item:SetCustomDrawing(true)
-        end
-    end
-
     action SetItem(Item2D item)
         me:item = item
         if me is Item2D

@@ -17,9 +17,7 @@ class DrawableView is Drawable, View2D
             return now
         end
 
-        number scaleX = width / texture:GetWidth()
-        number scaleY = height / texture:GetHeight()
-        SetScale(scaleX, scaleY)
+        SetSize(width, height)
     end
 
     action UpdatePosition(number x, number y, number z)
