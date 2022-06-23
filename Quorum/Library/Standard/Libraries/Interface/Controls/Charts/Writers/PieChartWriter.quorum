@@ -65,6 +65,10 @@ class PieChartWriter is ChartWriter
     action WriteOutChart(PieChart chart, File file)
         WriteOutChart(cast(Chart,chart), file)
     end
+    
+    action WriteOutHTML(PieChart chart, File file)
+        WriteOutHTML(cast(Chart,chart), file)
+    end
 
     /*
         This action adds a white background to the canvas

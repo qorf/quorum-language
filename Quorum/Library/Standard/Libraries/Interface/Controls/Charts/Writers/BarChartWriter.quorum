@@ -64,6 +64,10 @@ class BarChartWriter is ChartWriter
     action WriteOutChart(BarChart chart, File file)
         WriteOutChart(cast(Chart,chart), file)
     end
+    
+    action WriteOutHTML(BarChart chart, File file)
+        WriteOutHTML(cast(Chart,chart), file)
+    end
 
     /*
         This action adds a white background to the canvas
