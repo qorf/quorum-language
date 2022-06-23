@@ -1,21 +1,6 @@
 var globalStaticHash = 1;
 const globalSharedClasses = new Map();
 
-function plugins_quorum_Libraries_Language_Object_(optional) {
-    this.me = false;
-    this.myHash = 0;
-    if(optional === undefined) {
-    } else {
-        me = optional;
-    }
-    this.GetHashCode = function (value) {
-        return this.myHash;
-    };
-    
-    this.myHash = globalStaticHash;
-    globalStaticHash = globalStaticHash + 1;
-}
-
 function global_Get_Shared_Class(value) {
     return globalSharedClasses[value];
 }
