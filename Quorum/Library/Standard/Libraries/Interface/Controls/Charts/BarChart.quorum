@@ -105,6 +105,8 @@ class BarChart is SharedBarChartParent
         if file:GetFileExtension() = "svg"
             BarChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
     end
 
@@ -121,6 +123,8 @@ class BarChart is SharedBarChartParent
         if file:GetFileExtension() = "html"
             BarChartWriter chartWriter
             chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
 end

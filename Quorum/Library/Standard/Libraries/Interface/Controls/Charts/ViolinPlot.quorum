@@ -911,6 +911,8 @@ class ViolinPlot is Chart
         if file:GetFileExtension() = "svg"
             ViolinPlotWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
     end
 
@@ -927,6 +929,8 @@ class ViolinPlot is Chart
         if file:GetFileExtension() = "html"
             ViolinPlotWriter chartWriter
             chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
 
