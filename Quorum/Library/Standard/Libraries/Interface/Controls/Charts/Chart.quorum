@@ -2481,6 +2481,28 @@ class Chart is ChartItem
         Save(file)
     end
 
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    blueprint action Share(File file)
+
+    /*
+        This is a helper action for sharing that saves at the path relative to the current working directory.
+
+        Attribute: Parameter path the path relative to the working directory.
+    */
+    action Share(text path)
+        File file
+        file:SetPath(path)
+        Share(file)
+    end
+
     /*  This action creates a default Game object for displaying charts and sets this chart
         as the sole display. It is useful for interacting with charts without creating
         a complex game setup.
