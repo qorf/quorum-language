@@ -51,6 +51,7 @@ class ChartWriter
     Array<Array<Label>> subYLabels
     Array<Array<Label>> subXLabels
     Array<Rectangle> groupPanels
+    Group chartInformation
 
     
     
@@ -145,6 +146,12 @@ class ChartWriter
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
 
         //Generate SVG elements for each piece of the chart
+        Group newChartInformation
+        chartInformation = newChartInformation
+        chartInformation:SetIsOneLine(true)
+        chartInformation:SetTabIndex(-1)
+        chartCanvas:Add(chartInformation)
+        
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
         if chart:IsShowingXAxis()
@@ -214,6 +221,12 @@ class ChartWriter
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
 
         //Generate SVG elements for each piece of the chart
+        Group newChartInformation
+        chartInformation = newChartInformation
+        chartInformation:SetIsOneLine(true)
+        chartInformation:SetTabIndex(-1)
+        chartCanvas:Add(chartInformation)
+
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
         if chart:IsShowingXAxis()
@@ -450,13 +463,14 @@ class ChartWriter
         background:SetSize(100,100, "%")
         background:SetPosition(0, 0, "%")
         background:SetID(canvas:GetID() + "_" + background:GetHashCode())
-        background:SetStyleClass("quorum-chart-element")
-        background:SetTabIndex(-1)
+        background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
+        background:SetTabIndex(0)
         if HasAccessibility()
+            background:SetRole("application")
             background:SetAriaLabel(chart:GetTitle() + ", " + chart:GenerateSummary())
-            background:SetAriaHidden("true")
+            background:SetAriaHidden("false")
         end
-        canvas:Add(background)
+        chartInformation:Add(background)
     end
 
     /*
@@ -537,12 +551,13 @@ class ChartWriter
                 horizontalPanel:SetFill(transparent)
                 horizontalPanel:SetTabIndex(-1)
                 horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
-                horizontalPanel:SetStyleClass("quorum-chart-element")
+                horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
+                    horizontalPanel:SetRole("application")
                     horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
-                    horizontalPanel:SetAriaHidden("true")
+                    horizontalPanel:SetAriaHidden("false")
                 end
-                canvas:Add(horizontalPanel)
+                chartInformation:Add(horizontalPanel)
 
                 if not chart:IsSeparated()
                     Array<Drawable> axisLines = horizontalAxisPanel:GetAxisLines()
@@ -648,12 +663,13 @@ class ChartWriter
                 verticalPanel:SetFill(transparent)
                 verticalPanel:SetTabIndex(-1)
                 verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
-                verticalPanel:SetStyleClass("quorum-chart-element")
+                verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
+                    verticalPanel:SetRole("application")
                     verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
-                    verticalPanel:SetAriaHidden("true")
+                    verticalPanel:SetAriaHidden("false")
                 end
-                canvas:Add(verticalPanel)
+                chartInformation:Add(verticalPanel)
 
                 if not chart:IsSeparated()
                     Array<Drawable> axisLines = verticalAxisPanel:GetAxisLines()
@@ -1352,14 +1368,15 @@ class ChartWriter
         svgElementLegend:SetFill(transparent)
         svgElementLegend:SetTabIndex(-1)
         svgElementLegend:SetID(canvas:GetID() + "_" + legend:GetHashCode())
-        svgElementLegend:SetStyleClass("quorum-chart-element")
+        svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
 
         if HasAccessibility()
+            svgElementLegend:SetRole("application")
             svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
-            svgElementLegend:SetAriaHidden("true")
+            svgElementLegend:SetAriaHidden("false")
         end
 
-        canvas:Add(svgElementLegend)
+        chartInformation:Add(svgElementLegend)
 
         ChartLabel legendTitle = legend:GetTitleLabel()
         if legendTitle not= undefined and legendTitle:IsShowing()
@@ -1532,58 +1549,6 @@ class ChartWriter
         //divRegion:SetStyle("")
         divRegion:AddAttribute("role","region")
 
-        //Chart Info Wrapper
-        Division divChartInfo
-        divChartInfo:SetIdentifier(canvas:GetID() + "_nav")
-        divChartInfo:SetClassAttribute("quorum-chart-info")
-        divChartInfo:SetTabIndex("0")
-        divChartInfo:AddAttribute("aria-hidden","false")
-        divChartInfo:AddAttribute("onfocus","gainFocus('" + background:GetID() + "')")
-        divChartInfo:AddAttribute("onblur","loseFocus('" + background:GetID() + "')")
-        divRegion:AddNestedTag(divChartInfo)
-
-        //Chart title, summary, x axis, y axis, legend
-        //Title
-//        Division chartTitle
-//        chartTitle:SetTabIndex("-1")
-//        chartTitle:AddAttribute("aria-hidden","false")
-//        chartTitle:AddText(chart:GetTitle())
-//        divChartInfo:AddNestedTag(chartTitle)
-
-        //Summary
-        Division chartSummary
-        chartSummary:SetTabIndex("-1")
-        chartSummary:AddAttribute("aria-hidden","false")
-        chartSummary:AddText(chart:GetName() + " " + chart:GetDescription())
-        divChartInfo:AddNestedTag(chartSummary)
-
-        //X Axis
-        if chart:IsShowingXAxis()
-            Division divXAxis
-            divXAxis:SetTabIndex("-1")
-            divXAxis:AddAttribute("aria-hidden","false")
-            divXAxis:AddText(chart:GetHorizontalPanel():GetName() + " " + chart:GetHorizontalPanel():GetDescription())
-            divChartInfo:AddNestedTag(divXAxis)
-        end
-
-        //Y Axis
-        if chart:IsShowingYAxis()
-            Division divYAxis
-            divYAxis:SetTabIndex("-1")
-            divYAxis:AddAttribute("aria-hidden","false")
-            divYAxis:AddText(chart:GetVerticalPanel():GetName() + " " + chart:GetVerticalPanel():GetDescription())
-            divChartInfo:AddNestedTag(divYAxis)
-        end
-
-        //Legend
-        if chart:IsShowingLegend()
-            Division divLegend
-            divLegend:SetTabIndex("-1")
-            divLegend:AddAttribute("aria-hidden","false")
-            divLegend:AddText(chart:GetLegend():GetName() + " " + chart:GetLegend():GetDescription())
-            divChartInfo:AddNestedTag(divLegend)
-        end
-        
         //Wrapper for SVG to help with scaling size
         Division svgWrapper
         svgWrapper:SetTabIndex("-1")

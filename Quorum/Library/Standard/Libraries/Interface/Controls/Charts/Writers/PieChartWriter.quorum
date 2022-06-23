@@ -103,7 +103,7 @@ class PieChartWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")
+        chartContent:SetRole("application")  
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
@@ -142,6 +142,7 @@ class PieChartWriter is ChartWriter
                     sliceSVG:SetFill(pieBox:Get(i):GetColor())
                     sliceSVG:SetTabIndex(-1)
                     if HasAccessibility()   
+                        sliceSVG:SetRole("application") 
                         sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                         sliceSVG:SetAriaHidden("false")
                     end
@@ -160,6 +161,7 @@ class PieChartWriter is ChartWriter
     
                     //End point of outer arc
                     number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
+                    slice:SetPercent(percent)
                     currentTheta = currentTheta + percent * 360
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
@@ -267,6 +269,7 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
+                            subChartContent:SetRole("application") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -274,6 +277,7 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
+                            subChartContent:SetRole("application") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         else
@@ -301,6 +305,7 @@ class PieChartWriter is ChartWriter
                         sliceSVG:SetFill(pieBox:Get(i):GetColor())
                         sliceSVG:SetTabIndex(-1)
                         if HasAccessibility()   
+                            sliceSVG:SetRole("application") 
                             sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                             sliceSVG:SetAriaHidden("false")
                         end
@@ -319,6 +324,7 @@ class PieChartWriter is ChartWriter
     
                         //End point of outer arc
                         number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
+                        slice:SetPercent(percent)
                         currentTheta = currentTheta + percent * 360
                         x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                         y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
