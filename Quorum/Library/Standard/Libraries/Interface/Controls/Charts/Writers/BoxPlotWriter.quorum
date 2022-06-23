@@ -101,8 +101,9 @@ class BoxPlotWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")
+        chartContent:SetRole("application")  
         canvas:Add(chartContent)
+
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
@@ -132,6 +133,7 @@ class BoxPlotWriter is ChartWriter
                     plotGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     plotGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
+                        plotGroupSVG:SetRole("application")  
                         plotGroupSVG:SetAriaLabel(group:GetName() + group:GetDescription())
                         plotGroupSVG:SetAriaHidden("false")
                     end
@@ -218,6 +220,7 @@ class BoxPlotWriter is ChartWriter
                     plotSVG:SetFill(plot:GetColor())
                     plotSVG:SetTabIndex(-1)
                     if HasAccessibility()   
+                        plotSVG:SetRole("application") 
                         plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                         plotSVG:SetAriaHidden("false")
                     end
@@ -325,7 +328,8 @@ class BoxPlotWriter is ChartWriter
                             itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
                             itemSVG:SetFill(currentItem:GetColor())
                             itemSVG:SetTabIndex(-1)
-                            if HasAccessibility()   
+                            if HasAccessibility()  
+                                itemSVG:SetRole("application")  
                                 itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                 itemSVG:SetAriaHidden("false")
                             end
@@ -483,6 +487,7 @@ class BoxPlotWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                            subChartContent:SetRole("application")  
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -490,6 +495,7 @@ class BoxPlotWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                            subChartContent:SetRole("application")  
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         else
@@ -509,6 +515,7 @@ class BoxPlotWriter is ChartWriter
                         plotSVG:SetFill(plot:GetColor())
                         plotSVG:SetTabIndex(-1)
                         if HasAccessibility()
+                            plotSVG:SetRole("application")  
                             plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription() + ".")
                             plotSVG:SetAriaHidden("false")
                         end
@@ -616,6 +623,7 @@ class BoxPlotWriter is ChartWriter
                                 itemSVG:SetFill(currentItem:GetColor())
                                 itemSVG:SetTabIndex(-1)
                                 if HasAccessibility()   
+                                    itemSVG:SetRole("application")  
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
                                 end

@@ -131,6 +131,7 @@ class BarChartWriter is ChartWriter
                     barGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     barGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
+                        barGroupSVG:SetRole("application")
                         barGroupSVG:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
                         barGroupSVG:SetAriaHidden("false")
                     end
@@ -216,7 +217,8 @@ class BarChartWriter is ChartWriter
                     barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                     barSVG:SetFill(currentBar:GetColor())
                     barSVG:SetTabIndex(-1)
-                    if HasAccessibility()   
+                    if HasAccessibility() 
+                        barSVG:SetRole("application")  
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         barSVG:SetAriaHidden("false")
                     end
@@ -332,6 +334,7 @@ class BarChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetRole("application")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -339,6 +342,7 @@ class BarChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetRole("application")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     else
@@ -358,6 +362,7 @@ class BarChartWriter is ChartWriter
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
+                            barSVG:SetRole("application")  
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription() + ".")
                             barSVG:SetAriaHidden("false")
                         end

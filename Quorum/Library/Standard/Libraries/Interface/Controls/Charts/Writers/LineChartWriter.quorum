@@ -105,7 +105,7 @@ class LineChartWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")
+        chartContent:SetRole("application")  
         // Add chartContent to the canvas after all non-nav elements (see below)
 
         Rectangle chartContentBoundingBox
@@ -134,6 +134,7 @@ class LineChartWriter is ChartWriter
                     seriesSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     seriesSVG:SetTabIndex(-1)
                     if HasAccessibility()
+                        seriesSVG:SetRole("application")  
                         seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
@@ -192,6 +193,7 @@ class LineChartWriter is ChartWriter
                         pointSVG:SetFill(currentPoint:GetColor())
                         pointSVG:SetTabIndex(-1)
                         if HasAccessibility()
+                            pointSVG:SetRole("application")  
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end
@@ -339,6 +341,7 @@ class LineChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetRole("application")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -346,6 +349,7 @@ class LineChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
+                        subChartContent:SetRole("application")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     else
@@ -421,6 +425,7 @@ class LineChartWriter is ChartWriter
                                     pointSVG:SetFill(currentPoint:GetColor())
                                     pointSVG:SetTabIndex(-1)
                                     if HasAccessibility()
+                                        pointSVG:SetRole("application")  
                                         pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                         pointSVG:SetAriaHidden("false")
                                     end
