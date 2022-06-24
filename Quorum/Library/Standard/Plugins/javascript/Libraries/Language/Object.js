@@ -2,7 +2,7 @@ var globalStaticHash = 1;
 const globalSharedClasses = new Map();
 
 function global_Get_Shared_Class(value) {
-    return globalSharedClasses[value];
+    return globalSharedClasses.get(value);
 }
 
 function global_Add_Shared_Class(key, value) {

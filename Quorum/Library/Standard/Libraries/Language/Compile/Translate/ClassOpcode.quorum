@@ -1751,6 +1751,7 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "   else if (typeof plugins_quorum_Libraries_Sound_Audio_ === " + quote + "function" + quote + " && typeof plugins_quorum_Libraries_Sound_Audio_.StopAllSources === " + quote + "function" + quote + ") {" + EOL
             convertedSource = convertedSource + "       plugins_quorum_Libraries_Sound_Audio_.StopAllSources();" + EOL
             convertedSource = convertedSource + "   }" + EOL
+            convertedSource = convertedSource + "   global_Empty_Shared_Classes();" + EOL
             convertedSource = convertedSource + "}" + EOL
         end
 
