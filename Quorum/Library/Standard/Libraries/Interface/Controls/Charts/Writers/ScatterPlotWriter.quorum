@@ -274,7 +274,7 @@ class ScatterPlotWriter is ChartWriter
             end
         else
             i = 0
-            repeat while i < chart:GetSubChartAreas():GetSize()
+            repeat while i < chart:GetSubChartAreas():GetSize() and i < GetSubChartAreas():GetSize()
                 Group subChartContent
                 subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                 subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
