@@ -1,0 +1,122 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolver
+use Libraries.Game.Collision.Narrowphase.ConvexConvexCollisionSolverResults
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+
+
+class EditorCursor3D is EditorCursor, EditorItem3D
+
+    EditorLayer3D editorLayer = undefined
+
+    // How many world units wide/tall/deep the current grid units are.
+    number gridUnitSize = 1
+
+    // How many grid units wide or tall the cursor currently is.
+    integer gridWidth = 1
+    integer gridHeight = 1
+    integer gridDepth = 1
+
+    // Used to test if objects are at the cursor's location.
+    ConvexConvexCollisionSolver collisionSolver
+    ConvexConvexCollisionSolverResults collisionResults
+
+    action Load(EditorLayer3D layer)
+        editorLayer = layer
+
+        SceneConstants constants
+        LoadBox(1, 1, 1, constants:CURSOR_2D_COLOR)
+        SetGridUnitSize(layer:GetGridUnitSize())
+    end
+
+    action SetGridUnitSize(number size)
+        gridUnitSize = size
+        SetScale(gridUnitSize * gridWidth, gridUnitSize * gridHeight, gridUnitSize * gridDepth)
+    end
+
+    action GetItemsAtCursor returns Array<Item>
+        Array<Item> array
+        SceneConstants constants
+
+        Iterator<Item3D> iterator = editorLayer:GetIterator()
+        number width = gridUnitSize * gridWidth * GetScaleX()
+        number height = gridUnitSize * gridHeight * GetScaleY()
+        number depth = gridUnitSize * gridDepth * GetScaleZ()
+
+        number x1 = GetX() - width * 0.5
+        number x2 = x1 + width
+        number y1 = GetY() - height * 0.5
+        number y2 = y1 + height
+        number z1 = GetZ() - depth * 0.5
+        number z2 = z1 + depth
+        repeat while iterator:HasNext()
+            Item3D item = iterator:Next()
+            if item:HasProperty(constants:EDITOR_TAG) = false
+                boolean shouldAdd = false
+                if item:GetShape() not= undefined and item:GetCenterOfMassTransform() not= undefined
+                    shouldAdd = collisionSolver:Collide(item:GetShape(), item:GetCenterOfMassTransform(), GetShape(), GetCenterOfMassTransform(), 0, collisionResults)
+                else
+                    number itemWidth = item:GetWidth()
+                    number itemHeight = item:GetHeight()
+                    number itemDepth = item:GetDepth()
+            
+                    number a1 = item:GetX() - itemWidth * 0.5
+                    number a2 = a1 + itemWidth
+                    number b1 = item:GetY() - itemHeight * 0.5
+                    number b2 = b1 + itemHeight
+                    number c1 = item:GetZ() - itemDepth * 0.5
+                    number c2 = c1 + itemDepth
+    
+                    if a1 < x2 and a2 > x1 and b1 < y2 and b2 > y1 and c1 < z2 and c2 > z1
+                        shouldAdd = true
+                    end
+                end
+
+                if shouldAdd
+                    array:Add(item)
+                end
+            end
+        end
+
+        return array
+    end
+
+    action GetEditorLayer returns EditorLayer
+        return editorLayer
+    end
+
+    action IncreaseSize
+        gridWidth = gridWidth + 1
+        gridHeight = gridHeight + 1
+        gridDepth = gridDepth + 1
+        SetScale(gridUnitSize * gridWidth, gridUnitSize * gridHeight, gridUnitSize * gridDepth)
+    end
+
+    action DecreaseSize
+        gridWidth = gridWidth - 1
+        gridHeight = gridHeight - 1
+        gridDepth = gridDepth - 1
+
+        if gridWidth <= 0
+            gridWidth = 1
+        end
+        if gridHeight <= 0
+            gridHeight = 1
+        end
+        if gridDepth <= 0
+            gridDepth = 1
+        end
+
+        SetScale(gridUnitSize * gridWidth, gridUnitSize * gridHeight, gridUnitSize * gridDepth)
+    end
+
+end

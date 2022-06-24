@@ -1,0 +1,135 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Interface.Item3D
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector3
+
+class EditorCamera3D is PerspectiveCamera
+
+    // The currently focused target. The camera tries to follow this.
+    Item3D target = undefined
+
+    // How far the camera tries to stay away from the focused object
+    number distance = 10
+
+    
+    // A matrix storing the rotation component of the assigned yaw/pitch.
+    Matrix4 rotationMatrix
+
+    // A reusable quaternion used to recalculate the rotation matrix when the yaw/pitch changes.
+    Quaternion calcQuaternion
+
+    // Reusable vectors used for calculations.
+    Vector3 calcVector1
+    Vector3 calcVector2
+
+    // Euler angle values used for rotation.
+    number yaw = 0
+    number pitch = 45
+    number roll = 0
+
+    on create
+        calcQuaternion:SetEulerAngles(yaw, pitch, roll)
+        rotationMatrix:Set(calcQuaternion)
+
+        // The raw values are used to position the camera in UpdateCameraPosition.
+        // We pass the negative values here to make the camera look back at the focus position.
+        SetYawPitchRoll(-yaw, -pitch, -roll)
+
+        calcVector1:Set(0, 0, -distance)
+        // The position stored in calcVector1 is transformed by our precomputed rotations and stored in calcVector2.
+        rotationMatrix:TransformWorldCoordinate(calcVector1, calcVector2)
+
+        SetPosition(calcVector2)
+    end
+
+
+    action SetTarget(Item3D target)
+        // We don't want to allow the camera to try to snap to itself.
+        // We ignore requests to target a CameraItem.
+        if target is CameraItem
+            return now
+        end
+
+        me:target = target
+        UpdateCameraPosition()
+    end
+
+    action GetTarget returns Item3D
+        return target
+    end
+
+    action SetDistance(number distance)
+        me:distance = distance
+        UpdateCameraPosition()
+    end
+
+    action GetDistance returns number
+        return distance
+    end
+
+    private action UpdateCameraRotation
+        calcQuaternion:SetEulerAngles(yaw, pitch, roll)
+        rotationMatrix:Set(calcQuaternion)
+
+        // The raw values are used to position the camera in UpdateCameraPosition.
+        // We pass the negative values here to make the camera look back at the focus position.
+        SetYawPitchRoll(yaw, -pitch, roll)
+
+        UpdateCameraPosition()
+    end
+
+    action UpdateCameraPosition
+        if target = undefined
+            return now
+        end
+
+        calcVector1:Set(0, 0, -distance)
+        calcVector2:Set(0, 0, 0)
+        // The position stored in calcVector1 is transformed by our precomputed rotations and stored in calcVector2.
+        rotationMatrix:TransformWorldCoordinate(calcVector1, calcVector2)
+
+        calcVector1:Set(target:GetPosition())
+        calcVector1:Add(calcVector2)
+
+        SetPosition(calcVector1)
+        Update()
+    end
+
+    action GetYaw returns number
+        return yaw
+    end
+
+    action SetYaw(number yaw)
+        me:yaw = yaw
+        UpdateCameraRotation()
+    end
+
+    action GetPitch returns number
+        return pitch
+    end
+
+    action SetPitch(number pitch)
+        me:pitch = pitch
+        UpdateCameraRotation()
+    end
+
+    action GetRoll returns number
+        return roll
+    end
+
+    action SetRoll(number roll)
+        me:roll = roll
+        UpdateCameraRotation()
+    end
+
+    action SetRotation(number yaw, number pitch, number roll)
+        me:yaw = yaw
+        me:pitch = pitch
+        me:roll = roll
+        UpdateCameraRotation()
+    end
+
+end

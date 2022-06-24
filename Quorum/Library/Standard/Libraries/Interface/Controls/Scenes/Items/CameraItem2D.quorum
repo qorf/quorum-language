@@ -1,0 +1,88 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+
+class CameraItem2D is CameraItem, EditorItem2D
+
+    on create
+        SetInputGroup("CameraItem2D")
+    end
+
+    action Load(Camera camera, SceneEditor_LIBRARY editor)
+        SetCamera(camera)
+        SetSceneEditor(editor)
+
+        SetPosition(camera:GetPosition():GetX(), camera:GetPosition():GetY())
+    end
+
+    action SetRotation(number angle)
+        // TO-DO
+    end
+
+    action GetRotation returns number
+        // TO-DO
+        return 0
+    end
+
+    action MoveX(number x)
+        parent:Item2D:MoveX(x)
+        UpdateCameraPosition()
+    end
+
+    action MoveY(number y)
+        parent:Item2D:MoveY(y)
+        UpdateCameraPosition()
+    end
+
+    action Move(number x, number y)
+        parent:Item2D:Move(x, y)
+        UpdateCameraPosition()
+    end
+
+    action SetX(number x)
+        parent:Item2D:SetX(x)
+        UpdateCameraPosition()
+    end
+
+    action SetY(number y)
+        parent:Item2D:SetY(y)
+        UpdateCameraPosition()
+    end
+
+    action SetPosition(number x, number y)
+        parent:Item2D:SetPosition(x, y)
+        UpdateCameraPosition()
+    end
+
+    private action UpdateCameraPosition
+        Camera camera = GetCamera()
+
+        camera:SetPosition(GetX(), GetY(), camera:GetPosition():GetZ())
+        camera:Update()
+
+        if GetLayer() is EditorLayer2D
+            EditorLayer2D layer = cast(EditorLayer2D, GetLayer())
+            layer:UpdateGridPosition()
+        end
+    end
+
+    action SetZoom(number zoom)
+        OrthographicCamera camera = cast(OrthographicCamera, GetCamera())
+        camera:SetZoom(zoom)
+        if GetLayer() is EditorLayer2D
+            EditorLayer2D layer = cast(EditorLayer2D, GetLayer())
+            layer:UpdateGridSize()
+        end
+    end
+
+    action GetZoom returns number
+        OrthographicCamera camera = cast(OrthographicCamera, GetCamera())
+        return camera:GetZoom()
+    end
+
+end

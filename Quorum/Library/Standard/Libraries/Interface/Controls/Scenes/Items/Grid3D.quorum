@@ -1,0 +1,154 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Game.Graphics.BlendingAttribute
+use Libraries.Game.Graphics.TextureAttribute
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureWrap
+use Libraries.Game.Graphics.NumberAttribute
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Game.Graphics.Drawable
+
+class Grid3D is Model
+    
+    Math math
+    SceneConstants editorConstants
+
+    // The blend attribute is required for transparency to be rendered.
+    BlendingAttribute blendAttribute = undefined
+
+    // The light attribute overrides the scene lighting when rendering the grid.
+    ColorAttribute lightAttribute = undefined
+
+    // The diffuse attribute adjusts the color and transparency of the grid lines.
+    ColorAttribute diffuseAttribute = undefined
+
+    // The texture attribute lets us define how the texture is applied over the model.
+    TextureAttribute textureAttribute = undefined
+
+    // The alpha test attribute allows the shader to discard fragments that are
+    // below a provided alpha (transparency) threshold.
+    NumberAttribute alphaTestAttribute
+
+    constant number alphaThreshold = 0.05
+
+    // How much the grid has been scaled up in terms of 3D space. In other words,
+    // the grid is a plane which is scaleFactor units long by scaleFactor units wide.
+    number scaleFactor = 64
+
+    // The distance between grid coordinates, in 3D world space.
+    number gridUnits = 1
+
+    on create
+        SetProperty(editorConstants:EDITOR_TAG, undefined)
+        SetFocusable(false)
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+
+        Texture gridTexture
+        gridTexture:LoadRectangle(100, 100)
+        Drawable grid
+        grid:Load(gridTexture)
+        grid:SetColor(editorConstants:GRID_2D_COLOR)
+        
+        LoadPlane(1, 1, grid, true)
+        Scale(scaleFactor, 1, scaleFactor)
+
+        Array<Material> value = GetMaterials()
+        Material material = value:Get(0)
+        
+        BlendingAttribute blend
+        material:Add(blend)
+        blendAttribute = blend
+
+        ColorAttribute lightAttribute
+        lightAttribute = lightAttribute:CreateAmbientLight(1, 1, 1, 1)
+        material:Add(lightAttribute)
+        me:lightAttribute = lightAttribute
+
+        ColorAttribute diffuseAttribute = lightAttribute:CreateDiffuse(0, 0, 0, 0.1)
+        material:Add(diffuseAttribute)
+        me:diffuseAttribute = diffuseAttribute
+
+        TextureAttribute diffuseTexture
+        diffuseTexture = cast(TextureAttribute, material:GetAttribute(diffuseTexture:GetDiffuseValue()))
+        Texture texture = diffuseTexture:descriptor:texture
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        texture:SetWrap(uWrap, vWrap)
+        diffuseTexture:scaleU = scaleFactor / gridUnits
+        diffuseTexture:scaleV = scaleFactor / gridUnits
+        textureAttribute = diffuseTexture
+
+        alphaTestAttribute:SetAttribute(alphaTestAttribute:GetAlphaTestValue(), alphaThreshold)
+        material:Add(alphaTestAttribute)
+
+        SetAcceptsMouseInput(false)
+    end
+
+    /*
+    Sets the grid size. Since the grid is always a square, the single provided
+    value sets both length and width.
+    */
+    action SetGridSize(number width)
+        Scale(1/scaleFactor, 1, 1/scaleFactor)
+        scaleFactor = width
+        Scale(scaleFactor, 1, scaleFactor)
+        SetGridUnitSize(gridUnits)
+    end
+
+    /*
+    Returns the size of the grid's length or width (since the grid is always a
+    square, it's both).
+    */
+    action GetGridSize returns number
+        return scaleFactor
+    end
+
+    /*
+    Sets the size of the units of the grid in 3D world space.
+    */
+    action SetGridUnitSize(number unit)
+        gridUnits = unit
+        textureAttribute:scaleU = scaleFactor / unit
+        textureAttribute:scaleV = scaleFactor / unit
+    end
+
+    action GetGridUnitSize returns number
+        return gridUnits
+    end
+
+    action IsGridCoordinate(number coordinate) returns boolean
+        integer coord = cast(integer, coordinate)
+        // If the floating point division returns the same value as integer division, return true
+        return (coordinate / gridUnits) = (coord / gridUnits)
+    end
+
+    action GetNearestGridCoordinate(number coordinate) returns number
+        number multiple = coordinate / gridUnits
+        return math:Round(multiple) * gridUnits
+    end
+
+    action GetNextGridCoordinate(number coordinate) returns number
+        number multiple = coordinate / gridUnits
+        number value = math:Ceiling(multiple) * gridUnits
+        if value = coordinate
+            value = value + gridUnits
+        end
+        return value
+    end
+
+    action GetPreviousGridCoordinate(number coordinate) returns number
+        number multiple = coordinate / gridUnits
+        number value = math:Floor(multiple) * gridUnits
+        if value = coordinate
+            value = value - gridUnits
+        end
+        return value
+    end
+end

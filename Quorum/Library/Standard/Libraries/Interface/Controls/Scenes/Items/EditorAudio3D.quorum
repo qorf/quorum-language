@@ -1,0 +1,120 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.System.File
+use Libraries.Game.Audio3D
+//use Libraries.Development.Environment.Resources
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+
+class EditorAudio3D is EditorModel
+
+    // This class needs to inherit from Audio3D in order for the scene manager to 
+    // correctly identify and handle it, but in practice it never loads/plays audio,
+    // so we locally store information instead.
+
+    boolean modelLoaded = false
+    text source = ""
+
+    number maxVolumeDistance = 1
+    number rolloffRate = 1
+    
+    number volume = 1
+    number pitch = 1
+    
+    boolean playOnLoad = false
+    boolean looping = false
+    boolean doppler = true
+
+    action GetSource returns text
+        return source
+    end
+
+    action SetSource(text source)
+        me:source = source
+    end
+
+    action SetPlayOnLoad(boolean load)
+        SceneProperties properties
+        JavaScriptObjectNotation json = undefined
+        if HasProperty(properties:PLAY_ON_LOAD)
+            json = GetProperty(properties:PLAY_ON_LOAD)
+        else
+            JavaScriptObjectNotation newJson
+            json = newJson
+            SetProperty(properties:PLAY_ON_LOAD, json)
+        end
+
+        json:SetBoolean(load)
+    end
+
+    action GetPlayOnLoad returns boolean
+        SceneProperties properties
+        if HasProperty(properties:PLAY_ON_LOAD)
+            JavaScriptObjectNotation json = GetProperty(properties:PLAY_ON_LOAD)
+            return json:GetBoolean()
+        else
+            return false
+        end
+    end
+
+    action LoadPlaceholderBox
+        if modelLoaded = true
+            return now
+        end
+
+        modelLoaded = true
+        //Resources resources
+        //LoadBox(0.5, 0.5, 0.5, resources:GetAudioTexture())
+    end
+
+    action GetVolume returns number
+        return volume
+    end
+
+    action SetVolume(number volume)
+        me:volume = volume
+    end
+
+    action SetPitch(number pitch)
+        me:pitch = pitch
+    end
+
+    action GetPitch returns number
+        return pitch
+    end
+
+    action GetMaximumVolumeDistance returns number
+        return maxVolumeDistance
+    end
+
+    action SetMaximumVolumeDistance(number maxVolumeDistance)
+        me:maxVolumeDistance = maxVolumeDistance
+    end
+
+    action GetRolloffRate returns number
+        return rolloffRate
+    end
+
+    action SetRolloffRate(number rolloffRate)
+        me:rolloffRate = rolloffRate
+    end
+
+    action GetLooping returns boolean
+        return looping
+    end
+
+    action SetLooping(boolean looping)
+        me:looping = looping
+    end
+
+    action GetDoppler returns boolean
+        return doppler
+    end
+
+    action SetDoppler(boolean doppler)
+        me:doppler = doppler
+    end
+
+end
