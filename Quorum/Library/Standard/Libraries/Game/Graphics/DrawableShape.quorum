@@ -745,7 +745,10 @@ class DrawableShape
         if mesh not= undefined
             mesh:GetVertexData():SetVertices(vertices)
         elseif drawable not= undefined and drawable:GetMesh() not= undefined
-            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex(), vertices)
+            // TO-DO: Review the transformation between index and vertices.
+            // Here we multiply by 4 (a default quad takes 6 indices to render, and 24 vertices across those 6 indices).
+            // This value likely needs to change if we adjust the vertices/indices for custom objects.
+            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex() * 4, vertices)
         end
     end
 
