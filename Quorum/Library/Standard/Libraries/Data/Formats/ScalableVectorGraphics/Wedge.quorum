@@ -28,6 +28,7 @@ class Wedge is ScalableVectorGraphicsObject
     private number endY = 0
     private number innerEndX = 0
     private number innerEndY = 0
+    private number percent = 0
 
     /*
         This action writes out all of the necessary tags and attributes that make up this
@@ -45,9 +46,17 @@ class Wedge is ScalableVectorGraphicsObject
 
         result = "<" + objectName 
         result = result + GlobalAttributesToText()
-        result = result + " d=" + dq + "M" + startX + "," + startY + " A " + outerRadius + "," + outerRadius + " 0 0 1 " + endX + "," + endY
+        if percent > 0.5
+            result = result + " d=" + dq + "M" + startX + "," + startY + " A " + outerRadius + "," + outerRadius + " 0 1 1 " + endX + "," + endY
+        else
+            result = result + " d=" + dq + "M" + startX + "," + startY + " A " + outerRadius + "," + outerRadius + " 0 0 1 " + endX + "," + endY
+        end
         if innerRadius > 0
-            result = result + " L " + centerX + "," + centerY + " A " + innerRadius + "," + innerRadius + " 0 0 0 " + innerEndX + "," + innerEndY
+            if percent > 0.5
+                result = result + " L " + centerX + "," + centerY + " A " + innerRadius + "," + innerRadius + " 0 1 0 " + innerEndX + "," + innerEndY
+            else
+                result = result + " L " + centerX + "," + centerY + " A " + innerRadius + "," + innerRadius + " 0 0 0 " + innerEndX + "," + innerEndY
+            end
         else
             result = result + " L " + centerX + "," + centerY + " A 0,0 0 0 0 " + centerX + "," + centerY
         end
@@ -67,7 +76,12 @@ class Wedge is ScalableVectorGraphicsObject
             end
             result = result + tab
         end
-        result = result + GetCloseTag(objectName, IsContainer()) + newLine
+        result = result + GetCloseTag(objectName, IsContainer())
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
         return result
     end
 
@@ -116,5 +130,12 @@ class Wedge is ScalableVectorGraphicsObject
     action SetInnerEnd(number x, number y)
         innerEndX = x
         innerEndY = y
+    end
+
+    /*
+        This action sets the percent of the arc, this is used to determine if it's over 50% of the total.
+    */
+    action SetPercent(number percent)
+        me:percent = percent
     end
 end

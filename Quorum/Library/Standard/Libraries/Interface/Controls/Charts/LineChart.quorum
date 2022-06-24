@@ -4,7 +4,6 @@ use Libraries.Interface.Layouts.LineChartLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
 use Libraries.System.File
 
 /*
@@ -32,7 +31,12 @@ use Libraries.System.File
         end
     end
 */
-class LineChart is TwoVariableChart    
+class LineChart is TwoVariableChart 
+    // Terminology for navigation instructions 
+    private text groupText = "line"
+    private text groupsText = "lines"
+    private text chartItemText = "point"
+    private text chartItemsText = "points"  
     on create
         LineChartLayout layout
         SetLayout(layout)
@@ -44,14 +48,6 @@ class LineChart is TwoVariableChart
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Line Chart")
 
@@ -78,9 +74,9 @@ class LineChart is TwoVariableChart
             lineText = "line"
         end
         if GetName() = "Line Chart"
-            SetDescription(" with " + lines + " " + lineText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + lines + " " + lineText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription("Line chart with " + lines + " " + lineText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", Line Chart with " + lines + " " + lineText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -108,7 +104,43 @@ class LineChart is TwoVariableChart
         if file:GetFileExtension() = "svg"
             LineChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            HistogramWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
+        end
+    end
+    
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 
 end

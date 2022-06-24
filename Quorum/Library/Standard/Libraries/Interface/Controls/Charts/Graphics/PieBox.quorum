@@ -50,9 +50,9 @@ class PieBox is GroupPanel
         return cast(Array<PieSlice>, GetGroupItems())
     end
 
-    action Empty()
+    action EmptyItems()
         totalValueOfPie = 0      
-        parent:GroupPanel:Empty()
+        parent:GroupPanel:EmptyItems()
     end
 
     action GetValue() returns number

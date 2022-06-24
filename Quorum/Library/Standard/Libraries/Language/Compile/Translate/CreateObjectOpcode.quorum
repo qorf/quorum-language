@@ -71,8 +71,9 @@ class CreateObjectOpcode is QuorumOpcode
             if clazz:IsStatic() //"Lplugins/quorum/" + staticKeySlashes + ";"
                 //first get the static class, if it exists and duplicate the reference
                 methodWriter:VisitConstant(clazz:GetStaticKey())
-                text className = "plugins/quorum/Libraries/Language/Object"
-                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), className, "GetStaticClass", "(Ljava/lang/String;)Ljava/lang/Object;", false)
+                text className = "plugins/quorum/Libraries/Language/SharedClass"
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), className, "GetStaticClass", 
+                    "(Ljava/lang/String;)Ljava/lang/Object;", false)
                 
                 //now check if it's null. If it is, create the object and toss it in the static hash.
                 JavaBytecodeLabel endLabel

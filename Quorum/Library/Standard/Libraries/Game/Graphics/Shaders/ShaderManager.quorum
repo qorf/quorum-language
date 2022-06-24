@@ -100,18 +100,42 @@ shared class ShaderManager
     end
 
     action GetDefaultVertexShader2D returns Shader
+        if HasShader(DEFAULT_2D_VERTEX_SHADER) = false
+            DefaultVertexShader2D shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+        end
+
         return GetShader(DEFAULT_2D_VERTEX_SHADER)
     end
 
     action GetDefaultFragmentShader2D returns Shader
+        if HasShader(DEFAULT_2D_FRAGMENT_SHADER) = false
+            DefaultFragmentShader2D shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+        end
+
         return GetShader(DEFAULT_2D_FRAGMENT_SHADER)
     end
 
     action GetDefaultVertexShader3D returns Shader
+        if HasShader(DEFAULT_3D_VERTEX_SHADER) = false
+            DefaultVertexShader3D shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+        end
+
         return GetShader(DEFAULT_3D_VERTEX_SHADER)
     end
 
     action GetDefaultFragmentShader3D returns Shader
+        if HasShader(DEFAULT_3D_FRAGMENT_SHADER) = false
+            DefaultFragmentShader3D shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+        end
+
         return GetShader(DEFAULT_3D_FRAGMENT_SHADER)
     end
 

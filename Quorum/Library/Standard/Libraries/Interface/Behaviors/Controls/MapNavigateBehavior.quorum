@@ -14,30 +14,31 @@ class MapNavigateBehavior is Behavior
             integer keycode = event:GetKeyboardEvent():keyCode
             GeoMap chart = cast(GeoMap, event:GetItem())
 
-            if event:GetInputSet():HasModifier(event:GetInputSet():SHIFT)
-                if keycode = keys:TAB
-                    chart:SelectPrevious()
-                elseif keycode = keys:ENTER
-                    chart:SelectParent()
-                end
-            else
-                // TREE-LIKE Navigation
-                if keycode = keys:UP
-                    chart:SelectPrevious()
-                elseif keycode = keys:DOWN
-                    chart:SelectNext()
-                elseif keycode = keys:LEFT
-                    chart:CloseItem()
-                elseif keycode = keys:RIGHT
-                    chart:OpenItem()
-
-                // ORIGINAL Navigation
-                elseif keycode = keys:TAB
-                    chart:SelectNext()
-                elseif keycode = keys:ENTER
-                    chart:SelectChild()
-                end
-            end
+            alert("NYI: This chart doesn't support the new accessibility system yet.")
+//            if event:GetInputSet():HasModifier(event:GetInputSet():SHIFT)
+//                if keycode = keys:TAB
+//                    chart:SelectPrevious()
+//                elseif keycode = keys:ENTER
+//                    chart:SelectParent()
+//                end
+//            else
+//                // TREE-LIKE Navigation
+//                if keycode = keys:UP
+//                    chart:SelectPrevious()
+//                elseif keycode = keys:DOWN
+//                    chart:SelectNext()
+//                elseif keycode = keys:LEFT
+//                    chart:CloseItem()
+//                elseif keycode = keys:RIGHT
+//                    chart:OpenItem()
+//
+//                // ORIGINAL Navigation
+//                elseif keycode = keys:TAB
+//                    chart:SelectNext()
+//                elseif keycode = keys:ENTER
+//                    chart:SelectChild()
+//                end
+//            end
         end
     end
 

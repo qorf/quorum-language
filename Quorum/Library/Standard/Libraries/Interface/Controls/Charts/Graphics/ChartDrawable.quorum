@@ -2,10 +2,14 @@ package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Interface.Controls.Charts.Series
 use Libraries.Interface.Controls.Charts.GroupPanel
+use Libraries.Interface.Controls.Charts.ChartLabel
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Charts.ChartItem
+use Libraries.Containers.Array
 
 
 /*
@@ -18,18 +22,37 @@ ChartDrawable holds the annotation for the drawable.
 Attribute: Author Hannah Williams
 */
 
-class ChartDrawable is Drawable    
+class ChartDrawable is ChartItem, Drawable
     ChartAreaPanel chartArea = undefined // If separated, this will correspond to the correct sub chart area
     Series series = undefined
     GroupPanel group = undefined
     Color customColor = undefined
-    ControlLabel annotation = undefined
+    ChartLabel annotation = undefined
     boolean showAnnotation = false
+    Array <Drawable> selectionBracket //may or may not be used
+    Drawable selectionArrow //may or may not be used
+    Array<number> vertices
 
     on create
         // Color the item as gray in case it never gets added to a series.
         Color color
         SetColor(color:LightGray())
+    end
+
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    action SetSelectionArrowVertices(Array <number> vertices)
+        me:vertices = vertices
+    end
+
+    action GetSelectionArrowVertices returns Array<number>
+        return vertices
+    end
+
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
     end
 
     /*
@@ -52,11 +75,11 @@ class ChartDrawable is Drawable
         Annotation is a control label that can be shown appended to this drawable
         It can show things like a name, value, equation or custom text. 
     */
-    action SetAnnotation(ControlLabel annotation)
+    action SetAnnotation(ChartLabel annotation)
         me:annotation = annotation
     end
 
-    action GetAnnotation returns ControlLabel
+    action GetAnnotation returns ChartLabel
         return annotation
     end
 
@@ -91,5 +114,51 @@ class ChartDrawable is Drawable
 
     action GetGroup returns GroupPanel
         return group
+    end
+
+    /*
+        A link to the parent chart area of this drawable.
+    */
+    action GetChartArea returns ChartAreaPanel
+        return chartArea
+    end
+
+    action SetChartArea(ChartAreaPanel chartArea)
+        me:chartArea = chartArea
+    end
+
+    // Try to get the chart this is attached to via the parent hierarchy.
+    private action GetParentChart returns Chart
+        Item2D parentItem = me
+        repeat until parentItem is Chart or parentItem = undefined
+            parentItem = parentItem:GetParent()
+        end
+
+        return cast(Chart, parentItem)
+    end
+
+
+    action GainedSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Show()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Show()
+            GetSelectionBracket():Get(1):Show()
+            GetSelectionBracket():Get(2):Show()
+        end
+        parent:ChartItem:GainedSelection()
+    end
+
+    action LostSelection()
+        if GetSelectionArrow() not= undefined          
+            GetSelectionArrow():Hide()
+        end
+        if GetSelectionBracket():GetSize() = 3          
+            GetSelectionBracket():Get(0):Hide()
+            GetSelectionBracket():Get(1):Hide()
+            GetSelectionBracket():Get(2):Hide()
+        end
+        parent:ChartItem:LostSelection()
     end
 end

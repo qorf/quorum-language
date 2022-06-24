@@ -6,7 +6,6 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartOptions
@@ -22,6 +21,10 @@ use Libraries.Interface.Controls.Charts.ChartDisplay
 use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.DateTime
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+
 
 /*
 
@@ -59,14 +62,13 @@ use Libraries.System.DateTime
         end
     end
 */
-class Chart is Control
+class Chart is ChartItem
     private Math math
     private Color color
     private ChartOptions options
 
     // Chart Accessibilty
     private boolean treeNeedsUpdate = true
-    private ChartItem infoTreeRoot //The root chart item for all charts
     private ChartSelection selection
     private Color highlightColor = undefined
     private ColorGroup previousColorGroup = undefined
@@ -82,7 +84,7 @@ class Chart is Control
 
     // Title Area Components
     private number titleAreaHeightPercent = 0.05
-    private ControlLabel title = undefined
+    private ChartLabel title = undefined
     private text titleText = "Chart Title"
     private boolean showTitle = true 
     private integer titlefontsize = 0
@@ -92,7 +94,7 @@ class Chart is Control
 
     // Subtitle Area Components - not implemented yet
     private number subtitleAreaHeightPercent = 0
-    private ControlLabel subtitle = undefined
+    private ChartLabel subtitle = undefined
     private text subtitleText = "Subtitle"
     private boolean showSubtitle = false
     private integer subtitlefontsize = 0
@@ -159,9 +161,23 @@ class Chart is Control
     private number legendPanelWidthPercent = 0.05
     private number legendPanelHeightPercent = 0.05
 
+    // Terminology for navigation instructions
+    private text groupText = "group"
+    private text groupsText = "groups"
+    private text seriesText = "series"
+    private text chartItemText = "chart item"
+    private text chartItemsText = "chart items"
+
+    // How thick the borders of points should be, in pixels.
+    // Only used if the chart renders points. Otherwise, this does nothing.
+    number pointBorderThickness = 1
+
     on create
         chartArea:SetName("Chart Area")
         Add(chartArea)
+
+        // Get default colors from the InterfaceOptions.
+        SetInterfaceOptionsKey("Chart")
     end
 
     action IsAccessibleParent returns boolean
@@ -186,10 +202,13 @@ class Chart is Control
         // Load background of display window
         if GetBackground() = undefined
             Drawable background
-            background:LoadFilledRectangle(cast(integer, GetWidth()) ,cast(integer, GetHeight()), color:White())
+            background:LoadFilledRectangle(cast(integer, GetWidth()), cast(integer, GetHeight()))
             SetBackground(background)
             Add(background)
         end
+
+        // Always ensure the background is the right color, whether it's newly loaded or not.
+        GetBackground():SetColor(GetBackgroundColor())
 
         // Load background/border of chart area
         chartArea:LoadChartAreaView()
@@ -203,11 +222,6 @@ class Chart is Control
         if defaultShowBrackets and HasGroups() and not overrideDefaultShowBrackets
             verticalPanel:ShowGroupBrackets(true)
             horizontalPanel:ShowGroupBrackets(true)
-        end
-
-        // Default highlight color is selection color (currently blue)
-        if GetHighlightColor() = undefined
-            SetHighlightColor(options:GetSelectionColor())
         end
 
         // Load sub chart areas and sub axis panels
@@ -236,7 +250,7 @@ class Chart is Control
                 if separateByFactor
                     if i < GetFactorList():GetSize()
                         subArea:SetName(GetFactorList():Get(i))
-                        ControlLabel newLabel
+                        ChartLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
@@ -248,7 +262,8 @@ class Chart is Control
                 if separateBySeries 
                     if i < GetSeriesList():GetSize()
                         subArea:SetName(GetSeriesList():Get(i):GetName())
-                        ControlLabel newLabel
+                        subArea:SetSeries(GetSeriesList():Get(i))
+                        ChartLabel newLabel
                         newLabel:SetText(subArea:GetName())
                         subArea:SetLabel(newLabel)
                         subArea:Add(newLabel)
@@ -276,7 +291,7 @@ class Chart is Control
         if IsShowingTitle()
             titleAreaHeightPercent = 0.10
             if GetTitleLabel() = undefined
-                ControlLabel newLabel
+                ChartLabel newLabel
                 SetTitleLabel(newLabel)
                 newLabel:SetText(titleText)
                 Add(newLabel)
@@ -286,7 +301,7 @@ class Chart is Control
         if IsShowingSubtitle()
             subtitleAreaHeightPercent = 0.05
             if GetSubtitleLabel() = undefined
-                ControlLabel newLabel
+                ChartLabel newLabel
                 SetSubtitleLabel(newLabel)
                 newLabel:SetText(subtitleText)
                 Add(newLabel)
@@ -295,14 +310,12 @@ class Chart is Control
 
         horizontalPanel:LoadAxis(me, properties)
         if IsShowingXAxis()
-            horizontalPanel:SetAxisColor(color:Black())
             horizontalPanelHeightPercent = 0.15
             Add(horizontalPanel)
         end
 
         verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
-            verticalPanel:SetAxisColor(color:Black())
             verticalPanelWidthPercent = 0.15
             Add(verticalPanel)
         end
@@ -330,18 +343,42 @@ class Chart is Control
         accessibility navigation.
     */
     private action FlipAxisInfo()
-        number temp = horizontalPanel:GetMaximum()
+        number tempNum = 0
+        integer tempInt = 0
+        boolean tempBool = true
+        text tempText = ""
+        DateTime tempDate
+        Array <text> tempLabels
+
+        // Axis offset
+        tempNum = horizontalPanel:GetPaddingOffsetPercent()
+        horizontalPanel:SetPaddingOffsetPercent(verticalPanel:GetPaddingOffsetPercent())
+        verticalPanel:SetPaddingOffsetPercent(tempNum)
+
+        tempBool = horizontalPanel:OverrideDefaultPaddingOffset()
+        horizontalPanel:OverrideDefaultPaddingOffset(verticalPanel:OverrideDefaultPaddingOffset())
+        verticalPanel:OverrideDefaultPaddingOffset(tempBool)
+
+
+        // Range values
+        tempNum = horizontalPanel:GetMaximum()
         horizontalPanel:SetMaximum(verticalPanel:GetMaximum())
-        verticalPanel:SetMaximum(temp)
+        verticalPanel:SetMaximum(tempNum)
 
-        temp = horizontalPanel:GetMinimum()
+        tempNum = horizontalPanel:GetMinimum()
         horizontalPanel:SetMinimum(verticalPanel:GetMinimum())
-        verticalPanel:SetMinimum(temp)
+        verticalPanel:SetMinimum(tempNum)
 
-        temp = horizontalPanel:GetPaddingOffset()
-        horizontalPanel:SetPaddingOffset(verticalPanel:GetPaddingOffset())
-        verticalPanel:SetPaddingOffset(temp)
+        tempBool = horizontalPanel:OverrideDefaultMin()
+        horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
+        verticalPanel:OverrideDefaultMin(tempBool)
 
+        tempBool = horizontalPanel:OverrideDefaultMax()
+        horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
+        verticalPanel:OverrideDefaultMax(tempBool)
+
+
+        // DateRange values
         DateTime tempdate = horizontalPanel:GetMaximumDate()
         horizontalPanel:SetMaximumDate(verticalPanel:GetMaximumDate())
         verticalPanel:SetMaximumDate(tempdate)
@@ -350,53 +387,58 @@ class Chart is Control
         horizontalPanel:SetMinimumDate(verticalPanel:GetMinimumDate())
         verticalPanel:SetMinimumDate(tempdate)
 
-        Array <text> templabels = horizontalPanel:GetTextLabels()
-        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
-        verticalPanel:SetTextLabels(templabels)
 
-        temp = horizontalPanel:GetTickInterval()
+        // Tick information
+        tempNum = horizontalPanel:GetTickInterval()
         horizontalPanel:SetTickInterval(verticalPanel:GetTickInterval())
-        verticalPanel:SetTickInterval(temp)
+        verticalPanel:SetTickInterval(tempNum)
 
-        integer tempint = horizontalPanel:GetTickCount()
+        tempBool = horizontalPanel:OverrideDefaultInterval()
+        horizontalPanel:OverrideDefaultInterval(verticalPanel:OverrideDefaultInterval())
+        verticalPanel:OverrideDefaultInterval(tempBool)
+
+        tempInt = horizontalPanel:GetTickCount()
         horizontalPanel:SetTickCount(verticalPanel:GetTickCount())
-        verticalPanel:SetTickCount(tempint)
+        verticalPanel:SetTickCount(tempInt)
 
-        boolean tempflag = horizontalPanel:GetOverrideDefaultTickCount()
-        horizontalPanel:OverrideDefaultTickCount(verticalPanel:GetOverrideDefaultTickCount())
-        verticalPanel:OverrideDefaultTickCount(tempflag)
+        tempBool = horizontalPanel:OverrideDefaultTickCount()
+        horizontalPanel:OverrideDefaultTickCount(verticalPanel:OverrideDefaultTickCount())
+        verticalPanel:OverrideDefaultTickCount(tempBool)
 
-        tempflag = horizontalPanel:GetOverrideDefaultInterval()
-        horizontalPanel:OverrideDefaultInterval(verticalPanel:GetOverrideDefaultInterval())
-        verticalPanel:OverrideDefaultInterval(tempflag)
-
-        tempflag = horizontalPanel:NumericalOverrideLabels()
-        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
-        verticalPanel:NumericalOverrideLabels(tempflag)
-
-        tempflag = horizontalPanel:ShowGroupBrackets()
-        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
-        verticalPanel:ShowGroupBrackets(tempflag)
-
-        tempflag = horizontalPanel:ShowTicks()
+        tempBool = horizontalPanel:ShowTicks()
         horizontalPanel:ShowTicks(verticalPanel:ShowTicks())
-        verticalPanel:ShowTicks(tempflag)
+        verticalPanel:ShowTicks(tempBool)
 
-        tempflag = horizontalPanel:OverrideDefaultMin()
-        horizontalPanel:OverrideDefaultMin(verticalPanel:OverrideDefaultMin())
-        verticalPanel:OverrideDefaultMin(tempflag)
+        // Brackets
+        tempBool = horizontalPanel:ShowGroupBrackets()
+        horizontalPanel:ShowGroupBrackets(verticalPanel:ShowGroupBrackets())
+        verticalPanel:ShowGroupBrackets(tempBool)
 
-        tempflag = horizontalPanel:OverrideDefaultMax()
-        horizontalPanel:OverrideDefaultMax(verticalPanel:OverrideDefaultMax())
-        verticalPanel:OverrideDefaultMax(tempflag)
 
-        text temptext = horizontalPanel:GetTitleText()
+        // Labels
+        tempLabels = horizontalPanel:GetTextLabels()
+        horizontalPanel:SetTextLabels(verticalPanel:GetTextLabels())
+        verticalPanel:SetTextLabels(tempLabels)
+
+        tempBool = horizontalPanel:ShowLabels()
+        horizontalPanel:ShowLabels(verticalPanel:ShowLabels())
+        verticalPanel:ShowLabels(tempBool)
+
+        tempBool = horizontalPanel:NumericalOverrideLabels()
+        horizontalPanel:NumericalOverrideLabels(verticalPanel:NumericalOverrideLabels())
+        verticalPanel:NumericalOverrideLabels(tempBool)
+
+
+        // Title
+        tempText = horizontalPanel:GetTitleText()
         horizontalPanel:SetTitleText(verticalPanel:GetTitleText())
-        verticalPanel:SetTitleText(temptext)
+        verticalPanel:SetTitleText(tempText)
 
-        temptext = horizontalPanel:GetNumberFormat()
+
+        // Number format
+        tempText = horizontalPanel:GetNumberFormat()
         horizontalPanel:SetNumberFormat(verticalPanel:GetNumberFormat())
-        verticalPanel:SetNumberFormat(temptext)
+        verticalPanel:SetNumberFormat(tempText)
 
         if xAxisIsIndependent
             xAxisIsIndependent = false
@@ -416,6 +458,7 @@ class Chart is Control
             background = undefined
         end
 
+        GetChartArea():Empty()
         GetLegend():Empty()
         GetVerticalPanel():Empty()
         GetHorizontalPanel():Empty()
@@ -464,14 +507,6 @@ class Chart is Control
     */
     action GetChartArea returns ChartAreaPanel
         return chartArea
-    end
-
-    action SetChartAreaBorderColor(ColorGroup color)
-        chartArea:SetBorderColor(color)
-    end
-
-    action SetChartAreaBackgroundColor(ColorGroup color)
-        chartArea:SetBackgroundColor(color)
     end
 
     /*
@@ -686,6 +721,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             horizontalPanel:SetNumberFormat(format)
+            horizontalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -693,6 +729,7 @@ class Chart is Control
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
             verticalPanel:SetNumberFormat(format)
+            verticalPanel:OverrideDefaultNumberFormat(true)
         end
     end
 
@@ -716,17 +753,10 @@ class Chart is Control
         These actions are used to offset the start of the tick placement
         if the chart has added white space on either side of the chart area.
     */
-    action GetPaddedChartOffset returns integer
-        return paddedChartOffset
-    end
-
-    action SetPaddedChartOffset(integer offset)
-        paddedChartOffset = offset
-    end
-
     action SetYAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            verticalPanel:SetPaddingOffset(percent)
+            verticalPanel:SetPaddingOffsetPercent(percent)
+            verticalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end
@@ -734,7 +764,8 @@ class Chart is Control
 
     action SetXAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
-            horizontalPanel:SetPaddingOffset(percent)
+            horizontalPanel:SetPaddingOffsetPercent(percent)
+            horizontalPanel:OverrideDefaultPaddingOffset(true)
         else
             alert("Percent can be between 0 and 1")
         end
@@ -767,6 +798,7 @@ class Chart is Control
                 orientationChanged = true
                 horizontalOrientation = true
                 verticalOrientation = false
+                FlipAxisInfo()
             end
         end
     end
@@ -777,6 +809,7 @@ class Chart is Control
                 orientationChanged = true
                 horizontalOrientation = false
                 verticalOrientation = true
+                FlipAxisInfo()
             end
         end
     end
@@ -823,6 +856,17 @@ class Chart is Control
         return verticalOrientation
     end
 
+
+    /*
+        Returns an array of the factor/group names 
+    */
+    action GetFactorList returns Array<text>
+        return factorList
+    end
+    action SetFactorList(Array <text> factorList)
+        me:factorList = factorList
+    end
+
     /*
         SeparateByFactor will attempt to create faceted sub chart area panels. 
         Each factor/group (independent variable) will get it's own panel.
@@ -866,6 +910,10 @@ class Chart is Control
         return separateByFactor
     end
 
+    private action SeparateFactorByDefault(boolean flag)
+        defaultSeparateByFactor = flag
+    end
+
     /*
         SeparateBySeries will attempt to create faceted sub chart area panels 
         Each series entry in the legend will get it's own chart area.
@@ -875,7 +923,7 @@ class Chart is Control
         defaultSeparateBySeries = flag
     end
 
-    action SeparateBySeries()
+    action SeparateBySeries
         SeparateBySeries(1)
     end
 
@@ -909,16 +957,59 @@ class Chart is Control
         return separateBySeries
     end
 
-    action IsSeparated returns boolean
-        return (separateBySeries or separateByFactor)
-    end
-
     private action SeparateSeriesByDefault(boolean flag)
         defaultSeparateBySeries = flag
     end
 
-    private action SeparateFactorByDefault(boolean flag)
-        defaultSeparateByFactor = flag
+//    /*
+//        SeparateByColumn will attempt to create faceted sub chart area panels 
+//        Each column of the dataframe (dependent variable) will get it's own chart area.
+//        Each sub area will contain all elements associated with that column
+//    */
+//    action SeparateByColumn(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+//
+//    action SeparateByColumn
+//        SeparateByColumn(1)
+//    end
+//
+//    action SeparateByColumn(integer requestedColumns)
+//        if separationCapable and requestedColumns > 0
+//            integer numberOfFacets = GetColumnList():GetSize()
+//            boolean singleRow = false
+//            if numberOfFacets > 1
+//                if requestedColumns > 1
+//                    if requestedColumns > numberOfFacets
+//                        horizontalPanel:SplitIntoSections(numberOfFacets)
+//                        singleRow = true
+//                    else
+//                        horizontalPanel:SplitIntoSections(requestedColumns)
+//                    end
+//                end
+//                if not singleRow
+//                    verticalPanel:SplitIntoSections(cast(integer, math:Ceiling(cast(number, numberOfFacets)/requestedColumns)))
+//                end
+//            end
+//            numberOfChartAreas = verticalPanel:GetNumberOfSections()*horizontalPanel:GetNumberOfSections()
+//            if numberOfChartAreas > 1
+//                separateByColumn = true
+//                separateByFactor = false
+//            end
+//            overrideDefaultSeparation = true
+//        end
+//    end
+//
+//    action IsSeparatedByColumn returns boolean
+//        return separateByColumn
+//    end
+//
+//    private action SeparateColumnByDefault(boolean flag)
+//        defaultSeparateByColumn = flag
+//    end
+
+    action IsSeparated returns boolean
+        return (separateBySeries or separateByFactor)
     end
 
     private action SeparationCapable(boolean separationCapable)
@@ -928,6 +1019,7 @@ class Chart is Control
     private action XAxisIsIndependent returns boolean
         return xAxisIsIndependent
     end
+
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
@@ -941,21 +1033,29 @@ class Chart is Control
         verticalPanel:SetTextLabels(labels)
     end
 
-    action GetYLabels returns Array<ControlLabel>
+    action GetYLabels returns Array<ChartLabel>
         return verticalPanel:GetLabels()
     end
 
-    action SetYLabels(Array<ControlLabel> newLabels)
+    action SetYLabels(Array<ChartLabel> newLabels)
         verticalPanel:SetLabels(newLabels)
     end
 
-    action GetXLabels returns Array<ControlLabel>
+    action ShowYLabels(boolean show)
+        verticalPanel:ShowLabels(show)
+    end  
+
+    action GetXLabels returns Array<ChartLabel>
         return horizontalPanel:GetLabels()
     end
 
-    action SetXLabels(Array<ControlLabel> newLabels)
+    action SetXLabels(Array<ChartLabel> newLabels)
         horizontalPanel:SetLabels(newLabels)
     end
+
+    action ShowXLabels(boolean show)
+        horizontalPanel:ShowLabels(show)
+    end  
 
     action RotateXLabels(integer degrees) // "360 -" because it rotates opposite of how you'd imagine.
         xLabelsRotation = 360 - degrees
@@ -983,11 +1083,11 @@ class Chart is Control
     /* 
         Label for the chart title
     */
-    action GetTitleLabel returns ControlLabel
+    action GetTitleLabel returns ChartLabel
         return title
     end
 
-    private action SetTitleLabel(ControlLabel label)
+    private action SetTitleLabel(ChartLabel label)
         me:title = label
     end
 
@@ -995,6 +1095,7 @@ class Chart is Control
         Sets the title of the chart
     */
     action SetTitle(text name)
+        SetName(name)
         titleText = name
     end
     /*
@@ -1027,11 +1128,11 @@ class Chart is Control
     /* 
         Label for the chart subtitle
     */
-    action GetSubtitleLabel returns ControlLabel
+    action GetSubtitleLabel returns ChartLabel
         return subtitle
     end
 
-    private action SetSubtitleLabel(ControlLabel label)
+    private action SetSubtitleLabel(ChartLabel label)
         me:subtitle = label
     end
 
@@ -1399,17 +1500,6 @@ class Chart is Control
         legend:GetSeriesList():Add(series)
     end
 
-    /*
-        Returns an array of all the factor/group labels 
-    */
-    action GetFactorList returns Array<text>
-        return factorList
-    end
-
-    action SetFactorList(Array <text> factorList)
-        me:factorList = factorList
-    end
-
     action SetColorPaletteToCalm()
         options:SetPalette(options:CALM)
     end 
@@ -1507,13 +1597,6 @@ class Chart is Control
     end
 
     /*
-        Gets the default selection color (highlighting) the chart items
-    */
-    action GetHighlightColor() returns Color
-        return highlightColor
-    end
-
-    /*
         Sets the default selection color (highlighting) the chart items
     */
     action SetHighlightColor(Color color)
@@ -1527,34 +1610,55 @@ class Chart is Control
         end
 
         // Create default tick sizes. 
-        // Having a min of 12 for the long side, ensures 4 for short side, 
-        // which ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
-        // If minor gridlines aren't showing, then the min can go to 6.
-        integer xTickHeight = cast(integer, GetHeight()*0.01)
-        if me:IsShowingMinorXGridLines()
-            if xTickHeight < 12
-                xTickHeight = 12
-            end
-        else
-            if xTickHeight < 6
-                xTickHeight = 6
-            end
-        end
-        horizontalPanel:SetTickWidth(cast(integer, xTickHeight/3))  
-        horizontalPanel:SetTickHeight(xTickHeight)
+        // Having a min of 4 pixels for short side, ensures 2 for the major gridlines and 1 for the minor gridline, all will be visible.
+        // If gridlines aren't showing, then the min can go down.
 
-        integer yTickWidth = cast(integer, GetWidth()*0.01)
-        if me:IsShowingMinorYGridLines()
-            if yTickWidth < 12
-                yTickWidth = 12
-            end
-        else
-            if yTickWidth < 6
-                yTickWidth = 6
+        integer xTickWidth = 0
+        if horizontalPanel:GetTickCount() > 0
+            xTickWidth = cast(integer, (GetWidth()*0.75)/(horizontalPanel:GetTickCount()+horizontalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (xTickWidth*3) > cast(integer, GetHeight()*0.01)
+                xTickWidth = cast(integer, (GetHeight()*0.01)/3)
             end
         end
-        verticalPanel:SetTickWidth(yTickWidth)  
-        verticalPanel:SetTickHeight(cast(integer, yTickWidth/3))
+        if me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 4
+                xTickWidth = 4
+            end
+        elseif not me:IsShowingMinorXGridLines() and me:IsShowingMajorXGridLines()
+            if xTickWidth < 2
+                xTickWidth = 2
+            end
+        elseif not me:IsShowingMinorXGridLines() and not me:IsShowingMajorXGridLines()
+            if xTickWidth < 1
+                xTickWidth = 1
+            end
+        end
+        horizontalPanel:SetTickWidth(xTickWidth)  
+        horizontalPanel:SetTickHeight(xTickWidth*3)
+
+
+        integer yTickHeight = 0
+        if verticalPanel:GetTickCount() > 0
+            yTickHeight = cast(integer, (GetHeight()*0.75)/(verticalPanel:GetTickCount()+verticalPanel:GetTickCount()-1)) // Estimated chart area over tick count
+            if (yTickHeight*3) > cast(integer, GetWidth()*0.01)
+                yTickHeight = cast(integer, (GetWidth()*0.01)/3)
+            end
+        end
+        if me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 4
+                yTickHeight = 4
+            end
+        elseif not me:IsShowingMinorYGridLines() and me:IsShowingMajorYGridLines()
+            if yTickHeight < 2
+                yTickHeight = 2
+            end
+        elseif not me:IsShowingMinorYGridLines() and not me:IsShowingMajorYGridLines()
+            if yTickHeight < 1
+                yTickHeight = 1
+            end
+        end
+        verticalPanel:SetTickWidth(yTickHeight*3)  
+        verticalPanel:SetTickHeight(yTickHeight)
  
         // If the title font size is manually set then we can try to accomodate the title area percent
         // This has to be done before the axis panels because they use titleAreaHeightPercent in their calculations.
@@ -1680,7 +1784,7 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, horizontalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if horizontalPanel:GetLabelCount() > 0
+            if horizontalPanel:GetLabelCount() > 0 and horizontalPanel:ShowLabels()
                 integer labelautofontsize = cast(integer, (GetWidth()*horizontalPanelWidthPercent)/horizontalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
@@ -1755,7 +1859,7 @@ class Chart is Control
                 minimumSpace = minimumSpace + cast(integer, verticalPanel:GetTitleLabel():GetHeight() + tickSpace)
             end
 
-            if verticalPanel:GetLabelCount() > 0
+            if verticalPanel:GetLabelCount() > 0 and verticalPanel:ShowLabels()
                 integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
@@ -1986,7 +2090,8 @@ class Chart is Control
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
@@ -1998,7 +2103,6 @@ class Chart is Control
                     element:SetZ(previousZ)
                     i = i + 1
                 end
-//                temp:GetLabel():LostSelection()
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
             elseif target is RegressionLine
@@ -2006,22 +2110,35 @@ class Chart is Control
                 temp:SetZ(previousZ)
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
-                temp:GetIcon():SetColor(previousColor)
+                temp:GetRegressionIcon():SetColor(previousColor)
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Hide()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Hide()
+                    temp:GetSelectionBracket():Get(1):Hide()
+                    temp:GetSelectionBracket():Get(2):Hide()
+                end
+            elseif target is ChartDrawable
+                // Do nothing. Let the ChartDrawable handle itself.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:LostSelection()
+                temp:SetColor(previousColor)  
+            elseif target is ChartLabel
+                // Do nothing. Let the ChartLabel handle itself.
+            elseif target is ChartAreaPanel
+                // Do nothing.
+            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
+                // Do nothing.
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-                    view:Initialize(previousBackgroundColor, previousColorGroup)
-                    temp:SetView2D(view)
+                    // Remove the View set during Gained selection
+                    temp:SetView2D(undefined)
                 end
             end
         end
@@ -2038,11 +2155,8 @@ class Chart is Control
 
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem item)
-        if item = undefined
-            return now
-        end
-        Item target = item:GetFocusTarget()
+    action OnSelectionChange(ChartItem item)
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
@@ -2051,39 +2165,65 @@ class Chart is Control
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Drawable element = temp:GetItemAt(i)
-                    element:SetColor(GetHighlightColor())
+                    element:SetColor(GetSelectionColor())
                     element:SetZ(-1)
                     i = i + 1
                 end
-//                temp:GetLabel():GainedSelection()
-                temp:GetEntryIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 previousZ = temp:GetZ()
                 previousColor = temp:GetColor()
                 temp:SetZ(-5)
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
-                temp:GetIcon():SetColor(GetHighlightColor())
+                temp:GetRegressionIcon():SetColor(GetSelectionColor())
+            elseif target is GroupPanel
+                GroupPanel temp = cast(GroupPanel, target)  
+                if temp:GetSelectionArrow() not= undefined          
+                    temp:GetSelectionArrow():Show()
+                end
+                if temp:GetSelectionBracket():GetSize() = 3          
+                    temp:GetSelectionBracket():Get(0):Show()
+                    temp:GetSelectionBracket():Get(1):Show()
+                    temp:GetSelectionBracket():Get(2):Show()
+                end
+            elseif target is ChartDrawable
+                // Do nothing by default. The ChartDrawable handles its own selection event.
             elseif target is Drawable
                 Drawable temp = cast(Drawable, target)
                 previousZ = temp:GetZ()
                 previousColor = temp:GetColor()
                 temp:SetZ(-1)
-                temp:SetColor(GetHighlightColor())
-            elseif target is ControlLabel
-                ControlLabel temp = cast(ControlLabel, target)
-                temp:GainedSelection()
+                temp:SetColor(GetSelectionColor())
+            elseif target is ChartLabel
+                // Do nothing by default. The ChartLabel handles its own selection event.
+            elseif target is ChartAreaPanel
+                /*
+                Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
+                Importantly, we do not want to override the color properties like we would if we fell into the last case below.
+                */
+            elseif target:Equals(me)
+                /*
+                Do whatever specialized work we want to do to show overall focus/selection on the Chart here.
+                Importantly, we do not want to override the color properties of the overall chart, like we would
+                if we fell into the last case below.
+                */
+            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
+                // Do nothing by default. The axis panel handles its own selection event.
             elseif target is Control
                 Control temp = cast(Control, target)
                 LayoutProperties properties = temp:GetDefaultLayoutProperties()
                 if properties not= undefined
                     previousColorGroup = properties:GetBorderColor()
                     previousBackgroundColor = properties:GetBackgroundColor()
-                    LabelBoxView view
-                    view:SetBorderThickness(cast(integer, properties:GetBorderThickness())+4)
-                    view:Initialize(GetHighlightColor():White(), GetHighlightColor())
+                    Color transparency
+                    transparency:SetColor(0, 0, 0, 0)
+                    ControlShaderView view
+                    view:Initialize()
+                    temp:SetBackgroundColor(transparency)
+                    temp:SetBorderColor(GetSelectionColor())
                     temp:SetView2D(view)
                 end
             end
@@ -2112,146 +2252,158 @@ class Chart is Control
         selection:Set(item)
     end
 
+
     /*
-        This action tells the chart to select the next item in its navigation path.
+        This action moves the selection to the right within the chart.
     */
-    action SelectNext
+    action SelectionRight
         ChartSelection selection = GetSelection()
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
+            selection:Set(me)
             return now
         end
 
-        ChartItem next
-        if selected:IsOpen()
-            next = selected:GetChildItem()
-        else
-            next = selected:GetNext()
-        end
-        if next = undefined
-            ChartItem parentItem = selected:GetParentItem()
-            repeat while parentItem:GetNext() = undefined
-                if parentItem = infoTreeRoot
-                    return now
-                end
-                parentItem = parentItem:GetParentItem()
-            end
-            next = parentItem:GetNext()
-        end
-        selection:Set(next)
-    end
-    
-    /*
-        This action tells the chart to select the previous item in its navigation path.
-    */
-    action SelectPrevious
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetPrevious()
+        ChartItem next = selected:GetRightItem()
         if next not= undefined
-            repeat while next:IsOpen()
-                next = next:GetLastChild()
-                if next = undefined
-                    return now
-                end
-            end
+            selection:Set(next)
         end
-        if next = undefined
-            next = selected:GetParentItem()
-            if next = undefined
-                return now
-            end
-        end
-
-        selection:Set(next)
     end
-
-    /*
-        This action tells the chart to select a child in its list, if it has one.
-    */
-    action SelectChild
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetChildItem()
-        if next = undefined
-            return now
-        end
-
-        selection:Set(next)
-    end
-
-    /*
-        This action tells the chart to select the parent of the current item.
-    */
-    action SelectParent
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        ChartItem next = selected:GetParentItem()
-        if next = undefined
-            return now
-        end
-
-        selection:Set(next)
-    end
-
-    /*
-        This action opens the chart item if it has children
-        If it has children and is already open it moves to first child.
-    */
-    action OpenItem
-        ChartSelection selection = GetSelection()
-        ChartItem selected = selection:GetChartItem()
-        if selected = undefined
-            return now
-        end
-
-        if not selected:Open() and selected:IsOpenable()
-            ChartItem next = selected:GetChildItem()
-            if next = undefined
-                return now
-            end
     
-            selection:Set(next)
-        end
-    end
-
     /*
-        This action opens the chart item if it is open
-        If it has children and is already open it moves to first child.
+        This action moves the selection to the left within the chart.
     */
-    action CloseItem
+    action SelectionLeft
         ChartSelection selection = GetSelection()
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
+            selection:Set(me)
             return now
         end
 
-        if not selected:Close()
-            ChartItem next = selected:GetParentItem()
-            if next = undefined
-                return now
-            end
+        ChartItem next = selected:GetLeftItem()
+        if next not= undefined
             selection:Set(next)
         end
     end
 
     /*
-        Attribute: Returns the root chart item
+        This action moves the selection down within the chart.
     */
-    action GetInfoTreeRoot returns ChartItem
-        return infoTreeRoot
+    action SelectionDown
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetDownItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection up within the chart.
+    */
+    action SelectionUp
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetUpItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to enter the current grouping or panel.
+    */
+    action SelectionEnter
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetEnterItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to the "escape" item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionEscape
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        ChartItem next = selected:GetEscapeItem()
+        if next not= undefined
+            selection:Set(next)
+        end
+    end
+
+    /*
+        This action moves the selection to the "next" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionNextFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item next = selected:GetNextFocus()
+        if next not= undefined and next is ChartItem
+            
+            selection:Set(cast(ChartItem, next))
+        end
+    end
+
+    /*
+        This action moves the selection to the "previous" focus item, typically moving upwards
+        to the containing group or panel.
+    */
+    action SelectionPreviousFocus
+        ChartSelection selection = GetSelection()
+        ChartItem selected = selection:GetChartItem()
+        if selected = undefined
+            selection:Set(me)
+            return now
+        end
+
+        Item previous = selected:GetPreviousFocus()
+        if previous not= undefined and previous is ChartItem
+            
+            selection:Set(cast(ChartItem, previous))
+        end
+    end
+
+    action GetContainer returns Chart
+        return me
+    end
+
+    action SetContainer(Chart container)
+        if container not= me
+            alert("I cannot contain a chart inside of another chart.")
+        end
+
+        // If the chart is asked to contain itself, do nothing.
     end
 
     /*
@@ -2329,6 +2481,28 @@ class Chart is Control
         Save(file)
     end
 
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    blueprint action Share(File file)
+
+    /*
+        This is a helper action for sharing that saves at the path relative to the current working directory.
+
+        Attribute: Parameter path the path relative to the working directory.
+    */
+    action Share(text path)
+        File file
+        file:SetPath(path)
+        Share(file)
+    end
+
     /*  This action creates a default Game object for displaying charts and sets this chart
         as the sole display. It is useful for interacting with charts without creating
         a complex game setup.
@@ -2375,6 +2549,139 @@ class Chart is Control
         game:SetScreenSize(width,height)
         game:SetChart(me)
         game:StartGame()
+    end
+
+    /*
+    This action returns the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action GetPointBorderThickness returns number
+        return pointBorderThickness
+    end
+
+    /*
+    This action sets the thickness of the borders drawn around points in the chart, measured in pixels.
+    This is only applied to points, not other chart elements like bars. If this chart isn't drawing any
+    points, this value isn't used. By default, this value is 0.
+    */
+    action SetPointBorderThickness(number pointBorderThickness)
+        me:pointBorderThickness = pointBorderThickness
+    end
+
+    /*
+    This action generates the instruction text for the Chart Area description.
+
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartAreaInstructions(text description)
+        
+        if not IsSeparated()
+            //Not Separated but has Groups
+            if HasGroups()
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+            //Not Separate and no Groups
+            else
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order,"
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Shift + Enter to return to the chart area."
+            end
+        else
+            //Separated, each Series is also separated by the Factor levels
+            if IsSeparatedBySeries() and IsSeparatedByFactor()  
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order," 
+                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Shift + Enter to return to the chart area."
+            //Separated, by the Factor levels with multiple Series per subplot
+            elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+            //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+            else
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or Shift Tab to return to chart information."
+                //description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
+                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Shift + Enter to return to the chart area."
+            end
+        end
+        me:GetChartArea():SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a sub chart area description.
+
+    Attribute: Parameter subChartArea The sub chart area that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
+        //Separated, by the Factor levels with multiple Series per subplot
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+        //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetSeriesText() + ", use the arrow keys to move between " + GetSeriesText() + " in list order,"
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Shift + Enter to return to the chart area."
+        end
+        subChartArea:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a chart item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartItemInstructions(Item chartItem, text description)
+
+        description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in list order," 
+        description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order,"
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " use Shift + Enter to return to the chart area."
+        else
+            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+        end
+        chartItem:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a group panel description.
+
+    Attribute: Parameter groupPanel The group panel that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
+
+        description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
+        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+        
+        groupPanel:SetDescription(description)
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetSeriesText returns text
+        return seriesText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 
 end

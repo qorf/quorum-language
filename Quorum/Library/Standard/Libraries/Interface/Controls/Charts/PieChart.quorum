@@ -5,9 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.PieChartLayout
 use Libraries.Interface.Selections.ChartSelection
@@ -58,9 +56,16 @@ class PieChart is Chart
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
+    integer previousBorder = 0
 
     ChartOptions options
     Math math
+
+    // Terminology for navigation instructions
+    private text groupText = "pie"
+    private text groupsText = "pies"
+    private text chartItemText = "slice"
+    private text chartItemsText = "slices"
 
     on create
         PieChartLayout layout
@@ -73,14 +78,6 @@ class PieChart is Chart
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Pie Chart")
 
@@ -148,7 +145,7 @@ class PieChart is Chart
                             GetSubChartAreas():Get(k):AddChartAreaItem(slice)
 
                             if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
-                                ControlLabel sliceLabel
+                                ChartLabel sliceLabel
                                 if showPercentAnnotation
                                     sliceLabel:SetText(percentText+"%")
                                 elseif showValueAnnotation
@@ -195,7 +192,7 @@ class PieChart is Chart
                 slice:SetDescription(description)
                 
                 if slice:ShowAnnotation() or ShowAnnotations()
-                    ControlLabel sliceLabel
+                    ChartLabel sliceLabel
                     if showPercentAnnotation
                         sliceLabel:SetText(percentText+"%")
                     elseif showValueAnnotation
@@ -258,15 +255,19 @@ class PieChart is Chart
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
 
         if target not= undefined
+            if target is PieSlice
+                PieSlice slice = cast(PieSlice, target)
+                slice:SetColor(previousColor)
+            end
             parent:Chart:LostSelection(item)
         end
     end
 
     /* 
-        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        OnSelectionChange is a supplemental action to the parent Chart's OnSelectionChange.
         Any items specific to only this type of chart or if an item needs different highlighting
         instructions than that of the parent class, it will have their GainedSelection defined here.
 
@@ -277,14 +278,19 @@ class PieChart is Chart
 
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem item)
+    action OnSelectionChange(ChartItem item)
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
         if target not= undefined
             target:Focus()
-            parent:Chart:GainedSelection(item)        
+            if target is PieSlice
+                PieSlice slice = cast(PieSlice, target)
+                previousColor = slice:GetColor()
+                slice:SetColor(GetSelectionColor())
+            end
+            parent:Chart:OnSelectionChange(item)        
         end
     end
 
@@ -644,9 +650,9 @@ class PieChart is Chart
             end
         end
         if GetName() = "Pie Chart"
-            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -662,27 +668,24 @@ class PieChart is Chart
         end
         
         //NOTE: These nodes implement a cheap form of ordinality might need changing
-        ChartItem xAxis
-        ChartItem yAxis
-        ChartItem chartArea //not to be confused with panels
-        ChartItem summary = GetInfoTreeRoot()
+        ChartItem xAxis = GetHorizontalPanel()
+        ChartItem yAxis = GetVerticalPanel()
+        ChartItem chartArea = GetChartArea()
+        ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNext(chartArea)
-        summary:SetChild(chartArea)
+        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
-        summary:SetFocusTarget(me)
-        chartArea:SetFocusTarget(me:GetChartArea())
-        chartArea:SetParent(summary)
+        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Pie Chart")
     
-        // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
-        end
+        // If any of these are not showing the tree will skip them in the navigation 
         if IsShowingXAxis()
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end       
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
@@ -690,119 +693,162 @@ class PieChart is Chart
 
         if IsSeparated()
             integer subAreaCount = pieBoxes:GetSize()
-            ChartItem firstArea
-            firstArea:SetContainer(me)
             if GetNumberOfChartAreas() > 0
-                GetChartArea():SetDescription(" with " + subAreaCount + " pies.")
-                chartArea:SetChild(firstArea)
-                firstArea:SetParent(chartArea)
-                firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
+                ChartItem firstArea = GetSubChartAreas():Get(0)
+                firstArea:SetContainer(me)
+                firstArea:SetPreviousFocus(summary)
+
+                AddChartAreaInstructions(" with " + subAreaCount + " pies.")
+                chartArea:SetEnterItem(firstArea)
+                firstArea:SetEscapeItem(chartArea)
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
-                Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetDescription(" pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
+                Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
+                AddSubChartAreaInstructions(GetSubChartAreas():Get(0), " pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
 
                 //Slices within SubChartArea
-                ChartItem firstSlice
-                firstSlice:SetContainer(me)
                 if chartAreaItems:GetSize() > 0
-                    firstArea:SetChild(firstSlice)
-                    firstSlice:SetParent(firstArea)
-                    firstSlice:SetFocusTarget(chartAreaItems:Get(0))
-                    chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
-                end
-
-                integer j = 1
-                ChartItem previousSlice = firstSlice
-                repeat while j < chartAreaItems:GetSize()
-                    ChartItem slice
-                    slice:SetContainer(me)
-                    slice:SetParent(firstArea)
-                    slice:SetFocusTarget(chartAreaItems:Get(j))
-                    chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
-                    previousSlice:SetNext(slice)
-                    slice:SetPrevious(previousSlice)
-                    previousSlice = slice
-                    j = j + 1
-                end
-                firstArea:SetLastChild(previousSlice)
-            end
-
-            integer i = 1
-            ChartItem previousArea = firstArea
-            repeat while i < GetNumberOfChartAreas()
-                ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:IsShowing()
-                    ChartItem nextArea
-                    nextArea:SetContainer(me)
-                    nextArea:SetParent(chartArea)
-                    nextArea:SetFocusTarget(chartSubArea)
-                    previousArea:SetNext(nextArea)
-                    nextArea:SetPrevious(previousArea)
-                    previousArea = nextArea
-                    nextArea:SetDisplayName(chartSubArea:GetName())
-                    Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-
-                    chartSubArea:SetDescription(" pie with " + chartAreaItems:GetSize() + " slices, " + (i+1) + " of " + subAreaCount + " pies.")
-
-                    //Slices within SubChartArea
-                    ChartItem firstSlice
+                    ChartItem firstSlice = chartAreaItems:Get(0)
                     firstSlice:SetContainer(me)
-                    if chartAreaItems:GetSize() > 0
-                        nextArea:SetChild(firstSlice)
-                        firstSlice:SetParent(nextArea)
-                        firstSlice:SetFocusTarget(chartAreaItems:Get(0))
-                        chartAreaItems:Get(0):SetDescription(chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
-                    end
-    
-                    j = 1
+                    firstSlice:SetPreviousFocus(summary)
+
+                    firstArea:SetEnterItem(firstSlice)
+                    firstSlice:SetEscapeItem(firstArea)
+                    AddChartItemInstructions(chartAreaItems:Get(0), chartAreaItems:Get(0):GetDescription() + ", 1 of " + chartAreaItems:GetSize() + " slices.")
+
+                    integer j = 1
                     ChartItem previousSlice = firstSlice
                     repeat while j < chartAreaItems:GetSize()
-                        ChartItem slice
+                        ChartItem slice = chartAreaItems:Get(j)
                         slice:SetContainer(me)
-                        slice:SetParent(nextArea)
-                        slice:SetFocusTarget(chartAreaItems:Get(j))
-                        chartAreaItems:Get(j):SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
-                        previousSlice:SetNext(slice)
-                        slice:SetPrevious(previousSlice)
+                        slice:SetPreviousFocus(summary)
+                        slice:SetEscapeItem(firstArea)
+                        slice:SetDescription(slice:GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
+                        previousSlice:SetRightItem(slice)
+                        slice:SetLeftItem(previousSlice)
                         previousSlice = slice
                         j = j + 1
                     end
-                    nextArea:SetLastChild(previousSlice)
+
+                    // Iterate over the slices again, this time in value order.
+                    Array<ChartItem> sortedSlices = chartAreaItems:CopyToArray()
+                    PieSliceComparison comparison
+                    sortedSlices:Sort(comparison)
+
+                    j = 1
+                    previousSlice = sortedSlices:Get(0)
+                    repeat while j < sortedSlices:GetSize()
+                        ChartItem slice = sortedSlices:Get(j)
+                        slice:SetDownItem(previousSlice)
+                        previousSlice:SetUpItem(slice)
+                        previousSlice = slice
+                        j = j + 1
+                    end
                 end
-                i = i + 1
+
+                integer i = 1
+                ChartItem previousArea = firstArea
+                repeat while i < GetNumberOfChartAreas()
+                    ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
+                    if chartSubArea:IsShowing()
+                        ChartItem nextArea = chartSubArea
+                        nextArea:SetContainer(me)
+                        nextArea:SetPreviousFocus(summary)
+                        nextArea:SetEscapeItem(chartArea)
+                        previousArea:SetRightItem(nextArea)
+                        nextArea:SetLeftItem(previousArea)
+                        previousArea = nextArea
+                        nextArea:SetDisplayName(chartSubArea:GetName())
+                        Array<ChartItem> chartSubAreaItems = chartSubArea:GetChartAreaItems()
+    
+                        chartSubArea:SetDescription(" pie with " + chartSubAreaItems:GetSize() + " slices, " + (i+1) + " of " + subAreaCount + " pies.")
+    
+                        //Slices within SubChartArea
+                        if chartSubAreaItems:GetSize() > 0
+                            ChartItem firstSlice = chartSubAreaItems:Get(0)
+                            firstSlice:SetContainer(me)
+                            firstSlice:SetPreviousFocus(summary)
+                            nextArea:SetEnterItem(firstSlice)
+                            firstSlice:SetEscapeItem(nextArea)
+                            AddChartItemInstructions(chartSubAreaItems:Get(0), chartSubAreaItems:Get(0):GetDescription() + ", 1 of " + chartSubAreaItems:GetSize() + " slices.")
+
+                            j = 1
+                            ChartItem previousSlice = firstSlice
+                            repeat while j < chartSubAreaItems:GetSize()
+                                ChartItem slice = chartSubAreaItems:Get(j)
+                                slice:SetContainer(me)
+                                slice:SetPreviousFocus(summary)
+                                slice:SetEscapeItem(nextArea)
+                                slice:SetDescription(slice:GetDescription() + ", " + (j+1) + " of " + chartSubAreaItems:GetSize() + " slices.")
+                                previousSlice:SetRightItem(slice)
+                                slice:SetLeftItem(previousSlice)
+                                previousSlice = slice
+                                j = j + 1
+                            end
+
+                            // Iterate over the slices again, this time in value order.
+                            Array<ChartItem> sortedSlices = chartSubAreaItems:CopyToArray()
+                            PieSliceComparison comparison
+                            sortedSlices:Sort(comparison)
+        
+                            j = 1
+                            previousSlice = sortedSlices:Get(0)
+                            repeat while j < sortedSlices:GetSize()
+                                ChartItem slice = sortedSlices:Get(j)
+                                slice:SetDownItem(previousSlice)
+                                previousSlice:SetUpItem(slice)
+                                previousSlice = slice
+                                j = j + 1
+                            end
+                        end
+                    end
+                    i = i + 1
+                end
             end
-            chartArea:SetLastChild(previousArea)
         else
             PieBox box = pieBoxes:Get(0)
             integer count = box:GetSize()
-            GetChartArea():SetDescription(" with " + count + " slices")
+            AddChartAreaInstructions(" with " + count + " slices")
             if count > 0
-                ChartItem firstSlice
+                ChartItem firstSlice = box:Get(0)
                 firstSlice:SetContainer(me)
-                chartArea:SetChild(firstSlice)
-                firstSlice:SetParent(chartArea)
-                firstSlice:SetFocusTarget(box:Get(0))
-                box:Get(0):SetDescription(box:Get(0):GetDescription() + ", 1 of " + count + " slices.")
+                firstSlice:SetPreviousFocus(summary)
+                chartArea:SetEnterItem(firstSlice)
+                firstSlice:SetEscapeItem(chartArea)
+                AddChartItemInstructions(firstSlice, firstSlice:GetDescription() + ", 1 of " + count + " slices.")
     
                 integer i = 1
                 ChartItem previousSlice = firstSlice
                 repeat while i < box:GetSize()
-                    ChartItem slice
+                    ChartItem slice = box:Get(i)
                     slice:SetContainer(me)
-                    slice:SetParent(chartArea)
-                    slice:SetFocusTarget(box:Get(i))
-                    box:Get(i):SetDescription(box:Get(i):GetDescription() + ", " + (i+1) + " of " + count + " slices.")
-                    previousSlice:SetNext(slice)
-                    slice:SetPrevious(previousSlice)
+                    slice:SetPreviousFocus(summary)
+                    slice:SetEscapeItem(chartArea)
+                    slice:SetDescription(slice:GetDescription() + ", " + (i+1) + " of " + count + " slices.")
+                    previousSlice:SetRightItem(slice)
+                    slice:SetLeftItem(previousSlice)
                     previousSlice = slice
                     i = i + 1
                 end
-                chartArea:SetLastChild(previousSlice)
+
+                // Iterate over the slices again, this time in value order.
+                Array<PieSlice> sortedSlices = box:GetSlices():CopyToArray()
+                PieSliceComparison comparison
+                sortedSlices:Sort(comparison)
+
+                j = 1
+                previousSlice = sortedSlices:Get(0)
+                repeat while j < sortedSlices:GetSize()
+                    ChartItem slice = sortedSlices:Get(j)
+                    slice:SetDownItem(previousSlice)
+                    previousSlice:SetUpItem(slice)
+                    previousSlice = slice
+                    j = j + 1
+                end
             end
         end
         
         ChartSelection selection = GetSelection()
-        selection:Set(summary)  
+        selection:Set(summary)
     end
    
     /* 
@@ -828,6 +874,42 @@ class PieChart is Chart
         if file:GetFileExtension() = "svg"
             PieChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            PieChartWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
+        end
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+    
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
     end
 end

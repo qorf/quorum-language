@@ -571,6 +571,46 @@ class DataFrameColumn is Comparison
     end
 
     /*
+        This action takes an index sorted array and splits the column into two columns,
+        returning copies. The first one contains all of the items from the indexes in the array.
+        The second one is the items that were not in the array.
+    */
+    action SplitByRows(Array<integer> sortedArray) returns Array<DataFrameColumn>
+        Array<DataFrameColumn> columns
+        DataFrameColumn in = Copy(0, -1)
+        DataFrameColumn out = Copy(0, -1)
+        i = 0
+        row = 0
+        repeat while i < sortedArray:GetSize()
+            integer index = sortedArray:Get(i)
+            if row = index
+                in:Add(me:GetAsText(index)) //force making a copy in the split
+                row = row + 1
+                i = i + 1
+            else
+                //keep putting rows in out until we're done
+                out:Add(me:GetAsText(row))
+                row = row + 1
+                repeat while index not= row and row < me:GetSize()
+                    out:Add(me:GetAsText(row))
+                    row = row + 1
+                end
+            end
+            
+        end
+
+        //for any remaining rows, toss them in out
+        repeat while row < me:GetSize()
+            out:Add(me:GetAsText(row))
+            row = row + 1
+        end
+
+        columns:Add(in)
+        columns:Add(out)
+        return columns
+    end
+
+    /*
         We can manually set a comparison, which is then passed to the 
         default sorting routines if sorting occurs.
     */

@@ -1,0 +1,212 @@
+package Libraries.Game.Graphics
+
+use Libraries.Interface.Controls.Icon
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.BezierCurveShaderProgram
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Game.Layer
+use Libraries.Compute.Vector3
+use Libraries.Containers.Iterator
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.MouseWheelListener
+
+/*
+This class represents a cubic Bezier curve. In other words, it represents a curved line that begins
+and ends at the specified points, with two invisible "control points" in between that pull the line
+towards them, making a curve.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.BezierCurve
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+
+    Color color
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        BezierCurve curve
+        curve:SetBackgroundColor(color:Pink())
+        curve:SetIconColor(color:Maroon())
+        curve:SetLineThickness(10)
+        curve:SetPointThickness(20)
+        curve:SetDrawPoints(true)
+        curve:SetSize(600, 600)
+        curve:Set(20, 20, 20, 580, 580, 20, 580, 580)
+        Add(curve)
+    end
+end
+*/
+class BezierCurve is Icon
+
+    Vector2 point1
+    Vector2 point2
+    Vector2 controlPoint1
+    Vector2 controlPoint2
+
+    boolean initialized = false
+    boolean drawPoints = false
+
+    number lineThickness = 2
+    number pointThickness = 6
+
+    on create
+        SetName("Curve")
+    end
+
+    private action Initialize
+        initialized = true
+
+        number width = GetWidth()
+        number height = GetHeight()
+
+        LoadFilledRectangle(2, 2)
+        SetSize(width, height)
+
+        ShaderManager manager
+        ShaderProgram program = undefined
+        if manager:HasShaderProgram("Bezier Curve Shader Program")
+            program = manager:GetShaderProgram("Bezier Curve Shader Program")
+        else
+            BezierCurveShaderProgram shaderProgram
+            shaderProgram:Compile()
+            program = shaderProgram
+        end
+        SetShaderProgram(program)
+    end
+
+    action Set(Vector2 point1, Vector2 controlPoint1, Vector2 controlPoint2, Vector2 point2)
+        if not initialized
+            Initialize()
+        end
+
+        me:point1:Set(point1)
+        me:controlPoint1:Set(controlPoint1)
+        me:controlPoint2:Set(controlPoint2)
+        me:point2:Set(point2)
+    end
+
+    action Set(number x1, number y1, number cx1, number cy1, number cx2, number cy2, number x2, number y2)
+        if not initialized
+            Initialize()
+        end
+
+        point1:Set(x1, y1)
+        controlPoint1:Set(cx1, cy1)
+        controlPoint2:Set(cx2, cy2)
+        point2:Set(x2, y2)
+    end
+
+    action GetPoint1 returns Vector2
+        return point1
+    end
+
+    action SetPoint1(Vector2 point)
+        if not initialized
+            Initialize()
+        end
+
+        point1:Set(point)
+    end
+
+    action SetPoint1(number x, number y)
+        if not initialized
+            Initialize()
+        end
+
+        point1:Set(x, y)
+    end
+
+    action GetPoint2 returns Vector2
+        return point2
+    end
+
+    action SetPoint2(Vector2 point)
+        if not initialized
+            Initialize()
+        end
+
+        point2:Set(point)
+    end
+
+    action SetPoint2(number x, number y)
+        if not initialized
+            Initialize()
+        end
+
+        point2:Set(x, y)
+    end
+
+    action GetControlPoint1 returns Vector2
+        return controlPoint1
+    end
+
+    action SetControlPoint1(Vector2 point)
+        if not initialized
+            Initialize()
+        end
+
+        controlPoint1:Set(point)
+    end
+
+    action SetControlPoint1(number x, number y)
+        if not initialized
+            Initialize()
+        end
+
+        controlPoint1:Set(x, y)
+    end
+
+    action GetControlPoint2 returns Vector2
+        return controlPoint2
+    end
+
+    action SetControlPoint2(Vector2 point)
+        if not initialized
+            Initialize()
+        end
+
+        controlPoint2:Set(point)
+    end
+
+    action SetControlPoint2(number x, number y)
+        if not initialized
+            Initialize()
+        end
+
+        controlPoint2:Set(x, y)
+    end
+
+    action SetDrawPoints(boolean drawPoints)
+        me:drawPoints = drawPoints
+    end
+
+    action IsDrawingPoints returns boolean
+        return drawPoints
+    end
+
+    action GetLineThickness returns number
+        return lineThickness
+    end
+
+    action SetLineThickness(number lineThickness)
+        me:lineThickness = lineThickness
+    end
+
+    action GetPointThickness returns number
+        return pointThickness
+    end
+
+    action SetPointThickness(number pointThickness)
+        me:pointThickness = pointThickness
+    end
+
+end

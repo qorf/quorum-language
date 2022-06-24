@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector
 use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Support.Pair
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
 The Plot class is a data structure that stores information for each 
@@ -36,6 +37,18 @@ class Plot is ChartDrawable
 
     private number minOutlierValue = 0
     private number maxOutlierValue = 0
+
+    on create
+        ManualLayout manualLayout
+        SetLayout(manualLayout)
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
 
     /* Indices info of individual plot values (info)
         0: MEDIAN
@@ -93,6 +106,14 @@ class Plot is ChartDrawable
 //        if GetPlotGroup() not= undefined
 //            GetPlotGroup():RecalculateGroupValues()
 //        end
+    end
+
+    action GetMedian returns number
+        if info:GetSize() > 0
+            return info:Get(0)
+        else
+            return -1
+        end
     end
 
     action GetInfo returns Array<number>

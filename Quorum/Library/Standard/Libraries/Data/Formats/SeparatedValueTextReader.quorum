@@ -1,0 +1,22 @@
+package Libraries.Data.Formats
+
+/*
+    This class is a dirty trick, essentially, to de-tie the file reading
+    classes in SeparatedValueFileReader from being forced to read from disk, 
+    allowing it to read straight from a buffer instead. To use it, you need
+    to specify a text value to be read. Files are ignored.
+*/
+class SeparatedValueTextReader is SeparatedValueFileReader
+
+    action Setup
+        isSetup = true
+    end
+
+    action SetText(text value)
+        parent:SeparatedValueFileReader:total = value
+    end
+    
+    action GetText returns text
+        return parent:SeparatedValueFileReader:total
+    end
+end

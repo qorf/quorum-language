@@ -13,16 +13,16 @@ class WebConfiguration is ApplicationConfiguration
     Whether or not the Game should be limited to the given number of frames per
     second. This will not guarantee that the Game will run at the given FPS, 
     only that it will not run at more than the framesPerSecondLimit value. This
-    value is false by default.
+    value is true by default and limits the system to 24 frames per second.
     */
-    public boolean capFramesPerSecond = false
+    public boolean capFramesPerSecond = true
 
     /*
     The upper limit for how many frames per second the Game should run at, if
     capFramesPerSecond is set to true. If capFramesPerSecond is set to false,
-    this will have no effect. The default value for this field is 30.
+    this will have no effect. The default value for this field is 24.
     */
-    public integer framesPerSecondLimit = 30
+    public integer framesPerSecondLimit = 24
 
     /*
     If disableContextMenu is set to true, right-clicking on the game canvas will

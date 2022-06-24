@@ -122,7 +122,7 @@ class SeparatedValueFileReader is FileReader
         return currentCharacter
     end
 
-    private action Setup
+    action Setup
         isSetup = true
         total = parent:FileReader:Read()
     end

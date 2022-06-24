@@ -83,7 +83,12 @@ class Label is ScalableVectorGraphicsObject
             result = result + " transform=" +dq+ transform +dq
         end
         result = result + GlobalAttributesToText()
-        result =  result+ ">" + labelText + GetCloseTag(objectName, IsContainer()) + newLine
+        result =  result+ ">" + labelText + GetCloseTag(objectName, IsContainer())
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
         return result
     end
 

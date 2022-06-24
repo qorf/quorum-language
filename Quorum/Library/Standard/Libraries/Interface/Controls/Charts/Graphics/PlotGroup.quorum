@@ -2,6 +2,7 @@ package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.GroupPanel
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
 The PlotGroup class is a data structure that stores information for each 
@@ -32,6 +33,18 @@ class PlotGroup is GroupPanel
     private number maxOutlierValue = 0
     private number minOutlierValue = 0
 
+    on create
+        ManualLayout manualLayout
+        SetLayout(manualLayout)
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
     action AddPlot(Plot plot)
         AddItem(plot)
         RecalculateGroupValues()
@@ -45,12 +58,12 @@ class PlotGroup is GroupPanel
         return cast(Array<Plot>, GetGroupItems())
     end
 
-    action Empty()    
+    action EmptyItems()    
         maxValue = 0
         minValue = 0
         maxOutlierValue = 0
         minOutlierValue = 0  
-        parent:GroupPanel:Empty()
+        parent:GroupPanel:EmptyItems()
     end
 
     action GetMaxValue returns number
@@ -83,7 +96,7 @@ class PlotGroup is GroupPanel
         repeat while i < plots:GetSize()
             Plot plot = plots:Get(i)
             if not plot:IsUndefined()
-                if GetSize() = 0
+                if i = 0
                     maxValue = plot:GetInfoAt(4)
                     minValue = plot:GetInfoAt(3)
                     maxOutlierValue = plot:GetMaxOutlierValue()

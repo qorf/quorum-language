@@ -35,6 +35,7 @@ class ScalableVectorGraphicsObject
     //presentation attributes
     private text color = ""
     private text fill = ""
+    private text fillOpacity = ""
     private text stroke = ""
     private text strokeWidth = ""
 
@@ -46,10 +47,16 @@ class ScalableVectorGraphicsObject
     private text ariaRoleDescription = ""
     private text ariaLabelledBy = ""
     private text ariaDescribedBy = ""
+    private text ariaHidden = ""
+
+    //event handlers
+    private text onFocus = ""
+    private text onBlur = ""
     
 
     //helper attributes
     private boolean isContainer = false
+    private boolean isOneLine = false
 
     //title and description of svg graphics element or container
     private text title = ""
@@ -80,6 +87,9 @@ class ScalableVectorGraphicsObject
         if fill not= ""
             result = result + " fill="+dq+fill+dq
         end
+        if fillOpacity not= ""
+            result = result + " fill-opacity="+dq+fillOpacity+dq
+        end
         if stroke not= ""
             result = result + " stroke="+dq+stroke+dq
         end
@@ -106,6 +116,15 @@ class ScalableVectorGraphicsObject
         end
         if ariaDescribedBy not= ""
             result = result + " aria-describedby="+dq+ariaDescribedBy+dq
+        end
+        if ariaHidden not= ""
+            result = result + " aria-hidden="+dq+ariaHidden+dq
+        end
+        if onFocus not= ""
+            result = result + " onfocus="+dq+onFocus+dq
+        end
+        if onBlur not= ""
+            result = result + " onblur="+dq+onBlur+dq
         end
         return result
     end
@@ -215,6 +234,22 @@ class ScalableVectorGraphicsObject
     */
     action IsContainer returns boolean
         return isContainer
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+
+        Attribute: Parameter isContainer true if it will contain other objects, false if not
+    */
+    action SetIsOneLine(boolean isOneLine)
+        me:isOneLine = isOneLine
+    end
+
+    /*
+        This action is used internally by the system to designate whether the SVG element should print with new lines.
+    */
+    action IsOneLine returns boolean
+        return isOneLine
     end
 
     /*
@@ -449,6 +484,69 @@ class ScalableVectorGraphicsObject
     end
 
     /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the object
+
+        Attribute: Parameter opacity The fill opacity attribute for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetFill("green")
+        circle:SetFillOpacity("50%") // alternate: circle:SetFillOpacity("0.5")
+    */
+    action SetFillOpacity(text opacity)
+        me:fillOpacity = opacity
+    end
+
+    /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the object
+
+        Attribute: Parameter opacity. The fill opacity attribute for the object. Representing the alpha value of the Color.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetFill(blue)
+        circle:SetFillOpacity(0.7)
+    */
+    action SetFillOpacity(number opacity)
+        if opacity >= 0 and opacity <= 1
+            me:fillOpacity = cast(text, opacity)
+        elseif opacity > 1 and opacity <= 100
+            me:fillOpacity = cast(text, opacity) + "%"
+        end
+    end
+
+    /*
+        This action returns the fill opacity of the object.
+
+        Attribute: Returns the fill opacity of the object. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetFill("navy")
+        circle:SetFillOpacity(0.7)
+        output circle:GetFillOpacity()
+    */
+    action GetFillOpacity returns text
+        return fillOpacity
+    end
+
+    /*
         This action will give a stroke attribute to the SVG element. This attribute defines the color used to paint 
         the outline of a shape. For shapes like lines that have no fill a stroke must be set so that the line will
         be visible. 
@@ -669,6 +767,69 @@ class ScalableVectorGraphicsObject
 
     action GetAriaDescribedBy returns text
         return ariaDescribedBy
+    end
+
+    /*
+        This action will give a aria-hidden attribute to the SVG element. This aria-hideen can be for general use
+        by a web browser.
+
+        Attribute: Parameter ariaHidden The aria-hidden for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetAriaHidden("true")
+    */
+    action SetAriaHidden(text ariaHidden)
+        me:ariaHidden = ariaHidden
+    end
+
+    action GetAriaHidden returns text
+        return ariaHidden
+    end
+
+    /*
+        This action will give a focus event handler attribute to the SVG element. This focus can be for general use
+        by a web browser.
+
+        Attribute: Parameter onFocus The onfocus for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Group group
+        group:SetOnFocus("console.log('hello world');")
+    */
+    action SetOnFocus(text onFocus)
+        me:onFocus = onFocus
+    end
+
+    action GetOnFocus returns text
+        return onFocus
+    end
+
+    /*
+        This action will give a blur event handler attribute to the SVG element. This blur can be for general use
+        by a web browser.
+
+        Attribute: Parameter onBlur The onblur for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Group group
+        group:SetOnBlur("console.log('hello world');")
+    */
+    action SetOnBlur(text onBlur)
+        me:onBlur = onBlur
+    end
+
+    action GetOnBlur returns text
+        return onBlur
     end
 
     /*

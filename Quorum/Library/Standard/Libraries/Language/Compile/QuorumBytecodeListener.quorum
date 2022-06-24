@@ -1875,7 +1875,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 error:SetCode(codes:QUORUM_BYTECODE_LISTENER_CALL_PRIVATE)
                 error:SetLocation(actionCall:GetLocation())
                 error:SetErrorMessage("The action call " + act:GetName()
-                    + "is private"
+                    + " is private"
                     + ". It cannot be used from class "
                     + currentClass:GetStaticKey() + " unless " + act:GetName() + " is made public.")
                 CompilerErrorType errorType

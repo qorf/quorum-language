@@ -4,11 +4,10 @@ use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.ManualLayout
-use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.ColorGroup
-use Libraries.Interface.Controls.ControlLabel
 
 /*
     This class represents the chart area sub panels within splitbyfactor charts.
@@ -20,26 +19,26 @@ use Libraries.Interface.Controls.ControlLabel
     Attribute: Hannah Williams
 */
 
-class ChartAreaPanel is Control
+class ChartAreaPanel is ChartItem
     private LayoutProperties properties = undefined
     private Series series = undefined
-    private ControlLabel label = undefined
-    private Array <Item> chartAreaItems
+    private ChartLabel label = undefined
+    private Array<ChartItem> chartAreaItems
     private boolean isShowing = false
+
+    ColorGroup backgroundColor = undefined
+    ColorGroup borderColor = undefined
+    ColorGroup selectionColor = undefined
+    ColorGroup selectionBorderColor = undefined
 
     on create
         ManualLayout manualLayout
         SetLayout(manualLayout)
         
-        Color color
         properties = GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(color:White())
-        properties:SetBorderColor(color:White())
-        properties:SetBorderThickness(4)
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
-
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
@@ -51,36 +50,110 @@ class ChartAreaPanel is Control
 
     action LoadChartAreaView 
         if properties:GetView2D() = undefined
-            LabelBoxView view 
-            view:SetBorderThickness(cast(integer, properties:GetBorderThickness()))
-            view:Initialize(properties:GetBackgroundColor(), properties:GetBorderColor())
+            ControlShaderView view 
+            view:Initialize()
             SetView2D(view)
         else
             SetView2D(GetDefaultLayoutProperties():GetView2D())
         end
     end
 
-    action GetChartAreaItems returns Array <Item>
+    action GetChartAreaItems returns Array<ChartItem>
         return chartAreaItems
     end
 
-    action AddChartAreaItem(Item item)
+    action AddChartAreaItem(ChartItem item)
         chartAreaItems:Add(item)
     end
 
+    action GetBorderColor returns ColorGroup
+        if borderColor not= undefined
+            return borderColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetBorderColor()
+        end
+        return undefined
+    end
+
     action SetBorderColor(ColorGroup color)
-        properties:SetBorderColor(color)
+        borderColor = color
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if backgroundColor not= undefined
+            return backgroundColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetForegroundColor()
+        end
+
+        return undefined
     end
 
     action SetBackgroundColor(ColorGroup color)
-        properties:SetBackgroundColor(color)
+        backgroundColor = color
     end
 
-    action GetLabel returns ControlLabel
+    action GetSelectionBorderColor returns ColorGroup
+        if selectionBorderColor not= undefined
+            return selectionBorderColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionBorderColor()
+        end
+        return undefined
+    end
+
+    action SetSelectionBorderColor(ColorGroup color)
+        selectionBorderColor = color
+    end
+
+    action GetSelectionColor returns ColorGroup
+        if selectionColor not= undefined
+            return selectionColor
+        end
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetForegroundSelectionColor()
+        end
+
+        return undefined
+    end
+
+    action SetSelectionColor(ColorGroup color)
+        selectionColor = color
+    end
+
+    action GetLabel returns ChartLabel
         return label
     end
 
-    action SetLabel(ControlLabel label)
+    action SetLabel(ChartLabel label)
         me:label = label
+    end
+
+    action GetSeries returns Series
+        return series
+    end
+
+    action SetSeries(Series series)
+        me:series = series
+    end
+
+    // Try to get the chart this is attached to via the parent hierarchy.
+    private action GetParentChart returns Chart
+        Item2D parentItem = GetParent()
+        repeat until parentItem is Chart or parentItem = undefined
+            parentItem = parentItem:GetParent()
+        end
+        return cast(Chart, parentItem)
     end
 end

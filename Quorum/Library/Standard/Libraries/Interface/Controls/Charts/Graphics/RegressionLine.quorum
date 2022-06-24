@@ -1,20 +1,20 @@
-package Libraries.Interface.Controls.Charts
+package Libraries.Interface.Controls.Charts.Graphics
 
+use Libraries.Interface.Controls.Charts.all
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Icon
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Compute.Vector
 use Libraries.Compute.Math
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Containers.Array
 
-class RegressionLine is Drawable
+class RegressionLine is ChartDrawable
     private Regression regression = undefined
     private Series series = undefined
     private Math math
     private Icon icon 
-    private ControlLabel equation
-    private ControlLabel rsquared
+    private ChartLabel equation
+    private ChartLabel rsquared
     private text equationText = ""
     private text rsquaredText = ""
     private integer lineDensity = 4     
@@ -39,23 +39,34 @@ class RegressionLine is Drawable
         me:regression = regression
     end
 
-    action SetIcon(Icon icon)
+    action SetRegressionIcon(Icon icon)
         me:icon = icon
     end
 
-    action GetIcon returns Icon
+    action GetRegressionIcon returns Icon
         return icon
     end
 
-    action GetLabel() returns ControlLabel
+    action SetIcon(TextureRegion region)
+        if region is Icon
+            icon = cast(Icon, region)
+        end
+        parent:Control:SetIcon(region)
+    end
+
+    action GetIcon returns TextureRegion
+        return icon
+    end
+
+    action GetLabel() returns ChartLabel
         return equation
     end
 
-    action GetEquationLabel() returns ControlLabel
+    action GetEquationLabel() returns ChartLabel
         return equation
     end
 
-    action GetRSquaredLabel() returns ControlLabel
+    action GetRSquaredLabel() returns ChartLabel
         return rsquared
     end
 

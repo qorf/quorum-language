@@ -5,22 +5,79 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.InputMonitor
 
 class ChartNavigateBehavior is Behavior
 
+    constant integer X_AXIS_NEXT = 0
+    constant integer X_AXIS_PREV = 1
+    constant integer Y_AXIS_PREV = 2
+    constant integer Y_AXIS_NEXT = 3
+    constant integer ENTER = 4
+    constant integer SHIFT_ENTER = 5
+    constant integer SHIFT_TAB = 6
+    constant integer TAB = 7
+
     action Run(BehaviorEvent event)
         if event:GetItem() is Chart
-            KeyboardEvent keys
-            integer keycode = event:GetKeyboardEvent():keyCode
+            integer direction = -1
             Chart chart = cast(Chart, event:GetItem())
-            if keycode = keys:UP
-                chart:SelectPrevious()
-            elseif keycode = keys:DOWN
-                chart:SelectNext()
-            elseif keycode = keys:LEFT
-                chart:CloseItem()
-            elseif keycode = keys:RIGHT
-                chart:OpenItem()
+            InputMonitor monitor
+            KeyboardEvent keyEvent = event:GetKeyboardEvent()
+
+            if keyEvent not= undefined
+                integer keycode = keyEvent:keyCode
+                if keycode = keyEvent:PAGE_DOWN
+                    direction = Y_AXIS_PREV
+                elseif keycode = keyEvent:PAGE_UP
+                    direction = Y_AXIS_NEXT
+                elseif keycode = keyEvent:LEFT or keycode = keyEvent:DOWN
+                    direction = X_AXIS_PREV
+                elseif keycode = keyEvent:RIGHT or keycode = keyEvent:UP
+                    direction = X_AXIS_NEXT
+                elseif (monitor:IsKeyPressed(keyEvent:SHIFT_LEFT) or monitor:IsKeyPressed(keyEvent:SHIFT_RIGHT)) and (keycode = keyEvent:ENTER or keycode = keyEvent:NUMPAD_ENTER)
+                    direction = SHIFT_ENTER
+                elseif keycode = keyEvent:ENTER or keycode = keyEvent:NUMPAD_ENTER
+                    direction = ENTER
+                elseif (monitor:IsKeyPressed(keyEvent:SHIFT_LEFT) or monitor:IsKeyPressed(keyEvent:SHIFT_RIGHT)) and keycode = keyEvent:TAB
+                    direction = SHIFT_TAB
+                elseif keycode = keyEvent:TAB
+                    direction = TAB
+                end
+            elseif event:GetGestureEvent() not= undefined
+                GestureEvent gesture = event:GetGestureEvent()
+                if gesture:eventType not= gesture:SWIPE
+                    return now
+                end
+
+                if gesture:GetDirection() = gesture:LEFT
+                    direction = X_AXIS_PREV
+                elseif gesture:GetDirection() = gesture:RIGHT
+                    direction = X_AXIS_NEXT
+                elseif gesture:GetDirection() = gesture:UP
+                    direction = Y_AXIS_NEXT
+                elseif gesture:GetDirection() = gesture:DOWN
+                    direction = Y_AXIS_PREV
+                end
+            end
+
+            if direction = Y_AXIS_NEXT
+                chart:SelectionUp()
+            elseif direction = Y_AXIS_PREV
+                chart:SelectionDown()
+            elseif direction = X_AXIS_PREV
+                chart:SelectionLeft()
+            elseif direction = X_AXIS_NEXT
+                chart:SelectionRight()
+            elseif direction = ENTER
+                chart:SelectionEnter()
+            elseif direction = SHIFT_ENTER
+                chart:SelectionEscape()
+            elseif direction = SHIFT_TAB
+                chart:SelectionPreviousFocus()
+            elseif direction = TAB
+                chart:SelectionNextFocus()
             end
         end
     end

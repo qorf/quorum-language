@@ -5,7 +5,6 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.GeoMapLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
-use Libraries.Game.Graphics.Gradient
 use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
@@ -95,13 +94,6 @@ class GeoMap is Chart, FirstLetterNavigator
         properties:SetFontSize(GetDefaultFontSize())
 
         Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Geo Map")
 
@@ -212,6 +204,8 @@ class GeoMap is Chart, FirstLetterNavigator
     end
 
     action GenerateInfoTree
+        // Note: Due to changes in the chart navigation system, this code is obsolete. For now, this action does nothing.
+        /*
         if GetDefaultLayoutProperties():NeedsRendering()
             return now //we haven't loaded graphics yet, so bail.
         end
@@ -278,6 +272,7 @@ class GeoMap is Chart, FirstLetterNavigator
 
         ChartSelection selection = GetSelection()
         selection:Set(summary)
+        */
     end
 
     /*
@@ -296,7 +291,7 @@ class GeoMap is Chart, FirstLetterNavigator
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
         if target not= undefined
             if target is Series
                 Series temp = cast(Series, target)
@@ -319,9 +314,9 @@ class GeoMap is Chart, FirstLetterNavigator
     end
 
     /* 
-        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        OnSelectionChange is a supplemental action to the parent Chart's OnSelectionChange.
         Any items specific to only this type of chart or if an item needs different highlighting
-        instructions than that of the parent class, it will have their GainedSelection defined here.
+        instructions than that of the parent class, it will have their OnSelectionChange defined here.
 
         Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
         may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
@@ -330,11 +325,11 @@ class GeoMap is Chart, FirstLetterNavigator
 
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem item)
+    action OnSelectionChange(ChartItem item)
         if item = undefined
             return now
         end
-        Item target = item:GetFocusTarget()
+        Item target = item
         if target not= undefined
             target:Focus()
             if target is Series
@@ -343,18 +338,18 @@ class GeoMap is Chart, FirstLetterNavigator
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Region tempReg = cast(Region, temp:GetItemAt(i))
-                    tempReg:SetColor(GetHighlightColor())
+                    tempReg:SetColor(GetSelectionColor())
                     i = i + 1
                 end
 //                temp:GetLabel():GainedSelection()
-                temp:GetEntryIcon():SetColor(GetHighlightColor())
-                temp:GetEntryBox():SetColor(GetHighlightColor())
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
             elseif target is Region
                 Region temp = cast(Region, target)
                 previousColor = temp:GetColor()
-                temp:SetColor(GetHighlightColor())
+                temp:SetColor(GetSelectionColor())
             else
-                parent:Chart:GainedSelection(item)
+                parent:Chart:OnSelectionChange(item)
             end         
         end
     end
@@ -375,6 +370,26 @@ class GeoMap is Chart, FirstLetterNavigator
         if file:GetFileExtension() = "svg"
             GeoMapWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
+        end
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            GeoMapWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
     

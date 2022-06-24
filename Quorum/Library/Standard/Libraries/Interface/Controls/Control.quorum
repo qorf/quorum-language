@@ -1017,6 +1017,14 @@ class Control is Item2D
         // In the default Control class, this function does nothing.
     end
 
+    action HasColorPropertyOverride(text property) returns boolean
+        return defaultProperties:HasColorPropertyOverride(property)
+    end
+
+    action HasNumberPropertyOverride(text property) returns boolean
+        return defaultProperties:HasNumberPropertyOverride(property)
+    end
+
     action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
@@ -1031,6 +1039,14 @@ class Control is Item2D
 
     action GetForegroundColor returns ColorGroup
         return defaultProperties:GetForegroundColor()
+    end
+
+    action SetForegroundSelectionColor(ColorGroup value)
+        defaultProperties:SetForegroundSelectionColor(value)
+    end
+
+    action GetForegroundSelectionColor returns ColorGroup
+        return defaultProperties:GetForegroundSelectionColor()
     end
 
     action SetFontColor(ColorGroup value)

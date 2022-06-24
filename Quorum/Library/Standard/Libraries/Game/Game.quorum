@@ -191,9 +191,9 @@ use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.FirstLetterNavigateBehavior
 use Libraries.Interface.Behaviors.Controls.MenuMnemonicBehavior
 use Libraries.Interface.Options.InterfaceOptions
-use Libraries.Interface.Options.BasicOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
+use Libraries.Interface.Events.GestureEvent
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1364,11 +1364,35 @@ class Game
         InputTable chartTable
         chartTable:SetIdentifier("Chart")
 
+        InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+
+        InputSet shiftEnterSet
+        shiftEnterSet:SetKeyboardInput(keys:ENTER)
+        shiftEnterSet:AddModifier(shiftEnterSet:SHIFT)
+
+        InputSet shiftNumpadEnterSet
+        shiftNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        shiftNumpadEnterSet:AddModifier(shiftNumpadEnterSet:SHIFT)
+
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(leftArrow, chartNavigateBehavior)
         chartTable:Add(rightArrow, chartNavigateBehavior)
         chartTable:Add(upArrow, chartNavigateBehavior)
         chartTable:Add(downArrow, chartNavigateBehavior)
+        chartTable:Add(enterSet, chartNavigateBehavior)
+        chartTable:Add(numpadEnterSet, chartNavigateBehavior)
+        chartTable:Add(shiftEnterSet, chartNavigateBehavior)
+        chartTable:Add(shiftNumpadEnterSet, chartNavigateBehavior)
+        chartTable:Add(swipeSet, chartNavigateBehavior)
+        chartTable:Add(tabFocus, chartNavigateBehavior)
+        chartTable:Add(shiftTabFocus, chartNavigateBehavior)
+        chartTable:Add(pageUp, chartNavigateBehavior)
+        chartTable:Add(pageDown, chartNavigateBehavior)
         AddInputTable(chartTable)
 
         InputTable menuItemTable
@@ -1408,9 +1432,6 @@ class Game
 
         menuRootTable:Add(spaceBar, menuRunBehavior)
         menuRootTable:Add(enter, menuRunBehavior)
-
-        InputSet escapeSet
-        escapeSet:SetKeyboardInput(keys:ESCAPE)
         
         menuRootTable:Add(escapeSet, menuCloseBehavior)
 
