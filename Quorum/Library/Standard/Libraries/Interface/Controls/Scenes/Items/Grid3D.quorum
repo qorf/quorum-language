@@ -13,6 +13,12 @@ use Libraries.Game.Graphics.NumberAttribute
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Game.Graphics.Drawable
 
+/*
+    The Grid3D class is a Model that will be drawn in the EditorLayer3D to show the grid in
+    a 3D space. Grid3D is a rectangle texture on a planethat wraps to fit a specified grid size.
+    A rectangle is sized to fit the grid unit size and the the entire texture is sized to fit
+    the as much of the layer visible in the window as possible.
+*/
 class Grid3D is Model
     
     Math math
@@ -119,21 +125,44 @@ class Grid3D is Model
         textureAttribute:scaleV = scaleFactor / unit
     end
 
+    /*
+        GetGridUnitSize returns the size of a single grid unit
+
+        Attribute: Returns The size of a single grid unit
+    */
     action GetGridUnitSize returns number
         return gridUnits
     end
 
+    /*
+        Returns true if the number passed would lie on this grid, false otherwise.
+
+        Attribute: Returns True if the number is on the grid, false otherwise.
+    */
     action IsGridCoordinate(number coordinate) returns boolean
         integer coord = cast(integer, coordinate)
         // If the floating point division returns the same value as integer division, return true
         return (coordinate / gridUnits) = (coord / gridUnits)
     end
 
+    /*
+        Given a number this action returns the nearest coordinate that lies on the grid.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The nearest coordinate on the grid
+    */
     action GetNearestGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         return math:Round(multiple) * gridUnits
     end
 
+    /*
+        Given a number this action returns the nearest coordinate on the grid that is
+        greater than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The next coordinate on the grid
+    */
     action GetNextGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         number value = math:Ceiling(multiple) * gridUnits
@@ -143,6 +172,13 @@ class Grid3D is Model
         return value
     end
 
+    /*
+        Given a number this action returns the nearest coordinate on the grid that is
+        less than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The previous coordinate on the grid
+    */
     action GetPreviousGridCoordinate(number coordinate) returns number
         number multiple = coordinate / gridUnits
         number value = math:Floor(multiple) * gridUnits

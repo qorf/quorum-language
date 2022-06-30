@@ -6,6 +6,12 @@ use Libraries.Compute.Matrix4
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Vector3
 
+/*
+    EditorCamera3D represents the PerspectiveCamera in a 3D scene that shows the objects in the 3D layer
+    of the user's scene. This camera affects what is drawn when the game is ran which unlike the preview
+    of an EditorLayer3D. The EditorCamera3D can be rotated like a 3D object and it can focus on a target
+    in a 3D scene to make editing easier.
+*/
 class EditorCamera3D is PerspectiveCamera
 
     // The currently focused target. The camera tries to follow this.
@@ -45,7 +51,12 @@ class EditorCamera3D is PerspectiveCamera
         SetPosition(calcVector2)
     end
 
+    /*
+        SetTarget updates the camera's position so that is pointed towards a 3D item in the scene.
+        The camera can not snap to itself so camera objects will be ignored. 
 
+        Attribute: Parameter target The 3D item the camera should focus on
+    */
     action SetTarget(Item3D target)
         // We don't want to allow the camera to try to snap to itself.
         // We ignore requests to target a CameraItem.
@@ -57,19 +68,40 @@ class EditorCamera3D is PerspectiveCamera
         UpdateCameraPosition()
     end
 
+    /*
+        GetTarget returns what the EditorCamera is targeted on.
+
+        Attribute: Returns The 3D object the camera is using as a target
+    */
     action GetTarget returns Item3D
         return target
     end
 
+    /*
+        SetDistance sets how far away the camera is away from its target. The farther
+        away the camera is from the target the more of the scene will be visible around
+        the target.
+
+        Attribute: Parameter distance The distance the camera should be away from the target
+    */
     action SetDistance(number distance)
         me:distance = distance
         UpdateCameraPosition()
     end
 
+
+    /*
+        Returns how far away the camera is from the target. Returns a number but in 3D space
+        the number does not represent a pixel but units in the 3D space.
+    */
     action GetDistance returns number
         return distance
     end
 
+    /*
+        This actiopn takes the yaw, pitch, and roll to calculate the rotation matrix of the camera and
+        rotates it properly.
+    */
     private action UpdateCameraRotation
         calcQuaternion:SetEulerAngles(yaw, pitch, roll)
         rotationMatrix:Set(calcQuaternion)
@@ -81,6 +113,11 @@ class EditorCamera3D is PerspectiveCamera
         UpdateCameraPosition()
     end
 
+    /*
+        UpdateCameraPosition repositions the camera so that it is positioned properly the set distance
+        away from the target and rotates to face it. If there is no target then this action does nothing
+        to the position.
+    */
     action UpdateCameraPosition
         if target = undefined
             return now
@@ -98,33 +135,74 @@ class EditorCamera3D is PerspectiveCamera
         Update()
     end
 
+    /*
+        Returns the yaw of the camera.
+    */
     action GetYaw returns number
         return yaw
     end
 
+    /*
+        Sets the yaw of the camera.
+    */
     action SetYaw(number yaw)
         me:yaw = yaw
         UpdateCameraRotation()
     end
 
+    /*
+        Returns the pitch of the camera.
+    */
     action GetPitch returns number
         return pitch
     end
 
+    /*
+        Sets the pitch of the camera.
+    */
     action SetPitch(number pitch)
         me:pitch = pitch
         UpdateCameraRotation()
     end
 
+    /*
+        Returns the roll of the camera.
+    */
     action GetRoll returns number
         return roll
     end
 
+    /*
+        Sets the roll of the camera.
+    */
     action SetRoll(number roll)
         me:roll = roll
         UpdateCameraRotation()
     end
 
+    /*
+        This action sets the orientation of the 3D object using yaw, pitch, and roll
+        angles in degrees.
+    
+        The yaw describes how far the camera is rotated along the X/Z axis. It
+        effectively controls how the camera turns left and right. A positive value
+        will rotate the camera clockwise (typically to the right).
+    
+        The pitch describes how far the camera is angled up or down. The pitch value
+        should typically be between -90 and 90 degrees. Larger values will cause the
+        camera to look in the opposite direction specified by the yaw value. For
+        pitch values between -90 and 90, positive values angle the camera upwards,
+        and negative values angle it downwards.
+    
+        The roll describes how the top of the camera is oriented. A roll value of 0
+        will angle the camera so the top of the camera points upward, towards the
+        positive Y axis. A positive roll value "twists" the camera clockwise, and a
+        negative value will twist it counter-clockwise.
+    
+        Attribute: Parameter yaw The yaw angle, measured in degrees.
+        Attribute: Parameter pitch The pitch angle, measured in degrees.
+        Attribute: Parameter roll The roll angle, measured in degrees.
+    */
     action SetRotation(number yaw, number pitch, number roll)
         me:yaw = yaw
         me:pitch = pitch
