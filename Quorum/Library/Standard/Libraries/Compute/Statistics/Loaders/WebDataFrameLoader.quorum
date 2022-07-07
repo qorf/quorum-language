@@ -21,6 +21,7 @@ use Libraries.System.File
 */
 class WebDataFrameLoader is DataFrameLoader
     text location = ""
+    text attribute = undefined
     action Load(DataFrame frame, File file)
         NativeLoad(frame, file)
     end
@@ -33,5 +34,13 @@ class WebDataFrameLoader is DataFrameLoader
 
     action GetLocation returns text
         return location
+    end
+
+    action GetAttribute returns text
+        return attribute
+    end
+
+    action SetAttribute(text attribute)
+        me:attribute = attribute
     end
 end
