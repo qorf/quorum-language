@@ -14,6 +14,15 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 
 
+/*
+    The EditorCursor3D class is a component of the SceneEditor that allows the user to 
+    move in a 3D scene and find what is in the scene. The cursor itself is
+    not an accessible item but it passes information back to the SceneEditor
+    for accessibility. The EditorCursor3D is represented by a cube that
+    fits in the 3D grid and it passes the Items are in it's location
+    and if the user wants to select that item the cursor transitions to the 
+    SelectionHighlight.
+*/
 class EditorCursor3D is EditorCursor, EditorItem3D
 
     EditorLayer3D editorLayer = undefined
@@ -30,6 +39,10 @@ class EditorCursor3D is EditorCursor, EditorItem3D
     ConvexConvexCollisionSolver collisionSolver
     ConvexConvexCollisionSolverResults collisionResults
 
+    /*
+        Loads the cursor by making a box with the default cursor color and is sized to fit the in
+        a single unit of the 3D grid.
+    */
     action Load(EditorLayer3D layer)
         editorLayer = layer
 
@@ -38,11 +51,20 @@ class EditorCursor3D is EditorCursor, EditorItem3D
         SetGridUnitSize(layer:GetGridUnitSize())
     end
 
+    /*
+        Sets the size of a single grid unit which will resize the cursor's box so that it will fit
+        in a single unit of the grid. 
+    */
     action SetGridUnitSize(number size)
         gridUnitSize = size
         SetScale(gridUnitSize * gridWidth, gridUnitSize * gridHeight, gridUnitSize * gridDepth)
     end
 
+    /*
+        GetItemsAtCursor returns any item that is colliding with the cursor. This allows the editor
+        to find what items the cursor is over so the user can find what is in the scene and choose to
+        edit it. 
+    */
     action GetItemsAtCursor returns Array<Item>
         Array<Item> array
         SceneConstants constants
@@ -90,10 +112,16 @@ class EditorCursor3D is EditorCursor, EditorItem3D
         return array
     end
 
+    /*
+        Returns the layer that this cursor is using to size itself.
+    */
     action GetEditorLayer returns EditorLayer
         return editorLayer
     end
 
+    /*
+        Increases the size of the cursor by one grid unit on all three axes. 
+    */
     action IncreaseSize
         gridWidth = gridWidth + 1
         gridHeight = gridHeight + 1
@@ -101,6 +129,10 @@ class EditorCursor3D is EditorCursor, EditorItem3D
         SetScale(gridUnitSize * gridWidth, gridUnitSize * gridHeight, gridUnitSize * gridDepth)
     end
 
+    /*
+        Decreases the size of the cursor by one grid unit on all three axes. Note
+        that the cursor cannot be smaller than 1 grid unit.
+    */
     action DecreaseSize
         gridWidth = gridWidth - 1
         gridHeight = gridHeight - 1
