@@ -5,6 +5,8 @@
  */
 package plugins.quorum.Libraries.Network;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.ByteArrayInputStream;
 import java.io.BufferedOutputStream;
@@ -18,10 +20,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
 import quorum.Libraries.Containers.HashTable;
 import quorum.Libraries.Containers.HashTable_;
+import quorum.Libraries.Containers.List_;
 import quorum.Libraries.Language.Types.Text;
+import quorum.Libraries.Language.Types.Text_;
 
 /**
  *
@@ -54,7 +59,38 @@ public class NetworkExchange {
         }
         out.close();
     }
-    
+
+    public String HashPassword(String password) {
+        String hash = BCrypt.with(BCrypt.Version.VERSION_2Y).hashToString(10, password.toCharArray());
+        return hash;
+    }
+
+    public boolean VerifyPassword(String password, String hash) {
+        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hash);
+        return result.verified;
+    }
+    public HashTable_ GetHeaders() {
+        HashTable table = new HashTable();
+
+        Headers headers = exchange.getRequestHeaders();
+        for (String key : headers.keySet()) {
+            List<String> strings = headers.get(key);
+            Iterator<String> iterator = strings.iterator();
+            quorum.Libraries.Containers.List list = new quorum.Libraries.Containers.List();
+            while(iterator.hasNext()) {
+                String next = iterator.next();
+                Text text = new Text();
+                text.SetValue(next);
+                list.Add(text);
+            }
+
+            Text_ quorumKey = new Text();
+            quorumKey.SetValue(key);
+            table.Add(quorumKey, list);
+        }
+        return table;
+    }
+
     public HashTable_ GetParameters() throws UnsupportedEncodingException, IOException {
         HashTable table = new HashTable();
         boolean urlencdoded = false;
