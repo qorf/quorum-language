@@ -7,6 +7,8 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartPoint
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -38,6 +40,12 @@ class ScatterPlotLayout is TwoVariableChartLayout
             end
         end
 
+        ScatterPlot scatterPlot = cast(ScatterPlot, chart)
+        Array<ResidualSquare> squares = undefined
+        if chart:IsShowingLinearRegression() and scatterPlot:IsShowingSquaresOfResiduals()
+            squares = scatterPlot:GetResidualSquares()
+        end
+
         i = 0
         repeat while i < points:GetSize()
             ChartPoint point = points:Get(i)
@@ -64,6 +72,39 @@ class ScatterPlotLayout is TwoVariableChartLayout
             else
                 LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
             end
+
+            if squares not= undefined
+                ResidualSquare square = squares:Get(i)
+                RegressionLine line = point:GetSeries():GetRegressionLine()
+                boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
+
+                number residual = square:GetResidual()
+                number percentHeight = residual / (yMax - yMin)
+                if percentHeight < 0
+                    percentHeight = -percentHeight
+                end
+
+                number realHeight = percentHeight * height
+                square:SetSize(realHeight, realHeight)
+
+                number pointX = point:GetX() + point:GetWidth() / 2.0
+                number pointY = point:GetY() + point:GetHeight() / 2.0
+
+                if positiveSlope
+                    if residual < 0
+                        square:SetPosition(pointX, pointY)
+                    else
+                        square:SetPosition(pointX - realHeight, pointY - realHeight)
+                    end
+                else
+                    if residual < 0
+                        square:SetPosition(pointX - realHeight, pointY)
+                    else
+                        square:SetPosition(pointX, pointY - realHeight)
+                    end
+                end
+            end
+
             i = i + 1
         end
 

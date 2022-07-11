@@ -42,6 +42,8 @@ class ChartAreaPanel is ChartItem
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
+
+        SetClipping(true)
     end
 
     action IsAccessibleParent returns boolean

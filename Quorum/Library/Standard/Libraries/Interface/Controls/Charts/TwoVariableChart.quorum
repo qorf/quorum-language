@@ -11,6 +11,7 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -184,6 +185,13 @@ class TwoVariableChart is Chart
             comparison:SetSortByX(true)
             points:Sort(comparison)
             integer i = 0
+
+            Array<ResidualSquare> squares = undefined
+            if me is ScatterPlot
+                ScatterPlot scatter = cast(ScatterPlot, me)
+                squares = scatter:GetResidualSquares()
+            end
+
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
                 point:SetFocusable(true)
@@ -205,6 +213,14 @@ class TwoVariableChart is Chart
                         j = j + 1
                     end
                 end
+
+                if squares not= undefined
+                    ResidualSquare square
+                    square:SetPoint(point)
+                    squares:Add(square)
+                    chartArea:Add(square)
+                end
+
                 chartArea:Add(point)
                 chartArea:Add(point:GetSelectionArrow())
                 if point:ShowAnnotation() or ShowAnnotations()

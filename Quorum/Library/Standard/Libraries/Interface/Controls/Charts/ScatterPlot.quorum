@@ -5,6 +5,8 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 
 /*
     The ScatterPlot class is Chart object that inherits from TwoVariableChart and like other
@@ -37,6 +39,10 @@ class ScatterPlot is TwoVariableChart
     private text groupsText = "series"
     private text chartItemText = "point"
     private text chartItemsText = "points"
+
+    Array<ResidualSquare> residualSquares
+    boolean showSquaresOfResiduals = false
+    number residualSquareThickness = 1.2
 
     on create
         ScatterPlotLayout layout
@@ -197,5 +203,36 @@ class ScatterPlot is TwoVariableChart
     action GetChartItemsText returns text
         return chartItemsText
     end
+
+    action IsShowingSquaresOfResiduals returns boolean
+        return showSquaresOfResiduals
+    end
+
+    action ShowSquaresOfResiduals(boolean showSquaresOfResiduals)
+        integer i = 0
+        repeat while i < residualSquares:GetSize()
+            if showSquaresOfResiduals
+                residualSquares:Get(i):Show()
+            else
+                residualSquares:Get(i):Hide()
+            end
+            i = i + 1
+        end
+
+        me:showSquaresOfResiduals = showSquaresOfResiduals
+    end
+
+    action GetResidualSquares returns Array<ResidualSquare>
+        return residualSquares
+    end
+
+    action GetResidualSquareThickness returns number
+        return residualSquareThickness
+    end
+
+    action SetResidualSquareThickness(number residualSquareThickness)
+        me:residualSquareThickness = residualSquareThickness
+    end
+
 end
 

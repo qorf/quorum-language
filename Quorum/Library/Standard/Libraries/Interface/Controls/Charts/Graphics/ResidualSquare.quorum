@@ -1,0 +1,79 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ScatterPlot
+
+class ResidualSquare is ChartDrawable
+
+    ChartPoint point = undefined
+    Color borderColor = undefined
+
+    on create
+        Color color
+        color:SetColor(0, 0, 0, 0)
+        SetBackgroundColor(color)
+
+        borderColor = color:Black()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+    end
+
+    action GetPoint returns ChartPoint
+        return point
+    end
+
+    action SetPoint(ChartPoint point)
+        me:point = point
+    end
+
+    action GetResidual returns number
+        number x = point:GetValueX()
+        number y = point:GetValueY()
+
+        RegressionLine regression = point:GetSeries():GetRegressionLine()
+
+        return y - regression:CalculateDependentValue(x)
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        if point not= undefined and point:GetSeries() not= undefined
+            Color color = point:GetBackgroundColor():GetBottomLeft()
+            borderColor:SetColor(color:GetRed() - 0.2, color:GetGreen() - 0.2, color:GetBlue() - 0.2, color:GetAlpha())
+
+            return borderColor
+        end
+
+        return GetParentChart():GetBorderColor()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Chart chart = GetParentChart()
+        if chart is ScatterPlot
+            ScatterPlot plot = cast(ScatterPlot, chart)
+            return plot:GetResidualSquareThickness()
+        else
+            // Return a default value. This is arbitrary, but this value seems nice at casual inspection.
+            return 1.2
+        end
+    end
+
+end
