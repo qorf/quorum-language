@@ -20,11 +20,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import quorum.Libraries.Containers.HashTable;
 import quorum.Libraries.Containers.HashTable_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Containers.List_;
+import quorum.Libraries.Language.Object_;
 import quorum.Libraries.Language.Types.Text;
 import quorum.Libraries.Language.Types.Text_;
 
@@ -37,10 +41,69 @@ public class NetworkExchange {
     private String ENCODING = "UTF-8";
     private HttpExchange exchange;
     private URI uri;
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
         
     public void SendResponseHeaders(int code, String response) throws IOException {
         String resp2 = new String(response.getBytes(), ENCODING);
         exchange.sendResponseHeaders(code, resp2.getBytes().length);
+    }
+
+    public static String bytesToHex(byte[] bytes) {
+        //https://stackoverflow.com/questions/9655181/how-to-convert-a-byte-array-to-a-hex-string-in-java
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+    public String GenerateSessionKey() {
+        byte[] bytes = new byte[32];
+        SecureRandom rand = new SecureRandom();
+        rand.nextBytes(bytes);
+        return bytesToHex(bytes);
+    }
+
+    public HashTable_ GetResponseHeaders() {
+        HashTable table = new HashTable();
+
+        Headers headers = exchange.getResponseHeaders();
+        for (String key : headers.keySet()) {
+            List<String> strings = headers.get(key);
+            Iterator<String> iterator = strings.iterator();
+            quorum.Libraries.Containers.List list = new quorum.Libraries.Containers.List();
+            while(iterator.hasNext()) {
+                String next = iterator.next();
+                Text text = new Text();
+                text.SetValue(next);
+                list.Add(text);
+            }
+
+            Text_ quorumKey = new Text();
+            quorumKey.SetValue(key);
+            table.Add(quorumKey, list);
+        }
+        return table;
+    }
+
+    public void SetResponseHeaders(HashTable_ table) {
+        Headers headers = exchange.getResponseHeaders();
+        headers.clear();
+        Iterator_ iterator = table.GetKeyIterator();
+        //the Quorum side promises <text, List<text>>
+        while(iterator.HasNext()) {
+            Text_ keyQ = (Text_) iterator.Next();
+            List_ valueQ = (List_) table.GetValue(keyQ);
+            String key = keyQ.GetValue();
+            LinkedList<String> value = new LinkedList<String>();
+            Iterator_ listIterator = valueQ.GetIterator();
+            while(listIterator.HasNext()) {
+                Text_ next = (Text_) listIterator.Next();
+                value.add(next.GetValue());
+            }
+            headers.put(key, value);
+        }
     }
     
     public void SendResponse(String response) throws IOException {
@@ -97,7 +160,7 @@ public class NetworkExchange {
         List<String> list = exchange.getRequestHeaders().get("Content-type");
         if(list != null && list.size() > 0) {
             String type = list.get(0);
-            if(type.compareTo("application/x-www-form-urlencoded") == 0)
+            if(type.startsWith("application/x-www-form-urlencoded"))
             {
                 urlencdoded = true;
             }
@@ -124,7 +187,6 @@ public class NetworkExchange {
             return table;
         }
         String[] params = rawQuery.split("&");
-
         for(int i = 0; i < params.length; i++) {
             String[] split = params[i].split("=");
             Text left = new Text();
