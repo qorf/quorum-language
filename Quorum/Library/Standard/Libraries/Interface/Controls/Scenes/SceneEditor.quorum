@@ -28,6 +28,43 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Events.SceneEditorChangeListener
+use Libraries.Interface.Undo.SceneEditorEditManager
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight2D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.PointLightSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.Highlights.Audio3DSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.Highlights.ModelSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+use Libraries.Interface.Undo.SceneEditorDeleteEdit
+use Libraries.Interface.Events.SceneEditorChangeEvent
+use Libraries.Interface.Undo.SceneEditorInsertEdit
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview2D
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
+use Libraries.Interface.Controls.Scenes.Items.Previews.ModelPreview
+use Libraries.Interface.Controls.Scenes.Items.Previews.PointLightPreview
+use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Items.Previews.Audio3DPreview
+use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
+use Libraries.Interface.Controls.Scenes.Items.Previews.Custom3DPrimitivePreview
+use Libraries.Interface.Controls.Scenes.Blueprints.Custom3DPrimitiveBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 
 
 /*
@@ -42,14 +79,14 @@ need to implement more to understand how to structure examples.
 */
 class SceneEditor_LIBRARY is Control
 
-//    Array<EditorLayer> layers
+    Array<EditorLayer> layers
 
     SceneConstants constants
-//    VisualEditorSelection selection
+    SceneEditorSelection selection
 
-//    Array<SceneChangeListener> sceneChangeListeners
+    Array<SceneEditorChangeListener> sceneEditorChangeListeners
 
-//    SceneControllerEditManager editManager
+    SceneEditorEditManager editManager
 
     // The rotational speed measured in degrees,
     // and the directional speed, measured in 3D world units.
@@ -103,7 +140,7 @@ class SceneEditor_LIBRARY is Control
     /*
     "Highlight" drawables used to show which items have been filtered.
     */
-//    Array<SelectionHighlight> filterHighlights
+    Array<SelectionHighlight> filterHighlights
 
     /*
     Tracks how many times each name has been used from the palette.
@@ -134,7 +171,37 @@ class SceneEditor_LIBRARY is Control
 
 
     on create
+        FlowLayout layout
+        SetLayout(layout)
+        SetPercentageWidth(1.0)
+        SetPercentageHeight(1.0)
+        
+        LabelBoxView view
+        view:Initialize(color:CustomColor(0.9, 0.9, 0.925, 1), color:CustomColor(0.9, 0.9, 0.925, 1))
+        SetView2D(view)
 
+        SetInputGroup("SceneEditor")
+        SetName("Scene Editor")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+
+        accessibility = manager:GetAccessibility()
+
+        selection:Initialize(me)
+//        findDialog:Initialize(me)
+//
+//        propertiesDialogs:Add(item2dPropertiesDialog)
+//        propertiesDialogs:Add(item3dPropertiesDialog)
+//        propertiesDialogs:Add(camera2dPropertiesDialog)
+//        propertiesDialogs:Add(camera3dPropertiesDialog)
+//        propertiesDialogs:Add(pointLightPropertiesDialog)
+//        propertiesDialogs:Add(audio3DPropertiesDialog)
+//
+//        integer counter = 0
+//        repeat while counter < propertiesDialogs:GetSize()
+//            propertiesDialogs:Get(counter):Initialize(me)
+//            counter = counter + 1
+//        end
     end
 
     /*
@@ -147,7 +214,41 @@ class SceneEditor_LIBRARY is Control
 
     */
     action GetDescription returns text
-        return ""
+        if GetSelectedLayer() not= undefined
+            EditorCursor cursor = GetSelectedLayer():GetCursor()
+            text position = ""
+
+            if cursor is EditorCursor2D
+                EditorCursor2D cursor2D = cast(EditorCursor2D, cursor)
+                position = cast(integer, cursor2D:GetX()) + " " + cast(integer, cursor2D:GetY())
+            elseif cursor is EditorCursor3D
+                EditorCursor3D cursor3D = cast(EditorCursor3D, cursor)
+                position = cast(integer, cursor3D:GetX()) + " " + cast(integer, cursor3D:GetY()) + " " + cast(integer, cursor3D:GetZ())
+            end
+
+            Array<Item> items = cursor:GetItemsAtCursor()
+            if items:GetSize() = 0
+                return position
+            elseif items:GetSize() <= 3
+                integer counter = items:GetSize()
+                text names = ""
+                repeat while counter > 0
+                    counter = counter - 1
+                    names = names + items:Get(counter):GetName() + ", "
+                end
+                return names + position + ", press Enter to select items"
+            else
+                integer counter = items:GetSize()
+                text names = ""
+                repeat while counter > items:GetSize() - 3
+                    counter = counter - 1
+                    names = names + items:Get(counter):GetName() + ", "
+                end
+                return names + items:GetSize() + " items, " + position + ", press Enter to select items"
+            end
+        end
+
+        return parent:Item:GetDescription()
     end
 
 
@@ -156,7 +257,21 @@ class SceneEditor_LIBRARY is Control
     viewports, camera, and grid.
     */
     action Resize
+        parent:Control:Resize()
 
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer layer = layers:Get(counter)
+            layer:SetViewport(cast(integer, GetGlobalX()), cast(integer, GetGlobalY()), cast(integer, GetWidth()), cast(integer, GetHeight()))
+            Camera camera = layer:GetCamera()
+            camera:SetSize(GetWidth(), GetHeight())
+            counter = counter + 1
+
+            if layer is EditorLayer2D
+                EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+                layer2D:UpdateGridSize()
+            end
+        end
     end
 
 
@@ -176,32 +291,417 @@ class SceneEditor_LIBRARY is Control
     end
 
     action UpdateEditorCameraTarget
+        Item item = GetSelectedItem()
+        EditorLayer layer = GetSelectedLayer()
+        if item is Item2D or layer is EditorLayer2D
+            // We currently only support this feature for 3D.
+            return now
+        end
 
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+
+        if item = undefined and IsFocused()
+            item = layer3D:GetCursor()
+        end
+        
+        layer3D:GetEditorCamera():SetTarget(cast(Item3D, item))
+    end
+
+    action UpdateEditorCameraPosition
+        if GetSelectedLayer() is EditorLayer3D
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+            layer:GetEditorCamera():UpdateCameraPosition()
+        else
+            // Do nothing -- we currently don't support this for 2D
+        end
+    end
+
+
+    action GetEditManager returns SceneEditorEditManager
+        return editManager
+    end
+
+    action IsFocused returns boolean
+        // Although we can get the focus directly from the manager, we request
+        // it from the Game instead. This allows the Game to do any necessary
+        // additional book-keeping.
+        return parent:Item:IsFocused() or (dummyItem not= undefined and dummyItem:IsFocused())
     end
 
     action Update(number seconds)
-
+        // Not Ready yet
     end
 
     action SetFilteredItems(Array<Item> items, boolean moveFocus)
+        filteredItems = items
 
+        // Remove previous highlights.
+        repeat while filterHighlights:IsEmpty() = false
+            SelectionHighlight highlight = filterHighlights:RemoveFromEnd()
+            if highlight is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+                highlight3D:GetLayer():Remove(highlight3D)
+            elseif highlight is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, highlight)
+                highlight2D:GetLayer():Remove(highlight2D)
+            end
+        end
+
+        // Display selection highlighting around the items.
+        
+        EditorLayer currentLayer = GetSelectedLayer()
+
+        if currentLayer is EditorLayer3D
+            EditorLayer3D layer = cast(EditorLayer3D, currentLayer)
+            integer counter = 0
+            repeat while counter < filteredItems:GetSize()
+                Item3D item = cast(Item3D, filteredItems:Get(counter))
+                SelectionHighlight3D highlight = undefined
+                if item is EditorPointLight
+                    PointLightSelectionHighlight light
+                    highlight = light
+                elseif item is EditorAudio3D
+                    Audio3DSelectionHighlight light
+                    highlight = light
+                else
+                    ModelSelectionHighlight model
+                    highlight = model
+                end
+                highlight:Load(cast(EditorModel, item), me)
+                filterHighlights:Add(highlight)
+                layer:Add(highlight)
+    
+                counter = counter + 1
+            end
+        else
+            EditorLayer2D layer = cast(EditorLayer2D, currentLayer)
+            integer counter = 0
+            repeat while counter < filteredItems:GetSize()
+                Item2D item = cast(Item2D, filteredItems:Get(counter))
+                SelectionHighlight2D highlight
+                highlight:Load(item, me)
+                filterHighlights:Add(highlight)
+                layer:Add(highlight)
+    
+                counter = counter + 1
+            end
+        end
+
+        SetFilterHighlightData()
+
+        if moveFocus
+            if filterHighlights:IsEmpty()
+                Focus()
+            else
+                filterHighlights:Get(0):Focus()
+            end
+        else
+            if filterHighlights:IsEmpty()
+                SetSelectedItem(undefined)
+            else
+                SetSelectedItem(filterHighlights:Get(0))
+            end
+        end
     end
 
     private action EmptyFilteredItems(boolean moveFocus)
+        filteredItems = undefined
 
+        // Remove previous highlights.
+        repeat while filterHighlights:IsEmpty() = false
+            SelectionHighlight highlight = filterHighlights:RemoveFromEnd()
+            if highlight is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+                highlight3D:GetLayer():Remove(highlight3D)
+            else
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, highlight)
+                highlight2D:GetLayer():Remove(highlight2D)
+            end
+        end
+
+        SetFilterHighlightData()
+
+        if moveFocus
+            Focus()
+        else
+            SetSelectedItem(undefined)
+        end
     end
 
     private action SetFilterHighlightData
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            Item item = highlight:GetItem()
 
+            if counter = 0
+                highlight:SetPreviousFocus(filterHighlights:GetFromEnd())
+            else
+                highlight:SetPreviousFocus(filterHighlights:Get(counter - 1))
+            end
+
+            if counter = filterHighlights:GetSize() - 1
+                highlight:SetNextFocus(filterHighlights:GetFromFront())
+            else
+                highlight:SetNextFocus(filterHighlights:Get(counter + 1))
+            end 
+
+            number x = math:Round(item:GetGlobalX(), 2)
+            number y = math:Round(item:GetGlobalY(), 2)
+            number z = math:Round(item:GetGlobalZ(), 2)
+
+            highlight:SetName(item:GetName())
+            highlight:SetDescription((counter + 1) + " of " + filterHighlights:GetSize() + ": " + x + ", " + y + ", " + z)
+            counter = counter + 1
+        end
+
+        if filterHighlights:IsEmpty() = false
+            SetPreviousFocus(filterHighlights:Get(filterHighlights:GetSize() - 1))
+            SetNextFocus(filterHighlights:Get(0))
+        else
+            SetPreviousFocus(undefined)
+            SetNextFocus(undefined)
+        end
     end
 
+    // Removes the item that is selected by the given highlight, along with the highlight itself.
+    action Delete(SelectionHighlight highlight)
+        Item nextFocus = undefined
+
+        if highlight:IsFocused()
+            // If we're deleting the focused item, move the focus.
+            if highlight:GetPreviousFocus() not= undefined and (highlight:GetPreviousFocus():Equals(highlight) = false)
+                nextFocus = highlight:GetPreviousFocus()
+            else
+                SetCursorToItem(highlight)
+                nextFocus = me
+            end
+        end
+
+        EditorLayer resultLayer = undefined
+
+        if highlight is SelectionHighlight3D
+            SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+            EditorLayer3D layer = cast(EditorLayer3D, highlight3D:GetLayer())
+            resultLayer = layer
+            layer:Remove(highlight3D)
+            layer:Remove(cast(Item3D, highlight3D:GetItem()))
+        else
+            SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, highlight)
+            EditorLayer2D layer = cast(EditorLayer2D, highlight2D:GetLayer())
+            resultLayer = layer
+            layer:Remove(highlight2D)
+            layer:Remove(cast(Item2D, highlight2D:GetItem()))
+        end
+
+        integer index = filterHighlights:GetFirstLocation(highlight)
+        if index >= 0
+            filterHighlights:RemoveAt(index)
+
+            // Refresh filter highlight focus order and descriptions.
+            SetFilterHighlightData()
+        end
+
+        if nextFocus not= undefined
+            nextFocus:Focus()
+        end
+
+        SceneEditorDeleteEdit edit
+        edit:Create(me, resultLayer, highlight:GetItem())
+        editManager:Add(edit)
+
+        SceneEditorChangeEvent event
+        event:Set(me, highlight:GetItem(), undefined, resultLayer, event:REMOVED)
+        NotifySceneEditorChangeListeners(event)
+    end
+
+    /*
+    This action will delete an item that has been added to the scene.
+    */
     action Delete(Item item)
+        EditorLayer resultLayer = undefined
 
+        if item is Item2D
+            Item2D item2D = cast(Item2D, item)
+            EditorLayer2D layer = cast(EditorLayer2D, item2D:GetLayer())
+            resultLayer = layer
+            if layer = undefined
+                return now
+            end
+            layer:Remove(item2D)
+        elseif item is Item3D
+            Item3D item3D = cast(Item3D, item)
+            EditorLayer3D layer = cast(EditorLayer3D, item3D:GetLayer())
+            resultLayer = layer
+            if layer = undefined
+                return now
+            end
+            layer:Remove(item3D)
+        end
 
+        integer index = 0
+        repeat while index < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(index)
+            if highlight:GetItem() = item
+                filterHighlights:RemoveAt(index)
+                if resultLayer is EditorLayer2D
+                    EditorLayer2D layer = cast(EditorLayer2D, resultLayer)
+                    layer:Remove(cast(SelectionHighlight2D, highlight))
+                elseif resultLayer is EditorLayer3D
+                    EditorLayer3D layer = cast(EditorLayer3D, resultLayer)
+                    layer:Remove(cast(SelectionHighlight3D, highlight))
+                end
+
+                // Manually set the index so we'll escape the loop early.
+                index = filterHighlights:GetSize()
+
+                // Refresh filter highlight focus order and descriptions.
+                SetFilterHighlightData()
+            end
+
+            index = index + 1
+        end
+
+        SceneEditorDeleteEdit edit
+        edit:Create(me, resultLayer, item)
+        editManager:Add(edit)
+
+        SceneEditorChangeEvent event
+        event:Set(me, item, undefined, resultLayer, event:REMOVED)
+        NotifySceneEditorChangeListeners(event)
+    end
+
+    action CreateItemPreview(ItemBlueprint schematic)
+        CreateItemPreview(schematic, undefined)
+    end
+
+    action CreateItemPreview(ItemBlueprint schematic, File asset)
+        if schematic is DrawableBlueprint
+            DrawableBlueprint drawableBlueprint = cast(DrawableBlueprint, schematic)
+            if not (GetSelectedLayer() is EditorLayer2D)
+                integer counter = 0
+                boolean found = false
+                repeat while counter < layers:GetSize()
+                    EditorLayer layer = layers:Get(counter)
+                    if layer is EditorLayer2D
+                        SetSelectedLayer(layer)
+                        counter = layers:GetSize()
+                        found = true
+                    end
+                    counter = counter + 1
+                end
+
+                if not found
+                    return now
+                end
+            end
+
+            EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
+
+            if drawableBlueprint:GetPreferredGridWidth() not= 0 and drawableBlueprint:GetPreferredGridHeight() not= 0
+                // TO-DO: Consider both width and height when setting grid unit size.
+                layer:SetGridUnitSize(drawableBlueprint:GetPreferredGridWidth())
+                layer:UpdateGridPosition()
+            end
+
+            ItemPreview2D preview
+            preview:Load(me, drawableBlueprint)
+            // TO-DO: Position preview to match cursor
+
+            layer:Add(preview)
+            preview:Focus()
+        elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is Audio3DBlueprint
+            
+            if not (GetSelectedLayer() is EditorLayer3D)
+                integer counter = 0
+                boolean found = false
+                repeat while counter < layers:GetSize()
+                    EditorLayer layer = layers:Get(counter)
+                    if layer is EditorLayer3D
+                        SetSelectedLayer(layer)
+                        counter = layers:GetSize()
+                        found = true
+                    end
+                    counter = counter + 1
+                end
+
+                if not found
+                    return now
+                end
+            end
+
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+
+            // TO-DO: Consider modifying grid size for 3D objects here, same as with 2D objects above.
+
+            ItemPreview3D preview = undefined
+            if asset = undefined
+                if schematic is ModelBlueprint
+                    ModelPreview modelPreview
+                    preview = modelPreview
+                    ModelBlueprint modelBlueprint = cast(ModelBlueprint, schematic)
+                    modelPreview:Load(me, modelBlueprint)
+                elseif schematic is PointLightBlueprint
+                    PointLightPreview lightPreview
+                    preview = lightPreview
+                    PointLightBlueprint lightBlueprint = cast(PointLightBlueprint, schematic)
+                    lightPreview:Load(me, lightBlueprint)
+                else
+                    Audio3DPreview audioPreview
+                    preview = audioPreview
+                    Audio3DBlueprint audioBlueprint = cast(Audio3DBlueprint, schematic)
+                    audioPreview:Load(me, audioBlueprint)
+                end
+            else
+                if schematic is Custom3DPrimitiveBlueprint
+                    Custom3DPrimitivePreview primitivePreview
+                    preview = primitivePreview
+                    Custom3DPrimitiveBlueprint primitiveBlueprint = cast(Custom3DPrimitiveBlueprint, schematic)
+                    primitivePreview:Load(me, primitiveBlueprint, asset)
+                elseif schematic is CustomModelBlueprint
+                    CustomModelBlueprint newBlueprint = cast(CustomModelBlueprint, schematic)
+                    newBlueprint:SetFile(asset)
+                    ModelPreview modelPreview
+                    preview = modelPreview
+                    modelPreview:Load(me, newBlueprint)
+                end
+            end
+
+            layer:Add(preview)
+            preview:Focus()
+        end
     end
 
     action CancelItemPreview(ItemPreview preview)
+        if preview is ItemPreview3D
+            ItemPreview3D preview3D = cast(ItemPreview3D, preview)
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+            layer:Remove(preview3D)
+        else
+            ItemPreview2D preview2D = cast(ItemPreview2D, preview)
+            EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
+            layer:Remove(preview2D)
+        end
+    end
 
+    action SelectEditorCamera(EditorLayer layer)
+        if layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            CameraItem2D item
+            item:Load(layer:GetCamera(), me)
+            layer2D:Add(item)
+            SetSelection(layer2D, item)
+
+            item:Focus()
+        elseif layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            CameraItem3D item
+            item:Load(layer3D:GetEditorCamera(), me)
+            layer3D:Add(item)
+            SetSelection(layer3D, item)
+
+            item:Focus()
+        end
     end
 
     action DeselectEditorCamera
@@ -229,15 +729,99 @@ class SceneEditor_LIBRARY is Control
         return "Item"
     end
 
-    action ConfirmNewItemPreview(EditorItem newItem)
+    action ConfirmItemPreview(ItemPreview newItem)
+        Item result = undefined
+        EditorLayer resultLayer = undefined
 
+        if newItem:GetItemBlueprint() not= undefined
+            IncrementNameCount(newItem:GetItemBlueprint():GetName())
+        end
+
+        if newItem is ItemPreview3D
+            ItemPreview3D preview = cast(ItemPreview3D, newItem)
+            Model model = preview:ConvertToModel()
+            result = model
+
+            previewTransform = preview:GetTransform()
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+            resultLayer = layer
+            layer:Add(model)
+        elseif newItem is ItemPreview2D
+            ItemPreview2D preview = cast(ItemPreview2D, newItem)
+            Drawable drawable = preview:ConvertToDrawable()
+            result = drawable
+
+            EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
+            resultLayer = layer
+            layer:Add(drawable)
+        end
+
+        // This Dispose call currently does nothing, but if there are any
+        // resources that need to be cleaned up, it should be done here.
+        //preview:Dispose()
+        //Focus()
+
+        NotifyAccessibility(newItem, "Placed " + result:GetName())
+        
+        SceneEditorChangeEvent event
+        event:Set(me, result, undefined, resultLayer, event:ADDED)
+        NotifySceneEditorChangeListeners(event)
+
+        if newItem:GetItemBlueprint() not= undefined
+            text name = newItem:GetItemBlueprint():GetName()
+            newItem:SetName(name + GetNextNamePostfix(name))
+            if newItem is ModelPreview
+                //item3dPropertiesDialog:SetFields(newItem)
+            elseif newItem is PointLightPreview
+                //pointLightPropertiesDialog:SetFields(newItem)
+            elseif newItem is Audio3DPreview
+                //audio3DPropertiesDialog:SetFields(newItem)
+            elseif newItem is ItemPreview2D
+                //item2dPropertiesDialog:SetFields(newItem)
+            end
+        end
+
+        SceneEditorInsertEdit edit
+        edit:Create(me, resultLayer, result)
+        editManager:Add(edit)
+    end
+
+    action Add(EditorLayer layer, Item item)
+        if layer is EditorLayer2D and item is Item2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Item2D item2D = cast(Item2D, item)
+            layer2D:Add(item2D)
+        elseif layer is EditorLayer3D and item is Item3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Item3D item3D = cast(Item3D, item)
+            layer3D:Add(item3D)    
+        else
+            alert("I couldn't add the item " + item:GetName() + " because it's incompatible with the requested layer.")
+        end
+
+        // It's not clear if we should notify accessibility here, or allow a change in selection to handle that for us.
+        //NotifyAccessibility(newItem, "Placed " + result:GetName())
+        
+        SceneEditorChangeEvent event
+        event:Set(me, item, undefined, layer, event:ADDED)
+        NotifySceneEditorChangeListeners(event)
+
+        SceneEditorInsertEdit edit
+        edit:Create(me, layer, item)
+        editManager:Add(edit)
+    end
+
+    action AddLayer(EditorLayer layer)
+        selection:SetSelection(layer)
+        layer:SetSceneEditor(me)
+        layers:Add(layer)
     end
 
     action SetYawDirection(integer direction)
         yawDirection = direction
 
         if direction = 0
-            //NotifyAccessibility(me, "Yaw " + math:Round(GetSelectedLayer():GetCameraYaw(), 1))
+            NotifyAccessibility(me, "Yaw " + math:Round(GetSelectedLayer():GetCameraYaw(), 1))
         end
     end
 
@@ -249,7 +833,7 @@ class SceneEditor_LIBRARY is Control
         pitchDirection = direction
 
         if direction = 0
-            //NotifyAccessibility(me, "Pitch " + math:Round(GetSelectedLayer():GetCameraPitch(), 1))
+            NotifyAccessibility(me, "Pitch " + math:Round(GetSelectedLayer():GetCameraPitch(), 1))
         end
     end
 
@@ -261,7 +845,7 @@ class SceneEditor_LIBRARY is Control
         rollDirection = direction
 
         if direction = 0
-            //NotifyAccessibility(me, "Roll " + math:Round(GetSelectedLayer():GetCameraRoll(), 1))
+            NotifyAccessibility(me, "Roll " + math:Round(GetSelectedLayer():GetCameraRoll(), 1))
         end
     end
 
@@ -270,42 +854,38 @@ class SceneEditor_LIBRARY is Control
     end
 
     action IsCameraRotating returns boolean
-//        return GetYawDirection() not= 0 or GetPitchDirection() not= 0
-        return false
+        return GetYawDirection() not= 0 or GetPitchDirection() not= 0
     end
 
     action GetYaw returns number
-//        return GetSelectedLayer():GetCameraYaw()
-        return 0
+        return GetSelectedLayer():GetCameraYaw()
     end
 
     action GetPitch returns number
-//        return GetSelectedLayer():GetCameraPitch()
-        return 0
+        return GetSelectedLayer():GetCameraPitch()
     end
 
     action GetRoll returns number
-//        return GetSelectedLayer():GetCameraRoll()
-        return 0
+        return GetSelectedLayer():GetCameraRoll()
     end
 
     action SetForwardDirection(integer direction)
         forwardDirection = direction
 
-//        if IsCameraMoving() = false
-//            if GetSelectedLayer() is EditorLayer2D
-//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-//                number x = math:Round(temp:GetX(), 1)
-//                number y = math:Round(temp:GetY(), 1)
-//                NotifyAccessibility(me, "Camera " + x + ", " + y)
-//            else
-//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-//                number x = math:Round(temp:GetX(), 2)
-//                number y = math:Round(temp:GetY(), 2)
-//                number z = math:Round(temp:GetZ(), 2)
-//                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
-//            end
-//        end
+        if IsCameraMoving() = false
+            if GetSelectedLayer() is EditorLayer2D
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 1)
+                number y = math:Round(temp:GetY(), 1)
+                NotifyAccessibility(me, "Camera " + x + ", " + y)
+            else
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 2)
+                number y = math:Round(temp:GetY(), 2)
+                number z = math:Round(temp:GetZ(), 2)
+                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+            end
+        end
     end
 
     action GetForwardDirection returns integer
@@ -314,20 +894,20 @@ class SceneEditor_LIBRARY is Control
     action SetStrafeDirection(integer direction)
         strafeDirection = direction
 
-//        if IsCameraMoving() = false
-//            if GetSelectedLayer() is EditorLayer2D
-//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-//                number x = math:Round(temp:GetX(), 1)
-//                number y = math:Round(temp:GetY(), 1)
-//                NotifyAccessibility(me, "Camera " + x + ", " + y)
-//            else
-//                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-//                number x = math:Round(temp:GetX(), 2)
-//                number y = math:Round(temp:GetY(), 2)
-//                number z = math:Round(temp:GetZ(), 2)
-//                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
-//            end
-//        end
+        if IsCameraMoving() = false
+            if GetSelectedLayer() is EditorLayer2D
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 1)
+                number y = math:Round(temp:GetY(), 1)
+                NotifyAccessibility(me, "Camera " + x + ", " + y)
+            else
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 2)
+                number y = math:Round(temp:GetY(), 2)
+                number z = math:Round(temp:GetZ(), 2)
+                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+            end
+        end
     end
 
     action GetStrafeDirection returns integer
@@ -335,7 +915,22 @@ class SceneEditor_LIBRARY is Control
     end
 
     action SetVerticalDirection(integer direction)
+        verticalDirection = direction
 
+        if IsCameraMoving() = false
+            if GetSelectedLayer() is EditorLayer2D
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 1)
+                number y = math:Round(temp:GetY(), 1)
+                NotifyAccessibility(me, "Camera " + x + ", " + y)
+            else
+                Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
+                number x = math:Round(temp:GetX(), 2)
+                number y = math:Round(temp:GetY(), 2)
+                number z = math:Round(temp:GetZ(), 2)
+                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+            end
+        end
     end
 
     action GetVerticalDirection returns integer
@@ -347,12 +942,126 @@ class SceneEditor_LIBRARY is Control
     end
 
     action SetCursorToItem(EditorItem item)
+        // We don't want the cursor to jump to the camera item, so abort now.
+        if item is CameraItem
+            return now
+        end
 
+        if item is EditorItem2D
+            EditorCursor2D cursor = cast(EditorCursor2D, GetCursor())
+            number x = item:GetGlobalX()
+            number y = item:GetGlobalY()
+            if not IsGridCoordinate(x)
+                x = GetSelectedLayer():GetPreviousGridCoordinate(x)
+            end
+            if not IsGridCoordinate(y)
+                y = GetSelectedLayer():GetPreviousGridCoordinate(y)
+            end
+            cursor:SetPosition(x, y)
+        elseif item is EditorItem3D
+            EditorCursor3D cursor = cast(EditorCursor3D, GetCursor())
+            number x = item:GetGlobalX()
+            number y = item:GetGlobalY()
+            number z = item:GetGlobalZ()
+            cursor:SetPosition(x, y, z)
+        end
     end
+
     // Used when moving an InteractableItem into a grid space to give information about what's under the item.
     // Doesn't include the item itself in the description.
     private action GetDescriptionAtItemPosition(EditorItem item) returns text
-        return ""
+        SetCursorToItem(item)
+
+        Item ignoredItem = undefined
+
+        if item is SelectionHighlight
+            SelectionHighlight highlight = cast(SelectionHighlight, item)
+            ignoredItem = highlight:GetItem()
+        end
+
+        EditorCursor cursor = GetCursor()
+        if cursor is EditorCursor2D
+            EditorCursor2D cursor2D = cast(EditorCursor2D, cursor)
+            text position = cast(integer, item:GetGlobalX()) + " " + cast(integer, item:GetGlobalY())
+            Array<Item> items = cursor2D:GetItemsAtCursor()
+            if items:GetSize() = 0
+                return position
+            elseif items:GetSize() <= 3
+                integer counter = items:GetSize()
+                text names = ""
+                repeat while counter > 0
+                    counter = counter - 1
+                    if ignoredItem = undefined or items:Get(counter):Equals(ignoredItem) = false
+                        names = names + items:Get(counter):GetName() + ", "
+                    end
+                end
+                return names + position
+            else
+                integer counter = items:GetSize()
+                integer used = 0
+                text names = ""
+                repeat while used < 3
+                    counter = counter - 1
+                    if ignoredItem = undefined or items:Get(counter):Equals(ignoredItem) = false
+                        names = names + items:Get(counter):GetName() + ", "
+                        used = used + 1
+                    end
+                end
+                return names + (items:GetSize() - 1) + " items, " + position
+            end
+        else
+            EditorCursor3D cursor3D = cast(EditorCursor3D, cursor)
+            text position = ""
+            if cursor:GetGlobalX() = cast(integer, cursor:GetGlobalX())
+                position = position + cast(integer, cursor:GetGlobalX())
+            else
+                position = position + cursor:GetGlobalX()
+            end
+
+            position = position + " "
+
+            if cursor:GetGlobalY() = cast(integer, cursor:GetGlobalY())
+                position = position + cast(integer, cursor:GetGlobalY())
+            else
+                position = position + cursor:GetGlobalY()
+            end
+
+            position = position + " "
+
+            if cursor:GetGlobalZ() = cast(integer, cursor:GetGlobalZ())
+                position = position + cast(integer, cursor:GetGlobalZ())
+            else
+                position = position + cursor:GetGlobalZ()
+            end
+
+            Array<Item> items = cursor3D:GetItemsAtCursor()
+            if items:GetSize() = 0
+                return position
+            elseif items:GetSize() <= 3
+                integer counter = items:GetSize()
+                text names = ""
+                repeat while counter > 0
+                    counter = counter - 1
+                    if ignoredItem = undefined or items:Get(counter):Equals(ignoredItem) = false
+                        names = names + items:Get(counter):GetName() + ", "
+                    end
+                end
+                return names + position
+            else
+                integer counter = items:GetSize()
+                integer used = 0
+                text names = ""
+                repeat while used < 3
+                    counter = counter - 1
+                    if ignoredItem = undefined or items:Get(counter):Equals(ignoredItem) = false
+                        names = names + items:Get(counter):GetName() + ", "
+                        used = used + 1
+                    end
+                end
+                return names + (items:GetSize() - 1) + " items, " + position
+            end
+        end
+        return item:GetGlobalX() + " " + item:GetGlobalY()
     end
 
     action SetSelectionXDirection(integer direction)
@@ -407,13 +1116,13 @@ class SceneEditor_LIBRARY is Control
     action SetSelectionYawDirection(integer direction)
         selectionYawDirection = direction
 
-//        if direction = 0
-//            if manager:GetFocus() is InteractableItem3D
-//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
-//                number yaw = math:Round(focus:GetYaw(), 1)
-//                NotifyAccessibility(focus, "yaw " + yaw)
-//            end
-//        end
+        if direction = 0
+            if manager:GetFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+                number yaw = math:Round(focus:GetYaw(), 1)
+                NotifyAccessibility(focus, "yaw " + yaw)
+            end
+        end
     end
 
     action GetSelectionYawDirection returns integer
@@ -423,13 +1132,13 @@ class SceneEditor_LIBRARY is Control
     action SetSelectionPitchDirection(integer direction)
         selectionPitchDirection = direction
 
-//        if direction = 0
-//            if manager:GetFocus() is InteractableItem3D
-//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
-//                number pitch = math:Round(focus:GetPitch(), 1)
-//                NotifyAccessibility(focus, "pitch " + pitch)
-//            end
-//        end
+        if direction = 0
+            if manager:GetFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+                number pitch = math:Round(focus:GetPitch(), 1)
+                NotifyAccessibility(focus, "pitch " + pitch)
+            end
+        end
     end
 
     action GetSelectionPitchDirection returns integer
@@ -439,17 +1148,17 @@ class SceneEditor_LIBRARY is Control
     action SetSelectionRollDirection(integer direction)
         selectionRollDirection = direction
 
-//        if direction = 0
-//            if manager:GetFocus() is InteractableItem3D
-//                InteractableItem3D focus = cast(InteractableItem3D, manager:GetFocus())
-//                number roll = math:Round(focus:GetRoll(), 1)
-//                NotifyAccessibility(focus, "roll " + roll)
-//            elseif manager:GetFocus() is InteractableItem2D
-//                InteractableItem2D focus = cast(InteractableItem2D, manager:GetFocus())
-//                number rotation = math:Round(focus:GetRotation(), 1)
-//                NotifyAccessibility(focus, rotation + " degrees")
-//            end
-//        end
+        if direction = 0
+            if manager:GetFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+                number roll = math:Round(focus:GetRoll(), 1)
+                NotifyAccessibility(focus, "roll " + roll)
+            elseif manager:GetFocus() is EditorItem2D
+                EditorItem2D focus = cast(EditorItem2D, manager:GetFocus())
+                number rotation = math:Round(focus:GetRotation(), 1)
+                NotifyAccessibility(focus, rotation + " degrees")
+            end
+        end
     end
 
     action GetSelectionRollDirection returns integer
@@ -466,23 +1175,125 @@ class SceneEditor_LIBRARY is Control
         end
     end
 
+    action SetGridSnapping(boolean enabled)
+        EditorLayer layer = GetSelectedLayer()
+
+        if layer:IsGridSnapping() = enabled
+            return now
+        end
+
+        layer:SetGridSnapping(enabled)
+
+        if enabled
+            NotifyAccessibility(me, "Grid snapping enabled")
+        else
+            NotifyAccessibility(me, "Grid snapping disabled")
+        end
+    end
+
+    action SetGridUnitSize(number units)
+        EditorLayer layer = GetSelectedLayer()
+        layer:SetGridUnitSize(units)
+        
+        NotifyAccessibility(me, "Grid size " + units)
+    end
+
+    action GetGridUnitSize returns number
+        EditorLayer layer = GetSelectedLayer()
+        return layer:GetGridUnitSize()
+    end
+
+    action IsGridSnapping returns boolean
+        EditorLayer layer = GetSelectedLayer()
+        return layer:IsGridSnapping()
+    end
+
+    private action IsGridCoordinate(number value) returns boolean
+        return GetSelectedLayer():IsGridCoordinate(value)
+    end
+
     action SetSelectedItem(EditorItem item)
-//        selection:SetSelection(item)
+        selection:SetSelection(item)
     end
 
     action SetSelectedLayer(EditorLayer layer)
+        if layer = selection:GetSelectedLayer()
+            return now
+        end
 
+        EmptyFilteredItems(false)
+
+        selection:SetSelection(layer, undefined)
     end
 
     action SetSelection(EditorLayer layer, EditorItem item)
+        if layer = selection:GetSelectedLayer() and item = selection:GetSelectedItem()
+            return now
+        end
 
+        EmptyFilteredItems(false)
+        selection:SetSelection(layer, item)
     end
 
     action GetSelectedItem returns EditorItem
-        return undefined
+        return selection:GetSelectedItem()
     end
 
     action GetSelectedLayer returns EditorLayer
+        return selection:GetSelectedLayer()
+    end
+
+    action GetCursor returns EditorCursor
+        EditorLayer layer = GetSelectedLayer()
+        if layer = undefined
+            return undefined
+        end
+
+        return layer:GetCursor()
+    end
+
+    action GetSceneLayers returns Array<EditorLayer>
+        return layers
+    end
+
+    action GainedFocus(FocusEvent event)
+        SetSelectedItem(undefined)
+        UpdateCursorVisibility()
+
+        if accessibility not= undefined
+            // Update the description for the controller in accessibility.
+            accessibility:DescriptionChanged(me)
+        end
+    end
+
+    action LostFocus(FocusEvent event)
+        Item item = event:GetNewFocus()
+        integer value = dummyItem:GetHashCode()
+        boolean goingToDummy = false
+        if item not= undefined
+            integer value1 = item:GetHashCode()
+            goingToDummy = (value1 = value)
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if layer not= undefined and not goingToDummy
+            layer:ShowCursor(false)
+        end
+    end
+
+    /*
+    If the given Item has a corresponding SelectionHighlight, this action
+    will return the highlight. Otherwise, it will return undefined.
+    */
+    action GetSelectionHighlight(Item item) returns SelectionHighlight
+        integer i = 0
+        repeat while i < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(i)
+            if highlight:GetItem() = item
+                return highlight
+            end
+            i = i + 1
+        end
+
         return undefined
     end
 
@@ -496,16 +1307,13 @@ class SceneEditor_LIBRARY is Control
     changes.
     */
     action UpdateCursorVisibility
-
-    end
-
-    action GetCursor returns EditorCursor
-        EditorLayer layer = GetSelectedLayer()
+        EditorLayer layer = selection:GetSelectedLayer()
         if layer = undefined
-            return undefined
+            return now
         end
 
-        return layer:GetCursor()
+        // If an item is selected, hide the cursor. Otherwise, show it.
+        layer:ShowCursor(selection:GetSelectedItem() = undefined)
     end
 
     action GetNameCount(text name) returns integer
@@ -526,6 +1334,27 @@ class SceneEditor_LIBRARY is Control
         end
 
         return " " + count
+    end
+
+
+    action AddSceneEditorChangeListener(SceneEditorChangeListener listener)
+        sceneEditorChangeListeners:Add(listener)
+    end
+
+    action RemoveSceneEditorChangeListener(SceneEditorChangeListener listener)
+        sceneEditorChangeListeners:Remove(listener)
+    end
+
+    private action NotifySceneEditorChangeListeners(SceneEditorChangeEvent event)
+        integer i = 0
+        repeat while i < sceneEditorChangeListeners:GetSize()
+            if event:GetEventType() = event:ADDED
+                sceneEditorChangeListeners:Get(i):SceneAddedItem(event)
+            else
+                sceneEditorChangeListeners:Get(i):SceneRemovedItem(event)
+            end
+            i = i + 1
+        end
     end
 
 end
