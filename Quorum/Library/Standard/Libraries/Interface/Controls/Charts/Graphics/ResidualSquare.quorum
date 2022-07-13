@@ -7,6 +7,11 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Compute.Vector2
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 
 class ResidualSquare is ChartDrawable
 
@@ -19,13 +24,27 @@ class ResidualSquare is ChartDrawable
         SetBackgroundColor(color)
 
         borderColor = color:Black()
+
+        SetClipping(true)
     end
 
     action LoadGraphics(LayoutProperties properties)
-        if GetView2D() = undefined
-            ControlShaderView view
-            view:Initialize()
-            SetView2D(view)
+        // Set this to use the Control shader, if we haven't already
+        if GetShaderProgram() = undefined
+            Color color
+            color:SetColor(1, 1, 1, 1)
+            LoadFilledRectangle(2, 2, color)
+    
+            ShaderManager manager
+            ShaderProgram program = undefined
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+            SetShaderProgram(program)
         end
     end
 
@@ -76,4 +95,35 @@ class ResidualSquare is ChartDrawable
         end
     end
 
+    action GetClipCoordinates(Vector2 xCoords, Vector2 yCoords) returns boolean
+        Chart chart = GetParentChart()
+        if chart not= undefined and chart:GetChartArea() not= undefined and IsClipping()
+            /*
+            Grab our clipping coordinates from the parent chart area instead of from ourselves.
+            This trick lets us always ensure the squares cull themselves if they're outside of
+            the chart area, instead of asking the culling to be applied from the chart area
+            (which would then apply to all objects attached to the chart, including the axes,
+            which might protrude slightly from the chart area).
+            */
+            
+            ChartAreaPanel area = chart:GetChartArea()
+
+            // Store the current clipping state of the chart so we can set it back after.
+            boolean clipState = area:IsClipping()
+
+            // Temporarily enable clipping on the chart area. It won't successfully set the clipping coordinates if it isn't clipping.
+            area:SetClipping(true)
+
+            // Actually store the clip coordinates in the provided vectors.
+            area:GetClipCoordinates(xCoords, yCoords)
+
+            // Reset the clip state of the chart area panel.
+            area:SetClipping(clipState)
+
+            // We only enter this if statement if clipping was enabled, so the action must return true.
+            return true
+        else
+            return parent:Item2D:GetClipCoordinates(xCoords, yCoords)
+        end
+    end
 end

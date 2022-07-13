@@ -651,6 +651,24 @@ end
     end
 
     /*
+    This action returns the x-coordinate of the point at the requested index in the path.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPointX(integer index) returns number
+        return points:Get(index):GetX()
+    end
+
+    /*
+    This action returns the y-coordinate of the point at the requested index in the path.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPointY(integer index) returns number
+        return points:Get(index):GetY()
+    end
+
+    /*
     This action sets the coordinates of one of the points in the LinePath. This is used to adjust existing points.
     This does not add new points -- if there is no point at the requested index, an error will occur.
 
@@ -695,6 +713,30 @@ end
     Translate the values in the given Vector2 from the mapped space (the custom region set by the user via the mapping action)
     to the real space (pixel values contained within the dimensions of the LinePath object).
     */
+    private action TranslateToMappedSpace(Vector2 point)
+        number leftBound = mappedLeft
+        if mappedLeft:IsNotANumber()
+            leftBound = 0
+        end
+
+        number rightBound = mappedRight
+        if mappedRight:IsNotANumber()
+            rightBound = GetWidth()
+        end
+
+        number bottomBound = mappedBottom
+        if bottomBound:IsNotANumber()
+            bottomBound = 0
+        end
+
+        number topBound = mappedTop
+        if topBound:IsNotANumber()
+            topBound = GetHeight()
+        end
+
+        TranslateToMappedSpace(point, leftBound, rightBound, bottomBound, topBound)
+    end
+
     private action TranslateToMappedSpace(Vector2 point, number leftBound, number rightBound, number bottomBound, number topBound)
         number x = (point:GetX() - leftBound) * (GetWidth() / (rightBound - leftBound))
         number y = (point:GetY() - bottomBound) * (GetHeight() / (topBound - bottomBound))

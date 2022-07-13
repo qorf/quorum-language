@@ -12,6 +12,7 @@ use Libraries.Compute.Math
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -1203,10 +1204,23 @@ class TwoVariableChart is Chart
             ChartItem firstPointItem = firstPoint
             firstPointItem:SetContainer(me)
             firstPointItem:SetPreviousFocus(summary)
-//            firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetValueY(), options:GetTickDigits())
-//                + ", 1 of " + points:GetSize())
-//            firstPoint:SetName(firstPointItem:GetDisplayName())
             firstPoint:SetDescription(" 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName())
+
+            // Add the residual to the beginning of the description if this is a scatter plot.
+            if me is ScatterPlot
+                RegressionLine regression = firstPoint:GetSeries():GetRegressionLine()
+                if regression not= undefined
+                    number residual = firstPoint:GetValueY() - regression:CalculateDependentValue(firstPoint:GetValueX())
+                    if residual = cast(integer, residual)
+                        firstPoint:SetDescription(" Residual is " + cast(integer, residual)  + "," + firstPoint:GetDescription() + ",")
+                    else
+                        Math math
+                        residual = math:Round(residual, 2)
+                        firstPoint:SetDescription(" Residual is " + residual + "," + firstPoint:GetDescription() + ",")
+                    end
+                end
+            end
+
             AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
             firstPointItem:SetEscapeItem(parentItem)
             parentItem:SetEnterItem(firstPointItem)
@@ -1218,10 +1232,23 @@ class TwoVariableChart is Chart
                 ChartItem pointItem = point
                 pointItem:SetContainer(me)
                 pointItem:SetPreviousFocus(summary)
-//                pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetValueX(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetValueY(), options:GetTickDigits())
-//                    + ", " + (i + 1) + " of " + points:GetSize())
-//                point:SetName(pointItem:GetDisplayName())
                 point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
+
+                // Add the residual to the beginning of the description if this is a scatter plot.
+                if me is ScatterPlot
+                    RegressionLine regression = point:GetSeries():GetRegressionLine()
+                    if regression not= undefined
+                        number residual = point:GetValueY() - regression:CalculateDependentValue(point:GetValueX())
+                        if residual = cast(integer, residual)
+                            point:SetDescription(" Residual is " + cast(integer, residual) + point:GetDescription() + ",")
+                        else
+                            Math math
+                            residual = math:Round(residual, 2)
+                            point:SetDescription(" Residual is " + residual + point:GetDescription() + ",")
+                        end
+                    end
+                end
+
                 pointItem:SetEscapeItem(parentItem)
                 if GetHorizontalFlag()
                     pointItem:SetLeftItem(previousPointItem)

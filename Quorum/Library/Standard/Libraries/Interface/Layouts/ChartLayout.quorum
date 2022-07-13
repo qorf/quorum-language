@@ -898,7 +898,12 @@ class ChartLayout is Layout
             repeat while i < chart:GetSeriesList():GetSize()
 
                 RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
+
                 if line not= undefined
+                    line:SetSize(width, height)
+                    line:SetPosition(xAxisPaddingOffset, yAxisPaddingOffset)
+                    line:MapToRegion(xMin, xMax, yMin, yMax)
+
                     if line:GetRegression() not= undefined
                         
                         // Starting position for line
@@ -909,8 +914,9 @@ class ChartLayout is Layout
                                 yVal = line:CalculateIndependentValue(xMin)
                                 xVal = line:CalculateDependentValue(yVal)
                             end
-                            percentX = (xVal - xMin) / (xMax - xMin)
-                            percentY = (yVal - yMin) / (yMax - yMin)
+                            line:SetPoint1(xVal, yVal)
+//                            percentX = (xVal - xMin) / (xMax - xMin)
+//                            percentY = (yVal - yMin) / (yMax - yMin)
                         else
                             number xVal = xMin
                             number yVal = line:CalculateDependentValue(xVal)
@@ -918,13 +924,14 @@ class ChartLayout is Layout
                                 xVal = line:CalculateIndependentValue(yMin)
                                 yVal = line:CalculateDependentValue(xVal)
                             end
-                            percentX = (xVal - xMin) / (xMax - xMin)
-                            percentY = (yVal - yMin) / (yMax - yMin)
+//                            percentX = (xVal - xMin) / (xMax - xMin)
+//                            percentY = (yVal - yMin) / (yMax - yMin)
+                            line:SetPoint1(xVal, yVal)
                         end
-                        x1 = cast(integer, percentX * width) + xAxisPaddingOffset
-                        y1 = cast(integer, percentY * height) + yAxisPaddingOffset
-                        line:SetX1(x1)
-                        line:SetY1(y1)
+//                        x1 = cast(integer, percentX * width) + xAxisPaddingOffset
+//                        y1 = cast(integer, percentY * height) + yAxisPaddingOffset
+//                        line:SetX1(x1)
+//                        line:SetY1(y1)
 
                         // Ending position for line
                         if chart:GetVerticalFlag()  
@@ -938,8 +945,9 @@ class ChartLayout is Layout
                                 yVal = line:CalculateIndependentValue(xMin)
                                 xVal = line:CalculateDependentValue(yVal)
                             end
-                            percentX = (xVal - xMin) / (xMax - xMin)
-                            percentY = (yVal - yMin) / (yMax - yMin)
+                            line:SetPoint2(xVal, yVal)
+//                            percentX = (xVal - xMin) / (xMax - xMin)
+//                            percentY = (yVal - yMin) / (yMax - yMin)
                         else
                             number xVal = xMax
                             number yVal = line:CalculateDependentValue(xVal)
@@ -951,37 +959,40 @@ class ChartLayout is Layout
                                 xVal = line:CalculateIndependentValue(yMin)
                                 yVal = line:CalculateDependentValue(xVal)
                             end
-                            percentX = (xVal - xMin) / (xMax - xMin)
-                            percentY = (yVal - yMin) / (yMax - yMin)
+                            line:SetPoint2(xVal, yVal)
+//                            percentX = (xVal - xMin) / (xMax - xMin)
+//                            percentY = (yVal - yMin) / (yMax - yMin)
                         end
-                        x2 = cast(integer, percentX * width) + xAxisPaddingOffset
-                        y2 = cast(integer, percentY * height) + yAxisPaddingOffset
-                        line:SetX2(x2)
-                        line:SetY2(y2)
+//                        x2 = cast(integer, percentX * width) + xAxisPaddingOffset
+//                        y2 = cast(integer, percentY * height) + yAxisPaddingOffset
+//                        line:SetX2(x2)
+//                        line:SetY2(y2)
         
                         // Pythagorean Theorem
-                        number sideA = math:AbsoluteValue(x2 - x1) * math:AbsoluteValue(x2 - x1)
-                        number sideB = math:AbsoluteValue(y2 - y1) * math:AbsoluteValue(y2 - y1)
-                        number sideC = math:SquareRoot((sideA + sideB))
-                        number slope = math:Round(cast(number, (y2 - y1)) / cast(number, (x2 - x1)), 2)
-                        number tanInverse = math:Round(math:RadiansToDegrees(math:InverseTangent(slope)), 2)
+//                        number sideA = math:AbsoluteValue(x2 - x1) * math:AbsoluteValue(x2 - x1)
+//                        number sideB = math:AbsoluteValue(y2 - y1) * math:AbsoluteValue(y2 - y1)
+//                        number sideC = math:SquareRoot((sideA + sideB))
+//                        number slope = math:Round(cast(number, (y2 - y1)) / cast(number, (x2 - x1)), 2)
+//                        number tanInverse = math:Round(math:RadiansToDegrees(math:InverseTangent(slope)), 2)
         
                         if chart:GetRegressionLineColor() not= undefined
-                            line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), chart:GetRegressionLineColor())
+//                            line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), chart:GetRegressionLineColor())
+                            line:SetBackgroundColor(chart:GetRegressionLineColor())
                             line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
                         else
-                            line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), line:GetColor())
+//                            line:LoadFilledRectangle(cast(integer, sideC)+2, line:GetLineDensity(), line:GetColor())
+                            line:SetBackgroundColor(line:GetColor())
                         end
         
-                        number angle = -1.0*tanInverse
-                        line:SetPosition(x1, y1)
-                        line:SetCenterX(x1 + (cast(number, x2 - x1) / 2.0)) 
-                        line:SetCenterY(y1 + (cast(number, y2 - y1) / 2.0))
-                        line:SetRotation(angle)
-                        number offX = math:Cosine(math:DegreesToRadians(angle))
-                        number offY = math:Sine(math:DegreesToRadians(angle))
-                        line:SetCenterY(line:GetCenterY() + offY)
-                        line:SetCenterX(line:GetCenterX() - offX)
+//                        number angle = -1.0*tanInverse
+//                        line:SetPosition(x1, y1)
+//                        line:SetCenterX(x1 + (cast(number, x2 - x1) / 2.0)) 
+//                        line:SetCenterY(y1 + (cast(number, y2 - y1) / 2.0))
+//                        line:SetRotation(angle)
+//                        number offX = math:Cosine(math:DegreesToRadians(angle))
+//                        number offY = math:Sine(math:DegreesToRadians(angle))
+//                        line:SetCenterY(line:GetCenterY() + offY)
+//                        line:SetCenterX(line:GetCenterX() - offX)
                         line:SetZ(-2)
                     end
                 end
