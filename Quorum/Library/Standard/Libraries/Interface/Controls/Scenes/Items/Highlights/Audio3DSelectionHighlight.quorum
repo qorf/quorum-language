@@ -1,0 +1,90 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+
+class Audio3DSelectionHighlight is SelectionHighlight3D, EditorAudio3D
+
+    action GetEditorAudio3D returns EditorAudio3D
+        return cast(EditorAudio3D, GetItem())
+    end
+
+    action SetSource(text source)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetSource(source)
+    end
+
+    action GetSource returns text
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetSource()
+    end
+
+    action GetVolume returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetVolume()
+    end
+
+    action SetVolume(number volume)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetVolume(volume)
+    end
+
+    action SetPitch(number pitch)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetPitch(pitch)
+    end
+
+    action GetPitch returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetPitch()
+    end
+
+    action GetMaximumVolumeDistance returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetMaximumVolumeDistance()
+    end
+
+    action SetMaximumVolumeDistance(number maxVolumeDistance)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetMaximumVolumeDistance(maxVolumeDistance)
+    end
+
+    action GetRolloffRate returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetRolloffRate()
+    end
+
+    action SetRolloffRate(number rolloffRate)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetRolloffRate(rolloffRate)
+    end
+
+    action GetLooping returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetLooping()
+    end
+
+    action SetLooping(boolean looping)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetLooping(looping)
+    end
+
+    action GetDoppler returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetDoppler()
+    end
+
+    action SetDoppler(boolean doppler)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetDoppler(doppler)
+    end
+
+    action GetPlayOnLoad returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetPlayOnLoad()
+    end
+
+    action SetPlayOnLoad(boolean play)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetPlayOnLoad(play)
+    end
+
+end

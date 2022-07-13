@@ -1,0 +1,113 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.BlendingAttribute
+use Libraries.System.File
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Game.Graphics.Model
+use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
+
+class ModelPreview is ItemPreview3D
+
+    File modelFile = undefined
+
+    action Load(SceneEditor_LIBRARY controller, ModelBlueprint schematic)
+        SetSceneEditor(controller)
+        SetItemBlueprint(schematic)
+
+        Color color = schematic:GetColor():Copy()
+        color:SetAlpha(color:GetAlpha() * 0.75)
+        integer modelType = schematic:GetModelType()
+        SceneProperties properties
+
+        SetName(schematic:GetName() + controller:GetNextNamePostfix(schematic:GetName()))
+        SetDescription(schematic:GetDescription())
+
+        if modelType = properties:BOX
+            LoadBox(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:SPHERE
+            LoadSphere(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:CYLINDER
+            LoadCylinder(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:CUSTOM
+            modelFile = schematic:GetModelFile()
+
+            Load(modelFile)
+            SetColor(color)
+
+            // We need to add blending to the custom material in order to support transparency on the preview
+            Material material = GetMaterials():Get(0)
+            BlendingAttribute blend
+            blend:opacity = color:GetAlpha()
+            material:Add(blend)
+        end
+
+        SetScale(schematic:GetScaleX(), schematic:GetScaleY(), schematic:GetScaleZ())
+        SetRotation(schematic:GetYaw(), schematic:GetPitch(), schematic:GetRoll())
+
+        if schematic:IsPhysicsEnabled()
+            SetEditorPhysicsEnabled(true)
+            if schematic:GetResponsiveness() >= 0
+                SetEditorResponsiveness(schematic:GetResponsiveness())
+            end
+        end
+
+        EditorCursor cursor = controller:GetCursor()
+        if cursor is EditorCursor3D
+            EditorCursor3D cursor3D = cast(EditorCursor3D, cursor)
+            SetPosition(cursor3D:GetX(), cursor3D:GetY(), cursor:GetZ())
+        end
+    end
+
+    action ConvertToModel returns Model
+        ModelBlueprint schematic = cast(ModelBlueprint, GetItemBlueprint())
+
+        EditorModel model
+        model:SetName(GetName())
+        
+        Color color = GetColor():Copy()
+        color:SetAlpha(1.0)
+        integer modelType = schematic:GetModelType()
+        SceneProperties properties
+
+        if modelType = properties:BOX
+            model:LoadBox(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:SPHERE
+            model:LoadSphere(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:CYLINDER
+            model:LoadCylinder(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+        elseif modelType = properties:CUSTOM
+            model:Load(modelFile)
+            SetColor(color)
+        end
+
+        //add a property with its color for now
+//        JavaScriptObjectNotation jsonColor
+//        jsonColor:SetKey("Color")
+//        jsonColor:SetArray()
+//        jsonColor:Add(color:GetRed())
+//        jsonColor:Add(color:GetGreen())
+//        jsonColor:Add(color:GetBlue())
+//        jsonColor:Add(color:GetAlpha())
+//        model:SetProperty(jsonColor:GetKey(), jsonColor)
+//
+//        JavaScriptObjectNotation jsonType
+//        jsonType:SetKey("Type")
+
+        model:SetPosition(GetPosition())
+        model:SetScale(GetScaleX(), GetScaleY(), GetScaleZ())
+        model:SetYawPitchRoll(GetYaw(), GetPitch(), GetRoll())
+        model:SetShape(GetShape())
+
+        return model
+    end
+
+end

@@ -1,0 +1,153 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+
+class SelectionHighlight2D is EditorItem2D, SelectionHighlight
+
+    Item2D item = undefined
+    Drawable highlightBox
+
+    on create
+        SceneConstants constants
+        SetZ(constants:SELECTION_HIGHLIGHT_2D_DEPTH)
+        SetInputGroup("SelectionHighlight2D")
+        SetName("Selection Highlight")
+    end
+
+    action GetItem returns Item
+        return item
+    end
+
+    action Load(Item2D item, SceneEditor_LIBRARY controller)
+        Color color = undefined
+        SceneConstants constants = GetConstants()
+
+        if IsFocused()
+            color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
+        else
+            color = constants:SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+        end
+
+        number padding = constants:SELECTION_HIGHLIGHT_PADDING_2D
+
+        SceneProperties properties
+        Drawable highlightBox
+        me:highlightBox = highlightBox
+
+        highlightBox:LoadFilledRectangle(1, 1, color)
+        highlightBox:SetSize(item:GetWidth() + 2 * padding, item:GetHeight() + 2 * padding)
+        highlightBox:SetPosition(-padding, -padding)
+        highlightBox:SetAcceptsMouseInput(false)
+        highlightBox:SetName("Selection Highlight Glow Effect")
+        Add(highlightBox)
+
+        SetScale(item:GetScaleX(), item:GetScaleY())
+        SetRotation(item:GetRotation())    
+
+        SetPosition(item:GetGlobalX(), item:GetGlobalY())
+
+        me:item = item
+        SetSceneEditor(controller)
+    end
+
+    action GainedSelection
+        highlightBox:SetColor(GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR)
+    end
+
+    action LostSelection
+        highlightBox:SetColor(GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR)
+    end
+
+    action Scale(number x, number y)
+        parent:Item2D:Scale(x, y)
+        if item not= undefined
+            item:Scale(x, y)
+        end
+    end
+
+    action SetScaleX(number scale)
+        parent:EditorItem2D:SetScaleX(scale)
+        if item not= undefined
+            item:SetScaleX(scale)
+        end
+    end
+
+    action SetScaleY(number scale)
+        parent:EditorItem2D:SetScaleY(scale)
+        if item not= undefined
+            item:SetScaleY(scale)
+        end
+    end
+
+    action SetRotation(number angle)
+        highlightBox:SetRotation(angle)
+        if item not= undefined
+            item:SetRotation(angle)
+        end
+    end
+
+    action GetRotation returns number
+        return highlightBox:GetRotation()
+    end
+
+    action MoveX(number x)
+        parent:Item2D:MoveX(x)
+        if item not= undefined
+            item:MoveX(x)
+        end
+    end
+
+    action MoveY(number y)
+        parent:Item2D:MoveY(y)
+        if item not= undefined
+            item:MoveY(y)
+        end
+    end
+
+    action Move(number x, number y)
+        parent:Item2D:Move(x, y)
+        if item not= undefined
+            item:Move(x, y)
+        end
+    end
+
+    action SetX(number x)
+        parent:Item2D:SetX(x)
+        if item not= undefined
+            item:SetX(x)
+        end
+    end
+
+    action SetY(number y)
+        parent:Item2D:SetY(y)
+        if item not= undefined
+            item:SetY(y)
+        end
+    end
+
+    action SetEditorZ(number z)
+        if item not= undefined
+            item:SetZ(z)
+        end
+    end
+
+    action GetEditorZ returns number
+        return item:GetZ()
+    end
+
+    action SetPosition(number x, number y)
+        parent:Item2D:SetPosition(x, y)
+        if item not= undefined
+            item:SetPosition(x, y)
+        end
+    end
+
+end

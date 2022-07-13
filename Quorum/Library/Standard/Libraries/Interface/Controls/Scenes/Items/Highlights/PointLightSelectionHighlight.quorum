@@ -1,0 +1,37 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
+
+class PointLightSelectionHighlight is SelectionHighlight3D
+
+    action GetEditorPointLight returns EditorPointLight
+        return cast(EditorPointLight, GetItem())
+    end
+
+    action GetColor returns Color
+        EditorPointLight item = GetEditorPointLight()
+        if item not= undefined
+            return item:GetColor()
+        else
+            return undefined
+        end
+    end
+
+    action SetColor(Color color)
+        EditorPointLight item = GetEditorPointLight()
+        if item not= undefined
+            item:SetColor(color)
+        end
+    end
+
+    action GetIntensity returns number
+        EditorPointLight item = GetEditorPointLight()
+        return item:GetIntensity()
+    end
+
+    action SetIntensity(number intensity)
+        EditorPointLight item = GetEditorPointLight()
+        item:SetIntensity(intensity)
+    end
+end
