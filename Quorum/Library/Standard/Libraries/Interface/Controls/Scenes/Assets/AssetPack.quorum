@@ -1,0 +1,245 @@
+package Libraries.Interface.Controls.Scenes.Assets
+
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.ImageSheet
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Containers.Iterator
+use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
+
+class AssetPack
+
+    text name = "Asset Pack"
+    HashTable<text, ItemBlueprint> blueprints
+    HashTable<text, Array<ItemBlueprint>> categories
+    public constant text DEFAULT = "Default"
+    File tileset3DFolder
+
+    action Add(ImageSheet sheet)
+        // TO-DO
+    end
+
+    action Add(Drawable drawable)
+        blueprints:Add(drawable:GetName(), DrawableToBlueprint(drawable))
+        AddToCategory(DEFAULT, DrawableToBlueprint(drawable))
+    end
+
+    action Add(ItemBlueprint item)
+        blueprints:Add(item:GetName(), item)
+        AddToCategory(DEFAULT, item)
+    end
+
+    action LoadTileset(File file)
+        JavaScriptObjectNotation json
+        json:Read(file)
+        
+        SetName(json:GetValue("Name"))
+        integer width = json:GetInteger("Width")
+        integer height = json:GetInteger("Height")
+        text filePath = json:GetValue("File")
+
+        Texture texture
+        texture:LoadFromFile(filePath)
+
+        Color color
+        SceneProperties properties
+
+        JavaScriptObjectNotation tiles = json:GetObject("Tiles")
+        Iterator<JavaScriptObjectNotation> iterator = tiles:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation tile = iterator:Next()
+            DrawableBlueprint schematic
+            TextureRegion region
+            integer x = tile:GetInteger("X")
+            integer y = tile:GetInteger("Y")
+            integer sizeX = 1
+            integer sizeY = 1
+            if tile:HasValue("SizeX")
+                sizeX = tile:GetInteger("SizeX")
+            end
+
+            if tile:HasValue("SizeY")
+                sizeY = tile:GetInteger("SizeY")
+            end
+            region:LoadTextureRegion(texture, x * width, y * height, width * sizeX, height * sizeY)
+            
+            schematic:SetName(tile:GetValue("Name"))
+            schematic:SetDescription(tile:GetValue("Description"))
+            schematic:SetTexture(region)
+            schematic:SetSize(width * sizeX, height * sizeY)
+            schematic:SetColor(color:White())
+            schematic:SetPreferredGridWidth(width)
+            schematic:SetPreferredGridHeight(height)
+            schematic:SetDrawableType(properties:CUSTOM)
+
+            if tile:HasValue("Physics Enabled")
+                boolean hasPhysics = tile:GetBoolean("Physics Enabled")
+                if hasPhysics
+                    schematic:SetPhysicsEnabled(hasPhysics)
+                    if tile:HasValue("Responsiveness")
+                        schematic:SetResponsiveness(tile:GetInteger("Responsiveness"))
+                    end
+                end
+            end
+
+            blueprints:Add(schematic:GetName(), schematic)
+
+            text category = DEFAULT
+            boolean hasCategory = tile:HasValue("Category")
+            if hasCategory
+                category = tile:GetValue("Category")
+            end
+            AddToCategory(category, schematic)
+        end
+    end
+
+    action LoadTileset3D(File file)
+        JavaScriptObjectNotation json
+        json:Read(file)
+        
+        SetName(json:GetValue("Name"))
+
+        Color color
+        SceneProperties properties
+    
+        text path = GetTileset3DFolder():GetPath()
+        JavaScriptObjectNotation tiles = json:GetObject("Tiles")
+        Iterator<JavaScriptObjectNotation> iterator = tiles:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation tile = iterator:Next()
+            ModelBlueprint model
+
+            model:SetName(tile:GetValue("Name"))
+            model:SetDescription(tile:GetValue("Description"))
+            model:SetDimensions(1, 1, 1)
+            model:SetScale(1, 1, 1)
+            model:SetRotation(0, 0, 0)
+            
+            File modelFile
+            modelFile:SetPath(path + "/" + tile:GetValue("Model"))
+            model:SetModelFile(modelFile)
+            Drawable icon
+            text res = tile:GetValue("Image")
+            
+            File iconPath
+            iconPath:SetWorkingDirectory(path)
+            iconPath:SetPath(res)
+            icon:Load(iconPath)
+
+            number width = icon:GetWidth()
+            number iconScale = 128 / width
+
+            model:SetPaletteCrop(0.15)
+            model:SetPaletteScale(iconScale)
+            model:SetPaletteIcon(icon)
+
+            if tile:HasValue("Physics Enabled")
+                boolean hasPhysics = tile:GetBoolean("Physics Enabled")
+                if hasPhysics
+                    model:SetPhysicsEnabled(hasPhysics)
+                    if tile:HasValue("Responsiveness")
+                        model:SetResponsiveness(tile:GetInteger("Responsiveness"))
+                    end
+                end
+            end
+
+            blueprints:Add(model:GetName(), model)
+
+            text category = DEFAULT
+            boolean hasCategory = tile:HasValue("Category")
+            if hasCategory
+                category = tile:GetValue("Category")
+            end
+            AddToCategory(category, model)
+        end
+    end
+
+    private action AddToCategory(text category, ItemBlueprint schematic)
+        //add to the category keys
+        boolean hasCatInHash = categories:HasKey(category)
+        if hasCatInHash //get the array and add to it
+            Array<ItemBlueprint> array = categories:GetValue(category)
+            array:Add(schematic)
+        else
+            Array<ItemBlueprint> array
+            array:Add(schematic)
+
+            categories:Add(category, array)
+        end
+    end
+
+    private action DrawableToBlueprint(Drawable drawable) returns ItemBlueprint
+        DrawableBlueprint result
+
+        result:SetName(drawable:GetName())
+        result:SetDescription(drawable:GetDescription())
+        result:SetSize(drawable:GetWidth(), drawable:GetHeight())
+        result:SetScale(drawable:GetScaleX(), drawable:GetScaleY())
+        result:SetColor(drawable:GetColorGroup())
+
+        TextureRegion region
+        region:CopyTextureRegion(drawable)
+        result:SetTexture(region)
+
+        result:SetDrawableType(drawable:GetDrawableType())
+
+        return result
+    end
+
+    action GetBlueprint(text name) returns ItemBlueprint
+        return blueprints:GetValue(name)
+    end
+
+    action GetCategoryKeyIterator returns Iterator<text>
+        return categories:GetKeyIterator()
+    end
+
+    action GetDefaultCategory returns Iterator<ItemBlueprint>
+        Array<ItemBlueprint> array = categories:GetValue(DEFAULT)
+        if array not= undefined
+            return array:GetIterator()
+        end
+        return undefined
+    end
+
+    action GetCategory(text category) returns Array<ItemBlueprint>
+        Array<ItemBlueprint> array = categories:GetValue(category)
+        if array not= undefined
+            return array
+        end
+        return undefined
+    end
+
+    action GetKeyIterator returns Iterator<text>
+        return blueprints:GetKeyIterator()
+    end
+
+    action GetBlueprintIterator returns Iterator<ItemBlueprint>
+        return blueprints:GetValueIterator()
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetTileset3DFolder returns File
+        return tileset3DFolder
+    end
+
+    action SetTileset3DFolder(File tileset3DFolder)
+        me:tileset3DFolder = tileset3DFolder
+    end
+
+end

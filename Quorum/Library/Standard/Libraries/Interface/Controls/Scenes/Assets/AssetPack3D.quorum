@@ -1,0 +1,87 @@
+package Libraries.Interface.Controls.Scenes.Assets
+
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.ImageSheet
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Containers.Iterator
+use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Game.Scenes.SceneProperties
+
+class AssetPack3D
+    text name = "Asset Pack"
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action LoadTileset(File file)
+        JavaScriptObjectNotation json
+        json:Read(file)
+        
+        SetName(json:GetValue("Name"))
+//        text filePath = json:GetValue("File")
+//
+//        Texture texture
+//        texture:LoadFromFile(filePath)
+
+        Color color
+        SceneProperties properties
+
+        JavaScriptObjectNotation tiles = json:GetObject("Tiles")
+        Iterator<JavaScriptObjectNotation> iterator = tiles:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation tile = iterator:Next()
+//            DrawableBlueprint schematic
+//            TextureRegion region
+//            integer x = tile:GetInteger("X")
+//            integer y = tile:GetInteger("Y")
+//            integer sizeX = 1
+//            integer sizeY = 1
+//            if tile:HasValue("SizeX")
+//                sizeX = tile:GetInteger("SizeX")
+//            end
+//
+//            if tile:HasValue("SizeY")
+//                sizeY = tile:GetInteger("SizeY")
+//            end
+//            region:LoadTextureRegion(texture, x * width, y * height, width * sizeX, height * sizeY)
+//            
+//            schematic:SetName(tile:GetValue("Name"))
+//            schematic:SetDescription(tile:GetValue("Description"))
+//            schematic:SetTexture(region)
+//            schematic:SetSize(width * sizeX, height * sizeY)
+//            schematic:SetColor(color:White())
+//            schematic:SetPreferredGridWidth(width)
+//            schematic:SetPreferredGridHeight(height)
+//            schematic:SetDrawableType(properties:CUSTOM)
+
+//            if tile:HasValue("Physics Enabled")
+//                boolean hasPhysics = tile:GetBoolean("Physics Enabled")
+//                if hasPhysics
+//                    schematic:SetPhysicsEnabled(hasPhysics)
+//                    if tile:HasValue("Responsiveness")
+//                        schematic:SetResponsiveness(tile:GetInteger("Responsiveness"))
+//                    end
+//                end
+//            end
+
+//            blueprints:Add(schematic:GetName(), schematic)
+//
+//            text category = DEFAULT
+//            boolean hasCategory = tile:HasValue("Category")
+//            if hasCategory
+//                category = tile:GetValue("Category")
+//            end
+//            AddToCategory(category, schematic)
+        end
+    end
+
+end
