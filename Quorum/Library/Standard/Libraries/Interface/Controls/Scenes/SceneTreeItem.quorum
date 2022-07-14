@@ -1,0 +1,37 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Item
+use Libraries.Game.Layer
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+
+class SceneTreeItem is TreeItem
+
+    /*
+    If this TreeItem represents an item, the sceneItem will be defined.
+    If it represents a layer, the sceneLayer should be defined instead.
+    */
+    Item sceneItem = undefined
+    EditorLayer sceneLayer = undefined
+
+    action SetSceneItem(Item item)
+        sceneItem = item
+    end
+
+    action GetSceneItem returns Item
+        return sceneItem
+    end
+
+    action SetSceneLayer(EditorLayer layer)
+        sceneLayer = layer
+    end
+
+    action GetSceneLayer returns EditorLayer
+        return sceneLayer
+    end
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        SceneTree tree = cast(SceneTree, GetTree())
+        return tree:GetSceneEditor()
+    end
+end
