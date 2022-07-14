@@ -1,0 +1,120 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Controls.Dialog
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+
+class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
+
+    boolean initialized = false
+    SceneEditor_LIBRARY editor = undefined
+
+    on create
+        SetInputGroup("PropertiesDialog")
+
+        SetPixelWidth(300)
+        SetVerticalLayoutMode(parent:Libraries.Interface.Controls.Control:FIT_CONTENTS)
+    end
+
+    action Initialize(SceneEditor_LIBRARY controller)
+        if initialized
+            return now
+        end
+
+        initialized = true
+
+        // Used to set focus order at the end of this action.
+        Array<Control> focusArray
+
+        me:editor = controller
+        controller:AddSelectionListener(me)
+
+        ControlShaderView view
+        view:Initialize()
+        Color color
+        
+        Control panel
+        FlowLayout propertiesLayout
+        panel:SetLayout(propertiesLayout)
+        panel:SetPercentageWidth(1.0)
+        panel:SetVerticalLayoutMode(panel:FIT_CONTENTS)
+        panel:SetBorderColor(color:Black())
+        panel:SetBorderThickness(1)
+        panel:SetView2D(view)
+
+        // Generate the contents of the panel and the tab-path.
+        // Implemented on a per-dialog basis.
+        CreateInterface(panel, focusArray)
+     
+        Add(panel)
+
+        // Set up focus targets.
+        focusArray:Get(0):SetPreviousFocus(focusArray:Get(focusArray:GetSize() - 1))
+        focusArray:Get(0):SetNextFocus(focusArray:Get(1))
+
+        integer i = 1
+        repeat while i < focusArray:GetSize()
+            Control control = focusArray:Get(i)
+            control:SetPreviousFocus(focusArray:Get(i - 1))
+            control:SetNextFocus(focusArray:Get((i + 1) mod focusArray:GetSize()))
+            i = i + 1
+        end   
+    end
+
+    /*
+    This action should be used to place controls on the provided panel to make up the
+    UI of the dialog. The panel is already set with a FlowLayout and a view. Each 
+    item that is keyboard navigable should also be added to the focus array to create
+    the ordered tab-through path.
+    */
+    private blueprint action CreateInterface(Control panel, Array<Control> focusArray)
+
+    action GetSceneEditor returns SceneEditor_LIBRARY
+        return editor
+    end
+
+    action Show
+        if editor not= undefined
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            properties:SetPercentageX(0)
+            properties:SetPercentageY(0)
+            properties:SetPercentageOriginX(1)
+            //properties:SetPercentageOriginY(1)
+            properties:SetPixelX(editor:GetGlobalX() + editor:GetWidth() - 5)
+//            properties:SetPixelY(controller:GetGlobalY() + controller:GetHeight())
+            properties:SetPixelY(editor:GetGlobalY())
+
+            /*
+            // Alternate approach, meant to top-align the box, but currently bugged for some reason.
+
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            properties:SetPercentageX(0)
+            properties:SetPercentageY(0)
+            properties:SetPercentageOriginX(1)
+            properties:SetPercentageOriginY(1)
+            properties:SetPixelX(controller:GetGlobalX() + controller:GetWidth() - 5)
+            properties:SetPixelY(controller:GetGlobalY() + controller:GetHeight())
+            //properties:SetPixelY(controller:GetGlobalY())
+            */
+        end
+        parent:Dialog:Show()
+    end
+
+    /*
+    Moves the focus to one of the fields in the properties dialog. By default
+    this is the name field (the first field in the panel), but it could also be
+    changed to a different field, possibly context sensitive.
+    */
+    blueprint action FocusField
+
+    blueprint action SetFields(EditorItem item)
+end
