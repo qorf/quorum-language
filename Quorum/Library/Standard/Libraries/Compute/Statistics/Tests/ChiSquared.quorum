@@ -1,0 +1,439 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.Tests.StatisticalTest
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Distributions.Gamma
+use Libraries.Compute.Statistics.Reporting.ChiSquaredResult
+use Libraries.Containers.Iterator
+use Libraries.Compute.Math
+
+/*
+    This class conducts a Pearson's chi-squared test on a DataFrame. 
+    Pearson's chi-squared test is used to assess three types of comparison:
+        Goodness of fit
+        Test of independence
+        Test of homogeneity
+    More information about this kind of statistical test can be found here: 
+    https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test
+
+    It was adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library and add a variety of helper actions that were missing.
+    More information about this class can be found on its documentation page:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6/org/apache/commons/math3/stat/regression/OLSMultipleLinearRegression.html
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ChiSquared
+
+    DataFrame frame
+    frame:Load("data.csv")
+    frame:AddSelectedColumns(0)
+    frame:AddSelectedColumns(1)
+
+    ChiSquared result = frame:CalculateAndCompareSelectedCounts() // Need to calculate counts
+    ChiSquared result = frame:CompareSelectedCounts() // Pre-calculated counts
+    ChiSquared result = frame:CompareObservedSelectedCounts() // Pre-calculated counts
+    output result:GetSummary()
+
+
+    Possible options:
+        * 1 Column - observed unknown : calculate observed, calculate expected, compare GOF
+        1 Column - observed known : calculate expected, compare GOF
+
+        * 2 Columns - observed unknown : calculate observed, calculate expected, compare TOI
+        2 Columns - observed unknown, GOF requested : calculate observed, calculate expected, compare GOF for each
+        2 Columns - observed known, expected known : compare GOF
+
+        * 3+ Columns - observed unknown : calculate observed, calculate expected, compare pairwise TOI
+        3+ Columns - observed unknown, GOF requested : calculate observed, calculate expected, compare GOF for each
+        3+ Columns - observed known, expected known : compare GOF for each against expected        
+*/
+
+class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
+    Math math
+    Gamma gamma
+    number significanceLevel = 0.05
+    HashTable<text, ChiSquaredResult> results
+
+    action Calculate(DataFrame frame) 
+        if GetColumnSize() < 1
+            alert("Must include at least one column.")
+        end
+        if GetFactorSize() > 0
+            // Separate and run each based on factor
+        else
+            if GetColumnSize() = 1
+                GoodnessOfFit(frame)
+            else
+                TestOfIndependence(frame)
+            end
+        end
+    end
+
+    /*
+        This action represents a goodness of fit chi-squared test on a single column of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        It then calculates the expected counts and compares the two to get the x2 value.
+    */
+    private action GoodnessOfFit(DataFrame frame)
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrame observed = CalculateObserved(frame:GetColumn(GetColumn(i)))
+            DataFrame expected = CalculateExpectedFromObserved(observed)
+            integer rows = observed:GetColumn(0):GetSize()
+            integer cols = observed:GetColumns():GetSize()
+            number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
+            number df = (rows-1)*(cols-1)
+            number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
+    
+            text resultKey = frame:GetColumn(GetColumn(0)):GetHeader()
+            if not results:HasKey(resultKey)
+                ChiSquaredResult result
+                result:SetObserved(observed)
+                result:SetExpected(expected)
+                result:SetDegreesOfFreedom(df)
+                result:SetTestStatistic(x2)
+                result:SetProbabilityValue(p)
+                results:Add(resultKey, result)
+            end 
+            i = i + 1
+        end
+    end
+
+    /*
+        This action represents a pairwise test of independence chi-squared test on two columns of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        It then calculates the expected counts and compares the two to get the x2 value.
+    */
+    private action TestOfIndependence(DataFrame frame)
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+                DataFrame observed = CalculateObserved(left, right)
+                DataFrame expected = CalculateExpectedFromObserved(observed)
+                integer rows = observed:GetColumn(0):GetSize()
+                integer cols = observed:GetColumns():GetSize()-1
+                number x2 = ChiSquare(observed, expected)  
+                number df = (rows-1)*(cols-1)
+                number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
+
+                text resultKey = left:GetHeader()+right:GetHeader()
+                if not results:HasKey(resultKey)
+                    ChiSquaredResult result
+                    result:SetObserved(observed)
+                    result:SetExpected(expected)
+                    result:SetDegreesOfFreedom(df)
+                    result:SetTestStatistic(x2)
+                    result:SetProbabilityValue(p)
+                    results:Add(resultKey, result)
+                end  
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    private action CalculateObserved(DataFrameColumn column) returns DataFrame
+        // Count unique items
+        DataFrameColumn rowHeaders = column:Copy(true, true)
+        HashTable<text,integer> hash = column:CalculateValueCountAsText() 
+        integer rows = rowHeaders:GetSize()
+
+        NumberColumn observe
+        observe:SetHeader("count")
+        integer i = 0
+        repeat while i < rowHeaders:GetSize()
+            if hash:HasKey(rowHeaders:GetAsText(i))
+                observe:Add(cast(text, hash:GetValue(rowHeaders:GetAsText(i))))
+            end
+            i = i + 1
+        end
+
+        DataFrame observed
+        Array<DataFrameColumn> columns
+        columns:Add(rowHeaders)
+        columns:Add(observe)
+        observed:SetColumns(columns)
+        return observed  
+    end
+
+    private action CalculateObserved(DataFrameColumn column1, DataFrameColumn column2) returns DataFrame
+        // Count unique items
+        DataFrameColumn rowHeaders = column1:Copy(true, true) // rows
+        DataFrameColumn colHeaders = column2:Copy(true, true) // columns
+        HashTable<text,integer> countHash
+
+        integer i = 0
+        repeat while i < column1:GetSize()
+            if not column1:IsUndefined(i) and not column2:IsUndefined(i)
+                text crossKey = column1:GetAsText(i)+column2:GetAsText(i)
+                if not countHash:HasKey(crossKey)
+                    countHash:Add(crossKey, 1)
+                else
+                    countHash:Add(crossKey, countHash:GetValue(crossKey) + 1)
+                end
+            end
+            i = i + 1
+        end
+
+        rowHeaders:SetHeader("")
+        Array<DataFrameColumn> columns
+        columns:Add(rowHeaders)
+        i = 0
+        repeat while i < colHeaders:GetSize()
+            NumberColumn observe
+            observe:SetHeader(colHeaders:GetAsText(i))
+            integer j = 0
+            repeat while j < rowHeaders:GetSize()
+                text crossKey = rowHeaders:GetAsText(j)+colHeaders:GetAsText(i)
+                if countHash:HasKey(crossKey)
+                    observe:Add(countHash:GetValue(crossKey))
+                end
+                j = j + 1
+            end
+            columns:Add(observe)
+            i = i + 1
+        end
+        DataFrame observed
+        observed:SetColumns(columns)
+        return observed  
+    end
+
+    private action CalculateExpectedFromObserved(DataFrame observed) returns DataFrame
+        DataFrame expected
+        if observed:GetColumns():GetSize() > 0 and observed:GetColumn(0):GetSize() > 0
+            Array<DataFrameColumn> columns
+            columns:Add(observed:GetColumn(0):Copy()) // First column is just row headers.
+
+            number totalSum = 0
+            Array <number> colSums
+            integer i = 1
+            repeat while i < observed:GetColumns():GetSize()
+                DataFrameColumn column = observed:GetColumn(i)
+                if column:GetSize() > 0
+                    // Get observed total
+                    Summarize observedSummary
+                    observedSummary:Calculate(column)
+                    colSums:Add(observedSummary:GetSum())
+                    totalSum = totalSum + observedSummary:GetSum()
+                end
+                i = i + 1
+            end
+
+            Array <number> rowSums
+            // FIND A BETTER WAY TO GET THE SUM OF A ROW??
+            // First row is just column headers, accounted for in DataFrame class so still start at 0
+            i = 0
+            repeat while i < observed:GetColumn(0):GetSize() // for each row
+                number sum = 0
+                j = 1
+                repeat while j < observed:GetColumns():GetSize() // for each column  
+                    if observed:GetColumn(j):GetSize() > i
+                        // Get observed total
+                        sum = sum + observed:GetColumn(j):GetAsNumber(i)
+                    end
+                    j = j + 1
+                end
+                rowSums:Add(sum)
+                i = i + 1
+            end
+        
+
+            i = 0
+            repeat while i < colSums:GetSize()
+                NumberColumn expect
+                expect:SetHeader(observed:GetColumn(i+1):GetHeader())
+                j = 0
+                repeat while j < rowSums:GetSize()
+                    number expectedValue = colSums:Get(i)*rowSums:Get(j)/totalSum
+                    if GetColumnSize() = 1 // goodnessOfFit?
+                        expectedValue = totalSum/observed:GetColumn(0):GetSize()
+                    end
+                    expect:Add(cast(text, expectedValue))
+                    j = j + 1
+                end
+                columns:Add(expect)
+                i = i + 1
+            end
+            expected:SetColumns(columns)
+        end
+        return expected
+    end
+
+    private action ChiSquare(DataFrameColumn observed, DataFrameColumn expected) returns number
+        if observed = undefined
+            alert("Observed column is undefined.")
+        end
+        if expected = undefined
+            alert("Expected column is undefined.")
+        end
+
+        if observed:GetSize() not= expected:GetSize()
+            alert("Observed and Expected must be the same size.")
+        end
+
+        // Verify Observed. All values must be 0 or greater
+        if not observed:IsNumberColumn()
+            alert("Observed must a numerical column.")
+        end
+        Summarize observedSummary
+        observedSummary:Calculate(observed)
+        if observedSummary:GetMinimum() < 0
+            alert("Observed cannot have negative values.")
+        end
+        number observedSum = observedSummary:GetSum()
+
+        // Verify Expected. All values must be greater than 0. Cannot be 0?
+        if not expected:IsNumberColumn()
+            alert("Expected must a numerical column.")
+        end
+        Summarize expectedSummary
+        expectedSummary:Calculate(expected)
+        if expectedSummary:GetMinimum() <= 0
+            alert("Expected must have positive values.")
+        end
+        number expectedSum = expectedSummary:GetSum()
+
+        degreesOfFreedom = observed:GetSize() - 1 // rows-1 * cols-1
+
+        number ratio = 1.0        
+        boolean rescale = false      
+//        if (math:AbsoluteValue(expectedSum - observedSum) > 10e-6)
+//            ratio = observedSum / expectedSum
+//            rescale = true
+//        end
+        number sumSquared = 0
+        integer i = 0
+        repeat while i < observed:GetSize()
+            if rescale
+                number dev = observed:GetAsNumber(i) - ratio * expected:GetAsNumber(i)
+                sumSquared = sumSquared + (dev * dev / (ratio * expected:GetAsNumber(i)))
+            else
+                number dev = observed:GetAsNumber(i) - expected:GetAsNumber(i)
+                sumSquared = sumSquared + (dev * dev / expected:GetAsNumber(i))
+            end
+            i = i + 1
+        end
+    
+        return sumSquared
+    end
+
+    private action ChiSquare(DataFrame observed, DataFrame expected) returns number 
+        if observed:GetSize() not= expected:GetSize()
+            alert("Observed and Expected must be the same size.")
+        end
+
+        number sumSquared = 0
+        number ratio = 1.0        
+        boolean rescale = false
+//        if (math:AbsoluteValue(expectedSum - observedSum) > 10e-6)
+//            ratio = observedSum / expectedSum
+//            rescale = true
+//        end
+
+        integer i = 1 // First column is row headers
+        repeat while i < observed:GetColumns():GetSize() and i < expected:GetColumns():GetSize()
+            DataFrameColumn observe = observed:GetColumn(i)
+            DataFrameColumn expect = expected:GetColumn(i)
+            // Verify Observed.
+            if not observe:IsNumberColumn()
+                alert("Observed must a numerical column.")
+            end
+    
+            // Verify Expected.
+            if not expect:IsNumberColumn()
+                alert("Expected must a numerical column.")
+            end
+
+            integer j = 0
+            repeat while j < observe:GetSize() and j < expect:GetSize()
+                if rescale
+                    number dev = observe:GetAsNumber(j) - ratio * expect:GetAsNumber(j)
+                    sumSquared = sumSquared + (dev * dev / (ratio * expect:GetAsNumber(j)))
+                else
+                    number dev = observe:GetAsNumber(j) - expect:GetAsNumber(j)
+                    sumSquared = sumSquared + (dev * dev / expect:GetAsNumber(j))
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return sumSquared
+    end
+
+    action GetResultIterator returns Iterator<ChiSquaredResult>
+        return results:GetValueIterator()
+    end
+
+    action GetSignificanceLevel returns number
+        return significanceLevel
+    end
+
+    action SetSignificanceLevel(number significanceLevel)
+        me:significanceLevel = significanceLevel
+    end
+
+    /*
+        This action summarizes the result with informal format 
+    */
+    action GetSummary returns text
+        text summary = ""
+        Iterator<ChiSquaredResult> i = results:GetValueIterator()
+        ChiSquaredResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            text tb = summary:GetTab()
+            text lf = summary:GetLineFeed()
+            
+            summary = summary + lf + "A Pearson's chi-squared test was calculated: "
+    
+            summary = summary + lf + "X-squared (Test Statistic): " + result:GetTestStatistic()
+    
+            summary = summary + lf + "Critcal Value: " + result:GetCriticalValue()
+    
+            summary = summary + lf + "Degrees Of Freedom: " + result:GetDegreesOfFreedom()
+    
+            summary = summary + lf + "P-Value: " + result:GetProbabilityValue()
+    
+            // If really large don't print in summary
+            summary = summary + lf + "Observed: " + lf + result:GetObserved():ToText()
+    
+            // If really large don't print in summary
+            summary = summary + lf + "Expected: " + lf + result:GetExpected():ToText()
+        end
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+    */
+    action GetFormalSummary returns text
+        text summary = "A Pearson's chi-squared test was calculated: "
+
+        StatisticsFormatting format
+        
+//        result = result + "R-squared = " + format:FormatProbabilityValue(GetEffectSize()) + ", F("
+//
+//        result = result + "" + GetRegressionDegreesOfFreedom() + ", " 
+//        result = result + GetResidualDegreesOfFreedom() + ") = "
+//        result = result + format:FormatProbabilityValue(GetCriticalValue()) + ", p = " + format:FormatProbabilityValue(GetProbabilityValue())
+
+        return summary
+    end
+end

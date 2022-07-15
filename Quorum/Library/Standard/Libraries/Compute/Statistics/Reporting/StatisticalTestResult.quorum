@@ -1,0 +1,86 @@
+package Libraries.Compute.Statistics.Reporting
+
+/*
+    This class represents data that comes back from a statistical test.
+    Each specific test may have additional data.
+
+    Attribute: Author Hannah Williams
+*/
+class StatisticalTestResult
+    number probabilityValue = 0
+    number criticalValue = 0
+    number degreesOfFreedom = 0
+    text formalTestName = ""
+
+    /*
+        Obtains the probability value (p in statistics) calculated by the test.
+
+        Attribute: Returns the probability
+    */
+    action GetProbabilityValue returns number
+        return probabilityValue
+    end
+
+    /*
+        Sets the probability value (p in statistics) calculated by the test.
+
+        Attribute: Parameter probabilityValue the probability
+    */
+    action SetProbabilityValue(number probabilityValue)
+        me:probabilityValue = probabilityValue
+    end
+
+    /*
+        This indicates the critical value for any statistical test that was run
+
+        Attribute: Returns the critical value
+    */
+    action GetCriticalValue returns number
+        return criticalValue
+    end
+
+    /*
+        This sets the critical value for any statistical test that was run
+
+        Attribute: Paremeter criticalValue the critical value
+    */
+    action SetCriticalValue(number criticalValue)
+        me:criticalValue = criticalValue
+    end
+
+    /*
+        Obtains the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Returns the degrees of freedom
+    */
+    action GetDegreesOfFreedom returns number
+        return degreesOfFreedom
+    end
+
+    /*
+        Sets the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Parameter degreesOfFreedom the degrees of freedom
+    */
+    action SetDegreesOfFreedom(number degreesOfFreedom)
+        me:degreesOfFreedom = degreesOfFreedom
+    end
+
+    /*
+        Returns the name of the test in formal mathematical language.
+
+        Attribute: Returns the name of the test in mathematical language.
+    */
+    action GetFormalTestName returns text
+        return formalTestName
+    end
+
+    /*
+        Sets the name of the test in formal mathematical language.
+
+        Attribute: Parameter formalTestName the name of the test in mathematical language.
+    */
+    action SetFormalTestName(text formalTestName)
+        me:formalTestName = formalTestName
+    end
+end

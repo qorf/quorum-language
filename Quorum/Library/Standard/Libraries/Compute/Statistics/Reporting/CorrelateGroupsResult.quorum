@@ -5,49 +5,10 @@ package Libraries.Compute.Statistics.Reporting
 
     Attribute: Author Andreas Stefik
 */
-class CorrelateGroupsResult
+class CorrelateGroupsResult is StatisticalTestResult
     integer leftIndex = 0
     integer rightIndex = 0
-    number probabilityValue = 0
-    number criticalValue = 0
-    number degreesOfFreedom = 0
     number correlation = 0
-
-    /*
-        Obtains the probability value (p in statistics) calculated by the test.
-
-        Attribute: Returns the probability
-    */
-    action GetProbabilityValue returns number
-        return probabilityValue
-    end
-
-    /*
-        Sets the probability value (p in statistics) calculated by the test.
-
-        Attribute: Parameter probabilityValue the probability
-    */
-    action SetProbabilityValue(number probabilityValue)
-        me:probabilityValue = probabilityValue
-    end
-
-    /*
-        Obtains the degrees of freedom value (df in statistics) calculated by the test.
-
-        Attribute: Returns the degrees of freedom
-    */
-    action GetDegreesOfFreedom returns number
-        return degreesOfFreedom
-    end
-
-    /*
-        Sets the degrees of freedom value (df in statistics) calculated by the test.
-
-        Attribute: Parameter degreesOfFreedom the degrees of freedom
-    */
-    action SetDegreesOfFreedom(number degreesOfFreedom)
-        me:degreesOfFreedom = degreesOfFreedom
-    end
 
     /*
         Obtains the correlation calculated by the test. This may be of any kind.
@@ -101,23 +62,5 @@ class CorrelateGroupsResult
     */
     action SetRightIndex(integer rightIndex)
         me:rightIndex = rightIndex
-    end
-
-    /*
-        This indicates the critical value for any statistical test that was run
-
-        Attribute: Returns the critical value
-    */
-    action GetCriticalValue returns number
-        return criticalValue
-    end
-
-    /*
-        This sets the critical value for any statistical test that was run
-
-        Attribute: Paremeter criticalValue the critical value
-    */
-    action SetCriticalValue(number criticalValue)
-        me:criticalValue = criticalValue
     end
 end

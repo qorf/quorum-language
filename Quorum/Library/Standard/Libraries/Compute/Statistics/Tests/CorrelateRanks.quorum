@@ -17,7 +17,7 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
 
 /*
-    This class implements a Spearm Correlation Coefficient. For more information, see the 
+    This class implements a Spearman Correlation Coefficient. For more information, see the 
     wikipedia page: https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient
 
 
@@ -72,10 +72,10 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput
 
         i = 0
         repeat while i < GetColumnSize() - 1
-            integer leftIndex = GetColumn(i)
+            integer leftIndex = i//GetColumn(i)
             j = i + 1
             repeat while j < GetColumnSize()
-                integer rightIndex = GetColumn(j)
+                integer rightIndex = j//GetColumn(j)
                 CorrelateGroupsResult result = CalculateCorrelation(leftIndex, rightIndex, newFrame)
                 text hash = HashCorrelationPosition(leftIndex, rightIndex)
                 results:Add(hash, result)

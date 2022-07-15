@@ -6,66 +6,10 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 
     Attribute: Author Andreas Stefik
 */
-class CompareGroupsResult is ColumnInput
-    number probabilityValue = 0
-    number criticalValue = 0
+class CompareGroupsResult is StatisticalTestResult, ColumnInput
     number effectSize = 0
-    text formalTestName = ""
     text effectSizeName = ""
 
-    /*
-        Obtains the probability value (p in statistics) calculated by the test.
-
-        Attribute: Returns the probability
-    */
-    action GetProbabilityValue returns number
-        return probabilityValue
-    end
-
-    /*
-        Sets the probability value (p in statistics) calculated by the test.
-
-        Attribute: Parameter probabilityValue the probability
-    */
-    action SetProbabilityValue(number probabilityValue)
-        me:probabilityValue = probabilityValue
-    end
-
-    /*
-        This indicates the critical value for any statistical test that was run
-
-        Attribute: Returns the critical value
-    */
-    action GetCriticalValue returns number
-        return criticalValue
-    end
-
-    /*
-        This sets the critical value for any statistical test that was run
-
-        Attribute: Paremeter criticalValue the critical value
-    */
-    action SetCriticalValue(number criticalValue)
-        me:criticalValue = criticalValue
-    end
-
-    /*
-        Returns the name of the test in formal mathematical language.
-
-        Attribute: Returns the name of the test in mathematical language.
-    */
-    action GetFormalTestName returns text
-        return formalTestName
-    end
-
-    /*
-        Sets the name of the test in formal mathematical language.
-
-        Attribute: Parameter formalTestName the name of the test in mathematical language.
-    */
-    action SetFormalTestName(text formalTestName)
-        me:formalTestName = formalTestName
-    end
     action GetEffectSize returns number
         return effectSize
     end
