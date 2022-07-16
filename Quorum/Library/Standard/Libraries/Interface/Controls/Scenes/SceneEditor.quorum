@@ -65,6 +65,13 @@ use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Game.Scenes.DefaultSceneManager
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Game.Scenes.Scene
+use Libraries.Interface.Controls.Scenes.Items.Previews.CameraPreview2D
+use Libraries.Game.Layer
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Number32BitArray
 
 
 /*
@@ -77,7 +84,12 @@ TODO
 need to implement more to understand how to structure examples.
 
 */
-class SceneEditor_LIBRARY is Control
+class SceneEditor_LIBRARY is Control, DefaultSceneManager
+
+    File file = undefined
+    File projectLocation = undefined
+    GameStateManager manager
+    SceneProperties properties
 
     Array<EditorLayer> layers
 
@@ -125,7 +137,6 @@ class SceneEditor_LIBRARY is Control
     Vector2 workVector2
     Vector3 workVector3
 
-    GameStateManager manager
     Accessibility accessibility = undefined
     Math math
     Color color
@@ -202,6 +213,83 @@ class SceneEditor_LIBRARY is Control
 //            propertiesDialogs:Get(counter):Initialize(me)
 //            counter = counter + 1
 //        end
+    end
+
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    action GetProjectLocation returns File
+        return projectLocation
+    end
+
+    action SetProjectLocation(File file)
+        me:projectLocation = file
+    end
+
+    /*
+    This action returns the relative path to reach the provided file
+    from the project location associated with this tab.
+    */
+    action GetProjectPathToFile(File file) returns text
+        text projectPath = projectLocation:GetAbsolutePath()
+        text goalPath = file:GetAbsolutePath()
+
+        Array<text> start = undefined
+        Array<text> goal = undefined
+        // The "Contains" action can correctly test for backslashes, but the "Split" command requires the escape character "\\", or it crashes
+        if projectPath:Contains("\")
+            start = projectPath:Split("\\")
+            goal = goalPath:Split("\\")
+        else
+            start = projectPath:Split("/")
+            goal = goalPath:Split("/")
+        end
+
+        /*
+        Steps:
+        1. Remove all common elements between the two paths
+        2. For each element remaining in the source, prepend "../"
+        3. For each element remaining in the goal, append it to the end
+        */
+
+        text result = ""
+        boolean taskDone = false
+        repeat until start:IsEmpty() or goal:IsEmpty() or taskDone
+            text chunk1 = start:GetFromFront()
+            text chunk2 = goal:GetFromFront()
+
+            if chunk1 = chunk2
+                start:RemoveFromFront()
+                goal:RemoveFromFront()
+            else
+                taskDone = true
+            end
+        end
+
+        repeat start:GetSize() times
+            result = result + "../"
+        end
+
+        repeat until goal:IsEmpty()
+            result = result + goal:RemoveFromFront()
+            if goal:IsEmpty() = false
+                result = result + "/"
+            end
+        end
+
+        return result
+    end
+
+    action Load
+        Scene scene
+        scene:Load(file)
+        SetName(file:GetPath())
+        Load(scene)
     end
 
     /*
@@ -1355,6 +1443,385 @@ class SceneEditor_LIBRARY is Control
             end
             i = i + 1
         end
+    end
+
+/* 
+    Overrides the action in DefaultSceneManager. Used to determine which layers
+    should be used to match the layers described in the Scene.
+
+    We always make new layers which are stored as part of the VisualSceneController.
+    */
+    private action SelectLayer(JavaScriptObjectNotation layerJson) returns Layer
+
+        text name = layerJson:GetValue(properties:NAME)
+        text classValue = layerJson:GetValue(properties:CLASS)
+        EditorLayer current = undefined
+
+        if classValue = "Layer3D"
+            EditorLayer3D layer
+            current = layer
+        elseif classValue = "Layer2D"
+            EditorLayer2D layer
+            current = layer
+        end
+
+        current:SetName(name)
+        AddLayer(current)
+
+        return current
+    end
+
+    /*
+    This action can be used to override a portion of the default camera loading.
+    */
+    private action CustomLoadCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        if layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            if key = properties:SIZE        
+                Number32BitArray size = ConvertToNumber32BitArray(json:GetObject(key))
+                layer2D:SetCameraPreviewSize(size:Get(0), size:Get(1))
+                return true
+            elseif key = "EDITOR_" + properties:POSITION
+                Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
+                camera:SetPosition(position:Get(0), position:Get(1), camera:GetPosition():GetZ())
+                return true
+            elseif key = "EDITOR_" + properties:ZOOM
+                camera:SetZoom(json:GetNumber(key))
+                return true
+            end
+        end
+
+        return false
+    end
+
+    private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        if layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            if key = properties:SIZE
+                json:Add(properties:SIZE, NewJsonArray(layer2D:GetCameraPreviewWidth(), layer2D:GetCameraPreviewHeight()))
+                return true
+            elseif key = properties:POSITION
+                CameraPreview2D preview = layer2D:GetCameraPreview()
+                number x = preview:GetX() + preview:GetWidth() / 2.0
+                number y = preview:GetY() + preview:GetHeight() / 2.0
+                json:Add(properties:POSITION, NewJsonArray(x, y, camera:GetPosition():GetZ()))
+
+                json:Add("EDITOR_" + properties:POSITION, NewJsonArray(camera:GetPosition():GetX(), camera:GetPosition():GetY()))
+
+                return true
+            elseif key = properties:ZOOM
+                json:Add(properties:ZOOM, 1.0)
+
+                json:Add("EDITOR_" + properties:ZOOM, camera:GetZoom())
+
+                return true
+            end
+        end
+
+        return false
+    end
+
+action Save
+        Array<EditorLayer> layers = GetSceneLayers()
+        Scene scene = Save(layers)
+        scene:GetData():SetPrettyPrint(true)
+        file:Write(scene:GetData():ToText())
+    end
+
+    // We override the particular save item calls to ignore items with the editor tag.
+    private action SaveItem3D(Item3D item) returns JavaScriptObjectNotation
+        SceneConstants constants
+
+        if item:HasProperty(constants:EDITOR_TAG)
+            return undefined
+        elseif item is EditorAudio3D
+            JavaScriptObjectNotation json
+
+            json:Add(properties:CLASS, "Audio3D")
+
+            json:Add(properties:NAME, item:GetName())
+            json:Add(properties:DESCRIPTION, item:GetDescription())
+            json:Add(properties:POSITION, NewJsonArray(item:GetX(), item:GetY(), item:GetZ()))
+            json:Add(properties:SIZE, NewJsonArray(item:GetWidth(), item:GetHeight(), item:GetDepth()))
+    
+            EditorAudio3D audio = cast(EditorAudio3D, item)
+            json:Add(properties:FILE, audio:GetSource())
+            json:Add(properties:VOLUME, audio:GetVolume())
+            json:Add(properties:PITCH, audio:GetPitch())
+            json:Add(properties:MAX_VOLUME_DISTANCE, audio:GetMaximumVolumeDistance())
+            json:Add(properties:ROLLOFF_RATE, audio:GetRolloffRate())
+            json:Add(properties:LOOPING, audio:GetLooping())
+            json:Add(properties:DOPPLER_ENABLED, audio:GetDoppler())
+            json:Add(properties:PLAY_ON_LOAD, audio:GetPlayOnLoad())
+
+            return json
+        else
+            JavaScriptObjectNotation json = parent:DefaultSceneManager:SaveItem3D(item)
+            return json
+        end
+    end
+
+    private action SaveItem2D(Item2D item) returns JavaScriptObjectNotation
+        SceneConstants constants
+
+        if item:HasProperty(constants:EDITOR_TAG)
+            return undefined
+        end
+
+        return parent:DefaultSceneManager:SaveItem2D(item)
+    end
+
+    private action CreateItem3D(text type) returns Item3D
+        if type = "Model"
+            EditorModel model
+            return model
+        elseif type = "PointLight"
+            EditorPointLight light
+            return light
+        end
+
+        return parent:DefaultSceneManager:CreateItem3D(type)
+    end
+
+    private action LoadItem3D(JavaScriptObjectNotation json) returns Item3D
+        if json:GetValue(properties:CLASS) = "Audio3D"
+            EditorAudio3D item
+            item:LoadPlaceholderBox()
+
+            text file = ""
+            JavaScriptObjectNotation children = undefined
+            number volume = 0
+            number pitch = 0
+            number maxDistance = 0
+            number rolloffRate = 0
+            boolean looping = false
+            boolean doppler = true
+            boolean playOnLoad = false
+
+            Array<text> keys = json:GetKeys()
+
+            integer counter = 0
+            repeat while counter < keys:GetSize()
+                text key = keys:Get(counter)
+    
+                if CustomLoadProperty3D(item, key, json)
+                    // If we custom loaded this property, we don't do the normal processing for that key.
+                elseif key = properties:NAME
+                    item:SetName(json:GetValue(key))
+                elseif key = properties:POSITION
+                    Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
+                    item:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+                elseif key = properties:FILE
+                    item:SetSource(json:GetValue(key))
+                elseif key = properties:DESCRIPTION
+                    item:SetDescription(json:GetValue(key))
+                elseif key = properties:CHILDREN
+                    children = json:GetObject(key)
+                elseif key = properties:VOLUME
+                    item:SetVolume(json:GetNumber(key))
+                elseif key = properties:PITCH
+                    item:SetPitch(json:GetNumber(key))
+                elseif key = properties:MAX_VOLUME_DISTANCE
+                    item:SetMaximumVolumeDistance(json:GetNumber(key))
+                elseif key = properties:ROLLOFF_RATE
+                    item:SetRolloffRate(json:GetNumber(key))
+                elseif key = properties:LOOPING
+                    item:SetLooping(json:GetBoolean(key))
+                elseif key = properties:DOPPLER_ENABLED
+                    item:SetDoppler(json:GetBoolean(key))
+                elseif key = properties:PLAY_ON_LOAD
+                    item:SetPlayOnLoad(json:GetBoolean(key))
+                end
+    
+                counter = counter + 1
+            end
+
+            return item
+        else
+            return parent:DefaultSceneManager:LoadItem3D(json)
+        end
+    end
+
+    /*
+    This action can be used to determine what working directory
+    to use for file loading. This can be used to open model resources that
+    exist in a different project, for example.
+    */
+    private action ConvertToProjectFile(text path) returns File
+        File file
+        file:SetWorkingDirectory(projectLocation:GetAbsolutePath())
+        file:SetPath(path)
+        return file
+    end
+
+    private action CustomLoadProperty3D(Item3D item, text key, JavaScriptObjectNotation json) returns boolean
+        SceneConstants constants
+        if key = properties:PHYSICS_ENABLED
+            JavaScriptObjectNotation newJson
+            boolean value = json:GetBoolean(key)
+            newJson:SetBoolean(value)
+            item:SetProperty(properties:PHYSICS_ENABLED, newJson)
+            return true
+        elseif key = properties:RESPONSIVENESS
+            check
+                integer value = json:GetInteger(key)
+                JavaScriptObjectNotation newJson
+                newJson:SetInteger(value)
+                item:SetProperty(properties:RESPONSIVENESS, newJson)
+                return true
+            detect e is Error
+                // An error occurs if there was no RESPONSIVENESS value to get. In that case we return silently.
+                return false
+            end
+        elseif key = properties:MASS or key = properties:FRICTION or key = properties:RESTITUTION
+            check
+                number value = json:GetNumber(key)
+                JavaScriptObjectNotation newJson
+                newJson:SetNumber(value)
+                item:SetProperty(key, newJson)
+                return true
+            detect e is Error
+                // An error occurs if there was no value to get. In that case we return silently.
+                return false
+            end
+        elseif key = constants:EULER_ANGLES
+            
+        end
+
+        return false
+    end
+
+    private action CustomSaveProperty3D(Item3D item, text key, JavaScriptObjectNotation json) returns boolean
+        SceneConstants constants
+        if key = properties:CLASS
+            if item is EditorPointLight
+                json:Add(key, "PointLight")
+                return true
+            else
+                return false
+            end
+        elseif key = properties:PHYSICS_ENABLED
+            if item:HasProperty(key)
+                boolean value = item:GetProperty(key):GetBoolean()
+                json:Add(key, value)
+                return true
+            end
+        elseif key = properties:RESPONSIVENESS
+            if item:HasProperty(key)
+                integer value = item:GetProperty(key):GetInteger()
+                json:Add(key, value)
+                return true
+            end
+        elseif key = properties:MASS or key = properties:FRICTION or key = properties:RESTITUTION
+            if item:HasProperty(key)
+                number value = item:GetProperty(key):GetNumber()
+                json:Add(key, value)
+                return true
+            end
+        elseif key = constants:EULER_ANGLES
+            if not (item is EditorModel)
+                return false
+            end
+            EditorModel model = cast(EditorModel, item)
+
+            JavaScriptObjectNotation angles
+            angles:SetArray()
+            angles:Add(model:GetYaw())
+            angles:Add(model:GetPitch())
+            angles:Add(model:GetRoll())
+    
+            json:Add(key, angles)
+            return true
+        end
+        return false
+    end
+
+    private action CustomLoadProperty2D(Item2D item, text key, JavaScriptObjectNotation json) returns boolean
+        if key = properties:PHYSICS_ENABLED
+            JavaScriptObjectNotation newJson
+            boolean value = json:GetBoolean(key)
+            newJson:SetBoolean(value)
+            item:SetProperty(properties:PHYSICS_ENABLED, newJson)
+            return true
+        elseif key = properties:RESPONSIVENESS
+            check
+                integer value = json:GetInteger(key)
+                JavaScriptObjectNotation newJson
+                newJson:SetInteger(value)
+                item:SetProperty(properties:RESPONSIVENESS, newJson)
+                return true
+            detect e is Error
+                // An error occurs if there was no RESPONSIVENESS value to get. In that case we return silently.
+                return false
+            end
+        elseif key = properties:MASS or key = properties:FRICTION or key = properties:RESTITUTION
+            check
+                number value = json:GetNumber(key)
+                JavaScriptObjectNotation newJson
+                newJson:SetNumber(value)
+                item:SetProperty(key, newJson)
+                return true
+            detect e is Error
+                // An error occurs if there was no value to get. In that case we return silently.
+                return false
+            end
+        end
+
+        return false
+    end
+
+    private action CustomSaveProperty2D(Item2D item, text key, JavaScriptObjectNotation json) returns boolean
+        if key = properties:PHYSICS_ENABLED
+            if item:HasProperty(key)
+                boolean value = item:GetProperty(key):GetBoolean()
+                json:Add(key, value)
+                return true
+            end
+        elseif key = properties:RESPONSIVENESS
+            if item:HasProperty(key)
+                integer value = item:GetProperty(key):GetInteger()
+                json:Add(key, value)
+                return true
+
+            // If physics is enabled but no responsiveness was selected, use the default responsiveness value (0 = UNMOVABLE).
+            elseif item:HasProperty(properties:PHYSICS_ENABLED)
+                json:Add(key, 0)
+                return true
+            end
+        elseif key = properties:MASS or key = properties:FRICTION or key = properties:RESTITUTION
+            if item:HasProperty(key)
+                number value = item:GetProperty(key):GetNumber()
+                json:Add(key, value)
+                return true
+            end
+        end
+        return false
+    end
+
+action HideLayers
+        Array<EditorLayer> layers = GetSceneLayers()
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            Game game = manager:GetGame()
+            game:RemoveLayer(layer)
+            counter = counter + 1
+        end
+
+        HideDialogs()
+    end
+
+    action ShowLayers
+        Array<EditorLayer> layers = GetSceneLayers()
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            Layer layer = layers:Get(counter)
+            Game game = manager:GetGame()
+            game:AddLayer(layer)
+            counter = counter + 1
+        end
+
+        HideDialogs()
     end
 
 end

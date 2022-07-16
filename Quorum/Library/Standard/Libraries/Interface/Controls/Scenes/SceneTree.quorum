@@ -39,6 +39,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
     // An Array used to select a single item in a Scene.
     Array<Item> filterArray
 
+    // Replaced need to check if Quorum Studio enabled 3D scenes
+    // a development feature but still here if needed
+    boolean enabledScenes3D = true
+
     on create
         SetName("Scene Items")
         AddSelectionListener(me)
@@ -98,10 +102,6 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
 //            itemContainerItem:SetBehavior(itemActivationBehavior)
             layerTreeItem:Add(cast(TreeItem, itemContainerItem))    
 
-            // Used to check if 3D scenes are enabled. Development feature only.
-            GameStateManager manager
-//            QuorumStudio studio = cast(QuorumStudio, manager:GetGame())
-            // assumption is now that they are always enabled
 
             if current is EditorLayer2D
                 EditorLayer2D layer = cast(EditorLayer2D, current)
@@ -116,7 +116,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
                 end
 
                 // Do any other special setup for Layer2D here, e.g. set up specific context menu or properties
-            elseif current is EditorLayer3D
+            elseif current is EditorLayer3D and enabledScenes3D
                 EditorLayer3D layer = cast(EditorLayer3D, current)
 
                 Iterator<Item3D> iterator = layer:GetIterator()

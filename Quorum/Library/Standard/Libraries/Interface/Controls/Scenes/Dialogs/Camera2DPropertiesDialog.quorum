@@ -1,0 +1,285 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Dialog
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+class Camera2DPropertiesDialog is PropertiesDialog
+
+    // Controls used on the dialog itself
+    TextField positionXField = undefined
+    TextField positionYField = undefined
+    TextField zoomField = undefined
+    TextField rotationField = undefined
+
+    action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Camera Properties")
+
+        Label basicPropertiesLabel
+        basicPropertiesLabel:SetSize(18)
+        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetLeftPadding(20)
+        panel:Add(basicPropertiesLabel)
+
+        Label positionLabel
+        
+        TextField positionXField
+        me:positionXField = positionXField
+
+        TextField positionYField
+        me:positionYField = positionYField
+
+        FlowLayout positionLayout
+        Control positionContainer
+        positionContainer:SetLayout(positionLayout)
+        positionContainer:SetPercentageWidth(1.0)
+        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        positionContainer:SetLeftPadding(20)
+        positionContainer:SetTopPadding(10)
+        positionContainer:SetRightPadding(30)
+        positionContainer:SetBottomPadding(10)
+
+        positionLabel:SetText("Position")
+        positionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
+        positionLabel:SetPercentageWidth(0.3)
+        positionContainer:Add(positionLabel)
+        
+        FlowLayout positionFieldLayout
+        Control positionFieldContainer
+        positionFieldContainer:SetLayout(positionFieldLayout)
+
+        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
+        positionFieldContainer:SetName("Position Fields")
+        positionXField:SetName("X")
+        positionXField:SetText("")
+        positionXField:SetFocusable(true)
+        positionXField:AddTextChangeListener(me)
+        positionXField:SetRightPadding(8)
+        positionXField:SetPercentageWidth(0.5)
+        positionXField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionXField)
+
+        positionYField:SetName("Y")
+        positionYField:SetText("")
+        positionYField:SetFocusable(true)
+        positionYField:AddTextChangeListener(me)
+        positionYField:SetRightPadding(8)
+        positionYField:SetPercentageWidth(0.5)
+        positionYField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionYField)
+
+        focusArray:Add(positionXField)
+        focusArray:Add(positionYField)
+
+        positionContainer:Add(positionFieldContainer)
+        panel:Add(positionContainer)
+
+        FlowLayout zoomLayout
+        Control zoomContainer
+        zoomContainer:SetLayout(zoomLayout)
+        zoomContainer:SetPercentageWidth(1.0)
+        zoomContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
+        zoomContainer:SetLeftPadding(20)
+        zoomContainer:SetTopPadding(10)
+        zoomContainer:SetRightPadding(30)
+        zoomContainer:SetBottomPadding(10)
+
+        Label zoomLabel
+        zoomLabel:SetText("Zoom")
+        zoomLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
+        zoomLabel:SetPercentageWidth(0.3)
+        zoomContainer:Add(zoomLabel)
+        
+        FlowLayout zoomFieldLayout
+        Control zoomFieldContainer
+        zoomFieldContainer:SetLayout(zoomFieldLayout)
+
+        TextField zoomField
+        me:zoomField = zoomField
+
+        zoomFieldContainer:SetHorizontalLayoutMode(zoomFieldContainer:FILL)
+        zoomFieldContainer:SetName("Zoom Field")
+        zoomField:SetName("Zoom")
+        zoomField:SetText("")
+        zoomField:SetFocusable(true)
+        zoomField:AddTextChangeListener(me)
+        zoomField:SetRightPadding(8)
+        zoomField:SetPercentageWidth(1.0)
+        zoomField:SetPixelWidth(-8)
+        zoomFieldContainer:Add(zoomField)
+
+        focusArray:Add(zoomField)
+
+        zoomContainer:Add(zoomFieldContainer)
+        panel:Add(zoomContainer)
+
+//        Label rotationLabel
+//        
+//        TextField rotationField
+//        me:rotationField = rotationField
+//
+//        FlowLayout rotationLayout
+//        Control rotationContainer
+//        rotationContainer:SetLayout(rotationLayout)
+//        rotationContainer:SetPercentageWidth(1.0)
+//        rotationContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+//        rotationContainer:SetLeftPadding(10)
+//        rotationContainer:SetTopPadding(10)
+//        rotationContainer:SetRightPadding(30)
+//        rotationContainer:SetBottomPadding(10)
+//
+//        rotationLabel:SetText("Rotation:")
+//        rotationLabel:SetRightPadding(10)
+//        rotationContainer:Add(rotationLabel)
+//        
+//        FlowLayout rotationFieldLayout
+//        Control rotationFieldContainer
+//        rotationFieldContainer:SetLayout(rotationFieldLayout)
+//
+//        rotationFieldContainer:SetHorizontalLayoutMode(rotationFieldContainer:FILL)
+//        rotationFieldContainer:SetName("Rotation Fields")
+//        rotationField:SetName("Rotation")
+//        rotationField:SetText("")
+//        rotationField:SetFocusable(true)
+//        rotationField:AddTextChangeListener(me)
+//        rotationField:SetRightPadding(8)
+//        rotationField:SetPercentageWidth(1)
+//        rotationField:SetPixelWidth(-8)
+//        rotationFieldContainer:Add(rotationField)
+//
+//        focusArray:Add(rotationField)
+//
+//        rotationContainer:Add(rotationFieldContainer)
+//        panel:Add(rotationContainer)
+    end
+
+    action SelectionChanged(SelectionEvent event)
+        // TO-DO: Consider change to Layer in VisualEditorSelection
+        if event:GetSelection() is SceneEditorSelection
+            SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+            if selection:IsItemSelected() = false
+                if IsShowing()
+                    Hide()
+                end
+            else
+                if selection:GetSelectedItem() is CameraItem2D
+                    SetFields(cast(CameraItem2D, selection:GetSelectedItem()))
+                    if not IsShowing()
+                        Show()
+                    end
+                else
+                    if IsShowing()
+                        Hide()
+                    end
+                end
+            end
+        elseif event:GetSelection() is ButtonGroupSelection
+            ButtonGroupSelection selection = cast(ButtonGroupSelection, event:GetSelection())
+            EditorItem item = GetSceneEditor():GetSelectedItem()
+            if item not= undefined
+                item:SetEditorResponsiveness(selection:GetIndex())
+            end
+        end
+    end
+
+    action SetFields(EditorItem item)
+        if item is CameraItem2D = false
+            return now
+        end
+
+        SetFields(cast(CameraItem2D, item))
+    end
+
+    action SetFields(CameraItem2D cameraItem)
+        OrthographicCamera camera = cast(OrthographicCamera, cameraItem:GetCamera())
+        positionXField:SetText("" + camera:GetPosition():GetX())
+        positionYField:SetText("" + camera:GetPosition():GetY())
+        zoomField:SetText("" + camera:GetZoom())
+//        rotationField:SetText("" + item:GetRotation())
+    end
+
+    action TextChanged(TextChangeEvent event)
+        CameraItem2D currentItem = cast(CameraItem2D, GetSceneEditor():GetSelectedItem())
+        OrthographicCamera camera = cast(OrthographicCamera, currentItem:GetCamera())
+        Control control = event:GetControl()
+
+        if currentItem = undefined
+            return now
+        end
+
+        if control:Equals(positionXField)
+            check
+                number value = positionXField:GetText():ParseNumber()
+                if value not= currentItem:GetX()
+                    currentItem:SetX(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(positionYField)
+            check
+                number value = positionYField:GetText():ParseNumber()
+                if value not= currentItem:GetY()
+                    currentItem:SetY(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(zoomField)
+            check
+                number value = zoomField:GetText():ParseNumber()
+                if value <= 0
+                    return now
+                end
+
+                if value not= camera:GetZoom()
+                    camera:SetZoom(value)
+                    EditorLayer2D layer = cast(EditorLayer2D, currentItem:GetLayer())
+                    layer:UpdateGridSize()
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(rotationField)
+            check
+                number value = rotationField:GetText():ParseNumber()
+
+//                if value not= currentItem:GetScaleX()
+//                    currentItem:SetScaleX(value)
+//                end
+            detect e is Error
+                // Do nothing.
+            end
+        end
+    end
+
+    /*
+    Moves the focus to one of the fields in the properties dialog. By default
+    this is the name field (the first field in the panel), but it could also be
+    changed to a different field, possibly context sensitive.
+    */
+    action FocusField
+        positionXField:Focus()
+        positionXField:Select(0, positionXField:GetSize(), true)
+    end
+
+end

@@ -1,0 +1,33 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.ToggleButton
+
+class PropertiesSetLoopingBehavior is Behavior
+
+    Audio3DPropertiesDialog dialog = undefined
+
+    action GetDialog returns Audio3DPropertiesDialog
+        return dialog
+    end
+
+    action SetDialog(Audio3DPropertiesDialog properties)
+        dialog = properties
+    end
+
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if item is ToggleButton
+            ToggleButton button = cast(ToggleButton, item)
+            dialog:SetLooping(button:GetToggleState())
+        end
+    end
+
+    action Dispose
+        dialog:SetLooping(false)
+    end
+
+end

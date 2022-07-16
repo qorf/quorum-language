@@ -1,0 +1,559 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSetPlayOnLoadBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSetLoopingBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSetDopplerBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesChooseSourceBehavior
+
+class Audio3DPropertiesDialog is PropertiesDialog
+
+    TextField nameField = undefined
+    Button sourceButton = undefined
+    TextField sourceField = undefined
+    TextField positionXField = undefined
+    TextField positionYField = undefined
+    TextField positionZField = undefined
+    TextField volumeField = undefined
+    TextField pitchField = undefined
+    TextField maxDistanceField = undefined
+    TextField rolloffField = undefined
+    Checkbox playOnLoadCheckbox = undefined
+    Checkbox loopingCheckbox = undefined
+    Checkbox dopplerCheckbox = undefined
+
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        Label nameLabel
+        
+        TextField field
+        nameField = field
+
+        SetName("Audio3D Properties")
+
+        Label basicPropertiesLabel
+        basicPropertiesLabel:SetSize(18)
+        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetLeftPadding(20)
+        panel:Add(basicPropertiesLabel)
+
+        FlowLayout nameLayout
+        Control nameContainer
+        nameContainer:SetLayout(nameLayout)
+        nameContainer:SetPercentageWidth(1.0)
+        nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
+        nameContainer:SetLeftPadding(20)
+        nameContainer:SetTopPadding(10)
+        nameContainer:SetRightPadding(30)
+        nameContainer:SetBottomPadding(10)
+
+        nameLabel:SetText("Name:")
+        nameLabel:SetRightPadding(10)
+        nameContainer:Add(nameLabel)
+        
+        nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
+        nameField:SetName("Name")
+        nameField:SetText("")
+        nameField:SetFocusable(true)
+        nameField:AddTextChangeListener(me)
+        nameContainer:Add(nameField)
+        focusArray:Add(nameField)
+        panel:Add(nameContainer)
+
+        Label sourceLabel
+        TextField sourceField
+        me:sourceField = sourceField
+
+        FlowLayout sourceLayout
+        Control sourceContainer
+        sourceContainer:SetLayout(sourceLayout)
+        sourceContainer:SetPercentageWidth(1.0)
+        sourceContainer:SetVerticalLayoutMode(sourceContainer:FIT_CONTENTS)
+        sourceContainer:SetLeftPadding(20)
+        sourceContainer:SetTopPadding(10)
+        sourceContainer:SetRightPadding(30)
+        sourceContainer:SetBottomPadding(10)
+
+        sourceLabel:SetText("Source:")
+        sourceLabel:SetRightPadding(10)
+        sourceContainer:Add(sourceLabel)
+        
+        Button sourceButton
+        me:sourceButton = sourceButton
+        //Resources resources
+        Drawable folderIcon
+        Color color
+        folderIcon:LoadFilledRectangle(100,100, color:Pink())
+        sourceButton:LoadImage(folderIcon)
+        sourceButton:SetLeftPadding(5)
+        sourceButton:SetRightPadding(5)
+        sourceButton:SetName("Choose File")
+        sourceButton:SetDescription("Open a file browser to select the audio source file")
+        sourceButton:SetPixelWidth(24)
+        sourceButton:SetPixelHeight(24)
+        sourceContainer:Add(sourceButton)
+        focusArray:Add(sourceButton)
+
+        PropertiesChooseSourceBehavior buttonBehavior
+        buttonBehavior:SetDialog(me)
+        buttonBehavior:SetField(sourceField)
+        sourceButton:SetBehavior(buttonBehavior)
+
+        sourceField:SetHorizontalLayoutMode(sourceField:parent:Libraries.Interface.Controls.Control:FILL)
+        sourceField:SetName("Name")
+        sourceField:SetText("")
+        sourceField:SetFocusable(true)
+        sourceField:AddTextChangeListener(me)
+        sourceContainer:Add(sourceField)
+        focusArray:Add(sourceField)
+        panel:Add(sourceContainer)
+
+        Label positionLabel
+        
+        TextField positionXField
+        me:positionXField = positionXField
+
+        TextField positionYField
+        me:positionYField = positionYField
+
+        TextField positionZField
+        me:positionZField = positionZField
+
+        FlowLayout positionLayout
+        Control positionContainer
+        positionContainer:SetLayout(positionLayout)
+        positionContainer:SetPercentageWidth(1.0)
+        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        positionContainer:SetLeftPadding(20)
+        positionContainer:SetTopPadding(10)
+        positionContainer:SetRightPadding(30)
+        positionContainer:SetBottomPadding(10)
+
+        positionLabel:SetText("Position:")
+        positionLabel:SetRightPadding(10)
+        positionContainer:Add(positionLabel)
+        
+        FlowLayout positionFieldLayout
+        Control positionFieldContainer
+        positionFieldContainer:SetLayout(positionFieldLayout)
+
+        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
+        positionFieldContainer:SetName("Position Fields")
+        positionXField:SetName("X")
+        positionXField:SetText("")
+        positionXField:SetFocusable(true)
+        positionXField:AddTextChangeListener(me)
+        positionXField:SetRightPadding(8)
+        positionXField:SetPercentageWidth(0.33)
+        positionXField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionXField)
+
+        positionYField:SetName("Y")
+        positionYField:SetText("")
+        positionYField:SetFocusable(true)
+        positionYField:AddTextChangeListener(me)
+        positionYField:SetRightPadding(8)
+        positionYField:SetPercentageWidth(0.33)
+        positionYField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionYField)
+
+        positionZField:SetName("Z")
+        positionZField:SetText("")
+        positionZField:SetFocusable(true)
+        positionZField:AddTextChangeListener(me)
+        positionZField:SetRightPadding(8)
+        positionZField:SetPercentageWidth(0.33)
+        positionZField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionZField)
+
+        focusArray:Add(positionXField)
+        focusArray:Add(positionYField)
+        focusArray:Add(positionZField)
+
+        positionContainer:Add(positionFieldContainer)
+        panel:Add(positionContainer)
+
+        FlowLayout volumeLayout
+        Control volumeContainer
+        volumeContainer:SetLayout(volumeLayout)
+        volumeContainer:SetPercentageWidth(1.0)
+        volumeContainer:SetVerticalLayoutMode(volumeContainer:FIT_CONTENTS)
+        volumeContainer:SetLeftPadding(20)
+        volumeContainer:SetTopPadding(10)
+        volumeContainer:SetRightPadding(30)
+        volumeContainer:SetBottomPadding(10)
+
+        Label volumeLabel
+        volumeLabel:SetText("Volume:")
+        volumeLabel:SetRightPadding(10)
+        volumeContainer:Add(volumeLabel)
+
+        TextField volumeField
+        me:volumeField = volumeField
+        volumeField:SetName("Volume")
+        volumeField:SetText("")
+        volumeField:SetFocusable(true)
+        volumeField:AddTextChangeListener(me)
+        volumeField:SetRightPadding(8)
+        volumeField:SetHorizontalLayoutMode(volumeContainer:FILL)
+        volumeContainer:Add(volumeField)
+
+        focusArray:Add(volumeField)
+        panel:Add(volumeContainer)
+
+        FlowLayout pitchLayout
+        Control pitchContainer
+        pitchContainer:SetLayout(pitchLayout)
+        pitchContainer:SetPercentageWidth(1.0)
+        pitchContainer:SetVerticalLayoutMode(pitchContainer:FIT_CONTENTS)
+        pitchContainer:SetLeftPadding(20)
+        pitchContainer:SetTopPadding(10)
+        pitchContainer:SetRightPadding(30)
+        pitchContainer:SetBottomPadding(10)
+
+        Label pitchLabel
+        pitchLabel:SetText("Pitch:")
+        pitchLabel:SetRightPadding(10)
+        pitchContainer:Add(pitchLabel)
+
+        TextField pitchField
+        me:pitchField = pitchField
+        pitchField:SetName("Pitch")
+        pitchField:SetText("")
+        pitchField:SetFocusable(true)
+        pitchField:AddTextChangeListener(me)
+        pitchField:SetRightPadding(8)
+        pitchField:SetHorizontalLayoutMode(pitchContainer:FILL)
+        pitchContainer:Add(pitchField)
+
+        focusArray:Add(pitchField)
+        panel:Add(pitchContainer)
+
+        Label advancedPropertiesLabel
+        advancedPropertiesLabel:SetSize(18)
+        advancedPropertiesLabel:SetText("Advanced Properties")
+        advancedPropertiesLabel:SetLeftPadding(20)
+        panel:Add(advancedPropertiesLabel)
+
+        FlowLayout maxDistanceLayout
+        Control maxDistanceContainer
+        maxDistanceContainer:SetLayout(maxDistanceLayout)
+        maxDistanceContainer:SetPercentageWidth(1.0)
+        maxDistanceContainer:SetVerticalLayoutMode(maxDistanceContainer:FIT_CONTENTS)
+        maxDistanceContainer:SetLeftPadding(20)
+        maxDistanceContainer:SetTopPadding(10)
+        maxDistanceContainer:SetRightPadding(30)
+        maxDistanceContainer:SetBottomPadding(10)
+
+        Label maxDistanceLabel
+        maxDistanceLabel:SetText("Max Volume Distance:")
+        maxDistanceLabel:SetRightPadding(10)
+        maxDistanceContainer:Add(maxDistanceLabel)
+
+        TextField maxDistanceField
+        me:maxDistanceField = maxDistanceField
+        maxDistanceField:SetName("Max Volume Distance")
+        maxDistanceField:SetText("")
+        maxDistanceField:SetFocusable(true)
+        maxDistanceField:AddTextChangeListener(me)
+        maxDistanceField:SetRightPadding(8)
+        maxDistanceField:SetHorizontalLayoutMode(maxDistanceContainer:FILL)
+        maxDistanceContainer:Add(maxDistanceField)
+
+        focusArray:Add(maxDistanceField)
+        panel:Add(maxDistanceContainer)
+
+        FlowLayout rolloffLayout
+        Control rolloffContainer
+        rolloffContainer:SetLayout(rolloffLayout)
+        rolloffContainer:SetPercentageWidth(1.0)
+        rolloffContainer:SetVerticalLayoutMode(rolloffContainer:FIT_CONTENTS)
+        rolloffContainer:SetLeftPadding(20)
+        rolloffContainer:SetTopPadding(10)
+        rolloffContainer:SetRightPadding(30)
+        rolloffContainer:SetBottomPadding(10)
+
+        Label rolloffLabel
+        rolloffLabel:SetText("Rolloff Rate:")
+        rolloffLabel:SetRightPadding(10)
+        rolloffContainer:Add(rolloffLabel)
+
+        TextField rolloffField
+        me:rolloffField = rolloffField
+        rolloffField:SetName("Rolloff Rate")
+        rolloffField:SetText("")
+        rolloffField:SetFocusable(true)
+        rolloffField:AddTextChangeListener(me)
+        rolloffField:SetRightPadding(8)
+        rolloffField:SetHorizontalLayoutMode(rolloffContainer:FILL)
+        rolloffContainer:Add(rolloffField)
+
+        focusArray:Add(rolloffField)
+        panel:Add(rolloffContainer)
+
+        FlowLayout playOnLoadLayout
+        Control playOnLoadContainer
+        playOnLoadContainer:SetLayout(playOnLoadLayout)
+        playOnLoadContainer:SetPercentageWidth(1.0)
+        playOnLoadContainer:SetVerticalLayoutMode(playOnLoadContainer:FIT_CONTENTS)
+        playOnLoadContainer:SetLeftPadding(20)
+        playOnLoadContainer:SetTopPadding(10)
+        playOnLoadContainer:SetRightPadding(30)
+        playOnLoadContainer:SetBottomPadding(10)
+
+        Checkbox playOnLoadCheckbox
+        me:playOnLoadCheckbox = playOnLoadCheckbox
+        
+        playOnLoadCheckbox:SetName("Play on Load")
+        playOnLoadContainer:Add(playOnLoadCheckbox)
+        playOnLoadContainer:SetTopPadding(10)
+        playOnLoadContainer:SetBottomPadding(10)
+        panel:Add(playOnLoadContainer)
+
+        PropertiesSetPlayOnLoadBehavior propertiesPlayOnLoadBehavior
+        propertiesPlayOnLoadBehavior:SetDialog(me)
+        playOnLoadCheckbox:SetBehavior(propertiesPlayOnLoadBehavior)
+
+        focusArray:Add(playOnLoadCheckbox)
+
+        FlowLayout loopingLayout
+        Control loopingContainer
+        loopingContainer:SetLayout(loopingLayout)
+        loopingContainer:SetPercentageWidth(1.0)
+        loopingContainer:SetVerticalLayoutMode(loopingContainer:FIT_CONTENTS)
+        loopingContainer:SetLeftPadding(20)
+        loopingContainer:SetTopPadding(10)
+        loopingContainer:SetRightPadding(30)
+        loopingContainer:SetBottomPadding(10)
+
+        Checkbox loopingCheckbox
+        me:loopingCheckbox = loopingCheckbox
+        
+        loopingCheckbox:SetName("Looping")
+        loopingContainer:Add(loopingCheckbox)
+        loopingContainer:SetTopPadding(10)
+        loopingContainer:SetBottomPadding(10)
+        panel:Add(loopingContainer)
+
+        PropertiesSetLoopingBehavior propertiesSetLoopingBehavior
+        propertiesSetLoopingBehavior:SetDialog(me)
+        loopingCheckbox:SetBehavior(propertiesSetLoopingBehavior)
+
+        focusArray:Add(loopingCheckbox)
+
+        FlowLayout dopplerLayout
+        Control dopplerContainer
+        dopplerContainer:SetLayout(dopplerLayout)
+        dopplerContainer:SetPercentageWidth(1.0)
+        dopplerContainer:SetVerticalLayoutMode(dopplerContainer:FIT_CONTENTS)
+        dopplerContainer:SetLeftPadding(20)
+        dopplerContainer:SetTopPadding(10)
+        dopplerContainer:SetRightPadding(30)
+        dopplerContainer:SetBottomPadding(10)
+
+        Checkbox dopplerCheckbox
+        me:dopplerCheckbox = dopplerCheckbox
+        
+        dopplerCheckbox:SetName("Doppler")
+        dopplerContainer:Add(dopplerCheckbox)
+        dopplerContainer:SetTopPadding(10)
+        dopplerContainer:SetBottomPadding(10)
+        panel:Add(dopplerContainer)
+
+        PropertiesSetDopplerBehavior propertiesSetDopplerBehavior
+        propertiesSetDopplerBehavior:SetDialog(me)
+        dopplerCheckbox:SetBehavior(propertiesSetDopplerBehavior)
+
+        focusArray:Add(dopplerCheckbox)
+    end
+
+    action SetPlayOnLoad(boolean play)
+        Object item = GetSceneEditor():GetSelectedItem()
+        if item not= undefined and item is EditorAudio3D
+            EditorAudio3D audio = cast(EditorAudio3D, item)
+            if audio:GetPlayOnLoad() not= play
+                audio:SetPlayOnLoad(play)
+            end
+        end
+    end
+
+    action SetLooping(boolean looping)
+        Object item = GetSceneEditor():GetSelectedItem()
+        if item not= undefined and item is EditorAudio3D
+            EditorAudio3D audio = cast(EditorAudio3D, item)
+            if audio:GetLooping() not= looping
+                audio:SetLooping(looping)
+            end
+        end
+    end
+
+    action SetDoppler(boolean doppler)
+        Object item = GetSceneEditor():GetSelectedItem()
+        if item not= undefined and item is EditorAudio3D
+            EditorAudio3D audio = cast(EditorAudio3D, item)
+            if audio:GetDoppler() not= doppler
+                audio:SetDoppler(doppler)
+            end
+        end
+    end
+
+    action SelectionChanged(SelectionEvent event)
+        // TO-DO: Consider change to Layer in VisualEditorSelection
+
+        if event:GetSelection() is SceneEditorSelection
+            SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+            if selection:IsItemSelected() = false
+                if IsShowing()
+                    Hide()
+                end
+            else
+                Item selectedItem = selection:GetSelectedItem()
+                if selectedItem is EditorAudio3D and selectedItem is EditorItem3D
+                    SetFields(cast(EditorItem3D, selectedItem))
+                    if not IsShowing()
+                        Show()
+                    end
+                else
+                    if IsShowing()
+                        Hide()
+                    end
+                end
+            end
+        end
+    end
+
+    action SetFields(EditorItem item)
+        if item is EditorItem3D = false
+            return now
+        end
+
+        SetFields(cast(EditorItem3D, item))
+    end
+
+    action SetFields(EditorItem3D item)
+        nameField:SetText(item:GetName())
+        positionXField:SetText("" + item:GetX())
+        positionYField:SetText("" + item:GetY())
+        positionZField:SetText("" + item:GetZ())
+
+        if item is EditorAudio3D
+            EditorAudio3D audio = cast(EditorAudio3D, cast(Object, item))
+            sourceField:SetText(audio:GetSource())
+            volumeField:SetText("" + audio:GetVolume())
+            pitchField:SetText("" + audio:GetPitch())
+            maxDistanceField:SetText("" + audio:GetMaximumVolumeDistance())
+            rolloffField:SetText("" + audio:GetRolloffRate())
+            
+            playOnLoadCheckbox:SetToggleState(audio:GetPlayOnLoad())
+            loopingCheckbox:SetToggleState(audio:GetLooping())
+            dopplerCheckbox:SetToggleState(audio:GetDoppler())
+        end
+    end
+
+    action TextChanged(TextChangeEvent event)
+        EditorAudio3D currentItem = cast(EditorAudio3D, cast(Object, GetSceneEditor():GetSelectedItem()))
+        Control control = event:GetControl()
+
+        if currentItem = undefined
+            return now
+        end
+
+        if control:Equals(nameField)
+            if nameField:GetText() not= currentItem:GetName()
+                currentItem:SetName(nameField:GetText())
+            end
+        elseif control:Equals(sourceField)
+            if sourceField:GetText() not= currentItem:GetSource()
+                currentItem:SetSource(sourceField:GetText())
+            end
+        elseif control:Equals(positionXField)
+            check
+                number value = positionXField:GetText():ParseNumber()
+                if value not= currentItem:GetX()
+                    currentItem:SetX(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(positionYField)
+            check
+                number value = positionYField:GetText():ParseNumber()
+                if value not= currentItem:GetY()
+                    currentItem:SetY(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(positionZField)
+            check
+                number value = positionZField:GetText():ParseNumber()
+                if value not= currentItem:GetZ()
+                    currentItem:SetZ(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(volumeField)
+            check
+                number value = volumeField:GetText():ParseNumber()
+                if value not= currentItem:GetVolume()
+                    currentItem:SetVolume(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(pitchField)
+            check
+                number value = pitchField:GetText():ParseNumber()
+                if value not= currentItem:GetPitch()
+                    currentItem:SetPitch(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(maxDistanceField)
+            check
+                number value = maxDistanceField:GetText():ParseNumber()
+                if value not= currentItem:GetMaximumVolumeDistance()
+                    currentItem:SetMaximumVolumeDistance(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(rolloffField)
+            check
+                number value = rolloffField:GetText():ParseNumber()
+                if value not= currentItem:GetRolloffRate()
+                    currentItem:SetRolloffRate(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        end
+    end
+
+    /*
+    Moves the focus to one of the fields in the properties dialog. By default
+    this is the name field (the first field in the panel), but it could also be
+    changed to a different field, possibly context sensitive.
+    */
+    action FocusField
+        nameField:Focus()
+        nameField:Select(0, nameField:GetSize(), true)
+    end
+
+end

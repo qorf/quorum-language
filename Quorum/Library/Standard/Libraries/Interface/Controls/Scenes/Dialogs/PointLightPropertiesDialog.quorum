@@ -1,0 +1,385 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Controls.Dialog
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.TextField
+use Libraries.Containers.Array
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Game.Graphics.PointLight
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.Highlights.PointLightSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.Previews.PointLightPreview
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+class PointLightPropertiesDialog is PropertiesDialog
+
+    // Controls used on the dialog itself
+    Label nameLabel = undefined
+    TextField nameField = undefined
+    TextField positionXField = undefined
+    TextField positionYField = undefined
+    TextField positionZField = undefined
+    TextField colorRedField = undefined
+    TextField colorGreenField = undefined
+    TextField colorBlueField = undefined
+    TextField intensityField = undefined
+
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        Label label
+        nameLabel = label
+        
+        TextField field
+        nameField = field
+
+        SetName("Point Light Properties")
+
+        Label basicPropertiesLabel
+        basicPropertiesLabel:SetSize(18)
+        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetLeftPadding(20)
+        panel:Add(basicPropertiesLabel)
+
+        FlowLayout nameLayout
+        Control nameContainer
+        nameContainer:SetLayout(nameLayout)
+        nameContainer:SetPercentageWidth(1.0)
+        nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
+        nameContainer:SetLeftPadding(20)
+        nameContainer:SetTopPadding(10)
+        nameContainer:SetRightPadding(30)
+        nameContainer:SetBottomPadding(10)
+
+        nameLabel:SetText("Name:")
+        nameLabel:SetRightPadding(10)
+        nameContainer:Add(nameLabel)
+        
+        nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
+        nameField:SetName("Name")
+        nameField:SetText("")
+        nameField:SetFocusable(true)
+        nameField:AddTextChangeListener(me)
+        nameContainer:Add(nameField)
+        focusArray:Add(nameField)
+        panel:Add(nameContainer)
+
+        Label positionLabel
+        
+        TextField positionXField
+        me:positionXField = positionXField
+
+        TextField positionYField
+        me:positionYField = positionYField
+
+        TextField positionZField
+        me:positionZField = positionZField
+
+        FlowLayout positionLayout
+        Control positionContainer
+        positionContainer:SetLayout(positionLayout)
+        positionContainer:SetPercentageWidth(1.0)
+        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        positionContainer:SetLeftPadding(20)
+        positionContainer:SetTopPadding(10)
+        positionContainer:SetRightPadding(30)
+        positionContainer:SetBottomPadding(10)
+
+        positionLabel:SetText("Position:")
+        positionLabel:SetRightPadding(10)
+        positionContainer:Add(positionLabel)
+        
+        FlowLayout positionFieldLayout
+        Control positionFieldContainer
+        positionFieldContainer:SetLayout(positionFieldLayout)
+
+        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
+        positionFieldContainer:SetName("Position Fields")
+        positionXField:SetName("X")
+        positionXField:SetText("")
+        positionXField:SetFocusable(true)
+        positionXField:AddTextChangeListener(me)
+        positionXField:SetRightPadding(8)
+        positionXField:SetPercentageWidth(0.33)
+        positionXField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionXField)
+
+        positionYField:SetName("Y")
+        positionYField:SetText("")
+        positionYField:SetFocusable(true)
+        positionYField:AddTextChangeListener(me)
+        positionYField:SetRightPadding(8)
+        positionYField:SetPercentageWidth(0.33)
+        positionYField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionYField)
+
+        positionZField:SetName("Z")
+        positionZField:SetText("")
+        positionZField:SetFocusable(true)
+        positionZField:AddTextChangeListener(me)
+        positionZField:SetRightPadding(8)
+        positionZField:SetPercentageWidth(0.33)
+        positionZField:SetPixelWidth(-8)
+        positionFieldContainer:Add(positionZField)
+
+        focusArray:Add(positionXField)
+        focusArray:Add(positionYField)
+        focusArray:Add(positionZField)
+
+        positionContainer:Add(positionFieldContainer)
+        panel:Add(positionContainer)
+
+        Label colorLabel
+        
+        TextField colorRedField
+        me:colorRedField = colorRedField
+
+        TextField colorGreenField
+        me:colorGreenField = colorGreenField
+
+        TextField colorBlueField
+        me:colorBlueField = colorBlueField
+
+        FlowLayout colorLayout
+        Control colorContainer
+        colorContainer:SetLayout(colorLayout)
+        colorContainer:SetPercentageWidth(1.0)
+        colorContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        colorContainer:SetLeftPadding(20)
+        colorContainer:SetTopPadding(10)
+        colorContainer:SetRightPadding(30)
+        colorContainer:SetBottomPadding(10)
+
+        colorLabel:SetText("Color (RGB):")
+        colorLabel:SetRightPadding(10)
+        colorContainer:Add(colorLabel)
+        
+        FlowLayout colorFieldLayout
+        Control colorFieldContainer
+        colorFieldContainer:SetLayout(colorFieldLayout)
+
+        colorFieldContainer:SetHorizontalLayoutMode(colorFieldContainer:FILL)
+        colorFieldContainer:SetName("Color Fields")
+        colorRedField:SetName("Red")
+        colorRedField:SetText("")
+        colorRedField:SetFocusable(true)
+        colorRedField:AddTextChangeListener(me)
+        colorRedField:SetRightPadding(8)
+        colorRedField:SetPercentageWidth(0.33)
+        colorRedField:SetPixelWidth(-8)
+        colorFieldContainer:Add(colorRedField)
+
+        colorGreenField:SetName("Green")
+        colorGreenField:SetText("")
+        colorGreenField:SetFocusable(true)
+        colorGreenField:AddTextChangeListener(me)
+        colorGreenField:SetRightPadding(8)
+        colorGreenField:SetPercentageWidth(0.33)
+        colorGreenField:SetPixelWidth(-8)
+        colorFieldContainer:Add(colorGreenField)
+
+        colorBlueField:SetName("Blue")
+        colorBlueField:SetText("")
+        colorBlueField:SetFocusable(true)
+        colorBlueField:AddTextChangeListener(me)
+        colorBlueField:SetRightPadding(8)
+        colorBlueField:SetPercentageWidth(0.33)
+        colorBlueField:SetPixelWidth(-8)
+        colorFieldContainer:Add(colorBlueField)
+
+        focusArray:Add(colorRedField)
+        focusArray:Add(colorGreenField)
+        focusArray:Add(colorBlueField)
+
+        colorContainer:Add(colorFieldContainer)
+        panel:Add(colorContainer)
+
+        FlowLayout intensityLayout
+        Control intensityContainer
+        intensityContainer:SetLayout(intensityLayout)
+        intensityContainer:SetPercentageWidth(1.0)
+        intensityContainer:SetVerticalLayoutMode(intensityContainer:FIT_CONTENTS)
+        intensityContainer:SetLeftPadding(20)
+        intensityContainer:SetTopPadding(10)
+        intensityContainer:SetRightPadding(30)
+        intensityContainer:SetBottomPadding(10)
+
+        Label intensityLabel
+        TextField intensityField
+        me:intensityField = intensityField
+
+        intensityLabel:SetText("Intensity:")
+        intensityLabel:SetRightPadding(10)
+        intensityContainer:Add(intensityLabel)
+        
+        intensityField:SetHorizontalLayoutMode(intensityField:parent:Libraries.Interface.Controls.Control:FILL)
+        intensityField:SetName("Intensity")
+        intensityField:SetText("")
+        intensityField:SetFocusable(true)
+        intensityField:AddTextChangeListener(me)
+        intensityContainer:Add(intensityField)
+        focusArray:Add(intensityField)
+        panel:Add(intensityContainer)
+    end
+
+    action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is SceneEditorSelection
+            SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+            if selection:IsItemSelected() = false
+                if IsShowing()
+                    Hide()
+                end
+            else
+                Object item = selection:GetSelectedItem()
+                if item is PointLightSelectionHighlight or item is PointLightPreview
+                    SetFields(cast(EditorItem3D, item))
+                    if not IsShowing()
+                        Show()
+                    end
+                else
+                    if IsShowing()
+                        Hide()
+                    end
+                end
+            end
+        end
+    end
+
+    action SetFields(EditorItem item)
+        if item is EditorItem3D = false
+            return now
+        end
+
+        SetFields(cast(EditorItem3D, item))
+    end
+
+    action SetFields(EditorItem3D item)
+        nameField:SetText(item:GetName())
+        positionXField:SetText("" + item:GetX())
+        positionYField:SetText("" + item:GetY())
+        positionZField:SetText("" + item:GetZ())
+        
+        Color color = item:GetColor()
+        if color not= undefined
+            colorRedField:SetText("" + color:GetRed())
+            colorGreenField:SetText("" + color:GetGreen())
+            colorBlueField:SetText("" + color:GetBlue())
+        else
+            colorRedField:SetText("")
+            colorGreenField:SetText("")
+            colorBlueField:SetText("")
+        end
+
+        intensityField:SetText("" + item:GetIntensity())
+    end
+
+    action TextChanged(TextChangeEvent event)
+        EditorItem3D currentItem = cast(EditorItem3D, cast(Object, GetSceneEditor():GetSelectedItem()))
+        Control control = event:GetControl()
+
+        if currentItem = undefined
+            return now
+        end
+
+        if control:Equals(nameField)
+            if nameField:GetText() not= currentItem:GetName()
+                currentItem:SetName(nameField:GetText())
+            end
+        elseif control:Equals(positionXField)
+            check
+                number value = positionXField:GetText():ParseNumber()
+                if value not= currentItem:GetX()
+                    currentItem:SetX(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(positionYField)
+            check
+                number value = positionYField:GetText():ParseNumber()
+                if value not= currentItem:GetY()
+                    currentItem:SetY(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(positionZField)
+            check
+                number value = positionZField:GetText():ParseNumber()
+                if value not= currentItem:GetZ()
+                    currentItem:SetZ(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(colorRedField)
+            check
+                number value = colorRedField:GetText():ParseNumber()
+                Color color = currentItem:GetColor()
+                if value not= color:GetRed()
+                    color:SetRed(value)
+                    currentItem:SetColor(color)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(colorGreenField)
+            check
+                number value = colorGreenField:GetText():ParseNumber()
+                Color color = currentItem:GetColor()
+                if value not= color:GetGreen()
+                    color:SetGreen(value)
+                    currentItem:SetColor(color)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(colorBlueField)
+            check
+                number value = colorBlueField:GetText():ParseNumber()
+                Color color = currentItem:GetColor()
+                if value not= color:GetBlue()
+                    color:SetBlue(value)
+                    currentItem:SetColor(color)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(intensityField)
+            check
+                number value = intensityField:GetText():ParseNumber()
+
+                if value not= currentItem:GetIntensity()
+                    currentItem:SetIntensity(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        end
+    end
+
+
+    /*
+    Moves the focus to one of the fields in the properties dialog. By default
+    this is the name field (the first field in the panel), but it could also be
+    changed to a different field, possibly context sensitive.
+    */
+    action FocusField
+        nameField:Focus()
+        nameField:Select(0, nameField:GetSize(), true)
+    end
+
+    action SetNameField(text name)
+        nameField:RemoveTextChangeListener(me)
+        nameField:SetText(name)
+        nameField:AddTextChangeListener(me)
+    end
+
+end

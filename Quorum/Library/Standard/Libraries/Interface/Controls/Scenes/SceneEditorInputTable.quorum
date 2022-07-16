@@ -1,0 +1,70 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Game.InputTable
+use Libraries.Game.InputSet
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.HashTable
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.Layer
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+
+class SceneEditorInputTable is InputTable
+
+    HashTable<InputSet, Behavior> table2D
+    HashTable<InputSet, Behavior> table3D
+
+    on create
+        SetIdentifier("CodeCompletionMenuRoot")
+    end
+
+    action Add2D(InputSet set, Behavior behavior)
+        table2D:Add(set, behavior)
+    end
+
+    action Add3D(InputSet set, Behavior behavior)
+        table3D:Add(set, behavior)
+    end
+
+    action RemoveKey2D(InputSet set) returns Behavior
+        return table2D:RemoveKey(set)
+    end
+
+    action RemoveKey3D(InputSet set) returns Behavior
+        return table3D:RemoveKey(set)
+    end
+
+    action HasKey(InputSet set) returns boolean
+        return table2D:HasKey(set) or table3D:HasKey(set) or parent:InputTable:HasKey(set)
+    end
+
+    action ProcessInput(InputSet set, BehaviorEvent event) returns boolean
+        HashTable<InputSet, Behavior> hashTable = undefined
+        Item item = event:GetItem()
+
+        if item is SceneEditor_LIBRARY
+            SceneEditor_LIBRARY controller = cast(SceneEditor_LIBRARY, event:GetItem())
+            if controller:GetSelectedLayer() is EditorLayer2D
+                hashTable = table2D
+            elseif controller:GetSelectedLayer() is EditorLayer3D
+                hashTable = table3D
+            end
+        elseif item is Item2D
+            hashTable = table2D
+        elseif item is Item3D
+            hashTable = table3D
+        end
+
+        if hashTable not= undefined and hashTable:HasKey(set)
+            Behavior behavior = hashTable:GetValue(set)
+            event:SetInputSet(set)
+            behavior:Run(event)
+            return true
+        end
+
+        return parent:InputTable:ProcessInput(set, event)
+    end
+end
