@@ -96,18 +96,16 @@ class ResidualSquare is ChartDrawable
     end
 
     action GetClipCoordinates(Vector2 xCoords, Vector2 yCoords) returns boolean
-        Chart chart = GetParentChart()
-        if chart not= undefined and chart:GetChartArea() not= undefined and IsClipping()
-            /*
-            Grab our clipping coordinates from the parent chart area instead of from ourselves.
-            This trick lets us always ensure the squares cull themselves if they're outside of
-            the chart area, instead of asking the culling to be applied from the chart area
-            (which would then apply to all objects attached to the chart, including the axes,
-            which might protrude slightly from the chart area).
-            */
+        /*
+        Grab our clipping coordinates from the parent chart area instead of from ourselves.
+        This trick lets us always ensure the squares cull themselves if they're outside of
+        the chart area, instead of asking the culling to be applied from the chart area
+        (which would then apply to all objects attached to the chart, including the axes,
+        which might protrude slightly from the chart area).
+        */
+        ChartAreaPanel area = GetChartArea()
+        if area not= undefined and IsClipping()
             
-            ChartAreaPanel area = chart:GetChartArea()
-
             // Store the current clipping state of the chart so we can set it back after.
             boolean clipState = area:IsClipping()
 
@@ -125,5 +123,14 @@ class ResidualSquare is ChartDrawable
         else
             return parent:Item2D:GetClipCoordinates(xCoords, yCoords)
         end
+    end
+
+    private action GetChartArea returns ChartAreaPanel
+        Item2D item = point:GetParent()
+        repeat until item is ChartAreaPanel or item = undefined
+            item = item:GetParent()
+        end
+
+        return cast(ChartAreaPanel, item)
     end
 end

@@ -22,6 +22,9 @@ class ChartItem is Control
 
     ChartOptions options
 
+    boolean escapeToLastItem = false
+    boolean passThroughSelection = false
+
     /*
         This action sets the display name of the chart item. 
         
@@ -37,22 +40,6 @@ class ChartItem is Control
     action GetDisplayName returns text
         return information
     end
-
-    /*
-        This action is fired if the item received the focus.
-    */
-//    action GainedFocus(FocusEvent event)
-//        GainedSelection()
-//        parent:Control:GainedFocus(event)
-//    end
-
-    /*
-        This action is fired if the item lost the focus.
-    */
-//    action LostFocus(FocusEvent event)
-//       LostSelection()
-//        parent:Control:LostFocus(event)
-//    end
 
     action GainedSelection
         if GetContainer() not= undefined
@@ -158,6 +145,31 @@ class ChartItem is Control
     */
     action SetEscapeItem(ChartItem escapeItem)
         me:escapeItem = escapeItem
+    end
+
+    /*
+    This action enables or disables escape to last item functionality. If enabled, this object's Escape Item will
+    be the last ChartItem that accessed this Item via the Enter key. That means that if this is enabled, the escape
+    item will be dynamically adjusted, instead of a static value.
+    */
+    action SetEscapeToLastItem(boolean escape)
+        escapeToLastItem = escape
+    end
+
+    action IsEscapingToLastItem returns boolean
+        return escapeToLastItem
+    end
+
+    action IsPassingThroughSelection returns boolean
+        return passThroughSelection
+    end
+
+    /*
+    If pass through selection is enabled, attempting to enter or escape into this item will
+    instead try to pass the selection through to the following enter/escape item.
+    */
+    action SetPassThroughSelection(boolean passThroughSelection)
+        me:passThroughSelection = passThroughSelection
     end
 
 end

@@ -24,6 +24,7 @@ use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 
 
 /*
@@ -171,6 +172,10 @@ class Chart is ChartItem
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
     number pointBorderThickness = 1
+
+    // Used to indicate that a chart's regression lines should be movable.
+    // Must be set before displaying the chart.
+    boolean movableRegressionLines = false
 
     on create
         chartArea:SetName("Chart Area")
@@ -1238,10 +1243,20 @@ class Chart is ChartItem
         me:regressionCapable = regressionCapable
     end
 
+    action SetMovableRegressionLines(boolean movable)
+        movableRegressionLines = movable
+    end
+
+    action HasMovableRegressionLines returns boolean
+        return movableRegressionLines
+    end
+
     private action LoadRegressionLines()
         integer i = 0
         repeat while i < GetSeriesList():GetSize()
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
+            line:SetMovable(movableRegressionLines)
+
             if line not= undefined
                 line:SetColor(GetSeriesList():Get(i):GetColor())
                 if IsSeparatedBySeries()
@@ -2111,6 +2126,8 @@ class Chart is ChartItem
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetRegressionIcon():SetColor(previousColor)
+            elseif target is RegressionLinePointMarker
+                target:Hide()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2179,6 +2196,8 @@ class Chart is ChartItem
                 temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
                 temp:GetRegressionIcon():SetColor(GetSelectionColor())
+            elseif target is RegressionLinePointMarker
+                target:Show()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2333,7 +2352,18 @@ class Chart is ChartItem
         end
 
         ChartItem next = selected:GetEnterItem()
+
         if next not= undefined
+            if next:IsEscapingToLastItem()
+                next:SetEscapeItem(selected)
+            end
+
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEnterItem() not= undefined
+                    next = next:GetEnterItem()
+                end
+            end
+
             selection:Set(next)
         end
     end
@@ -2352,6 +2382,12 @@ class Chart is ChartItem
 
         ChartItem next = selected:GetEscapeItem()
         if next not= undefined
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEscapeItem() not= undefined
+                    next = next:GetEscapeItem()
+                end
+            end
+
             selection:Set(next)
         end
     end

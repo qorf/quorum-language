@@ -772,6 +772,25 @@ class TwoVariableChart is Chart
                     end
                 end
             end
+
+            // If regression lines are visible, make it possible to reach them via the points.
+            if IsShowingLinearRegression()
+                Array<ChartPoint> sortedPoints = points:CopyToArray()
+                sortedPoints:Sort(comparison)
+
+                integer i = 0
+                repeat while i < points:GetSize()
+                    ChartPoint point = sortedPoints:Get(i)
+                    RegressionLine line = point:GetSeries():GetRegressionLine()
+
+                    point:SetEnterItem(line)
+                    if line:GetEscapeItem() = undefined
+                        line:SetEscapeItem(point)
+                    end
+
+                    i = i + 1
+                end
+            end
         end
         chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
@@ -1292,6 +1311,50 @@ class TwoVariableChart is Chart
         end
     end
 
+    /*
+    Updates the description of all of the points in the array of points. The array should
+    contain all points inside of a single series.
+    Useful if data changes during dynamic use (e.g., movable regression line changes,
+    so residuals need to be updated in the descriptions).
+    */
+    action UpdatePointDescriptions(Array<ChartPoint> points)
+        ChartPointComparison comparison
+        comparison:SetAscending(true)
+        if GetHorizontalFlag()
+            comparison:SetSortByX(true)
+        else
+            comparison:SetSortByY(true)
+        end
+        Array<ChartPoint> sortLRPoints = points:CopyToArray()
+        sortLRPoints:Sort(comparison)
+
+        integer i = 0
+        repeat while i < points:GetSize()
+            ChartPoint point = sortLRPoints:Get(i)
+            point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
+
+            // Add the residual to the beginning of the description if this is a scatter plot.
+            if me is ScatterPlot
+                RegressionLine regression = point:GetSeries():GetRegressionLine()
+                if regression not= undefined
+                    number residual = point:GetValueY() - regression:CalculateDependentValue(point:GetValueX())
+                    if residual = cast(integer, residual)
+                        point:SetDescription(" Residual is " + cast(integer, residual) + point:GetDescription() + ",")
+                    else
+                        Math math
+                        residual = math:Round(residual, 2)
+                        point:SetDescription(" Residual is " + residual + point:GetDescription() + ",")
+                    end
+                end
+            end
+
+            if i = 0
+                AddChartItemInstructions(point, point:GetDescription())
+            end
+
+            i = i + 1
+        end
+    end
 
     action SetQuadrantThreshold(integer threshold)
         quadrantThreshold = threshold

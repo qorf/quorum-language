@@ -1,0 +1,113 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.TwoVariableChart
+
+class RegressionLinePointMarker is ChartDrawable
+
+    integer pointIndex = 0
+
+    on create
+        SetName("Regression Line Control Point")
+        SetFocusable(true)
+        Hide()
+        SetZ(-1)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        // Load the arrow shape if we haven't already.
+        if IsLoaded() = false
+            Chart chart = GetParentChart()
+            RegressionLine regressionLine = GetRegressionLine()
+    
+            boolean sideArrow = chart:GetHorizontalFlag()
+            number arrowSize = regressionLine:GetPointThickness() / 2.0
+            
+            number pointWidth = regressionLine:GetPointThickness()
+            number pointHeight = pointWidth
+            number pointX = regressionLine:GetPixelPointX(pointIndex) - pointWidth / 2.0
+            number pointY = regressionLine:GetPixelPointY(pointIndex) - pointHeight / 2.0
+    
+            number x1 = 0
+            number y1 = 0
+            number x2 = 0
+            number y2 = 0
+            number x3 = 0
+            number y3 = 0
+            if chart:GetHorizontalFlag()
+                integer tickHeight = chart:GetVerticalPanel():GetTickHeight()
+                if arrowSize < tickHeight*2
+                    arrowSize = tickHeight*2
+                end
+                if sideArrow
+                    x1 = cast(integer, pointX + pointWidth / 2)
+                    y1 = cast(integer, pointY + pointHeight + tickHeight)
+    
+                    x2 = x1 + arrowSize
+                    y2 = y1 + arrowSize
+                    x3 = x1 - arrowSize
+                    y3 = y1 + arrowSize  
+                else     
+                    x1 = cast(integer, pointX + pointWidth + tickHeight)
+                    y1 = cast(integer, pointY + pointHeight / 2)
+    
+                    x2 = x1 + arrowSize
+                    y2 = y1 + arrowSize
+                    x3 = x1 + arrowSize
+                    y3 = y1 - arrowSize
+                end    
+            else
+                integer tickWidth = chart:GetHorizontalPanel():GetTickWidth()
+                if arrowSize < tickWidth*2
+                    arrowSize = tickWidth*2
+                end
+                if sideArrow
+                    x1 = cast(integer, pointX + pointWidth + tickWidth)
+                    y1 = cast(integer, pointY + pointHeight / 2)
+    
+                    x2 = x1 + arrowSize
+                    y2 = y1 + arrowSize
+                    x3 = x1 + arrowSize
+                    y3 = y1 - arrowSize
+                else
+                    x1 = cast(integer, pointX + pointWidth / 2)
+                    y1 = cast(integer, pointY + pointHeight + tickWidth)
+    
+                    x2 = x1 + arrowSize
+                    y2 = y1 + arrowSize
+                    x3 = x1 - arrowSize
+                    y3 = y1 + arrowSize
+                end
+            end
+    
+            Array<number> vertices
+            vertices:Add(x1)
+            vertices:Add(y1)
+            vertices:Add(x2)
+            vertices:Add(y2)
+            vertices:Add(x3)
+            vertices:Add(y3)
+
+            LoadShape(vertices, chart:GetSelectionColor())
+        end
+    end
+
+    action GetRegressionLine returns RegressionLine
+        Item2D result = GetParent()
+        repeat until result = undefined or result is RegressionLine
+            result = result:GetParent()
+        end
+        return cast(RegressionLine, result)
+    end
+
+    action GetPointIndex returns integer
+        return pointIndex
+    end
+
+    action SetPointIndex(integer pointIndex)
+        me:pointIndex = pointIndex
+    end
+
+end

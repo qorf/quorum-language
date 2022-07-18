@@ -176,6 +176,11 @@ class ScatterPlot is TwoVariableChart
 
         description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in value order on the X axis," 
         description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order on the Y axis,"
+
+        if IsShowingLinearRegression()
+            description = description + " use Enter to view the regression,"
+        end
+
         if not IsSeparatedBySeries() and IsSeparatedByFactor()
             description = description + " use Escape to return to the " + GetGroupText() + " list."
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
