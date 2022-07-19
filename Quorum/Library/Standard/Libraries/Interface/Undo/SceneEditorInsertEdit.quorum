@@ -4,15 +4,15 @@ use Libraries.Interface.Undo.Edit
 use Libraries.Interface.Item
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 class SceneEditorInsertEdit is Edit
     
-    SceneEditor_LIBRARY controller = undefined
+    SceneEditor controller = undefined
     Array<Item> items = undefined
     EditorLayer layer = undefined
 
-    action Create(SceneEditor_LIBRARY controller, EditorLayer layer, Item item)
+    action Create(SceneEditor controller, EditorLayer layer, Item item)
         me:controller = controller
         me:layer = layer
 
@@ -21,7 +21,7 @@ class SceneEditorInsertEdit is Edit
         me:items = items
     end
 
-    action Create(SceneEditor_LIBRARY controller, EditorLayer layer, Array<Item> items)
+    action Create(SceneEditor controller, EditorLayer layer, Array<Item> items)
         me:controller = controller
         me:items = items
         me:layer = layer

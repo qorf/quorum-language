@@ -7,7 +7,7 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.TextField
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 class PropertiesChooseSourceBehavior is Behavior
 
@@ -33,7 +33,7 @@ class PropertiesChooseSourceBehavior is Behavior
 
     action Run(BehaviorEvent event)
         FileChooser chooser
-        SceneEditor_LIBRARY controller = dialog:GetSceneEditor()
+        SceneEditor controller = dialog:GetSceneEditor()
         File project = controller:GetProjectLocation()
         File file = chooser:OpenFileDialog(project)
 

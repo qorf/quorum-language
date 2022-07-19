@@ -12,7 +12,7 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorModel
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     
@@ -27,7 +27,7 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     end
 
 
-    action Load(EditorModel item, SceneEditor_LIBRARY controller)
+    action Load(EditorModel item, SceneEditor controller)
         Color color = undefined
         SceneConstants constants = GetConstants()
 

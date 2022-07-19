@@ -12,14 +12,14 @@ use Libraries.Interface.Controls.Scenes.Items.EditorModel
 use Libraries.Game.Graphics.Model
 use Libraries.Interface.Controls.Scenes.Blueprints.Custom3DPrimitiveBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 
 class Custom3DPrimitivePreview is ItemPreview3D
 
     File asset = undefined
 
-    action Load(SceneEditor_LIBRARY controller, Custom3DPrimitiveBlueprint schematic, File asset)
+    action Load(SceneEditor controller, Custom3DPrimitiveBlueprint schematic, File asset)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
 

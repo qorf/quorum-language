@@ -13,7 +13,7 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.Previews.CameraPreview2D
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
 use Libraries.Interface.Controls.Scenes.Items.Grid2D
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 /*
     The EditorLayer2D class is used to show and manage objects in a 2D scene. EditorLayer2D 
@@ -63,7 +63,7 @@ class EditorLayer2D is Layer2D, EditorLayer
     Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
-        SceneEditor_LIBRARY editor = GetSceneEditor()
+        SceneEditor editor = GetSceneEditor()
         if editor = undefined or (not editor:GetSelectedLayer():Equals(me))
             return undefined
         end
@@ -264,7 +264,7 @@ class EditorLayer2D is Layer2D, EditorLayer
         to fit the Layer so resizing the Game doesn't leave unused space in the EditorLayer.
     */
     action Update(number seconds)
-        SceneEditor_LIBRARY editor = GetSceneEditor()
+        SceneEditor editor = GetSceneEditor()
         integer x = cast(integer, editor:GetGlobalX())
         integer y = cast(integer, editor:GetGlobalY())
         integer width = cast(integer, editor:GetWidth())

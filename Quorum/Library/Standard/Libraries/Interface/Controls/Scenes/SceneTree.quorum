@@ -11,8 +11,6 @@ use Libraries.Interface.Item3D
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Selections.TreeSelection
-//use Libraries.Development.Environment.Studio.Behaviors.SceneTreeItemActivationBehavior
-//use Libraries.Development.Environment.Studio.Behaviors.SceneTreeEditorCameraBehavior
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
 use Libraries.Interface.Controls.Scenes.SceneConstants
@@ -21,20 +19,22 @@ use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Events.SceneEditorChangeListener
 use Libraries.Interface.Events.SceneEditorChangeEvent
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeItemActivationBehavior
+use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeEditorCameraBehavior
 
 class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
 
     SceneConstants constants
-    SceneEditor_LIBRARY controller = undefined
+    SceneEditor controller = undefined
     
     // A single Item indicating that no scene is loaded.
     TreeItem defaultItem = undefined
 
     // A behavior given to each SceneTreeItem to focus scene items.
-//    SceneTreeItemActivationBehavior itemActivationBehavior
+    SceneTreeItemActivationBehavior itemActivationBehavior
 
     // A behavior used for the default editor camera items.
-//    SceneTreeEditorCameraBehavior editorCameraBehavior
+    SceneTreeEditorCameraBehavior editorCameraBehavior
 
     // An Array used to select a single item in a Scene.
     Array<Item> filterArray
@@ -49,11 +49,11 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         filterArray:SetSize(1)
     end
     
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         return controller
     end
 
-    action SetSceneController(SceneEditor_LIBRARY sceneController)
+    action SetSceneEditor(SceneEditor sceneController)
         if controller not= undefined
             controller:RemoveSceneEditorChangeListener(me)
         end
@@ -82,24 +82,24 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
             SceneTreeItem layerTreeItem
             layerTreeItem:SetName(current:GetName())    
             layerTreeItem:SetSceneLayer(current)
-//            layerTreeItem:SetBehavior(itemActivationBehavior)
+            layerTreeItem:SetBehavior(itemActivationBehavior)
 
             SceneTreeItem cameraItem
             cameraItem:SetName("Cameras")
             cameraItem:SetSceneLayer(current)
-//            cameraItem:SetBehavior(itemActivationBehavior)
+            cameraItem:SetBehavior(itemActivationBehavior)
             layerTreeItem:Add(cast(TreeItem, cameraItem))
 
             SceneTreeItem editorCameraItem
             editorCameraItem:SetName("Editor Camera")
             editorCameraItem:SetSceneLayer(current)
-//            editorCameraItem:SetBehavior(editorCameraBehavior)
+            editorCameraItem:SetBehavior(editorCameraBehavior)
             cameraItem:Add(cast(TreeItem, editorCameraItem))
 
             SceneTreeItem itemContainerItem
             itemContainerItem:SetName("Items")
             itemContainerItem:SetSceneLayer(current)    
-//            itemContainerItem:SetBehavior(itemActivationBehavior)
+            itemContainerItem:SetBehavior(itemActivationBehavior)
             layerTreeItem:Add(cast(TreeItem, itemContainerItem))    
 
 
@@ -153,7 +153,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
             i = i + 1
         end
 
-//        treeItem:SetBehavior(itemActivationBehavior)
+        treeItem:SetBehavior(itemActivationBehavior)
 
         return treeItem
     end
@@ -168,7 +168,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
             treeItem:Add(cast(TreeItem, ItemToTreeItems(children:Next(), layer)))
         end
 
-//        treeItem:SetBehavior(itemActivationBehavior)
+        treeItem:SetBehavior(itemActivationBehavior)
 
         return treeItem
     end

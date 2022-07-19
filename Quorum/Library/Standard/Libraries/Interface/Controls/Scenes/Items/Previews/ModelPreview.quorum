@@ -12,14 +12,14 @@ use Libraries.Game.Graphics.Model
 use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 
 class ModelPreview is ItemPreview3D
 
     File modelFile = undefined
 
-    action Load(SceneEditor_LIBRARY controller, ModelBlueprint schematic)
+    action Load(SceneEditor controller, ModelBlueprint schematic)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
 

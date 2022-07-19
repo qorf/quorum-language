@@ -1,0 +1,38 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+class ScenePaletteItem is TreeItem
+
+    PaletteItemContent content
+
+    ItemBlueprint itemBlueprint = undefined
+
+    action GetItemBlueprint returns ItemBlueprint
+        return itemBlueprint
+    end
+
+    action SetItemBlueprint(ItemBlueprint itemBlueprint)
+        me:itemBlueprint = itemBlueprint
+        SetTreeItemContent(content)
+        content:Load(itemBlueprint)
+    end    
+
+    action GetPalette returns ScenePalette
+        if GetTree() is ScenePalette
+            return cast(ScenePalette, GetTree())
+        end
+        return undefined
+    end
+
+    action GetSceneEditor returns SceneEditor
+        ScenePalette palette = GetPalette()
+        if palette not= undefined
+            return palette:GetSceneEditor()
+        end
+        return undefined
+    end
+
+end

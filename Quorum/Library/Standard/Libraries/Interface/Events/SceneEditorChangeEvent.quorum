@@ -3,7 +3,7 @@ package Libraries.Interface.Events
 use Libraries.Interface.Item
 use Libraries.Game.Layer
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 
 /*
@@ -17,7 +17,7 @@ class SceneEditorChangeEvent
     public constant integer ADDED = 1
     public constant integer REMOVED = 2
 
-    SceneEditor_LIBRARY editor = undefined
+    SceneEditor editor = undefined
     Item item = undefined
     Item parentItem = undefined
     EditorLayer layer = undefined
@@ -33,7 +33,7 @@ class SceneEditorChangeEvent
         Attribute: Parameter layer The EditorLayer affected by the addition or removal of the item
         Attribute: Parameter eventType The type of event, 1 for ADDED, 2 for REMOVED
     */
-    action Set(SceneEditor_LIBRARY editor, Item item, Item parentItem, EditorLayer layer, integer eventType)
+    action Set(SceneEditor editor, Item item, Item parentItem, EditorLayer layer, integer eventType)
         me:editor = editor
         me:item = item
         me:parentItem = parentItem
@@ -46,7 +46,7 @@ class SceneEditorChangeEvent
 
         Attribute: Returns The scene editor
     */
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         return editor
     end
 

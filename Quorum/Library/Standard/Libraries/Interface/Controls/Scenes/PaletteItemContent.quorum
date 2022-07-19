@@ -1,0 +1,127 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+class PaletteItemContent is TreeItemContent
+
+    Icon icon
+    integer padding = 4
+
+    on create
+        FlowLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+
+        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+
+        icon:SetName("Palette Icon")
+        icon:SetLeftPadding(padding)
+        icon:SetRightPadding(padding)
+        icon:SetTopPadding(padding)
+        icon:SetBottomPadding(padding)
+        Add(icon)
+
+        SetInputGroup("PaletteItemContent")
+    end
+
+    action Load(ItemBlueprint itemBlueprint)
+        TextureRegion texture = itemBlueprint:GetPaletteIcon()
+        number scale = itemBlueprint:GetPaletteScale()
+        number crop = itemBlueprint:GetPaletteCrop()
+
+        if crop not= 0
+            texture:SetRegion(crop, crop, 1.0 - crop, 1.0 - crop)
+        end
+
+        icon:Load(texture)
+        icon:SetPixelWidth(icon:GetWidth() * scale)
+        icon:SetPixelHeight(icon:GetHeight() * scale)
+        RequestLayout()
+    end
+
+    /*
+    This action updates the text on the content. Most commonly, this is the name of the TreeItem,
+    which is used to set the text of the content's label.
+    */
+    action UpdateText(text newText)
+        SetName(newText + " Palette Item")
+    end
+
+    /*
+    This action shows the button to expand/collapse the tree, if this TreeItemContent supports one.
+    */
+    action ShowExpandButton
+        // Do nothing. We don't have a close/expand button.
+    end
+
+    /*
+    This action hides the button to expand/collapse the tree, if this TreeItemContent supports one.
+    */
+    action HideExpandButton
+        // Do nothing. We don't have a close/expand button.
+    end
+
+    /*
+    This action updates the contents to reflect the expanded/collapsed state of the parent TreeItem.
+    For example, if the content includes an expand/collapse button, this should toggle it.
+    */
+    action SetExpandState(boolean expand)
+        // Do nothing. We don't have a close/expand button.
+    end
+
+    action GainedSelection
+        View2D view = GetView2D()
+        if view is LabelBoxView
+            LabelBoxView boxView = cast(LabelBoxView, view)
+            boxView:SetBackgroundColor(GetSelectionColor())
+        end
+        parent:Control:GainedSelection()
+    end
+
+    action LostSelection
+        View2D view = GetView2D()
+        if view is LabelBoxView
+            LabelBoxView boxView = cast(LabelBoxView, view)
+            boxView:SetBackgroundColor(GetBackgroundColor())
+        end
+        parent:Control:LostSelection()
+    end
+
+    action UnfocusedSelection
+        View2D view = GetView2D()
+        if view is LabelBoxView
+            LabelBoxView boxView = cast(LabelBoxView, view)
+            boxView:SetBackgroundColor(GetUnfocusedSelectionColor())
+        end
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            LabelBoxView view
+            TreeItem item = GetTreeItem()
+            Color transparent
+            transparent:SetColor(0, 0, 0, 0)
+            if item:IsSelected()
+                view:Initialize(GetSelectionColor(), transparent)
+            else
+                view:Initialize(GetBackgroundColor(), transparent)
+            end
+
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+end

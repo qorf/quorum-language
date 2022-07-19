@@ -14,19 +14,19 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 class SceneEditorFindDialog is Dialog, TextChangeListener
 
     boolean initialized = false
 
-    SceneEditor_LIBRARY controller = undefined
+    SceneEditor controller = undefined
 
     // Controls used on the dialog itself
     Label findLabel = undefined
     TextField findField = undefined
 
-    action Initialize(SceneEditor_LIBRARY controller)
+    action Initialize(SceneEditor controller)
         if initialized
             return now
         end
@@ -129,7 +129,7 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
         end
     end
 
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         return controller
     end
 

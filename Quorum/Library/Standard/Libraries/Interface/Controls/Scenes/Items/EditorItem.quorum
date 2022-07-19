@@ -1,7 +1,7 @@
 package Libraries.Interface.Controls.Scenes.Items
 
 use Libraries.Interface.Controls.Scenes.SceneConstants
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Scenes.SceneProperties
@@ -19,7 +19,7 @@ use Libraries.Interface.Item
 class EditorItem is Item
     
     SceneConstants constants
-    SceneEditor_LIBRARY editor = undefined
+    SceneEditor editor = undefined
 
     on create
         SetProperty(constants:EDITOR_TAG, undefined)
@@ -39,7 +39,7 @@ class EditorItem is Item
 
         Attribute: Parameter editor The SceneEditor this item is attached to 
     */
-    action SetSceneEditor(SceneEditor_LIBRARY editor)
+    action SetSceneEditor(SceneEditor editor)
         me:editor = editor
     end
 
@@ -48,7 +48,7 @@ class EditorItem is Item
 
         Attribute: Returns The SceneEditor this item is attached to 
     */
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         return editor
     end
 

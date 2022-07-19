@@ -7,7 +7,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
 
 /*
@@ -26,7 +26,7 @@ class ItemPreview2D is ItemPreview, EditorItem2D
         The Load action loads a texture specified by the drawable blueprint and sets its properties
         by what is specified in the blueprint and is positioned to be where the 2D cursor is.
     */
-    action Load(SceneEditor_LIBRARY editor, DrawableBlueprint schematic)
+    action Load(SceneEditor editor, DrawableBlueprint schematic)
         SetSceneEditor(editor)
         SetItemBlueprint(schematic)
 

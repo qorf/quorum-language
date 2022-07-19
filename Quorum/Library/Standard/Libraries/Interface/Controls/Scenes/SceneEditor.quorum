@@ -72,6 +72,15 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.CameraPreview2D
 use Libraries.Game.Layer
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.Number32BitArray
+use Libraries.Interface.Controls.Scenes.Items.Grid3D
+use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.Camera2DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.Camera3DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
 
 
 /*
@@ -84,7 +93,7 @@ TODO
 need to implement more to understand how to structure examples.
 
 */
-class SceneEditor_LIBRARY is Control, DefaultSceneManager
+class SceneEditor is Control, DefaultSceneManager
 
     File file = undefined
     File projectLocation = undefined
@@ -164,18 +173,18 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
     number gridMoveTimerMax = 0.5
 
     // A reference to the property dialogs for this controller.
-//    Item3DPropertiesDialog item3dPropertiesDialog
-//    Item2DPropertiesDialog item2dPropertiesDialog
-//    Camera2DPropertiesDialog camera2dPropertiesDialog
-//    Camera3DPropertiesDialog camera3dPropertiesDialog
-//    PointLightPropertiesDialog pointLightPropertiesDialog
-//    Audio3DPropertiesDialog audio3DPropertiesDialog
+    Item3DPropertiesDialog item3dPropertiesDialog
+    Item2DPropertiesDialog item2dPropertiesDialog
+    Camera2DPropertiesDialog camera2dPropertiesDialog
+    Camera3DPropertiesDialog camera3dPropertiesDialog
+    PointLightPropertiesDialog pointLightPropertiesDialog
+    Audio3DPropertiesDialog audio3DPropertiesDialog
 
     // An array containing the different property dialogs.
-//    Array<PropertiesDialog> propertiesDialogs
+    Array<PropertiesDialog> propertiesDialogs
 
     // A reference to the find dialog for this controller.
-//    VisualEditorFindDialog findDialog
+    SceneEditorFindDialog findDialog
 
     // Used to forcibly change the focus and send information via the screen reader.
     Item2D dummyItem
@@ -199,20 +208,20 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
         accessibility = manager:GetAccessibility()
 
         selection:Initialize(me)
-//        findDialog:Initialize(me)
-//
-//        propertiesDialogs:Add(item2dPropertiesDialog)
-//        propertiesDialogs:Add(item3dPropertiesDialog)
-//        propertiesDialogs:Add(camera2dPropertiesDialog)
-//        propertiesDialogs:Add(camera3dPropertiesDialog)
-//        propertiesDialogs:Add(pointLightPropertiesDialog)
-//        propertiesDialogs:Add(audio3DPropertiesDialog)
-//
-//        integer counter = 0
-//        repeat while counter < propertiesDialogs:GetSize()
-//            propertiesDialogs:Get(counter):Initialize(me)
-//            counter = counter + 1
-//        end
+        findDialog:Initialize(me)
+
+        propertiesDialogs:Add(item2dPropertiesDialog)
+        propertiesDialogs:Add(item3dPropertiesDialog)
+        propertiesDialogs:Add(camera2dPropertiesDialog)
+        propertiesDialogs:Add(camera3dPropertiesDialog)
+        propertiesDialogs:Add(pointLightPropertiesDialog)
+        propertiesDialogs:Add(audio3DPropertiesDialog)
+
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            propertiesDialogs:Get(counter):Initialize(me)
+            counter = counter + 1
+        end
     end
 
     action GetFile returns File
@@ -367,7 +376,11 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
         This action takes every dialog added to this Scene Editor and hides all of them.
     */
     action HideDialogs
-
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            propertiesDialogs:Get(counter):Hide()
+            counter = counter + 1
+        end
     end
 
     action GetEditorTag returns text
@@ -376,6 +389,70 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
 
     action GetSceneConstants returns SceneConstants
         return constants
+    end
+
+    action SetProperties3DDialog(Item3DPropertiesDialog dialog)
+        item3dPropertiesDialog = dialog
+    end
+
+    action GetProperties3DDialog returns Item3DPropertiesDialog
+        return item3dPropertiesDialog
+    end
+
+    action SetProperties2DDialog(Item2DPropertiesDialog dialog)
+        item2dPropertiesDialog = dialog
+    end
+
+    action SetCameraProperties2DDialog(Camera2DPropertiesDialog dialog)
+        camera2dPropertiesDialog = dialog
+    end
+
+    action GetCameraProperties2DDialog returns Camera2DPropertiesDialog
+        return camera2dPropertiesDialog
+    end
+
+    action SetCameraProperties3DDialog(Camera3DPropertiesDialog dialog)
+        camera3dPropertiesDialog = dialog
+    end
+
+    action GetCameraProperties3DDialog returns Camera3DPropertiesDialog
+        return camera3dPropertiesDialog
+    end
+
+    action GetProperties2DDialog returns Item2DPropertiesDialog
+        return item2dPropertiesDialog
+    end
+
+    action GetPointLightPropertiesDialog returns PointLightPropertiesDialog
+        return pointLightPropertiesDialog
+    end
+
+    action SetPointLightPropertiesDialog(PointLightPropertiesDialog pointLightPropertiesDialog)
+        me:pointLightPropertiesDialog = pointLightPropertiesDialog
+    end
+
+    action FocusItemProperties
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            PropertiesDialog dialog = propertiesDialogs:Get(counter)
+            if dialog:IsShowing()
+                dialog:FocusField()
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+    action UpdateActivePropertiesDialog(EditorItem item)
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            PropertiesDialog dialog = propertiesDialogs:Get(counter)
+            if dialog:IsShowing()
+                dialog:SetFields(item)
+                return now
+            end
+            counter = counter + 1
+        end
     end
 
     action UpdateEditorCameraTarget
@@ -404,6 +481,9 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
         end
     end
 
+    action GetFindDialog returns SceneEditorFindDialog
+        return findDialog
+    end
 
     action GetEditManager returns SceneEditorEditManager
         return editManager
@@ -416,8 +496,274 @@ class SceneEditor_LIBRARY is Control, DefaultSceneManager
         return parent:Item:IsFocused() or (dummyItem not= undefined and dummyItem:IsFocused())
     end
 
-    action Update(number seconds)
-        // Not Ready yet
+action Update(number seconds)
+        if layers:IsEmpty() or GetSelectedLayer() = undefined
+            return now
+        end
+
+        Camera camera = GetSelectedLayer():GetCamera()
+        boolean moved = false
+        boolean isCursor = false
+        Item movedItem = undefined
+
+        if GetSelectedLayer() is EditorLayer3D
+
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+
+            if (yawDirection not= 0 or pitchDirection not= 0 or rollDirection not= 0)
+                number yaw = layer:GetCameraYaw() + (yawDirection * CAMERA_ROTATIONAL_SPEED_3D * seconds)
+                number pitch = layer:GetCameraPitch() + (pitchDirection * CAMERA_ROTATIONAL_SPEED_3D * seconds)
+                if pitch > 90.0
+                    pitch = 90.0
+                elseif pitch < -90.0
+                    pitch = -90.0
+                end
+                number roll = layer:GetCameraRoll() + (rollDirection * CAMERA_ROTATIONAL_SPEED_3D * seconds)
+                
+//                layer:SetCameraYawPitchRoll(yaw, pitch, roll)
+            end
+    
+            if forwardDirection not= 0
+                workVector3:Set(camera:GetDirection())
+                workVector3:Scale(forwardDirection * CAMERA_DIRECTIONAL_SPEED_3D * seconds)
+//                camera:Move(workVector3)
+            end
+    
+            if strafeDirection not= 0
+                workVector3:Set(camera:GetDirection())
+                workVector3:CrossProduct(camera:GetUp())
+//                camera:Move(workVector3:Scale(strafeDirection * CAMERA_DIRECTIONAL_SPEED_3D * seconds))
+            end
+    
+            if verticalDirection not= 0
+                workVector3:Set(camera:GetUp())
+                workVector3:Scale(verticalDirection * CAMERA_DIRECTIONAL_SPEED_3D * seconds)
+//                camera:Move(workVector3)
+            end
+    
+            if IsFocused() or manager:GetFocus() is EditorItem3D
+                moved = false
+                workVector3:Set(0, 0, 0)
+
+                EditorItem3D focus = undefined
+
+                if IsFocused()
+                    isCursor = true
+                    focus = cast(EditorItem3D, cast(Object, layer:GetCursor()))
+                else
+                    focus = cast(EditorItem3D, manager:GetFocus())
+                end
+    
+                boolean gridSnapEnabled = IsGridSnapping()
+    
+                if gridSnapEnabled = false
+                    if selectionXDirection not= 0
+                        workVector3:SetX(selectionXDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        moved = true
+                    end
+    
+                    if selectionYDirection not= 0
+                        workVector3:SetY(selectionYDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        moved = true
+                    end
+    
+                    if selectionZDirection not= 0
+                        workVector3:SetZ(selectionZDirection * -SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        moved = true
+                    end
+    
+                    if moved
+                        focus:Move(workVector3)
+                    end
+                else
+                    if selectionXDirection not= 0 or selectionYDirection not= 0 or selectionZDirection not= 0
+                        if gridMoveTimer <= 0
+                            gridMoveTimer = gridMoveTimerMax
+
+                            if focus is CameraItem3D
+                                CameraItem3D cameraItem = cast(CameraItem3D, focus)
+                                if selectionXDirection not= 0
+                                    cameraItem:SetYaw(cameraItem:GetYaw() + selectionXDirection * CAMERA_ROTATIONAL_SPEED_3D)
+                                end
+
+                                if selectionYDirection not= 0
+                                    cameraItem:SetPitch(cameraItem:GetPitch() + selectionYDirection * CAMERA_ROTATIONAL_SPEED_3D)
+                                end
+
+                                if selectionZDirection not= 0
+                                    cameraItem:SetDistance(cameraItem:GetDistance() - selectionZDirection * CAMERA_DIRECTIONAL_SPEED_3D)
+                                end
+                            else
+                                moved = true
+                                number x = focus:GetGlobalX()
+                                number y = focus:GetGlobalY()
+                                number z = focus:GetGlobalZ()
+        
+                                if selectionXDirection < 0
+                                    x = layer:GetPreviousGridCoordinate(x)
+                                elseif selectionXDirection > 0
+                                    x = layer:GetNextGridCoordinate(x)
+                                end
+        
+                                if selectionYDirection < 0
+                                    y = layer:GetPreviousGridCoordinate(y)
+                                elseif selectionYDirection > 0
+                                    y = layer:GetNextGridCoordinate(y)
+                                end
+        
+                                if selectionZDirection < 0
+                                    z = layer:GetPreviousGridCoordinate(z)
+                                elseif selectionZDirection > 0
+                                    z = layer:GetNextGridCoordinate(z)
+                                end
+        
+                                focus:Move(x - focus:GetGlobalX(), y - focus:GetGlobalY(), z - focus:GetGlobalZ())
+                                Grid3D grid = layer:GetGrid()
+                                grid:SetPosition(grid:GetNearestGridCoordinate(focus:GetGlobalX()),
+                                    0,
+                                    grid:GetNearestGridCoordinate(focus:GetGlobalZ()))
+                            end
+                        else
+                            gridMoveTimer = gridMoveTimer - seconds
+                        end
+                    else
+                        gridMoveTimer = 0
+                    end
+                end
+
+                if moved
+                    movedItem = focus
+                end
+
+                if IsSelectionRotating()
+                    workVector3:Set(focus:GetYaw(), focus:GetPitch(), focus:GetRoll())
+                    workVector3:Add(seconds * selectionYawDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionPitchDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_3D)
+                    focus:SetRotation(workVector3)
+                end
+            end
+
+        elseif GetSelectedLayer() is EditorLayer2D
+            EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
+
+            if (rollDirection not= 0)
+                number roll = layer:GetCameraRoll() + (rollDirection * CAMERA_ROTATIONAL_SPEED_2D * seconds)
+                layer:SetCameraRoll(roll)
+            end
+    
+            if strafeDirection not= 0
+                workVector3:Set(camera:GetDirection())
+                workVector3:CrossProduct(camera:GetUp())
+                camera:Move(workVector3:Scale(-strafeDirection * CAMERA_DIRECTIONAL_SPEED_2D * seconds))
+                moved = true
+            end
+    
+            if forwardDirection not= 0
+                workVector3:Set(camera:GetUp())
+                workVector3:Scale(forwardDirection * CAMERA_DIRECTIONAL_SPEED_2D * seconds)
+                camera:Move(workVector3)
+                moved = true
+            end
+
+            if moved
+                layer:UpdateGridPosition()
+            end
+    
+            if IsFocused() or manager:GetFocus() is EditorItem2D
+                moved = false
+                workVector2:Set(0, 0)
+
+                Item2D target = undefined
+                
+                if IsFocused()
+                    isCursor = true
+                    target = cast(Item2D, cast(Object, layer:GetCursor()))
+                else
+                    target = cast(Item2D, manager:GetFocus())
+                end
+    
+                boolean gridSnapEnabled = IsGridSnapping()
+    
+                if gridSnapEnabled = false
+                    if selectionXDirection not= 0
+                        workVector2:SetX(selectionXDirection * SELECTION_DIRECTIONAL_SPEED_2D * seconds)
+                        moved = true
+                    end
+    
+                    if selectionYDirection not= 0
+                        workVector2:SetY(selectionYDirection * SELECTION_DIRECTIONAL_SPEED_2D * seconds)
+                        moved = true
+                    end
+    
+                    if moved
+                        target:Move(workVector2)
+                    end
+                else
+                    if selectionXDirection not= 0 or selectionYDirection not= 0
+                        if gridMoveTimer <= 0
+                            gridMoveTimer = gridMoveTimerMax
+    
+                            number x = target:GetGlobalX()
+                            number y = target:GetGlobalY()
+    
+                            if selectionXDirection < 0
+                                x = layer:GetPreviousGridCoordinate(x)
+                            elseif selectionXDirection > 0
+                                x = layer:GetNextGridCoordinate(x)
+                            end
+    
+                            if selectionYDirection < 0
+                                y = layer:GetPreviousGridCoordinate(y)
+                            elseif selectionYDirection > 0
+                                y = layer:GetNextGridCoordinate(y)
+                            end
+    
+                            target:Move(x - target:GetGlobalX(), y - target:GetGlobalY())
+                            moved = true
+                        else
+                            gridMoveTimer = gridMoveTimer - seconds
+                        end
+                    else
+                        gridMoveTimer = 0
+                    end
+                end
+
+                if moved
+                    movedItem = target
+                end
+
+                if GetSelectionRollDirection() not= 0 and isCursor = false
+                    number angle = target:GetRotation()
+                    angle = angle + (seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_2D)
+                    target:SetRotation(angle)
+                end
+            end
+        end
+
+        if moved
+            if movedItem not= undefined and movedItem is EditorItem
+                UpdateActivePropertiesDialog(cast(EditorItem, movedItem))
+                UpdateEditorCameraPosition()
+            end
+
+            if isCursor
+                if accessibility not= undefined
+                    Item2D newDummy
+                    text describe = GetDescription()
+                    newDummy:SetProperty(constants:EDITOR_TAG, undefined)
+                    newDummy:SetFocusable(true)
+                    newDummy:SetAccessibilityCode(dummyItem:parent:Item:ITEM)
+                    newDummy:SetName(describe)
+                    newDummy:SetInputGroup("PassthroughInput")
+    
+                    Add(newDummy)
+                    if dummyItem not= undefined
+                        Remove(dummyItem)
+                    end
+                    dummyItem = newDummy
+                    newDummy:Focus()
+                end
+            end
+        end
     end
 
     action SetFilteredItems(Array<Item> items, boolean moveFocus)

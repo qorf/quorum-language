@@ -1,6 +1,6 @@
 package Libraries.Interface.Controls.Scenes.Layers
 
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Game.Layer
 use Libraries.Compute.Vector3
@@ -16,7 +16,7 @@ grids, cursors, previews, and objects in the scene.
 class EditorLayer is Layer
 
     Vector3 cameraEulerAngles
-    SceneEditor_LIBRARY editor = undefined
+    SceneEditor editor = undefined
 
     on create
         cameraEulerAngles:Set(0, 0, 0)
@@ -108,7 +108,7 @@ class EditorLayer is Layer
 
         Attribute: Parameter editor The SceneEditor this layer is attached to 
     */
-    action SetSceneEditor(SceneEditor_LIBRARY editor)
+    action SetSceneEditor(SceneEditor editor)
         me:editor = editor
     end
 
@@ -117,7 +117,7 @@ class EditorLayer is Layer
 
         Attribute: Returns The SceneEditor this layer is attached to 
     */
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         return me:editor
     end
 

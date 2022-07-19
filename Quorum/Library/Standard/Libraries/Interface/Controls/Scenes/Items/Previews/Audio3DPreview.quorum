@@ -8,7 +8,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 
@@ -21,7 +21,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 */
 class Audio3DPreview is ItemPreview3D, EditorAudio3D
 
-    action Load(SceneEditor_LIBRARY controller, Audio3DBlueprint schematic)
+    action Load(SceneEditor controller, Audio3DBlueprint schematic)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
 

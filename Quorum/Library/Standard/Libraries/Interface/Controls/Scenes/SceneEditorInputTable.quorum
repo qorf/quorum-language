@@ -45,8 +45,8 @@ class SceneEditorInputTable is InputTable
         HashTable<InputSet, Behavior> hashTable = undefined
         Item item = event:GetItem()
 
-        if item is SceneEditor_LIBRARY
-            SceneEditor_LIBRARY controller = cast(SceneEditor_LIBRARY, event:GetItem())
+        if item is SceneEditor
+            SceneEditor controller = cast(SceneEditor, event:GetItem())
             if controller:GetSelectedLayer() is EditorLayer2D
                 hashTable = table2D
             elseif controller:GetSelectedLayer() is EditorLayer3D

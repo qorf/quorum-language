@@ -4,7 +4,7 @@ use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
-use Libraries.Interface.Controls.Scenes.SceneEditor_LIBRARY
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 /*
 A selection represents what would be interacted with if the parent is used. The 
@@ -30,7 +30,7 @@ class SceneEditorSelection is Selection
         Attribute: Parameter item The parent item in the selection.
         Attribute: Parameter displayName The name of the selected item.
     */
-    action Initialize(SceneEditor_LIBRARY controller)
+    action Initialize(SceneEditor controller)
         Initialize(controller, controller:GetName())
     end
 
@@ -123,7 +123,7 @@ class SceneEditorSelection is Selection
     */
     private action UpdateDisplayName
         if selectedLayer = undefined or selectedItem = undefined
-            SceneEditor_LIBRARY scene = GetSceneEditor()
+            SceneEditor scene = GetSceneEditor()
             if scene not= undefined
                 SetDisplayName(scene:GetName())
             else
@@ -134,7 +134,7 @@ class SceneEditorSelection is Selection
         end
 
         if itemChanged
-            SceneEditor_LIBRARY scene = GetSceneEditor()
+            SceneEditor scene = GetSceneEditor()
             scene:SetCursorToItem(selectedItem)
             scene:UpdateEditorCameraTarget()
         end
@@ -219,10 +219,10 @@ class SceneEditorSelection is Selection
     /*
         This action returns the Scene Editor object the selection is a part of
     */
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         Item item = GetItem()
-        if item is SceneEditor_LIBRARY
-            return cast(SceneEditor_LIBRARY, item)
+        if item is SceneEditor
+            return cast(SceneEditor, item)
         else
             return undefined
         end

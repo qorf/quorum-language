@@ -30,7 +30,7 @@ class SceneTreeItem is TreeItem
         return sceneLayer
     end
 
-    action GetSceneEditor returns SceneEditor_LIBRARY
+    action GetSceneEditor returns SceneEditor
         SceneTree tree = cast(SceneTree, GetTree())
         return tree:GetSceneEditor()
     end
