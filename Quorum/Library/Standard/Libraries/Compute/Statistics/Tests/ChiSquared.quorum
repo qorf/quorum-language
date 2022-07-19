@@ -63,7 +63,10 @@ use Libraries.Compute.Math
 class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
     Math math
     Gamma gamma
+    StatisticsFormatting format
+    boolean goodnessOfFit = false
     number significanceLevel = 0.05
+    constant number LIMIT = 0.000010
     HashTable<text, ChiSquaredResult> results
 
     action Calculate(DataFrame frame) 
@@ -71,13 +74,48 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
             alert("Must include at least one column.")
         end
         if GetFactorSize() > 0
-            // Separate and run each based on factor
+            if GetFactorSize() = 1
+                // Separate and run each based on factor
+                CalculateByFactor(frame)
+            else
+                alert("Only one factor allowed right now.")
+            end
         else
-            if GetColumnSize() = 1
+            if GetColumnSize() = 1 or goodnessOfFit
                 GoodnessOfFit(frame)
+                goodnessOfFit = true
             else
                 TestOfIndependence(frame)
             end
+        end
+    end
+
+    private action CalculateByFactor(DataFrame frame)
+        DataFrameColumn factor = frame:GetColumn(GetFactor(0)):Copy(true,true)
+        integer i = 0
+        repeat while i < factor:GetSize()
+            text header = factor:GetHeader()
+            text dq = header:GetDoubleQuote()
+            DataFrame newFrame 
+    
+            if factor:IsNumberColumn() or factor:IsIntegerColumn()
+                newFrame = frame:Copy(header+"="+factor:GetAsNumber(i))
+            elseif factor:IsDateTimeColumn()
+                alert("Dataframe factor by datetime seems to not work right now.")
+                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
+            elseif factor:IsBooleanColumn()
+                newFrame = frame:Copy(header+"="+factor:GetAsBoolean(i))
+            else
+                newFrame = frame:Copy(header+"="+dq+factor:GetAsText(i)+dq)
+            end
+
+            if GetColumnSize() = 1 or goodnessOfFit
+                GoodnessOfFit(newFrame)
+                goodnessOfFit = true
+            else
+                TestOfIndependence(newFrame)
+            end        
+            i = i + 1
         end
     end
 
@@ -97,7 +135,10 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
             number df = (rows-1)*(cols-1)
             number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
     
-            text resultKey = frame:GetColumn(GetColumn(0)):GetHeader()
+            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
+            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
+            end
             if not results:HasKey(resultKey)
                 ChiSquaredResult result
                 result:SetObserved(observed)
@@ -131,7 +172,10 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
                 number df = (rows-1)*(cols-1)
                 number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
 
-                text resultKey = left:GetHeader()+right:GetHeader()
+                text resultKey = left:GetHeader()+" & "+right:GetHeader()
+                if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader() + ", " + resultKey
+                end
                 if not results:HasKey(resultKey)
                     ChiSquaredResult result
                     result:SetObserved(observed)
@@ -158,7 +202,7 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         integer i = 0
         repeat while i < rowHeaders:GetSize()
             if hash:HasKey(rowHeaders:GetAsText(i))
-                observe:Add(cast(text, hash:GetValue(rowHeaders:GetAsText(i))))
+                observe:Add(hash:GetValue(rowHeaders:GetAsText(i)))
             end
             i = i + 1
         end
@@ -172,45 +216,16 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
     end
 
     private action CalculateObserved(DataFrameColumn column1, DataFrameColumn column2) returns DataFrame
-        // Count unique items
-        DataFrameColumn rowHeaders = column1:Copy(true, true) // rows
-        DataFrameColumn colHeaders = column2:Copy(true, true) // columns
-        HashTable<text,integer> countHash
-
-        integer i = 0
-        repeat while i < column1:GetSize()
-            if not column1:IsUndefined(i) and not column2:IsUndefined(i)
-                text crossKey = column1:GetAsText(i)+column2:GetAsText(i)
-                if not countHash:HasKey(crossKey)
-                    countHash:Add(crossKey, 1)
-                else
-                    countHash:Add(crossKey, countHash:GetValue(crossKey) + 1)
-                end
-            end
-            i = i + 1
-        end
-
-        rowHeaders:SetHeader("")
-        Array<DataFrameColumn> columns
-        columns:Add(rowHeaders)
-        i = 0
-        repeat while i < colHeaders:GetSize()
-            NumberColumn observe
-            observe:SetHeader(colHeaders:GetAsText(i))
-            integer j = 0
-            repeat while j < rowHeaders:GetSize()
-                text crossKey = rowHeaders:GetAsText(j)+colHeaders:GetAsText(i)
-                if countHash:HasKey(crossKey)
-                    observe:Add(countHash:GetValue(crossKey))
-                end
-                j = j + 1
-            end
-            columns:Add(observe)
-            i = i + 1
-        end
         DataFrame observed
+        Array<DataFrameColumn> columns
+        columns:Add(column1)
+        columns:Add(column2)
         observed:SetColumns(columns)
-        return observed  
+
+        observed:AddSelectedColumn(0)
+        observed:AddSelectedColumn(1)
+
+        return observed:CrossTab()
     end
 
     private action CalculateExpectedFromObserved(DataFrame observed) returns DataFrame
@@ -263,7 +278,7 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
                     if GetColumnSize() = 1 // goodnessOfFit?
                         expectedValue = totalSum/observed:GetColumn(0):GetSize()
                     end
-                    expect:Add(cast(text, expectedValue))
+                    expect:Add(expectedValue)
                     j = j + 1
                 end
                 columns:Add(expect)
@@ -287,7 +302,7 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         end
 
         // Verify Observed. All values must be 0 or greater
-        if not observed:IsNumberColumn()
+        if not observed:IsNumberColumn() and not observed:IsIntegerColumn()
             alert("Observed must a numerical column.")
         end
         Summarize observedSummary
@@ -298,7 +313,7 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         number observedSum = observedSummary:GetSum()
 
         // Verify Expected. All values must be greater than 0. Cannot be 0?
-        if not expected:IsNumberColumn()
+        if not expected:IsNumberColumn() and not expected:IsIntegerColumn()
             alert("Expected must a numerical column.")
         end
         Summarize expectedSummary
@@ -308,14 +323,13 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         end
         number expectedSum = expectedSummary:GetSum()
 
-        degreesOfFreedom = observed:GetSize() - 1 // rows-1 * cols-1
 
         number ratio = 1.0        
         boolean rescale = false      
-//        if (math:AbsoluteValue(expectedSum - observedSum) > 10e-6)
-//            ratio = observedSum / expectedSum
-//            rescale = true
-//        end
+        if (math:AbsoluteValue(expectedSum - observedSum) > LIMIT)
+            ratio = observedSum / expectedSum
+            rescale = true
+        end
         number sumSquared = 0
         integer i = 0
         repeat while i < observed:GetSize()
@@ -338,36 +352,24 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         end
 
         number sumSquared = 0
-        number ratio = 1.0        
-        boolean rescale = false
-//        if (math:AbsoluteValue(expectedSum - observedSum) > 10e-6)
-//            ratio = observedSum / expectedSum
-//            rescale = true
-//        end
-
         integer i = 1 // First column is row headers
         repeat while i < observed:GetColumns():GetSize() and i < expected:GetColumns():GetSize()
             DataFrameColumn observe = observed:GetColumn(i)
             DataFrameColumn expect = expected:GetColumn(i)
             // Verify Observed.
-            if not observe:IsNumberColumn()
+            if not observe:IsNumberColumn() and not observe:IsIntegerColumn()
                 alert("Observed must a numerical column.")
             end
     
             // Verify Expected.
-            if not expect:IsNumberColumn()
+            if not expect:IsNumberColumn() and not expect:IsIntegerColumn()
                 alert("Expected must a numerical column.")
             end
 
             integer j = 0
             repeat while j < observe:GetSize() and j < expect:GetSize()
-                if rescale
-                    number dev = observe:GetAsNumber(j) - ratio * expect:GetAsNumber(j)
-                    sumSquared = sumSquared + (dev * dev / (ratio * expect:GetAsNumber(j)))
-                else
-                    number dev = observe:GetAsNumber(j) - expect:GetAsNumber(j)
-                    sumSquared = sumSquared + (dev * dev / expect:GetAsNumber(j))
-                end
+                number dev = observe:GetAsNumber(j) - expect:GetAsNumber(j)
+                sumSquared = sumSquared + (dev * dev / expect:GetAsNumber(j))
                 j = j + 1
             end
             i = i + 1
@@ -400,21 +402,26 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
             text tb = summary:GetTab()
             text lf = summary:GetLineFeed()
             
-            summary = summary + lf + "A Pearson's chi-squared test was calculated: "
+            if goodnessOfFit
+                summary = summary + lf + "A Pearson's chi-squared goodness-of-fit test was calculated."
+            else
+                summary = summary + lf + "A Pearson's chi-squared test-of-independence was calculated."
+            end
+            summary = summary + lf + "Conducted on " + results:GetKey(result)
     
-            summary = summary + lf + "X-squared (Test Statistic): " + result:GetTestStatistic()
+            summary = summary + lf + "X-squared (Test Statistic): " + format:FormatProbabilityValue(result:GetTestStatistic())
     
-            summary = summary + lf + "Critcal Value: " + result:GetCriticalValue()
+            summary = summary + lf + "Degrees Of Freedom: " + format:FormatDegreesOfFreedom(result:GetDegreesOfFreedom())
     
-            summary = summary + lf + "Degrees Of Freedom: " + result:GetDegreesOfFreedom()
+            summary = summary + lf + "P-Value: " + format:FormatProbabilityValue(result:GetProbabilityValue())
+
+            //P-value ≤ α: The variables have a statistically significant association (Reject H0)
+
+            //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
     
-            summary = summary + lf + "P-Value: " + result:GetProbabilityValue()
+            summary = summary + lf + "Observed Count: " + lf + result:GetObserved():ToText()
     
-            // If really large don't print in summary
-            summary = summary + lf + "Observed: " + lf + result:GetObserved():ToText()
-    
-            // If really large don't print in summary
-            summary = summary + lf + "Expected: " + lf + result:GetExpected():ToText()
+            summary = summary + lf + "Expected Count: " + lf + result:GetExpected():ToText()
         end
         return summary
     end
@@ -425,14 +432,6 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
     */
     action GetFormalSummary returns text
         text summary = "A Pearson's chi-squared test was calculated: "
-
-        StatisticsFormatting format
-        
-//        result = result + "R-squared = " + format:FormatProbabilityValue(GetEffectSize()) + ", F("
-//
-//        result = result + "" + GetRegressionDegreesOfFreedom() + ", " 
-//        result = result + GetResidualDegreesOfFreedom() + ") = "
-//        result = result + format:FormatProbabilityValue(GetCriticalValue()) + ", p = " + format:FormatProbabilityValue(GetProbabilityValue())
 
         return summary
     end
