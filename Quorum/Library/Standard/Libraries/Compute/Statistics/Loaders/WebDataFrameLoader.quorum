@@ -1,0 +1,46 @@
+package Libraries.Compute.Statistics.Loaders
+use Libraries.Compute.Statistics.DataFrameLoader
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.System.File
+
+/*
+    This class can load data into a DataFrame from a comma separated value file.
+    By default, this class chooses its columns from the first value in a cell.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+
+    //Load a comma separated file
+    DataFrame frame
+    WebDataFrameLoader loader
+    loader:SetInput("input")
+    frame:Load(loader) 
+*/
+class WebDataFrameLoader is DataFrameLoader
+    text location = ""
+    text attribute = undefined
+    action Load(DataFrame frame, File file)
+        NativeLoad(frame, file)
+    end
+
+    system action NativeLoad(DataFrame frame, File file)
+
+    action SetLocation(text value)
+        location = value
+    end
+
+    action GetLocation returns text
+        return location
+    end
+
+    action GetAttribute returns text
+        return attribute
+    end
+
+    action SetAttribute(text attribute)
+        me:attribute = attribute
+    end
+end

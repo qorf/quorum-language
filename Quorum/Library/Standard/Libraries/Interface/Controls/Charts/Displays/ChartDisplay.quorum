@@ -1,6 +1,8 @@
 package Libraries.Interface.Controls.Charts
 use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.DesktopConfiguration
+use Libraries.Game.WebConfiguration
 
 /*
     This class is used as a default display region for charts. It allows basic
@@ -11,6 +13,13 @@ use Libraries.Interface.Layouts.ManualLayout
 class ChartDisplay is Game
     boolean exitOnStart = false
     integer frame = 0
+
+    on create
+        DesktopConfiguration desktop = GetDesktopConfiguration()
+        desktop:targetFramesPerSecond = 10
+        WebConfiguration web = GetWebConfiguration()
+        web:framesPerSecondLimit = 10
+    end
 
     Chart chart = undefined
     action GetChart returns Chart

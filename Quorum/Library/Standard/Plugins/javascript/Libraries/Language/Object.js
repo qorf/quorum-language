@@ -2,12 +2,20 @@ var globalStaticHash = 1;
 const globalSharedClasses = new Map();
 
 function global_Get_Shared_Class(value) {
-    return globalSharedClasses[value];
+    return globalSharedClasses.get(value);
 }
 
 function global_Add_Shared_Class(key, value) {
-    globalSharedClasses[key] = value;
+    globalSharedClasses.set(key, value);
     return value;
+}
+
+function global_Remove_Shared_Class(key) {
+    globalSharedClasses.delete(key);
+}
+
+function global_Empty_Shared_Classes() {
+    globalSharedClasses.clear();
 }
 
 function global_cast_text_to_boolean(value) {

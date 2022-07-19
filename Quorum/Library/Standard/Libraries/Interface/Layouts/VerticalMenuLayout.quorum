@@ -90,7 +90,7 @@ class VerticalMenuLayout is Layout
         number oldHeight = container:GetHeight()
 
         container:SetSize(longestWidth + leftBorder + rightBorder, y + topBorder)
-        container:MoveY(oldHeight - container:GetHeight())
+        container:SetY(-container:GetHeight())
 
         repeat while i < items:GetSize()
             Item2D kid = items:Get(i)
