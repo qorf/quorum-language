@@ -1867,7 +1867,7 @@ action Update(number seconds)
         return false
     end
 
-action Save
+    action Save
         Array<EditorLayer> layers = GetSceneLayers()
         Scene scene = Save(layers)
         scene:GetData():SetPrettyPrint(true)
