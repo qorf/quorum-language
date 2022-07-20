@@ -1,0 +1,14 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Behaviors.Behavior
+
+class SelectionDeleteBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SelectionHighlight
+            SelectionHighlight highlight = cast(SelectionHighlight, event:GetItem())
+            highlight:GetSceneEditor():Delete(highlight)
+        end
+    end
+end

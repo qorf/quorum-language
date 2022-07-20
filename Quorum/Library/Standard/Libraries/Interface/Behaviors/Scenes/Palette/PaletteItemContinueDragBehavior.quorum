@@ -1,0 +1,39 @@
+package Libraries.Interface.Behaviors.Scenes.Palette
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Scenes.ScenePaletteItem
+use Libraries.Interface.Behaviors.Behavior
+
+class PaletteItemContinueDragBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+
+        Item2D item = undefined
+        if dragEvent:GetSource() is Item2D
+            item = cast(Item2D, dragEvent:GetSource())
+            repeat until item = undefined or item is ScenePaletteItem
+                item = item:GetParent()
+            end
+        end
+
+        if item = undefined
+            return now
+        end
+        
+        ScenePaletteItem paletteItem = cast(ScenePaletteItem, item)
+        Item draggedItem = paletteItem:GetPalette():GetDraggedItem()
+
+        if draggedItem is Drawable
+            Drawable drawable = cast(Drawable, draggedItem)
+            drawable:Move(dragEvent:GetMovementX(), dragEvent:GetMovementY())
+        else
+            // TO-DO
+        end
+    end
+
+end

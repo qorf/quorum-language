@@ -1,0 +1,35 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+class FocusCameraBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        SceneEditor editor = undefined
+        Object item = event:GetItem()
+        if item is SceneEditor
+            editor = cast(SceneEditor, item)
+        elseif item is EditorItem
+            EditorItem temp = cast(EditorItem, item)
+            editor = temp:GetSceneEditor()
+        elseif item is PropertiesDialog
+            PropertiesDialog dialog = cast(PropertiesDialog, item)
+            editor = dialog:GetSceneEditor()
+        end
+
+        if editor = undefined
+            return now
+        end
+
+        EditorLayer layer = editor:GetSelectedLayer()
+        if layer not= undefined
+            editor:SelectEditorCamera(layer)
+        end
+    end
+
+end

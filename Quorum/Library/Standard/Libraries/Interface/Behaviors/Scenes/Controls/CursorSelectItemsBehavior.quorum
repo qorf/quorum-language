@@ -1,0 +1,18 @@
+package Libraries.Interface.Behaviors.Scenes.Controls
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+class CursorSelectItemsBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SceneEditor
+            SceneEditor controller = cast(SceneEditor, event:GetItem())
+            EditorCursor cursor = controller:GetCursor()
+            controller:SetFilteredItems(cursor:GetItemsAtCursor(), true)
+        end
+    end
+
+end
