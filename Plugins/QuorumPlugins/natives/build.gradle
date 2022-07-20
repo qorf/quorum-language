@@ -1,19 +1,26 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'cpp-library'
     id 'xcode'
     id 'visual-studio'
+    id "de.undercouch.download" version "5.1.0"
 }
 
+def downloadFolder = "${project.rootDir}/downloads"
 group = 'natives.quorum'
 version = '1.0'
 
 repositories {
     mavenCentral()
 }
+//https://download.savannah.gnu.org/releases/freetype/freetype-2.12.1.tar.gz
+//https://download.savannah.gnu.org/releases/freetype/freetype-old/freetype-2.5.1.tar.gz
 
 library {
     linkage = [Linkage.STATIC]
     dependencies {
+
     }
 
     targetMachines = [
@@ -33,6 +40,100 @@ library {
         }
     }
 }
+
+/*
+Use Download Task to get all of the relevant JDKs that will be deployed with the project. The goal here is to get
+the JDK's associated with the the machine in question and then to modify the script to move it into
+Quorum Studio in the correct way per platform. Different architectures are all downloaded here in part
+to future proof the system and make it consistent everywhere, including in the transition to the M1 processor on Mac.
+
+Here is the documentation for the download task plugin
+https://github.com/michel-kraemer/gradle-download-task
+ */
+task prepare(type: Download) {
+    //download JDKs for Mac aarch64, x86_64 and Windows x86_64
+    src ([
+            'https://download.savannah.gnu.org/releases/freetype/freetype-2.12.1.tar.gz',
+            'https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.15%2B10/OpenJDK11U-jdk_x64_mac_hotspot_11.0.15_10.tar.gz',
+            'https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.15%2B10/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.15_10.tar.gz',
+            'https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.15%2B10/OpenJDK11U-jdk_x64_windows_hotspot_11.0.15_10.zip'
+    ])
+    dest downloadFolder
+    overwrite false
+    doLast {
+        println "Cleaning up old files"
+        //delete "${downloadFolder}/mac"
+        //delete "${downloadFolder}/windows"
+
+        println "Deflating Tar Files"
+        println "${downloadFolder}/OpenJDK11U-jdk_x64_mac_hotspot_11.0.15_10.tar.gz"
+//        copy {
+//            from tarTree(resources.gzip("${downloadFolder}/freetype-2.12.1.tar.gz"))
+//            into downloadFolder + "/freetype/"
+//        }
+//        copy {
+//            from tarTree(resources.gzip("${downloadFolder}/OpenJDK11U-jdk_x64_mac_hotspot_11.0.15_10.tar.gz"))
+//            into downloadFolder + "/mac/x64/"
+//        }
+//        copy {
+//            from tarTree(resources.gzip(downloadFolder + "/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.15_10.tar.gz"))
+//            into downloadFolder + "/mac/aarch64/"
+//        }
+//        copy {
+//            from zipTree(downloadFolder + "/OpenJDK11U-jdk_x64_windows_hotspot_11.0.15_10.zip")
+//            into downloadFolder + "/windows/x64/"
+//        }
+
+        //https://stackoverflow.com/questions/44184890/compiling-freetype
+
+//        externalNativeBuild {
+//            cmake {
+//                // Provides a relative path to your CMake build script.
+//                version "3.13.0+"
+//                path downloadFolder + "downloads/freetype/freetype-2.12.1/CMakeLists.txt"
+//            }
+//        }
+//        print "Copying from Quorum Studio"
+//        copy {
+//            from 'build/classes/java/main'
+//            into 'build/classes'
+//        }
+//
+//        print "Copying to Installer"
+//        def destPath = '../QuorumStudio/Java/jdk'
+//        def homePath = ""
+//        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//            homePath = jdkFolder + "/windows/x64/jdk-11.0.15+10"
+//        } else if(Os.isFamily(Os.FAMILY_MAC)) {
+//            homePath = jdkFolder + "/mac/x64/jdk-11.0.15+10"
+//        } //Os.FAMILY_UNIX
+//        if (!file(destPath).exists()) {
+//            mkdir destPath
+//            copy {
+//                from homePath
+//                into destPath
+//            }
+//            print "Copy Complete."
+//        } else {
+//            print "JDK already there. No copying was done."
+//        }
+    }
+}
+
+//task compileFreeType(type:Exec) {
+//    doLast {
+//      //  exec {
+//            //println "Compiling freetype"
+//            workingDir downloadFolder + "downloads/freetype/freetype-2.12.1/"
+//            //println "Making build folder"
+//            //commandLine 'mkdir', 'build'
+//            //commandLine 'cd', 'build'
+//            //println "Compiling"
+//            //commandLine '/Applications/CMake.app/Contents/bin/cmake', '..'
+//            //commandLine 'make'
+//       // }
+//    }
+//}
 
 
 
