@@ -65,6 +65,8 @@ use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
 use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
+use Libraries.System.Properties
+use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -787,9 +789,25 @@ class DataFrame
         frame:Load("Data.csv") 
     */
     action Load(text location)
-        File file
-        file:SetPath(location)
-        Load(file)
+        Properties properties
+        if properties:IsWebBrowser()
+            //first check if the file is there
+            File file
+            file:SetPath(location)
+            if file:Exists()
+                Load(file)
+            else
+                WebDataFrameLoader loader
+                loader:SetLocation(location)
+                loader:SetAttribute("data-value")
+                Load(loader)
+            end
+            //if the file isn't there, see if there's a custom load on the page
+        else
+            File file
+            file:SetPath(location)
+            Load(file)
+        end
     end
 
     /*
