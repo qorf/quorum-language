@@ -792,15 +792,16 @@ class DataFrame
         Properties properties
         if properties:IsWebBrowser()
             //first check if the file is there
-            File file
-            file:SetPath(location)
-            if file:Exists()
-                Load(file)
-            else
-                WebDataFrameLoader loader
-                loader:SetLocation(location)
-                loader:SetAttribute("data-value")
+            WebDataFrameLoader loader
+            loader:SetLocation(location)
+            loader:SetAttribute("data-value")
+            boolean loadable = loader:CanLoad()
+            if loadable
                 Load(loader)
+            else
+                File file
+                file:SetPath(location)
+                Load(file)
             end
             //if the file isn't there, see if there's a custom load on the page
         else
