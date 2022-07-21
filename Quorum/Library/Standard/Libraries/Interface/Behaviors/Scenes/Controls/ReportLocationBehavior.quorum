@@ -1,0 +1,32 @@
+package Libraries.Interface.Behaviors.Scenes.Controls
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Compute.Math
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+class ReportLocationBehavior is Behavior
+
+    Math math
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SceneEditor
+            SceneEditor editor = cast(SceneEditor, event:GetItem())
+            Vector3 position = editor:GetSelectedLayer():GetCamera():GetPosition()
+            text message = math:Round(position:GetX(), 2) + ", " + math:Round(position:GetY(), 2) + ", " + math:Round(position:GetZ(), 2)
+            editor:NotifyAccessibility(editor, "Camera at " + message)
+        elseif event:GetItem() is EditorItem3D
+            EditorItem3D item = cast(EditorItem3D, event:GetItem())
+            Vector3 position = item:GetGlobalPosition()
+            text message = math:Round(position:GetX(), 2) + ", " + math:Round(position:GetY(), 2) + ", " + math:Round(position:GetZ(), 2)
+            item:NotifyAccessibility(message)
+        elseif event:GetItem() is EditorItem2D
+            EditorItem2D item = cast(EditorItem2D, event:GetItem())
+            text message = math:Round(item:GetGlobalX(), 2) + ", " + math:Round(item:GetGlobalY(), 2)
+            item:NotifyAccessibility(message)
+        end
+    end
+end

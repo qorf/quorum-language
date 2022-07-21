@@ -1,0 +1,18 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+class ReportCameraDirectionBehavior is Behavior
+
+    Math math
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SceneEditor
+            SceneEditor controller = cast(SceneEditor, event:GetItem())
+            controller:NotifyAccessibility(controller, "Camera yaw is " + math:Round(controller:GetYaw(), 1) + ", pitch is " + math:Round(controller:GetPitch(), 1))
+        end
+    end
+end

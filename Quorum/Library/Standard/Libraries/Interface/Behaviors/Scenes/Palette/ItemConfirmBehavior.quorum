@@ -1,0 +1,14 @@
+package Libraries.Interface.Behaviors.Scenes.Palette
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
+use Libraries.Interface.Behaviors.Behavior
+
+class ItemConfirmBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is ItemPreview
+            ItemPreview preview = cast(ItemPreview, event:GetItem())
+            preview:GetSceneEditor():ConfirmItemPreview(preview)
+        end
+    end
+end
