@@ -185,6 +185,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     boolean refreshGutters = false
 
+    // Values updated in GetLineDrawables. These are used to quickly find the x, y coordinates related to a character index.
+    number lineBeginningX = 0
+    number glyphWidth = 0
+    number startLineY = 0
+
+    // The line height padding can be used to give extra vertical space to each line. Both pixel and percentage padding can be used.
+    number pixelLinePadding = 0
+    number percentageLinePadding = 0
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -450,6 +459,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
         end
 
+        /*
+        For monospaced fonts, this choice is arbitrary. For non-monospaced
+        fonts, W is typically one of the broadest characters, but this is
+        imprecise at best. This approach is only meant as a short-term solution
+        to quickly calculate the width of lines. MultipleLineText will handle
+        this more elegantly in the future.
+        */
+        glyphWidth = font:GetGlyph("W"):horizontalAdvance
+
         // Ensure caret is correct size.
         InitializeCaret()
 
@@ -492,11 +510,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         */
 
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        startLineY = yPosition - lineHeight
+
         integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
 
-            number drawableY = yPosition - lineHeight / 4.0
+            number drawableY = yPosition + GetUnpaddedSelectionYOffset()
 
             textIndex = GetIndexOfLine(counter)
 
@@ -509,6 +529,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             integer characterCounter = 0
             integer styleCounter = 0
             number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+            lineBeginningX = startX
             number x = startX
 
             // Calculate highlights on this line.
@@ -867,7 +888,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         Drawable caret = background:GetCaret()
-        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset - font:GetLineHeight() / 4)
+        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset + GetUnpaddedSelectionYOffset())
         return x + leftCharacterPadding
     end
 
@@ -899,6 +920,53 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action GetStartLine returns integer
         return background:GetStartLine()
+    end
+
+    action GetCharacterX(integer index) returns number
+        return lineBeginningX + (index - textValue:CharacterIndexFromLineIndex(textValue:LineIndexFromCharacterIndex(index))) * glyphWidth
+    end
+
+    action GetCharacterY(integer index) returns number
+        integer lineIndex = textValue:LineIndexFromCharacterIndex(index)
+        integer firstLine = GetStartLine()
+        number lineHeight = font:GetLineHeight()
+        return startLineY - (lineIndex - firstLine) * lineHeight
+    end
+
+    action SetPixelLineHeightPadding(number padding)
+        pixelLinePadding = padding
+    end
+
+    action GetPixelLineHeightPadding returns number
+        return pixelLinePadding
+    end
+
+    action SetPercentageLineHeightPadding(number padding)
+        percentageLinePadding = padding
+    end
+
+    action GetPercentageLineHeightPadding returns number
+        return percentageLinePadding
+    end
+
+    action GetUnpaddedLineHeight returns number
+        return font:GetLineHeight()
+    end
+
+    action GetUnpaddedSelectionYOffset returns number
+        return -GetUnpaddedLineHeight() / 4.0
+    end
+
+    action GetTotalLineHeightPadding returns number
+        return GetPixelLineHeightPadding() + (GetUnpaddedLineHeight() * GetPercentageLineHeightPadding())
+    end
+
+    action GetLineHeight returns number
+        return GetUnpaddedLineHeight() + GetTotalLineHeightPadding()
+    end
+
+    action GetSelectionYOffset returns number
+        return GetUnpaddedSelectionYOffset() - (GetTotalLineHeightPadding() / 2.0)
     end
 
     private action EmptySelectionEvent(boolean textChanged)

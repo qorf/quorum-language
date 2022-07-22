@@ -77,10 +77,17 @@ class TextBoxRenderer is Control
     end
 
     action Draw(Painter2D painter)
+        DrawView(painter)
+        DrawContents(painter)
+    end
+
+    action DrawView(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
         end
+    end
 
+    action DrawContents(Painter2D painter)
         if sortPreHighlights
             preSelectionHighlights:Sort()
             sortPreHighlights = false
