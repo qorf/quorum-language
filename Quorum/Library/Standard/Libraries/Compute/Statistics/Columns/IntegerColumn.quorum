@@ -261,7 +261,7 @@ class IntegerColumn is DataFrameColumn
     end
 
     private action GetUnique(Array<Integer> array) returns Array<Integer>
-        Array<Number> set
+        Array<Integer> set
         HashTable<integer,integer> hash = CalculateValueCount(array)
         Iterator<integer> iterator = hash:GetKeyIterator()
         repeat while iterator:HasNext()

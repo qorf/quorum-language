@@ -257,13 +257,11 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         number controlRatio = itemsInView / GetSize()
         if controlRatio >= 1.0
             SetSize(longestWidth + leftBorder + rightBorder, largestHeight * GetSize())
-            MoveY(oldHeight - GetHeight())
 
             scrollControl:Hide()
             scrollBar:Hide()
         else
             SetSize(longestWidth + leftBorder + rightBorder + barThickness, bottomBorder + topBorder + largestHeight * itemsInView)
-            MoveY(oldHeight - GetHeight())
 
             scrollControl:Show()
             scrollBar:Show()
@@ -271,6 +269,8 @@ class ScrollableMenuPanel is MenuPanelBlueprint
             scrollControl:SetSize(barThickness, GetHeight() * controlRatio)
             scrollControl:SetPosition(0, GetHeight() * (GetSize() - (scrollIndex + itemsInView)) / GetSize())
         end
+
+        SetY(-GetHeight())
 
         /*
         We need to reset our layout flag to indicate we don't need resizing

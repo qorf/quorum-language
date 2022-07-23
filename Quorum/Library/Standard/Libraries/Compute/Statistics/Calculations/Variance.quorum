@@ -43,6 +43,14 @@ class Variance is DataFrameColumnCalculation
             mean = meanCalc:GetMean()
         end
     end
+
+    /*
+        This action allows us to manually override the total size
+        for the calculation.
+    */
+    action SetSize(integer size)
+        me:size = size
+    end
    
     action Add(Number value) 
         if value not= undefined
