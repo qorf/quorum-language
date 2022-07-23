@@ -4,14 +4,20 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.TwoVariableChart
+use Libraries.Interface.Events.FocusEvent
 
 class RegressionLinePointMarker is ChartDrawable
 
     integer pointIndex = 0
 
+    // Pressing enter on a point marker makes it active for keyboard input.
+    // It'll suppress some keys from going to the chart, using them to "move" the point around instead.
+    boolean keyboardActive = false
+
     on create
         SetName("Regression Line Control Point")
         SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
         Hide()
         SetZ(-1)
     end
@@ -27,8 +33,8 @@ class RegressionLinePointMarker is ChartDrawable
             
             number pointWidth = regressionLine:GetPointThickness()
             number pointHeight = pointWidth
-            number pointX = regressionLine:GetPixelPointX(pointIndex) - pointWidth / 2.0
-            number pointY = regressionLine:GetPixelPointY(pointIndex) - pointHeight / 2.0
+            number pointX = 0 - pointWidth / 2.0
+            number pointY = 0 - pointHeight / 2.0
     
             number x1 = 0
             number y1 = 0
@@ -108,6 +114,43 @@ class RegressionLinePointMarker is ChartDrawable
 
     action SetPointIndex(integer pointIndex)
         me:pointIndex = pointIndex
+    end
+
+    action LostFocus(FocusEvent event)
+        SetKeyboardActive(false)
+        parent:Control:LostFocus(event)
+    end
+
+    action IsKeyboardActive returns boolean
+        return keyboardActive
+    end
+
+    action SetKeyboardActive(boolean active)
+        keyboardActive = active
+        RegressionLine line = GetRegressionLine()
+        if line not= undefined
+            line:UpdateMarkerDescription(me)
+        end
+    end
+
+    action HasSpecialNavigation(integer direction) returns boolean
+        return keyboardActive or (direction = parent:ChartItem:ENTER)
+    end
+
+    action DoSpecialNavigation(integer direction)
+        if keyboardActive = false and direction = parent:ChartItem:ENTER
+            GetRegressionLine():KeyboardActivatePoint(me)
+        else
+            if direction = parent:ChartItem:ESCAPE
+                GetRegressionLine():KeyboardDeactivatePoint(me)
+            elseif direction = parent:ChartItem:LEFT or direction = parent:ChartItem:RIGHT or direction = parent:ChartItem:UP or direction = parent:ChartItem:DOWN
+                if pointIndex = 1
+                    GetRegressionLine():KeyboardMovePoint(me, direction)
+                else
+                    GetRegressionLine():KeyboardRotateLine(me, direction)
+                end
+            end
+        end
     end
 
 end

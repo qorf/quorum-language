@@ -33,6 +33,12 @@ class RegressionLine is ChartDrawable, LinePath
     boolean bestFit = false
     boolean horizontalOrientation = true
 
+    // How far a point should move when moved via the keyboard, as a percentage of the range of width or height.
+    number keyboardMovePercent = 0.1
+
+    // How much the line should rotate when moved via the keyboard, in degrees.
+    number keyboardRotateAngle = 15
+
     // Padding values used to calculate the edges around the rectangle, reserved for rendering the edges of points.
     // Mostly only needed for movable lines.
     number horizontalMapPadding = 0
@@ -173,6 +179,7 @@ class RegressionLine is ChartDrawable, LinePath
         end
 
         UpdateMarkerPositions()
+        UpdateMarkerDescriptions()
         UpdatePointDescriptions()
     end
 
@@ -189,7 +196,7 @@ class RegressionLine is ChartDrawable, LinePath
                 pointMarkers:Get(i):SetPosition(GetPixelPointX(i), GetPixelPointY(i) + GetPointThickness())
             else
                 pointMarkers:Get(i):SetPosition(GetPixelPointX(i) + GetPointThickness(), GetPixelPointY(i))
-            end            
+            end
 
             i = i + 1
         end
@@ -497,6 +504,133 @@ class RegressionLine is ChartDrawable, LinePath
         elseif index = 1
             IntersectPixelPointViaConstant(pixelX, pixelY)
         end
+    end
+
+    action KeyboardActivatePoint(RegressionLinePointMarker marker)
+        marker:SetKeyboardActive(true)
+        SwapMarkers(marker)
+    end
+
+    action KeyboardDeactivatePoint(RegressionLinePointMarker marker)
+        marker:SetKeyboardActive(false)
+        SwapMarkers(marker)
+    end
+
+    action KeyboardMovePoint(RegressionLinePointMarker marker, integer direction)
+        integer index = marker:GetPointIndex()
+        number xMin = GetMappedLeft() + horizontalMapPadding
+        number xMax = GetMappedRight() - horizontalMapPadding
+        number yMin = GetMappedBottom() + verticalMapPadding
+        number yMax = GetMappedTop() - verticalMapPadding
+
+        number x = 0
+        number y = 0
+
+        if direction = parent:ChartItem:LEFT
+            x = -keyboardMovePercent * (xMax - xMin)
+        elseif direction = parent:ChartItem:RIGHT
+            x = keyboardMovePercent * (xMax - xMin)
+        elseif direction = parent:ChartItem:DOWN
+            y = -keyboardMovePercent * (yMax - yMin)
+        elseif direction = parent:ChartItem:UP
+            y = keyboardMovePercent * (yMax - yMin)
+        end
+
+        if index = 1
+            Vector2 point
+            point:Set(GetMidpointX() + x, GetMidpointY() + y)
+            IntersectMappedPointViaConstant(point)
+        else
+            Vector2 point1
+            if index = 0
+                point1:Set(GetX1() + x, GetY1() + y)
+            else
+                point1:Set(GetX2() + x, GetY2() + y)
+            end
+
+            Vector2 point2
+            point2:Set(GetMidpointX(), GetMidpointY())
+            SetLineThroughMappedPoints(point1, point2)
+        end
+
+        SwapMarkers(marker)
+    end
+
+    action KeyboardRotateLine(RegressionLinePointMarker marker, integer direction)
+        number degrees = 0
+        if direction = parent:ChartItem:LEFT or direction = parent:ChartItem:DOWN
+            degrees = keyboardRotateAngle
+        else
+            degrees = -keyboardRotateAngle
+        end
+
+        RotateLine(degrees)
+
+        SwapMarkers(marker)
+    end
+
+    action RotateLine(number degrees)
+        Vector2 base
+        base:Set(GetX2() - GetMidpointX(), GetY2() - GetMidpointY())
+        base:Rotate(degrees)
+
+        slope = base:GetY() / base:GetX()
+        constantValue = GetMidpointY() - slope * GetMidpointX()
+
+        RefreshPoints()
+        GetParentChart():RequestLayout()
+    end
+
+    private action UpdateMarkerDescriptions
+        integer i = 0
+        repeat while i < pointMarkers:GetSize()
+            RegressionLinePointMarker marker = pointMarkers:Get(i)
+            UpdateMarkerDescription(marker)
+
+            i = i + 1
+        end
+    end
+
+    action UpdateMarkerDescription(RegressionLinePointMarker marker)
+        // TO-DO: Set more meaningful information here
+        if marker:IsKeyboardActive()
+            marker:SetName("Slope is " + math:Round(slope, 2) + ", constant is " + math:Round(constantValue, 2))
+            if marker:GetPointIndex() = 1
+                marker:SetDescription(": Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the regression line.")
+            else
+                marker:SetDescription(": Use the left arrow to rotate clockwise, or right arrow to rotate the line counter-clockwise. Press Shift Enter to return to the regression line.")
+            end
+        else
+            marker:SetName("Regression control point " + (marker:GetPointIndex() + 1) + ": line slope is " + math:Round(slope, 2) + ", constant is " + math:Round(constantValue, 2))
+            marker:SetDescription(": Press Enter to select the point and change the regression line.")
+        end
+    end
+
+    private action SwapMarkers(RegressionLinePointMarker startMarker) returns RegressionLinePointMarker
+        extraMarker:SetPointIndex(startMarker:GetPointIndex())
+        extraMarker:SetName(startMarker:GetName())
+        extraMarker:SetDescription(startMarker:GetDescription())
+        extraMarker:SetContainer(startMarker:GetContainer())
+
+        extraMarker:SetKeyboardActive(startMarker:IsKeyboardActive())
+        extraMarker:SetLeftItem(startMarker:GetLeftItem())
+        extraMarker:SetRightItem(startMarker:GetRightItem())
+
+        Remove(startMarker)
+        Add(extraMarker)
+        
+        RegressionLinePointMarker result = extraMarker
+
+        pointMarkers:Set(startMarker:GetPointIndex(), extraMarker)
+        extraMarker = startMarker
+
+        Chart chart = GetParentChart()
+        if chart:GetSelection():GetChartItem():Equals(startMarker)
+            chart:Select(result)
+        end
+        chart:RequestLayout()
+
+        return result
     end
 
     /*

@@ -2283,6 +2283,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:RIGHT)
+            selected:DoSpecialNavigation(selected:RIGHT)
+            return now
+        end
+
         ChartItem next = selected:GetRightItem()
         if next not= undefined
             selection:Set(next)
@@ -2297,6 +2302,11 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:LEFT)
+            selected:DoSpecialNavigation(selected:LEFT)
             return now
         end
 
@@ -2317,6 +2327,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:DOWN)
+            selected:DoSpecialNavigation(selected:DOWN)
+            return now
+        end
+
         ChartItem next = selected:GetDownItem()
         if next not= undefined
             selection:Set(next)
@@ -2334,6 +2349,12 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:UP)
+            output "Doing UP navigation with " + selected:UP
+            selected:DoSpecialNavigation(selected:UP)
+            return now
+        end
+
         ChartItem next = selected:GetUpItem()
         if next not= undefined
             selection:Set(next)
@@ -2348,6 +2369,11 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:ENTER)
+            selected:DoSpecialNavigation(selected:ENTER)
             return now
         end
 
@@ -2377,6 +2403,11 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:ESCAPE)
+            selected:DoSpecialNavigation(selected:ESCAPE)
             return now
         end
 

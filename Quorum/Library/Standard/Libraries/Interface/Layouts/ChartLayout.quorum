@@ -777,7 +777,12 @@ class ChartLayout is Layout
                     LayoutProperties properties = entryBox:GetDefaultLayoutProperties()
                     entryBox:LoadRectangle(cast(integer, legendContainer:GetWidth()-1),numberOfLabels*iconSize+(numberOfLabels-1)*(padding/2)+padding,transparent)
                     entryBox:SetPosition(1, iconY-(padding/2))
-                    legendContainer:Add(entryBox)
+
+                    // Only add the box to the legend if the box hasn't previously been added to something.
+                    if entryBox:GetParent() = undefined
+                        legendContainer:Add(entryBox)
+                    end
+
                     i = i + 1
                 end
             end

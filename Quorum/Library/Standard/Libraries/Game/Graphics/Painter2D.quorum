@@ -142,9 +142,6 @@ class Painter2D
         LoadDefaultPainter()
     end
 
-    // TO-DO: REMOVE THIS
-    integer debugCounter = 0
-
     /*
     This action will set a color filter on the painter, causing all Drawables
     drawn by this painter to be tinted with the given color. 
@@ -475,13 +472,6 @@ class Painter2D
     action End
         if not IsDrawing()
             alert("This painter isn't drawing yet! Call Begin() before calling End().")
-        end
-
-        // TO-DO: REMOVE THIS
-        debugCounter = debugCounter + 1
-        if debugCounter = 100
-            debugCounter = 0
-            output "THIS FRAME: Drawing " + sortingArray:GetSize() + " elements."
         end
 
         integer counter = 0

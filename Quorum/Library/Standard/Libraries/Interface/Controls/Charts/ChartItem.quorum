@@ -10,6 +10,14 @@ use Libraries.Interface.Events.FocusEvent
     This item should not be used itself, except when obtaining information from a chart.
 */
 class ChartItem is Control
+
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer UP = 2
+    public constant integer DOWN = 3
+    public constant integer ENTER = 4
+    public constant integer ESCAPE = 5
+
     text information = ""
     Chart container = undefined
 
@@ -170,6 +178,30 @@ class ChartItem is Control
     */
     action SetPassThroughSelection(boolean passThroughSelection)
         me:passThroughSelection = passThroughSelection
+    end
+
+    /*
+    This action indicates if this Control has special behavior when asked to navigate in
+    a specific direction. The parameter should be one of ChartItem's navigation constants,
+    e.g. UP, DOWN, ENTER, etc.
+
+    By default this always returns false, but some classes may override this with different
+    values.
+    */
+    action HasSpecialNavigation(integer navigationType) returns boolean
+        return false
+    end
+
+    /*
+    This action triggers special navigation behavior in the specified navigation direction. 
+    This behavior overrides the typical navigation provided by the chart. This will only be
+    called by the Chart if the HasSpecialNavigation action returns true for the provided
+    parameter.
+
+    By default this does nothing, but some classes may override this with custom behavior.
+    */
+    action DoSpecialNavigation(integer navigationType)
+        // Do nothing. Other classes may override this to do something.
     end
 
 end
