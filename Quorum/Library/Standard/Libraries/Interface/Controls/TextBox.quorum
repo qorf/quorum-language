@@ -194,6 +194,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     number pixelLinePadding = 0
     number percentageLinePadding = 0
 
+    // A boolean that checks if line padding should be considered when sizing selection highlights.
+    // Classes that inherit from TextBox can override this.
+    boolean applyPaddingToSelection = true
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -474,9 +478,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Array<MultipleLineText> lines = textValue:GetLines()
         text separator = textValue:GetLineSeparator()
         integer totalLines = lines:GetSize()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         firstLine = totalLines - (totalLines * verticalViewPercentage)
         integer firstLineInteger = cast(integer, firstLine)
+        number halfPadding = GetTotalLineHeightPadding() / 2
         
         background:Empty()
         background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
@@ -509,7 +514,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Text Drawables
         */
 
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight
         startLineY = yPosition - lineHeight
 
         integer counter = firstLineInteger
@@ -682,7 +687,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     background:AddSelectionDrawable(highlight)
                 end
 
-                draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
+                draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight() + halfPadding)
                 draw:SetName("TextBox Character " + textIndex)
                 background:AddCharacter(counter, characterCounter, draw)
 
@@ -718,7 +723,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         ColorGroup fontColor = GetFontColor()
 
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine)
@@ -855,7 +860,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetInterfaceScale())
         end
 
-        caret:SetSize(thickness, font:GetLineHeight())
+        caret:SetSize(thickness, GetUnpaddedLineHeight())
         caret:SetColor(GetIconColor())
     end
 
@@ -866,7 +871,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     caretX, or ignored to preserve the old value.
     */
     private action PositionCaret returns number
-        number lineOffset = (caretLine - firstLine + 1) * font:GetLineHeight()
+        number lineOffset = (caretLine - firstLine + 1) * GetLineHeight()
         
         number x = 0
         number horizontalOffset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
@@ -888,7 +893,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         Drawable caret = background:GetCaret()
-        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset + GetUnpaddedSelectionYOffset())
+        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset + GetSelectionYOffset())
         return x + leftCharacterPadding
     end
 
@@ -902,7 +907,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GoToLine(number line)
         Array<MultipleLineText> lines = textValue:GetLines()
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
-        number viableLines = lines:GetSize() - (paneHeight / font:GetLineHeight())
+        number viableLines = lines:GetSize() - (paneHeight / GetLineHeight())
         number windowLines = (lines:GetSize() - viableLines) / 2.0
         number newVertical = 1.0 - ((line - windowLines) / viableLines)
         UpdatePaneView(horizontal, newVertical)
@@ -929,7 +934,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GetCharacterY(integer index) returns number
         integer lineIndex = textValue:LineIndexFromCharacterIndex(index)
         integer firstLine = GetStartLine()
-        number lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         return startLineY - (lineIndex - firstLine) * lineHeight
     end
 
@@ -966,7 +971,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action GetSelectionYOffset returns number
-        return GetUnpaddedSelectionYOffset() - (GetTotalLineHeightPadding() / 2.0)
+        return GetUnpaddedSelectionYOffset() + (GetTotalLineHeightPadding() / 2.0)
     end
 
     private action EmptySelectionEvent(boolean textChanged)
@@ -1084,7 +1089,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer lastLine = selection:GetLastLine()
         integer firstLineIndex = selection:GetFirstLineIndex()
         integer lastLineIndex = selection:GetLastLineIndex()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
 
         background:EmptySelectionDrawables()
 
@@ -1111,7 +1116,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             number right = lineDrawables:Get(lastLineIndex - 1):GetX() - rightGlyph:lengthToGlyph + rightGlyph:horizontalAdvance
 
             highlight:SetSize(right - left, lineHeight)
-            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - lineHeight / 4.0)
+            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - GetUnpaddedSelectionYOffset() - GetTotalLineHeightPadding() / 2)
 
             background:AddSelectionDrawable(highlight)
 
@@ -1243,7 +1248,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             caretLine = caretLine + 1
             caretCharacter = 0
 
-            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
                 GoToLine(caretLine - visibleLines + 1)
             end
@@ -1325,7 +1330,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretLine = caretLine + 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
 
-        number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+        number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
 
         if caretLine > (firstLine + visibleLines - 1)
             GoToLine(caretLine)
@@ -1793,7 +1798,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             // Resize the scroll region height and resize bars.
             Resize()
 
-            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
                 GoToLine(caretLine)
             end
@@ -1987,7 +1992,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     private action PositionCaretFromCoordinates(number x, number y)
         integer totalLines = textValue:GetLines():GetSize()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
         
@@ -2093,7 +2098,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GetScrollRegionHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
-        number height = textValue:GetLineCount() * font:GetLineHeight()// + GetSharedSpaceOffset()
+        number height = textValue:GetLineCount() * GetLineHeight()// + GetSharedSpaceOffset()
         if height > GetHeight()
             return height
         else
@@ -2203,7 +2208,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Array<Gutter> gutters = background:GetGutters()
 
             integer totalLines = lines:GetSize()
-            integer lineHeight = font:GetLineHeight()
+            number lineHeight = GetLineHeight()
             integer firstLineInteger = cast(integer, firstLine)
 
             integer counter = 0
@@ -3521,7 +3526,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 number newX1 = startDrawable:GetGlobalX() - startGlyph:lengthToGlyph
                 number newX2 = endDrawable:GetGlobalX() - endGlyph:lengthToGlyph + endGlyph:horizontalAdvance
                 number newY1 = startDrawable:GetGlobalY() - startGlyph:heightFromBaseLine + startDrawable:GetHeight()
-                number newY2 = newY1 + font:GetLineHeight()
+                number newY2 = newY1 + GetLineHeight()
 
                 if newX1 < x1
                     x1 = newX1
