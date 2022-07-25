@@ -177,6 +177,10 @@ class Chart is ChartItem
     // Must be set before displaying the chart.
     boolean movableRegressionLines = false
 
+    // Values used to lock the initial y-intercept value of regression lines.
+    boolean lockRegressionIntercepts = false
+    number regressionInterceptLock = 0
+
     on create
         chartArea:SetName("Chart Area")
         Add(chartArea)
@@ -1251,6 +1255,19 @@ class Chart is ChartItem
         return movableRegressionLines
     end
 
+    action LockRegressionYIntercept(number intercept)
+        lockRegressionIntercepts = true
+        regressionInterceptLock = intercept
+    end
+
+    action UnlockRegressionYIntercepts
+        lockRegressionIntercepts = false
+    end
+
+    action IsLockingRegressionYIntercepts returns boolean
+        return lockRegressionIntercepts
+    end
+
     private action LoadRegressionLines()
         integer i = 0
         repeat while i < GetSeriesList():GetSize()
@@ -1292,6 +1309,11 @@ class Chart is ChartItem
                     end
                 end
             end
+
+            if IsLockingRegressionYIntercepts()
+                line:LockYIntercept(regressionInterceptLock)
+            end
+
             i = i + 1
         end
     end

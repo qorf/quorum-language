@@ -53,6 +53,9 @@ class RegressionLine is ChartDrawable, LinePath
     // An additional "dummy" point marker, used to send accessibility info when a point is modified.
     RegressionLinePointMarker extraMarker
 
+    // Allows for locking the y-intercept so only the slope can be changed.
+    boolean lockIntercept = false
+
     on create
         SetName("Regression Line")
 
@@ -698,8 +701,36 @@ class RegressionLine is ChartDrawable, LinePath
             chart:UpdatePointDescriptions(points)
         end
     end
+
     action GetPointMarkers returns Array<RegressionLinePointMarker>
         return pointMarkers
     end
 
+    action LockYIntercept(number intercept)
+        Vector2 origin
+        origin:Set(0, intercept)
+
+        // TO-DO: Instead of putting the intercept through the middle, it would be reasonable to try to find the "best fit" through the intercept instead.
+        Vector2 midpoint
+        number xMin = GetMappedLeft() + horizontalMapPadding
+        number xMax = GetMappedRight() - horizontalMapPadding
+        number yMin = GetMappedBottom() + verticalMapPadding
+        number yMax = GetMappedTop() - verticalMapPadding
+        midpoint:Set((xMax - xMin) / 2 + xMin, (yMax - yMin) / 2 + yMin)
+
+        SetLineThroughMappedPoints(origin, midpoint)
+        lockIntercept = true
+    end
+
+    action UnlockYIntercept
+        lockIntercept = false
+    end
+
+    action IsYInterceptLocked returns boolean
+        return lockIntercept
+    end
+
+    action GetYIntercept returns number
+        return constantValue
+    end
 end
