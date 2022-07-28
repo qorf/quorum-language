@@ -3559,4 +3559,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         return rectangle
     end
+
+    action GetGlyphWidth returns number
+        if glyphWidth = 0
+            glyphWidth = font:GetGlyph("W"):horizontalAdvance
+        end
+        return glyphWidth
+    end
+
 end
