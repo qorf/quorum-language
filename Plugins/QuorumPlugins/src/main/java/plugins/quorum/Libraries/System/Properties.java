@@ -5,10 +5,16 @@
 package plugins.quorum.Libraries.System;
 
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import quorum.Libraries.Language.Types.Text;
+import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.System.File;
 import quorum.Libraries.System.File_;
+import quorum.Libraries.Containers.HashTable_;
+import quorum.Libraries.Containers.HashTable;
 
 /**
  *
@@ -51,6 +57,40 @@ public class Properties {
     public String GetEnvironmentVariableNative(String key) {
         String env = System.getenv(key);
         return env;
+    }
+
+    public HashTable_ GetPropertiesNative() {
+        HashTable_ table = new HashTable();
+        java.util.Properties properties = System.getProperties();
+
+        for (String key : properties.stringPropertyNames()) {
+            String value = properties.getProperty(key);
+            Text_ quorumKey = new Text();
+            Text_ quorumValue = new Text();
+
+            quorumKey.SetValue(key);
+            quorumValue.SetValue(value);
+            table.Add(quorumKey, quorumValue);
+        }
+
+        return table;
+    }
+
+    public HashTable_ GetEnvironmentVariablesNative() {
+        HashTable_ table = new HashTable();
+        Map<String, String> env = System.getenv();
+        for (String key : env.keySet()) {
+            String value = env.get(key);
+            Text_ quorumKey = new Text();
+            Text_ quorumValue = new Text();
+
+            quorumKey.SetValue(key);
+            quorumValue.SetValue(value);
+
+            table.Add(quorumKey, quorumValue);
+        }
+
+        return table;
     }
     
     public boolean HasEnvironmentVariableNative(String key) {

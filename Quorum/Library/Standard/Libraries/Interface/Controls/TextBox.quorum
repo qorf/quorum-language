@@ -904,10 +904,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
-        selection:Set(index, index, true, textChanged)
-
-        // Report the new selection here.
-        UpdateVisualSelection()
+        UpdateSelection(index, index, true, textChanged)
     end
 
     private action SelectionMoveLeft
@@ -916,14 +913,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if (caretLine < selection:GetFirstLine() or caretCharacter < selection:GetFirstLineIndex())
             integer endIndex = selection:GetEndIndex()
-            selection:Set(index, endIndex, (index = endIndex), false)
+            UpdateSelection(index, endIndex, (index = endIndex), false)
         else
             integer startIndex = selection:GetStartIndex()
-            selection:Set(startIndex, index, true, false)
+            UpdateSelection(startIndex, index, true, false)
         end
-
-        // Report the new selection here.
-        UpdateVisualSelection()
     end
 
     private action SelectionMoveRight
@@ -932,14 +926,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         if (caretLine > selection:GetLastLine() or caretCharacter > selection:GetLastLineIndex())
             integer startIndex = selection:GetStartIndex()
-            selection:Set(startIndex, index, true, false)
+            UpdateSelection(startIndex, index, true, false)
         else
             integer endIndex = selection:GetEndIndex()
-            selection:Set(index, endIndex, (index = endIndex), false)
+            UpdateSelection(index, endIndex, (index = endIndex), false)
         end
-
-        // Report the new selection here.
-        UpdateVisualSelection()
     end
 
     private action SelectionMoveUp
@@ -954,13 +945,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 endIndex = selection:GetStartIndex()
             end
 
-            selection:Set(index, endIndex, false, false)
+            UpdateSelection(index, endIndex, false, false)
         else
-            selection:Set(selection:GetStartIndex(), index, true, false)
+            UpdateSelection(selection:GetStartIndex(), index, true, false)
         end
-
-        // Report the new selection here.
-        UpdateVisualSelection()
     end
 
     private action SelectionMoveDown
@@ -975,17 +963,49 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 startIndex = selection:GetEndIndex()
             end
 
-            selection:Set(startIndex, index, true, false)
+            UpdateSelection(startIndex, index, true, false)
         else 
             if index > selection:GetEndIndex()
-                selection:Set(selection:GetEndIndex(), index, true, false)
+                UpdateSelection(selection:GetEndIndex(), index, true, false)
             else
-                selection:Set(index, selection:GetEndIndex(), false, false)
+                UpdateSelection(index, selection:GetEndIndex(), false, false)
+            end
+        end
+    end
+
+    private action UpdateSelection(integer startIndex, integer endIndex, boolean caretAtEnd, boolean textChanged)
+        // Remove current font highlight colors from the text drawables.
+        integer oldStart = selection:GetStartIndex()
+        integer oldEnd = selection:GetEndIndex()
+        if selection:IsEmpty() = false
+            if startIndex = endIndex
+                ResetFontColors(oldStart, oldEnd)
+            else
+                ResetFontColors(oldStart, startIndex)
+                ResetFontColors(endIndex, oldEnd)
             end
         end
 
-        // Report the new selection here.
+        selection:Set(startIndex, endIndex, caretAtEnd, textChanged)
         UpdateVisualSelection()
+    end
+
+    private action ResetFontColors(integer startIndex, integer endIndex)
+        if startIndex >= endIndex
+            return now
+        end
+
+        ColorGroup fontColor = GetFontColor()
+        integer i = startIndex
+        repeat while i < endIndex
+            integer lineIndex = textValue:LineIndexFromCharacterIndex(i)
+            integer localIndex = i - textValue:CharacterIndexFromLineIndex(lineIndex)
+            Array<Drawable> drawables = background:GetLine(lineIndex)
+            if localIndex < drawables:GetSize()
+                drawables:Get(localIndex):SetColor(fontColor)
+            end
+            i = i + 1
+        end
     end
 
     /*
@@ -1023,9 +1043,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             number right = lineDrawables:Get(lastLineIndex - 1):GetX() - rightGlyph:lengthToGlyph + rightGlyph:horizontalAdvance
 
             highlight:SetSize(right - left, lineHeight)
-            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight())
+            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - lineHeight / 4.0)
 
             background:AddSelectionDrawable(highlight)
+
+            // Update font color for the characters in the selection.
+            ColorGroup fontColor = GetSelectionFontColor()
+            integer i = firstLineIndex
+            repeat while i < lastLineIndex
+                lineDrawables:Get(i):SetColor(fontColor)
+                i = i + 1
+            end
+            
         else
             // For now, pass off more complex cases to the full initialization case.
             GetLineDrawables()
@@ -2442,8 +2471,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
-        selection:Set(startIndex, endIndex, caretAtEnd, false)
-        UpdateVisualSelection()
+        UpdateSelection(startIndex, endIndex, caretAtEnd, false)
     end
 
     action GetSelection returns TextBoxSelection
