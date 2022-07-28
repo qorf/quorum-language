@@ -79,7 +79,7 @@ class BarChartWriter is ChartWriter
         barChart = cast(BarChart, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + barChart:GetNumberOfBars() + " bars.")
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -456,7 +456,7 @@ class BarChartWriter is ChartWriter
         end
     end
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         BarChart barChart
         barChart = cast(BarChart, chart)
         Script script
@@ -593,6 +593,6 @@ class BarChartWriter is ChartWriter
         end
         scriptText = scriptText + "};" + newLine
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

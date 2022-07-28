@@ -21,6 +21,7 @@ class RegressionLine is ChartDrawable
     private text dependentVariable = ""
     private Array<text> independentVariables    // This would be used when we have multi-variate regression
     private boolean nameAfterSeries = false
+    private number slope = 0.0
     integer x1 = 0
     integer y1 = 0
     integer x2 = 0
@@ -164,6 +165,7 @@ class RegressionLine is ChartDrawable
         Vector beta = regression:GetCoefficients()
         if beta:GetSize() > 1 and independentVariables:GetSize() > 0
             equationText = dependentVariable + " = " + math:Round(beta:Get(1),2) + "*" + independentVariables:Get(0)
+            slope = math:Round(beta:Get(1),2)
             integer i = 2
             repeat while i < beta:GetSize() and (i-1) < independentVariables:GetSize()
                 if math:Round(beta:Get(i),2) < 0
@@ -208,6 +210,14 @@ class RegressionLine is ChartDrawable
         return independent
     end
 
+    action CalculateRSquared returns number
+        return (math:Round(regression:GetEffectSize(),4))
+    end
+
+    action GetSlope returns number
+        return slope
+    end
+    
     action SetX1(integer x1)
         me:x1 = x1
     end

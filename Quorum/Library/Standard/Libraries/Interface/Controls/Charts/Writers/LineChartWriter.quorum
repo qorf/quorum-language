@@ -80,7 +80,7 @@ class LineChartWriter is ChartWriter
         lineChart = cast(LineChart, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + lineChart:GetChartArea():GetDescription())
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -142,7 +142,7 @@ class LineChartWriter is ChartWriter
                         seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
-                    if chart:GetSeriesList():GetSize() > 1
+                    if chart:GetSeriesList():GetSize() > 0
                         chartContent:Add(seriesSVG)
                     end
                     text seriesFocus = ""
@@ -163,28 +163,28 @@ class LineChartWriter is ChartWriter
                         end
                     end
 
-                    if currentLine:GetSelectionArrow() not= undefined
-                        Array <number> vertices = currentLine:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
-                        number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
-
-                        Polygon arrow
-                        integer m = 0
-                        repeat while m < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                            m = m + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected 
-                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                        arrow:SetTabIndex(-1)
-                        arrow:SetID(seriesSVG:GetID() + "_arrow")
-                        if HasAccessibility()
-                            arrow:SetAriaHidden("true")
-                            seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
-                            seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
-                        end
-                        canvas:Add(arrow)
-                    end
+//                    if currentLine:GetSelectionArrow() not= undefined
+//                        Array <number> vertices = currentLine:GetSelectionArrowVertices()
+//                        number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
+//                        number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
+//
+//                        Polygon arrow
+//                        integer m = 0
+//                        repeat while m < vertices:GetSize()
+//                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+//                            m = m + 2
+//                        end
+//                        arrow:SetFill(transparent) // Should be transparent until selected 
+//                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                        arrow:SetTabIndex(-1)
+//                        arrow:SetID(seriesSVG:GetID() + "_arrow")
+//                        if HasAccessibility()
+//                            arrow:SetAriaHidden("true")
+//                            seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                            seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                        end
+//                        canvas:Add(arrow)
+//                    end
 
                     j = 0
                     repeat while j < currentLine:GetPoints():GetSize()
@@ -201,7 +201,7 @@ class LineChartWriter is ChartWriter
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end
-                        if chart:GetSeriesList():GetSize() > 1
+                        if chart:GetSeriesList():GetSize() > 0
                             seriesSVG:Add(pointSVG)
                         else
                             chartContent:Add(pointSVG)
@@ -558,7 +558,7 @@ class LineChartWriter is ChartWriter
         canvas:Add(chartContent)
     end
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         LineChart lineChart
         lineChart = cast(LineChart, chart)
         Script script
@@ -656,7 +656,7 @@ class LineChartWriter is ChartWriter
                 Series currentSeries = seriesList:Get(i):GetSeries()
                 Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
                 points:Sort(comparison)
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
                 end
                 j = 0
@@ -669,7 +669,7 @@ class LineChartWriter is ChartWriter
                 ChartPoint lastPoint = points:Get(j)
                 scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
                 
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + "}" + newLine
                 end
             end
@@ -761,7 +761,7 @@ class LineChartWriter is ChartWriter
                 Series currentSeries = seriesList:Get(i):GetSeries()
                 Array<ChartPoint> points = seriesList:Get(i):GetPoints():CopyToArray()
                 points:Sort(comparison)
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + ": {" + newLine
                 end
                 j = 0
@@ -772,7 +772,7 @@ class LineChartWriter is ChartWriter
                 end
                 ChartPoint lastPoint = points:Get(j)
                 scriptText = scriptText + tab + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + "}" + newLine
                 end
             end
@@ -780,6 +780,6 @@ class LineChartWriter is ChartWriter
         scriptText = scriptText + "};" + newLine + newLine
 
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

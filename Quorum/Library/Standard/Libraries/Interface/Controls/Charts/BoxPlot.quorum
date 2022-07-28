@@ -966,6 +966,7 @@ class BoxPlot is Chart
     */
     action ConvertToScalableVectorGraphics returns text
         BoxPlotWriter writer
+        writer:SetAccessibilityFlag(HasAccessibility())
         return writer:WriteOutChart(me)
     end
 
@@ -979,6 +980,7 @@ class BoxPlot is Chart
     action Save(File file)
         if file:GetFileExtension() = "svg"
             BoxPlotWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
             chartWriter:WriteOutChart(me,file)
         else
            alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
@@ -997,6 +999,9 @@ class BoxPlot is Chart
     action Share(File file)
         if file:GetFileExtension() = "html"
             BoxPlotWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
+            chartWriter:SetScriptFilepath(GetScriptFilepath())
+            chartWriter:SetStyleFilepath(GetStyleFilepath())
             chartWriter:WriteOutHTML(me,file)
         else
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
