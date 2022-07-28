@@ -144,10 +144,11 @@ class RegressionLinePointMarker is ChartDrawable
             if direction = parent:ChartItem:ESCAPE
                 GetRegressionLine():KeyboardDeactivatePoint(me)
             elseif direction = parent:ChartItem:LEFT or direction = parent:ChartItem:RIGHT or direction = parent:ChartItem:UP or direction = parent:ChartItem:DOWN
-                if pointIndex = 1
-                    GetRegressionLine():KeyboardMovePoint(me, direction)
+                RegressionLine line = GetRegressionLine()
+                if pointIndex = 1 or line:IsYInterceptLocked()
+                    line:KeyboardMovePoint(me, direction)
                 else
-                    GetRegressionLine():KeyboardRotateLine(me, direction)
+                    line:KeyboardRotateLine(me, direction)
                 end
             end
         end

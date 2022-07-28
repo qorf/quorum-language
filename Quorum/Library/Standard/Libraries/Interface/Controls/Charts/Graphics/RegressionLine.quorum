@@ -492,20 +492,31 @@ class RegressionLine is ChartDrawable, LinePath
         number pixelX = event:GetX() - GetGlobalX()
         number pixelY = event:GetY() - GetGlobalY()
 
-        // Dragging the end points
-        if index = 0 or index = 2
+        if lockIntercept = false
+            // Dragging the end points
+            if index = 0 or index = 2
+                Vector2 point1
+                point1:Set(pixelX, pixelY)
+                TranslateToMappedSpace(point1)
+    
+                Vector2 point2
+                point2:Set(GetMidpointX(), GetMidpointY())
+    
+                SetLineThroughMappedPoints(point1, point2)
+    
+            // Dragging the mid point
+            elseif index = 1
+                IntersectPixelPointViaConstant(pixelX, pixelY)
+            end
+        else
             Vector2 point1
-            point1:Set(pixelX, pixelY)
-            TranslateToMappedSpace(point1)
+            point1:Set(0, constantValue)
 
             Vector2 point2
-            point2:Set(GetMidpointX(), GetMidpointY())
+            point2:Set(pixelX, pixelY)
+            TranslateToMappedSpace(point2)
 
             SetLineThroughMappedPoints(point1, point2)
-
-        // Dragging the mid point
-        elseif index = 1
-            IntersectPixelPointViaConstant(pixelX, pixelY)
         end
     end
 
@@ -539,20 +550,29 @@ class RegressionLine is ChartDrawable, LinePath
             y = keyboardMovePercent * (yMax - yMin)
         end
 
-        if index = 1
-            Vector2 point
-            point:Set(GetMidpointX() + x, GetMidpointY() + y)
-            IntersectMappedPointViaConstant(point)
+        if lockIntercept = false
+            if index = 1
+                Vector2 point
+                point:Set(GetMidpointX() + x, GetMidpointY() + y)
+                IntersectMappedPointViaConstant(point)
+            else
+                Vector2 point1
+                if index = 0
+                    point1:Set(GetX1() + x, GetY1() + y)
+                else
+                    point1:Set(GetX2() + x, GetY2() + y)
+                end
+    
+                Vector2 point2
+                point2:Set(GetMidpointX(), GetMidpointY())
+                SetLineThroughMappedPoints(point1, point2)
+            end
         else
             Vector2 point1
-            if index = 0
-                point1:Set(GetX1() + x, GetY1() + y)
-            else
-                point1:Set(GetX2() + x, GetY2() + y)
-            end
+            point1:Set(0, constantValue)
 
             Vector2 point2
-            point2:Set(GetMidpointX(), GetMidpointY())
+            point2:Set(GetPointX(index) + x, GetPointY(index) + y)
             SetLineThroughMappedPoints(point1, point2)
         end
 
