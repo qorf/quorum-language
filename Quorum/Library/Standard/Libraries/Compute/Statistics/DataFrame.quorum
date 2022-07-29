@@ -65,6 +65,7 @@ use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
 use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
+use Libraries.Compute.Statistics.Tests.CompareCounts
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2157,6 +2158,42 @@ class DataFrame
         end
         return false
     end
+
+    /*
+        This action uses the selection to conduct a chi-squared test on one or more columns. 
+        The results are stored in a hashtable. 
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareCounts counts = CompareSelectedCounts()
+        output counts:GetSummary()
+    */
+    action CompareSelectedCounts returns CompareCounts
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() < 1
+            alert("Must compare 1 or more columns")
+        end
+
+        CompareCounts counts
+        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, counts))
+        selection:CopyTo(cast(FactorInput, counts))
+        counts:Calculate(me)
+        return counts
+    end
+
+
 
     /*
         This action uses the selection to conduct a comparison between two or more columns. 

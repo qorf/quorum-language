@@ -7,18 +7,10 @@ use Libraries.Compute.Statistics.DataFrame
     Attribute: Author Andreas Stefik
 */
 class ChiSquaredResult is StatisticalTestResult
-    number testStatistic = 0 // x-squared 
     DataFrame observed
     DataFrame expected
     DataFrame residuals     // Pearson residuals (observed - expected) / sqrt(expected)
-
-    action SetTestStatistic(number testStatistic)
-        me:testStatistic = testStatistic
-    end
-
-    action GetTestStatistic returns number
-        return testStatistic
-    end
+    boolean approximationWarning = false  
 
     /*
         Obtains the observed dataframe calculated by the test.
@@ -73,4 +65,23 @@ class ChiSquaredResult is StatisticalTestResult
     action SetResiduals(DataFrame residuals)
         me:residuals = residuals
     end
+
+    /*
+        Obtains the warning flag set by the test.
+
+        Attribute: Returns the warning flag boolean.
+    */
+    action GetApproximationWarningFlag returns boolean
+        return approximationWarning
+    end
+
+    /*
+        Sets the warning flag for the test.
+
+        Attribute: Parameter warning is true if approximation may be incorrect.
+    */
+    action SetApproximationWarningFlag(boolean flag)
+        me:approximationWarning = flag
+    end
+
 end

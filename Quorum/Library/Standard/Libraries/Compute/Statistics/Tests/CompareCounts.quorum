@@ -11,8 +11,8 @@ use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Columns.NumberColumn
-use Libraries.Compute.Statistics.Distributions.Gamma
 use Libraries.Compute.Statistics.Reporting.ChiSquaredResult
+use Libraries.Compute.Statistics.Distributions.ChiSquaredDistribution
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 
@@ -44,26 +44,13 @@ use Libraries.Compute.Math
     ChiSquared result = frame:CalculateAndCompareSelectedCounts() // Need to calculate counts
     ChiSquared result = frame:CompareSelectedCounts() // Pre-calculated counts
     ChiSquared result = frame:CompareObservedSelectedCounts() // Pre-calculated counts
-    output result:GetSummary()
-
-
-    Possible options:
-        * 1 Column - observed unknown : calculate observed, calculate expected, compare GOF
-        1 Column - observed known : calculate expected, compare GOF
-
-        * 2 Columns - observed unknown : calculate observed, calculate expected, compare TOI
-        2 Columns - observed unknown, GOF requested : calculate observed, calculate expected, compare GOF for each
-        2 Columns - observed known, expected known : compare GOF
-
-        * 3+ Columns - observed unknown : calculate observed, calculate expected, compare pairwise TOI
-        3+ Columns - observed unknown, GOF requested : calculate observed, calculate expected, compare GOF for each
-        3+ Columns - observed known, expected known : compare GOF for each against expected        
+    output result:GetSummary()      
 */
 
-class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
+class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
     Math math
-    Gamma gamma
-    StatisticsFormatting format
+    ChiSquaredDistribution distribution
+    boolean approximationWarning = false
     boolean goodnessOfFit = false
     number significanceLevel = 0.05
     constant number LIMIT = 0.000010
@@ -75,8 +62,7 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         end
         if GetFactorSize() > 0
             if GetFactorSize() = 1
-                // Separate and run each based on factor
-                CalculateByFactor(frame)
+                CalculateByFactor(frame) // Separate and run each based on factor
             else
                 alert("Only one factor allowed right now.")
             end
@@ -123,6 +109,11 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         This action represents a goodness of fit chi-squared test on a single column of data.
         It calculates the observed values by counting the frequencies of unique items.
         It then calculates the expected counts and compares the two to get the x2 value.
+
+        H0: The population fits the given distribution.
+        Ha: The population does not fit the given distribution.
+
+        This action assumes the expected values to be equal across all items.
     */
     private action GoodnessOfFit(DataFrame frame)
         integer i = 0
@@ -133,7 +124,8 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
             integer cols = observed:GetColumns():GetSize()
             number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
             number df = (rows-1)*(cols-1)
-            number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
+            distribution:Setup(df)
+            number p = distribution:CumulativeDistribution(x2)
     
             text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
             if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
@@ -144,7 +136,84 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
                 result:SetObserved(observed)
                 result:SetExpected(expected)
                 result:SetDegreesOfFreedom(df)
-                result:SetTestStatistic(x2)
+                result:SetCriticalValue(x2)
+                result:SetProbabilityValue(p)
+                results:Add(resultKey, result)
+            end 
+            i = i + 1
+        end
+    end
+
+    /*
+        This action represents a goodness of fit chi-squared test on a single column of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        It then calculates the expected counts and compares the two to get the x2 value.
+
+        H0: The population fits the given distribution.
+        Ha: The population does not fit the given distribution.
+
+        This action uses the given expected percent values to generate expected.
+    */
+    action GoodnessOfFitAgainstExpectedPercents(DataFrame frame, DataFrame percents)
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrame observed = CalculateObserved(frame:GetColumn(GetColumn(i)))
+            // Check that the sum of percents is equal to 1.0
+            DataFrame expected = CalculateExpectedFromPercentOfTotal(observed, percents)
+            integer rows = observed:GetColumn(0):GetSize()
+            integer cols = observed:GetColumns():GetSize()
+            number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
+            number df = (rows-1)*(cols-1)
+            distribution:Setup(df)
+            number p = distribution:CumulativeDistribution(x2)
+    
+            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
+            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
+            end
+            if not results:HasKey(resultKey)
+                ChiSquaredResult result
+                result:SetObserved(observed)
+                result:SetExpected(expected)
+                result:SetDegreesOfFreedom(df)
+                result:SetCriticalValue(x2)
+                result:SetProbabilityValue(p)
+                results:Add(resultKey, result)
+            end 
+            i = i + 1
+        end
+    end
+
+    /*
+        This action represents a goodness of fit chi-squared test on a single column of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        This action uses the given expected values and compares the two to get the x2 value.
+
+        H0: The population fits the given distribution.
+        Ha: The population does not fit the given distribution.
+    */
+    action GoodnessOfFitAgainstExpectedCounts(DataFrame frame, DataFrame expected)
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrame observed = CalculateObserved(frame:GetColumn(GetColumn(i)))
+            // Check that the sum of observed and the sum of expected are equal.
+            integer rows = observed:GetColumn(0):GetSize()
+            integer cols = observed:GetColumns():GetSize()
+            number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
+            number df = (rows-1)*(cols-1)
+            distribution:Setup(df)
+            number p = distribution:CumulativeDistribution(x2)
+    
+            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
+            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
+            end
+            if not results:HasKey(resultKey)
+                ChiSquaredResult result
+                result:SetObserved(observed)
+                result:SetExpected(expected)
+                result:SetDegreesOfFreedom(df)
+                result:SetCriticalValue(x2)
                 result:SetProbabilityValue(p)
                 results:Add(resultKey, result)
             end 
@@ -156,6 +225,9 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         This action represents a pairwise test of independence chi-squared test on two columns of data.
         It calculates the observed values by counting the frequencies of unique items.
         It then calculates the expected counts and compares the two to get the x2 value.
+
+        H0: The two variables (factors) are independent.
+        Ha: The two variables (factors) are dependent.
     */
     private action TestOfIndependence(DataFrame frame)
         integer i = 0
@@ -170,8 +242,9 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
                 integer cols = observed:GetColumns():GetSize()-1
                 number x2 = ChiSquare(observed, expected)  
                 number df = (rows-1)*(cols-1)
-                number p = 1.0 - gamma:RegularizedGammaP(df/2.0, x2/2.0)
-
+                distribution:Setup(df)
+                number p = distribution:CumulativeDistribution(x2)
+                
                 text resultKey = left:GetHeader()+" & "+right:GetHeader()
                 if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
                     resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader() + ", " + resultKey
@@ -181,14 +254,34 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
                     result:SetObserved(observed)
                     result:SetExpected(expected)
                     result:SetDegreesOfFreedom(df)
-                    result:SetTestStatistic(x2)
+                    result:SetCriticalValue(x2)
                     result:SetProbabilityValue(p)
+                    if approximationWarning
+                        result:SetApproximationWarningFlag(true)
+                        approximationWarning = false //reset
+                    end
                     results:Add(resultKey, result)
                 end  
                 j = j + 1
             end
             i = i + 1
         end
+    end
+
+    /*
+        This action represents a pairwise test of homogeneity chi-squared test on two distributions.
+        It calculates the first by getting the observed counts from one of the other tests.
+        It then calculates the second and compares the two to get the x2 value.
+
+        H0: The two populations follow the same distribution.
+        Ha: The two populations have different distributions.
+    */
+    private action TestOfHomogeneity(DataFrame frame)
+        if GetColumnSize() = 2
+            //GOF
+        else
+            //TOI pairwise  
+        end    
     end
 
     private action CalculateObserved(DataFrameColumn column) returns DataFrame
@@ -289,6 +382,66 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         return expected
     end
 
+    private action CalculateExpectedFromPercentOfTotal(DataFrame observed, DataFrame percents) returns DataFrame
+        DataFrame expected
+        if observed:GetColumns():GetSize() > 0 and observed:GetColumn(0):GetSize() > 0
+            Array<DataFrameColumn> columns
+            columns:Add(observed:GetColumn(0):Copy()) // First column is just row headers.
+
+            number totalSum = 0
+            Array <number> colSums
+            integer i = 1
+            repeat while i < observed:GetColumns():GetSize()
+                DataFrameColumn column = observed:GetColumn(i)
+                if column:GetSize() > 0
+                    // Get observed total
+                    Summarize observedSummary
+                    observedSummary:Calculate(column)
+                    colSums:Add(observedSummary:GetSum())
+                    totalSum = totalSum + observedSummary:GetSum()
+                end
+                i = i + 1
+            end
+
+            Array <number> rowSums
+            // FIND A BETTER WAY TO GET THE SUM OF A ROW??
+            // First row is just column headers, accounted for in DataFrame class so still start at 0
+            i = 0
+            repeat while i < observed:GetColumn(0):GetSize() // for each row
+                number sum = 0
+                j = 1
+                repeat while j < observed:GetColumns():GetSize() // for each column  
+                    if observed:GetColumn(j):GetSize() > i
+                        // Get observed total
+                        sum = sum + observed:GetColumn(j):GetAsNumber(i)
+                    end
+                    j = j + 1
+                end
+                rowSums:Add(sum)
+                i = i + 1
+            end
+        
+
+            i = 0
+            repeat while i < colSums:GetSize()
+                NumberColumn expect
+                expect:SetHeader(observed:GetColumn(i+1):GetHeader())
+                j = 0
+                repeat while j < rowSums:GetSize()
+                    if i + j < percents:GetColumn(i+1):GetSize()
+                        number expectedValue = totalSum*percents:GetColumn(i+1):GetAsNumber(i+j)
+                        expect:Add(expectedValue)
+                    end
+                    j = j + 1
+                end
+                columns:Add(expect)
+                i = i + 1
+            end
+            expected:SetColumns(columns)
+        end
+        return expected
+    end
+
     private action ChiSquare(DataFrameColumn observed, DataFrameColumn expected) returns number
         if observed = undefined
             alert("Observed column is undefined.")
@@ -298,6 +451,8 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         end
 
         if observed:GetSize() not= expected:GetSize()
+            output observed:ToText()
+            output expected:ToText()
             alert("Observed and Expected must be the same size.")
         end
 
@@ -309,6 +464,9 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
         observedSummary:Calculate(observed)
         if observedSummary:GetMinimum() < 0
             alert("Observed cannot have negative values.")
+        end
+        if observedSummary:GetMinimum() < 5
+            approximationWarning = true
         end
         number observedSum = observedSummary:GetSum()
 
@@ -368,6 +526,9 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
 
             integer j = 0
             repeat while j < observe:GetSize() and j < expect:GetSize()
+                if observe:GetAsNumber(j) < 5 and not approximationWarning
+                    approximationWarning = true
+                end
                 number dev = observe:GetAsNumber(j) - expect:GetAsNumber(j)
                 sumSquared = sumSquared + (dev * dev / expect:GetAsNumber(j))
                 j = j + 1
@@ -407,21 +568,38 @@ class ChiSquared is DataFrameCalculation, StatisticalTest, ColumnInput, FactorIn
             else
                 summary = summary + lf + "A Pearson's chi-squared test-of-independence was calculated."
             end
-            summary = summary + lf + "Conducted on " + results:GetKey(result)
+
+            summary = summary + lf + "X-squared: " + result:GetCriticalValue()
     
-            summary = summary + lf + "X-squared (Test Statistic): " + format:FormatProbabilityValue(result:GetTestStatistic())
+            summary = summary + lf + "Degrees Of Freedom: " + result:GetDegreesOfFreedom()
     
-            summary = summary + lf + "Degrees Of Freedom: " + format:FormatDegreesOfFreedom(result:GetDegreesOfFreedom())
-    
-            summary = summary + lf + "P-Value: " + format:FormatProbabilityValue(result:GetProbabilityValue())
+            summary = summary + lf + "P-Value: " + result:GetProbabilityValue()
 
             //P-value ≤ α: The variables have a statistically significant association (Reject H0)
-
+            if result:GetProbabilityValue() <= significanceLevel
+                if goodnessOfFit 
+                    summary = summary + " <= "+ significanceLevel + " significance level, " + results:GetKey(result) + " does not fit."
+                else
+                    summary = summary + " <= "+ significanceLevel + " significance level, " + results:GetKey(result) + " are not independent."
+                end
+            else
             //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
+                if goodnessOfFit 
+                    summary = summary + " > "+ significanceLevel + " significance level, " + results:GetKey(result) + " fits."
+                else
+                    summary = summary + " > "+ significanceLevel + " significance level, " + results:GetKey(result) + " are independent."
+                end
+            end
+
+            if result:GetApproximationWarningFlag()
+                summary = summary + lf + "Chi-squared approximation may be incorrect. At least one observed count is less than 5."
+            end
     
             summary = summary + lf + "Observed Count: " + lf + result:GetObserved():ToText()
     
             summary = summary + lf + "Expected Count: " + lf + result:GetExpected():ToText()
+
+//            summary = summary + lf + "Residuals: " + lf + result:GetResiduals():ToText()
         end
         return summary
     end

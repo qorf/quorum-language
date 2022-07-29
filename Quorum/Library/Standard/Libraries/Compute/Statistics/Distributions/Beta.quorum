@@ -275,6 +275,18 @@ class Beta
         if  x:IsNotANumber() or a:IsNotANumber() or b:IsNotANumber()
             or x < 0 or x > 1 or a <= 0 or b <= 0
             ret = a:GetNotANumberValue()
+        elseif x = 0
+            ret = 0.0
+        elseif x = 1
+            ret = 1.0
+        elseif b = 1
+            ret = math:RaiseToPower(x, a)
+        elseif a = 1
+            if x >= 0.5
+                ret = 1.0 - math:RaiseToPower(1 - x, b)
+            else
+                ret = -(math:RaiseNaturalNumberToPower(b * math:NaturalLogarithm(-x + 1)) - 1.0)
+            end
         elseif x > (a + 1) / (2 + b + a) and
                1 - x <= (b + 1) / (2 + b + a)
             ret = 1 - RegularizedBeta(1 - x, b, a, epsilon, maxIterations)

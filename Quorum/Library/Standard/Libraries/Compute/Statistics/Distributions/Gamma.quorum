@@ -13,7 +13,7 @@ class Gamma
     public number DEFAULT_EPSILON = 0.000000000000001
     Math math
     constant number LANCZOS_G = 607.0 / 128.0
-    constant number HALF_LOG_2_PI = 0.5 * math:Logarithm(2.0 * math:pi)
+    constant number HALF_LOG_2_PI = 0.5 * math:NaturalLogarithm(2.0 * math:pi)
     /** The constant value of &radic;(2&pi;). */
     constant number SQRT_TWO_PI = 2.506628274631000502
 
@@ -216,23 +216,23 @@ class Gamma
         if x:IsNotANumber() or x <= 0.0
             return x:GetNotANumberValue()
         elseif x < 0.5
-            return LogGamma1p(x) - math:Logarithm(x)
+            return LogGamma1p(x) - math:NaturalLogarithm(x)
         elseif x <= 2.5
             return LogGamma1p((x - 0.5) - 0.5)
         elseif x <= 8.0
-            integer n =  cast(integer, x - 1.5)
+            integer n =  cast(integer, math:Floor(x - 1.5))
             number prod = 1.0
             i = 1
             repeat while i <= n
                 prod = prod * (x - i)
                 i = i + 1
             end
-            return LogGamma1p(x - (n + 1)) + math:Logarithm(prod)
+            return LogGamma1p(x - (n + 1)) + math:NaturalLogarithm(prod)
         else 
             number sum = Lanczos(x)
             number tmp = x + LANCZOS_G + 0.5
-            ret = ((x + 0.5) * math:Logarithm(tmp)) - tmp +
-                HALF_LOG_2_PI + math:Logarithm(sum / x)
+            ret = ((x + 0.5) * math:NaturalLogarithm(tmp)) - tmp +
+                HALF_LOG_2_PI + math:NaturalLogarithm(sum / x)
         end
         return ret
     end
@@ -386,6 +386,7 @@ class Gamma
         number ret = 0
         Math math
         if a:IsNotANumber() or x:IsNotANumber() or a <= 0.0 or x < 0.0
+            ret = a:GetNotANumberValue()
         elseif x = 0.0
             ret = 1.0
         elseif x < a + 1.0
@@ -445,6 +446,7 @@ class Gamma
         number ret = 0
         Math math
         if a:IsNotANumber() or x:IsNotANumber() or a <= 0.0 or x < 0.0
+            ret = a:GetNotANumberValue()
         elseif x = 0.0
             ret = 0.0
         elseif x >= a + 1
@@ -458,7 +460,7 @@ class Gamma
                 an = an * x / (a + n)
                 sum = sum + an
             end
-            if n > maxIterations
+            if n >= maxIterations
                 alert("Maximum iterations exceeded. Did not converge.")
             elseif sum:IsInfinite()
                 ret = 1.0

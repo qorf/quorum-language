@@ -1,0 +1,55 @@
+package Libraries.Compute.Statistics.Distributions
+
+class ChiSquaredDistribution is NumberDistribution
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    number solverAbsoluteAccuracy = 0.0
+    number degreesOfFreedom = 0.0
+    Gamma gamma    
+
+    action Setup(number degreesOfFreedom)
+        if degreesOfFreedom <= 0
+            alert("Cannot compute a chi-squared distribution with a degree of freedom value of " + degreesOfFreedom)
+        end
+        me:degreesOfFreedom = degreesOfFreedom
+        me:solverAbsoluteAccuracy = DEFAULT_INVERSE_ABSOLUTE_ACCURACY
+    end
+
+    action CumulativeDistribution(number x) returns number
+        number ret = 0.0
+        if x <= 0.0
+            ret = 0.0
+        else
+            ret = 1.0 - gamma:RegularizedGammaP(degreesOfFreedom/2.0, x/2.0)
+        end
+        return ret
+    end
+
+    action GetLowerBound returns number 
+        return 0
+    end
+
+    
+    action GetUpperBound returns number
+        number inf = 0
+        return inf:GetPositiveInfinityValue()
+    end
+
+    action GetMean returns number
+        number result = 0
+        return result:GetNotANumberValue()
+    end
+
+    
+    action GetVariance returns number
+        number result = 0
+        return result:GetNotANumberValue()
+    end
+    
+    action IsSupportConnected returns boolean
+        return true
+    end
+
+    action GetSolverAbsoluteAccuracy returns number
+        return solverAbsoluteAccuracy
+    end
+end
