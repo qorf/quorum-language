@@ -15,10 +15,22 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 
+/*
+    The ModelPreview class is an item only meant to visible in the editor that represents
+    a Model in a 3D scene. This preview is used for both primitives and custom models. When
+    the editor needs to load a preview it will make a transparent version of the model that
+    user can place anywhere in the scene and when the preview is confirmed this class can take
+    the given blueprint and make a model that can persist in the scene. 
+*/
 class ModelPreview is ItemPreview3D
 
     File modelFile = undefined
 
+    /*
+        Loads a preview model based on the passed ModelBlueprint. Load will either make a primitive
+        or if the model is a custom shape the model file will be used to make the preview. The preview
+        is more transparent than the actual model and the preview is not meant to persist in the scene.
+    */
     action Load(SceneEditor controller, ModelBlueprint schematic)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
@@ -67,6 +79,10 @@ class ModelPreview is ItemPreview3D
         end
     end
 
+    /* 
+        This action returns a Model based on the set ModelBlueprint of this class. The model is not a preview
+        and is meant to be the actual model that would persist and be saved in the scene.
+    */
     action ConvertToModel returns Model
         ModelBlueprint schematic = cast(ModelBlueprint, GetItemBlueprint())
 

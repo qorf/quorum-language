@@ -15,6 +15,14 @@ use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 
+
+/*
+    The AssetPack class defines a set of blueprints organized into categories 
+    to be used by a ScenePalette. The scene palette loads asset packs to create 
+    the tree with all available items the user has to add to a scene. AssetPack 
+    supports both 2D and 3D items which can either be added manually using 
+    blueprints or through a JSON file that describes a whole tileset. 
+*/
 class AssetPack
 
     text name = "Asset Pack"
@@ -27,16 +35,35 @@ class AssetPack
         // TO-DO
     end
 
+    /*
+        This action adds a drawable to the default category. This Add does not need a
+        blueprint because one will be generated for it.
+
+        Attribute: Parameter drawable The drawable to add to the asset pack
+    */
     action Add(Drawable drawable)
         blueprints:Add(drawable:GetName(), DrawableToBlueprint(drawable))
         AddToCategory(DEFAULT, DrawableToBlueprint(drawable))
     end
 
+    /*
+        This action adds a blueprint to the default category.
+
+        Attribute: Parameter item The blueprint to add to the asset pack
+    */
     action Add(ItemBlueprint item)
         blueprints:Add(item:GetName(), item)
         AddToCategory(DEFAULT, item)
     end
 
+    /*
+        LoadTileset loads a 2D tileset from a JSON file. The JSON should contain the name of the 
+        item, width, height, and the file path to the texture. This action will create blueprints
+        for each entry in the tileset. If the JSON has a category field the items will be added 
+        to a category with the same name as the text in that field.
+
+        Attribute: Parameter file The path to the tileset JSON file
+    */
     action LoadTileset(File file)
         JavaScriptObjectNotation json
         json:Read(file)
@@ -101,6 +128,14 @@ class AssetPack
         end
     end
 
+    /*
+        LoadTileset3D loads a 3D tileset from a JSON file. The JSON should contain the name of the 
+        item, and the file path to the model, and path to its icon. This action will create blueprints
+        for each entry in the tileset. If the JSON has a category field the items will be added 
+        to a category with the same name as the text in that field.
+
+        Attribute: Parameter file The path to the 3D tileset JSON file
+    */
     action LoadTileset3D(File file)
         JavaScriptObjectNotation json
         json:Read(file)
@@ -162,6 +197,14 @@ class AssetPack
         end
     end
 
+    /*
+        AddToCategory adds a blueprint to a named category. This allows blueprints
+        to be grouped together for organization in a ScenePalette. If the category
+        does not already exist then the category will be created
+
+        Attribute: Parameter category The name of the grouping the blueprint belongs to
+        Attribute: Parameter schematic The blueprint to be added to the category
+    */
     private action AddToCategory(text category, ItemBlueprint schematic)
         //add to the category keys
         boolean hasCatInHash = categories:HasKey(category)
@@ -176,6 +219,9 @@ class AssetPack
         end
     end
 
+    /*
+        Internal action that makes a blueprint for a given drawable
+    */
     private action DrawableToBlueprint(Drawable drawable) returns ItemBlueprint
         DrawableBlueprint result
 
@@ -194,14 +240,28 @@ class AssetPack
         return result
     end
 
+    /*
+        GetBlueprint returns the ItemBlueprint associated with a particular name.
+
+        Attribute: Parameter name The name of the blueprint to look for
+        Attribute: Returns The blueprint associated with that name
+    */
     action GetBlueprint(text name) returns ItemBlueprint
         return blueprints:GetValue(name)
     end
 
+    /*
+        GetCategoryKey returns an Iterator for all categories in this asset pack.
+    */
     action GetCategoryKeyIterator returns Iterator<text>
         return categories:GetKeyIterator()
     end
 
+    /*
+        GetDefaultCategory returns an Iterator for all the ItemBlueprints grouped in
+        the Default category. If a blueprint is added with specifying a category they
+        will be added to the default category.
+    */
     action GetDefaultCategory returns Iterator<ItemBlueprint>
         Array<ItemBlueprint> array = categories:GetValue(DEFAULT)
         if array not= undefined
@@ -210,6 +270,11 @@ class AssetPack
         return undefined
     end
 
+    /*
+        GetCategory returns an Array for all the ItemBlueprints grouped in a specified category.
+
+        Attribute: Parameter category The name of the category whose blueprints should be returned
+    */
     action GetCategory(text category) returns Array<ItemBlueprint>
         Array<ItemBlueprint> array = categories:GetValue(category)
         if array not= undefined
@@ -218,26 +283,48 @@ class AssetPack
         return undefined
     end
 
+    /*
+        GetKeyIterator returns an Iterator for all the names of blueprints that have been added to the
+        asset pack.
+    */
     action GetKeyIterator returns Iterator<text>
         return blueprints:GetKeyIterator()
     end
 
+    /*
+        GetBlueprintIterator returns an Iterator for all blueprints objects that have been added to this
+        asset pack.
+    */
     action GetBlueprintIterator returns Iterator<ItemBlueprint>
         return blueprints:GetValueIterator()
     end
 
+    /*
+        Returns the name of the asset pack. The name affects the name that will appear on a ScenePalette.
+    */
     action GetName returns text
         return name
     end
 
+    /*
+        Sets the name of the asset pack. The name affects the name that will appear on a ScenePalette.
+    */
     action SetName(text name)
         me:name = name
     end
 
+    /*
+        Returns the path to the folder containing all the models and icons for a 3D tileset.
+    */
     action GetTileset3DFolder returns File
         return tileset3DFolder
     end
 
+    /*
+        Sets the path for the folder that contains all the models and icons for the 3D tileset.
+        Calling LoadTileset3D only expects the path to the JSON with all the information for each
+        model but paths for models and icons will be relative to this folder.
+    */
     action SetTileset3DFolder(File tileset3DFolder)
         me:tileset3DFolder = tileset3DFolder
     end

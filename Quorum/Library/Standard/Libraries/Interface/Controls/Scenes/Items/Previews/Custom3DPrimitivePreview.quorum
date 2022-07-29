@@ -15,10 +15,21 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 
+/*
+    The Custom3DPrimitivePreview class is an item only meant to visible in the editor that represents
+    an Custom3DPrimitiveBlueprint so the user can have information about where they are putting an item
+    into the scene and how it fits into the scene before the final model is added to the
+    layer and scene. 
+*/
 class Custom3DPrimitivePreview is ItemPreview3D
 
     File asset = undefined
 
+    /*
+        This action creates a 3D model of one of the main primitives to be added to the scene editor as a
+        preview. The preview will appear as the primitive shape defined in the blueprint and it will be textured
+        with an asset that was chosen by the user.
+    */
     action Load(SceneEditor controller, Custom3DPrimitiveBlueprint schematic, File asset)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
@@ -76,6 +87,10 @@ class Custom3DPrimitivePreview is ItemPreview3D
         end
     end
 
+    /*
+        This action takes the Custom3DPrimitveBlueprint this class would use to make a preview 
+        and instead makes a model that can go directly into the scene and returns it. 
+    */
     action ConvertToModel returns Model
         Custom3DPrimitiveBlueprint schematic = cast(Custom3DPrimitiveBlueprint, GetItemBlueprint())
 

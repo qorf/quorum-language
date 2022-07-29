@@ -10,10 +10,21 @@ use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
 
+/*
+    The PointLightPreview class is an item only meant to visible in the editor that represents
+    a PointLight item in a 3D scene. In a 3D scene a PointLight is not like a model where it's a
+    3D shape. A PointLight is meant to affect how other objects in the scene look so the preview is
+    meant to be a box that is loaded to the user can have a visual of where the point light is 
+    instead of inferring based on any other objects near it.
+*/
 class PointLightPreview is ItemPreview3D
 
     number intensity = 0
 
+    /*
+        This action loads a box with the point light texture on it. The box will not be visible in the scene
+        when the game is run but it will be visible in the editor.
+    */
     action Load(SceneEditor controller, PointLightBlueprint schematic)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
@@ -38,6 +49,10 @@ class PointLightPreview is ItemPreview3D
         end
     end
 
+    /*
+        This action returns an EditorPointLight which is box with a texture on it to show where a point light would be.
+        This model would not be visible in the normal scene running outside of the editor. 
+    */
     action ConvertToModel returns Model
         EditorPointLight light
         light:SetName(GetName())
@@ -52,10 +67,18 @@ class PointLightPreview is ItemPreview3D
         return light
     end
 
+    /*
+        SetIntensity sets the brightness of the light. The preview needs an intensity so the user can see how the light will
+        affect other objects as there moving the preview.
+    */
     action SetIntensity(number intensity)
         me:intensity = intensity
     end
 
+    /*
+        GetIntensity returns the brightness of the light. The preview needs an intensity so the user can see how the light will
+        affect other objects as there moving the preview.
+    */
     action GetIntensity returns number
         return intensity
     end

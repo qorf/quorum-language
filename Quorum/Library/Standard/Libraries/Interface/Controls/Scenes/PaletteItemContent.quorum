@@ -11,6 +11,11 @@ use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 
+/*
+    The PaletteItemContent class describes the Icons and selection boxes that make
+    a palette item. The icon from an ItemBlueprint is used to create a TreeItem that is still
+    named the same as the item but instead of text uses the icon instead of text.
+*/
 class PaletteItemContent is TreeItemContent
 
     Icon icon
@@ -35,6 +40,11 @@ class PaletteItemContent is TreeItemContent
         SetInputGroup("PaletteItemContent")
     end
 
+    /*
+        Loads the content of the PaletteItem by taking the texture in the 
+        palette icon field of the blueprint. The icon is cropped and scaled
+        appropriately based on the information in the blueprint.
+    */
     action Load(ItemBlueprint itemBlueprint)
         TextureRegion texture = itemBlueprint:GetPaletteIcon()
         number scale = itemBlueprint:GetPaletteScale()

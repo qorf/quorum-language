@@ -14,6 +14,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    SelectionHighlight3D represents the SelectionHighlight of a 3D item. The selection
+    will appear as a cube over the item. This class also contains actions to change
+    properties specific to 3D items.
+*/
 class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     
     EditorModel item = undefined
@@ -26,7 +31,9 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         return parent:EditorItem:GetAccessibleParent()
     end
 
-
+    /*
+        Loads a box that is big enough to contain the entire selected item.
+    */
     action Load(EditorModel item, SceneEditor controller)
         Color color = undefined
         SceneConstants constants = GetConstants()
@@ -74,20 +81,34 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         SetSceneEditor(controller)
     end
 
+    /*
+        Returns the item that is being selected
+    */
     action GetItem returns Item
         return item
     end
 
+    /*
+        This action changes the color of the highlight cube. When selection is gained the highlight
+        is much brighter.
+    */
     action GainedSelection
         parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR)
     end
 
+    /*
+        This action changes the color of the highlight cube. When selection is lost the highlight
+        is much dimmer.
+    */
     action LostSelection
         parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR)
     end
 
     // Overriding the Move calls below also overrides the SetX/Y/Z/Position calls, which use Move in their implementation.
 
+    /*
+        Moves the 3D item 
+    */
     action MoveX(number x)
         parent:Model:MoveX(x)
         if item not= undefined
