@@ -417,6 +417,14 @@ class Drawable is TextureRegion, Item2D
     action SetColor(ColorGroup tint)
         colorGroup = tint
 
+        if GetName():Contains("Character") and tint:GetBottomLeft():GetRed() = 1 and tint:GetBottomLeft():GetGreen() = 1 and tint:GetBottomLeft():GetBlue() = 1 and tint:GetBottomLeft():GetAlpha() = 1
+            check
+                alert(GetName() + " was set to white")
+            detect e
+                e:OutputStackTrace()
+            end
+        end
+
         if shape not= undefined
             shape:SetColor(tint)
         end

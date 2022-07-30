@@ -732,7 +732,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine)
+        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2
 
         number xPosition = 0
 
@@ -765,6 +765,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             end
 
             drawable:SetPosition(xPosition + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - drawable:GetHeight())
+            drawable:SetName("TextBox Character " + index + counter)
             background:AddCharacter(lineIndex, index + counter, drawable)
 
             xPosition = xPosition + glyph:horizontalAdvance
@@ -1056,9 +1057,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if selection:IsEmpty() = false
             if startIndex = endIndex
                 ResetFontColors(oldStart, oldEnd)
+                output "A: Tried to reset between " + oldStart + " and " + oldEnd
             else
                 ResetFontColors(oldStart, startIndex)
                 ResetFontColors(endIndex, oldEnd)
+                output "B: Tried to reset between " + oldStart + " and " + startIndex + ", " + endIndex + " and " + oldEnd
             end
         end
 
@@ -1614,6 +1617,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Resize()
         FitCharacterOnScreen(caretLine, caretCharacter)
 
+        // TO-DO: HERE
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
@@ -1771,6 +1775,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if shouldDeleteSelection
             originalIndex = selection:GetStartIndex()
             deletedText = textValue:GetText(selection:GetStartIndex(), selection:GetEndIndex())
+            output "Deleted selection between " + selection:GetStartIndex() + " and " + selection:GetEndIndex()
+            // TO-DO: CHECK HERE
             DeleteSelection(false, false)
         end
 
@@ -1822,6 +1828,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             scrollRegionWidth = -1
             Resize()
         elseif newLines = 0
+            output "XAMAJAMA"
             InsertInLine(oldCaretLine, oldCaretCharacter, value)
         else
             GetLineDrawables()
@@ -1836,7 +1843,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         NotifyTextChangeListeners(changeEvent)
 
+        output "Empty selection event start."
         EmptySelectionEvent(true)
+        output "Empty selection event finished."
     end
 
     action GetEditManager returns EditManager
