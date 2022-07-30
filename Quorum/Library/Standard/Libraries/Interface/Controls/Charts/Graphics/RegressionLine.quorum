@@ -790,19 +790,6 @@ class RegressionLine is ChartDrawable, LinePath
     end
 
     action LockYIntercept(number intercept)
-//        Vector2 origin
-//        origin:Set(0, intercept)
-//
-//        // TO-DO: Instead of putting the intercept through the middle, it would be reasonable to try to find the "best fit" through the intercept instead.
-//        Vector2 midpoint
-//        Chart chart = GetParentChart()
-//        number xMin = chart:GetXAxisMinimum()
-//        number xMax = chart:GetXAxisMaximum()
-//        number yMin = chart:GetYAxisMinimum()
-//        number yMax = chart:GetYAxisMaximum()
-//        midpoint:Set((xMax - xMin) / 2 + xMin, (yMax - yMin) / 2 + yMin)
-//
-//        SetLineThroughMappedPoints(origin, midpoint)
         lockIntercept = true
         constantValue = intercept
         SetToBestFit()
