@@ -911,10 +911,23 @@ class Game
         textBoxTable:Add(enter, newLineBehavior)
         textBoxTable:Add(numpadEnter, newLineBehavior)
 
+        InputSet enter2
+        enter2:SetKeyboardInput(keys:ENTER)
+        enter2:AddModifier(enter2:SHIFT)
+        TextBoxStartNewLineBehavior newLineBehavior2
+        textBoxTable:Add(enter2, newLineBehavior2)
+        textBoxTable:Add(numpadEnter, newLineBehavior2)
+
         InputSet releaseEnter
         releaseEnter:SetKeyboardInput(keys:ENTER)
         releaseEnter:SetInputTrigger(releaseEnter:FINISH)
         textBoxTable:Add(releaseEnter, cancelBehavior)
+
+        InputSet releaseEnter2
+        releaseEnter2:SetKeyboardInput(keys:ENTER)
+        releaseEnter2:AddModifier(releaseEnter2:SHIFT)
+        releaseEnter2:SetInputTrigger(releaseEnter2:FINISH)
+        textBoxTable:Add(releaseEnter2, cancelBehavior)
 
         InputSet releaseNumpadEnter
         releaseNumpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
