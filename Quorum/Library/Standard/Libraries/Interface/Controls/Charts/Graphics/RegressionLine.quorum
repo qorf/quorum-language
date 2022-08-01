@@ -641,17 +641,17 @@ class RegressionLine is ChartDrawable, LinePath
 
     action UpdateMarkerDescription(RegressionLinePointMarker marker)
         if marker:IsKeyboardActive()
-            marker:SetName("Sum of residual squares is " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", slope is " + RoundToText(slope, 2) + ", y-intercept is " + RoundToText(constantValue, 2))
+            marker:SetName("Sum of residual squares " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", slope " + RoundToText(slope, 2) + ", y-intercept " + RoundToText(constantValue, 2))
             if IsYInterceptLocked()
-                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the regression line.")
+                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the line.")
             elseif marker:GetPointIndex() = 1
-                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the regression line.")
+                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the line.")
             else
-                marker:SetDescription("Use the left arrow to rotate clockwise, or right arrow to rotate the line counter-clockwise. Press Shift Enter to return to the regression line.")
+                marker:SetDescription("Use the left arrow to rotate clockwise, or right arrow to rotate the line counter-clockwise. Press Shift Enter to return to the line.")
             end
         else
-            marker:SetName("Regression control point " + (marker:GetPointIndex() + 1) + ": Sum of residual squares is " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", line slope is " + RoundToText(slope, 2) + ", y-intercept is " + RoundToText(constantValue, 2))
-            marker:SetDescription("Press Enter to select the point and change the regression line.")
+            marker:SetName((marker:GetPointIndex() + 1) + ", line control" + ": Sum of residual squares " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", slope " + RoundToText(slope, 2) + ", y-intercept " + RoundToText(constantValue, 2))
+            marker:SetDescription("Press Enter to select the point and change the line.")
         end
     end
 
