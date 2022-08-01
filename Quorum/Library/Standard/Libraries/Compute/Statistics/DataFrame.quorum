@@ -1654,6 +1654,24 @@ class DataFrame
     end
 
     /*
+        This removes the current selected columns and adds all columns into
+        the selection. Selected factors are not changed.
+    
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SelectAllColumns()
+        output frame:ToText()
+    */
+    action SelectAllColumns
+        EmptySelectedColumns()
+        AddSelectedColumnRange(0,GetSize() -1)
+    end
+
+    /*
         This adds a column to the selected range.
     
         Attribute: Parameter index the column index of the column to add
