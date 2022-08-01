@@ -904,49 +904,51 @@ class ChartLayout is Layout
             repeat while i < chart:GetSeriesList():GetSize()
 
                 RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
-                number pointThickness = line:GetPointThickness()
-
-                // Calculate and add padding so the edges of points aren't cut off.
-                number horizontalPaddingFactor = pointThickness / width
-                number horizontalPixelPadding = pointThickness
-                number horizontalMapPadding = (xMax - xMin) * horizontalPaddingFactor
-
-                number verticalPaddingFactor = pointThickness / height
-                number verticalPixelPadding = pointThickness
-                number verticalMapPadding = (yMax - yMin) * verticalPaddingFactor
-
                 if line not= undefined
-                    line:SetSize(width + 2 * horizontalPixelPadding, height + 2 * verticalPixelPadding)
-                    line:SetPosition(xAxisPaddingOffset - horizontalPixelPadding, yAxisPaddingOffset - verticalPixelPadding)
-                    line:MapToRegion(xMin - horizontalMapPadding, xMax + horizontalMapPadding, yMin - verticalMapPadding, yMax + verticalMapPadding)
-                    line:SetHorizontalOrientation(chart:GetHorizontalFlag())
-                    line:SetHorizontalMapPadding(horizontalMapPadding)
-                    line:SetVerticalMapPadding(verticalMapPadding)
-                    
-                    if chart:IsShowingLinearRegression() and line:IsMovable()
-                        Array<RegressionLinePointMarker> pointMarkers = line:GetPointMarkers()
-                        integer j = 0
-                        repeat while j < pointMarkers:GetSize()
-                            RegressionLinePointMarker marker = pointMarkers:Get(j)
-                            marker:SetContainer(chart)
-                            marker:LoadGraphics(marker:GetDefaultLayoutProperties())
-                            j = j + 1
-                        end
-                    end
-
-                    if line:GetRegression() not= undefined
+                    number pointThickness = line:GetPointThickness()
+    
+                    // Calculate and add padding so the edges of points aren't cut off.
+                    number horizontalPaddingFactor = pointThickness / width
+                    number horizontalPixelPadding = pointThickness
+                    number horizontalMapPadding = (xMax - xMin) * horizontalPaddingFactor
+    
+                    number verticalPaddingFactor = pointThickness / height
+                    number verticalPixelPadding = pointThickness
+                    number verticalMapPadding = (yMax - yMin) * verticalPaddingFactor
+    
+                    if line not= undefined
+                        line:SetSize(width + 2 * horizontalPixelPadding, height + 2 * verticalPixelPadding)
+                        line:SetPosition(xAxisPaddingOffset - horizontalPixelPadding, yAxisPaddingOffset - verticalPixelPadding)
+                        line:MapToRegion(xMin - horizontalMapPadding, xMax + horizontalMapPadding, yMin - verticalMapPadding, yMax + verticalMapPadding)
+                        line:SetHorizontalOrientation(chart:GetHorizontalFlag())
+                        line:SetHorizontalMapPadding(horizontalMapPadding)
+                        line:SetVerticalMapPadding(verticalMapPadding)
                         
-                        if chart:GetRegressionLineColor() not= undefined
-                            line:SetBackgroundColor(chart:GetRegressionLineColor())
-                            line:SetIconColor(line:GetBackgroundColor())
-                            line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
-                        else
-                            line:SetBackgroundColor(line:GetColor())
-                            line:SetIconColor(line:GetColor())
+                        if chart:IsShowingLinearRegression() and line:IsMovable()
+                            Array<RegressionLinePointMarker> pointMarkers = line:GetPointMarkers()
+                            integer j = 0
+                            repeat while j < pointMarkers:GetSize()
+                                RegressionLinePointMarker marker = pointMarkers:Get(j)
+                                marker:SetContainer(chart)
+                                marker:LoadGraphics(marker:GetDefaultLayoutProperties())
+                                j = j + 1
+                            end
                         end
-
-                        line:RefreshPoints()        
-                        line:SetZ(-2)
+    
+                        if line:GetRegression() not= undefined
+                            
+                            if chart:GetRegressionLineColor() not= undefined
+                                line:SetBackgroundColor(chart:GetRegressionLineColor())
+                                line:SetIconColor(line:GetBackgroundColor())
+                                line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
+                            else
+                                line:SetBackgroundColor(line:GetColor())
+                                line:SetIconColor(line:GetColor())
+                            end
+    
+                            line:RefreshPoints()        
+                            line:SetZ(-2)
+                        end
                     end
                 end
                 i = i + 1

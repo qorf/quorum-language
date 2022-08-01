@@ -783,9 +783,11 @@ class TwoVariableChart is Chart
                     ChartPoint point = sortedPoints:Get(i)
                     RegressionLine line = point:GetSeries():GetRegressionLine()
 
-                    point:SetEnterItem(line)
-                    if line:GetEscapeItem() = undefined
-                        line:SetEscapeItem(point)
+                    if line not= undefined
+                        point:SetEnterItem(line)
+                        if line:GetEscapeItem() = undefined
+                            line:SetEscapeItem(point)
+                        end
                     end
 
                     i = i + 1

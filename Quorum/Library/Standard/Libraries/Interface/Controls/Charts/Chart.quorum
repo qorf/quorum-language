@@ -1364,9 +1364,8 @@ class Chart is ChartItem
         integer i = 0
         repeat while i < GetSeriesList():GetSize()
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
-            line:SetMovable(movableRegressionLines)
-
             if line not= undefined
+                line:SetMovable(movableRegressionLines)
                 line:SetColor(GetSeriesList():Get(i):GetColor())
                 if IsSeparatedBySeries()
                     integer k = 0
@@ -1400,10 +1399,10 @@ class Chart is ChartItem
                         line:SetLineDensity(regLineDensity)
                     end
                 end
-            end
 
-            if IsLockingRegressionYIntercepts()
-                line:LockYIntercept(regressionInterceptLock)
+                if IsLockingRegressionYIntercepts()
+                    line:LockYIntercept(regressionInterceptLock)
+                end
             end
 
             i = i + 1
