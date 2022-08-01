@@ -194,6 +194,7 @@ use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1407,6 +1408,15 @@ class Game
         chartTable:Add(pageUp, chartNavigateBehavior)
         chartTable:Add(pageDown, chartNavigateBehavior)
         AddInputTable(chartTable)
+
+        InputTable regressionLineTable
+        regressionLineTable:SetIdentifier("RegressionLine")
+        ChartMovableRegressionDragBehavior chartDragBehavior
+        InputSet dragSet
+        dragSet:SetDragItemInput()
+        dragSet:SetInputTrigger(dragSet:CONTINUE)
+        regressionLineTable:Add(dragSet, chartDragBehavior)
+        AddInputTable(regressionLineTable)
 
         InputTable menuItemTable
         menuItemTable:SetIdentifier("MenuItem")

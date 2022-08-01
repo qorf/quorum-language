@@ -584,10 +584,10 @@ end
 
             // The mapping step isn't part of the Catmull-Rom to Bezier conversion.
             // It's something we do to facilitate rendering a path that might want a different coordinate system than the raw pixels.
-            TranslateToMappedSpace(p0, leftBound, rightBound, bottomBound, topBound)
-            TranslateToMappedSpace(p1, leftBound, rightBound, bottomBound, topBound)
-            TranslateToMappedSpace(p2, leftBound, rightBound, bottomBound, topBound)
-            TranslateToMappedSpace(p3, leftBound, rightBound, bottomBound, topBound)
+            TranslateFromMappedSpace(p0, leftBound, rightBound, bottomBound, topBound)
+            TranslateFromMappedSpace(p1, leftBound, rightBound, bottomBound, topBound)
+            TranslateFromMappedSpace(p2, leftBound, rightBound, bottomBound, topBound)
+            TranslateFromMappedSpace(p3, leftBound, rightBound, bottomBound, topBound)
 
             curve:SetPoint1(p1)
             curve:SetPoint2(p2)
@@ -651,6 +651,69 @@ end
     end
 
     /*
+    This action returns the x-coordinate of the point at the requested index in the path.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPointX(integer index) returns number
+        return points:Get(index):GetX()
+    end
+
+    /*
+    This action returns the y-coordinate of the point at the requested index in the path.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPointY(integer index) returns number
+        return points:Get(index):GetY()
+    end
+
+    /*
+    This action returns a Vector2 representing the x and y coordinates of the point at the requested index in the path.
+    This action returns the point's position in pixel coordinates (or "real space"), which could be different than the
+    point's position in the line if the line has been mapped to a region. If no mapping is being used, this value will
+    be identical.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPixelPoint(integer index) returns Vector2
+        Vector2 result
+        result:Set(points:Get(index))
+        TranslateFromMappedSpace(result)
+        return result
+    end
+
+    /*
+    This action returns the x-coordinate of the point at the requested index in the path.
+    This action returns the point's position in pixel coordinates (or "real space"), which could be different than the
+    point's position in the line if the line has been mapped to a region. If no mapping is being used, this value will
+    be identical.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPixelPointX(integer index) returns number
+        Vector2 result
+        result:Set(points:Get(index))
+        TranslateFromMappedSpace(result)
+        return result:GetX()
+    end
+
+    /*
+    This action returns the y-coordinate of the point at the requested index in the path.
+    This action returns the point's position in pixel coordinates (or "real space"), which could be different than the
+    point's position in the line if the line has been mapped to a region. If no mapping is being used, this value will
+    be identical.
+
+    Attribute: Parameter index The index of the point to get.
+    */
+    action GetPixelPointY(integer index) returns number
+        Vector2 result
+        result:Set(points:Get(index))
+        TranslateFromMappedSpace(result)
+        return result:GetY()
+    end
+
+    /*
     This action sets the coordinates of one of the points in the LinePath. This is used to adjust existing points.
     This does not add new points -- if there is no point at the requested index, an error will occur.
 
@@ -695,9 +758,67 @@ end
     Translate the values in the given Vector2 from the mapped space (the custom region set by the user via the mapping action)
     to the real space (pixel values contained within the dimensions of the LinePath object).
     */
-    private action TranslateToMappedSpace(Vector2 point, number leftBound, number rightBound, number bottomBound, number topBound)
+    private action TranslateFromMappedSpace(Vector2 point)
+        number leftBound = mappedLeft
+        if mappedLeft:IsNotANumber()
+            leftBound = 0
+        end
+
+        number rightBound = mappedRight
+        if mappedRight:IsNotANumber()
+            rightBound = GetWidth()
+        end
+
+        number bottomBound = mappedBottom
+        if bottomBound:IsNotANumber()
+            bottomBound = 0
+        end
+
+        number topBound = mappedTop
+        if topBound:IsNotANumber()
+            topBound = GetHeight()
+        end
+
+        TranslateFromMappedSpace(point, leftBound, rightBound, bottomBound, topBound)
+    end
+
+    private action TranslateFromMappedSpace(Vector2 point, number leftBound, number rightBound, number bottomBound, number topBound)
         number x = (point:GetX() - leftBound) * (GetWidth() / (rightBound - leftBound))
         number y = (point:GetY() - bottomBound) * (GetHeight() / (topBound - bottomBound))
+        point:Set(x, y)
+    end
+
+    /*
+    Translate the values in the given Vector2 from the real space (pixel values contained within the dimensions of the LinePath object)
+    to the mapped space (the custom region set by the user via the mapping action)
+    */
+    private action TranslateToMappedSpace(Vector2 point)
+        number leftBound = mappedLeft
+        if mappedLeft:IsNotANumber()
+            leftBound = 0
+        end
+
+        number rightBound = mappedRight
+        if mappedRight:IsNotANumber()
+            rightBound = GetWidth()
+        end
+
+        number bottomBound = mappedBottom
+        if bottomBound:IsNotANumber()
+            bottomBound = 0
+        end
+
+        number topBound = mappedTop
+        if topBound:IsNotANumber()
+            topBound = GetHeight()
+        end
+
+        TranslateToMappedSpace(point, leftBound, rightBound, bottomBound, topBound)
+    end
+
+    private action TranslateToMappedSpace(Vector2 point, number leftBound, number rightBound, number bottomBound, number topBound)
+        number x = (point:GetX() / GetWidth()) * (rightBound - leftBound) + leftBound
+        number y = (point:GetY() / GetHeight()) * (topBound - bottomBound) + bottomBound
         point:Set(x, y)
     end
 
@@ -1244,7 +1365,10 @@ end
             integer i = 0
             boolean found = false
             repeat while i < points:GetSize() and found = false
-                Vector2 point = points:Get(i)
+                Vector2 point
+                point:Set(points:Get(i))
+                TranslateFromMappedSpace(point)
+
                 if mousePoint:DistanceSquared(point) <= radiusSquared
                     found = true
                 else
@@ -1265,22 +1389,22 @@ end
 
     CLICKED_MOUSE:
         * If point: Select the point.
-        * If not point: Deselect the point and pass down to parent.
+        * If not point: Deselect the point and pass on the event.
     RELEASED_MOUSE:
         * If point: process, but no special behavior
-        * If not point: Pass down to parent and ignore.
+        * If not point: Pass on the event and ignore.
     MOVED_MOUSE:
         * If we're using mouse over colors:
             * If point: mouse over color on the point, if available.
-            * If not point: Pass down to parent and ignore.
+            * If not point: Pass on event and ignore.
         * Else:
-            * Pass down to parent and ignore.
+            * Pass on event and ignore.
     DRAGGED_MOUSE:
         * If selection: Process the mouse input normally.
-        * If no selection: Pass down to parent and ignore.
+        * If no selection: Pass on event and ignore.
     SCROLLED_MOUSE:
         * If point: Process the event
-        * If not point: Pass down to parent and ignore.
+        * If not point: Pass on event and ignore.
 */
 
         // If the mouse was clicked off a point or the mouse was released, reset the selection.
@@ -1288,16 +1412,13 @@ end
             selection:SetPointIndex(-1)
         end
 
-        // If the event wasn't on a point, we don't want to process it. Let the parent handle it.
-        // The only exception is for drag events, which we'll want to process if there's a selection.
-        // (In the case that the user wants to drag a point, the drag likely starts on the point but then leaves it)
+        /*
+        If the event wasn't on a point, we don't want to process it.
+        The only exception is for drag events, which we'll want to process if there's a selection.
+        (In the case that the user wants to drag a point, the drag likely starts on the point but then leaves it)
+        */
         if pointIndex = -1 and not (event:eventType = event:DRAGGED_MOUSE and selection:GetPointIndex() >= 0)
-            if GetParent() not= undefined
-                GetParent():ProcessMouseEvent(event)
-            else
-                event:SetEventHandled(false)
-            end
-
+            event:SetEventHandled(false)
             return now
         end
 
