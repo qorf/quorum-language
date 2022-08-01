@@ -122,8 +122,7 @@ class SplitRowsTransform is DataFrameTransform
         i = 0
         repeat while i < size
             integer index = selection:GetColumn(i)
-            NumberColumn column = cast(NumberColumn, frame:GetColumn(index))
-            //Array<IntegerColumn> columns = SplitByRows(first, column)
+            DataFrameColumn column = frame:GetColumn(index)
             Array<DataFrameColumn> columns = column:SplitByRows(first)
             selectedFrame:AddColumn(columns:Get(0))
             remainderFrame:AddColumn(columns:Get(1))
