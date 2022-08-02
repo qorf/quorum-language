@@ -49,6 +49,9 @@ class Item3DPropertiesDialog is PropertiesDialog
     TextField frictionField = undefined
     TextField restitutionField = undefined
 
+    /*
+        Creates and adds the interface components for this dialog.
+    */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         Label label
         nameLabel = label
@@ -510,6 +513,11 @@ class Item3DPropertiesDialog is PropertiesDialog
         panel:Add(restitutionContainer)
     end
 
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if a model or 3D primitive is selected
+        will this dialog show. If there is no selection or the selected item is not a model then the dialog
+        will hide or stay hidden.
+    */
     action SelectionChanged(SelectionEvent event)
         // TO-DO: Consider change to Layer in VisualEditorSelection
 
@@ -548,6 +556,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on its
+        properties
+    */
     action SetFields(EditorItem item)
         if item is EditorItem3D = false
             return now
@@ -556,6 +568,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         SetFields(cast(EditorItem3D, item))
     end
 
+    /*
+        This action takes an EditorItem2D and sets the fields in the dialog based on its
+        properties
+    */
     action SetFields(EditorItem3D item)
         nameField:SetText(item:GetName())
         positionXField:SetText("" + item:GetX())
@@ -589,6 +605,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         restitutionField:SetText("" + item:GetEditorRestitution())
     end
 
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
     action TextChanged(TextChangeEvent event)
         EditorItem3D currentItem = cast(EditorItem3D, GetSceneEditor():GetSelectedItem())
         Control control = event:GetControl()
@@ -763,6 +783,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action enables physics on the selected item. This action is called by the activation behavior
+        of the physics enabled checkbox.
+    */
     action SetPhysicsEnabled(boolean enabled)
         EditorItem item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item:IsEditorPhysicsEnabled() not= enabled
@@ -780,6 +804,9 @@ class Item3DPropertiesDialog is PropertiesDialog
         nameField:Select(0, nameField:GetSize(), true)
     end
 
+    /*
+        Sets the text of the name field. 
+    */
     action SetNameField(text name)
         nameField:RemoveTextChangeListener(me)
         nameField:SetText(name)

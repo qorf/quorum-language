@@ -4,6 +4,10 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior makes the scene editor’s current editor cursor bigger. Note that 
+    when increasing cursor size the cursor grows but a grid unit on each axis. 
+*/
 class CursorIncreaseSizeBehavior is Behavior
 
     action Run(BehaviorEvent event)

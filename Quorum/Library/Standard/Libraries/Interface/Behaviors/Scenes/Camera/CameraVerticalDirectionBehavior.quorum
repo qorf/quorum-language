@@ -5,6 +5,12 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This class is a behavior for the Scene Editor that moves the camera up or 
+    down. The direction of the camera is set using SetDirection and direction 
+    can be -1, 0, or 1. -1 will move the camera down, 0 will not move the camera, 
+    and 1 will move the camera up. 
+*/
 class CameraVerticalDirectionBehavior is Behavior
 
     // The direction value must always be -1, 0, or 1.

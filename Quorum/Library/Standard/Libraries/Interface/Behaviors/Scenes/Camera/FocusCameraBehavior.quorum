@@ -7,6 +7,11 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior for the Scene Editor jumps focus from anywhere in the Scene Editor 
+    to the camera. Focusing on the camera allows for getting information on properties 
+    of the camera and editing its properties.
+*/
 class FocusCameraBehavior is Behavior
 
     action Run(BehaviorEvent event)

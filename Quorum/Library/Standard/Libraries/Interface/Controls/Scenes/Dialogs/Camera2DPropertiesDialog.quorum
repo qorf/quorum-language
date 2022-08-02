@@ -23,6 +23,12 @@ use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 
+/*
+    The Camera2DPropertiesDialog class is a dialog that appears when selecting 
+    a CameraItem2D. Like other properties dialogs this dialog has several fields 
+    and buttons to adjust its properties. This dialog only has 4 properties to 
+    edit so there are not as many controls on the dialog as others.
+*/
 class Camera2DPropertiesDialog is PropertiesDialog
 
     // Controls used on the dialog itself
@@ -31,6 +37,9 @@ class Camera2DPropertiesDialog is PropertiesDialog
     TextField zoomField = undefined
     TextField rotationField = undefined
 
+    /*
+        Creates and adds all the controls this dialog needs
+    */
     action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Camera Properties")
 
@@ -172,6 +181,11 @@ class Camera2DPropertiesDialog is PropertiesDialog
 //        panel:Add(rotationContainer)
     end
 
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if a CameraItem2D is selected
+        will this dialog show. If there is no selection or the selected item is not a CameraItem2D then the dialog
+        will hide or stay hidden.
+    */
     action SelectionChanged(SelectionEvent event)
         // TO-DO: Consider change to Layer in VisualEditorSelection
         if event:GetSelection() is SceneEditorSelection
@@ -201,6 +215,10 @@ class Camera2DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on its
+        properties. If the item is not a CameraItem2D then the item is ignored.
+    */
     action SetFields(EditorItem item)
         if item is CameraItem2D = false
             return now
@@ -209,6 +227,10 @@ class Camera2DPropertiesDialog is PropertiesDialog
         SetFields(cast(CameraItem2D, item))
     end
 
+    /*
+        This action takes a CameraItem2D and sets the fields in the dialog based on the
+        properties
+    */
     action SetFields(CameraItem2D cameraItem)
         OrthographicCamera camera = cast(OrthographicCamera, cameraItem:GetCamera())
         positionXField:SetText("" + camera:GetPosition():GetX())
@@ -217,6 +239,10 @@ class Camera2DPropertiesDialog is PropertiesDialog
 //        rotationField:SetText("" + item:GetRotation())
     end
 
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
     action TextChanged(TextChangeEvent event)
         CameraItem2D currentItem = cast(CameraItem2D, GetSceneEditor():GetSelectedItem())
         OrthographicCamera camera = cast(OrthographicCamera, currentItem:GetCamera())

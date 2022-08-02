@@ -7,6 +7,12 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.SceneTreeItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    This behavior is the default activation behavior for the Scene Tree when activating a 
+    TreeItem. If there is an item associated with the SceneTreeItem, then a highlight will 
+    be made for the item and then it will be focused. If there is no item, then the current 
+    layer will be focused. If neither are defined then nothing will happen. 
+*/
 class SceneTreeItemActivationBehavior is Behavior
 
     action Run(BehaviorEvent event)

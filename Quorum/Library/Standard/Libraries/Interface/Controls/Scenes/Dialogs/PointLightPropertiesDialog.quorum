@@ -33,6 +33,9 @@ class PointLightPropertiesDialog is PropertiesDialog
     TextField colorBlueField = undefined
     TextField intensityField = undefined
 
+    /*
+        Creates and adds all the controls this dialog needs
+    */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         Label label
         nameLabel = label
@@ -229,6 +232,11 @@ class PointLightPropertiesDialog is PropertiesDialog
         panel:Add(intensityContainer)
     end
 
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if a PointLight is selected
+        will this dialog show. If there is no selection or the selected item is not a PointLight then the dialog
+        will hide or stay hidden.
+    */
     action SelectionChanged(SelectionEvent event)
         if event:GetSelection() is SceneEditorSelection
             SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
@@ -252,6 +260,10 @@ class PointLightPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on the
+        properties
+    */
     action SetFields(EditorItem item)
         if item is EditorItem3D = false
             return now
@@ -260,6 +272,10 @@ class PointLightPropertiesDialog is PropertiesDialog
         SetFields(cast(EditorItem3D, item))
     end
 
+    /*
+        This action takes an EditorItem3D and sets the fields in the dialog based on the
+        properties
+    */
     action SetFields(EditorItem3D item)
         nameField:SetText(item:GetName())
         positionXField:SetText("" + item:GetX())
@@ -280,6 +296,10 @@ class PointLightPropertiesDialog is PropertiesDialog
         intensityField:SetText("" + item:GetIntensity())
     end
 
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
     action TextChanged(TextChangeEvent event)
         EditorItem3D currentItem = cast(EditorItem3D, cast(Object, GetSceneEditor():GetSelectedItem()))
         Control control = event:GetControl()
@@ -376,6 +396,9 @@ class PointLightPropertiesDialog is PropertiesDialog
         nameField:Select(0, nameField:GetSize(), true)
     end
 
+    /*
+        Sets the text in the name text field of this dialog. 
+    */
     action SetNameField(text name)
         nameField:RemoveTextChangeListener(me)
         nameField:SetText(name)

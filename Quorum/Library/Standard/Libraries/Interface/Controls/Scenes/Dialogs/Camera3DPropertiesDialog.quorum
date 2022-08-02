@@ -20,6 +20,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 
+/*
+    The Camera3DPropertiesDialog class is a dialog that appears when selecting 
+    a CameraItem3D. Like other properties dialogs this dialog has several fields 
+    and buttons to adjust its properties.
+*/
 class Camera3DPropertiesDialog is PropertiesDialog
 
     // Controls used on the dialog itself
@@ -29,6 +34,9 @@ class Camera3DPropertiesDialog is PropertiesDialog
     TextField zoomField = undefined
     TextField fovField = undefined
 
+    /*
+        Creates and adds all the controls this dialog needs
+    */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Camera Properties")
 
@@ -215,6 +223,11 @@ class Camera3DPropertiesDialog is PropertiesDialog
         panel:Add(fovContainer)
     end
 
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if a CameraItem3D is selected
+        will this dialog show. If there is no selection or the selected item is not a CameraItem3D then the dialog
+        will hide or stay hidden.
+    */
     action SelectionChanged(SelectionEvent event)
         // TO-DO: Consider change to Layer in VisualEditorSelection
         if event:GetSelection() is SceneEditorSelection
@@ -238,6 +251,10 @@ class Camera3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on its
+        properties. If the item is not a CameraItem3D then the item is ignored.
+    */
     action SetFields(EditorItem item)
         if item is CameraItem3D = false
             return now
@@ -246,6 +263,10 @@ class Camera3DPropertiesDialog is PropertiesDialog
         SetFields(cast(CameraItem3D, item))
     end
 
+    /*
+        This action takes a CameraItem3D and sets the fields in the dialog based on its
+        properties.
+    */
     action SetFields(CameraItem3D cameraItem)
         EditorCamera3D camera = cameraItem:GetEditorCamera()
         distanceField:SetText("" + camera:GetDistance())
@@ -255,6 +276,10 @@ class Camera3DPropertiesDialog is PropertiesDialog
         fovField:SetText("" + camera:GetFieldOfView())
     end
 
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
     action TextChanged(TextChangeEvent event)
         CameraItem3D currentItem = cast(CameraItem3D, GetSceneEditor():GetSelectedItem())
         EditorCamera3D camera = currentItem:GetEditorCamera()

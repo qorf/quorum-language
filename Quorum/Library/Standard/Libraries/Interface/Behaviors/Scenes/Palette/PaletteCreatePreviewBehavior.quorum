@@ -9,6 +9,11 @@ use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.ScenePaletteItem
 
+/*
+    This behavior is used by ScenePaletteItems to add a preview to the scene editor. 
+    This behavior is used when the ScenePaletteItem is activated and it gets the 
+    ItemBlueprint and passes that information to the scene editor to make a preview. 
+*/
 class PaletteCreatePreviewBehavior is Behavior
 
     action Run(BehaviorEvent event)

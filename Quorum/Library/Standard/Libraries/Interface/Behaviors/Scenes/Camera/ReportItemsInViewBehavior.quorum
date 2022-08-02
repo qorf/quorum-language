@@ -12,6 +12,12 @@ use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior sends a notify call to the screen reader and with the amount of items in 
+    view. Like the CameraItemsInViewBehavior this behavior will get the editor camera and 
+    get all the items that are visible but this behavior only counts them and only sends 
+    a notify call. 
+*/
 class ReportItemsInViewBehavior is Behavior
 
     action Run(BehaviorEvent event)

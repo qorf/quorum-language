@@ -5,6 +5,13 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior is used to cancel placing an item in a scene using the scene editor. 
+    The scene palette allows for users to browse objects they can put into a scene and 
+    create a preview in the scene. If the user makes a preview then it will be canceled 
+    so no new item is placed. This behavior moves focus away from the preview and sends 
+    a notify call that placement was canceled. 
+*/
 class ItemCancelBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is ItemPreview

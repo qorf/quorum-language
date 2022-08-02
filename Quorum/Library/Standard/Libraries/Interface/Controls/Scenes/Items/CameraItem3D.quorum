@@ -10,12 +10,21 @@ use Libraries.Interface.Controls.Scenes.Items.CameraItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 
+/*
+    CameraItem3D represents a camera in a 3D editor. The camera in a 3D is not directly visible like in the 2D editor.
+    Instead a CameraItem3D represents the camera of a 3D scene that affects what is visible in the scene. The camera while
+    editing a 3D scene moves around the 3D environment and this class provides actions to affect certain properties of that
+    camera such as rotation or distance from a targeted item.
+*/
 class CameraItem3D is CameraItem, EditorItem3D
 
     on create
         SetInputGroup("CameraItem3D")
     end
 
+    /*
+        Loads this item from an EditorCamera3D and a SceneEditor. 
+    */
     action Load(EditorCamera3D camera, SceneEditor controller)
         SetCamera(camera)
         SetSceneEditor(controller)
@@ -23,62 +32,100 @@ class CameraItem3D is CameraItem, EditorItem3D
         SetPosition(camera:GetPosition():GetX(), camera:GetPosition():GetY(), camera:GetPosition():GetZ())
     end
 
+    /*
+        Returns the camera this CameraItem3D represents
+    */
     action GetEditorCamera returns EditorCamera3D
         return cast(EditorCamera3D, GetCamera())
     end
 
+    /*
+        Sets the rotation of the camera based on yaw, pitch, and roll angles. Angles are expected in degrees.
+    */
     action SetRotation(number yaw, number pitch, number roll)
         EditorCamera3D camera = GetEditorCamera()
         camera:SetRotation(yaw, pitch, roll)
         SetPosition(camera:GetPosition())
     end
 
+    /*
+        Returns all three rotation angles of the camera as a Vector3. The angles in the vector are in the
+        order yaw, pitch, then roll.
+    */
     action GetRotation returns Vector3
         Vector3 vector
         vector:Set(GetYaw(), GetPitch(), GetRoll())
         return vector
     end
 
+    /*
+        Returns the yaw angle of the camera. Yaw is how far the camera is angled left or right.
+    */
     action GetYaw returns number
         return GetEditorCamera():GetYaw()
     end
 
+    /*
+        Returns the pitch angle of the camera. Pitch is how far the camera is angled up or down.
+    */
     action GetPitch returns number
         return GetEditorCamera():GetPitch()
     end
 
+    /*
+        Returns the roll angle of the camera. Roll is how far the camera is angled around the front-to-back axis.
+    */
     action GetRoll returns number
         return GetEditorCamera():GetRoll()
     end
 
+    /*
+        Sets the yaw angle of the camera. Yaw is how far the camera is angled left or right.
+    */
     action SetYaw(number yaw)
         EditorCamera3D camera = GetEditorCamera()
         camera:SetYaw(yaw)
         SetPosition(camera:GetPosition())
     end
 
+    /*
+        Sets the pitch angle of the camera. Pitch is how far the camera is angled up or down.
+    */
     action SetPitch(number pitch)
         EditorCamera3D camera = GetEditorCamera()
         camera:SetPitch(pitch)
         SetPosition(camera:GetPosition())
     end
 
+    /*
+        Sets the roll angle of the camera. Roll is how far the camera is angled around the front-to-back axis.
+    */
     action SetRoll(number roll)
         EditorCamera3D camera = GetEditorCamera()
         camera:SetRoll(roll)
         SetPosition(camera:GetPosition())
     end
 
+    /*
+        SetDistance sets how far away in 3D units the camera should be from the targeted item.
+    */
     action SetDistance(number distance)
         EditorCamera3D camera = GetEditorCamera()
         camera:SetDistance(distance)
         SetPosition(camera:GetPosition())
     end
 
+    /*
+        Returns how far away in 3D units the camera should be from the targeted item.
+    */
     action GetDistance returns number
         return GetEditorCamera():GetDistance()
     end
 
+    /*
+        Sets the Zoom on the camera. A higher zoom means objects will appear closer to the camera than they
+        actually are.
+    */
     action SetZoom(number zoom)
         PerspectiveCamera camera = cast(PerspectiveCamera, GetCamera())
         camera:SetZoom(zoom)
@@ -88,6 +135,10 @@ class CameraItem3D is CameraItem, EditorItem3D
         end
     end
 
+    /*
+        Returns the Zoom on the camera. A higher zoom means objects will appear closer to the camera than they
+        actually are.
+    */
     action GetZoom returns number
         PerspectiveCamera camera = cast(PerspectiveCamera, GetCamera())
         return camera:GetZoom()

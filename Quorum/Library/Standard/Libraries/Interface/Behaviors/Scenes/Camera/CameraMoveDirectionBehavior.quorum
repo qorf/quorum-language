@@ -5,6 +5,13 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This class is a behavior for the Scene Editor that moves the camera forward 
+    or backward. For cameras in 3D space forward is defined as the direction the 
+    camera is facing. The direction of the camera is set using SetDirection and 
+    direction can be -1, 0, or 1. A negative number will move the camera backward, 
+    0 will not move the camera, and 1 will move the camera forward. 
+*/
 class CameraMoveDirectionBehavior is Behavior
 
     // The direction value must always be -1, 0, or 1.

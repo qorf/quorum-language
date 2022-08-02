@@ -21,6 +21,12 @@ use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSetLoopingBehavior
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSetDopplerBehavior
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesChooseSourceBehavior
 
+/*
+    The Audio3DPropertiesDialog class is a dialog that appears when selecting Audio3D 
+    items. Like other properties dialogs this dialog has several fields and buttons 
+    to adjust different properties. This dialog allows for changing of properties 
+    specific to Audio3D items such as volume and pitch.
+*/
 class Audio3DPropertiesDialog is PropertiesDialog
 
     TextField nameField = undefined
@@ -37,6 +43,9 @@ class Audio3DPropertiesDialog is PropertiesDialog
     Checkbox loopingCheckbox = undefined
     Checkbox dopplerCheckbox = undefined
 
+    /*
+        Creates and adds the interface components for this dialog.
+    */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         Label nameLabel
         
@@ -381,6 +390,9 @@ class Audio3DPropertiesDialog is PropertiesDialog
         focusArray:Add(dopplerCheckbox)
     end
 
+    /*
+        Sets the PlayOnLoad property of Audio3D items
+    */
     action SetPlayOnLoad(boolean play)
         Object item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item is EditorAudio3D
@@ -391,6 +403,9 @@ class Audio3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        Sets the Looping property of Audio3D items
+    */
     action SetLooping(boolean looping)
         Object item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item is EditorAudio3D
@@ -401,6 +416,9 @@ class Audio3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        Sets the Doppler property of Audio3D items
+    */
     action SetDoppler(boolean doppler)
         Object item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item is EditorAudio3D
@@ -411,6 +429,11 @@ class Audio3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if an Audio3D is selected
+        will this dialog show. If there is no selection or the selected item is not an Audio3D then the dialog
+        will hide or stay hidden.
+    */
     action SelectionChanged(SelectionEvent event)
         // TO-DO: Consider change to Layer in VisualEditorSelection
 
@@ -436,6 +459,10 @@ class Audio3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on its
+        properties
+    */
     action SetFields(EditorItem item)
         if item is EditorItem3D = false
             return now
@@ -444,6 +471,10 @@ class Audio3DPropertiesDialog is PropertiesDialog
         SetFields(cast(EditorItem3D, item))
     end
 
+    /*
+        This action takes an EditorItem3D and sets the fields in the dialog based on its
+        properties
+    */
     action SetFields(EditorItem3D item)
         nameField:SetText(item:GetName())
         positionXField:SetText("" + item:GetX())
@@ -464,6 +495,10 @@ class Audio3DPropertiesDialog is PropertiesDialog
         end
     end
 
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
     action TextChanged(TextChangeEvent event)
         EditorAudio3D currentItem = cast(EditorAudio3D, cast(Object, GetSceneEditor():GetSelectedItem()))
         Control control = event:GetControl()

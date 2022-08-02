@@ -22,6 +22,15 @@ use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeItemActivationBehavior
 use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeEditorCameraBehavior
 
+/*
+    The SceneTree class is a Tree that is built based on all the layers and items in a 
+    scene loaded into a scene editor. The SceneTree builds out a tree by going through 
+    the layers and items and making tree items for each. The SceneTree is also a 
+    SceneEditorChangeListener that will add and remove TreeItems as items are added or 
+    removed from the scene. The SceneTree allows for the user to go through a tree to 
+    see all items in a scene and choose to edit the item from the tree. The default 
+    behavior of the items in the tree is to select the item in the editor. 
+*/
 class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
 
     SceneConstants constants
@@ -49,10 +58,18 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         filterArray:SetSize(1)
     end
     
+    /*
+        Returns the SceneEditor this tree is using to build itself out
+    */
     action GetSceneEditor returns SceneEditor
         return controller
     end
 
+    /*
+        Sets the SceneEditor for this SceneTree to use. When the editor is set the tree
+        will load TreeItems based on the layers and items in the scene. The SceneTree will
+        also sets itself to listen to changes in the SceneEditor.
+    */
     action SetSceneEditor(SceneEditor sceneController)
         if controller not= undefined
             controller:RemoveSceneEditorChangeListener(me)
@@ -75,6 +92,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         end
     end
 
+    /*
+        Creates and add the SceneTreeItems based on all the layers and items passed to this
+        action. 
+    */
     private action Load(Array<EditorLayer> layers)
         integer counter = 0
         repeat while counter < layers:GetSize()
@@ -141,6 +162,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         end
     end
 
+    /*
+        Used internally. This action takes an Item2D and the layer it belongs to and returns
+        a SceneTreeItem that represents that item.
+    */
     private action ItemToTreeItems(Item2D item, EditorLayer layer) returns SceneTreeItem
         SceneTreeItem treeItem
         treeItem:SetName(item:GetName())
@@ -158,6 +183,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         return treeItem
     end
 
+    /*
+        Used internally. This action takes an Item3D and the layer it belongs to and returns
+        a SceneTreeItem that represents that item.
+    */
     private action ItemToTreeItems(Item3D item, EditorLayer layer) returns SceneTreeItem
         SceneTreeItem treeItem
         treeItem:SetName(item:GetName())
@@ -173,6 +202,12 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         return treeItem
     end
 
+    /*
+        As the Selection in the tree changes the SceneEditor is updated visually to reflect what is being 
+        selected. If the item selected in the tree is on a layer that is not selected in the editor then the
+        editors selections is changed. If an item is selected then the editor filters out other items and highlights
+        the item selected in the tree. 
+    */
     action SelectionChanged(SelectionEvent event)
         if event:GetSelection() is TreeSelection
             TreeSelection selection = cast(TreeSelection, event:GetSelection())
@@ -198,6 +233,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         end
     end
 
+    /*
+        Called by the listener system. When an item is added to the scene then the SceneTree is updated
+        to have a TreeItem for that item.
+    */
     action SceneAddedItem(SceneEditorChangeEvent event)
         if controller = undefined
             return now
@@ -246,6 +285,10 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         end
     end
 
+    /*
+        Called by the listener system. When an item is removed to the scene then the SceneTree is updated
+        to not have a TreeItem for that item.
+    */
     action SceneRemovedItem(SceneEditorChangeEvent event)
         if controller = undefined
             return now
@@ -275,6 +318,9 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         end
     end
 
+    /*
+        Used internally to search through a tree for the SceneTreeItem associated with a specific scene item.
+    */
     private action GetTreeItem(SceneTreeItem root, Item item) returns SceneTreeItem
         if root:GetSceneItem() = item
             return root

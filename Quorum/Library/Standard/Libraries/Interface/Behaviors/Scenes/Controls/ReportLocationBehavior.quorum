@@ -8,6 +8,13 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior sends a notify call to accessibility on the current position in the scene. 
+    If just the scene editor is focused and no item is being selected then this behavior will 
+    only notify of the camera’s position in the current layer. If an EditorItem is being selected 
+    then the global position of the item is sent to the screen reader. Positions will always be 
+    sent in the order x, y, and then z if applicable. 
+*/
 class ReportLocationBehavior is Behavior
 
     Math math

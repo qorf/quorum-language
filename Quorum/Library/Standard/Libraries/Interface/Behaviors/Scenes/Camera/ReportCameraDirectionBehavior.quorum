@@ -5,6 +5,12 @@ use Libraries.Compute.Math
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior notifies the screen reader of the yaw, pitch, and roll of the camera. 
+    The angles are given in degrees and the order will always be yaw, pitch, and then 
+    roll. Note that this behavior uses the NotifyAccessibility() call so you need to be 
+    using a screen reader to see the notify.
+*/
 class ReportCameraDirectionBehavior is Behavior
 
     Math math

@@ -16,6 +16,13 @@ use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+
+/*
+    The SceneEditorFindDialog class is a Dialog used by the SceneEditor to find objects in the scene.
+    The functionality of the dialog is similar to the normal find in the text editor but instead of 
+    searching for text in a file the search is for an object in the scene. The search is based on the
+    name of the object.
+*/
 class SceneEditorFindDialog is Dialog, TextChangeListener
 
     boolean initialized = false
@@ -26,6 +33,10 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
     Label findLabel = undefined
     TextField findField = undefined
 
+    /*
+        Sets up the dialog by connecting to an input group and creating all the controls that will be 
+        visibile in the dialog. 
+    */
     action Initialize(SceneEditor controller)
         if initialized
             return now
@@ -88,6 +99,10 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
         Add(panel)
     end
 
+    /*
+        This action is called when the dialog should appear. This positions the dialog correctly, sets the text
+        in the field to be blank and then shows the dialog. 
+    */
     action Show
         if controller not= undefined
             LayoutProperties properties = GetDefaultLayoutProperties()
@@ -106,6 +121,11 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
         parent:Dialog:Show()
     end
 
+    /*
+        This Find dialog will search for objects in the scene as text is being typed into the 
+        text field. Therefore this class is a TextChangeListener so that the search can happen
+        as the user types. 
+    */
     action TextChanged(TextChangeEvent event)
         text searchText = findField:GetText()
         text editorTag = controller:GetEditorTag()
@@ -129,10 +149,17 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
         end
     end
 
+    /*
+        Returns the SceneEditor this dialog interacts with.
+    */
     action GetSceneEditor returns SceneEditor
         return controller
     end
 
+    /*
+        This action moves focus to the text field in this dialog. This is called when the dialog is opened
+        so that the user's focus moves to the dialog and is not lost is the process of opening the dialog.
+    */
     action FocusField
         findField:Focus()
         findField:Select(0, findField:GetSize(), true)

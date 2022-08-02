@@ -15,6 +15,15 @@ use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This class is a behavior for the Scene Editor that takes the current editor camera 
+    and sets the editor’s filtered items to be all items that are in view of the camera. 
+    When filtered Items are set in the editor the user can select through them and the 
+    editor will automatically focus on one of the items. This allows the user to highlight 
+    and filter through only items that are visible in the editor in an accessible way. 
+    If no items are visible then the filtered items in the editor will be empty and no 
+    item will be selected. 
+*/
 class CameraItemsInViewBehavior is Behavior
 
     action Run(BehaviorEvent event)

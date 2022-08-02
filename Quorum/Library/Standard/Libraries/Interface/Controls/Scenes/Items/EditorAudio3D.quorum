@@ -8,6 +8,13 @@ use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Compute.Vector3
 use Libraries.Interface.Controls.Scenes.Items.EditorModel
 
+/*
+    EditorAudio3D represents an Audio3D item that has been added to a scene. In a 
+    scene running outside of an editor an Audio3D item will not have a visual 
+    component but in the SceneEditor system a cube is made so the user can see and 
+    find where the Audio object is located. This class makes that model and also 
+    includes actions to modify properties of the audio object. 
+*/
 class EditorAudio3D is EditorModel
 
     // This class needs to inherit from Audio3D in order for the scene manager to 
@@ -27,14 +34,25 @@ class EditorAudio3D is EditorModel
     boolean looping = false
     boolean doppler = true
 
+    /*
+        Returns the path to the source file used for audio
+    */
     action GetSource returns text
         return source
     end
 
+    /*
+        Sets the path to the source file used for audio
+    */
     action SetSource(text source)
         me:source = source
     end
 
+    /*
+        Sets the PlayOnLoad property of the Audio object this class represents.
+        If PlayOnLoad is true the audio will play as soon as the object is loaded
+        into a Game.
+    */
     action SetPlayOnLoad(boolean load)
         SceneProperties properties
         JavaScriptObjectNotation json = undefined
@@ -49,6 +67,9 @@ class EditorAudio3D is EditorModel
         json:SetBoolean(load)
     end
 
+    /*
+        Returns the value of the PlayOnLoad property of the Audio object
+    */
     action GetPlayOnLoad returns boolean
         SceneProperties properties
         if HasProperty(properties:PLAY_ON_LOAD)
@@ -59,6 +80,10 @@ class EditorAudio3D is EditorModel
         end
     end
 
+    /*
+        Loads a placehodler box so there is visible model in the SceneEditor in place of an
+        Audio object.
+    */
     action LoadPlaceholderBox
         if modelLoaded = true
             return now
@@ -69,50 +94,86 @@ class EditorAudio3D is EditorModel
         //LoadBox(0.5, 0.5, 0.5, resources:GetAudioTexture())
     end
 
+    /*
+        Returns the value of the volume property of the Audio object
+    */
     action GetVolume returns number
         return volume
     end
 
+    /*
+        Sets the volume of the Audio
+    */
     action SetVolume(number volume)
         me:volume = volume
     end
 
+    /*
+        Sets the pitch of the Audio
+    */
     action SetPitch(number pitch)
         me:pitch = pitch
     end
 
+    /*
+        Returns the value of the pitch property of the Audio object
+    */
     action GetPitch returns number
         return pitch
     end
 
+    /*
+        Returns the value of the MaximumVolumeDistance property of the Audio object
+    */
     action GetMaximumVolumeDistance returns number
         return maxVolumeDistance
     end
 
+    /*
+        Sets the maximum volume distance of the Audio
+    */
     action SetMaximumVolumeDistance(number maxVolumeDistance)
         me:maxVolumeDistance = maxVolumeDistance
     end
 
+    /*
+        Returns the the value of the RolloffRate property of the Audio object
+    */
     action GetRolloffRate returns number
         return rolloffRate
     end
 
+    /*
+        Sets the rolloff rate of the Audio
+    */
     action SetRolloffRate(number rolloffRate)
         me:rolloffRate = rolloffRate
     end
 
+    /*
+        Returns the value of the Looping property of the Audio object
+    */
     action GetLooping returns boolean
         return looping
     end
 
+    /*
+        Sets whether the Audio will loop after finishing
+    */
     action SetLooping(boolean looping)
         me:looping = looping
     end
 
+    /*
+        Returns the value of the doppler property of the Audio object
+    */
     action GetDoppler returns boolean
         return doppler
     end
 
+    /*
+        Sets if the doppler effect will be calculated when playing the audio
+    */
     action SetDoppler(boolean doppler)
         me:doppler = doppler
     end

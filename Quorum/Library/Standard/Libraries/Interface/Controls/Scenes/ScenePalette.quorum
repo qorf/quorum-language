@@ -22,6 +22,31 @@ use Libraries.Interface.Controls.Scenes.Assets.AssetPack
 use Libraries.Interface.Controls.Tree
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    The ScenePalette class is a standalone control intended to interact with the SceneEditor class. ScenePalette 
+    is a tree whose TreeItems represents objects that can be added into a scene. This class loads assets and 
+    primitives and interacting with the tree creates previews into the SceneEditor and lets the user add items into 
+    the scene. This class also supports drag and drop for items into the scene. There are default assets that are 
+    loaded but several thumbnails need to be added so there is an icon for those defaults. 
+
+    Attribute: Example
+
+ScenePalette scenePalette
+
+//Load thumbnails for the defaults
+scenePalette:SetDefaultCubeThumbnail("cubeThumbnail.png")
+scenePalette:SetDefaultSphereThumbnail("sphereThumbnail.png")
+scenePalette:SetDefaultCylinderThumbnail("cylinderThumbnail.png")
+scenePalette:SetDefaultPointLightThumbnail("lightThumbnail.png")
+scenePalette:SetDefaultAudio3DThumbnail("audioThumbnail.png")
+scenePalette:SetDefaultCustomModelThumbnail("modelCustom.png")
+scenePalette:SetDefaultCustomCubeThumbnail("cubeCustom.png")
+scenePalette:SetDefaultCustomSphereThumbnail("sphereCustom.png")
+scenePalette:SetDefaultCustomCylinderThumbnail("cylinderCustom.png")
+scenePalette:SetPointLightTexture("lightTexture.png")
+scenePalette:SetAudio3DTexture("audioTexture.png")
+scenePalette:LoadDefaultAssets()
+*/
 class ScenePalette is Tree
     ItemBlueprintComparison itemComparison
     SceneEditor controller = undefined
@@ -61,6 +86,9 @@ class ScenePalette is Tree
         SetSceneEditor(undefined)
     end
 
+    /*
+        Sets the SceneEditor this palette will interact with
+    */
     action SetSceneEditor(SceneEditor sceneController)
         controller = sceneController
 
@@ -82,66 +110,111 @@ class ScenePalette is Tree
         end
     end
 
+    /*
+        Returns the SceneEditor this palette interacts with
+    */
     action GetSceneEditor returns SceneEditor
         return controller
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the cube item
+    */
     action SetDefaultCubeThumbnail(text file)
         me:cubeThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the sphere item
+    */
     action SetDefaultSphereThumbnail(text file)
         me:sphereThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the cylinder item
+    */
     action SetDefaultCylinderThumbnail(text file)
         me:cylinderThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the point light item
+    */
     action SetDefaultPointLightThumbnail(text file)
         me:pointLightThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the audio item
+    */
     action SetDefaultAudio3DThumbnail(text file)
         me:audio3DThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the custom model item
+    */
     action SetDefaultCustomModelThumbnail(text file)
         me:customModelThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the custom cube item
+    */
     action SetDefaultCustomCubeThumbnail(text file)
         me:customCubeThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the custom sphere item
+    */
     action SetDefaultCustomSphereThumbnail(text file)
         me:customSphereThumbnailLocation = file
     end
 
+    /*
+        Sets the icon for the ScenePaletteItem for the custom cylinder item
+    */
     action SetDefaultCustomCylinderThumbnail(text file)
         me:customCylinderThumbnailLocation = file
     end
 
+    /*
+        Sets the texture to use on the editor model for point lights
+    */
     action SetPointLightTexture(text file)
         Texture texture
         pointLightTexture = texture
         pointLightTexture:LoadModelTexture(file)
     end
 
+    /*
+        Sets the texture to use on the editor model for point lights
+    */
     action SetPointLightTexture(Texture texture)
         pointLightTexture = texture
     end
 
+    /*
+        Sets the texture to use on the editor model for Audio3D items
+    */
     action SetAudio3DTexture(text file)
         Texture texture
         audio3DTexture = texture
         audio3DTexture:LoadModelTexture(file)
     end
 
+    /*
+        Sets the texture to use on the editor model for Audio3D items
+    */
     action SetAudio3DTexture(Texture texture)
         audio3DTexture = texture
     end
 
+    /*
+        If a thumbnail is not provided for the default assets a default icon is made for it.
+    */
     private action LoadDefaultIcon returns Drawable
         Drawable defaultIcon
         Color color
@@ -149,6 +222,11 @@ class ScenePalette is Tree
         return defaultIcon
     end
 
+    /*
+        Loads all the default items for the palette that can be added into a scene. This action will 
+        use any thumbnails added by the user and generated a default icon for any that are missing. 
+        If the project contains a Tileset folder than items in that folder will be loaded here too.
+    */
     action LoadDefaultAssets
         if enabledScenes3D
             AssetPack primitives3D
@@ -375,6 +453,9 @@ class ScenePalette is Tree
         end
     end
 
+    /*
+        Adds assets to the palette from an asset pack object. Used internally to load defaults.
+    */
     action LoadAssetPack(AssetPack pack)
         loadedAssetPacks:Add(pack)
         if controller not= undefined
@@ -382,6 +463,10 @@ class ScenePalette is Tree
         end
     end
 
+    /*
+        Used internally. Takes a list of blueprints and a TreeItem (in this case the parent of the blueprints)
+        and then makes TreeItems for each blueprint and adds them to the passed TreeItem.
+    */
     private action AddItemsToTreeItem(TreeItem treeItem, Array<ItemBlueprint> array)
         integer counter = 0
         repeat while counter < array:GetSize()
@@ -397,6 +482,10 @@ class ScenePalette is Tree
         end
     end
 
+    /*
+        Used internally. Takes an AssetPack object and adds the blueprints in the 
+        AssetPack into the ScenePalette.
+    */
     private action AddAssetsToTree(AssetPack pack)
         TreeItem root
         root:SetName(pack:GetName())
@@ -440,6 +529,13 @@ class ScenePalette is Tree
         Add(root)
     end
 
+    /*
+        This action is used when dragging an item from the palette into an editor. When an item
+        is dragged a new layer is created so the item can be visible anywhere in the game and above
+        other controls in the application. Setting the dragged item to be undefined also removes
+        items in the layer so the layer does not persist and obstruct other controls after dragging
+        is complete. 
+    */
     action SetDraggedItem(Item item)
         // TO-DO: Handle 3D as well
 
@@ -472,6 +568,9 @@ class ScenePalette is Tree
         draggedItem = cast(Drawable, item)
     end
 
+    /*
+        Returns the item being dragged. 
+    */
     action GetDraggedItem returns Item
         return draggedItem
     end

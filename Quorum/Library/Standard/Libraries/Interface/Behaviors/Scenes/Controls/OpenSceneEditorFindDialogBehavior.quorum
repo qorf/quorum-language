@@ -6,6 +6,10 @@ use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior open’s the Scene Editor’s find dialog and 
+    shifts focus to the text field in the find dialog. 
+*/
 class OpenSceneEditorFindDialogBehavior is Behavior
     action Run(BehaviorEvent event)
         SceneEditor editor = undefined

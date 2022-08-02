@@ -6,6 +6,11 @@ use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior closes the find dialog in the scene editor. If an item was selected 
+    before opening the find dialog then focus will shift to the item, otherwise the 
+    editor will get focus. 
+*/
 class CloseSceneEditorFindDialogBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is SceneEditorFindDialog

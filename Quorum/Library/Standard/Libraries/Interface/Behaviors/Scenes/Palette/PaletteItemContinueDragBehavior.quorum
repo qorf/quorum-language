@@ -8,6 +8,12 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Scenes.ScenePaletteItem
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior is used during a drag and drop event in the Scene Editor to keep 
+    the drag going if the user is still dragging. This behavior just keeps the 
+    drawable that is being dragged on the screen and moves it to the correct 
+    position on screen.
+*/
 class PaletteItemContinueDragBehavior is Behavior
 
     action Run(BehaviorEvent event)

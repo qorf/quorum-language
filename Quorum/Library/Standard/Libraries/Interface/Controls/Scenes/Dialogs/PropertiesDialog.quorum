@@ -13,6 +13,12 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
+    This dialog is not a control in itself that can be added to the editor. This class only 
+    provides actions that allow other dialogs to inherit from and use. This class only provides 
+    basic initialization and blueprint functions for setting fields and managing focus. 
+*/
 class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
     boolean initialized = false
@@ -25,6 +31,12 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         SetVerticalLayoutMode(parent:Libraries.Interface.Controls.Control:FIT_CONTENTS)
     end
 
+    /*
+        Initializes the dialog by making the dialog a selection listener of the given SceneEditor. 
+        This action also calls the CreateInterface action which makes and adds controls to the 
+        dialog. This action also sets up focus targets for the array to ensure the user can move 
+        focus when in the dialog. 
+    */
     action Initialize(SceneEditor controller)
         if initialized
             return now
@@ -78,10 +90,18 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     */
     private blueprint action CreateInterface(Control panel, Array<Control> focusArray)
 
+    /*
+        Returns the SceneEditor this dialog is a part of. This SceneEditor is also the object
+        firing selection events that the dialog is listening to. 
+    */
     action GetSceneEditor returns SceneEditor
         return editor
     end
 
+    /*
+        Positions the dialog in the bottom right corner of the editor and then 
+        shows the dialog. 
+    */
     action Show
         if editor not= undefined
             LayoutProperties properties = GetDefaultLayoutProperties()

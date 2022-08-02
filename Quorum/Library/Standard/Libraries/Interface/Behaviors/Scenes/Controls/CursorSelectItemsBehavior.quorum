@@ -5,6 +5,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior sets the filtered items of the editor to be any items that are found at 
+    the cursor. When items are filtered then the user can navigate through them like a list 
+    and select and edit individual items from that list. 
+*/
 class CursorSelectItemsBehavior is Behavior
 
     action Run(BehaviorEvent event)

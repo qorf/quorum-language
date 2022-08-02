@@ -5,6 +5,12 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This class is a behavior for the Scene Editor that changes the yaw of the camera. 
+    The yaw describes how far the camera is angled left or right. A positive yaw 
+    direction will angle the camera right and a negative yaw direction will angle 
+    the camera left. 
+*/
 class CameraYawRotationBehavior is Behavior
 
     // The direction value must always be -1, 0, or 1.

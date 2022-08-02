@@ -4,6 +4,12 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior is used by the selection system in the scene editor to delete an item in a scene. 
+    This behavior specifically deletes the selected item that is shown by the selection highlight. 
+    It will remove the item from the scene and the highlight associated with that item will be 
+    removed as well.
+*/
 class SelectionDeleteBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is SelectionHighlight

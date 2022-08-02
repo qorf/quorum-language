@@ -7,6 +7,11 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
 
+/*
+    This behavior is used for Item2D and Item3D properties dialogs to enable physics for 
+    the item through a checkbox. This behavior is used for the checkbox to set the current 
+    state of the physics enabled flag for the item based on the state of the checkbox. 
+*/
 class PropertiesEnablePhysicsBehavior is Behavior
 
     Item2DPropertiesDialog dialog2D = undefined

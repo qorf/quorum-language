@@ -6,6 +6,11 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.ToggleButton
 
+/*
+    This behavior is used in the Audio3DPropertiesDialog in the scene editor for setting 
+    the looping flag for an Audio3D object. This behavior takes the checkbox in the dialog 
+    and sets the looping flag for the Audio object based on the state of the button. 
+*/
 class PropertiesSetLoopingBehavior is Behavior
 
     Audio3DPropertiesDialog dialog = undefined

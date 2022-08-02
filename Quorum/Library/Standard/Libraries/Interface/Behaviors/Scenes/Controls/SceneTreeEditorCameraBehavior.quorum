@@ -6,6 +6,12 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.SceneTreeItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    This behavior is used in the scene tree class for TreeItems specifically 
+    for an EditorCamera. This is different from other TreeItems in the Scene 
+    Tree because more has to happen when selecting an Editor Item such as 
+    making selection highlights. 
+*/
 class SceneTreeEditorCameraBehavior is Behavior    
 
     action Run(BehaviorEvent event)

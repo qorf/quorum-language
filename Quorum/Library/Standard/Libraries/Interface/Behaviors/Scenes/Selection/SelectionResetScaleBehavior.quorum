@@ -5,6 +5,11 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Compute.Vector3
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior is used by the scene editor to reset the scale of the selected object. 
+    Scale affects the size of the object based on its original dimensions so resetting 
+    it will restore the object to its original dimensions.
+*/
 class SelectionResetScaleBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is EditorItem

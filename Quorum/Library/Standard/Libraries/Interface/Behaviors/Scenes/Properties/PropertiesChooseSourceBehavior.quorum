@@ -9,6 +9,12 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
+/*
+    This behavior is used in the Audio3DPropertiesDialog in the scene editor for selecting source files. 
+    This is used for a button in the dialog that opens a file chooser. The user is meant to select an 
+    audio source file to use for the Audio3D object and then when a file is selected the text field in 
+    the dialog will be updated with the path to the file.
+*/
 class PropertiesChooseSourceBehavior is Behavior
 
     Audio3DPropertiesDialog dialog = undefined

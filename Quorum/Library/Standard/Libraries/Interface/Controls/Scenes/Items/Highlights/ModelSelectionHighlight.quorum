@@ -6,12 +6,24 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorModel
 
+
+/*
+    ModelSelectionHighlight is a SelectionHighlight for Models. The highlight is a cube and it is the same
+    hightlight made by SelectionHighlight3D. This class is different in that it adds more actions to 
+    SelectionHightlight3D that modify properties specifc to EditorModels such as Color and Rotation.
+*/
 class ModelSelectionHighlight is SelectionHighlight3D
 
+    /*
+        This action retuns the item being selected as an EditorModel
+    */
     action GetEditorModel returns EditorModel
         return cast(EditorModel, GetItem())
     end
 
+    /*
+        Returns the color of the EditorModel
+    */
     action GetColor returns Color
         EditorModel item = GetEditorModel()
         if item not= undefined
@@ -21,6 +33,9 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        Sets the color of the model
+    */
     action SetColor(Color color)
         EditorModel item = GetEditorModel()
         if item not= undefined
@@ -28,6 +43,11 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        Scale adjusts the dimensions of the model on each axis. This action
+        scales the model on all 3 axis based on each value in the Vector3.
+        The highlight is adjusted accordingly to contain the model.
+    */
     action Scale(Vector3 vector)
         EditorModel item = GetEditorModel()
         parent:Model:Scale(vector)
@@ -36,6 +56,15 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        Scale adjusts the dimensions of the model on each axis. This action
+        scales the model on all 3 axis based on each value passed in.
+        The highlight is adjusted accordingly to contain the model.
+
+        Attribute: Parameter x Amount of to scale on the x axis
+        Attribute: Parameter y Amount of to scale on the y axis
+        Attribute: Parameter z Amount of to scale on the z axis
+    */
     action Scale(number x, number y, number z)
         EditorModel item = GetEditorModel()
         parent:Model:Scale(x, y, z)
@@ -44,6 +73,10 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        SetScaleX adjust the dimensions of the model on the x axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
     action SetScaleX(number scale)
         EditorModel item = GetEditorModel()
         parent:EditorItem3D:SetScaleX(scale)
@@ -52,6 +85,10 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        SetScaleY adjust the dimensions of the model on the y axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
     action SetScaleY(number scale)
         EditorModel item = GetEditorModel()
         parent:EditorItem3D:SetScaleY(scale)
@@ -60,6 +97,10 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
+    /*
+        SetScaleZ adjust the dimensions of the model on the z axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
     action SetScaleZ(number scale)
         EditorModel item = GetEditorModel()
         parent:EditorItem3D:SetScaleZ(scale)
@@ -68,7 +109,12 @@ class ModelSelectionHighlight is SelectionHighlight3D
         end
     end
 
-
+    /*
+        SetRotation sets how far the model is angled on each axis. This action
+        uses 3 angles for yaw, pitch, and roll to rotate the model. All angles 
+        are expected to degrees. The highlight is adjusted accordingly to 
+        contain the model.
+    */
     action SetRotation(number newYaw, number newPitch, number newRoll)
         EditorModel item = GetEditorModel()
         number yaw = parent:EditorModel:yaw

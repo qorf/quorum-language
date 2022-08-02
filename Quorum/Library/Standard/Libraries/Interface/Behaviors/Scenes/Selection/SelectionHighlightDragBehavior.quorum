@@ -12,6 +12,11 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+    This behavior is used by the selection system to move selected options using drag 
+    motions and inputs. Since selected items are already in the scene the system will 
+    move the item when the item would fit into another grid unit.
+*/
 class SelectionHighlightDragBehavior is Behavior
 
     action Run(BehaviorEvent event)

@@ -17,7 +17,12 @@ use Libraries.Interface.Controls.Scenes.ScenePaletteItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
-
+/*
+    This behavior is used in the Scene Editor to finish a drag and drop event. 
+    When the user finishes dragging an item from the palette then the coordinates 
+    in the editor are mapped to the scene and a new item is placed in the scene 
+    that is built from the blueprint of the original palette item. 
+*/
 class PaletteItemDropBehavior is Behavior
 
     action Run(BehaviorEvent event)
