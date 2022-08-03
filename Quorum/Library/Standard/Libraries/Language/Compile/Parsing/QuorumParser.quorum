@@ -425,6 +425,27 @@ class QuorumParser
         else
             context:SetLastToken(context:classDeclaration:GetLastToken())
             SetLocation(context)
+
+
+            //do a final double check to see if there are any non-comment tokens
+    
+            if not IsValid() return context end
+            next = tokenIterator:GetCurrent()
+
+            repeat while next not= undefined //:category = constants:USE
+                //if there are tokens past the end and they are not 
+                //comments, then they are errors. Give the same message for each
+                if next:category not= constants:COMMENTS
+                    CompilerError error = CreateCompilerError(typeConstants:PARSER_NO_VIABLE_ALTERNATIVE)
+                    error:SetCode(codes:PARSER_TOKEN_AFTER_CLASS)
+                    SetCompilerErrorLocation(error)
+                    error:SetErrorMessage("Only comments are allowed after the end of a class. ")
+                    SendToCompilerErrorManager(error)
+                end
+                //this is actually ok and not an error. 
+                if not IsValid() return context end
+                next = tokenIterator:GetCurrent()
+            end
             return context
         end
     end
