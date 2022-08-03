@@ -2964,6 +2964,7 @@ class QuorumParser
         if next:category = constants:ID
             name:Add(next:value)
             context:SetFirstToken(next)
+            context:SetLastToken(next) //in case there is only one
             next = tokenIterator:Next()
             repeat while IsValid() and next:category = constants:PERIOD
                 next = tokenIterator:Next()
