@@ -448,7 +448,7 @@ class SharedBarChartParent is Chart
                 chartArea:SetEnterItem(firstArea)
                 firstArea:SetEscapeItem(chartArea)
                 Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                AddSubChartAreaInstructions(firstArea, " chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts.")
+                AddSubChartAreaInstructions(firstArea, " chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts")
 
                 //Bars within SubChartArea
                 if chartAreaItems:GetSize() > 0

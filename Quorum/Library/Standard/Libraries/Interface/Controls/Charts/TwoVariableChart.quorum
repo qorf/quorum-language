@@ -13,6 +13,10 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Calculations.StandardDeviation
+use Libraries.Compute.Statistics.Calculations.Mean
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -68,6 +72,8 @@ class TwoVariableChart is Chart
     // The maximum number of times that regions can be subdivided into quadrants.
     private integer maxSubdivisions = 4
     private integer maxChunks = 16
+
+    private boolean showLetterCodeAnnotation = false
     
     private ChartPointComparison comparison
 
@@ -119,7 +125,7 @@ class TwoVariableChart is Chart
                 cline:SetNextFocus(GetNextFocus())
                 cline:SetPreviousFocus(GetPreviousFocus())
                 chartArea:Add(cline)
-                chartArea:Add(cline:GetSelectionArrow()) 
+                //chartArea:Add(cline:GetSelectionArrow()) 
 
                 integer j = 0
                 repeat while j < cline:GetLines():GetSize()
@@ -145,7 +151,11 @@ class TwoVariableChart is Chart
 
                     if point:ShowAnnotation() or ShowAnnotations()
                         ChartLabel pointLabel
-                        pointLabel:SetText(point:GetName())
+                        if showLetterCodeAnnotation
+                            pointLabel:SetText(point:GetLetterCode())
+                        else
+                            pointLabel:SetText(point:GetName())
+                        end
                         point:SetAnnotation(pointLabel)
                         chartArea:Add(pointLabel)
                     end
@@ -174,7 +184,11 @@ class TwoVariableChart is Chart
                     i = i + 1
                 end
             else
-                me:GetChartArea():SetDescription(" with " + lines:GetSize() + " lines.")
+                text lineText = "lines"
+                if lines:GetSize() = 1
+                    lineText = "line"
+                end
+                me:GetChartArea():SetDescription(" with " + lines:GetSize() + " " + lineText + ".")
                 AddChartAreaInstructions(GetChartArea():GetDescription())
             end
         end
@@ -226,7 +240,11 @@ class TwoVariableChart is Chart
                 chartArea:Add(point:GetSelectionArrow())
                 if point:ShowAnnotation() or ShowAnnotations()
                     ChartLabel pointLabel
-                    pointLabel:SetText(point:GetName())
+                    if showLetterCodeAnnotation
+                        pointLabel:SetText(point:GetLetterCode())
+                    else
+                        pointLabel:SetText(point:GetName())
+                    end
                     point:SetAnnotation(pointLabel)
                     chartArea:Add(pointLabel)
                 end
@@ -558,7 +576,7 @@ class TwoVariableChart is Chart
         text lineText = "lines"
         text pointText = "points"
         if GetNumberOfLines() = 1
-            linetext = "line"
+            lineText = "line"
         end
         if points:GetSize() = 1
             linetext = "point"
@@ -571,16 +589,8 @@ class TwoVariableChart is Chart
         elseif points:GetSize() > 0
             chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
             text description = ""
-            if GetSeriesList():GetSize() > 1
+            if GetSeriesList():GetSize() > 0
                 description = description + " with " + GetSeriesList():GetSize() + " series and " + points:GetSize() + " " + pointText + "."
-            else 
-                description = description + " with " + points:GetSize() + " " + pointText
-                if GetSeriesList():GetSize() > 0 and GetSeriesList():Get(0):GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
-                    description = description + ", " + GetSeriesList():Get(0):GetRegressionLine():GetName() + GetSeriesList():Get(0):GetRegressionLine():GetDescription() 
-                    description = description + ", " + GetSeriesList():Get(0):GetRegressionLine():GetRSquaredLabel():GetName() + GetSeriesList():Get(0):GetRegressionLine():GetRSquaredLabel():GetDescription() + "."
-                else
-                    description = description + "."
-                end
             end
             AddChartAreaInstructions(description)
         end
@@ -605,7 +615,7 @@ class TwoVariableChart is Chart
                     firstArea:SetContainer(me)
                     firstArea:SetPreviousFocus(summary)
 
-                    GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
+                    GetChartArea():SetDescription(" with " + subAreaCount + " sub charts.")
                     chartArea:SetEnterItem(firstArea)
                     firstArea:SetEscapeItem(chartArea)
 
@@ -815,7 +825,12 @@ class TwoVariableChart is Chart
     action GenerateLineDescription(ChartLine line)
         if GetPointsFlag()
             integer numOfPoints = line:GetPoints():GetSize()
-            line:SetDescription(" line has " + numOfPoints + " points, max at " + line:GetLineMax():GetName() + ", min at "+ line:GetLineMin():GetName() + ".")
+            if lines:GetSize() > 0
+                integer numOfSegs = line:GetLines():GetSize()
+                line:SetDescription(" line has " + numOfPoints + " points and " + numOfSegs + " line segments, max at " + line:GetLineMax():GetName() + ", min at "+ line:GetLineMin():GetName() + ".")
+            else
+                line:SetDescription(" line has " + numOfPoints + " points, max at " + line:GetLineMax():GetName() + ", min at "+ line:GetLineMin():GetName() + ".")
+            end
         else
             integer numOfSegs = line:GetLines():GetSize()
             line:SetDescription(" line has " + numOfSegs + " line segments, max at " + line:GetLineMax():GetName() + ", min at " + line:GetLineMin():GetName() + ".")
@@ -1221,25 +1236,61 @@ class TwoVariableChart is Chart
             end
             Array<ChartPoint> sortLRPoints = points:CopyToArray()
             sortLRPoints:Sort(comparison)
+
+            Math math
+            Mean mean
+            StandardDeviation standardDeviation
+            if points:GetSize() > 0
+                if points:Get(0):GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                    NumberColumn differenceColumn
+                    i = 0
+                    repeat while i < points:GetSize()
+                        number prediction = points:Get(i):GetSeries():GetRegressionLine():CalculateDependentValue(points:Get(i):GetValueX())
+                        number difference = points:Get(i):GetValueY() - prediction
+                        differenceColumn:Add(math:AbsoluteValue(difference))
+                        i = i + 1
+                    end
+                    differenceColumn:Calculate(mean)
+                    differenceColumn:Calculate(standardDeviation)
+                end
+            end
+
             ChartPoint firstPoint = sortLRPoints:Get(0)
             ChartItem firstPointItem = firstPoint
             firstPointItem:SetContainer(me)
             firstPointItem:SetPreviousFocus(summary)
-            firstPoint:SetDescription(" 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName())
+            firstPoint:CalculateLetterCode(0)
+            if (firstPoint:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
+                ChartLabel pointLabel = firstPoint:GetAnnotation()
+                pointLabel:SetText(firstPoint:GetLetterCode())
+                firstPoint:SetAnnotation(pointLabel)
+            end
 
-            // Add the residual to the beginning of the description if this is a scatter plot.
-            if me is ScatterPlot
-                RegressionLine regression = firstPoint:GetSeries():GetRegressionLine()
-                if regression not= undefined
-                    number residual = firstPoint:GetValueY() - regression:CalculateDependentValue(firstPoint:GetValueX())
-                    if residual = cast(integer, residual)
-                        firstPoint:SetDescription(" Residual is " + cast(integer, residual)  + "," + firstPoint:GetDescription() + ",")
-                    else
-                        Math math
-                        residual = math:Round(residual, 2)
-                        firstPoint:SetDescription(" Residual is " + residual + "," + firstPoint:GetDescription() + ",")
-                    end
+            if showLetterCodeAnnotation
+                firstPoint:SetName(firstPoint:GetLetterCode() + ", " + firstPoint:GetName())
+            end
+        
+            text lineSegmentChange = ""
+            if lines:GetSize() > 0 and sortLRPoints:GetSize() > 1
+                lineSegmentChange = CalculateLineSegmentPhrase(firstPoint, sortLRPoints:Get(1), 1)
+            end
+
+            if firstPoint:GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                number prediction = firstPoint:GetSeries():GetRegressionLine():CalculateDependentValue(firstPoint:GetValueX())
+                number difference = firstPoint:GetValueY() - prediction
+                text direction = "above"
+                if difference < 0
+                    direction = "below"
                 end
+
+                text outlierText = ""
+                if math:AbsoluteValue(difference) > (math:AbsoluteValue(mean:GetMean()) + 3*standardDeviation:GetStandardDeviation())
+                    outlierText = ", outlier"
+                end
+
+                firstPoint:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName() + ".")
+            else
+                firstPoint:SetDescription(lineSegmentChange + ", 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName() + ".")
             end
 
             AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
@@ -1253,21 +1304,39 @@ class TwoVariableChart is Chart
                 ChartItem pointItem = point
                 pointItem:SetContainer(me)
                 pointItem:SetPreviousFocus(summary)
-                point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
+                point:CalculateLetterCode(i)
+                if (point:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
+                    ChartLabel pointLabel = point:GetAnnotation()
+                    pointLabel:SetText(point:GetLetterCode())
+                    point:SetAnnotation(pointLabel)
+                end
+                
+                lineSegmentChange = ""
+                if showLetterCodeAnnotation
+                    point:SetName(point:GetLetterCode() + ", " + point:GetName())
+                end
+        
+                lineSegmentChange = ""
+                if lines:GetSize() > 0 and i < sortLRPoints:GetSize() - 1
+                    lineSegmentChange = CalculateLineSegmentPhrase(point, sortLRPoints:Get(i+1), i+1)
+                end
 
-                // Add the residual to the beginning of the description if this is a scatter plot.
-                if me is ScatterPlot
-                    RegressionLine regression = point:GetSeries():GetRegressionLine()
-                    if regression not= undefined
-                        number residual = point:GetValueY() - regression:CalculateDependentValue(point:GetValueX())
-                        if residual = cast(integer, residual)
-                            point:SetDescription(" Residual is " + cast(integer, residual) + point:GetDescription() + ",")
-                        else
-                            Math math
-                            residual = math:Round(residual, 2)
-                            point:SetDescription(" Residual is " + residual + point:GetDescription() + ",")
-                        end
+                if point:GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
+                    number prediction = point:GetSeries():GetRegressionLine():CalculateDependentValue(point:GetValueX())
+                    number difference = point:GetValueY() - prediction
+                    text direction = "above"
+                    if difference < 0
+                        direction = "below"
                     end
+                    
+                    text outlierText = ""
+                    if math:AbsoluteValue(difference) > (math:AbsoluteValue(mean:GetMean()) + 3*standardDeviation:GetStandardDeviation())
+                        outlierText = ", outlier"
+                    end
+
+                    point:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName() + ".")
+                else
+                    point:SetDescription(lineSegmentChange + ", " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName() + ".")
                 end
 
                 pointItem:SetEscapeItem(parentItem)
@@ -1358,6 +1427,32 @@ class TwoVariableChart is Chart
         end
     end
 
+    action CalculateLineSegmentPhrase(ChartPoint point1, ChartPoint point2, integer iteration) returns text
+        number rise = point2:GetValueY() - point1:GetValueY()
+        number run = point2:GetValueX() - point1:GetValueX()
+        number slope = rise / run
+
+        text change = ""
+        if slope = 0
+            change = "is steady"
+        elseif slope > 0
+            change = "increases"
+        else
+            change = "decreases"
+        end
+        
+        text description = ", " + change + " to "
+        if showLetterCodeAnnotation
+            point2:CalculateLetterCode(iteration)
+            description = description + point2:GetLetterCode()
+        else
+            description = description + " point " + iteration
+        end
+        description = description + ", slope " + slope
+        
+        return description
+    end
+
     action SetQuadrantThreshold(integer threshold)
         quadrantThreshold = threshold
     end
@@ -1424,5 +1519,10 @@ class TwoVariableChart is Chart
         else
             output "Y-axis minimum cannot be above lowest point value: " + pointMin
         end
+    end
+
+    action ShowLetterCodeAnnotations(boolean show)
+        showLetterCodeAnnotation = show
+        ShowAnnotations(show)
     end
 end

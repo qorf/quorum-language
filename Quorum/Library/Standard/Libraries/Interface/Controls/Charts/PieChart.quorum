@@ -52,6 +52,7 @@ class PieChart is Chart
     number donutHolePercent = 0
     boolean showPercentAnnotation = true // When annotations are showing, the slices will display a %
     boolean showValueAnnotation = false // When annotations are showing, the slices will display value
+    boolean showNameAnnotation = false // When annotations are showing, the slices will display name, can be used in combination with percent or value
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -146,13 +147,24 @@ class PieChart is Chart
 
                             if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
                                 ChartLabel sliceLabel
+                                
+                                text nameText = ""
+                                if showNameAnnotation
+                                    nameText = slice:GetName()
+                                    if showPercentAnnotation or showValueAnnotation
+                                        nameText = nameText + ": "
+                                    else
+                                        sliceLabel:SetText(nameText)
+                                    end
+                                end
                                 if showPercentAnnotation
-                                    sliceLabel:SetText(percentText+"%")
+                                    sliceLabel:SetText(nameText + percentText+"%")
                                 elseif showValueAnnotation
-                                    sliceLabel:SetText(valueText)
-                                else
+                                    sliceLabel:SetText(nameText + valueText)
+                                elseif not showNameAnnotation
                                     sliceLabel:SetText("custom")
                                 end
+
                                 slice:SetAnnotation(sliceLabel)
                                 GetSubChartAreas():Get(k):Add(sliceLabel)
                             end
@@ -193,11 +205,20 @@ class PieChart is Chart
                 
                 if slice:ShowAnnotation() or ShowAnnotations()
                     ChartLabel sliceLabel
+                    text nameText = ""
+                    if showNameAnnotation
+                        nameText = slice:GetName()
+                        if showPercentAnnotation or showValueAnnotation
+                            nameText = nameText + ": "
+                        else
+                            sliceLabel:SetText(nameText)
+                        end
+                    end
                     if showPercentAnnotation
-                        sliceLabel:SetText(percentText+"%")
+                        sliceLabel:SetText(nameText + percentText+"%")
                     elseif showValueAnnotation
-                        sliceLabel:SetText(valueText)
-                    else
+                        sliceLabel:SetText(nameText + valueText)
+                    elseif not showNameAnnotation
                         sliceLabel:SetText("custom")
                     end
                     slice:SetAnnotation(sliceLabel)
@@ -225,6 +246,11 @@ class PieChart is Chart
             showValueAnnotation = false
         end
         showPercentAnnotation = show
+        ShowAnnotations(show)
+    end
+
+    action ShowNameAnnotations(boolean show)
+        showNameAnnotation = show
         ShowAnnotations(show)
     end
 
@@ -850,6 +876,24 @@ class PieChart is Chart
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
+
+    action Sort
+        PieSliceComparison comparison
+        comparison:SetAscending(false)
+
+        if IsSeparated()
+            i = 0
+            repeat while i < GetSubChartAreas():GetSize()
+                GetSubChartAreas():Get(i):GetChartAreaItems():Sort(comparison)
+                i = i + 1 
+            end
+        else
+            PieBox box = pieBoxes:Get(0)
+            if box:GetSize() > 0
+                box:GetSlices():Sort(comparison)
+            end
+        end
+    end
    
     /* 
         This action converts this chart to a text value that contains information 
@@ -860,6 +904,7 @@ class PieChart is Chart
     */
     action ConvertToScalableVectorGraphics returns text
         PieChartWriter writer
+        writer:SetAccessibilityFlag(HasAccessibility())
         return writer:WriteOutChart(me)
     end
 
@@ -873,6 +918,7 @@ class PieChart is Chart
     action Save(File file)
         if file:GetFileExtension() = "svg"
             PieChartWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
             chartWriter:WriteOutChart(me,file)
         else
            alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
@@ -891,6 +937,9 @@ class PieChart is Chart
     action Share(File file)
         if file:GetFileExtension() = "html"
             PieChartWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
+            chartWriter:SetScriptFilepath(GetScriptFilepath())
+            chartWriter:SetStyleFilepath(GetStyleFilepath())
             chartWriter:WriteOutHTML(me,file)
         else
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
