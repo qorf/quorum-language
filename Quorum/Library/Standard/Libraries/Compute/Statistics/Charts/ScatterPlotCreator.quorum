@@ -15,6 +15,7 @@ use Libraries.Compute.Vector
 use Libraries.System.DateTime
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Compute.Math
 
 /*
     This class is used to create a Scatter Plot from columns of data in a DataFrame.
@@ -452,7 +453,7 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                 end
                 i = i + 1
             end 
-         end
+        end
 
         // Sort and add the series
         Array <Series> seriesList

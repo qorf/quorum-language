@@ -12,4 +12,15 @@ function plugins_quorum_Libraries_Compute_Statistics_Loaders_WebDataFrameLoader_
         }
         frame.LoadFromCommaSeparatedValue$quorum_text(result);
     };
+    
+    this.CanLoad = function() {
+        var location = this.me_.GetLocation()
+        var attribute = this.me_.GetAttribute()
+        var element = document.getElementById(location);
+        if(element == null) { //only ensure the element is there.
+            return false;
+        } else {
+            return true;
+        }
+    }
 }
