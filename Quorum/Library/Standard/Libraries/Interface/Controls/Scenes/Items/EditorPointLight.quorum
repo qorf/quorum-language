@@ -1,0 +1,79 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Material
+use Libraries.Game.Graphics.ColorAttribute
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+
+/*
+    EditorPointLight represents a PointLight that has been added to a 3D scene. 
+    This class is also a model because in the editor a point light will appear 
+    as a cube with a texture loaded onto it. This class loads the placeholder 
+    box that will not be visible when the scene is run independently. There are 
+    also actions to change properties of the PointLight such as color and intensity.
+*/
+class EditorPointLight is EditorModel, PointLight
+
+    boolean modelLoaded = false
+
+    /*
+        Changes the color of the PointLight
+    */
+    action SetColor(Color color)
+        parent:PointLight:SetColor(color)
+        parent:Model:SetColor(color)
+    end
+
+    /*
+        Returns a Color object that holds the color of the PointLight
+    */
+    action GetColor returns Color
+        return parent:PointLight:GetColor()
+    end
+
+    /*
+        Sets the PointLight this object will represent from a color, a position,
+        and an intensity.
+
+        Attribute: Parameter color The color of the light
+        Attribute: Parameter position The position of the light in 3D space
+        Attribute: Parameter intensity The intensity/brightness of the light
+    */
+    action SetLight(Color color, Vector3 position, number intensity)
+        if modelLoaded = false
+            LoadPlaceholderBox(color)
+        end        
+
+        parent:PointLight:SetLight(color, position, intensity)
+        SetPosition(GetPosition())
+    end
+
+    /*
+        Loads a box to represent the light in the editor from a passed color.
+    */
+    action LoadPlaceholderBox(Color color)
+        modelLoaded = true
+        //Resources resources
+        //LoadBox(0.5, 0.5, 0.5, resources:GetLightTexture())
+            
+        // We need to add a diffuse color attribute to the model so that the textured box also supports color.
+        SetColor(color)
+    end
+
+    /*
+        Sets the intensity of the PointLight which affects the brightness of the light
+    */
+    action SetIntensity(number intensity)
+        parent:PointLight:SetIntensity(intensity)
+    end
+
+    /*
+        Returns the intensity of the PointLight which affects the brightness of the light
+    */
+    action GetIntensity returns number
+        return parent:PointLight:GetIntensity()
+    end
+
+end

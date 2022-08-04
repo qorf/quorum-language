@@ -1,0 +1,778 @@
+package Libraries.Interface
+
+use Libraries.Game.GameInput
+use Libraries.Game.InputSet
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputTable
+use Libraries.Interface.Controls.Scenes.SceneEditorInputTable
+use Libraries.Interface.Behaviors.Scenes.Selection.all
+use Libraries.Interface.Behaviors.Scenes.Camera.all
+use Libraries.Interface.Behaviors.Scenes.Controls.all
+use Libraries.Interface.Behaviors.Scenes.Grid.all
+use Libraries.Interface.Behaviors.Scenes.Palette.all
+use Libraries.Interface.Behaviors.Scenes.Properties.all
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+shared class DefaultInputSets
+
+    GameStateManager manager
+
+    // These contain the constants for each key or type of mouse event
+    KeyboardEvent keys
+    MouseEvent mouse
+
+    action GetUpArrowKey returns InputSet
+        InputSet inputSet
+        inputSet:SetKeyboardInput(keys:UP)
+        return inputSet
+    end
+
+    action GetDownArrowKey returns InputSet
+        InputSet inputSet
+        inputSet:SetKeyboardInput(keys:DOWN)
+        return inputSet
+    end
+
+    action GetLeftArrowKey returns InputSet
+        InputSet inputSet
+        inputSet:SetKeyboardInput(keys:LEFT)
+        return inputSet
+    end
+
+    action GetRightArrowKey returns InputSet
+        InputSet inputSet
+        inputSet:SetKeyboardInput(keys:RIGHT)
+        return inputSet
+    end
+
+    action GetLeftClick returns InputSet
+        InputSet inputSet
+        inputSet:SetMouseInput(mouse:LEFT)
+        return inputSet
+    end
+
+    action GetRightClick returns InputSet
+        InputSet inputSet
+        inputSet:SetMouseInput(mouse:RIGHT)
+        return inputSet
+    end
+
+    action AddShiftModifier(InputSet set) returns InputSet
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    action AddControlModifier(InputSet set) returns InputSet
+        set:AddModifier(set:CONTROL)
+        return set
+    end
+
+    action AddAltModifier(InputSet set) returns InputSet
+        set:AddModifier(set:ALT)
+        return set
+    end
+
+    action AddMetaModifier(InputSet set) returns InputSet
+        set:AddModifier(set:META)
+        return set
+    end
+
+    action SetupSceneEditorInput(GameInput gameInput)
+        SceneEditorInputTable table
+        table:SetIdentifier("SceneEditor")
+        InputTable selectionTable
+        selectionTable:SetIdentifier("SelectionHighlight3D")
+        InputTable selectionTable2D
+        selectionTable2D:SetIdentifier("SelectionHighlight2D")
+        InputTable cameraItemTable2D
+        cameraItemTable2D:SetIdentifier("CameraItem2D")
+        InputTable cameraItemTable3D
+        cameraItemTable3D:SetIdentifier("CameraItem3D")
+        InputTable itemPreviewTable
+        itemPreviewTable:SetIdentifier("NewItemPreview3D")
+        InputTable itemPreviewTable2D
+        itemPreviewTable2D:SetIdentifier("NewItemPreview2D")
+        InputTable propertiesDialogTable
+        propertiesDialogTable:SetIdentifier("PropertiesDialog")
+        InputTable findTable
+        findTable:SetIdentifier("VisualEditorFindDialog")
+        InputTable paletteItemContentTable
+        paletteItemContentTable:SetIdentifier("PaletteItemContent")
+
+        //Selection behaviors
+        SelectionXDirectionBehavior selectionStartMovingLeftBehavior
+        SelectionXDirectionBehavior selectionStartMovingRightBehavior
+        SelectionXDirectionBehavior selectionStopMovingXBehavior
+        SelectionYDirectionBehavior selectionStartMovingUpBehavior
+        SelectionYDirectionBehavior selectionStartMovingDownBehavior
+        SelectionYDirectionBehavior selectionStopMovingYBehavior
+        SelectionZDirectionBehavior selectionStartMovingForwardBehavior
+        SelectionZDirectionBehavior selectionStartMovingBackwardBehavior
+        SelectionZDirectionBehavior selectionStopMovingZBehavior
+        SelectionYawDirectionBehavior selectionStartRotatingYawLeftBehavior
+        SelectionYawDirectionBehavior selectionStartRotatingYawRightBehavior
+        SelectionYawDirectionBehavior selectionStopRotatingYawBehavior
+        SelectionPitchDirectionBehavior selectionStartRotatingPitchUpBehavior
+        SelectionPitchDirectionBehavior selectionStartRotatingPitchDownBehavior
+        SelectionPitchDirectionBehavior selectionStopRotatingPitchBehavior
+        SelectionRollDirectionBehavior selectionStartRotatingRollLeftBehavior
+        SelectionRollDirectionBehavior selectionStartRotatingRollRightBehavior
+        SelectionRollDirectionBehavior selectionStopRotatingRollBehavior
+        SelectionScaleBehavior selectionScaleUpBehavior
+        SelectionScaleBehavior selectionScaleDownBehavior
+        SelectionScaleBehavior selectionScaleXUpBehavior
+        SelectionScaleBehavior selectionScaleXDownBehavior
+        SelectionScaleBehavior selectionScaleYUpBehavior
+        SelectionScaleBehavior selectionScaleYDownBehavior
+        SelectionScaleBehavior selectionScaleZUpBehavior
+        SelectionScaleBehavior selectionScaleZDownBehavior
+        SelectionDeleteBehavior selectionDeleteBehavior
+        SelectionCancelBehavior selectionCancelBehavior
+        SelectionResetScaleBehavior selectionResetScaleBehavior
+        SelectSceneItemBehavior selectSceneItemBehavior
+        SelectionHighlightDragBehavior selectionHighlightDragBehavior
+
+        selectionStartMovingLeftBehavior:SetDirection(-1)
+        selectionStartMovingRightBehavior:SetDirection(1)
+        selectionStopMovingXBehavior:SetDirection(0)
+        selectionStartMovingUpBehavior:SetDirection(1)
+        selectionStartMovingDownBehavior:SetDirection(-1)
+        selectionStopMovingYBehavior:SetDirection(0)
+        selectionStartMovingForwardBehavior:SetDirection(1)
+        selectionStartMovingBackwardBehavior:SetDirection(-1)
+        selectionStopMovingZBehavior:SetDirection(0)
+        selectionStartRotatingYawLeftBehavior:SetDirection(-1)
+        selectionStartRotatingYawRightBehavior:SetDirection(1)
+        selectionStopRotatingYawBehavior:SetDirection(0)
+        selectionStartRotatingPitchUpBehavior:SetDirection(-1)
+        selectionStartRotatingPitchDownBehavior:SetDirection(1)
+        selectionStopRotatingPitchBehavior:SetDirection(0)
+        selectionStartRotatingRollLeftBehavior:SetDirection(1)
+        selectionStartRotatingRollRightBehavior:SetDirection(-1)
+        selectionStopRotatingRollBehavior:SetDirection(0)
+        selectionScaleUpBehavior:SetScale(1.1, 1.1, 1.1)
+        selectionScaleDownBehavior:SetScale(1.0/1.1, 1.0/1.1, 1.0/1.1)
+        selectionScaleXUpBehavior:SetScale(1.1, 1, 1)
+        selectionScaleXDownBehavior:SetScale(1.0/1.1, 1, 1)
+        selectionScaleYUpBehavior:SetScale(1, 1.1, 1)
+        selectionScaleYDownBehavior:SetScale(1, 1.0/1.1, 1)
+        selectionScaleZUpBehavior:SetScale(1, 1, 1.1)
+        selectionScaleZDownBehavior:SetScale(1, 1, 1.0/1.1)
+
+        // camera behaviors
+        CameraYawRotationBehavior cameraStartRotateLeftBehavior
+        CameraYawRotationBehavior cameraStartRotateRightBehavior
+        CameraYawRotationBehavior cameraStopYawRotationBehavior
+        CameraPitchRotationBehavior cameraStartRotateUpBehavior
+        CameraPitchRotationBehavior cameraStartRotateDownBehavior
+        CameraPitchRotationBehavior cameraStopPitchRotationBehavior
+        CameraMoveDirectionBehavior cameraStartMoveForwardBehavior
+        CameraMoveDirectionBehavior cameraStartMoveBackwardBehavior
+        CameraMoveDirectionBehavior cameraStopMoveDirectionBehavior
+        CameraStrafeDirectionBehavior cameraStartStrafeLeftBehavior
+        CameraStrafeDirectionBehavior cameraStartStrafeRightBehavior
+        CameraStrafeDirectionBehavior cameraStopStrafeDirectionBehavior
+        CameraVerticalDirectionBehavior cameraStartMoveUpBehavior
+        CameraVerticalDirectionBehavior cameraStartMoveDownBehavior
+        CameraVerticalDirectionBehavior cameraStopVerticalDirectionBehavior
+        CameraItemsInViewBehavior cameraItemsInViewBehavior
+
+        cameraStartRotateLeftBehavior:SetDirection(-1)
+        cameraStartRotateRightBehavior:SetDirection(1)
+        cameraStopYawRotationBehavior:SetDirection(0)
+        cameraStartRotateUpBehavior:SetDirection(1)
+        cameraStartRotateDownBehavior:SetDirection(-1)
+        cameraStopPitchRotationBehavior:SetDirection(0)
+        cameraStartMoveForwardBehavior:SetDirection(1)
+        cameraStartMoveBackwardBehavior:SetDirection(-1)
+        cameraStopMoveDirectionBehavior:SetDirection(0)
+        cameraStartStrafeLeftBehavior:SetDirection(1)
+        cameraStartStrafeRightBehavior:SetDirection(-1)
+        cameraStopStrafeDirectionBehavior:SetDirection(0)
+        cameraStartMoveUpBehavior:SetDirection(1)
+        cameraStartMoveDownBehavior:SetDirection(-1)
+        cameraStopVerticalDirectionBehavior:SetDirection(0)
+
+        // other behaviors
+        FocusCameraBehavior focusCameraBehavior
+        ItemCancelBehavior itemCancelBehavior
+        ItemConfirmBehavior itemConfirmBehavior
+        ReportLocationBehavior reportLocationBehavior
+        ReportCameraDirectionBehavior reportCameraDirectionBehavior
+        ReportItemsInViewBehavior reportItemsInViewBehavior
+        ToggleGridBehavior toggleGridBehavior
+        IncreaseGridUnitBehavior increaseGridUnitBehavior
+        DecreaseGridUnitBehavior decreaseGridUnitBehavior
+        FocusPropertiesBehavior focusPropertiesBehavior
+        UnfocusPropertiesBehavior unfocusPropertiesBehavior
+        OpenSceneEditorFindDialogBehavior openFindDialogBehavior
+        CloseSceneEditorFindDialogBehavior closeFindDialogBehavior
+        CursorSelectItemsBehavior cursorSelectItemsBehavior
+        CursorIncreaseSizeBehavior cursorIncreaseSizeBehavior
+        CursorDecreaseSizeBehavior cursorDecreaseSizeBehavior
+
+        InputSet reportLocation
+        reportLocation:SetKeyboardInput(keys:NUM_1)
+        reportLocation:AddModifier(reportLocation:CONTROL)
+        reportLocation:AddModifier(reportLocation:SHIFT)
+        InputSet reportCameraDirection
+        reportCameraDirection:SetKeyboardInput(keys:NUM_2)
+        reportCameraDirection:AddModifier(reportCameraDirection:CONTROL)
+        reportCameraDirection:AddModifier(reportCameraDirection:SHIFT)
+        InputSet reportItemsInView
+        reportItemsInView:SetKeyboardInput(keys:NUM_3)
+        reportItemsInView:AddModifier(reportItemsInView:CONTROL)
+        reportItemsInView:AddModifier(reportItemsInView:SHIFT)
+
+        table:Add(reportLocation, reportLocationBehavior)
+        table:Add(reportCameraDirection, reportCameraDirectionBehavior)
+        table:Add(reportItemsInView, reportItemsInViewBehavior)
+
+        InputSet selectionMoveLeft3DStart = GetLeftArrowKey()
+        InputSet selectionMoveLeft3DStop = GetLeftArrowKey()
+        selectionMoveLeft3DStop:SetInputTrigger(selectionMoveLeft3DStop:FINISH)
+        InputSet selectionMoveRight3DStart = GetRightArrowKey()
+        InputSet selectionMoveRight3DStop = GetRightArrowKey()
+        selectionMoveRight3DStop:SetInputTrigger(selectionMoveRight3DStop:FINISH)
+
+        InputSet selectionMoveUp3DStart
+        InputSet selectionMoveUp3DStop
+        InputSet selectionMoveDown3DStart
+        InputSet selectionMoveDown3DStop
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            selectionMoveUp3DStart = AddMetaModifier(GetUpArrowKey())
+            selectionMoveUp3DStop = AddMetaModifier(GetUpArrowKey())
+            selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
+            selectionMoveDown3DStart = AddMetaModifier(GetDownArrowKey())
+            selectionMoveDown3DStop = AddMetaModifier(GetDownArrowKey())
+            selectionMoveDown3DStop:SetInputTrigger(selectionMoveDown3DStop:FINISH)
+        else
+            selectionMoveUp3DStart = AddControlModifier(GetUpArrowKey())
+            selectionMoveUp3DStop = AddControlModifier(GetUpArrowKey())
+            selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
+            selectionMoveDown3DStart = AddControlModifier(GetDownArrowKey())
+            selectionMoveDown3DStop = AddControlModifier(GetDownArrowKey())
+            selectionMoveDown3DStop:SetInputTrigger(selectionMoveDown3DStop:FINISH)
+        end
+
+        InputSet selectionMoveForward3DStart = GetUpArrowKey()
+        InputSet selectionMoveForward3DStop = GetUpArrowKey()
+        selectionMoveForward3DStop:SetInputTrigger(selectionMoveForward3DStop:FINISH)
+        InputSet selectionMoveBackward3DStart = GetDownArrowKey()
+        InputSet selectionMoveBackward3DStop = GetDownArrowKey()
+        selectionMoveBackward3DStop:SetInputTrigger(selectionMoveBackward3DStop:FINISH)
+
+        // move 3D selection in x direction
+        table:Add3D(selectionMoveLeft3DStart, selectionStartMovingLeftBehavior)
+        table:Add3D(selectionMoveLeft3DStop, selectionStopMovingXBehavior)
+        table:Add3D(selectionMoveRight3DStart, selectionStartMovingRightBehavior)
+        table:Add3D(selectionMoveRight3DStop, selectionStopMovingXBehavior)
+        // move 3D selection in y direction
+        table:Add3D(selectionMoveUp3DStart, selectionStartMovingUpBehavior)
+        table:Add3D(selectionMoveUp3DStop, selectionStopMovingYBehavior)
+        table:Add3D(selectionMoveDown3DStart, selectionStartMovingDownBehavior)
+        table:Add3D(selectionMoveDown3DStop, selectionStopMovingYBehavior)
+        // move 3D selection in z direction
+        table:Add3D(selectionMoveForward3DStart, selectionStartMovingForwardBehavior)
+        table:Add3D(selectionMoveForward3DStop, selectionStopMovingZBehavior)
+        table:Add3D(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
+        table:Add3D(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
+
+        InputSet selectionMoveLeft2DStart = GetLeftArrowKey()
+        InputSet selectionMoveLeft2DStop = GetLeftArrowKey()
+        selectionMoveLeft2DStop:SetInputTrigger(selectionMoveLeft2DStop:FINISH)
+        InputSet selectionMoveRight2DStart = GetRightArrowKey()
+        InputSet selectionMoveRight2DStop = GetRightArrowKey()
+        selectionMoveRight2DStop:SetInputTrigger(selectionMoveRight2DStop:FINISH)
+
+        InputSet selectionMoveUp2DStart = GetUpArrowKey()
+        InputSet selectionMoveUp2DStop = GetUpArrowKey()
+        selectionMoveUp2DStop:SetInputTrigger(selectionMoveUp2DStop:FINISH)
+        InputSet selectionMoveDown2DStart = GetDownArrowKey()
+        InputSet selectionMoveDown2DStop = GetDownArrowKey()
+        selectionMoveDown2DStop:SetInputTrigger(selectionMoveDown2DStop:FINISH)
+
+        // move 2D selection in x direction
+        table:Add2D(selectionMoveLeft2DStart, selectionStartMovingLeftBehavior)
+        table:Add2D(selectionMoveLeft2DStop, selectionStopMovingXBehavior)
+        table:Add2D(selectionMoveRight2DStart, selectionStartMovingRightBehavior)
+        table:Add2D(selectionMoveRight2DStop, selectionStopMovingXBehavior)
+        // move 2D selection in y direction
+        table:Add2D(selectionMoveUp2DStart, selectionStartMovingUpBehavior)
+        table:Add2D(selectionMoveUp2DStop, selectionStopMovingYBehavior)
+        table:Add2D(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
+        table:Add2D(selectionMoveDown2DStop, selectionStopMovingYBehavior)
+
+        InputSet toggleGridInput
+        InputSet increaseGridUnitInput
+        InputSet decreaseGridUnitInput
+        InputSet openEditorFindDialogInput
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet set
+            toggleGridInput:SetKeyboardInput(keys:G)
+            toggleGridInput:AddModifier(set:META)
+            increaseGridUnitInput:SetKeyboardInput(keys:G)
+            increaseGridUnitInput:AddModifier(set:META)
+            increaseGridUnitInput:AddModifier(set:SHIFT)
+            decreaseGridUnitInput:SetKeyboardInput(keys:G)
+            decreaseGridUnitInput:AddModifier(set:META)
+            decreaseGridUnitInput:AddModifier(set:ALT)
+            openEditorFindDialogInput:SetKeyboardInput(keys:F)
+            openEditorFindDialogInput:AddModifier(set:META)
+        else
+            InputSet set
+            toggleGridInput:SetKeyboardInput(keys:G)
+            toggleGridInput:AddModifier(set:CONTROL)
+            increaseGridUnitInput:SetKeyboardInput(keys:G)
+            increaseGridUnitInput:AddModifier(set:CONTROL)
+            increaseGridUnitInput:AddModifier(set:SHIFT)
+            decreaseGridUnitInput:SetKeyboardInput(keys:G)
+            decreaseGridUnitInput:AddModifier(set:CONTROL)
+            decreaseGridUnitInput:AddModifier(set:ALT)
+            openEditorFindDialogInput:SetKeyboardInput(keys:F)
+            openEditorFindDialogInput:AddModifier(set:CONTROL)
+        end
+
+        table:Add(toggleGridInput, toggleGridBehavior)
+        table:Add(increaseGridUnitInput, increaseGridUnitBehavior)
+        table:Add(decreaseGridUnitInput, decreaseGridUnitBehavior)
+
+        table:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        InputSet selectionScaleUpSet
+        selectionScaleUpSet:SetKeyboardInput(keys:EQUALS)
+        selectionScaleUpSet = AddAltModifier(selectionScaleUpSet)
+        InputSet selectionScaleDownSet
+        selectionScaleDownSet:SetKeyboardInput(keys:MINUS)
+        selectionScaleDownSet = AddAltModifier(selectionScaleDownSet)
+
+        InputSet cursorSelectItemsInput
+        cursorSelectItemsInput:SetKeyboardInput(keys:ENTER)
+
+        table:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
+
+        table:Add(selectionScaleUpSet, cursorIncreaseSizeBehavior)
+        table:Add(selectionScaleDownSet, cursorDecreaseSizeBehavior)
+
+        InputSet focusCameraSet
+        focusCameraSet:SetKeyboardInput(keys:F)
+        focusCameraSet:AddModifier(focusCameraSet:ALT)
+
+        table:Add(focusCameraSet, focusCameraBehavior)
+
+        // 2D camera set
+        cameraItemTable2D:Add(reportLocation, reportLocationBehavior)
+
+        cameraItemTable2D:Add(selectionMoveLeft2DStart, selectionStartMovingLeftBehavior)
+        cameraItemTable2D:Add(selectionMoveLeft2DStop, selectionStopMovingXBehavior)
+        cameraItemTable2D:Add(selectionMoveRight2DStart, selectionStartMovingRightBehavior)
+        cameraItemTable2D:Add(selectionMoveRight2DStop, selectionStopMovingXBehavior)
+
+        cameraItemTable2D:Add(selectionMoveUp2DStart, selectionStartMovingUpBehavior)
+        cameraItemTable2D:Add(selectionMoveUp2DStop, selectionStopMovingYBehavior)
+        cameraItemTable2D:Add(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
+        cameraItemTable2D:Add(selectionMoveDown2DStop, selectionStopMovingYBehavior)
+
+
+        cameraItemTable2D:Add(selectionScaleUpSet, selectionScaleUpBehavior)
+        cameraItemTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
+
+        InputSet focusPropertiesSet
+        if manager:GetOperatingSystem():Contains("OS X")
+            focusPropertiesSet:SetKeyboardInput(keys:P)
+            focusPropertiesSet:AddModifier(focusPropertiesSet:META)
+        else
+            focusPropertiesSet:SetKeyboardInput(keys:P)
+            focusPropertiesSet:AddModifier(focusPropertiesSet:CONTROL)
+        end
+
+        cameraItemTable2D:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+        InputSet selectionCancelSet
+        selectionCancelSet:SetKeyboardInput(keys:ESCAPE)
+        cameraItemTable2D:Add(selectionCancelSet, selectionCancelBehavior)
+
+        // 3D camera set
+        cameraItemTable3D:Add(reportLocation, reportLocationBehavior)
+
+        cameraItemTable3D:Add(selectionMoveLeft3DStart, selectionStartMovingLeftBehavior)
+        cameraItemTable3D:Add(selectionMoveLeft3DStop, selectionStopMovingXBehavior)
+        cameraItemTable3D:Add(selectionMoveRight3DStart, selectionStartMovingRightBehavior)
+        cameraItemTable3D:Add(selectionMoveRight3DStop, selectionStopMovingXBehavior)
+
+        cameraItemTable3D:Add(selectionMoveUp3DStart, selectionStartMovingUpBehavior)
+        cameraItemTable3D:Add(selectionMoveUp3DStop, selectionStopMovingYBehavior)
+        cameraItemTable3D:Add(selectionMoveDown3DStart, selectionStartMovingDownBehavior)
+        cameraItemTable3D:Add(selectionMoveDown3DStop, selectionStopMovingYBehavior)
+
+        cameraItemTable3D:Add(selectionMoveForward3DStart, selectionStartMovingForwardBehavior)
+        cameraItemTable3D:Add(selectionMoveForward3DStop, selectionStopMovingZBehavior)
+        cameraItemTable3D:Add(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
+        cameraItemTable3D:Add(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
+
+        cameraItemTable3D:Add(selectionCancelSet, selectionCancelBehavior)
+
+        cameraItemTable3D:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+
+        // 3D selection table
+        selectionTable:Add(reportLocation, reportLocationBehavior)
+
+        selectionTable:Add(selectionMoveLeft3DStart, selectionStartMovingLeftBehavior)
+        selectionTable:Add(selectionMoveLeft3DStop, selectionStopMovingXBehavior)
+        selectionTable:Add(selectionMoveRight3DStart, selectionStartMovingRightBehavior)
+        selectionTable:Add(selectionMoveRight3DStop, selectionStopMovingXBehavior)
+
+        selectionTable:Add(selectionMoveUp3DStart, selectionStartMovingUpBehavior)
+        selectionTable:Add(selectionMoveUp3DStop, selectionStopMovingYBehavior)
+        selectionTable:Add(selectionMoveDown3DStart, selectionStartMovingDownBehavior)
+        selectionTable:Add(selectionMoveDown3DStop, selectionStopMovingYBehavior)
+
+        selectionTable:Add(selectionMoveForward3DStart, selectionStartMovingForwardBehavior)
+        selectionTable:Add(selectionMoveForward3DStop, selectionStopMovingZBehavior)
+        selectionTable:Add(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
+        selectionTable:Add(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
+
+        InputSet selectionRotateYawLeftStart = AddAltModifier(GetLeftArrowKey())
+        InputSet selectionRotateYawLeftStop = AddAltModifier(GetLeftArrowKey())
+        selectionRotateYawLeftStop:SetInputTrigger(selectionRotateYawLeftStop:FINISH)
+        InputSet selectionRotateYawRightStart = AddAltModifier(GetRightArrowKey())
+        InputSet selectionRotateYawRightStop = AddAltModifier(GetRightArrowKey())
+        selectionRotateYawRightStop:SetInputTrigger(selectionRotateYawRightStop:FINISH)
+
+        InputSet selectionRotatePitchUpStart = AddAltModifier(GetUpArrowKey())
+        InputSet selectionRotatePitchUpStop = AddAltModifier(GetUpArrowKey())
+        selectionRotatePitchUpStop:SetInputTrigger(selectionRotatePitchUpStop:FINISH)
+        InputSet selectionRotatePitchDownStart = AddAltModifier(GetDownArrowKey())
+        InputSet selectionRotatePitchDownStop = AddAltModifier(GetDownArrowKey())
+        selectionRotatePitchDownStop:SetInputTrigger(selectionRotatePitchDownStop:FINISH)
+
+        InputSet selectionRotateRollLeftStart
+        InputSet selectionRotateRollLeftStop
+        InputSet selectionRotateRollRightStart
+        InputSet selectionRotateRollRightStop
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            selectionRotateRollLeftStart = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
+            selectionRotateRollLeftStop = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
+            selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
+            selectionRotateRollRightStart = AddMetaModifier(AddAltModifier(GetRightArrowKey()))
+            selectionRotateRollRightStop = AddMetaModifier(AddAltModifier(GetRightArrowKey()))
+            selectionRotateRollRightStop:SetInputTrigger(selectionRotateRollRightStop:FINISH)
+        else
+            selectionRotateRollLeftStart = AddControlModifier(AddAltModifier(GetLeftArrowKey()))
+            selectionRotateRollLeftStop = AddControlModifier(AddAltModifier(GetLeftArrowKey()))
+            selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
+            selectionRotateRollRightStart = AddControlModifier(AddAltModifier(GetRightArrowKey()))
+            selectionRotateRollRightStop = AddControlModifier(AddAltModifier(GetRightArrowKey()))
+            selectionRotateRollRightStop:SetInputTrigger(selectionRotateRollRightStop:FINISH)
+        end
+
+        selectionTable:Add(selectionRotateYawLeftStart, selectionStartRotatingYawLeftBehavior)
+        selectionTable:Add(selectionRotateYawLeftStop, selectionStopRotatingYawBehavior)
+        selectionTable:Add(selectionRotateYawRightStart, selectionStartRotatingYawRightBehavior)
+        selectionTable:Add(selectionRotateYawRightStop, selectionStopRotatingYawBehavior)
+
+        selectionTable:Add(selectionRotatePitchUpStart, selectionStartRotatingPitchUpBehavior)
+        selectionTable:Add(selectionRotatePitchUpStop, selectionStopRotatingPitchBehavior)
+        selectionTable:Add(selectionRotatePitchDownStart, selectionStartRotatingPitchDownBehavior)
+        selectionTable:Add(selectionRotatePitchDownStop, selectionStopRotatingPitchBehavior)
+
+        selectionTable:Add(selectionRotateRollLeftStart, selectionStartRotatingRollLeftBehavior)
+        selectionTable:Add(selectionRotateRollLeftStop, selectionStopRotatingRollBehavior)
+        selectionTable:Add(selectionRotateRollRightStart, selectionStartRotatingRollRightBehavior)
+        selectionTable:Add(selectionRotateRollRightStop, selectionStopRotatingRollBehavior)
+
+
+
+        InputSet selectionScaleXUpSet
+        selectionScaleXUpSet:SetKeyboardInput(keys:D)
+        selectionScaleXUpSet = AddAltModifier(selectionScaleXUpSet)
+        InputSet selectionScaleXDownSet
+        selectionScaleXDownSet:SetKeyboardInput(keys:A)
+        selectionScaleXDownSet = AddAltModifier(selectionScaleXDownSet)
+
+        InputSet selectionScaleYUpSet
+        selectionScaleYUpSet:SetKeyboardInput(keys:SPACE)
+        selectionScaleYUpSet = AddAltModifier(selectionScaleYUpSet)
+        InputSet selectionScaleYDownSet
+        selectionScaleYDownSet:SetKeyboardInput(keys:X)
+        selectionScaleYDownSet = AddAltModifier(selectionScaleYDownSet)
+
+        InputSet selectionScaleZUpSet
+        selectionScaleZUpSet:SetKeyboardInput(keys:W)
+        selectionScaleZUpSet = AddAltModifier(selectionScaleZUpSet)
+        InputSet selectionScaleZDownSet
+        selectionScaleZDownSet:SetKeyboardInput(keys:S)
+        selectionScaleZDownSet = AddAltModifier(selectionScaleZDownSet)
+
+
+        selectionTable:Add(selectionScaleUpSet, selectionScaleUpBehavior)
+        selectionTable:Add(selectionScaleDownSet, selectionScaleDownBehavior)
+
+        selectionTable:Add(selectionScaleXUpSet, selectionScaleXUpBehavior)
+        selectionTable:Add(selectionScaleXDownSet, selectionScaleXDownBehavior)
+
+        selectionTable:Add(selectionScaleYUpSet, selectionScaleYUpBehavior)
+        selectionTable:Add(selectionScaleYDownSet, selectionScaleYDownBehavior)
+
+        selectionTable:Add(selectionScaleZUpSet, selectionScaleZUpBehavior)
+        selectionTable:Add(selectionScaleZDownSet, selectionScaleZDownBehavior)
+
+        InputSet selectionDeleteSet
+        selectionDeleteSet:SetKeyboardInput(keys:FORWARD_DELETE)
+        InputSet selectionDeleteSet2
+        selectionDeleteSet2:SetKeyboardInput(keys:BACKSPACE)
+
+        selectionTable:Add(selectionDeleteSet, selectionDeleteBehavior)
+        selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
+        selectionTable:Add(selectionCancelSet, selectionCancelBehavior)
+
+        selectionTable:Add(toggleGridInput, toggleGridBehavior)
+        selectionTable:Add(increaseGridUnitInput, increaseGridUnitBehavior)
+        selectionTable:Add(decreaseGridUnitInput, decreaseGridUnitBehavior)
+
+        selectionTable:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+        selectionTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        InputSet resetScaleSet        
+        if manager:GetOperatingSystem():Contains("OS X")
+            resetScaleSet:SetKeyboardInput(keys:R)
+            resetScaleSet = AddMetaModifier(resetScaleSet)
+        else
+            resetScaleSet:SetKeyboardInput(keys:R)
+            resetScaleSet = AddControlModifier(resetScaleSet)
+        end
+
+        selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
+
+        // 2D selection
+        selectionTable2D:Add(reportLocation, reportLocationBehavior)
+
+        selectionTable2D:Add(selectionMoveLeft2DStart, selectionStartMovingLeftBehavior)
+        selectionTable2D:Add(selectionMoveLeft2DStop, selectionStopMovingXBehavior)
+        selectionTable2D:Add(selectionMoveRight2DStart, selectionStartMovingRightBehavior)
+        selectionTable2D:Add(selectionMoveRight2DStop, selectionStopMovingXBehavior)
+
+        selectionTable2D:Add(selectionMoveUp2DStart, selectionStartMovingUpBehavior)
+        selectionTable2D:Add(selectionMoveUp2DStop, selectionStopMovingYBehavior)
+        selectionTable2D:Add(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
+        selectionTable2D:Add(selectionMoveDown2DStop, selectionStopMovingYBehavior)
+
+        InputSet selectionRotateForward2DStart = AddAltModifier(GetRightArrowKey())
+        InputSet selectionRotateForward2DStop = AddAltModifier(GetRightArrowKey())
+        selectionRotateForward2DStop:SetInputTrigger(selectionRotateForward2DStop:FINISH)
+        InputSet selectionRotateBackward2DStart = AddAltModifier(GetLeftArrowKey())
+        InputSet selectionRotateBackward2DStop = AddAltModifier(GetLeftArrowKey())
+        selectionRotateBackward2DStop:SetInputTrigger(selectionRotateBackward2DStop:FINISH)
+
+        selectionTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollLeftBehavior)
+        selectionTable2D:Add(selectionRotateForward2DStop, selectionStopRotatingRollBehavior)
+        selectionTable2D:Add(selectionRotateBackward2DStart, selectionStartRotatingRollRightBehavior)
+        selectionTable2D:Add(selectionRotateBackward2DStop, selectionStopRotatingRollBehavior)
+
+        selectionTable2D:Add(selectionScaleUpSet, selectionScaleUpBehavior)
+        selectionTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
+
+        selectionTable2D:Add(selectionScaleXUpSet, selectionScaleXUpBehavior)
+        selectionTable2D:Add(selectionScaleXDownSet, selectionScaleXDownBehavior)
+
+        selectionTable2D:Add(selectionScaleYUpSet, selectionScaleYUpBehavior)
+        selectionTable2D:Add(selectionScaleYDownSet, selectionScaleYDownBehavior)
+
+        selectionTable2D:Add(selectionDeleteSet, selectionDeleteBehavior)
+        selectionTable2D:Add(selectionDeleteSet2, selectionDeleteBehavior)
+        selectionTable2D:Add(selectionCancelSet, selectionCancelBehavior)
+
+        selectionTable2D:Add(toggleGridInput, toggleGridBehavior)
+        selectionTable2D:Add(increaseGridUnitInput, increaseGridUnitBehavior)
+        selectionTable2D:Add(decreaseGridUnitInput, decreaseGridUnitBehavior)
+
+        selectionTable2D:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+        selectionTable2D:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        selectionTable2D:Add(resetScaleSet, selectionResetScaleBehavior)
+
+        InputSet selectionHighlightDragInput
+        selectionHighlightDragInput:SetDragItemInput()
+        selectionHighlightDragInput:SetInputTrigger(selectionHighlightDragInput:CONTINUE)
+
+        selectionTable2D:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
+
+        selectionTable2D:Add(focusCameraSet, focusCameraBehavior)
+
+        SceneConstants sceneConstants
+        InputTable sceneItemTable
+        sceneItemTable:SetIdentifier(sceneConstants:SCENE_ITEM_INPUT_GROUP)
+
+        InputSet selectSceneItemInput = GetLeftClick()
+        sceneItemTable:Add(selectSceneItemInput, selectSceneItemBehavior)
+
+        sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
+
+
+
+        itemPreviewTable:Add(reportLocation, reportLocationBehavior)
+
+        // The NewItemPreview shares the same movement/scaling behavior as SelectionHighlights.
+        itemPreviewTable:Add(selectionMoveLeft3DStart, selectionStartMovingLeftBehavior)
+        itemPreviewTable:Add(selectionMoveLeft3DStop, selectionStopMovingXBehavior)
+        itemPreviewTable:Add(selectionMoveRight3DStart, selectionStartMovingRightBehavior)
+        itemPreviewTable:Add(selectionMoveRight3DStop, selectionStopMovingXBehavior)
+        itemPreviewTable:Add(selectionMoveUp3DStart, selectionStartMovingUpBehavior)
+        itemPreviewTable:Add(selectionMoveUp3DStop, selectionStopMovingYBehavior)
+        itemPreviewTable:Add(selectionMoveDown3DStart, selectionStartMovingDownBehavior)
+        itemPreviewTable:Add(selectionMoveDown3DStop, selectionStopMovingYBehavior)
+        itemPreviewTable:Add(selectionMoveForward3DStart, selectionStartMovingForwardBehavior)
+        itemPreviewTable:Add(selectionMoveForward3DStop, selectionStopMovingZBehavior)
+        itemPreviewTable:Add(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
+        itemPreviewTable:Add(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
+
+        itemPreviewTable:Add(selectionRotateYawLeftStart, selectionStartRotatingYawLeftBehavior)
+        itemPreviewTable:Add(selectionRotateYawLeftStop, selectionStopRotatingYawBehavior)
+        itemPreviewTable:Add(selectionRotateYawRightStart, selectionStartRotatingYawRightBehavior)
+        itemPreviewTable:Add(selectionRotateYawRightStop, selectionStopRotatingYawBehavior)
+        itemPreviewTable:Add(selectionRotatePitchUpStart, selectionStartRotatingPitchUpBehavior)
+        itemPreviewTable:Add(selectionRotatePitchUpStop, selectionStopRotatingPitchBehavior)
+        itemPreviewTable:Add(selectionRotatePitchDownStart, selectionStartRotatingPitchDownBehavior)
+        itemPreviewTable:Add(selectionRotatePitchDownStop, selectionStopRotatingPitchBehavior)
+        itemPreviewTable:Add(selectionRotateRollLeftStart, selectionStartRotatingRollLeftBehavior)
+        itemPreviewTable:Add(selectionRotateRollLeftStop, selectionStopRotatingRollBehavior)
+        itemPreviewTable:Add(selectionRotateRollRightStart, selectionStartRotatingRollRightBehavior)
+        itemPreviewTable:Add(selectionRotateRollRightStop, selectionStopRotatingRollBehavior)
+
+        itemPreviewTable:Add(selectionScaleUpSet, selectionScaleUpBehavior)
+        itemPreviewTable:Add(selectionScaleDownSet, selectionScaleDownBehavior)
+        itemPreviewTable:Add(selectionScaleXUpSet, selectionScaleXUpBehavior)
+        itemPreviewTable:Add(selectionScaleXDownSet, selectionScaleXDownBehavior)
+        itemPreviewTable:Add(selectionScaleYUpSet, selectionScaleYUpBehavior)
+        itemPreviewTable:Add(selectionScaleYDownSet, selectionScaleYDownBehavior)
+        itemPreviewTable:Add(selectionScaleZUpSet, selectionScaleZUpBehavior)
+        itemPreviewTable:Add(selectionScaleZDownSet, selectionScaleZDownBehavior)
+
+        InputSet newItemCancel
+        newItemCancel:SetKeyboardInput(keys:ESCAPE)
+        InputSet newItemConfirm
+        newItemConfirm:SetKeyboardInput(keys:ENTER)
+
+
+        itemPreviewTable:Add(newItemCancel, itemCancelBehavior)
+        itemPreviewTable:Add(newItemConfirm, itemConfirmBehavior)
+
+        itemPreviewTable:Add(toggleGridInput, toggleGridBehavior)
+        itemPreviewTable:Add(increaseGridUnitInput, increaseGridUnitBehavior)
+        itemPreviewTable:Add(decreaseGridUnitInput, decreaseGridUnitBehavior)
+
+        itemPreviewTable:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+        itemPreviewTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        itemPreviewTable:Add(resetScaleSet, selectionResetScaleBehavior)
+
+        itemPreviewTable:Add(focusCameraSet, focusCameraBehavior)
+
+
+        itemPreviewTable2D:Add(reportLocation, reportLocationBehavior)
+
+        // The NewItemPreview shares the same movement/scaling behavior as SelectionHighlights.
+        itemPreviewTable2D:Add(selectionMoveLeft2DStart, selectionStartMovingLeftBehavior)
+        itemPreviewTable2D:Add(selectionMoveLeft2DStop, selectionStopMovingXBehavior)
+        itemPreviewTable2D:Add(selectionMoveRight2DStart, selectionStartMovingRightBehavior)
+        itemPreviewTable2D:Add(selectionMoveRight2DStop, selectionStopMovingXBehavior)
+        itemPreviewTable2D:Add(selectionMoveUp2DStart, selectionStartMovingUpBehavior)
+        itemPreviewTable2D:Add(selectionMoveUp2DStop, selectionStopMovingYBehavior)
+        itemPreviewTable2D:Add(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
+        itemPreviewTable2D:Add(selectionMoveDown2DStop, selectionStopMovingYBehavior)
+
+        itemPreviewTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollLeftBehavior)
+        itemPreviewTable2D:Add(selectionRotateForward2DStop, selectionStopRotatingRollBehavior)
+        itemPreviewTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollRightBehavior)
+        itemPreviewTable2D:Add(selectionRotateForward2DStop, selectionStopRotatingRollBehavior)
+
+        itemPreviewTable2D:Add(selectionScaleUpSet, selectionScaleUpBehavior)
+        itemPreviewTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
+        itemPreviewTable2D:Add(selectionScaleXUpSet, selectionScaleXUpBehavior)
+        itemPreviewTable2D:Add(selectionScaleXDownSet, selectionScaleXDownBehavior)
+        itemPreviewTable2D:Add(selectionScaleYUpSet, selectionScaleYUpBehavior)
+        itemPreviewTable2D:Add(selectionScaleYDownSet, selectionScaleYDownBehavior)
+
+        itemPreviewTable2D:Add(newItemCancel, itemCancelBehavior)
+        itemPreviewTable2D:Add(newItemConfirm, itemConfirmBehavior)
+
+        itemPreviewTable2D:Add(toggleGridInput, toggleGridBehavior)
+        itemPreviewTable2D:Add(increaseGridUnitInput, increaseGridUnitBehavior)
+        itemPreviewTable2D:Add(decreaseGridUnitInput, decreaseGridUnitBehavior)
+
+        itemPreviewTable2D:Add(focusPropertiesSet, focusPropertiesBehavior)
+
+        itemPreviewTable2D:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        itemPreviewTable2D:Add(resetScaleSet, selectionResetScaleBehavior)
+
+        itemPreviewTable2D:Add(focusCameraSet, focusCameraBehavior)
+
+
+        // properties dialog
+        InputSet unfocusPropertiesSet1
+        unfocusPropertiesSet1:SetKeyboardInput(keys:ESCAPE)
+        InputSet unfocusPropertiesSet2
+        unfocusPropertiesSet2:SetKeyboardInput(keys:ENTER)
+        
+        propertiesDialogTable:Add(unfocusPropertiesSet1, unfocusPropertiesBehavior)
+        propertiesDialogTable:Add(unfocusPropertiesSet2, unfocusPropertiesBehavior)
+
+        propertiesDialogTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
+
+        propertiesDialogTable:Add(focusCameraSet, focusCameraBehavior)
+
+        // find dialog
+        InputSet closeVisualEditorFindDialogSet1
+        closeVisualEditorFindDialogSet1:SetKeyboardInput(keys:ESCAPE)
+        InputSet closeVisualEditorFindDialogSet2
+        closeVisualEditorFindDialogSet2:SetKeyboardInput(keys:ENTER)
+
+        findTable:Add(closeVisualEditorFindDialogSet1, closeFindDialogBehavior)
+        findTable:Add(closeVisualEditorFindDialogSet2, closeFindDialogBehavior)
+
+        // palette item
+        InputSet dragBeginSet
+        dragBeginSet:SetDragItemInput()
+        dragBeginSet:SetInputTrigger(dragBeginSet:BEGIN)
+
+        InputSet dragContinueSet
+        dragContinueSet:SetDragItemInput()
+        dragContinueSet:SetInputTrigger(dragContinueSet:CONTINUE)
+
+        InputSet dragEndSet
+        dragEndSet:SetDragItemInput()
+        dragEndSet:SetInputTrigger(dragEndSet:FINISH)
+
+        PaletteItemStartDragBehavior paletteItemStartDragBehavior
+        PaletteItemContinueDragBehavior paletteItemContinueDragBehavior
+        PaletteItemDropBehavior paletteItemDropBehavior
+
+        paletteItemContentTable:Add(dragBeginSet, paletteItemStartDragBehavior)
+        paletteItemContentTable:Add(dragContinueSet, paletteItemContinueDragBehavior)
+        paletteItemContentTable:Add(dragEndSet, paletteItemDropBehavior)
+
+
+        gameInput:AddInputTable(table)
+        gameInput:AddInputTable(selectionTable)
+        gameInput:AddInputTable(selectionTable2D)
+        gameInput:AddInputTable(cameraItemTable2D)
+        gameInput:AddInputTable(cameraItemTable3D)
+        gameInput:AddInputTable(sceneItemTable)
+        gameInput:AddInputTable(itemPreviewTable)
+        gameInput:AddInputTable(itemPreviewTable2D)
+        gameInput:AddInputTable(propertiesDialogTable)
+        gameInput:AddInputTable(findTable)
+        gameInput:AddInputTable(paletteItemContentTable)
+    end
+
+end

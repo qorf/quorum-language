@@ -144,13 +144,13 @@ class HorizontalAxisPanel is ChartItem
         if labels:GetSize() > 0
             SetName("X axis")
             if titleText not= ""
-                description = description + "shows " + titleText + " and "
+                description = description + " shows " + titleText + " and "
             end 
             if textLabels not= undefined
                 if labels:GetSize() = 1
-                    description = description + "has a value of " + labels:Get(labels:GetSize()-1):GetText() + "."
+                    description = description + " has a value of " + labels:Get(labels:GetSize()-1):GetText() + "."
                 else
-                    description = description + "has values "
+                    description = description + " has values "
                     integer i = 0
                     repeat while i < labels:GetSize()-1
                         description = description + labels:Get(i):GetText() + ", "
@@ -159,7 +159,7 @@ class HorizontalAxisPanel is ChartItem
                     description = description + "and " + labels:Get(labels:GetSize()-1):GetText() + "."
                 end
             else
-                description = description + "ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + "."
+                description = description + " ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + "."
             end
         end
         SetDescription(description)
@@ -206,8 +206,30 @@ class HorizontalAxisPanel is ChartItem
             end
         elseif chart:GetSubHorizontalPanels():GetSize() = 1
             Array<ChartLabel> labels = chart:GetSubHorizontalPanels():Get(0):GetLabels()
-            SetDescription(chart:GetSubHorizontalPanels():Get(0):GenerateSummary())
-            SetName(titleText + " axis, ")
+
+            text description = ""
+            if labels:GetSize() > 0
+                if titleText not= ""
+                    description = description + " shows " + titleText + " and "
+                end 
+                if textLabels not= undefined
+                    if labels:GetSize() = 1
+                        description = description + " has a value of " + labels:Get(labels:GetSize()-1):GetText() + "."
+                    else
+                        description = description + " has values "
+                        integer k = 0
+                        repeat while k < labels:GetSize()-1
+                            description = description + labels:Get(k):GetText() + ", "
+                            k = k + 1
+                        end
+                        description = description + "and " + labels:Get(labels:GetSize()-1):GetText() + "."
+                    end
+                else
+                    description = description + " ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + "."
+                end
+            end
+            SetDescription(description)
+
             ChartItem firstLabel = labels:Get(0)
             firstLabel:SetContainer(chart)
     
@@ -268,8 +290,28 @@ class HorizontalAxisPanel is ChartItem
     
                 i = i + 1
             end
-            SetName(titleText + " axis, ")
-            SetDescription(" with " + chart:GetSubHorizontalPanels():GetSize() + " sub axes")
+            text description = ""
+            if labels:GetSize() > 0
+                if titleText not= ""
+                    description = description + " shows " + titleText + " with " + chart:GetSubHorizontalPanels():GetSize() + " sub axes and "
+                end 
+                if textLabels not= undefined
+                    if labels:GetSize() = 1
+                        description = description + " each has a value of " + labels:Get(labels:GetSize()-1):GetText() + "."
+                    else
+                        description = description + " each has values "
+                        i = 0
+                        repeat while i < labels:GetSize()-1
+                            description = description + labels:Get(i):GetText() + ", "
+                            i = i + 1
+                        end
+                        description = description + "and " + labels:Get(labels:GetSize()-1):GetText() + "."
+                    end
+                else
+                    description = description + " each ranges from " + labels:Get(0):GetText() + " to " + labels:Get(labels:GetSize()-1):GetText() + "."
+                end
+            end
+            SetDescription(description)
         end
     end
 

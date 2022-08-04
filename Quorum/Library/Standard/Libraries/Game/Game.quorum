@@ -194,6 +194,7 @@ use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.DefaultInputSets
 use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
 
 /*
@@ -564,6 +565,10 @@ class Game
         shiftTabFocus:AddModifier(shiftTabFocus:SHIFT)
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
+
+        //Input tables for the Scene Editor
+        DefaultInputSets sets
+        sets:SetupSceneEditorInput(gameInput)
 
         //Input table for toolbars
         InputTable toolbarTable
@@ -1382,6 +1387,21 @@ class Game
         GestureEvent gestures
         swipeSet:SetGestureInput(gestures:SWIPE)
 
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+        
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
         InputSet escapeSet
         escapeSet:SetKeyboardInput(keys:ESCAPE)
 
@@ -1403,6 +1423,11 @@ class Game
         chartTable:Add(shiftEnterSet, chartNavigateBehavior)
         chartTable:Add(shiftNumpadEnterSet, chartNavigateBehavior)
         chartTable:Add(swipeSet, chartNavigateBehavior)
+        chartTable:Add(tapSet, chartNavigateBehavior)
+        chartTable:Add(doubleTapSet, chartNavigateBehavior)
+        chartTable:Add(pinchSet, chartNavigateBehavior)
+        chartTable:Add(panSet, chartNavigateBehavior)
+        chartTable:Add(longPressSet, chartNavigateBehavior)
         chartTable:Add(tabFocus, chartNavigateBehavior)
         chartTable:Add(shiftTabFocus, chartNavigateBehavior)
         chartTable:Add(pageUp, chartNavigateBehavior)

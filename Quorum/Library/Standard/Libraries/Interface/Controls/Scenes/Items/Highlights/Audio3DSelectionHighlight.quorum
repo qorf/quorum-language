@@ -1,0 +1,151 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+
+/*
+    Audio3DSelectionHighlight is SelectionHighlight3D specifically for Audio3D objects.
+    The highlight itself does not change it is still a colored cube but because 
+    Audio3D objects have more properties that a normal Item3D does not have this class
+    contains more actions to change properties of the Audio3D.
+*/
+class Audio3DSelectionHighlight is SelectionHighlight3D, EditorAudio3D
+
+    /*
+        Returns the EditorAudio3D associated with this highlight. The same
+        object can be returned using GetItem but this action does the cast
+        into an EditorAudio3D object. 
+    */
+    action GetEditorAudio3D returns EditorAudio3D
+        return cast(EditorAudio3D, GetItem())
+    end
+
+    /*
+        Sets the source of Audio3D. The source is the file the audio is meant to play.
+    */
+    action SetSource(text source)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetSource(source)
+    end
+
+    /*
+        Returns the source file location of the Audio3D
+    */
+    action GetSource returns text
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetSource()
+    end
+
+    /*
+        Returns the volume of the audio
+    */
+    action GetVolume returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetVolume()
+    end
+
+    /*
+        Sets the volume of the audio
+    */
+    action SetVolume(number volume)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetVolume(volume)
+    end
+
+    /*
+        Sets the pitch of the audio
+    */
+    action SetPitch(number pitch)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetPitch(pitch)
+    end
+
+    /*
+        Returns the pitch of the audio
+    */
+    action GetPitch returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetPitch()
+    end
+
+    /*
+        Returns the max volume distance of the audio. If the listener
+        is farther than the max volume distance then the audio can not be heard.
+    */
+    action GetMaximumVolumeDistance returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetMaximumVolumeDistance()
+    end
+
+    /*
+        Sets the max volume distance of the audio. If the listener
+        is farther than the max volume distance then the audio can not be heard.
+    */
+    action SetMaximumVolumeDistance(number maxVolumeDistance)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetMaximumVolumeDistance(maxVolumeDistance)
+    end
+
+    /*
+        Returns the rolloff rate of the audio
+    */
+    action GetRolloffRate returns number
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetRolloffRate()
+    end
+
+    /*
+        Sets the rolloff rate of the audio
+    */
+    action SetRolloffRate(number rolloffRate)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetRolloffRate(rolloffRate)
+    end
+
+    /*
+        Returns if the Audio will loop after it is finished
+    */
+    action GetLooping returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetLooping()
+    end
+
+    /*
+        Sets if the Audio will loop after it is finished
+    */
+    action SetLooping(boolean looping)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetLooping(looping)
+    end
+
+    /*
+        Returns if the audio is calculating the doppler effect on the sound
+    */
+    action GetDoppler returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetDoppler()
+    end
+
+    /*
+        Sets if the audio is calculating the doppler effect on the sound
+    */
+    action SetDoppler(boolean doppler)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetDoppler(doppler)
+    end
+
+    /*
+        Returns if the audio is going to play when it is loaded
+    */
+    action GetPlayOnLoad returns boolean
+        EditorAudio3D audio = GetEditorAudio3D()
+        return audio:GetPlayOnLoad()
+    end
+
+    /*
+        Sets if the audio is going to play when it is loaded
+    */
+    action SetPlayOnLoad(boolean play)
+        EditorAudio3D audio = GetEditorAudio3D()
+        audio:SetPlayOnLoad(play)
+    end
+
+end

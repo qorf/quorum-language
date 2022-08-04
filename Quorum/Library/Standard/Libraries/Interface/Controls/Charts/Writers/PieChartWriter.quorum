@@ -80,7 +80,7 @@ class PieChartWriter is ChartWriter
         pieChart = cast(PieChart, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + pieChart:GetPieBoxes():GetSize() + " slices.")
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -414,7 +414,7 @@ class PieChartWriter is ChartWriter
     end
 
     
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         PieChart pieChart
         pieChart = cast(PieChart, chart)
         Script script
@@ -498,6 +498,6 @@ class PieChartWriter is ChartWriter
         end
         scriptText = scriptText + "};" + newLine
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

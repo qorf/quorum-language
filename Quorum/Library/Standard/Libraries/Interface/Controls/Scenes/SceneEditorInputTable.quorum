@@ -1,0 +1,104 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Game.InputTable
+use Libraries.Game.InputSet
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.HashTable
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.Layer
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+
+/*
+    The SceneEditorInputTable class inherits from InputTable in order to 
+    add more functionality to the regular InputTable. The SceneEditor class
+    uses this so that it can use one table to group two tables together to switch
+    between based on if the editor is currently editing a 2D or 3D scene. At its core
+    it is still an InputTable which matches InputSets to a behavior but behaviors and
+    swaps between them based on the state of the SceneEditor. 
+*/
+class SceneEditorInputTable is InputTable
+
+    HashTable<InputSet, Behavior> table2D
+    HashTable<InputSet, Behavior> table3D
+
+    on create
+        SetIdentifier("CodeCompletionMenuRoot")
+    end
+
+    /*
+        Add2D maps an InputSet to a Behavior specifically for the SceneEditor that is on
+        a 2D scene or interacting with an Item2D.
+    */
+    action Add2D(InputSet set, Behavior behavior)
+        table2D:Add(set, behavior)
+    end
+
+    /*
+        Add3D maps an InputSet to a Behavior specifically for the SceneEditor that is on
+        a 3D scene or interacting with an Item3D.
+    */
+    action Add3D(InputSet set, Behavior behavior)
+        table3D:Add(set, behavior)
+    end
+
+    /*
+        RemoveKey2D removes a mapping of an InputSet to a Behavior specifically for 
+        the SceneEditor that is on a 2D scene or interacting with an Item2D.
+    */
+    action RemoveKey2D(InputSet set) returns Behavior
+        return table2D:RemoveKey(set)
+    end
+
+    /*
+        RemoveKey3D removes a mapping of an InputSet to a Behavior specifically for 
+        the SceneEditor that is on a 3D scene or interacting with an Item3D.
+    */
+    action RemoveKey3D(InputSet set) returns Behavior
+        return table3D:RemoveKey(set)
+    end
+
+    /*
+        HasKey takes an InputSet and returns true if the InputSet is mapped to any behavior
+        in this InputTable in either 2D mode or 3D mode. 
+    */
+    action HasKey(InputSet set) returns boolean
+        return table2D:HasKey(set) or table3D:HasKey(set) or parent:InputTable:HasKey(set)
+    end
+
+    /*
+        ProcessInput is an overridden action from InputTable. In an InputTable this action
+        would grab the mapping for the passed InputSet and pass the BehaviorEvent to the 
+        mapped Behavior. For SceneEditorInputTable if the SceneEdtior is selecting a 2D or 
+        3D layer the corresponding 2D or 3D table is used to find the mapping instead. 
+    */
+    action ProcessInput(InputSet set, BehaviorEvent event) returns boolean
+        HashTable<InputSet, Behavior> hashTable = undefined
+        Item item = event:GetItem()
+
+        if item is SceneEditor
+            SceneEditor controller = cast(SceneEditor, event:GetItem())
+            if controller:GetSelectedLayer() is EditorLayer2D
+                hashTable = table2D
+            elseif controller:GetSelectedLayer() is EditorLayer3D
+                hashTable = table3D
+            end
+        elseif item is Item2D
+            hashTable = table2D
+        elseif item is Item3D
+            hashTable = table3D
+        end
+
+        if hashTable not= undefined and hashTable:HasKey(set)
+            Behavior behavior = hashTable:GetValue(set)
+            event:SetInputSet(set)
+            behavior:Run(event)
+            return true
+        end
+
+        return parent:InputTable:ProcessInput(set, event)
+    end
+end

@@ -1,0 +1,96 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
+
+/*
+    ItemPreview2D inherits from ItemPreview and is used to build representations of DrawableBlueprints.
+    The texture of the DrawableBlueprint is loaded and altered as detailed by the blueprint. The preview
+    is added to the 2D scene editor at the position of cursor and is not added into the scene until the user
+    confirms it. 
+*/
+class ItemPreview2D is ItemPreview, EditorItem2D
+
+    on create
+        SetInputGroup("NewItemPreview2D")
+    end
+
+    /*
+        The Load action loads a texture specified by the drawable blueprint and sets its properties
+        by what is specified in the blueprint and is positioned to be where the 2D cursor is.
+    */
+    action Load(SceneEditor editor, DrawableBlueprint schematic)
+        SetSceneEditor(editor)
+        SetItemBlueprint(schematic)
+
+        SetName(schematic:GetName() + editor:GetNextNamePostfix(schematic:GetName()))
+        SetDescription(schematic:GetDescription())
+        Load(schematic:GetTexture())
+        SetSize(schematic:GetWidth(), schematic:GetHeight())
+        SetScale(schematic:GetScaleX(), schematic:GetScaleY())
+        SetRotation(schematic:GetRotation())
+        SetColor(schematic:GetColor())
+
+        if schematic:IsPhysicsEnabled()
+            SetEditorPhysicsEnabled(true)
+            if schematic:GetResponsiveness() >= 0
+                SetEditorResponsiveness(schematic:GetResponsiveness())
+            end
+        end
+
+        EditorCursor cursor = editor:GetCursor()
+        if cursor is EditorCursor2D
+            EditorCursor2D cursor2D = cast(EditorCursor2D, cursor)
+            SetPosition(cursor2D:GetX(), cursor2D:GetY())
+        end
+    end
+
+/*
+    ConvertToDrawable returns the drawable described by the blueprint as just a pure Drawable
+    so that it can be added to layer and then later saved into the scene. Because previews are
+    designed to be removed when the user focuses on other parts of the program this action is
+    used to make a more permanent addition to the scene. 
+*/
+    action ConvertToDrawable returns Drawable
+        Drawable drawable
+        drawable:Load(me)
+        drawable:SetName(GetName())
+        drawable:SetSize(GetWidth(), GetHeight())
+        drawable:SetScale(GetScaleX(), GetScaleY())
+        drawable:SetRotation(GetRotation())
+        drawable:SetColor(GetColor():Copy())
+        drawable:SetPosition(GetX(), GetY())
+        
+        ItemBlueprint itemBlueprint = GetItemBlueprint()
+        if itemBlueprint is DrawableBlueprint
+            DrawableBlueprint schematic = cast(DrawableBlueprint, itemBlueprint)
+            if schematic:GetDrawableType() >= 0
+                drawable:SetDrawableType(schematic:GetDrawableType())
+            end
+        end
+
+        if IsEditorPhysicsEnabled()
+            SceneProperties properties
+            JavaScriptObjectNotation physicsJson
+            physicsJson:SetBoolean(true)
+            drawable:SetProperty(properties:PHYSICS_ENABLED, physicsJson)
+
+            integer responsiveness = GetEditorResponsiveness()
+            if responsiveness >= 0
+                JavaScriptObjectNotation responsiveJson
+                responsiveJson:SetInteger(responsiveness)
+                drawable:SetProperty(properties:RESPONSIVENESS, responsiveJson)
+            end
+        end
+
+        return drawable
+    end
+
+end
