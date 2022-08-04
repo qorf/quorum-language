@@ -194,6 +194,7 @@ use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.DefaultInputSets
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -563,6 +564,10 @@ class Game
         shiftTabFocus:AddModifier(shiftTabFocus:SHIFT)
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
+
+        //Input tables for the Scene Editor
+        DefaultInputSets sets
+        sets:SetupSceneEditorInput(gameInput)
 
         //Input table for toolbars
         InputTable toolbarTable
