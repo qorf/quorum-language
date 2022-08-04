@@ -123,6 +123,10 @@ class IntegerColumn is DataFrameColumn
         return true
     end
 
+    action IsNumberColumn returns boolean
+        return true
+    end
+
     action GetAsText(integer index) returns text
         Integer value = rows:Get(index)
         if value = undefined
