@@ -7,8 +7,13 @@ use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Compute.Vector
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.LinePath
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Compute.Vector2
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Events.MouseEvent
 
-class RegressionLine is ChartDrawable
+class RegressionLine is ChartDrawable, LinePath
     private Regression regression = undefined
     private Series series = undefined
     private Math math
@@ -17,18 +22,212 @@ class RegressionLine is ChartDrawable
     private ChartLabel rsquared
     private text equationText = ""
     private text rsquaredText = ""
-    private integer lineDensity = 4     
     private text dependentVariable = ""
     private Array<text> independentVariables    // This would be used when we have multi-variate regression
     private boolean nameAfterSeries = false
-    integer x1 = 0
-    integer y1 = 0
-    integer x2 = 0
-    integer y2 = 0
+
+    number slope = 1
+    number constantValue = 0
+
+    boolean movable = false
+    boolean bestFit = false
+    boolean horizontalOrientation = true
+
+    // How far a point should move when moved via the keyboard, as a percentage of the range of width or height.
+    number keyboardMovePercent = 0.05
+
+    // How much the line should rotate when moved via the keyboard, in degrees.
+    number keyboardRotateAngle = 15
+
+    // Padding values used to calculate the edges around the rectangle, reserved for rendering the edges of points.
+    // Mostly only needed for movable lines.
+    number horizontalMapPadding = 0
+    number verticalMapPadding = 0
+
+    /*
+    An array containing three point markers used to display selection and
+    accessibly navigate the control points of a movable regression line.
+    */
+    Array<RegressionLinePointMarker> pointMarkers
+
+    // An additional "dummy" point marker, used to send accessibility info when a point is modified.
+    RegressionLinePointMarker extraMarker
+
+    // Allows for locking the y-intercept so only the slope can be changed.
+    boolean lockIntercept = false
 
     on create
+        SetName("Regression Line")
+
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+        SetInputGroup("RegressionLine")
+        SetEscapeToLastItem(true)
+
+        // LinePath properties
+        SetCurving(false)
+        SetLineThickness(4)
+
+        // Default LinePath points, to be overridden when setting the two endpoints with SetX1 etc.
+        Add(0, 0)
+        Add(0, 0)
+        Add(0, 0)
+
+        integer i = 0
+        repeat while i < 3
+            RegressionLinePointMarker marker
+            marker:SetPointIndex(i)
+            pointMarkers:Add(marker)
+
+            // Because markers are hidden by default on creation, adding these won't display anything until they're made visible due to selection changes.
+            // (See "OnSelectionChange" in Chart)
+            Add(marker)
+
+            // Ensure each marker knows its container and can navigate back to it.
+            marker:SetEscapeItem(me)
+
+            i = i + 1
+        end
+
+        extraMarker:SetEscapeItem(me)
+
+        // Reiterate over the points to set navigation controls on them.
+        // Only the first three points are in the navigation by default -- the fourth is a dummy reserved for accessibility.
+        i = 0
+        repeat while i < 3
+            integer previous = i - 1
+            if previous < 0
+                previous = 2
+            end
+            integer next = (i + 1) mod 3
+
+            pointMarkers:Get(i):SetRightItem(pointMarkers:Get(next))
+            pointMarkers:Get(i):SetLeftItem(pointMarkers:Get(previous))
+            i = i + 1
+        end
+    end
+
+    action Draw(Painter2D painter)
+        parent:LinePath:Draw(painter)
+    end
+
+    private action SetToBestFit
+        bestFit = true
+
+        if lockIntercept and GetParentChart() is TwoVariableChart
+            // Manually calculate the line of best fit through the y-intercept.
+            TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
+            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+            
+            number averageX = 0
+            number averageY = 0
+
+            integer i = 0
+            repeat while i < points:GetSize()
+                averageX = averageX + points:Get(i):GetValueX()
+                averageY = averageY + points:Get(i):GetValueY()
+                i = i + 1
+            end
+
+            averageX = averageX / points:GetSize()
+            averageY = averageY / points:GetSize()
+
+            slope = (averageX * (averageY - constantValue)) / (averageX * averageX)
+        else
+            // The best fit has already been calculated by the regression. Use that.
+            Vector beta = regression:GetCoefficients()
+            if beta:GetSize() > 1
+                constantValue = beta:Get(0)
+                slope = beta:Get(1)
+            end
+        end
+
+        RefreshPoints()
+    end
+
+    action RefreshPoints
+        number xMin = GetMappedLeft() + horizontalMapPadding
+        number xMax = GetMappedRight() - horizontalMapPadding
+        number yMin = GetMappedBottom() + verticalMapPadding
+        number yMax = GetMappedTop() - verticalMapPadding
+
+        // Starting position for line
+        if not IsHorizontalOrientation()
+            number yVal = yMin
+            number xVal = CalculateDependentValue(yVal)
+            if (xVal < xMin)
+                yVal = CalculateIndependentValue(xMin)
+                xVal = CalculateDependentValue(yVal)
+            elseif xVal > xMax
+                yVal = CalculateIndependentValue(xMax)
+                xVal = CalculateDependentValue(yVal)
+            end
+            SetPoint1(xVal, yVal)
+        else
+            number xVal = xMin
+            number yVal = CalculateDependentValue(xVal)
+            if (yVal < yMin)
+                xVal = CalculateIndependentValue(yMin)
+                yVal = CalculateDependentValue(xVal)
+            elseif yVal > yMax
+                xVal = CalculateIndependentValue(yMax)
+                yVal = CalculateDependentValue(xVal)
+            end
+            SetPoint1(xVal, yVal)
+        end
+
+        // Ending position for line
+        if not IsHorizontalOrientation()
+            number yVal = yMax
+            number xVal = CalculateDependentValue(yVal)
+            if (xVal > xMax)
+                yVal = CalculateIndependentValue(xMax)
+                xVal = CalculateDependentValue(yVal)
+            end
+            if (xVal < xMin)
+                yVal = CalculateIndependentValue(xMin)
+                xVal = CalculateDependentValue(yVal)
+            end
+            SetPoint2(xVal, yVal)
+        else
+            number xVal = xMax
+            number yVal = CalculateDependentValue(xVal)
+            if (yVal > yMax)
+                xVal = CalculateIndependentValue(yMax)
+                yVal = CalculateDependentValue(xVal)
+            end
+            if (yVal < yMin)
+                xVal = CalculateIndependentValue(yMin)
+                yVal = CalculateDependentValue(xVal)
+            end
+            SetPoint2(xVal, yVal)
+        end
+
+        UpdateMarkerPositions()
+        UpdateMarkerDescriptions()
+        UpdatePointDescriptions()
+
+        // Update the equation as it might've changed.
+        GenerateEquation()
+    end
+
+    private action UpdateMarkerPositions
+        boolean sideArrow = false
+
+        if GetParentChart() not= undefined
+            sideArrow = GetParentChart():GetHorizontalFlag()
+        end
+
+        integer i = 0
+        repeat while i < pointMarkers:GetSize()
+            if sideArrow
+                pointMarkers:Get(i):SetPosition(GetPixelPointX(i), GetPixelPointY(i) + GetPointThickness())
+            else
+                pointMarkers:Get(i):SetPosition(GetPixelPointX(i) + GetPointThickness(), GetPixelPointY(i))
+            end
+
+            i = i + 1
+        end
     end
 
     action GetRegression returns Regression
@@ -37,6 +236,8 @@ class RegressionLine is ChartDrawable
 
     action SetRegression(Regression regression)
         me:regression = regression
+
+        SetToBestFit()
     end
 
     action SetRegressionIcon(Icon icon)
@@ -78,12 +279,12 @@ class RegressionLine is ChartDrawable
         me:series = series
     end
 
-    action SetLineDensity(integer lineDensity)
-        me:lineDensity = lineDensity
+    action SetLineDensity(number lineDensity)
+        SetLineThickness(lineDensity)
     end
 
-    action GetLineDensity returns integer
-        return lineDensity
+    action GetLineDensity returns number
+        return GetLineThickness()
     end
 
     action SetVariableNames(text yAxisTitle, text xAxisTitle, boolean isHorizontal, boolean orientationChanged)
@@ -161,22 +362,14 @@ class RegressionLine is ChartDrawable
     // Gives dependentVariable = (m*independentVariable) + b 
     action GenerateEquation()
         Math math
-        Vector beta = regression:GetCoefficients()
-        if beta:GetSize() > 1 and independentVariables:GetSize() > 0
-            equationText = dependentVariable + " = " + math:Round(beta:Get(1),2) + "*" + independentVariables:Get(0)
-            integer i = 2
-            repeat while i < beta:GetSize() and (i-1) < independentVariables:GetSize()
-                if math:Round(beta:Get(i),2) < 0
-                    equationText = equationText + math:Round(beta:Get(i),2) + "*" + independentVariables:Get(i-1)
-                else
-                    equationText = equationText + "+ " + math:Round(beta:Get(i),2) + "*" + independentVariables:Get(i-1)
-                end
-                i = i + 1
-            end
-            if math:Round(beta:Get(0),2) < 0
-                equationText = equationText + math:Round(beta:Get(0),2)
+
+        if independentVariables:GetSize() > 0
+            equationText = dependentVariable + " = " + math:Round(slope,2) + "*" + independentVariables:Get(0)
+
+            if math:Round(constantValue, 2) < 0
+                equationText = equationText + math:Round(constantValue, 2)
             else
-                equationText = equationText + " + " + math:Round(beta:Get(0),2)
+                equationText = equationText + " + " + math:Round(constantValue, 2)
             end
         end
         rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
@@ -191,52 +384,426 @@ class RegressionLine is ChartDrawable
     // Equation is (dependent(y)) = m * (independent(x)) + b
     action CalculateDependentValue(number independent) returns number
         number dependent = 0
-        Vector beta = regression:GetCoefficients()
-        if beta:GetSize() > 1
-            dependent = beta:Get(1)*independent + beta:Get(0)
-        end
+        dependent = slope * independent + constantValue
         return dependent
     end
 
     // Equation is (dependent(y)) = m * (independent(x)) + b
     action CalculateIndependentValue(number dependent) returns number
         number independent = 0
-        Vector beta = regression:GetCoefficients()
-        if beta:GetSize() = 2 // This should only be used if there is a single dependent variable
-            independent = (dependent - beta:Get(0))/(beta:Get(1))
-        end
+        independent = (dependent - constantValue) / (slope)
         return independent
     end
 
-    action SetX1(integer x1)
-        me:x1 = x1
+    private action RecalculateMidpoint
+        SetPoint(1, (GetX1() + GetX2()) / 2.0, (GetY1() + GetY2()) / 2.0)
     end
 
-    action GetX1 returns integer
-        return x1
+    action SetPoint1(number x1, number y1)
+        SetPoint(0, x1, y1)
+        RecalculateMidpoint()
     end
 
-    action SetY1(integer y1)
-        me:y1 = y1
+    action SetPoint2(number x2, number y2)
+        SetPoint(2, x2, y2)
+        RecalculateMidpoint()
     end
 
-    action GetY1 returns integer
-        return y1
+    action SetX1(number x1)
+        SetPoint(0, x1, GetY1())
+        RecalculateMidpoint()
     end
 
-    action SetX2(integer x2)
-        me:x2 = x2
+    action SetY1(number y1)
+        SetPoint(0, GetX1(), y1)
+        RecalculateMidpoint()
     end
 
-    action GetX2 returns integer
-        return x2
+    action SetX2(number x2)
+        SetPoint(2, x2, GetY2())
+        RecalculateMidpoint()
     end
 
-    action SetY2(integer y2)
-        me:y2 = y2
+    action SetY2(number y2)
+        SetPoint(2, GetX2(), y2)
+        RecalculateMidpoint()
     end
 
-    action GetY2 returns integer
-        return y2
+    action GetX1 returns number
+        return GetPointX(0)
+    end
+
+    action GetY1 returns number
+        return GetPointY(0)
+    end
+
+    action GetX2 returns number
+        return GetPointX(2)
+    end
+
+    action GetY2 returns number
+        return GetPointY(2)
+    end
+
+    action GetMidpointX returns number
+        return GetPointX(1)
+    end
+
+    action GetMidpointY returns number
+        return GetPointY(1)
+    end
+
+    action GetPixelStartPosition returns Vector2
+        Vector2 vector
+        vector:Set(GetPoint(0))
+        TranslateFromMappedSpace(vector)
+        return vector
+    end
+
+    action GetPixelEndPosition returns Vector2
+        Vector2 vector
+        vector:Set(GetPoint(2))
+        TranslateFromMappedSpace(vector)
+        return vector
+    end
+
+    action IsMovable returns boolean
+        return movable
+    end
+
+    action SetMovable(boolean movable)
+        me:movable = movable
+        SetDrawPoints(movable)
+        SetPassThroughSelection(movable)
+        if movable
+            SetEnterItem(pointMarkers:Get(0))
+        else
+            SetEnterItem(undefined)
+        end
+    end
+
+    action SetHorizontalOrientation(boolean horizontal)
+        horizontalOrientation = horizontal
+    end
+
+    action IsHorizontalOrientation returns boolean
+        return horizontalOrientation
+    end
+
+    action GetHorizontalMapPadding returns number
+        return horizontalMapPadding
+    end
+
+    action SetHorizontalMapPadding(number horizontalMapPadding)
+        me:horizontalMapPadding = horizontalMapPadding
+    end
+
+    action GetVerticalMapPadding returns number
+        return verticalMapPadding
+    end
+
+    action SetVerticalMapPadding(number verticalMapPadding)
+        me:verticalMapPadding = verticalMapPadding
+    end
+
+    action DragMovablePoint(DragAndDropEvent event)
+        if movable = false
+            return now
+        end
+
+        bestFit = false
+
+        integer index = GetSelection():GetPointIndex()
+        number pixelX = event:GetX() - GetGlobalX()
+        number pixelY = event:GetY() - GetGlobalY()
+
+        if lockIntercept = false
+            // Dragging the end points
+            if index = 0 or index = 2
+                Vector2 point1
+                point1:Set(pixelX, pixelY)
+                TranslateToMappedSpace(point1)
+    
+                Vector2 point2
+                point2:Set(GetMidpointX(), GetMidpointY())
+    
+                SetLineThroughMappedPoints(point1, point2)
+    
+            // Dragging the mid point
+            elseif index = 1
+                IntersectPixelPointViaConstant(pixelX, pixelY)
+            end
+        else
+            Vector2 point1
+            point1:Set(0, constantValue)
+
+            Vector2 point2
+            point2:Set(pixelX, pixelY)
+            TranslateToMappedSpace(point2)
+
+            SetLineThroughMappedPoints(point1, point2)
+        end
+    end
+
+    action KeyboardActivatePoint(RegressionLinePointMarker marker)
+        marker:SetKeyboardActive(true)
+        SwapMarkers(marker)
+    end
+
+    action KeyboardDeactivatePoint(RegressionLinePointMarker marker)
+        marker:SetKeyboardActive(false)
+        SwapMarkers(marker)
+    end
+
+    action KeyboardMovePoint(RegressionLinePointMarker marker, integer direction)
+        integer index = marker:GetPointIndex()
+        number xMin = GetMappedLeft() + horizontalMapPadding
+        number xMax = GetMappedRight() - horizontalMapPadding
+        number yMin = GetMappedBottom() + verticalMapPadding
+        number yMax = GetMappedTop() - verticalMapPadding
+
+        number x = 0
+        number y = 0
+
+        if direction = parent:ChartItem:LEFT
+            x = -keyboardMovePercent * (xMax - xMin)
+        elseif direction = parent:ChartItem:RIGHT
+            x = keyboardMovePercent * (xMax - xMin)
+        elseif direction = parent:ChartItem:DOWN
+            y = -keyboardMovePercent * (yMax - yMin)
+        elseif direction = parent:ChartItem:UP
+            y = keyboardMovePercent * (yMax - yMin)
+        end
+
+        if lockIntercept = false
+            if index = 1
+                Vector2 point
+                point:Set(GetMidpointX() + x, GetMidpointY() + y)
+                IntersectMappedPointViaConstant(point)
+            else
+                Vector2 point1
+                if index = 0
+                    point1:Set(GetX1() + x, GetY1() + y)
+                else
+                    point1:Set(GetX2() + x, GetY2() + y)
+                end
+    
+                Vector2 point2
+                point2:Set(GetMidpointX(), GetMidpointY())
+                SetLineThroughMappedPoints(point1, point2)
+            end
+        else
+            Vector2 point1
+            point1:Set(0, constantValue)
+
+            Vector2 point2
+            point2:Set(GetPointX(index) + x, GetPointY(index) + y)
+            SetLineThroughMappedPoints(point1, point2)
+        end
+
+        SwapMarkers(marker)
+    end
+
+    action KeyboardRotateLine(RegressionLinePointMarker marker, integer direction)
+        number degrees = 0
+        if direction = parent:ChartItem:LEFT or direction = parent:ChartItem:DOWN
+            degrees = keyboardRotateAngle
+        else
+            degrees = -keyboardRotateAngle
+        end
+
+        RotateLine(degrees)
+
+        SwapMarkers(marker)
+    end
+
+    action RotateLine(number degrees)
+        Vector2 base
+        base:Set(GetX2() - GetMidpointX(), GetY2() - GetMidpointY())
+        base:Rotate(degrees)
+
+        slope = base:GetY() / base:GetX()
+        constantValue = GetMidpointY() - slope * GetMidpointX()
+
+        RefreshPoints()
+        GetParentChart():RequestLayout()
+    end
+
+    private action UpdateMarkerDescriptions
+        integer i = 0
+        repeat while i < pointMarkers:GetSize()
+            RegressionLinePointMarker marker = pointMarkers:Get(i)
+            UpdateMarkerDescription(marker)
+
+            i = i + 1
+        end
+    end
+
+    action UpdateMarkerDescription(RegressionLinePointMarker marker)
+        if marker:IsKeyboardActive()
+            marker:SetName("Sum of residual squares " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", slope " + RoundToText(slope, 2) + ", y-intercept " + RoundToText(constantValue, 2))
+            if IsYInterceptLocked()
+                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the line.")
+            elseif marker:GetPointIndex() = 1
+                marker:SetDescription("Use the arrow keys to move the line left or right, or use Page Up and Page Down to move the line up and down. Press Shift Enter to return to the line.")
+            else
+                marker:SetDescription("Use the left arrow to rotate clockwise, or right arrow to rotate the line counter-clockwise. Press Shift Enter to return to the line.")
+            end
+        else
+            marker:SetName((marker:GetPointIndex() + 1) + ", line control" + ": Sum of residual squares " + RoundToText(CalculateResidualSumOfSquares(), 2) + ", slope " + RoundToText(slope, 2) + ", y-intercept " + RoundToText(constantValue, 2))
+            marker:SetDescription("Press Enter to select the point and change the line.")
+        end
+    end
+
+    private action CalculateResidualSumOfSquares returns number
+        number result = 0
+
+        if GetParentChart() is TwoVariableChart
+            TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
+            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+            
+            integer i = 0
+            repeat while i < points:GetSize()
+                ChartPoint point = points:Get(i)
+                number residual = point:GetValueY() - CalculateDependentValue(point:GetValueX())
+                result = result + residual * residual
+                i = i + 1
+            end
+        end
+
+        return result
+    end
+
+    /*
+    Round the number to the given number of digits and return it as text.
+    If the value is a whole number, the fractional component is truncated,
+    e.g. return "45" instead of "45.0".
+    */
+    private action RoundToText(number value, integer roundingDigits) returns text
+        number result = math:Round(value, roundingDigits)
+        if result = cast(integer, result)
+            return cast(text, cast(integer, result))
+        else
+            return cast(text, result)
+        end
+    end
+
+    private action SwapMarkers(RegressionLinePointMarker startMarker) returns RegressionLinePointMarker
+        extraMarker:SetPointIndex(startMarker:GetPointIndex())
+        extraMarker:SetName(startMarker:GetName())
+        extraMarker:SetDescription(startMarker:GetDescription())
+        extraMarker:SetContainer(startMarker:GetContainer())
+
+        extraMarker:SetKeyboardActive(startMarker:IsKeyboardActive())
+        extraMarker:SetLeftItem(startMarker:GetLeftItem())
+        extraMarker:SetRightItem(startMarker:GetRightItem())
+
+        Remove(startMarker)
+        Add(extraMarker)
+        
+        RegressionLinePointMarker result = extraMarker
+
+        pointMarkers:Set(startMarker:GetPointIndex(), extraMarker)
+        extraMarker = startMarker
+
+        if IsMovable() and result:GetPointIndex() = 0
+            SetEnterItem(result)
+        end
+
+        Chart chart = GetParentChart()
+        if chart:GetSelection():GetChartItem():Equals(startMarker)
+            chart:Select(result)
+        end
+        chart:RequestLayout()
+
+        return result
+    end
+
+    /*
+    This action adjusts the constant value in the linear equation so that the
+    line passes through the point at the given coordinates. The point must be
+    in the pixel space (e.g. between 0 and the pixel width/height of the line rectangle).
+    */
+    action IntersectPixelPointViaConstant(number x, number y)
+        Vector2 mapped
+        mapped:Set(x, y)
+        TranslateToMappedSpace(mapped)
+        IntersectMappedPointViaConstant(mapped)
+    end
+
+    /*
+    This action adjusts the constant value in the linear equation so that the
+    line passes through the point at the given coordinates. The point must be
+    in the mapped space.
+    */
+    action IntersectMappedPointViaConstant(Vector2 point)
+        // y = mx + b
+        // b = y - mx
+        constantValue = point:GetY() - slope * point:GetX()
+        RefreshPoints()
+        GetParentChart():RequestLayout()
+    end
+
+    /*
+    This action sets the line so it runs through the two given points. The points
+    must be provided in pixel space (e.g. between 0 and the pixel width/height of
+    the line rectangle).
+    */
+    action SetLineThroughPixelPoints(number x1, number y1, number x2, number y2)
+        Vector2 point1
+        point1:Set(x1, y1)
+        TranslateToMappedSpace(point1)
+
+        Vector2 point2
+        point2:Set(x2, y2)
+        TranslateToMappedSpace(point2)
+
+        SetLineThroughMappedPoints(point1, point2)
+    end
+
+    /*
+    This action sets the line so it runs through the two given points. The points
+    must be provided in the mapped space.
+    */
+    action SetLineThroughMappedPoints(Vector2 point1, Vector2 point2)
+        // y = mx + b
+        // m = (y2 - y1) / (x2 - x1)
+        // b = (y1) - m(x1)
+
+        slope = (point2:GetY() - point1:GetY()) / (point2:GetX() - point1:GetX())
+        constantValue = point1:GetY() - slope * point1:GetX()
+
+        RefreshPoints()
+        GetParentChart():RequestLayout()
+    end
+
+    private action UpdatePointDescriptions
+        if GetParentChart() is TwoVariableChart
+            TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
+            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+            chart:UpdatePointDescriptions(points)
+        end
+    end
+
+    action GetPointMarkers returns Array<RegressionLinePointMarker>
+        return pointMarkers
+    end
+
+    action LockYIntercept(number intercept)
+        lockIntercept = true
+        constantValue = intercept
+        SetToBestFit()
+    end
+
+    action UnlockYIntercept
+        lockIntercept = false
+    end
+
+    action IsYInterceptLocked returns boolean
+        return lockIntercept
+    end
+
+    action GetYIntercept returns number
+        return constantValue
     end
 end
