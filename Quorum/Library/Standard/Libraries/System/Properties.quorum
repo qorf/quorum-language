@@ -1,6 +1,7 @@
 package Libraries.System
 
 use Libraries.System.File
+use Libraries.Containers.HashTable
 
 /*
 The properties class is designed to gather information about the system
@@ -246,10 +247,42 @@ shared class Properties
         return GetEnvironmentVariable(requestedWebPage)
     end
 
+    /*
+        This action returns all properties on the system.
+
+        Attribute: Example
+
+        use Libraries.System.Properties
+
+        Properties properties
+        HashTable<text, text> table = properties:GetProperties()
+        
+    */
+    action GetProperties returns HashTable<text, text>
+        return GetPropertiesNative()
+    end
+
+    /*
+        This action returns all environment variables on the system.
+
+        Attribute: Example
+
+        use Libraries.System.Properties
+
+        Properties properties
+        HashTable<text, text> table = properties:GetEnvironmentVariables()
+        
+    */
+    action GetEnvironmentVariables returns HashTable<text, text>
+        return GetEnvironmentVariablesNative()
+    end
+
+    private system action GetPropertiesNative returns HashTable<text, text>
     private system action SetPropertyNative(text key, text value)
     private system action GetPropertyNative(text key) returns text
     private system action HasPropertyNative(text key) returns boolean
-
+    
+    private system action GetEnvironmentVariablesNative returns HashTable<text, text>
     private system action GetEnvironmentVariableNative(text key) returns text
     private system action HasEnvironmentVariableNative(text key) returns boolean
 end

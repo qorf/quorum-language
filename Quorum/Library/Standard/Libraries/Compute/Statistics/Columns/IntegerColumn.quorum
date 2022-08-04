@@ -123,6 +123,10 @@ class IntegerColumn is DataFrameColumn
         return true
     end
 
+    action IsNumberColumn returns boolean
+        return true
+    end
+
     action GetAsText(integer index) returns text
         Integer value = rows:Get(index)
         if value = undefined
@@ -261,7 +265,7 @@ class IntegerColumn is DataFrameColumn
     end
 
     private action GetUnique(Array<Integer> array) returns Array<Integer>
-        Array<Number> set
+        Array<Integer> set
         HashTable<integer,integer> hash = CalculateValueCount(array)
         Iterator<integer> iterator = hash:GetKeyIterator()
         repeat while iterator:HasNext()

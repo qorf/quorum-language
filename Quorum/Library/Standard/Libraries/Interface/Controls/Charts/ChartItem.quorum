@@ -10,6 +10,14 @@ use Libraries.Interface.Events.FocusEvent
     This item should not be used itself, except when obtaining information from a chart.
 */
 class ChartItem is Control
+
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer UP = 2
+    public constant integer DOWN = 3
+    public constant integer ENTER = 4
+    public constant integer ESCAPE = 5
+
     text information = ""
     Chart container = undefined
 
@@ -21,6 +29,9 @@ class ChartItem is Control
     ChartItem escapeItem = undefined
 
     ChartOptions options
+
+    boolean escapeToLastItem = false
+    boolean passThroughSelection = false
 
     /*
         This action sets the display name of the chart item. 
@@ -37,22 +48,6 @@ class ChartItem is Control
     action GetDisplayName returns text
         return information
     end
-
-    /*
-        This action is fired if the item received the focus.
-    */
-//    action GainedFocus(FocusEvent event)
-//        GainedSelection()
-//        parent:Control:GainedFocus(event)
-//    end
-
-    /*
-        This action is fired if the item lost the focus.
-    */
-//    action LostFocus(FocusEvent event)
-//       LostSelection()
-//        parent:Control:LostFocus(event)
-//    end
 
     action GainedSelection
         if GetContainer() not= undefined
@@ -158,6 +153,55 @@ class ChartItem is Control
     */
     action SetEscapeItem(ChartItem escapeItem)
         me:escapeItem = escapeItem
+    end
+
+    /*
+    This action enables or disables escape to last item functionality. If enabled, this object's Escape Item will
+    be the last ChartItem that accessed this Item via the Enter key. That means that if this is enabled, the escape
+    item will be dynamically adjusted, instead of a static value.
+    */
+    action SetEscapeToLastItem(boolean escape)
+        escapeToLastItem = escape
+    end
+
+    action IsEscapingToLastItem returns boolean
+        return escapeToLastItem
+    end
+
+    action IsPassingThroughSelection returns boolean
+        return passThroughSelection
+    end
+
+    /*
+    If pass through selection is enabled, attempting to enter or escape into this item will
+    instead try to pass the selection through to the following enter/escape item.
+    */
+    action SetPassThroughSelection(boolean passThroughSelection)
+        me:passThroughSelection = passThroughSelection
+    end
+
+    /*
+    This action indicates if this Control has special behavior when asked to navigate in
+    a specific direction. The parameter should be one of ChartItem's navigation constants,
+    e.g. UP, DOWN, ENTER, etc.
+
+    By default this always returns false, but some classes may override this with different
+    values.
+    */
+    action HasSpecialNavigation(integer navigationType) returns boolean
+        return false
+    end
+
+    /*
+    This action triggers special navigation behavior in the specified navigation direction. 
+    This behavior overrides the typical navigation provided by the chart. This will only be
+    called by the Chart if the HasSpecialNavigation action returns true for the provided
+    parameter.
+
+    By default this does nothing, but some classes may override this with custom behavior.
+    */
+    action DoSpecialNavigation(integer navigationType)
+        // Do nothing. Other classes may override this to do something.
     end
 
 end

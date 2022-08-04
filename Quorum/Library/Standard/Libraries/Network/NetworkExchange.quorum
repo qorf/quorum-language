@@ -1,10 +1,24 @@
 package Libraries.Network
 use Libraries.Containers.HashTable
+use Libraries.Containers.List
 
 class NetworkExchange
+
+    system action GenerateSessionKey returns text
+
+    system action GetResponseHeaders returns HashTable<text, List<text>>
+
+    system action SetResponseHeaders(HashTable<text, List<text>> table)
+
     system action SendResponseHeaders(integer code, text response)
 
     system action SendResponse(text response)
+
+    system action HashPassword(text password) returns text
+
+    system action VerifyPassword(text password, text hash) returns boolean
+
+    system action GetHeaders returns HashTable<text, List<text>>
 
     system action GetParameters returns HashTable<text,text>
 

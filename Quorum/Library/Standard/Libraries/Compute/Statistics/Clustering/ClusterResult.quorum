@@ -1,0 +1,40 @@
+package Libraries.Compute.Statistics.Clustering
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Containers.Array
+
+/*
+    The ClusterResult class represents the output of a clustering algorithm. Overall, it 
+    provides two key pieces. First, it provides the clusters themselves as a selection of 
+    points (in this case, class Vector). This provides a way to conduct calculations directly 
+    on the set of points. Second, it provides an IntegerColumn with cluster assignments to the 
+    original DataFrame. The purpose of this is to make it easy to add this column back to the frame, 
+    either for calculations or for charts. 
+*/
+class ClusterResult
+    IntegerColumn clusterIndices = undefined
+    Array<Cluster> clusters = undefined
+
+    /* Returns the assignment between the cluster index and individual points. This can be used
+        as a factor in a future calculation or chart. 
+    */
+    action GetClusterIndices returns IntegerColumn
+        return clusterIndices
+    end
+
+    /* Sets the assignment between the cluster index and individual points. This can be used
+        as a factor in a future calculation or chart. 
+    */
+    action SetClusterIndices(IntegerColumn clusterIndices)
+        me:clusterIndices = clusterIndices
+    end
+
+    /* Returns the clusters themselves. */
+    action GetClusters returns Array<Cluster>
+        return clusters
+    end
+
+    /* Sets the clusters themselves. */
+    action SetClusters(Array<Cluster> clusters)
+        me:clusters = clusters
+    end
+end
