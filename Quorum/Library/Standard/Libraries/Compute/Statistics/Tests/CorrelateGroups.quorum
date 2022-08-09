@@ -42,6 +42,8 @@ use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
     output correlate:GetCorrelation()
 */
 class CorrelateGroups is DataFrameCalculation, StatisticalTest, ColumnInput
+    /* The distribution used to calculate the p-value from the t-value and df values.*/
+    HeavyTailNormalDistribution distribution
 
     /* A flag that just stores if this is only two groups. */
     boolean twoGroups = false
@@ -116,17 +118,21 @@ class CorrelateGroups is DataFrameCalculation, StatisticalTest, ColumnInput
         result:SetRightIndex(rightIndex)
 
         text hash = HashCorrelationPosition(leftIndex, rightIndex)
-        result:SetCorrelation(
-            CalculateCorrelation(left, meanLeft, varianceLeft, right, meanRight, varianceRight)
-        )
 
-        CompareGroups groups
-        groups:AddColumn(leftIndex)
-        groups:AddColumn(rightIndex)
-        groups:Calculate(frame)
-        result:SetProbabilityValue(groups:GetProbabilityValue())
-        result:SetDegreesOfFreedom(groups:GetDegreesOfFreedom())
-        result:SetCriticalValue(groups:GetCriticalValue())
+        Math math
+        number n = left:GetSize()
+        number df = n - 2
+        number r = CalculateCorrelation(left, meanLeft, varianceLeft, right, meanRight, varianceRight)
+        number t = r * math:SquareRoot((n - 2.0) / (1 - r * r))
+
+        
+        distribution:Setup(df)
+        number absoluteValueT = math:AbsoluteValue(t)
+        number p = 2.0 * distribution:CumulativeDistribution(-absoluteValueT)
+        result:SetCorrelation(r)
+        result:SetProbabilityValue(p)
+        result:SetDegreesOfFreedom(df)
+        result:SetCriticalValue(t)
 
         if twoGroups
             twoGroupResult = result

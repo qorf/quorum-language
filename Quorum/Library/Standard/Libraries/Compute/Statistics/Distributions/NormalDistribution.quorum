@@ -17,7 +17,7 @@ use Libraries.Compute.Math
     output distribution:CumulativeDistribution(-5)
 */
 class NormalDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number solverAbsoluteAccuracy = DEFAULT_INVERSE_ABSOLUTE_ACCURACY
     number mean = 0
     number standardDeviation = 1.0

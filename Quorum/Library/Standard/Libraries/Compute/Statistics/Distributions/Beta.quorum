@@ -9,7 +9,7 @@ use Libraries.Compute.Statistics.Calculations.RegularizedBetaContinuedFraction
     More information can be found here: https://en.wikipedia.org/wiki/Beta_distribution
 */
 class Beta 
-    constant number DEFAULT_EPSILON = 0.00000000000001
+    constant number DEFAULT_EPSILON = 1.0e-14
     constant number HALF_LOG_TWO_PI = 0.9189385332046727
     Math math
     Gamma gamma
@@ -66,7 +66,6 @@ class Beta
     end
 
     action RegularizedBeta(number x, number a, number b, integer maxIterations) returns number
-        integer value = 0
         return RegularizedBeta(x, a, b, DEFAULT_EPSILON, maxIterations)
     end
 

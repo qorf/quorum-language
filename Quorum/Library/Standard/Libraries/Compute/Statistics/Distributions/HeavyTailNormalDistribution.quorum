@@ -10,12 +10,13 @@ use Libraries.Compute.Statistics.Distributions.Gamma
     More information can be found here: https://en.wikipedia.org/wiki/Student%27s_t-distribution
 */
 class HeavyTailNormalDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number degreesOfFreedom = 0.0
     number solverAbsoluteAccuracy = DEFAULT_INVERSE_ABSOLUTE_ACCURACY
     number factor = 0.0
     number utility = 0.0
     boolean useERF = false
+    Gamma gamma
     Beta beta
     Math math
 
@@ -30,14 +31,13 @@ class HeavyTailNormalDistribution is NumberDistribution
         constant number n = degreesOfFreedom
         constant number nPlus1Over2 = (n + 1) / 2
 
-        Gamma gamma
         me:factor = gamma:LogGamma(nPlus1Over2) - 
-            0.5 * (math:Logarithm(math:pi) + math:Logarithm(n)) - 
+            0.5 * (math:NaturalLogarithm(math:pi) + math:NaturalLogarithm(n)) - 
             gamma:LogGamma(n / 2)
 
         //Beta is not accurate beyond this. This is a workaround
         //discussed in https://issues.apache.org/jira/browse/STATISTICS-25
-        number value = 2.99 * math:RaiseToPower(10, 6)
+        number value = 2.99e6
         if degreesOfFreedom >= value
             useERF = true
         end

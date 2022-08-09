@@ -8,7 +8,7 @@ use Libraries.Compute.Statistics.Distributions.NumberDistribution
     More information can be found here: http://en.wikipedia.org/wiki/F-distribution
 */
 class VarianceRatioDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number degreesOfFreedom = 0.0
     number numeratorDegreesOfFreedom = 0.0
     number denominatorDegreesOfFreedom = 0.0

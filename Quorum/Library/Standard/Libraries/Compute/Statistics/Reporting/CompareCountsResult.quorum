@@ -6,11 +6,12 @@ use Libraries.Compute.Statistics.DataFrame
 
     Attribute: Author Andreas Stefik
 */
-class ChiSquaredResult is StatisticalTestResult
+class CompareCountsResult is StatisticalTestResult
     DataFrame observed
     DataFrame expected
     DataFrame residuals     // Pearson residuals (observed - expected) / sqrt(expected)
     boolean approximationWarning = false  
+    integer sampleSize = 0
 
     /*
         Obtains the observed dataframe calculated by the test.
@@ -82,6 +83,14 @@ class ChiSquaredResult is StatisticalTestResult
     */
     action SetApproximationWarningFlag(boolean flag)
         me:approximationWarning = flag
+    end
+
+    action SetSampleSize(integer sampleSize)
+        me:sampleSize = sampleSize
+    end
+
+    action GetSampleSize returns integer
+        return sampleSize
     end
 
 end

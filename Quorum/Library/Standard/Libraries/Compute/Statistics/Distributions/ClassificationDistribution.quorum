@@ -1,7 +1,11 @@
 package Libraries.Compute.Statistics.Distributions
 
-class ChiSquaredDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+/*
+    This class, ported from Apache Commons, is an implementation of the Chi-Squared Distribution.
+    More information can be found here: http://en.wikipedia.org/wiki/Chi-squared_distribution
+*/
+class ClassificationDistribution is NumberDistribution
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number solverAbsoluteAccuracy = 0.0
     number degreesOfFreedom = 0.0
     Gamma gamma    
@@ -19,7 +23,7 @@ class ChiSquaredDistribution is NumberDistribution
         if x <= 0.0
             ret = 0.0
         else
-            ret = 1.0 - gamma:RegularizedGammaP(degreesOfFreedom/2.0, x/2.0)
+            ret = gamma:RegularizedGammaP(degreesOfFreedom/2.0, x/2.0)
         end
         return ret
     end
@@ -35,14 +39,12 @@ class ChiSquaredDistribution is NumberDistribution
     end
 
     action GetMean returns number
-        number result = 0
-        return result:GetNotANumberValue()
+        return degreesOfFreedom
     end
 
     
     action GetVariance returns number
-        number result = 0
-        return result:GetNotANumberValue()
+        return degreesOfFreedom * 2
     end
     
     action IsSupportConnected returns boolean
@@ -52,4 +54,9 @@ class ChiSquaredDistribution is NumberDistribution
     action GetSolverAbsoluteAccuracy returns number
         return solverAbsoluteAccuracy
     end
+
+    action GetDegreesOfFreedom returns number
+        return degreesOfFreedom
+    end
+
 end
