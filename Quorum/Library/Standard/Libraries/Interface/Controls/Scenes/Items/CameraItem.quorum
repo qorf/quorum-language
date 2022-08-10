@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Game.Graphics.Camera
+
+
+/*
+    The CameraItem class is an EditorItem that specifically represents a Camera in the SceneEditor.
+    This class only adds a Camera field to save the Camera used by the scene. This class is a parent 
+    to CameraItem2D and CameraItem3D and those classes add more functionality in this class specific 
+    for Cameras in a 2D or 3D environment.
+*/
+class CameraItem is EditorItem
+
+    Camera camera = undefined
+
+    on create
+        SetName("Camera Controller")
+    end
+
+    /*
+        SetCamera sets the Camera object that this EditorItem represents. The camera
+        could be a perscpective camera or an orthographic camera depending on if it is
+        a 3D or 2D scene. 
+
+        Attribute: Parameter camera The camera this EditorItem will represent
+    */
+    action SetCamera(Camera camera)
+        me:camera = camera
+    end
+
+    /*
+        GetCamera returns the Camera object this EditorItem represents.
+
+        Attribute: Returns The Camera this EditorItem represents
+    */
+    action GetCamera returns Camera
+        return camera
+    end
+
+end

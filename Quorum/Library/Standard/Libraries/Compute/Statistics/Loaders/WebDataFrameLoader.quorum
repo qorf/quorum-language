@@ -22,11 +22,13 @@ use Libraries.System.File
 class WebDataFrameLoader is DataFrameLoader
     text location = ""
     text attribute = undefined
+
     action Load(DataFrame frame, File file)
         NativeLoad(frame, file)
     end
 
     system action NativeLoad(DataFrame frame, File file)
+    system action CanLoad returns boolean
 
     action SetLocation(text value)
         location = value

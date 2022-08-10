@@ -47,19 +47,27 @@ class ChartNavigateBehavior is Behavior
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
-                if gesture:eventType not= gesture:SWIPE
+                if gesture:eventType = gesture:SINGLE_TAP
+                        direction = ENTER
+                elseif gesture:eventType = gesture:DOUBLE_TAP               
+                        direction = SHIFT_ENTER
+                elseif gesture:eventType = gesture:PAN and gesture:GetPanDistanceY() > 10
+                        direction = TAB
+                elseif gesture:eventType = gesture:SWIPE
+                    if gesture:GetDirection() = gesture:LEFT
+                        direction = X_AXIS_PREV
+                    elseif gesture:GetDirection() = gesture:RIGHT
+                        direction = X_AXIS_NEXT
+                    elseif gesture:GetDirection() = gesture:UP
+                        direction = Y_AXIS_NEXT
+                    elseif gesture:GetDirection() = gesture:DOWN
+                        direction = Y_AXIS_PREV
+                    end
+                elseif gesture:eventType = gesture:LONG_PRESS
+                    direction = SHIFT_TAB
+                else 
                     return now
-                end
-
-                if gesture:GetDirection() = gesture:LEFT
-                    direction = X_AXIS_PREV
-                elseif gesture:GetDirection() = gesture:RIGHT
-                    direction = X_AXIS_NEXT
-                elseif gesture:GetDirection() = gesture:UP
-                    direction = Y_AXIS_NEXT
-                elseif gesture:GetDirection() = gesture:DOWN
-                    direction = Y_AXIS_PREV
-                end
+                end                
             end
 
             if direction = Y_AXIS_NEXT

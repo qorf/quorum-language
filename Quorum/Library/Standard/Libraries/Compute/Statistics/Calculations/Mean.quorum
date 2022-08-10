@@ -29,6 +29,14 @@ class Mean is DataFrameColumnCalculation
     action Start(DataFrameColumn column) 
         size = column:GetSize() - column:GetUndefinedSize()
     end
+
+    /*
+        This action allows us to manually override the total size
+        for the calculation.
+    */
+    action SetSize(integer size)
+        me:size = size
+    end
    
     action Add(Number value) 
         if value not= undefined

@@ -24,6 +24,7 @@ use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 
 
 /*
@@ -75,6 +76,7 @@ class Chart is ChartItem
     private ColorGroup previousBackgroundColor = undefined
     private Color previousColor = undefined
     private number previousZ = 0
+    private boolean hasAccessibility = true
 
     // Chart Orientation
     private boolean horizontalOrientation = false
@@ -171,6 +173,16 @@ class Chart is ChartItem
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
     number pointBorderThickness = 1
+    // Used to indicate that a chart's regression lines should be movable.
+    // Must be set before displaying the chart.
+    boolean movableRegressionLines = false
+
+    // Values used to lock the initial y-intercept value of regression lines.
+    boolean lockRegressionIntercepts = false
+    number regressionInterceptLock = 0
+    //File paths for script/style
+    text scriptFilepath = ""
+    text styleFilepath = ""
 
     on create
         chartArea:SetName("Chart Area")
@@ -1224,6 +1236,33 @@ class Chart is ChartItem
         return showLinearRegression
     end
 
+    /*
+    This action shows or hides linear regression lines, if possible. Some chart
+    types, such as PieChart, cannot support linear regression lines. Trying to
+    show the regression lines on a chart type that does not support it will output
+    a warning, and otherwise have no effect.
+    
+    Attribute: Parameter show True to show linear regression lines, or false to hide them.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
     action ShowLinearRegression(boolean show)
         if regressionCapable
             showLinearRegression = show
@@ -1238,11 +1277,98 @@ class Chart is ChartItem
         me:regressionCapable = regressionCapable
     end
 
+    /*
+    This action enables or disables movable regression lines for interactive charts.
+    If the regression lines are movable, they can be dragged with the mouse or using
+    the keyboard. This will have no impact on charts that are exported to SVG format.
+
+    Attribute: Parameter movable True to make regression lines movable, or false to make them non-interactive.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action SetMovableRegressionLines(boolean movable)
+        movableRegressionLines = movable
+    end
+
+    /*
+    This action returns true if the regression lines in this chart are movable, or false
+    if the lines are non-interactive.
+
+    Attribute: Returns True if regression lines are movable, or false otherwise.
+    */
+    action HasMovableRegressionLines returns boolean
+        return movableRegressionLines
+    end
+
+    /*
+    This action locks the y-intercepts of regression lines to the given value (most commonly 0).
+    
+    Attribute: Parameter intercept The new y-intercept value that all regression lines in the chart must pass through.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action LockRegressionYIntercept(number intercept)
+        lockRegressionIntercepts = true
+        regressionInterceptLock = intercept
+    end
+
+    /*
+    This action unlocks the y-intercepts of the regression lines. It does not reset the values of the lines
+    if they were already locked, but makes it possible to adjust them dynamically if the lines are movable.
+    */
+    action UnlockRegressionYIntercepts
+        lockRegressionIntercepts = false
+    end
+
+    /*
+    This action returns true if the y-intercepts of the regression lines are locked, or false otherwise.
+
+    Attribute: Returns True if the y-intercepts of the regression lines are locked, or false otherwise.
+    */
+    action IsLockingRegressionYIntercepts returns boolean
+        return lockRegressionIntercepts
+    end
+
     private action LoadRegressionLines()
         integer i = 0
         repeat while i < GetSeriesList():GetSize()
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
+                line:SetMovable(movableRegressionLines)
                 line:SetColor(GetSeriesList():Get(i):GetColor())
                 if IsSeparatedBySeries()
                     integer k = 0
@@ -1276,7 +1402,12 @@ class Chart is ChartItem
                         line:SetLineDensity(regLineDensity)
                     end
                 end
+
+                if IsLockingRegressionYIntercepts()
+                    line:LockYIntercept(regressionInterceptLock)
+                end
             end
+
             i = i + 1
         end
     end
@@ -2111,6 +2242,8 @@ class Chart is ChartItem
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetRegressionIcon():SetColor(previousColor)
+            elseif target is RegressionLinePointMarker
+                target:Hide()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2179,6 +2312,8 @@ class Chart is ChartItem
                 temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
                 temp:GetRegressionIcon():SetColor(GetSelectionColor())
+            elseif target is RegressionLinePointMarker
+                target:Show()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2264,6 +2399,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:RIGHT)
+            selected:DoSpecialNavigation(selected:RIGHT)
+            return now
+        end
+
         ChartItem next = selected:GetRightItem()
         if next not= undefined
             selection:Set(next)
@@ -2278,6 +2418,11 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:LEFT)
+            selected:DoSpecialNavigation(selected:LEFT)
             return now
         end
 
@@ -2298,6 +2443,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:DOWN)
+            selected:DoSpecialNavigation(selected:DOWN)
+            return now
+        end
+
         ChartItem next = selected:GetDownItem()
         if next not= undefined
             selection:Set(next)
@@ -2312,6 +2462,12 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:UP)
+            output "Doing UP navigation with " + selected:UP
+            selected:DoSpecialNavigation(selected:UP)
             return now
         end
 
@@ -2332,8 +2488,24 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:ENTER)
+            selected:DoSpecialNavigation(selected:ENTER)
+            return now
+        end
+
         ChartItem next = selected:GetEnterItem()
+
         if next not= undefined
+            if next:IsEscapingToLastItem()
+                next:SetEscapeItem(selected)
+            end
+
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEnterItem() not= undefined
+                    next = next:GetEnterItem()
+                end
+            end
+
             selection:Set(next)
         end
     end
@@ -2350,8 +2522,19 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:ESCAPE)
+            selected:DoSpecialNavigation(selected:ESCAPE)
+            return now
+        end
+
         ChartItem next = selected:GetEscapeItem()
         if next not= undefined
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEscapeItem() not= undefined
+                    next = next:GetEscapeItem()
+                end
+            end
+
             selection:Set(next)
         end
     end
@@ -2453,6 +2636,18 @@ class Chart is ChartItem
         Attribute: Returns the Scalable Vector Graphics (SVG) text.
     */
     action ConvertToScalableVectorGraphics returns text
+        return ""
+    end
+
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Parameter hasAccessibility flag to tell the ChartWriter if it should include accessibility elements and tags.
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics(boolean hasAccessibility) returns text
         return ""
     end
 
@@ -2569,6 +2764,23 @@ class Chart is ChartItem
         me:pointBorderThickness = pointBorderThickness
     end
 
+    
+    /*
+        This action sets a flag to know if all of the accessibility
+        information should be included. This may be used to reduce
+        the size of the image in cases where it will be used
+        as a flat image such as in a PDF.
+
+        Attribute: Parameter hasAccessibility flag to tell the ChartWriter if it should include accessibility elements and tags.
+    */
+    action SetAccessibilityFlag(boolean hasAccessibility)
+        me:hasAccessibility = hasAccessibility
+    end
+
+    action HasAccessibility() returns boolean
+        return hasAccessibility
+    end
+
     /*
     This action generates the instruction text for the Chart Area description.
 
@@ -2580,31 +2792,12 @@ class Chart is ChartItem
             //Not Separated but has Groups
             if HasGroups()
                 description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
-                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order,"
-                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
             //Not Separate and no Groups
             else
                 description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
-                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order,"
-                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Shift + Enter to return to the chart area."
             end
         else
-            //Separated, each Series is also separated by the Factor levels
-            if IsSeparatedBySeries() and IsSeparatedByFactor()  
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
-                //description = description + " While in the " + GetChartItemText() + " list, use Left Right to move between the " + GetChartItemsText() + " in list order," 
-                //description = description + " use Up/Down to move between the " + GetChartItemsText() + " in value order, use Shift + Enter to return to the chart area."
-            //Separated, by the Factor levels with multiple Series per subplot
-            elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
-                //description = description + " While in the " + GetGroupText() + " list, use Left Right to move between the " + GetGroupsText() + " in list order," 
-                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
-            //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
-            else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or Shift Tab to return to chart information."
-                //description = description + " While in the " + GetSeriesText() + " list, use Left Right to move between the " + GetSeriesText() + " in list order," 
-                //description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Shift + Enter to return to the chart area."
-            end
+            description = description + " To navigate the chart, press Enter to move into the list of sub charts or Shift Tab to return to chart information."
         end
         me:GetChartArea():SetDescription(description)
     end
@@ -2616,15 +2809,9 @@ class Chart is ChartItem
     Attribute: Parameter description The base portion of the description that will appear before the instructions
     */
     action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
-        //Separated, by the Factor levels with multiple Series per subplot
-        if not IsSeparatedBySeries() and IsSeparatedByFactor()
-            description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
-        //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
-        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
-            description = description + " To navigate the list of " + GetSeriesText() + ", use the arrow keys to move between " + GetSeriesText() + " in list order,"
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Shift + Enter to return to the chart area."
-        end
+        description = description + " To navigate the list of sub charts, use the arrow keys to move between sub charts in list order," 
+        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that sub chart, use Shift + Enter to return to the chart area."
+        
         subChartArea:SetDescription(description)
     end
 
@@ -2638,8 +2825,8 @@ class Chart is ChartItem
 
         description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in list order," 
         description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order,"
-        if not IsSeparatedBySeries() and IsSeparatedByFactor()
-            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+        if IsSeparated()
+            description = description + " use Shift + Enter to return to the sub chart list."
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
             description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
         elseif not IsSeparated() and HasGroups()
@@ -2682,6 +2869,22 @@ class Chart is ChartItem
 
     action GetChartItemsText returns text
         return chartItemsText
+    end
+
+    action SetScriptFilepath(text scriptFilepath)
+        me:scriptFilepath = scriptFilepath
+    end
+
+    action GetScriptFilepath returns text
+        return me:scriptFilepath
+    end
+
+    action SetStyleFilepath(text styleFilepath)
+        me:styleFilepath = styleFilepath
+    end
+
+    action GetStyleFilepath returns text
+        return me:styleFilepath
     end
 
 end

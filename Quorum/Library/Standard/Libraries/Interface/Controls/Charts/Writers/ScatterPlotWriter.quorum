@@ -80,7 +80,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + scatterplot:GetChartArea():GetDescription())
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -129,7 +129,7 @@ class ScatterPlotWriter is ChartWriter
             i = 0
             repeat while i < chart:GetSeriesList():GetSize()
                 Series currentSeries = chart:GetSeriesList():Get(i)
-
+        
                 if currentSeries:GetSize() > 0
                     Group seriesSVG
                     seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
@@ -141,7 +141,7 @@ class ScatterPlotWriter is ChartWriter
                         seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
-                    if chart:GetSeriesList():GetSize() > 1
+                    if chart:GetSeriesList():GetSize() > 0
                         chartContent:Add(seriesSVG)
                     end
                     text seriesFocus = ""
@@ -178,7 +178,7 @@ class ScatterPlotWriter is ChartWriter
                                 pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                 pointSVG:SetAriaHidden("false")
                             end
-                            if chart:GetSeriesList():GetSize() > 1
+                            if chart:GetSeriesList():GetSize() > 0
                                 seriesSVG:Add(pointSVG)
                             else
                                 chartContent:Add(pointSVG)
@@ -415,7 +415,7 @@ class ScatterPlotWriter is ChartWriter
         end
     end
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         ScatterPlot scatterplot
         scatterplot = cast(ScatterPlot, chart)
         Script script
@@ -518,7 +518,7 @@ class ScatterPlotWriter is ChartWriter
     
                 Array<ChartDrawable> chartAreaItems = seriesList:Get(i):GetChartAreaItems():CopyToArray()
                 chartAreaItems:Sort(comparison)
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + canvas:GetID() + "_" + seriesList:Get(i):GetHashCode() + ": {" + newLine
                 end
                 j = 0
@@ -534,7 +534,7 @@ class ScatterPlotWriter is ChartWriter
                     ChartPoint lastPoint = cast(ChartPoint, chartAreaItems:Get(j))
                     scriptText = scriptText + tab + canvas:GetID() + "_" + seriesList:Get(i):GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueX() + newLine
                     
-                    if seriesList:GetSize() > 1
+                    if seriesList:GetSize() > 0
                         scriptText = scriptText + tab + "}" + newLine
                     end
                 end
@@ -632,7 +632,7 @@ class ScatterPlotWriter is ChartWriter
     
                 Array<ChartDrawable> chartAreaItems = seriesList:Get(i):GetChartAreaItems():CopyToArray()
                 chartAreaItems:Sort(comparison)
-                if seriesList:GetSize() > 1
+                if seriesList:GetSize() > 0
                     scriptText = scriptText + tab + canvas:GetID() + "_" + seriesList:Get(i):GetHashCode() + ": {" + newLine
                 end
                 j = 0
@@ -647,7 +647,7 @@ class ScatterPlotWriter is ChartWriter
                 if chartAreaItems:Get(j) is ChartPoint
                     ChartPoint lastPoint = cast(ChartPoint, chartAreaItems:Get(j))
                     scriptText = scriptText + tab + canvas:GetID() + "_" + seriesList:Get(i):GetHashCode() + "_" + lastPoint:GetHashCode() + ": " + lastPoint:GetValueY() + newLine
-                    if seriesList:GetSize() > 1
+                    if seriesList:GetSize() > 0
                         scriptText = scriptText + tab + "}" + newLine
                     end
                 end
@@ -657,6 +657,6 @@ class ScatterPlotWriter is ChartWriter
         scriptText = scriptText + "};" + newLine + newLine
 
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

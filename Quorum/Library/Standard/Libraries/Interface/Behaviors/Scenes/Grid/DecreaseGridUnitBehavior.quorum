@@ -1,0 +1,30 @@
+package Libraries.Interface.Behaviors.Scenes.Grid
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This behavior halves the size of the current grid in the SceneEditor. 
+*/
+class DecreaseGridUnitBehavior is Behavior
+    
+    action Run(BehaviorEvent event)
+        SceneEditor editor = undefined
+
+        if event:GetItem() is SceneEditor
+            editor = cast(SceneEditor, event:GetItem())
+        elseif event:GetItem() is EditorItem
+            EditorItem item = cast(EditorItem, event:GetItem())
+            editor = item:GetSceneEditor()
+        end
+
+        if editor = undefined
+            return now
+        end
+
+        editor:SetGridUnitSize(0.5 * editor:GetGridUnitSize())
+    end
+
+end

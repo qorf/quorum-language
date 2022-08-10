@@ -65,6 +65,8 @@ use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
 use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
+use Libraries.System.Properties
+use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -787,9 +789,26 @@ class DataFrame
         frame:Load("Data.csv") 
     */
     action Load(text location)
-        File file
-        file:SetPath(location)
-        Load(file)
+        Properties properties
+        if properties:IsWebBrowser()
+            //first check if the file is there
+            WebDataFrameLoader loader
+            loader:SetLocation(location)
+            loader:SetAttribute("data-value")
+            boolean loadable = loader:CanLoad()
+            if loadable
+                Load(loader)
+            else
+                File file
+                file:SetPath(location)
+                Load(file)
+            end
+            //if the file isn't there, see if there's a custom load on the page
+        else
+            File file
+            file:SetPath(location)
+            Load(file)
+        end
     end
 
     /*
@@ -1632,6 +1651,24 @@ class DataFrame
         end
 
         selection:EmptyRows()
+    end
+
+    /*
+        This removes the current selected columns and adds all columns into
+        the selection. Selected factors are not changed.
+    
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SelectAllColumns()
+        output frame:ToText()
+    */
+    action SelectAllColumns
+        EmptySelectedColumns()
+        AddSelectedColumnRange(0,GetSize() -1)
     end
 
     /*

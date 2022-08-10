@@ -1,0 +1,31 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This class is a behavior for the scene editor that shifts focus to the currently 
+    showing properties dialog. This behavior is used to bind jumping to a properties 
+    dialog to a key so the user can move an item in the scene editor and then jump 
+    to the dialog to edit other properties. 
+*/
+class FocusPropertiesBehavior is Behavior
+    action Run(BehaviorEvent event)
+        SceneEditor editor = undefined
+
+        if event:GetItem() is SceneEditor
+            editor = cast(SceneEditor, event:GetItem())
+        elseif event:GetItem() is EditorItem
+            EditorItem item = cast(EditorItem, event:GetItem())
+            editor = cast(SceneEditor, item:GetSceneEditor())
+        end
+
+        if editor = undefined
+            return now
+        end
+
+        editor:FocusItemProperties()
+    end
+end
