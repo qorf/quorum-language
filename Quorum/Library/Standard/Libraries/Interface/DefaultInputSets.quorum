@@ -14,6 +14,7 @@ use Libraries.Interface.Behaviors.Scenes.Grid.all
 use Libraries.Interface.Behaviors.Scenes.Palette.all
 use Libraries.Interface.Behaviors.Scenes.Properties.all
 use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Behaviors.Controls.all
 
 shared class DefaultInputSets
 
@@ -77,6 +78,549 @@ shared class DefaultInputSets
     action AddMetaModifier(InputSet set) returns InputSet
         set:AddModifier(set:META)
         return set
+    end
+
+    action SetupButtonInput(GameInput gameInput)
+InputTable buttonTable
+        buttonTable:SetIdentifier("Button")
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+        ButtonDownBehavior buttonDownBehavior
+        buttonTable:Add(clickDown, buttonDownBehavior)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:FINISH)
+        ButtonUpBehavior buttonUpBehavior
+        buttonTable:Add(clickUp, buttonUpBehavior)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+        buttonTable:Add(touchDown, buttonDownBehavior)
+
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+        buttonTable:Add(touchUp, buttonUpBehavior)
+
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior onBehavior
+        buttonTable:Add(mouseOn, onBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        ButtonMouseOffBehavior buttonOffBehavior
+        buttonTable:Add(mouseOff, buttonOffBehavior)
+        
+        InputSet spaceSet
+        spaceSet:SetKeyboardInput(keys:SPACE)
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnterSet
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        ControlActivationBehavior activateBehavior
+        buttonTable:Add(spaceSet, activateBehavior)
+        buttonTable:Add(enterSet, activateBehavior)
+        buttonTable:Add(numpadEnterSet, activateBehavior)
+
+        InputSet rightClickSet
+        rightClickSet:SetMouseInput(mouse:RIGHT)
+        OpenPopupMenuBehavior openContextMenuBehavior
+        buttonTable:Add(rightClickSet, openContextMenuBehavior)
+
+        InputSet leftClickControlSet
+        leftClickControlSet:SetMouseInput(mouse:LEFT)
+        leftClickControlSet:AddModifier(leftClickControlSet:CONTROL)
+        if manager:GetOperatingSystem():Contains("OS X")
+            buttonTable:Add(leftClickControlSet, openContextMenuBehavior)
+        end
+
+        gameInput:AddInputTable(buttonTable)
+    end
+
+    action SetupButtonGroupInput(GameInput gameInput)
+
+        InputTable groupTable
+        groupTable:SetIdentifier("ButtonGroup")
+
+        ButtonGroupUpBehavior groupUpFocus
+        ButtonGroupDownBehavior groupDownFocus
+        groupTable:Add(GetUpArrowKey(), groupUpFocus)
+        groupTable:Add(GetDownArrowKey(), groupDownFocus)
+        groupTable:Add(GetLeftArrowKey(), groupUpFocus)
+        groupTable:Add(GetRightArrowKey(), groupDownFocus)
+
+        gameInput:AddInputTable(groupTable)
+    end
+
+    action SetupToolbarInput(GameInput gameInput)
+        InputTable toolbarTable
+        toolbarTable:SetIdentifier("ToolBar")
+
+        NavigateFocusUpToolBar upFocus
+        NavigateFocusDownToolBar downFocus
+
+        toolbarTable:Add(GetUpArrowKey(), upFocus)
+        toolbarTable:Add(GetDownArrowKey(), downFocus)
+        toolbarTable:Add(GetLeftArrowKey(), upFocus)
+        toolbarTable:Add(GetRightArrowKey(), downFocus)
+        gameInput:AddInputTable(toolbarTable)
+    end
+
+    action SetupDialogInput(GameInput gameInput)
+        InputTable dialogTable
+        dialogTable:SetIdentifier("Dialog")
+
+        InputSet dialogEnter
+        dialogEnter:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnter
+        numpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
+        DialogEnterBehavior dialogEnterBehavior
+        dialogTable:Add(dialogEnter, dialogEnterBehavior)
+        dialogTable:Add(numpadEnter, dialogEnterBehavior)
+
+        InputSet dialogEscape
+        dialogEscape:SetKeyboardInput(keys:ESCAPE)
+        DialogEscapeBehavior dialogEscapeBehavior
+        dialogTable:Add(dialogEscape, dialogEscapeBehavior)
+
+        gameInput:AddInputTable(dialogTable)
+    end
+
+    action SetupTabPaneInput(GameInput gameInput)
+        InputTable tabPaneTable
+        tabPaneTable:SetIdentifier("TabPane")
+
+        TabPaneForwardTabBehavior forward
+        TabPaneBackwardTabBehavior backward
+        TabPaneCloseTabBehavior closeTab
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:LEFT_BRACKET)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+            tabPaneTable:Add(backwardTab, backward)
+
+            InputSet closeTabSet
+            closeTabSet:SetKeyboardInput(keys:W)
+            closeTabSet:AddModifier(forwardTab:META)
+            tabPaneTable:Add(closeTabSet, closeTab)
+        else
+            InputSet forwardTab
+            forwardTab:SetKeyboardInput(keys:TAB)
+            forwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(forwardTab, forward)
+
+            InputSet backwardTab
+            backwardTab:SetKeyboardInput(keys:TAB)
+            backwardTab:AddModifier(forwardTab:SHIFT)
+            backwardTab:AddModifier(forwardTab:CONTROL)
+
+            tabPaneTable:Add(backwardTab, backward)
+
+            InputSet closeTabSet
+            closeTabSet:SetKeyboardInput(keys:F4)
+            closeTabSet:AddModifier(forwardTab:CONTROL)
+            tabPaneTable:Add(closeTabSet, closeTab)
+        end
+        
+        gameInput:AddInputTable(tabPaneTable)
+    end
+
+    action SetupMenuInput(GameInput gameInput)
+        InputTable menuItemTable
+        menuItemTable:SetIdentifier("MenuItem")
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:FINISH)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior onBehavior
+
+        ClickDownBehavior downBehavior
+        ClickUpBehavior upBehavior
+
+        menuItemTable:Add(clickDown, downBehavior)
+        menuItemTable:Add(clickUp, upBehavior)
+        menuItemTable:Add(touchDown, downBehavior)
+        menuItemTable:Add(touchUp, upBehavior)
+        menuItemTable:Add(mouseOn, onBehavior)
+
+        gameInput:AddInputTable(menuItemTable)
+
+
+        InputTable menuRootTable
+        menuRootTable:SetIdentifier("MenuRoot")
+
+        MenuRootDownBehavior menuDownBehavior
+        MenuRootUpBehavior menuUpBehavior
+        MenuRootLeftBehavior menuLeftBehavior
+        MenuRootRightBehavior menuRightBehavior
+        MenuRootActivateBehavior menuRunBehavior
+        MenuRootCloseBehavior menuCloseBehavior
+
+        menuRootTable:Add(GetDownArrowKey(), menuDownBehavior)
+        menuRootTable:Add(GetUpArrowKey(), menuUpBehavior)
+        menuRootTable:Add(GetLeftArrowKey(), menuLeftBehavior)
+        menuRootTable:Add(GetRightArrowKey(), menuRightBehavior)
+
+        MenuMnemonicBehavior mnemonicBehavior
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        menuRootTable:Add(textInputSet, mnemonicBehavior)
+
+        InputSet spaceBar
+        spaceBar:SetKeyboardInput(keys:SPACE)
+
+        menuRootTable:Add(spaceBar, menuRunBehavior)
+        InputSet enter
+        enter:SetKeyboardInput(keys:ENTER)
+        menuRootTable:Add(enter, menuRunBehavior)
+
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        menuRootTable:Add(escapeSet, menuCloseBehavior)
+
+        gameInput:AddInputTable(menuRootTable)
+
+        InputTable scrollableMenuTable
+        scrollableMenuTable:SetIdentifier("ScrollableMenuPanel")
+
+        InputSet leftClickDown
+        leftClickDown:SetMouseInput(mouse:LEFT)
+        ScrollableMenuPanelBeginDraggingBehavior menuBeginDraggingBehavior
+        scrollableMenuTable:Add(leftClickDown, menuBeginDraggingBehavior)
+
+        InputSet leftClickDrag
+        leftClickDrag:SetMouseMovementInput(mouse:LEFT)
+        leftClickDrag:SetInputTrigger(leftClickDrag:CONTINUE)
+        ScrollableMenuPanelDragBehavior menuDragBehavior
+        scrollableMenuTable:Add(leftClickDrag, menuDragBehavior)
+
+        InputSet leftClickUp
+        leftClickUp:SetMouseInput(mouse:LEFT)
+        leftClickUp:SetInputTrigger(leftClickUp:FINISH)
+        ScrollableMenuPanelStopDraggingBehavior menuStopDraggingBehavior
+        scrollableMenuTable:Add(leftClickUp, menuStopDraggingBehavior)
+
+        InputSet mouseScroll
+        mouseScroll:SetInputType(mouseScroll:MOUSE_WHEEL_INPUT)
+        ScrollableMenuPanelScrollBehavior menuScrollBehavior
+        scrollableMenuTable:Add(mouseScroll, menuScrollBehavior)
+
+        gameInput:AddInputTable(scrollableMenuTable)
+
+    end
+
+    action SetupTreeInput(GameInput gameInput)
+        InputTable treeItemTable
+        treeItemTable:SetIdentifier("TreeItem")
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(mouse:LEFT)
+        doubleClickSet:SetEventCount(2)
+        InputSet doubleTouchSet
+        doubleTouchSet:SetInputType(doubleTouchSet:TOUCH_INPUT)
+        doubleTouchSet:SetEventCount(2)
+        TreeDoubleClickBehavior doubleClickBehavior
+        treeItemTable:Add(doubleClickSet, doubleClickBehavior)
+        treeItemTable:Add(doubleTouchSet, doubleClickBehavior)
+
+        InputSet clickSet
+        clickSet:SetMouseInput(mouse:LEFT)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+
+        ClickDownBehavior clickDownBehavior
+        treeItemTable:Add(clickSet, clickDownBehavior)
+        treeItemTable:Add(touchDown, clickDownBehavior)
+
+        InputSet rightClickSet
+        rightClickSet:SetMouseInput(mouse:RIGHT)
+        TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
+        treeItemTable:Add(rightClickSet, treeOpenContextMenuBehavior)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            InputSet rightClickControlSet
+            rightClickControlSet:SetMouseInput(mouse:LEFT)
+            rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
+            treeItemTable:Add(rightClickControlSet, treeOpenContextMenuBehavior)
+        end
+
+        gameInput:AddInputTable(treeItemTable)
+
+        InputTable treeTable
+        treeTable:SetIdentifier("Tree")
+
+        TreeLeftBehavior treeLeftBehavior
+        treeTable:Add(GetLeftArrowKey(), treeLeftBehavior)
+        
+        TreeRightBehavior treeRightBehavior
+        treeTable:Add(GetRightArrowKey(), treeRightBehavior)
+
+        TreeDownBehavior treeDownBehavior
+        treeTable:Add(GetDownArrowKey(), treeDownBehavior)
+
+        TreeUpBehavior treeUpBehavior
+        treeTable:Add(GetUpArrowKey(), treeUpBehavior)
+
+        InputSet homeSet
+        homeSet:SetKeyboardInput(keys:HOME)
+        TreeSelectFirstBehavior treeSelectFirstBehavior
+        treeTable:Add(homeSet, treeSelectFirstBehavior)
+
+        InputSet endSet
+        endSet:SetKeyboardInput(keys:END)
+        TreeSelectLastBehavior treeSelectLastBehavior
+        treeTable:Add(endSet, treeSelectLastBehavior)
+
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnterSet
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        TreeActivateBehavior treeActivateBehavior
+        treeTable:Add(enterSet, treeActivateBehavior)
+        treeTable:Add(numpadEnterSet, treeActivateBehavior)
+
+        // On Windows, Shift-F10 opens context menus just like right-clicking.
+        InputSet shiftF10Set
+        shiftF10Set:SetKeyboardInput(keys:F10)
+        shiftF10Set:AddModifier(shiftF10Set:SHIFT)
+        treeTable:Add(shiftF10Set, treeOpenContextMenuBehavior)
+
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        FirstLetterNavigateBehavior firstLetterNavigateBehavior
+        treeTable:Add(textInputSet, firstLetterNavigateBehavior)
+
+        gameInput:AddInputTable(treeTable)
+    end
+
+    action SetupSpreadsheetInput(GameInput gameInput)
+        InputTable spreadsheetTable
+        spreadsheetTable:SetIdentifier("Spreadsheet")
+        SpreadsheetCopyBehavior spreadsheetCopyBehavior
+        SpreadsheetCutBehavior spreadsheetCutBehavior
+        SpreadsheetPasteBehavior spreadsheetPasteBehavior
+        SpreadsheetDownBehavior spreadsheetDownBehavior
+        SpreadsheetUpBehavior spreadsheetUpBehavior
+        SpreadsheetLeftBehavior spreadsheetLeftBehavior
+        SpreadsheetRightBehavior spreadsheetRightBehavior
+        SpreadsheetActivationBehavior spreadsheetActivate
+
+        spreadsheetTable:Add(GetDownArrowKey(), spreadsheetDownBehavior)
+        spreadsheetTable:Add(GetUpArrowKey(), spreadsheetUpBehavior)
+        spreadsheetTable:Add(GetLeftArrowKey(), spreadsheetLeftBehavior)
+        spreadsheetTable:Add(GetRightArrowKey(), spreadsheetRightBehavior)
+
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+
+        spreadsheetTable:Add(enterSet, spreadsheetActivate)
+
+        //copy past for fields
+        if manager:GetOperatingSystem():Contains("OS X")
+            //first do copy paste
+            InputSet metaC
+            metaC:SetKeyboardInput(keys:C)
+            metaC:AddModifier(metaC:META)
+            spreadsheetTable:Add(metaC, spreadsheetCopyBehavior)
+
+            InputSet metaX
+            metaX:SetKeyboardInput(keys:X)
+            metaX:AddModifier(metaX:META)
+            spreadsheetTable:Add(metaX, spreadsheetCutBehavior)
+
+            InputSet metaV
+            metaV:SetKeyboardInput(keys:V)
+            metaV:AddModifier(metaV:META)
+            spreadsheetTable:Add(metaV, spreadsheetPasteBehavior)
+        else
+            InputSet controlC
+            controlC:SetKeyboardInput(keys:C)
+            controlC:AddModifier(controlC:CONTROL)
+            spreadsheetTable:Add(controlC, spreadsheetCopyBehavior)
+
+            InputSet controlX
+            controlX:SetKeyboardInput(keys:X)
+            controlX:AddModifier(controlX:CONTROL)
+            spreadsheetTable:Add(controlX, spreadsheetCutBehavior)
+
+            InputSet controlV
+            controlV:SetKeyboardInput(keys:V)
+            controlV:AddModifier(controlV:CONTROL)
+            spreadsheetTable:Add(controlV, spreadsheetPasteBehavior)
+        end
+
+        gameInput:AddInputTable(spreadsheetTable)
+
+        InputTable spreadsheetCellTable
+        spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
+
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(mouse:LEFT)
+        doubleClickSet:SetEventCount(2)
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:FINISH)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+
+        ClickDownBehavior downBehavior
+        ClickUpBehavior upBehavior
+
+        spreadsheetCellTable:Add(clickDown, downBehavior)
+        spreadsheetCellTable:Add(touchDown, downBehavior)
+        spreadsheetCellTable:Add(clickUp, upBehavior)
+        spreadsheetCellTable:Add(touchUp, upBehavior)
+        spreadsheetCellTable:Add(doubleClickSet, spreadsheetActivate)
+
+        gameInput:AddInputTable(spreadsheetCellTable)
+    end
+
+    action SetupTreeTableInput(GameInput gameInput)
+        InputTable treeTableInputTable
+        treeTableInputTable:SetIdentifier("TreeTable")
+        TreeTableDownBehavior treeTableDownBehavior
+        TreeTableUpBehavior treeTableUpBehavior
+        TreeTableLeftBehavior treeTableLeftBehavior
+        TreeTableRightBehavior treeTableRightBehavior
+        TreeTableActivationBehavior treeTableActivate
+
+        treeTableInputTable:Add(GetDownArrowKey(), treeTableDownBehavior)
+        treeTableInputTable:Add(GetUpArrowKey(), treeTableUpBehavior)
+        treeTableInputTable:Add(GetLeftArrowKey(), treeTableLeftBehavior)
+        treeTableInputTable:Add(GetRightArrowKey(), treeTableRightBehavior)
+
+        InputSet spaceSet
+        spaceSet:SetKeyboardInput(keys:SPACE)
+        treeTableInputTable:Add(spaceSet, treeTableActivate)
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        FirstLetterNavigateBehavior firstLetterNavigateBehavior
+        treeTableInputTable:Add(textInputSet, firstLetterNavigateBehavior)
+
+        gameInput:AddInputTable(treeTableInputTable)
+
+        InputTable treeTableCellTable
+        treeTableCellTable:SetIdentifier("TreeTableCell")
+
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(mouse:LEFT)
+        doubleClickSet:SetEventCount(2)
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+
+        InputSet clickUp
+        clickUp:SetMouseInput(mouse:ANY)
+        clickUp:SetInputTrigger(clickUp:FINISH)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+
+        ClickDownBehavior downBehavior
+        ClickUpBehavior upBehavior
+
+        treeTableCellTable:Add(clickDown, downBehavior)
+        treeTableCellTable:Add(touchDown, downBehavior)
+        treeTableCellTable:Add(clickUp, upBehavior)
+        treeTableCellTable:Add(touchUp, upBehavior)
+        treeTableCellTable:Add(doubleClickSet, treeTableActivate)
+
+        gameInput:AddInputTable(treeTableCellTable)
+    end
+
+    action SetupListInput(GameInput gameInput)
+        InputTable listInputTable
+        listInputTable:SetIdentifier("List")
+        ListDownBehavior listDownBehavior
+        ListUpBehavior listUpBehavior
+        ListActivationBehavior listActivate
+
+        listInputTable:Add(GetDownArrowKey(), listDownBehavior)
+        listInputTable:Add(GetUpArrowKey(), listUpBehavior)
+        InputSet spaceSet
+        spaceSet:SetKeyboardInput(keys:SPACE)
+        listInputTable:Add(spaceSet, listActivate)
+
+        InputSet textInputSet
+        textInputSet:SetInputType(textInputSet:TEXT_INPUT)
+        FirstLetterNavigateBehavior firstLetterNavigateBehavior
+        listInputTable:Add(textInputSet, firstLetterNavigateBehavior)
+
+        gameInput:AddInputTable(listInputTable)
+
+        InputTable listItemTable
+        listItemTable:SetIdentifier("ListItem")
+
+        InputSet doubleClickSet
+        doubleClickSet:SetMouseInput(mouse:LEFT)
+        doubleClickSet:SetEventCount(2)
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+
+        ClickDownBehavior downBehavior
+        ClickUpBehavior upBehavior
+
+        listItemTable:Add(clickDown, downBehavior)
+        listItemTable:Add(touchDown, upBehavior)
+        listItemTable:Add(doubleClickSet, listActivate)
+
+        gameInput:AddInputTable(listItemTable)
+    end
+
+    action SetupGutterInput(GameInput gameInput)
+        InputTable gutterTable
+        gutterTable:SetIdentifier("Gutter")
+
+        InputSet clickDown
+        clickDown:SetMouseInput(mouse:ANY)
+
+        GutterClickBehavior gutterClickBehavior
+        gutterTable:Add(clickDown, gutterClickBehavior)
+
+        gameInput:AddInputTable(gutterTable)
     end
 
     action SetupSceneEditorInput(GameInput gameInput)
