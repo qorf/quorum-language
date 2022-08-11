@@ -18,6 +18,7 @@ class ChartNavigateBehavior is Behavior
     constant integer SHIFT_ENTER = 5
     constant integer SHIFT_TAB = 6
     constant integer TAB = 7
+    integer isPinch = 0
 
     action Run(BehaviorEvent event)
         if event:GetItem() is Chart
@@ -47,12 +48,12 @@ class ChartNavigateBehavior is Behavior
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
-                if gesture:eventType = gesture:SINGLE_TAP
+                if gesture:GetScaleFactor() > 1
+                        direction = TAB
+                elseif gesture:eventType = gesture:SINGLE_TAP
                         direction = ENTER
                 elseif gesture:eventType = gesture:DOUBLE_TAP               
                         direction = SHIFT_ENTER
-                elseif gesture:eventType = gesture:PAN and gesture:GetPanDistanceY() > 10
-                        direction = TAB
                 elseif gesture:eventType = gesture:SWIPE
                     if gesture:GetDirection() = gesture:LEFT
                         direction = X_AXIS_PREV

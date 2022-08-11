@@ -1377,6 +1377,15 @@ class Game
         InputSet pinchSet
         pinchSet:SetGestureInput(gestures:PINCH)
 
+        InputSet pinchContinue
+        pinchContinue:SetGestureInput(gestures:PINCH)
+        pinchContinue:SetInputTrigger(pinchContinue:CONTINUE)
+
+        InputSet pinchEnd
+        pinchEnd:SetGestureInput(gestures:PINCH)
+        pinchEnd:SetInputTrigger(pinchEnd:FINISH)
+
+
         InputSet panSet
         panSet:SetGestureInput(gestures:PAN)
         
@@ -1407,6 +1416,8 @@ class Game
         chartTable:Add(tapSet, chartNavigateBehavior)
         chartTable:Add(doubleTapSet, chartNavigateBehavior)
         chartTable:Add(pinchSet, chartNavigateBehavior)
+        chartTable:Add(pinchContinue, chartNavigateBehavior)
+        chartTable:Add(pinchEnd, chartNavigateBehavior)
         chartTable:Add(panSet, chartNavigateBehavior)
         chartTable:Add(longPressSet, chartNavigateBehavior)
         chartTable:Add(tabFocus, chartNavigateBehavior)
