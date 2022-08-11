@@ -24,6 +24,7 @@ use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 
 
 /*
@@ -172,7 +173,13 @@ class Chart is ChartItem
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
     number pointBorderThickness = 1
+    // Used to indicate that a chart's regression lines should be movable.
+    // Must be set before displaying the chart.
+    boolean movableRegressionLines = false
 
+    // Values used to lock the initial y-intercept value of regression lines.
+    boolean lockRegressionIntercepts = false
+    number regressionInterceptLock = 0
     //File paths for script/style
     text scriptFilepath = ""
     text styleFilepath = ""
@@ -1229,6 +1236,33 @@ class Chart is ChartItem
         return showLinearRegression
     end
 
+    /*
+    This action shows or hides linear regression lines, if possible. Some chart
+    types, such as PieChart, cannot support linear regression lines. Trying to
+    show the regression lines on a chart type that does not support it will output
+    a warning, and otherwise have no effect.
+    
+    Attribute: Parameter show True to show linear regression lines, or false to hide them.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
     action ShowLinearRegression(boolean show)
         if regressionCapable
             showLinearRegression = show
@@ -1243,11 +1277,98 @@ class Chart is ChartItem
         me:regressionCapable = regressionCapable
     end
 
+    /*
+    This action enables or disables movable regression lines for interactive charts.
+    If the regression lines are movable, they can be dragged with the mouse or using
+    the keyboard. This will have no impact on charts that are exported to SVG format.
+
+    Attribute: Parameter movable True to make regression lines movable, or false to make them non-interactive.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action SetMovableRegressionLines(boolean movable)
+        movableRegressionLines = movable
+    end
+
+    /*
+    This action returns true if the regression lines in this chart are movable, or false
+    if the lines are non-interactive.
+
+    Attribute: Returns True if regression lines are movable, or false otherwise.
+    */
+    action HasMovableRegressionLines returns boolean
+        return movableRegressionLines
+    end
+
+    /*
+    This action locks the y-intercepts of regression lines to the given value (most commonly 0).
+    
+    Attribute: Parameter intercept The new y-intercept value that all regression lines in the chart must pass through.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action LockRegressionYIntercept(number intercept)
+        lockRegressionIntercepts = true
+        regressionInterceptLock = intercept
+    end
+
+    /*
+    This action unlocks the y-intercepts of the regression lines. It does not reset the values of the lines
+    if they were already locked, but makes it possible to adjust them dynamically if the lines are movable.
+    */
+    action UnlockRegressionYIntercepts
+        lockRegressionIntercepts = false
+    end
+
+    /*
+    This action returns true if the y-intercepts of the regression lines are locked, or false otherwise.
+
+    Attribute: Returns True if the y-intercepts of the regression lines are locked, or false otherwise.
+    */
+    action IsLockingRegressionYIntercepts returns boolean
+        return lockRegressionIntercepts
+    end
+
     private action LoadRegressionLines()
         integer i = 0
         repeat while i < GetSeriesList():GetSize()
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
+                line:SetMovable(movableRegressionLines)
                 line:SetColor(GetSeriesList():Get(i):GetColor())
                 if IsSeparatedBySeries()
                     integer k = 0
@@ -1281,7 +1402,12 @@ class Chart is ChartItem
                         line:SetLineDensity(regLineDensity)
                     end
                 end
+
+                if IsLockingRegressionYIntercepts()
+                    line:LockYIntercept(regressionInterceptLock)
+                end
             end
+
             i = i + 1
         end
     end
@@ -2116,6 +2242,8 @@ class Chart is ChartItem
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetRegressionIcon():SetColor(previousColor)
+            elseif target is RegressionLinePointMarker
+                target:Hide()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2184,6 +2312,8 @@ class Chart is ChartItem
                 temp:SetColor(GetSelectionColor())
                 temp:GetLabel():GainedSelection()
                 temp:GetRegressionIcon():SetColor(GetSelectionColor())
+            elseif target is RegressionLinePointMarker
+                target:Show()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
                 if temp:GetSelectionArrow() not= undefined          
@@ -2269,6 +2399,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:RIGHT)
+            selected:DoSpecialNavigation(selected:RIGHT)
+            return now
+        end
+
         ChartItem next = selected:GetRightItem()
         if next not= undefined
             selection:Set(next)
@@ -2283,6 +2418,11 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:LEFT)
+            selected:DoSpecialNavigation(selected:LEFT)
             return now
         end
 
@@ -2303,6 +2443,11 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:DOWN)
+            selected:DoSpecialNavigation(selected:DOWN)
+            return now
+        end
+
         ChartItem next = selected:GetDownItem()
         if next not= undefined
             selection:Set(next)
@@ -2317,6 +2462,12 @@ class Chart is ChartItem
         ChartItem selected = selection:GetChartItem()
         if selected = undefined
             selection:Set(me)
+            return now
+        end
+
+        if selected:HasSpecialNavigation(selected:UP)
+            output "Doing UP navigation with " + selected:UP
+            selected:DoSpecialNavigation(selected:UP)
             return now
         end
 
@@ -2337,8 +2488,24 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:ENTER)
+            selected:DoSpecialNavigation(selected:ENTER)
+            return now
+        end
+
         ChartItem next = selected:GetEnterItem()
+
         if next not= undefined
+            if next:IsEscapingToLastItem()
+                next:SetEscapeItem(selected)
+            end
+
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEnterItem() not= undefined
+                    next = next:GetEnterItem()
+                end
+            end
+
             selection:Set(next)
         end
     end
@@ -2355,8 +2522,19 @@ class Chart is ChartItem
             return now
         end
 
+        if selected:HasSpecialNavigation(selected:ESCAPE)
+            selected:DoSpecialNavigation(selected:ESCAPE)
+            return now
+        end
+
         ChartItem next = selected:GetEscapeItem()
         if next not= undefined
+            if next:IsPassingThroughSelection()
+                repeat while next:IsPassingThroughSelection() and next:GetEscapeItem() not= undefined
+                    next = next:GetEscapeItem()
+                end
+            end
+
             selection:Set(next)
         end
     end

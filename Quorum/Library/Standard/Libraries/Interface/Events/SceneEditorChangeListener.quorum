@@ -1,0 +1,30 @@
+package Libraries.Interface.Events
+
+/*
+    The SceneEditorChangeListener class is used to listen for and react to SceneEditorChangeEvents
+    where the user added or removed an item from the scene. To make use of this class you need to
+    make a new class that inherits this class and overwrites SceneAddedItem and SceneRemovedItem.
+    The SceneTree class is an example Listener because it inherts this class and reacts to the events
+    where the user adds or removes items.
+*/
+class SceneEditorChangeListener
+
+    /*
+        This is used to respond to a SceneEditorChangeEvent where an item was added to the scene.
+
+        Attribute: Parameter event A SceneEditorChangeEvent describing the added item
+    */
+    action SceneAddedItem(SceneEditorChangeEvent event)
+
+    end
+
+    /*
+        This is used to respond to a SceneEditorChangeEvent where an item was added to the scene.
+
+        Attribute: Parameter event A SceneEditorChangeEvent describing the removed item
+    */
+    action SceneRemovedItem(SceneEditorChangeEvent event)
+
+    end
+
+end

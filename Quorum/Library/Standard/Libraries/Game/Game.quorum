@@ -194,6 +194,8 @@ use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.DefaultInputSets
+use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -564,6 +566,10 @@ class Game
         FocusPreviousBehavior shiftTabBehavior
         defaultTable:Add(shiftTabFocus, shiftTabBehavior)
 
+        //Input tables for the Scene Editor
+        DefaultInputSets sets
+        sets:SetupSceneEditorInput(gameInput)
+
         //Input table for toolbars
         InputTable toolbarTable
         toolbarTable:SetIdentifier("ToolBar")
@@ -911,10 +917,23 @@ class Game
         textBoxTable:Add(enter, newLineBehavior)
         textBoxTable:Add(numpadEnter, newLineBehavior)
 
+        InputSet enter2
+        enter2:SetKeyboardInput(keys:ENTER)
+        enter2:AddModifier(enter2:SHIFT)
+        TextBoxStartNewLineBehavior newLineBehavior2
+        textBoxTable:Add(enter2, newLineBehavior2)
+        textBoxTable:Add(numpadEnter, newLineBehavior2)
+
         InputSet releaseEnter
         releaseEnter:SetKeyboardInput(keys:ENTER)
         releaseEnter:SetInputTrigger(releaseEnter:FINISH)
         textBoxTable:Add(releaseEnter, cancelBehavior)
+
+        InputSet releaseEnter2
+        releaseEnter2:SetKeyboardInput(keys:ENTER)
+        releaseEnter2:AddModifier(releaseEnter2:SHIFT)
+        releaseEnter2:SetInputTrigger(releaseEnter2:FINISH)
+        textBoxTable:Add(releaseEnter2, cancelBehavior)
 
         InputSet releaseNumpadEnter
         releaseNumpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
@@ -1425,6 +1444,15 @@ class Game
         chartTable:Add(pageUp, chartNavigateBehavior)
         chartTable:Add(pageDown, chartNavigateBehavior)
         AddInputTable(chartTable)
+
+        InputTable regressionLineTable
+        regressionLineTable:SetIdentifier("RegressionLine")
+        ChartMovableRegressionDragBehavior chartDragBehavior
+        InputSet dragSet
+        dragSet:SetDragItemInput()
+        dragSet:SetInputTrigger(dragSet:CONTINUE)
+        regressionLineTable:Add(dragSet, chartDragBehavior)
+        AddInputTable(regressionLineTable)
 
         InputTable menuItemTable
         menuItemTable:SetIdentifier("MenuItem")

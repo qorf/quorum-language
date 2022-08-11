@@ -1,0 +1,222 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    SelectionHighlight2D represents the SelectionHighlight of a 2D item. The selection
+    will appear as a rectangle over the item. This class also contains actions to change
+    properties specific to 2D items.
+*/
+class SelectionHighlight2D is EditorItem2D, SelectionHighlight
+
+    Item2D item = undefined
+    Drawable highlightBox
+
+    on create
+        SceneConstants constants
+        SetZ(constants:SELECTION_HIGHLIGHT_2D_DEPTH)
+        SetInputGroup("SelectionHighlight2D")
+        SetName("Selection Highlight")
+    end
+
+    /*
+        Returns the item that is being selected and can be edited
+    */
+    action GetItem returns Item
+        return item
+    end
+
+    /*
+        Loads a square that is slightly bigger than the passed item. 
+    */
+    action Load(Item2D item, SceneEditor controller)
+        Color color = undefined
+        SceneConstants constants = GetConstants()
+
+        if IsFocused()
+            color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
+        else
+            color = constants:SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+        end
+
+        number padding = constants:SELECTION_HIGHLIGHT_PADDING_2D
+
+        SceneProperties properties
+        Drawable highlightBox
+        me:highlightBox = highlightBox
+
+        highlightBox:LoadFilledRectangle(1, 1, color)
+        highlightBox:SetSize(item:GetWidth() + 2 * padding, item:GetHeight() + 2 * padding)
+        highlightBox:SetPosition(-padding, -padding)
+        highlightBox:SetAcceptsMouseInput(false)
+        highlightBox:SetName("Selection Highlight Glow Effect")
+        Add(highlightBox)
+
+        SetScale(item:GetScaleX(), item:GetScaleY())
+        SetRotation(item:GetRotation())    
+
+        SetPosition(item:GetGlobalX(), item:GetGlobalY())
+
+        me:item = item
+        SetSceneEditor(controller)
+    end
+
+    /*
+        This action changes the color of the highlight box. When selection is gained the highlight
+        is much brighter.
+    */
+    action GainedSelection
+        highlightBox:SetColor(GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR)
+    end
+
+    /*
+        This action changes the color of the highlight box. When selection is lost the highlight
+        is much dimmer.
+    */
+    action LostSelection
+        highlightBox:SetColor(GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR)
+    end
+
+    /*
+        Scale changes the scale of the item being selected. This in turn alters 
+        the box so it still fits over the item.
+    */
+    action Scale(number x, number y)
+        parent:Item2D:Scale(x, y)
+        if item not= undefined
+            item:Scale(x, y)
+        end
+    end
+
+    /*
+        ScaleX changes the x scale of the item being selected. This in turn alters 
+        the box so it still fits over the item.
+    */
+    action SetScaleX(number scale)
+        parent:EditorItem2D:SetScaleX(scale)
+        if item not= undefined
+            item:SetScaleX(scale)
+        end
+    end
+
+    /*
+        ScaleY changes the y scale of the item being selected. This in turn alters 
+        the box so it still fits over the item.
+    */
+    action SetScaleY(number scale)
+        parent:EditorItem2D:SetScaleY(scale)
+        if item not= undefined
+            item:SetScaleY(scale)
+        end
+    end
+
+    /*
+        SetRotation changes the rotation of the item being selected. This in turn alters 
+        the box so it still fits over the item. In 2D only a single angle is needed to set
+        the rotation of the 2D item.
+    */
+    action SetRotation(number angle)
+        highlightBox:SetRotation(angle)
+        if item not= undefined
+            item:SetRotation(angle)
+        end
+    end
+
+    /*
+        Returns how much the highlight is rotated.
+    */
+    action GetRotation returns number
+        return highlightBox:GetRotation()
+    end
+
+    /*
+        MoveX adjusts the x of the item being selected. This in turn adjusts the highlight's 
+        position so it is still over the item.
+    */
+    action MoveX(number x)
+        parent:Item2D:MoveX(x)
+        if item not= undefined
+            item:MoveX(x)
+        end
+    end
+
+    /*
+        MoveY adjusts the y of the item being selected. This in turn adjusts the highlight's 
+        position so it is still over the item.
+    */
+    action MoveY(number y)
+        parent:Item2D:MoveY(y)
+        if item not= undefined
+            item:MoveY(y)
+        end
+    end
+
+    /*
+        Move adjusts the x and y of the item being selected. This in turn adjusts the highlight's 
+        position so it is still over the item.
+    */
+    action Move(number x, number y)
+        parent:Item2D:Move(x, y)
+        if item not= undefined
+            item:Move(x, y)
+        end
+    end
+
+    /*
+        SetX sets the x of the item being selected. This in turn sets the highlight's 
+        position so it is still over the item.
+    */
+    action SetX(number x)
+        parent:Item2D:SetX(x)
+        if item not= undefined
+            item:SetX(x)
+        end
+    end
+
+    /*
+        SetY adjusts the y of the item being selected. This in turn sets the highlight's 
+        position so it is still over the item.
+    */
+    action SetY(number y)
+        parent:Item2D:SetY(y)
+        if item not= undefined
+            item:SetY(y)
+        end
+    end
+
+    /*
+        SetEditorZ sets the z of the item being selected. In 2D the z of an item affects the order
+        in which objects are drawn.
+    */
+    action SetEditorZ(number z)
+        if item not= undefined
+            item:SetZ(z)
+        end
+    end
+
+    /*
+        Returns the z of the item being selected.
+    */
+    action GetEditorZ returns number
+        return item:GetZ()
+    end
+
+    /*
+        Sets the position of the item and highlight from x and y coordinates. 
+    */
+    action SetPosition(number x, number y)
+        parent:Item2D:SetPosition(x, y)
+        if item not= undefined
+            item:SetPosition(x, y)
+        end
+    end
+
+end
