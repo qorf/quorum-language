@@ -1113,10 +1113,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number padding = 0
         if applyPaddingToSelection
             lineHeight = GetLineHeight()
-            padding = GetTotalLineHeightPadding()
+            padding = GetTotalLineHeightPadding() / 2
         else
             lineHeight = GetUnpaddedLineHeight()
-            padding = GetTotalLineHeightPadding() / 2
         end
 
         background:EmptySelectionDrawables()
@@ -1144,7 +1143,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             number right = lineDrawables:Get(lastLineIndex - 1):GetX() - rightGlyph:lengthToGlyph + rightGlyph:horizontalAdvance
 
             highlight:SetSize(right - left, lineHeight)
-            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() + GetSelectionYOffset() - padding)
+            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - GetSelectionYOffset() - padding)
 
             background:AddSelectionDrawable(highlight)
 
