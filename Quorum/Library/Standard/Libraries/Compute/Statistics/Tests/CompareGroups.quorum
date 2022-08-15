@@ -51,10 +51,10 @@ class CompareGroups is DataFrameCalculation, ColumnInput
 
     CompareGroupsResult result = undefined
 
-    action Calculate(DataFrame frame) 
-        
+    action Calculate(DataFrame frame)  
+               
         if GetColumnSize() < 2
-            alert("I cannot correlate less than two groups.")
+            alert("I cannot compare less than two groups.")
         end
 
         if GetColumnSize() = 2 //technically this all boils down to the same thing, 
@@ -79,6 +79,10 @@ class CompareGroups is DataFrameCalculation, ColumnInput
         i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+
             totalSize = totalSize + column:GetSize()
 
             Summarize summarize
@@ -125,6 +129,14 @@ class CompareGroups is DataFrameCalculation, ColumnInput
                 DataFrameColumn left = frame:GetColumn(GetColumn(i))
                 DataFrameColumn right = frame:GetColumn(GetColumn(j))
 
+                if not left:IsNumberColumn() and not left:IsIntegerColumn()
+                    alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
+                end
+        
+                if not right:IsNumberColumn() and not right:IsIntegerColumn()
+                    alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
+                end
+
                 Summarize leftSummary = summaries:Get(i)
                 Summarize rightSummary = summaries:Get(j)
 
@@ -166,6 +178,14 @@ class CompareGroups is DataFrameCalculation, ColumnInput
     private action Compare2Groups(DataFrame frame)
         DataFrameColumn left = frame:GetColumn(GetColumn(0))
         DataFrameColumn right = frame:GetColumn(GetColumn(1))
+
+        if not left:IsNumberColumn() and not left:IsIntegerColumn()
+            alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
+        end
+
+        if not right:IsNumberColumn() and not right:IsIntegerColumn()
+            alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
+        end
 
         Mean mean
         left:Calculate(mean)
@@ -224,6 +244,15 @@ class CompareGroups is DataFrameCalculation, ColumnInput
         CompareGroupsResult result
         result:SetCriticalValue(t)
         result:SetProbabilityValue(p)
+        result:SetTestStatistic(t)
+        result:SetCohensD(cohensD)
+        result:SetDegreesOfFreedom(df)
+        result:SetSample1(left:GetHeader())
+        result:SetSample2(right:GetHeader())
+        result:SetMean1(column1Mean)
+        result:SetMean2(column2Mean)
+        result:SetVariance1(column1Variance)
+        result:SetVariance2(column2Variance)
         result:SetFormalTestName("Welch's T-test")
         me:result = result
     end

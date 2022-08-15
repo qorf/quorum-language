@@ -1,17 +1,22 @@
 package Libraries.Compute.Statistics.Reporting
 use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Inputs.ColumnInput
 
 /*
-    This class represents data that comes back from a chi-squared test.
+    This class represents data that comes back from a CompareCounts calculation (chi-squared test).
 
-    Attribute: Author Andreas Stefik
+    Attribute: Author Hannah Williams
 */
-class CompareCountsResult is StatisticalTestResult
+class CompareCountsResult is StatisticalTestResult, ColumnInput
     DataFrame observed
     DataFrame expected
     DataFrame residuals     // Pearson residuals (observed - expected) / sqrt(expected)
     boolean approximationWarning = false  
+    boolean goodnessOfFit = false
     integer sampleSize = 0
+    text variable1 = ""
+    text variable2 = ""
+    text factor = ""
 
     /*
         Obtains the observed dataframe calculated by the test.
@@ -50,7 +55,7 @@ class CompareCountsResult is StatisticalTestResult
     end
 
     /*
-        Obtains the residuals dataframe calculated by the test.
+        Obtains the pearson residuals dataframe calculated by the test.
 
         Attribute: Returns the residual values in a dataframe.
     */
@@ -85,12 +90,148 @@ class CompareCountsResult is StatisticalTestResult
         me:approximationWarning = flag
     end
 
+    /*
+        Sets the goodness of fit flag for the test.
+
+        Attribute: Parameter goodnessOfFit is true if the result comes from a goodness of fit test.
+    */
+    action SetGoodnessOfFit(boolean goodnessOfFit)
+        me:goodnessOfFit = goodnessOfFit
+    end
+
+    /*
+        Sets the sample size for the test.
+
+        Attribute: Parameter sampleSize is sample size.
+    */
     action SetSampleSize(integer sampleSize)
         me:sampleSize = sampleSize
     end
 
+    /*
+        Obtains the sample size for the test.
+
+        Attribute: Returns the sample size.
+    */
     action GetSampleSize returns integer
         return sampleSize
     end
 
+    /*
+        Sets the first column (or only column) used in this calculation.
+
+        Attribute: Parameter variable is column header.
+    */
+    action SetVariable1(text variable)
+        me:variable1 = variable
+    end
+
+    /*
+        Sets the second column (if used) used in this calculation.
+
+        Attribute: Parameter variable is column header.
+    */
+    action SetVariable2(text variable)
+        me:variable2 = variable
+    end
+
+    /*
+        Sets the factor (if used) used in this calculation.
+
+        Attribute: Parameter variable is factor header and unique factor.
+    */
+    action SetFactor(text factor)
+        me:factor = factor
+    end
+
+    /*
+        This action summarizes the result and lists it informally.
+
+        It does not list the observed, expected or residual dataframes as those
+        can be very large. If those are wanted, it's best to get them separately.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        summary = summary + "A "+ GetFormalTestName() + " was performed."
+        if factor not= ""
+            summary = summary + lf + "Factor: " + factor
+        end
+       
+        if goodnessOfFit
+            summary = summary + lf + "Column: " + variable1
+        else
+            summary = summary + lf + "Columns: " + variable1 + " and " + variable2
+        end
+
+        summary = summary + lf + "X-squared: " + GetTestStatistic()
+
+        summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
+
+        summary = summary + lf + "P-Value: " + GetProbabilityValue()
+
+        if GetApproximationWarningFlag()
+            summary = summary + lf + "** Chi-squared approximation may be incorrect. At least one observed count is less than 5 **"
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        if goodnessOfFit
+            if factor = ""
+                summary = summary + "A "+ GetFormalTestName() + " was performed to determine whether the proportion of " 
+                                  + variable1 + " was equal between " + GetObserved():GetColumn(0):GetSize() + " categories."
+            else
+                summary = summary + "A "+ GetFormalTestName() + " was performed on " + factor + " to determine whether the proportion of " 
+                                  + variable1 + " was equal between " + GetObserved():GetColumn(0):GetSize() + " categories."
+            end
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                //P-value ≤ α: The variables have a statistically significant association (Reject H0)
+                summary = summary + lf + "The proportions did differ by " + variable1
+            else
+                //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
+                summary = summary + lf + "The proportions did not differ by " + variable1
+            end
+        else
+            if factor = ""
+                summary = summary + "A "+ GetFormalTestName() + " was performed to assess the relationship between " 
+                                  + variable1 + " and " + variable2 + "."
+            else
+                summary = summary + "A "+ GetFormalTestName() + " was performed on " + factor + " to assess the relationship between " 
+                                  + variable1 + " and " + variable2 + "."
+            end
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                //P-value ≤ α: The variables have a statistically significant association (Reject H0)
+                summary = summary + lf + "There was not a significant relationship between the two variables"
+            else
+                //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
+                summary = summary + lf + "There was a significant relationship between the two variables"
+            end
+        end
+
+        summary = summary + ", X2("
+            + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ", N = " + GetSampleSize() + ") = " 
+            + GetFormat():FormatTestStatistic(GetTestStatistic())
+
+        number p = GetProbabilityValue()
+        if p < GetFormat():PRECISION_LIMIT
+            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+        else
+            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+        end
+        summary = summary + "."
+
+        return summary
+    end
 end

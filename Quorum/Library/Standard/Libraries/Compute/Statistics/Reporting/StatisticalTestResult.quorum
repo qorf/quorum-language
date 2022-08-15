@@ -7,9 +7,12 @@ package Libraries.Compute.Statistics.Reporting
     Attribute: Author Hannah Williams
 */
 class StatisticalTestResult
+    StatisticsFormatting format
     number probabilityValue = 0
+    number testStatistic = 0
     number criticalValue = 0
     number degreesOfFreedom = 0
+    number significanceLevel = 0.05
     text formalTestName = ""
 
     /*
@@ -28,6 +31,24 @@ class StatisticalTestResult
     */
     action SetProbabilityValue(number probabilityValue)
         me:probabilityValue = probabilityValue
+    end
+
+    /*
+        This indicates the test statistic for any statistical test that was run
+
+        Attribute: Returns the test statistic
+    */
+    action GetTestStatistic returns number
+        return testStatistic
+    end
+
+    /*
+        This sets the calculated test statistic for any statistical test that was run
+
+        Attribute: Paremeter testStatistic the test statistic
+    */
+    action SetTestStatistic(number testStatistic)
+        me:testStatistic = testStatistic
     end
 
     /*
@@ -83,4 +104,36 @@ class StatisticalTestResult
     action SetFormalTestName(text formalTestName)
         me:formalTestName = formalTestName
     end
+
+    /*
+        Obtains the significance level.
+
+        Attribute: Returns the significance level.
+    */
+    action GetSignificanceLevel returns number
+        return significanceLevel
+    end
+
+    /*
+        Sets the significance level of the test (default is 0.05).
+
+        Attribute: Parameter significanceLevel the significance level between 0 and 1.
+    */
+    action SetSignificanceLevel(number significanceLevel)
+        if significanceLevel >= 0 and significanceLevel <= 1
+            me:significanceLevel = significanceLevel
+        end
+    end
+
+    action GetFormat returns StatisticsFormatting
+        return format
+    end
+
+    action SetFormat(StatisticsFormatting format)
+        me:format = format
+    end
+
+    blueprint action GetSummary returns text
+
+    blueprint action GetFormalSummary returns text
 end

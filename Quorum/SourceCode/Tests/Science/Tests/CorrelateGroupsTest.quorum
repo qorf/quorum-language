@@ -17,7 +17,7 @@ use Libraries.Compute.Statistics.Reporting.CorrelateGroupsResult
 class CorrelateGroupsTest is Test
 
     on create
-        SetName("Calculate Correlations")
+        SetName("Correlate Groups Test - Pearson Correlation")
     end
 
     action Run
@@ -29,9 +29,9 @@ class CorrelateGroupsTest is Test
         correlate:AddColumn(1)
         frame:Calculate(correlate)
         
-        Check(correlate:GetCorrelation(), 0.9753088048)
-        Check(correlate:GetDegreesOfFreedom(), 9.996467122179)
-        Check(correlate:GetProbabilityValue(), 0.707976053451)
+        Check(correlate:GetCorrelation(), 0.9753088047898925)
+        Check(correlate:GetDegreesOfFreedom(), 4.0)
+        Check(correlate:GetProbabilityValue(), 9.06956124554921e-4)
 
         CorrelateGroups correlate2
         correlate2:AddColumn(0)
@@ -53,18 +53,18 @@ class CorrelateGroupsTest is Test
     private action Check(CorrelateGroupsResult result)
         if result:GetLeftIndex() = 0
             if result:GetRightIndex() = 1
-                Check(result:GetCorrelation(), 0.9753088048)
-                Check(result:GetDegreesOfFreedom(), 9.996467122179)
-                Check(result:GetProbabilityValue(), 0.707976053451)
+                Check(result:GetCorrelation(), 0.9753088047898925)
+                Check(result:GetDegreesOfFreedom(), 4.0)
+                Check(result:GetProbabilityValue(), 9.06956124554921e-4)
             else
                 Check(result:GetCorrelation(), 0.225754847047081)
-                Check(result:GetDegreesOfFreedom(), 9.074870440384)
-                Check(result:GetProbabilityValue(), 0.00112505136393)
+                Check(result:GetDegreesOfFreedom(), 4.0)
+                Check(result:GetProbabilityValue(), 0.6671205556475666)
             end
         else
-            Check(result:GetCorrelation(), 0.37817104046184)
-            Check(result:GetDegreesOfFreedom(), 8.985191528247)
-            Check(result:GetProbabilityValue(), 0.000715045712339)
+            Check(result:GetCorrelation(), 0.3781710404618405)
+            Check(result:GetDegreesOfFreedom(), 4.0)
+            Check(result:GetProbabilityValue(), 0.4597851903152598)
         end
     end
 end

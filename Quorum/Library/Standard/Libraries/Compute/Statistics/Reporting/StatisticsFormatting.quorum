@@ -14,10 +14,15 @@ class StatisticsFormatting
     public constant number PRECISION_LIMIT = 0.001
     integer probabilitySignificantDigits = 3
     integer correlationSignificantDigits = 2
+    integer criticalValueSignificantDigits = 2
+    integer degreesOfFreedomSignificantDigits = 2
+    integer testStatisticSignificantDigits = 2
     integer significantDigits = 3
+    Math math
 
     /*
         This action formats specifically the p-value for a particular statistical test.
+        This applies for statistics that CANNOT be greater than 1. Remove leading 0.
 
         Attribute: Parameter value the p-value to format
     */
@@ -26,11 +31,11 @@ class StatisticsFormatting
             return ".001"
         end
 
-        Math math
         value = math:Round(value, probabilitySignificantDigits)
         text str = "" + value
-        if str:GetCharacter(str:GetSize() - 1) = "0"
-            return str:GetSubtext(0, str:GetSize() - 1)
+
+        if str:GetCharacter(0) = "0"
+            return str:GetSubtext(1, str:GetSize())
         else
             return str
         end
@@ -38,13 +43,34 @@ class StatisticsFormatting
 
     /*
         This action formats specifically the correlation for a particular statistical test.
+        This applies for statistics that CANNOT be greater than 1. Remove leading 0.
 
         Attribute: Parameter value the value to format
     */
     action FormatCorrelation(number value) returns text
-        Math math
         value = math:Round(value, correlationSignificantDigits)
         text str = "" + value
+
+        if str:GetCharacter(0) = "0"
+            return str:GetSubtext(1, str:GetSize())
+        else
+            return str
+        end
+    end
+
+
+    /*
+        This action formats specifically the critical value for a particular statistical test.
+
+        Attribute: Parameter value the value to format
+    */
+    action FormatCriticalValue(number value) returns text
+        value = math:Round(value, criticalValueSignificantDigits)
+        text str = "" + value
+
+        if cast(integer, value) = value
+            str = "" + cast(integer, value)
+        end
         return str
     end
 
@@ -54,11 +80,31 @@ class StatisticsFormatting
         Attribute: Parameter value the value to format
     */
     action FormatDegreesOfFreedom(number value) returns text
-        Math math
-        value = math:Round(value, significantDigits)
+        value = math:Round(value, degreesOfFreedomSignificantDigits)
         text str = "" + value
+
+        if cast(integer, value) = value
+            str = "" + cast(integer, value)
+        end
         return str
     end 
+
+    /*
+        This action formats specifically the test statistic (t-value, x2-value) for a particular statistical test.
+        This applies for statistics that CAN be greater than 1. Keep the leading 0.
+
+        Attribute: Parameter value the value to format
+    */
+    action FormatTestStatistic(number value) returns text
+        value = math:Round(value, testStatisticSignificantDigits)
+        text str = "" + value
+
+        if cast(integer, value) = value
+            str = "" + cast(integer, value)
+        end
+        return str
+    end 
+
 
     /* The number of significant digits for p-values*/
     action GetProbabilitySignificantDigits returns integer
@@ -89,4 +135,35 @@ class StatisticsFormatting
     action SetSignificantDigits(integer significantDigits)
         me:significantDigits = significantDigits
     end
+
+    /* The number of significant digits for test statistics (t-value, x2 value, f-value, etc) */
+    action GetCriticalValueSignificantDigits returns integer
+        return criticalValueSignificantDigits
+    end
+
+    /* The number of significant digits for test statistics (t-value, x2 value, f-value, etc) */
+    action SetCriticalValueSignificantDigits(integer criticalValueSignificantDigits)
+        me:criticalValueSignificantDigits = criticalValueSignificantDigits
+    end
+
+    /* The number of significant digits for test statistics (t-value, x2 value, f-value, etc) */
+    action GetTestStatisticSignificantDigits returns integer
+        return testStatisticSignificantDigits
+    end
+
+    /* The number of significant digits for test statistics (t-value, x2 value, f-value, etc) */
+    action SetTestStatisticSignificantDigits(integer testStatisticSignificantDigits)
+        me:testStatisticSignificantDigits = testStatisticSignificantDigits
+    end
+
+    /* The number of significant digits for degrees of freedom */
+    action GetDegreesOfFreedomSignificantDigits returns integer
+        return degreesOfFreedomSignificantDigits
+    end
+
+    /* The number of significant digits for degrees of freedom */
+    action SetDegreesOfFreedomSignificantDigits(integer degreesOfFreedomSignificantDigits)
+        me:degreesOfFreedomSignificantDigits = degreesOfFreedomSignificantDigits
+    end
+
 end

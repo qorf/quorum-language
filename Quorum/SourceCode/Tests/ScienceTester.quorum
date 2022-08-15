@@ -33,6 +33,9 @@ use Science.Tests.SummarizeTest
 use Science.Tests.CompareNGroupsTestFromSelection
 use Science.Tests.SummarizeFromSelectionTest
 use Science.Tests.FilterTest
+use Science.Tests.BetaDistributionTest
+use Science.Tests.CompareCountsGoodnessOfFitTest
+use Science.Tests.CompareCountsIndependenceTest
 
 class ScienceTester
     Tester tester = undefined
@@ -42,6 +45,8 @@ class ScienceTester
     end
 
     action Test
+        TestCompareCountsGoodnessOfFit()
+        TestCompareCountsTestOfIndependence()
         TestCompareNGroups()
         TestCompareNGroupsFromSelection()
         TestVariance()
@@ -59,6 +64,7 @@ class ScienceTester
         NormalDistribution()
         TestCompareVariances()
         GammaDistribution()
+        BetaDistribution()
         LoadingTest()
         RemoveUndefinedRowsTest()
         SummarizeTest()
@@ -91,6 +97,11 @@ class ScienceTester
         tester:Run(test)
     end
 
+    action BetaDistribution
+        BetaDistributionTest test
+        tester:Run(test)
+    end
+
     action GammaDistribution
         GammaDistributionTest test
         tester:Run(test)
@@ -103,6 +114,16 @@ class ScienceTester
 
     action ZeroFinder
         ZeroFinderTest test
+        tester:Run(test)
+    end
+
+    action TestCompareCountsTestOfIndependence
+        CompareCountsIndependenceTest test
+        tester:Run(test)
+    end
+
+    action TestCompareCountsGoodnessOfFit
+        CompareCountsGoodnessOfFitTest test
         tester:Run(test)
     end
 

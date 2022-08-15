@@ -1,12 +1,21 @@
 package Libraries.Compute.Statistics.Reporting
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Math
 
 /*
-    This class represents data that comes back from a correlation.
+    This class represents data that comes back from a CompareGroups calculation (t-test).
 
     Attribute: Author Andreas Stefik
 */
 class CompareGroupsResult is StatisticalTestResult, ColumnInput
+    number column1Variance = 0
+    number column2Variance = 0
+    number column1Mean = 0
+    number column2Mean = 0
+    number cohensD = 0
+    text sample1 = ""
+    text sample2 = ""
+    text factor = ""
     number effectSize = 0
     text effectSizeName = ""
 
@@ -26,4 +35,167 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
         me:effectSizeName = effectSizeName
     end
 
+    /*
+        Sets the first column (or only column) used in this calculation.
+
+        Attribute: Parameter sample1 is column header.
+    */
+    action SetSample1(text sample1)
+        me:sample1 = sample1
+    end
+
+    /*
+        Sets the second column (if used) used in this calculation.
+
+        Attribute: Parameter sample2 is column header.
+    */
+    action SetSample2(text sample2)
+        me:sample2 = sample2
+    end
+
+    /*
+        Sets the factor (if used) used in this calculation.
+
+        Attribute: Parameter variable is factor header and unique factor.
+    */
+    action SetFactor(text factor)
+        me:factor = factor
+    end
+
+    /*
+        Returns the mean of the first column.
+    */
+    action GetMean1 returns number
+        return column1Mean
+    end
+
+    /*
+        Sets the mean of the first column.
+    */
+    action SetMean1(number mean)
+        column1Mean = mean
+    end
+
+    /*
+        Returns the mean of the second column.
+    */
+    action GetMean2 returns number
+        return column2Mean
+    end
+
+    /*
+        Sets the mean of the second column.
+    */
+    action SetMean2(number mean)
+        column2Mean = mean
+    end
+
+    /*
+        Returns the variance of the first column.
+    */
+    action GetVariance1 returns number
+        return column1Variance
+    end
+
+    /*
+        Sets the variance of the first column.
+    */
+    action SetVariance1(number variance)
+        column1Variance = variance
+    end
+
+    /*
+        Returns the variance of the second column.
+    */
+    action GetVariance2 returns number
+        return column2Variance
+    end
+
+    /*
+        Sets the variance of the second column.
+    */
+    action SetVariance2(number variance)
+        column2Variance = variance
+    end
+
+    /*
+        Returns the cohens D value.
+    */
+    action GetCohensD returns number
+        return cohensD
+    end
+
+    /*
+        Sets the cohens D value.
+    */
+    action SetCohensD(number cohensD)
+        me:cohensD = cohensD
+    end
+
+    /*
+        This action summarizes the result and lists it informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        summary = summary + "A "+ GetFormalTestName() + " was performed."
+        if factor not= ""
+            summary = summary + lf + "Factor: " + factor
+        end
+       
+        summary = summary + lf + "Columns: " + sample1 + " and " + sample2
+
+        summary = summary + lf + "T-Value: " + GetTestStatistic()
+
+        summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
+
+        summary = summary + lf + "P-Value: " + GetProbabilityValue()
+
+        summary = summary + lf + "Mean of " + sample1 + ": " + column1Mean
+
+        summary = summary + lf + "Mean of " + sample2 + ": " + column2Mean
+
+        if GetEffectSizeName() not= ""
+            summary = summary + lf + "Effect Size: " + GetEffectSizeName() + " = " + GetEffectSize()
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        Math math
+        text m1 = GetFormat():FormatTestStatistic(column1Mean)
+        text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(column1Variance))
+        text m2 = GetFormat():FormatTestStatistic(column2Mean)
+        text sd2 = GetFormat():FormatTestStatistic(math:SquareRoot(column2Variance))
+
+        summary = summary + "We conducted a " + GetFormalTestName() + " with two independent samples. " + lf
+        if column1Mean > column2Mean
+            summary = summary + "The first group had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
+                +   "the second (M = " + m2 + ", SD = " + sd2 + ")"
+        else
+            summary = summary + "The second group had a higher overall mean (M = " + m2 + ", SD = " + sd2 + ") compared to "
+                +   "the second (M = " + m1 + ", SD = " + sd1 + ")"
+        end
+
+        summary = summary + ", t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        number p = GetProbabilityValue()
+        if p < GetFormat():PRECISION_LIMIT
+            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+        else
+            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+        end
+        summary = summary + ", Cohen's D = " + GetFormat():FormatTestStatistic(cohensD) + "."
+        return summary
+    end
 end

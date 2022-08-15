@@ -22,14 +22,14 @@ use Libraries.Compute.Matrix
     Pearson's chi-squared test is used to assess three types of comparison:
         Goodness of fit
         Test of independence
-        Test of homogeneity
+        Test of homogeneity - not implemented
     More information about this kind of statistical test can be found here: 
     https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test
 
     It was adapted from the same model in Apache Commons, but was expanded 
     upon to simplify the library and add a variety of helper actions that were missing.
     More information about this class can be found on its documentation page ChiSquaredTest:
-    https://https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
 
     Attribute: Author Hannah Williams
     Attribute: Example
@@ -59,11 +59,10 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
     /* A flag if using a goodness of fit test */
     boolean goodnessOfFit = false
 
-    /* Significance level to be used in summary on whether to reject the null hypothesis or not */
-    number significanceLevel = 0.05
-
     /* This stores a hash of all of the results. */
-    HashTable<text, CompareCountsResult> results
+    HashTable<text, CompareCountsResult> results        // Used to find the result by column or pair of columns.        
+    HashTable<text, CompareCountsResult> indexResults   // Used to find the result by index or pair of indices.
+
     Math math
 
     action Calculate(DataFrame frame) 
@@ -151,18 +150,31 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
     
+            text factor = ""
+            text variable = frame:GetColumn(GetColumn(i)):GetHeader()
             text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
             if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
+                factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
             end
             if not results:HasKey(resultKey)
                 CompareCountsResult result
                 result:SetObserved(observed)
                 result:SetExpected(expected)
+                result:SetResiduals(CalculateResiduals(observed, expected))
                 result:SetDegreesOfFreedom(df)
-                result:SetCriticalValue(x2)
+                result:SetTestStatistic(x2)
                 result:SetProbabilityValue(p)
+                result:SetGoodnessOfFit(true)
+                result:SetVariable1(variable)
+                if factor not= ""
+                    result:SetFactor(factor)
+                end
+                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+                result:SetSampleSize(frame:GetColumn(GetColumn(i)):GetSize())
+                result:AddColumn(i)
                 results:Add(resultKey, result)
+                indexResults:Add(""+GetColumn(i), result)
             end 
             i = i + 1
         end
@@ -229,17 +241,23 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                 CompareCountsResult result
                 result:SetObserved(observed)
                 result:SetExpected(expected)
+                result:SetResiduals(CalculateResiduals(observed, expected))
                 result:SetDegreesOfFreedom(df)
-                result:SetCriticalValue(x2)
+                result:SetTestStatistic(x2)
                 result:SetProbabilityValue(p)
+                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+                result:AddColumn(i)
                 results:Add(resultKey, result)
+                indexResults:Add(""+GetColumn(i), result)
             else
                 CompareCountsResult result = results:GetValue(resultKey)
                 result:SetObserved(observed)
                 result:SetExpected(expected)
+                result:SetResiduals(CalculateResiduals(observed, expected))
                 result:SetDegreesOfFreedom(df)
                 result:SetCriticalValue(x2)
                 result:SetProbabilityValue(p)
+                indexResults:Set(""+GetColumn(i), result)
             end 
             i = i + 1
         end
@@ -312,17 +330,23 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                     CompareCountsResult result
                     result:SetObserved(observed)
                     result:SetExpected(expected)
+                    result:SetResiduals(CalculateResiduals(observed, expected))
                     result:SetDegreesOfFreedom(df)
                     result:SetCriticalValue(x2)
                     result:SetProbabilityValue(p)
+                    result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+                    result:AddColumn(i)
                     results:Add(resultKey, result)
+                    indexResults:Add(""+GetColumn(i), result)
                 else
                     CompareCountsResult result = results:GetValue(resultKey)
                     result:SetObserved(observed)
                     result:SetExpected(expected)
+                    result:SetResiduals(CalculateResiduals(observed, expected))
                     result:SetDegreesOfFreedom(df)
-                    result:SetCriticalValue(x2)
+                    result:SetTestStatistic(x2)
                     result:SetProbabilityValue(p)
+                    indexResults:Set(""+GetColumn(i), result)
                 end 
             end
             i = i + 1
@@ -372,7 +396,6 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         integer i = 0
         repeat while i < GetColumnSize()
             DataFrame observed = CalculateObservedToFollowGivenOrder(frame:GetColumn(GetColumn(i)), expected:GetColumn(0))
-            // Check that the sum of observed and the sum of expected are equal.
             integer rows = observed:GetColumn(0):GetSize()
             integer cols = observed:GetColumns():GetSize()
             number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
@@ -388,10 +411,14 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                 CompareCountsResult result
                 result:SetObserved(observed)
                 result:SetExpected(expected)
+                result:SetResiduals(CalculateResiduals(observed, expected))
                 result:SetDegreesOfFreedom(df)
-                result:SetCriticalValue(x2)
+                result:SetTestStatistic(x2)
                 result:SetProbabilityValue(p)
+                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+                result:AddColumn(i)
                 results:Add(resultKey, result)
+                indexResults:Add(""+GetColumn(i), result)
             end 
             i = i + 1
         end
@@ -402,8 +429,8 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         It calculates the observed values by counting the frequencies of unique items.
         It then calculates the expected counts and compares the two to get the x2 value.
 
-        H0: The two variables (factors) are independent.
-        Ha: The two variables (factors) are dependent.
+        H0: The two variables are independent.
+        Ha: The two variables are not independent.
 
         Attribute: Example
     
@@ -418,7 +445,7 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         CompareCounts compare = frame:CompareSelectedCounts()
         output compare:GetSummary()
     */
-    private action TestOfIndependence(DataFrame frame)
+    action TestOfIndependence(DataFrame frame)
         integer i = 0
         repeat while i < GetColumnSize()
             integer j = i + 1
@@ -434,43 +461,40 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                 distribution:Setup(df)
                 number p = 1.0 - distribution:CumulativeDistribution(x2)
                 
+                text factor = ""
                 text resultKey = left:GetHeader()+" & "+right:GetHeader()
                 if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader() + ", " + resultKey
+                    factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
                 end
                 if not results:HasKey(resultKey)
                     CompareCountsResult result
                     result:SetObserved(observed)
                     result:SetExpected(expected)
+                    result:SetResiduals(CalculateResiduals(observed, expected))
                     result:SetDegreesOfFreedom(df)
-                    result:SetCriticalValue(x2)
+                    result:SetTestStatistic(x2)
                     result:SetProbabilityValue(p)
+                    result:SetVariable1(left:GetHeader())
+                    result:SetVariable2(right:GetHeader())
+                    if factor not= ""
+                        result:SetFactor(factor)
+                    end
+                    result:SetSampleSize(left:GetSize())
+                    result:SetFormalTestName("Pearson's Chi-Squared Test of Independence")
                     if approximationWarning
                         result:SetApproximationWarningFlag(true)
                         approximationWarning = false //reset
                     end
+                    result:AddColumn(i)
+                    result:AddColumn(j)
                     results:Add(resultKey, result)
+                    indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
                 end  
                 j = j + 1
             end
             i = i + 1
         end
-    end
-
-    /*
-        This action represents a pairwise test of homogeneity chi-squared test on two distributions.
-        It calculates the first by getting the observed counts from one of the other tests.
-        It then calculates the second and compares the two to get the x2 value.
-
-        H0: The two populations follow the same distribution.
-        Ha: The two populations have different distributions.
-    */
-    private action TestOfHomogeneity(DataFrame frame)
-        if GetColumnSize() = 2
-            //GOF
-        else
-            //TOI pairwise  
-        end    
     end
 
     /*
@@ -647,6 +671,34 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         return expected
     end
 
+    // Pearson residuals (observed - expected) / sqrt(expected)
+    private action CalculateResiduals(DataFrame observed, DataFrame expected) returns DataFrame
+        DataFrame residuals
+        if observed:GetColumns():GetSize() > 0 
+            residuals:AddColumn(observed:GetColumn(0):Copy()) // First column is just row headers.
+        end
+        integer i = 1 //skip row headers
+        repeat while i < observed:GetColumns():GetSize()
+            DataFrameColumn oCol = observed:GetColumn(i)
+            DataFrameColumn eCol = expected:GetColumn(i)
+            NumberColumn res
+            res:SetHeader(oCol:GetHeader())
+            integer j = 0 
+            repeat while j < oCol:GetSize() and  j < eCol:GetSize()
+                if eCol:GetAsNumber(j) > 0
+                    res:Add((oCol:GetAsNumber(j) - eCol:GetAsNumber(j)) / math:SquareRoot(eCol:GetAsNumber(j)))
+                else
+                    alert("The expected values cannot be 0")
+                end
+                j = j + 1 
+            end
+            residuals:AddColumn(res)
+            i = i + 1 
+        end
+
+        return residuals
+    end
+
     /*
         This action compares two number columns (observed and expected)
         and calculates the X-squared critical value / test statistic.
@@ -779,6 +831,62 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
     end
 
     /*
+        This returns the probability if only one result exists.
+
+        Attribute: Returns the P-Value. 
+    */
+    action GetProbabilityValue returns number
+        return GetResult():GetProbabilityValue()
+    end
+
+    /*
+        This returns the degrees of freedom if only one result exists.
+
+        Attribute: Returns the Degrees of Freedom. 
+    */
+    action GetDegreesOfFreedom returns number
+        return GetResult():GetDegreesOfFreedom()
+    end
+
+    /*
+        This returns the x2 test statistic if only one result exists.
+
+        Attribute: Returns the x2 test statistic. 
+    */
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
+    end
+
+
+    /*
+        This returns the observed frame if only one result exists.
+
+        Attribute: Returns the observed frame. 
+    */
+    action GetObserved returns DataFrame
+        return GetResult():GetObserved()
+    end
+
+    /*
+        This returns the expected frame if only one result exists.
+
+        Attribute: Returns the expected frame. 
+    */
+    action GetExpected returns DataFrame
+        return GetResult():GetExpected()
+    end
+
+    /*
+        This returns the residuals frame if only one result exists.
+
+        Attribute: Returns the residuals frame. 
+    */
+    action GetResiduals returns DataFrame
+        return GetResult():GetResiduals()
+    end
+
+
+    /*
         This returns a result if only one exists. If there are more than one, 
         this action returns undefined.
 
@@ -829,6 +937,31 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
     end
 
     /*
+        This returns a result on one particular column. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the CompareCountsResult for one group. 
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns(0)
+        CompareCounts compare = frame:CompareSelectedCounts()
+        
+        CompareCountsResult result = compare:GetResult(0)
+    */
+    action GetResult(integer columnIndex) returns CompareCountsResult
+        if indexResults:HasKey(""+columnIndex)
+            return indexResults:GetValue(""+columnIndex)
+        else
+            alert("There are no test results with the column index " + columnIndex)
+        end
+    end
+
+    /*
         This returns a result between two particular columns. If no such result exists, 
         this action returns undefined.
 
@@ -848,14 +981,45 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         CompareCountsResult result = compare:GetResult("age", "region")
     */
     action GetResult(text column1Name, text column2Name) returns CompareCountsResult
-        text hash1 = column1Name+" & "+column2Name
-        text hash2 = column2Name+" & "+column1Name
+        text hash1 = column1Name + " & " + column2Name
+        text hash2 = column2Name + " & " + column1Name
         if results:HasKey(hash1)
             return results:GetValue(hash1)
         elseif results:HasKey(hash2)
             return results:GetValue(hash2)
         else
             alert("There are no test results with the columns " + hash1)
+        end
+    end
+
+    /*
+        This returns a result between two particular columns. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the CompareCountsResult between two groups. 
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+        frame:AddSelectedColumns(2)
+        CompareCounts compare = frame:CompareSelectedCounts()
+        
+        CompareCountsResult result = compare:GetResult(0, 1)
+    */
+    action GetResult(integer column1Index, integer column2Index) returns CompareCountsResult
+        text hash1 = "" + column1Index + " & " + column2Index
+        text hash2 = "" + column2Index + " & " + column1Index
+        if indexResults:HasKey(hash1)
+            return indexResults:GetValue(hash1)
+        elseif indexResults:HasKey(hash2)
+            return indexResults:GetValue(hash2)
+        else
+            alert("There are no test results with the column indices " + hash1)
         end
     end
 
@@ -883,101 +1047,47 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
         return results:CopyToValueArray()
     end
 
-    action GetSignificanceLevel returns number
-        return significanceLevel
-    end
-
-    action SetSignificanceLevel(number significanceLevel)
-        me:significanceLevel = significanceLevel
-    end
-
     /*
-        This action summarizes the result with informal format 
+        This action summarizes the results and lists them informally.
     */
     action GetSummary returns text
         text summary = ""
+        text lf = summary:GetLineFeed()
         Iterator<CompareCountsResult> i = results:GetValueIterator()
         CompareCountsResult result 
         repeat while i:HasNext()
             result = i:Next()
 
-            text tb = summary:GetTab()
-            text lf = summary:GetLineFeed()
-            
-            if goodnessOfFit
-                summary = summary + lf + "A Pearson's chi-squared goodness of fit test was calculated."
-            else
-                summary = summary + lf + "A Pearson's chi-squared test of independence was calculated."
-            end
-
-            summary = summary + lf + "X-squared: " + result:GetCriticalValue()
-    
-            summary = summary + lf + "Degrees Of Freedom: " + result:GetDegreesOfFreedom()
-    
-            summary = summary + lf + "P-Value: " + result:GetProbabilityValue()
-
-            //P-value ≤ α: The variables have a statistically significant association (Reject H0)
-            if result:GetProbabilityValue() <= significanceLevel
-                if goodnessOfFit 
-                    summary = summary + " <= "+ significanceLevel + " significance level, " + results:GetKey(result) + " does not fit."
-                else
-                    summary = summary + " <= "+ significanceLevel + " significance level, " + results:GetKey(result) + " are not independent."
-                end
-            else
-            //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
-                if goodnessOfFit 
-                    summary = summary + " > "+ significanceLevel + " significance level, " + results:GetKey(result) + " fits."
-                else
-                    summary = summary + " > "+ significanceLevel + " significance level, " + results:GetKey(result) + " are independent."
-                end
-            end
-
-            if result:GetApproximationWarningFlag()
-                summary = summary + lf + "Chi-squared approximation may be incorrect. At least one observed count is less than 5."
-            end
-    
-//            summary = summary + lf + "Observed Count: " + lf + result:GetObserved():ToText()
-//    
-//            summary = summary + lf + "Expected Count: " + lf + result:GetExpected():ToText()
-//
-//            summary = summary + lf + "Residuals: " + lf + result:GetResiduals():ToText()
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
         end
+
         return summary
     end
 
     /*
-        This action summarizes the result and places it into formal academic language, in 
+        This action summarizes the results and places them into formal academic language, in 
         APA format.
 
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
     action GetFormalSummary returns text
         StatisticsFormatting format = GetStatisticalFormatting()
-        text type = "test of independence"
-        if goodnessOfFit
-            type = "goodness of fit test"
-        end
-
         text summary = ""
-        if oneResult or results:GetSize() = 1
-            Iterator<CompareCountsResult> i = results:GetValueIterator()
-            CompareCountsResult result 
-            if i:HasNext()
-                result = i:Next()
-            end
-            summary = "We conducted a Pearson's chi-squared " + type + " across " + GetColumnSize() + " groups"
-    
-            summary = summary + ", X2("
-                + format:FormatDegreesOfFreedom(result:GetDegreesOfFreedom()) + ") = " 
-                + format:FormatCorrelation(result:GetCriticalValue())
-    
-            number p = result:GetProbabilityValue()
-            if p < format:PRECISION_LIMIT
-                summary = summary + ", p < " + format:FormatProbabilityValue(p)
-            else
-                summary = summary + ", p = " + format:FormatProbabilityValue(p)
-            end
-            summary = summary + "."
+        if results:GetSize() > 1
+            summary = summary + "There are "+results:GetSize()+" results:"
+        end
+        text lf = summary:GetLineFeed()
+        Iterator<CompareCountsResult> i = results:GetValueIterator()
+        CompareCountsResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+            result:SetFormat(format)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
         end
 
         return summary
