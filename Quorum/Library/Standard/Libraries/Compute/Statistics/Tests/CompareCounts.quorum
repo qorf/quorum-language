@@ -1075,9 +1075,6 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
     action GetFormalSummary returns text
         StatisticsFormatting format = GetStatisticalFormatting()
         text summary = ""
-        if results:GetSize() > 1
-            summary = summary + "There are "+results:GetSize()+" results:"
-        end
         text lf = summary:GetLineFeed()
         Iterator<CompareCountsResult> i = results:GetValueIterator()
         CompareCountsResult result 

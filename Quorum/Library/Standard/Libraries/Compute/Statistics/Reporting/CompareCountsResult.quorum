@@ -165,11 +165,11 @@ class CompareCountsResult is StatisticalTestResult, ColumnInput
             summary = summary + lf + "Columns: " + variable1 + " and " + variable2
         end
 
-        summary = summary + lf + "X-squared: " + GetTestStatistic()
+        summary = summary + lf + "Statistic (x2): " + GetTestStatistic()
 
         summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
 
-        summary = summary + lf + "P-Value: " + GetProbabilityValue()
+        summary = summary + lf + "Probability: " + GetProbabilityValue()
 
         if GetApproximationWarningFlag()
             summary = summary + lf + "** Chi-squared approximation may be incorrect. At least one observed count is less than 5 **"

@@ -14,6 +14,8 @@ class StatisticalTestResult
     number degreesOfFreedom = 0
     number significanceLevel = 0.05
     text formalTestName = ""
+    number effectSize = 0
+    text effectSizeName = ""
 
     /*
         Obtains the probability value (p in statistics) calculated by the test.
@@ -103,6 +105,42 @@ class StatisticalTestResult
     */
     action SetFormalTestName(text formalTestName)
         me:formalTestName = formalTestName
+    end
+
+    /*
+        Returns the effect size used for this test.
+
+        Attribute: Returns the effect size used for this test.
+    */
+    action GetEffectSize returns number
+        return effectSize
+    end
+
+    /*
+        Sets the effect size used for this test.
+
+        Attribute: Parameter effectSize is the effect size used for this test.
+    */
+    action SetEffectSize(number effectSize)
+        me:effectSize = effectSize
+    end
+
+    /*
+        Returns the name of the effect size used for this test.
+
+        Attribute: Returns the name of the effect size used for this test.
+    */
+    action GetEffectSizeName returns text
+        return effectSizeName
+    end
+
+    /*
+        Sets the name of the effect size used for this test.
+
+        Attribute: Parameter effectSizeName is the name of the effect size used for this test.
+    */
+    action SetEffectSizeName(text effectSizeName)
+        me:effectSizeName = effectSizeName
     end
 
     /*

@@ -16,27 +16,9 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
     text sample1 = ""
     text sample2 = ""
     text factor = ""
-    number effectSize = 0
-    text effectSizeName = ""
-
-    action GetEffectSize returns number
-        return effectSize
-    end
-
-    action SetEffectSize(number effectSize)
-        me:effectSize = effectSize
-    end
-
-    action GetEffectSizeName returns text
-        return effectSizeName
-    end
-
-    action SetEffectSizeName(text effectSizeName)
-        me:effectSizeName = effectSizeName
-    end
 
     /*
-        Sets the first column (or only column) used in this calculation.
+        Sets the first column used in this calculation.
 
         Attribute: Parameter sample1 is column header.
     */
@@ -45,7 +27,7 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
     end
 
     /*
-        Sets the second column (if used) used in this calculation.
+        Sets the second column used in this calculation.
 
         Attribute: Parameter sample2 is column header.
     */
@@ -54,7 +36,7 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
     end
 
     /*
-        Sets the factor (if used) used in this calculation.
+        Sets the factor (if used) in this calculation.
 
         Attribute: Parameter variable is factor header and unique factor.
     */
@@ -146,11 +128,11 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
        
         summary = summary + lf + "Columns: " + sample1 + " and " + sample2
 
-        summary = summary + lf + "T-Value: " + GetTestStatistic()
+        summary = summary + lf + "Statistic (t): " + GetTestStatistic()
 
         summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
 
-        summary = summary + lf + "P-Value: " + GetProbabilityValue()
+        summary = summary + lf + "Probability: " + GetProbabilityValue()
 
         summary = summary + lf + "Mean of " + sample1 + ": " + column1Mean
 

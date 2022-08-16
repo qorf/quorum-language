@@ -2347,6 +2347,7 @@ class DataFrame
         CorrelateGroups groups
         //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
         selection:CopyTo(cast(ColumnInput, groups))
+        selection:CopyTo(cast(FactorInput, groups))
         groups:Calculate(me)
         return groups
     end
@@ -2380,6 +2381,7 @@ class DataFrame
 
         CorrelateRanks groups
         //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(FactorInput, groups))
         selection:CopyTo(cast(ColumnInput, groups))
         groups:Calculate(me)
         return groups

@@ -18,7 +18,7 @@ use Libraries.Compute.Statistics.Tests.CorrelateRanks
 class CorrelateRanksTest is Test
 
     on create
-        SetName("Calculate Spearman Correlations")
+        SetName("Correlate Ranks Test - Spearman Correlations")
     end
 
     action Run
@@ -30,11 +30,11 @@ class CorrelateRanksTest is Test
         correlate:AddColumn(1)
         frame:Calculate(correlate)
         
-        CorrelateGroupsResult result = correlate:GetCorrelateGroupsResult(0,1)
+        CorrelateGroupsResult result = correlate:GetResult(0,1)
         Check(result:GetCorrelation(), 0.985610760609162)
         Check(result:GetDegreesOfFreedom(), 4)
         Check(result:GetProbabilityValue(), 0.00030908566785)
-        Check(result:GetCriticalValue(), 11.66190378969)
+        Check(result:GetTestStatistic(), 11.66190378969)
 
         CorrelateRanks correlate2
         correlate2:AddColumn(0)
@@ -54,23 +54,31 @@ class CorrelateRanksTest is Test
     end
 
     private action Check(CorrelateGroupsResult result)
-        if result:GetLeftIndex() = 0
-            if result:GetRightIndex() = 1
-                Check(result:GetCorrelation(), 0.985610760609162)
-                Check(result:GetDegreesOfFreedom(), 4)
-                Check(result:GetProbabilityValue(), 0.00030908566785)
-                Check(result:GetCriticalValue(), 11.66190378969)
-            else
-                Check(result:GetCorrelation(), 0.0285714285714286)
-                Check(result:GetDegreesOfFreedom(), 4)
-                Check(result:GetProbabilityValue(), 0.95715451895)
-                Check(result:GetCriticalValue(), 0.0571661950475)
-            end
-        else
+        Iterator<integer> iterator = result:GetColumnIterator()
+        integer first = iterator:Next()
+        integer second = iterator:Next()
+        if IsValuesReversed(first, second, 0, 1)
+            Check(result:GetCorrelation(), 0.985610760609162)
+            Check(result:GetDegreesOfFreedom(), 4)
+            Check(result:GetProbabilityValue(), 0.00030908566785)
+            Check(result:GetTestStatistic(), 11.66190378969)
+        elseif IsValuesReversed(first, second, 0, 2)
+            Check(result:GetCorrelation(), 0.0285714285714286)
+            Check(result:GetDegreesOfFreedom(), 4)
+            Check(result:GetProbabilityValue(), 0.95715451895)
+            Check(result:GetTestStatistic(), 0.0571661950475)
+        elseif IsValuesReversed(first, second, 1, 2)
             Check(result:GetCorrelation(), 0.0869656553478673)
             Check(result:GetDegreesOfFreedom(), 4)
             Check(result:GetProbabilityValue(), 0.8698803787)
-            Check(result:GetCriticalValue(), 0.1745927885938)
+            Check(result:GetTestStatistic(), 0.1745927885938)
         end
+    end
+
+    private action IsValuesReversed(integer first, integer second, integer f, integer s) returns boolean
+        if (first = f and second = s) or (first = s and second = f)
+            return true
+        end
+        return false
     end
 end
