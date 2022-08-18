@@ -1017,6 +1017,22 @@ class Control is Item2D
         // In the default Control class, this function does nothing.
     end
 
+    action SetColorProperty(text property, ColorGroup value)
+        defaultProperties:SetColorProperty(property, value)
+    end
+
+    action GetColorProperty(text property) returns ColorGroup
+        return defaultProperties:GetColorProperty(property)
+    end
+
+    action SetNumberProperty(text property, number value)
+        defaultProperties:SetNumberProperty(property, value)
+    end
+
+    action GetNumberProperty(text property) returns number
+        return defaultProperties:GetNumberProperty(property)
+    end
+
     action HasColorPropertyOverride(text property) returns boolean
         return defaultProperties:HasColorPropertyOverride(property)
     end

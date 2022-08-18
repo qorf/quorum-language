@@ -85,7 +85,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     Texture selectionTexture = undefined
 
-    Control background
+    TextFieldBackground background
 
     integer leftCharacterPadding = 9
 
@@ -239,6 +239,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         integer size = textValue:GetSize()
         integer lineHeight = font:GetLineHeight()
+        integer maxDescent = font:GetMaximumDescent()
 
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
@@ -273,7 +274,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             end
 
             if draw not= undefined
-                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight())
+                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent)
                 lineCharacters:Add(draw)
                 background:Add(draw)
 
