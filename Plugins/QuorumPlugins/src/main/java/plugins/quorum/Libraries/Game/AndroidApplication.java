@@ -71,7 +71,7 @@ public class AndroidApplication
         */
         quorumApp = (AndroidApplication_)GameStateManager.application;
         display = (AndroidDisplay_)GameStateManager.display;
-        AccessibilityManager accessibilityManager = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        AccessibilityManager access = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         
         if (GetVersion() < MINIMUM_SDK) 
         {
