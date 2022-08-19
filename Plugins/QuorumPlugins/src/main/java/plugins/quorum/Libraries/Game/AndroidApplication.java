@@ -13,6 +13,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import java.io.IOException;
 import java.io.InputStream;
+
+import android.view.accessibility.AccessibilityManager;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
@@ -69,6 +71,7 @@ public class AndroidApplication
         */
         quorumApp = (AndroidApplication_)GameStateManager.application;
         display = (AndroidDisplay_)GameStateManager.display;
+        AccessibilityManager accessibilityManager = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         
         if (GetVersion() < MINIMUM_SDK) 
         {
