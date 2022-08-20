@@ -113,6 +113,11 @@ class GridLayout is Layout
                 
                 Control control = cast(Control, item)
                 LayoutProperties properties = control:GetDefaultLayoutProperties()
+
+                if properties:NeedsRendering()
+                    control:LoadGraphics(properties)
+                end
+
                 number itemWidth = 0
                 number itemHeight = 0
                 number regionWidth = 0
