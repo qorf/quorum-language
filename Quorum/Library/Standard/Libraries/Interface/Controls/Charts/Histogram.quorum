@@ -4,7 +4,6 @@ use Libraries.Interface.Layouts.HistogramLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Containers.HashTable
@@ -50,11 +49,12 @@ class Histogram is SharedBarChartParent
     boolean binWidthOverride = false
     integer binCount = 0
     boolean binCountOverride = false
+    boolean isOverlayed = false
 
     boolean decimalScale = false
     number dataMin = 0
     number dataMax = 0
-
+    
     on create
         HistogramLayout layout
         SetLayout(layout)
@@ -67,14 +67,6 @@ class Histogram is SharedBarChartParent
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Histogram")
 
@@ -112,7 +104,7 @@ class Histogram is SharedBarChartParent
         if GetName() = "Histogram"
             SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
         else
-            SetDescription("Histogram with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", Histogram with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content")
         end
         return GetDescription()
     end
@@ -131,8 +123,8 @@ class Histogram is SharedBarChartParent
         HashTable <text, Series> seriesFactor
         HashTable <text, BarGroup> groupFactor
         number maxFrequency = 0.0
-        number min = dataMin
-        number max = dataMax
+        number min = 0
+        number max = 0
 
         if GetHorizontalFlag() // Default is vertical
             min = GetVerticalPanel():GetMinimum()
@@ -145,7 +137,7 @@ class Histogram is SharedBarChartParent
 
         // Take range and divide it amongst bins and round up to get the default bin width
         if binCountOverride //Bin count override supercedes bin width override
-            if max < 2.5
+            if max < 2.5 and max > -2.5
                 decimalScale = true
                 binWidth = math:Round(range / cast(number, binCount),3)
                 if GetHorizontalFlag()
@@ -169,7 +161,7 @@ class Histogram is SharedBarChartParent
             end
         else
             if binWidthOverride
-                if max < 2.5
+                if max < 2.5 and max > -2.5
                     decimalScale = true
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                     if GetHorizontalFlag()
@@ -190,12 +182,16 @@ class Histogram is SharedBarChartParent
                         max = math:Ceiling(max)
                         range = max - min
                     end
-                    binCount = cast(integer, math:Ceiling(range/binWidth))+1
+                    binCount = cast(integer, math:Ceiling(range/binWidth))
+                end
+                if min+binCount*binWidth = dataMax //If the max value lands exactly on the edge of the last bin, make one more bin.
+                    max = max + binWidth
+                    binCount = binCount + 1
                 end
             else
-                //Default binwidth and bincount
-                binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize())))
-                if max < 2.5
+                //Default binwidth and bincount (don't count undefined column values)
+                binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
+                if max < 2.5 and max > -2.5
                     decimalScale = true
                     binWidth = math:Round(range / cast(number, binCount),1)
                     if GetHorizontalFlag()
@@ -209,16 +205,13 @@ class Histogram is SharedBarChartParent
                     max = math:Ceiling(max)
                     range = max - min
                     binWidth = math:Ceiling(range  / cast(number, binCount))
-                    binCount = cast(integer, math:Ceiling(range / binWidth))+1
-                    if max = dataMax and (max mod binWidth = 0)
+                    binCount = cast(integer, math:Ceiling(range / binWidth))
+                    if min+binCount*binWidth = dataMax //If the max value lands exactly on the edge of the last bin, make one more bin.
                         max = max + binWidth
+                        binCount = binCount + 1
                     end
                 end
             end
-        end
-
-        if binCount > 100
-            alert("This results in over 100 bins, please change bin width.")
         end
 
         Array<integer> count
@@ -229,9 +222,9 @@ class Histogram is SharedBarChartParent
         repeat while n < binCount
             count:Add(0)
             binFloor:Add(floor)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor + binWidth) + "]"
+            text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor + binWidth) + "]"
             if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
             end
             if(not groupFactor:HasKey(valueDisplay))
                 BarGroup group
@@ -292,13 +285,13 @@ class Histogram is SharedBarChartParent
             end
     
             i = 0
-            floor = 0.0
+            floor = min
             repeat while i < count:GetSize() and floor < max
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
-                text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+                text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor+binWidth) + "]"
                 if(decimalScale)
-                    valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                    valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
                 end
                 Bar bar
                 bar:SetValue(amount)
@@ -322,9 +315,9 @@ class Histogram is SharedBarChartParent
         i = 0
         repeat while i < groupFactor:GetSize()
             floor = binFloor:Get(i)
-            text valueDisplay = "[" + cast(integer, floor) + "-" + cast(integer, floor+binWidth) + "]"
+            text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor+binWidth) + "]"
             if(decimalScale)
-                valueDisplay = "[" + (math:Round(floor, 2)) + "-" + (math:Round(floor+binWidth, 2)) + "]"
+                valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
                 maxValue = (math:Round(floor+binWidth, 2))
                 interval = maxValue - (math:Round(floor, 2))
             end
@@ -491,8 +484,30 @@ class Histogram is SharedBarChartParent
         me:dataMin = dataMin
     end
 
+    action GetDataMinimum returns number
+        return dataMin
+    end
+
     action SetDataMaximum(number dataMax)
         me:dataMax = dataMax
+    end
+
+    action GetDataMaximum returns number
+        return dataMax
+    end
+
+    /* 
+        This action can be used to display multiple bars withn a bin as an opaque overlay on top of one another.
+        Note: This is different from stacking the bars.
+        
+        Attribute: Returns true if bars are overlayed, returns false if bars are side-by-side
+    */
+    action OverlayBars(boolean overlaybars)
+        me:isOverlayed = overlaybars
+    end
+
+    action GetOverlayedFlag returns boolean
+        return isOverlayed
     end
 
     /* 
@@ -518,6 +533,26 @@ class Histogram is SharedBarChartParent
         if file:GetFileExtension() = "svg"
             HistogramWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
+        end
+    end
+    
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            HistogramWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
 end

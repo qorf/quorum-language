@@ -65,6 +65,8 @@ use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
 use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
+use Libraries.System.Properties
+use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -787,9 +789,26 @@ class DataFrame
         frame:Load("Data.csv") 
     */
     action Load(text location)
-        File file
-        file:SetPath(location)
-        Load(file)
+        Properties properties
+        if properties:IsWebBrowser()
+            //first check if the file is there
+            WebDataFrameLoader loader
+            loader:SetLocation(location)
+            loader:SetAttribute("data-value")
+            boolean loadable = loader:CanLoad()
+            if loadable
+                Load(loader)
+            else
+                File file
+                file:SetPath(location)
+                Load(file)
+            end
+            //if the file isn't there, see if there's a custom load on the page
+        else
+            File file
+            file:SetPath(location)
+            Load(file)
+        end
     end
 
     /*
@@ -1103,6 +1122,26 @@ class DataFrame
     */
     action Load(File file, DataFrameLoader loader)
         loader:Load(me, file)
+        EmptyColumnsOnLoad()
+    end
+
+    /*
+        This action loads data a particular loader, which may do so from memory in 
+        any other way, not necessary related to a file or from disk.
+
+        Attribute: Parameter loader The object we want to manage loading the file type
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
+
+        DataFrame frame
+        WebDataFrameLoader loader
+        loader:SetLocation("SomeLocation")
+        frame:Load(loader) 
+    */
+    action Load(DataFrameLoader loader)
+        loader:Load(me, undefined)
         EmptyColumnsOnLoad()
     end
 
@@ -1612,6 +1651,24 @@ class DataFrame
         end
 
         selection:EmptyRows()
+    end
+
+    /*
+        This removes the current selected columns and adds all columns into
+        the selection. Selected factors are not changed.
+    
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SelectAllColumns()
+        output frame:ToText()
+    */
+    action SelectAllColumns
+        EmptySelectedColumns()
+        AddSelectedColumnRange(0,GetSize() -1)
     end
 
     /*
@@ -2349,7 +2406,7 @@ class DataFrame
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() = 1
+        if selection:GetColumnSize() not= 1
             alert("Must have a dependent variable having a column")
         end
 
@@ -2359,6 +2416,7 @@ class DataFrame
 
         Regression groups
         //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
+        selection:CopyTo(cast(ColumnInput, groups))
         selection:CopyTo(cast(FactorInput, groups))
         groups:Calculate(me)
         return groups

@@ -4,7 +4,6 @@ use Libraries.Interface.Layouts.BarChartLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
 use Libraries.System.File
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
@@ -43,15 +42,6 @@ class BarChart is SharedBarChartParent
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
-        properties:SetBorderThickness(2)
         SetName("Bar Chart")
 
         SetInputGroup("Chart")
@@ -80,14 +70,14 @@ class BarChart is SharedBarChartParent
             end
             grouptext = GetBarGroups():GetSize() + groups
         end
-        text bartext = GetNumberOfBars() + " bars"
+        text bartext = GetNumberOfBars() + " total bars"
         if GetNumberOfBars() = 1
             bartext = GetNumberOfBars() + " bar"
         end
         if GetName() = "Bar Chart"
-            SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+            SetDescription("with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription("Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -115,6 +105,26 @@ class BarChart is SharedBarChartParent
         if file:GetFileExtension() = "svg"
             BarChartWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
+        end
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            BarChartWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
 end

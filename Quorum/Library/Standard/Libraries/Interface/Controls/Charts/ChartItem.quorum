@@ -2,7 +2,7 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
-use Libraries.Interface.Controls.ControlLabel
+use Libraries.Interface.Events.FocusEvent
 
 /*
     This class represents one region inside of a chart. This can be anything, 
@@ -10,18 +10,28 @@ use Libraries.Interface.Controls.ControlLabel
     This item should not be used itself, except when obtaining information from a chart.
 */
 class ChartItem is Control
+
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+    public constant integer UP = 2
+    public constant integer DOWN = 3
+    public constant integer ENTER = 4
+    public constant integer ESCAPE = 5
+
     text information = ""
     Chart container = undefined
-    ChartItem parentNode = undefined
-    ChartItem childNode = undefined
-    ChartItem nextNode = undefined
-    ChartItem previousNode = undefined
-    ChartItem lastchildNode = undefined
-    boolean open = false
-    boolean openable = false
 
-    Item focusTarget = undefined
+    ChartItem leftItem = undefined
+    ChartItem rightItem = undefined
+    ChartItem upItem = undefined
+    ChartItem downItem = undefined
+    ChartItem enterItem = undefined
+    ChartItem escapeItem = undefined
+
     ChartOptions options
+
+    boolean escapeToLastItem = false
+    boolean passThroughSelection = false
 
     /*
         This action sets the display name of the chart item. 
@@ -39,101 +49,18 @@ class ChartItem is Control
         return information
     end
 
-    /*
-        Sets the parent of this item.
-    */
-    action SetParent(ChartItem parentNode)
-        me:parentNode = parentNode
-    end
-
-    /*
-        Gets the parent of this item.
-    */
-    action GetParentItem returns ChartItem
-        return parentNode
-    end
-
-    /*
-        Every chart item has a single parent and child, which indicates broader structure, but not what is in that structure.
-    */
-    action SetChild(ChartItem childNode)
-        me:childNode = childNode
-        openable = true
-    end
-
-    /*
-        Every chart item has a single parent and child, which indicates broader structure, but not what is in that structure.
-    */
-    action GetChildItem returns ChartItem
-        return childNode
-    end
-
-    /*
-        Tracks the last 'child' under a parent
-    */
-    action SetLastChild(ChartItem lastchildNode)
-        me:lastchildNode = lastchildNode
-    end
-
-    /*
-        Tracks the last 'child' under a parent
-    */
-    action GetLastChild returns ChartItem
-        return lastchildNode
-    end
-
-    /*
-        Every chart can go forward or backward in a traversal. 
-    */
-    action SetNext(ChartItem nextNode)
-        me:nextNode = nextNode
-    end
-
-    /*
-        Every chart can go forward or backward in a traversal. 
-    */
-    action GetNext returns ChartItem
-        return nextNode
-    end
-
-    /*
-        Every chart can go forward or backward in a traversal. 
-    */
-    action SetPrevious(ChartItem previousNode)
-        me:previousNode = previousNode
-    end
-
-    /*
-        Every chart can go forward or backward in a traversal. 
-    */
-    action GetPrevious returns ChartItem
-        return previousNode
-    end
-
-    /*
-        Determines what item this should focus on.
-    */
-    action SetFocusTarget(Item focusTarget)
-        me:focusTarget = focusTarget
-    end
-
-    /*
-        Determines what item this should focus on.
-    */
-    action GetFocusTarget returns Item
-        return focusTarget
-    end
-
     action GainedSelection
-        if container not= undefined
-            container:GainedSelection(me)
+        if GetContainer() not= undefined
+            GetContainer():OnSelectionChange(me)
         end
+        parent:Control:GainedSelection()
     end
 
     action LostSelection
-        if container not= undefined
-            container:LostSelection(me)
+        if GetContainer() not= undefined
+            GetContainer():LostSelection(me)
         end
+        parent:Control:LostSelection()
     end
 
     action GetContainer returns Chart
@@ -145,40 +72,136 @@ class ChartItem is Control
     end
 
     /*
-        This action opens the chart item if possible
-        Attribute: Returns true if opening was successful
+    Returns the Item accessed to the left of this Item in the chart selection.
     */
-    action Open returns boolean
-        if not open and openable
-            open = true
-            return true
-        end
+    action GetLeftItem returns ChartItem
+        return leftItem
+    end
+
+    /*
+    Sets the Item accessed to the left of this Item in the chart selection.
+    */
+    action SetLeftItem(ChartItem leftItem)
+        me:leftItem = leftItem
+    end
+
+    /*
+    Returns the Item accessed to the right of this Item in the chart selection.
+    */
+    action GetRightItem returns ChartItem
+        return rightItem
+    end
+
+    /*
+    Sets the Item accessed to the right of this Item in the chart selection.
+    */
+    action SetRightItem(ChartItem rightItem)
+        me:rightItem = rightItem
+    end
+
+    /*
+    Returns the Item accessed "above" (via the UP arrow) this Item in the chart selection.
+    */
+    action GetUpItem returns ChartItem
+        return upItem
+    end
+
+    /*
+    Sets the Item accessed "above" (via the UP arrow) this Item in the chart selection.
+    */
+    action SetUpItem(ChartItem upItem)
+        me:upItem = upItem
+    end
+
+    /*
+    Returns the Item accessed "below" (via the DOWN arrow) this Item in the chart selection.
+    */
+    action GetDownItem returns ChartItem
+        return downItem
+    end
+
+    /*
+    Sets the Item accessed "below" (via the DOWN arrow) this Item in the chart selection.
+    */
+    action SetDownItem(ChartItem downItem)
+        me:downItem = downItem
+    end
+
+    /*
+    Returns the Item accessed within (default: ENTER key) this Item in the chart selection.
+    */
+    action GetEnterItem returns ChartItem
+        return enterItem
+    end
+
+    /*
+    Sets the Item accessed within (default: ENTER key) this Item in the chart selection.
+    */
+    action SetEnterItem(ChartItem enterItem)
+        me:enterItem = enterItem
+    end
+
+    /*
+    Returns the escape Item accessed from this Item in the chart selection (by default using the ESCAPE key).
+    */
+    action GetEscapeItem returns ChartItem
+        return escapeItem
+    end
+
+    /*
+    Sets the escape Item accessed from this Item in the chart selection (by default using the ESCAPE key).
+    */
+    action SetEscapeItem(ChartItem escapeItem)
+        me:escapeItem = escapeItem
+    end
+
+    /*
+    This action enables or disables escape to last item functionality. If enabled, this object's Escape Item will
+    be the last ChartItem that accessed this Item via the Enter key. That means that if this is enabled, the escape
+    item will be dynamically adjusted, instead of a static value.
+    */
+    action SetEscapeToLastItem(boolean escape)
+        escapeToLastItem = escape
+    end
+
+    action IsEscapingToLastItem returns boolean
+        return escapeToLastItem
+    end
+
+    action IsPassingThroughSelection returns boolean
+        return passThroughSelection
+    end
+
+    /*
+    If pass through selection is enabled, attempting to enter or escape into this item will
+    instead try to pass the selection through to the following enter/escape item.
+    */
+    action SetPassThroughSelection(boolean passThroughSelection)
+        me:passThroughSelection = passThroughSelection
+    end
+
+    /*
+    This action indicates if this Control has special behavior when asked to navigate in
+    a specific direction. The parameter should be one of ChartItem's navigation constants,
+    e.g. UP, DOWN, ENTER, etc.
+
+    By default this always returns false, but some classes may override this with different
+    values.
+    */
+    action HasSpecialNavigation(integer navigationType) returns boolean
         return false
     end
 
     /*
-        This action closes the chart item if it is open
-        Attribute: Returns true if closing was successful
+    This action triggers special navigation behavior in the specified navigation direction. 
+    This behavior overrides the typical navigation provided by the chart. This will only be
+    called by the Chart if the HasSpecialNavigation action returns true for the provided
+    parameter.
+
+    By default this does nothing, but some classes may override this with custom behavior.
     */
-    action Close returns boolean
-        if open
-            open = false
-            return true
-        end
-        return false
+    action DoSpecialNavigation(integer navigationType)
+        // Do nothing. Other classes may override this to do something.
     end
 
-    /*
-        Attribute: Returns true if the item is currently open
-    */
-    action IsOpen returns boolean
-        return open
-    end
-
-    /*
-        Attribute: Returns true if the item is a parent and can be opened.
-    */
-    action IsOpenable returns boolean
-        return openable
-    end
 end

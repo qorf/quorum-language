@@ -50,6 +50,10 @@ class GeoMapWriter is ChartWriter
     action WriteOutChart(GeoMap chart, File file)
         WriteOutChart(cast(Chart,chart), file)
     end
+    
+    action WriteOutHTML(BarChart chart, File file)
+        WriteOutHTML(cast(Chart,chart), file)
+    end
 
 
     /*
@@ -104,14 +108,15 @@ class GeoMapWriter is ChartWriter
                 end
                 tempRegion:SetTitle(regions:Get(i):GetName())
                 tempRegion:SetFill(regions:Get(i):GetColor())
-                tempRegion:SetID(canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+//                tempRegion:SetStroke(cast(Color, regions:Get(i):GetBorderColor()))
+//                tempRegion:SetStrokeWidth(regions:Get(i):GetBorderWidth())
+                tempRegion:SetID(canvas:GetID() + "_" + regions:Get(i):GetHashCode())
                 tempRegion:SetStyleClass("quorum-chart-polygon")
                 tempRegion:SetRole("region")
-                tempRegion:SetStroke("black")
-                tempRegion:SetStrokeWidth(1)
                 tempRegion:SetTabIndex(-1)
                 if HasAccessibility()
                     tempRegion:SetAriaLabel(regions:Get(i):GetName() + regions:Get(i):GetDescription())
+                    tempRegion:SetAriaHidden("true")
                 end
                 canvas:Add(tempRegion) 
             end
@@ -135,14 +140,15 @@ class GeoMapWriter is ChartWriter
                 end
                 tempRegion:SetTitle(regions:Get(i):GetName())
                 tempRegion:SetFill(regions:Get(i):GetColor())
-                tempRegion:SetID(canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+//                tempRegion:SetStroke(cast(Color, regions:Get(i):GetBorderColor()))
+//                tempRegion:SetStrokeWidth(regions:Get(i):GetBorderWidth())
+                tempRegion:SetID(canvas:GetID() + "_" + regions:Get(i):GetHashCode())
                 tempRegion:SetStyleClass("quorum-chart-multipolygon")
                 tempRegion:SetRole("region")
-                tempRegion:SetStroke("black")
-                tempRegion:SetStrokeWidth(1)
                 tempRegion:SetTabIndex(-1)
                 if HasAccessibility()
                     tempRegion:SetAriaLabel(regions:Get(i):GetName() + regions:Get(i):GetDescription())
+                    tempRegion:SetAriaHidden("true")
                 end
                 canvas:Add(tempRegion) 
             end 
@@ -163,9 +169,9 @@ class GeoMapWriter is ChartWriter
         integer i = 0
         repeat while i < regions:GetSize()
             ListItem regionNav 
-            regionNav:SetIdentifier(canvas:GetID() + "-" + regions:Get(i):GetHashCode() + "-nav")
+            regionNav:SetIdentifier(canvas:GetID() + "_" + regions:Get(i):GetHashCode() + "_nav")
             regionNav:AddAttribute("role","treeitem")
-            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "-" + regions:Get(i):GetHashCode())
+            regionNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + regions:Get(i):GetHashCode())
             regionNav:SetTabIndex("-1")
             regionsUL:Add(regionNav)
             i = i + 1

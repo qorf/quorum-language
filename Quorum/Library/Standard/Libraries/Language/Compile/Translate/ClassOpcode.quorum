@@ -1222,7 +1222,8 @@ class ClassOpcode is QuorumOpcode
         if clazz:IsStatic()
             methodWriter:VisitConstant(clazz:GetStaticKey())
             methodWriter:VisitVariable(opcodes:GetObjectLoad(), 1)
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Object", "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/SharedClass", 
+                "PutStaticClass", "(Ljava/lang/String;Ljava/lang/Object;)V", false)
         end
 
         //call a method on the object, its non-static main
@@ -1293,7 +1294,8 @@ class ClassOpcode is QuorumOpcode
             methodWriter:VisitMethodInvoke(opcodes:GetInvokeSpecial(), JAVA_OBJECT, CONSTRUCTOR_JAVA_NAME, "()V", false)
         end
 
-        if clazz:HasSystemAction()
+        //the object class inlines its plugin functionality and thus does not need a plugin.
+        if clazz:HasSystemAction() and not clazz:IsObject()
             WritePlugin(methodWriter)
         end
         
@@ -1530,7 +1532,9 @@ class ClassOpcode is QuorumOpcode
                 convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
         end
         
-        
+        if clazz:IsObject()
+            convertedSource = convertedSource + "this.myHash = 0;" + EOL
+        end
 
         if clazz:HasConstructor()
             convertedSource = convertedSource + constructor:WriteJavaScript()
@@ -1670,8 +1674,10 @@ class ClassOpcode is QuorumOpcode
                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
                     " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL
             else 
-                convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
-                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+                if not clazz:IsObject()
+                    convertedSource = convertedSource + "this." + clazz:GetPluginName() + 
+                        " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL
+                end
             end
         end
 
@@ -1711,6 +1717,11 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
         end
 
+        if clazz:IsObject()
+            convertedSource = convertedSource + "this.myHash = globalStaticHash;" + EOL
+            convertedSource = convertedSource + "globalStaticHash = globalStaticHash + 1;" + EOL
+        end
+
         convertedSource = convertedSource + EOL + "};" + EOL
         if clazz:IsProgramStartingClass()
             convertedSource = convertedSource + "var $starter;"
@@ -1740,6 +1751,7 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "   else if (typeof plugins_quorum_Libraries_Sound_Audio_ === " + quote + "function" + quote + " && typeof plugins_quorum_Libraries_Sound_Audio_.StopAllSources === " + quote + "function" + quote + ") {" + EOL
             convertedSource = convertedSource + "       plugins_quorum_Libraries_Sound_Audio_.StopAllSources();" + EOL
             convertedSource = convertedSource + "   }" + EOL
+            convertedSource = convertedSource + "   global_Empty_Shared_Classes();" + EOL
             convertedSource = convertedSource + "}" + EOL
         end
 

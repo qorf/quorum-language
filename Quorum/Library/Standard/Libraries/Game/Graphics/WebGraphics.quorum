@@ -75,7 +75,7 @@ class WebGraphics is GraphicsManager
     using the given source code. If the shader code successfully compiles, this action will return an integer ID
     representing that shader. If the shader can't be created or it does not successfully compile, this will alert an error.
     */
-    action CreateShader(integer shaderType, text sourceCode) returns integer
+    action CreateShader(integer shaderType, text sourceCode, text shaderName) returns integer
         integer id = CreateShaderID(shaderType)
         if id = 0
             alert("Could not create a new shader.")
@@ -92,7 +92,9 @@ class WebGraphics is GraphicsManager
             elseif shaderType = constants:GL_VERTEX_SHADER
                 typeText = "Vertex"
             end
-            alert("Error compiling " + typeText + " shader:" + GetShaderLog(id))
+            
+            text dq = typeText:GetDoubleQuote()
+            alert("Error compiling " + typeText + " shader " + dq + shaderName + dq + ": " + GetShaderLog(id))
         end
 
         return id

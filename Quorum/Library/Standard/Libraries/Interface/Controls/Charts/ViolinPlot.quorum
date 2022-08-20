@@ -5,12 +5,10 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
-use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Selections.ChartSelection
 use Libraries.Compute.Statistics.Analysis.UnivariateAction
@@ -19,6 +17,7 @@ use Libraries.System.File
 use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Language.Errors.CastError
 
 /*
     The ViolinPlot class is Chart object that inherits from Control and like other
@@ -63,6 +62,12 @@ class ViolinPlot is Chart
     private number maxValue = 0
     private number minValue = 0
 
+    // Terminology for navigation instructions
+    private text chartItemText = "plot"
+    private text chartItemsText = "plots"
+    private text groupText = "plot group"
+    private text groupsText = "plot groups"
+
     on create
         ViolinPlotLayout layout
         SetLayout(layout)
@@ -74,14 +79,6 @@ class ViolinPlot is Chart
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Violin Plot")
 
@@ -121,9 +118,37 @@ class ViolinPlot is Chart
         integer i = 0
         repeat while i < plotGroups:GetSize()
             PlotGroup group = plotGroups:Get(i)
+            text groupname = plotGroups:Get(i):GetName()
+            text chartAreaName = ""
             integer k = 0
             repeat while k < group:GetSize()
                 Plot plot = group:Get(k)
+
+                // Plot Area Outline Panel
+                Icon plotArea
+                plot:SetPlotArea(plotArea)  
+
+                if IsSeparated()
+                    integer j = 0
+                    repeat while j < GetNumberOfChartAreas()
+                        if IsSeparatedBySeries()
+                            if plot:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
+                        elseif IsSeparatedByFactor()
+                            if group:GetName() = GetSubChartAreas():Get(j):GetName()
+                                chartArea = GetSubChartAreas():Get(j)
+                                chartArea:AddChartAreaItem(plot)
+                            end
+                        end
+                        j = j + 1
+                    end
+                    chartAreaName = chartArea:GetName()
+                else
+                    chartArea = GetChartArea()
+                end
+                chartArea:Add(plot) // This is to be the actual violin shape, add before all other stuff.
 
                 ChartDrawable minimumLine
                 ChartDrawable lowerWhisker 
@@ -131,7 +156,7 @@ class ViolinPlot is Chart
                 ChartDrawable rightBorder // Right side of IQR - not used
                 ChartDrawable leftBorder  // Left side of IQR - not used
                 ChartDrawable firstQuartileLine
-                ChartDrawable medianDot
+                ChartPoint medianDot
                 ChartDrawable thirdQuartileLine
                 ChartDrawable upperWhisker 
                 ChartDrawable maximumLine
@@ -148,101 +173,86 @@ class ViolinPlot is Chart
                     // Minimum Line 
                     minimumLine:SetFocusable(true)
                     minimumLine:SetAccessibilityCode(0)
+                    minimumLine:SetNextFocus(GetNextFocus())
+                    minimumLine:SetPreviousFocus(GetPreviousFocus())
                     minimumLine:SetName("Minimum")
                     minimumLine:SetDescription(" " + minimum)
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
-                    end
+                    end 
+                    chartArea:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
                     interQuartileRange:SetFocusable(true)
                     interQuartileRange:SetAccessibilityCode(0)
+                    interQuartileRange:SetNextFocus(GetNextFocus())
+                    interQuartileRange:SetPreviousFocus(GetPreviousFocus())
                     interQuartileRange:SetName("Interquartile range")
                     interQuartileRange:SetDescription(" " + iqr)
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
                     end
+                    chartArea:Add(interQuartileRange:GetSelectionArrow())
+                    Drawable topBrack
+                    interQuartileRange:GetSelectionBracket():Add(topBrack)
+                    chartArea:Add(topBrack)
+                    Drawable sideBrack
+                    interQuartileRange:GetSelectionBracket():Add(sideBrack) 
+                    chartArea:Add(sideBrack)
+                    Drawable bottomBrack
+                    interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
+                    chartArea:Add(bottomBrack)   
     
                     // Lower Quartile Line Q1
                     firstQuartileLine:SetFocusable(true)
                     firstQuartileLine:SetAccessibilityCode(0)
+                    firstQuartileLine:SetNextFocus(GetNextFocus())
+                    firstQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     firstQuartileLine:SetName("1st Quartile")
                     firstQuartileLine:SetDescription(" " + firstQ)
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
                     end
+                    chartArea:Add(firstQuartileLine:GetSelectionArrow())                    
     
                     // Median dot (denser) 
                     medianDot:SetFocusable(true)
                     medianDot:SetAccessibilityCode(0)
+                    medianDot:SetNextFocus(GetNextFocus())
+                    medianDot:SetPreviousFocus(GetPreviousFocus())
                     medianDot:SetName("Median")
                     medianDot:SetDescription(" " + median)
                     if CheckIfInteger(median)
                         medianDot:SetDescription(" " + cast(integer, median))
                     end
+                    chartArea:Add(medianDot:GetSelectionArrow())
     
                     // Upper Quartile Line Q3
                     thirdQuartileLine:SetFocusable(true)
                     thirdQuartileLine:SetAccessibilityCode(0)
+                    thirdQuartileLine:SetNextFocus(GetNextFocus())
+                    thirdQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     thirdQuartileLine:SetName("3rd Quartile")
                     thirdQuartileLine:SetDescription(" " + thirdQ)
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
                     end
+                    chartArea:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
-    
                     maximumLine:SetFocusable(true)
                     maximumLine:SetAccessibilityCode(0)
+                    maximumLine:SetNextFocus(GetNextFocus())
+                    maximumLine:SetPreviousFocus(GetPreviousFocus())
                     maximumLine:SetName("Maximum")
                     maximumLine:SetDescription(" " + maximum)
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
                     end
-
-                end
-
-                // Plot Area Outline Panel
-                Icon plotArea
-                plotArea:SetName(plot:GetName() + ", ")
-                plotArea:SetDescription((k+1) + " of " + group:GetSize() + " plots")
-                plotArea:SetFocusable(true)
-                plotArea:SetAccessibilityCode(0)
-                plot:SetPlotArea(plotArea)
-
-                if not HasGroups()
-                    plotArea:SetName(plot:GetName() + ", ")
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violins")
-                end    
-
-                if IsSeparated()
-                    if IsSeparatedByFactor()
-                        plotArea:SetName(plot:GetName() + ", ")
-                    elseif IsSeparatedBySeries()
-                        plotArea:SetName(group:GetName() + ", ")
-                    end
-                    plotArea:SetDescription((i+1) + " of " + plotGroups:GetSize() + " violins")
-                    integer j = 0
-                    repeat while j < GetNumberOfChartAreas()
-                        if IsSeparatedBySeries()
-                            if plot:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
-                                chartArea = GetSubChartAreas():Get(j)
-                                chartArea:AddChartAreaItem(plot)
-                            end
-                        elseif IsSeparatedByFactor()
-                            if group:GetName() = GetSubChartAreas():Get(j):GetName()
-                                chartArea = GetSubChartAreas():Get(j)
-                                chartArea:AddChartAreaItem(plot)
-                            end
-                        end
-                        j = j + 1
-                    end
-                else
-                    chartArea = GetChartArea()
+                    chartArea:Add(maximumLine:GetSelectionArrow())
                 end
     
                 // Add to chart
-                chartArea:Add(plot) // This is to be the actual violin shape
                 chartArea:Add(rightBorder)
                 chartArea:Add(leftBorder)
                 chartArea:Add(lowerWhisker)
@@ -283,17 +293,114 @@ class ViolinPlot is Chart
                 plot:AddItem(upperWhisker)
                 plot:AddItem(maximumLine)
     
+
+                // Set the plot description
+                plot:SetFocusable(true)
+                plot:SetAccessibilityCode(parent:Item:ITEM)
+                plot:SetNextFocus(GetNextFocus())
+                plot:SetPreviousFocus(GetPreviousFocus())
+                plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
+                if not HasGroups()
+                    plot:SetName(group:GetName() + " plot, ")
+                end
+                text plotDescription = ""
+                plotDescription = plotDescription + medianDot:GetDescription() + ","
+                plotDescription = plotDescription + " data ranges from " + minimumLine:GetDescription() + " to " + maximumLine:GetDescription() + ", "
+
+                if IsSeparated() 
+                    if IsSeparatedBySeries()
+                        plotDescription = plotDescription + (i+1) + " of " + plotGroups:GetSize() + " plots inside " + chartAreaName + " chart area."
+                    elseif IsSeparatedByFactor()
+                        plotDescription = plotDescription + (k+1) + " of " + group:GetSize() + " plots inside " + chartAreaName + " chart area."
+                    end
+                else
+                    if HasGroups()
+                        plotDescription = plotDescription + (k+1) + " of " + group:GetSize() + " plots inside " + groupname + " group."
+                    else
+                        plotDescription = plotDescription + (i+1) + " of " + plotGroups:GetSize() + " plots."
+                    end
+                end
+                plot:SetDescription(plotDescription)
+                if not IsSeparated()
+                    if HasGroups() 
+                        if k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    else
+                        if i = 0 and k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    end
+                else
+                    if IsSeparatedByFactor()
+                        if k = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    elseif IsSeparatedBySeries()
+                        if i = 0
+                            AddChartItemInstructions(plot,plot:GetDescription())
+                        end
+                    end
+                end
+
+                // Set selection arrow for plot
+                chartArea:Add(plot:GetSelectionArrow())
+
+                // Set Navigation Instruction for first plot item (minimum)
+                AddPlotItemInstructions(minimumLine, minimumLine:GetDescription())
                 k = k + 1
             end
 
-            // Area covering entire group panel - this may be skipped in the navigation.
+            // Area covering entire group panel
             group:SetName(group:GetName() + " group, ")
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " violin plots.")
             group:SetFocusable(true)
-            group:SetAccessibilityCode(0)
+            group:SetAccessibilityCode(parent:Item:ITEM)
+            group:SetNextFocus(GetNextFocus())
+            group:SetPreviousFocus(GetPreviousFocus())
             chartArea:Add(group)
+            if i = 0
+                AddGroupPanelInstructions(group, group:GetDescription())
+            end
+            chartArea:Add(group:GetSelectionArrow())
+
+            Drawable top
+            group:GetSelectionBracket():Add(top)
+            chartArea:Add(top)
+
+            Drawable side
+            group:GetSelectionBracket():Add(side) 
+            chartArea:Add(side)
+
+            Drawable bottom
+            group:GetSelectionBracket():Add(bottom) 
+            chartArea:Add(bottom)  
+
             GetGroupPanels():Add(group)
             i = i + 1
+        end
+
+        // Set chart area(s) description
+        if IsSeparated()
+            GetChartArea():SetDescription(" with " + GetNumberOfChartAreas() + " sub charts.")
+            AddChartAreaInstructions(GetChartArea():GetDescription())
+            integer subAreaCount = GetSubChartAreas():GetSize()
+            i = 0
+            repeat while i < subAreaCount
+                integer itemCount = GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
+                GetSubChartAreas():Get(i):SetDescription(" chart area with " + itemCount + " violin plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
+                if i = 0
+                    AddSubChartAreaInstructions(GetSubChartAreas():Get(i), GetSubChartAreas():Get(i):GetDescription())
+                end
+                i = i + 1
+            end
+        else
+            if HasGroups()
+                me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " plot groups.")
+            else
+                me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots.")
+            end
+            AddChartAreaInstructions(GetChartArea():GetDescription())
         end
     end
 
@@ -327,7 +434,7 @@ class ViolinPlot is Chart
         if ci = undefined
             return now
         end
-        Item target = ci:GetFocusTarget()
+        Item target = ci
 
         if target not= undefined
             parent:Chart:LostSelection(ci)
@@ -335,7 +442,7 @@ class ViolinPlot is Chart
     end
 
     /* 
-        GainedSelection is a supplemental action to the parent Chart's GainedSelection.
+        OnSelectionChange is a supplemental action to the parent Chart's OnSelectionChange.
         Any items specific to only this type of chart or if an item needs different highlighting
         instructions than that of the parent class, it will have their GainedSelection defined here.
 
@@ -346,15 +453,15 @@ class ViolinPlot is Chart
 
         Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
     */
-    action GainedSelection(ChartItem ci)
+    action OnSelectionChange(ChartItem ci)
         if ci = undefined
             return now
         end
-        Item target = ci:GetFocusTarget()
+        Item target = ci
 
         if target not= undefined
             target:Focus()
-            parent:Chart:GainedSelection(ci)          
+            parent:Chart:OnSelectionChange(ci)
         end
     end
     
@@ -376,9 +483,9 @@ class ViolinPlot is Chart
         This sets the inteval size to calculate the normal distributions
     */
     action SetBandWidth(number value)
-        number limit = GetYAxisMaximum()
+        number limit = GetYAxisMaximum() - GetYAxisMinimum()
         if GetHorizontalFlag()
-            limit = GetXAxisMaximum()
+            limit = GetXAxisMaximum() - GetXAxisMinimum()
         end
         if value > 0 
             if value < limit
@@ -397,10 +504,17 @@ class ViolinPlot is Chart
         return bandWidth
     end
 
+//    /*
+//        Sets a flag that determines if a plot should be split for 2 column, one factor 
+//    */
+//    action IsSplit(boolean flag)
+//        splitPlot = flag
+//    end
+
     /*
         Sets a flag that determines if a plot should be split for 2 column, one factor 
     */
-    action IsSplit(boolean flag)
+    action SplitPlot(boolean flag)
         splitPlot = flag
     end
 
@@ -430,6 +544,7 @@ class ViolinPlot is Chart
         if group:GetSize() > 1
             HasGroups(true)
         end
+        numberOfPlots = numberOfPlots + group:GetSize()
     end
    
     /*
@@ -437,6 +552,13 @@ class ViolinPlot is Chart
     */
     action GetPlotGroups returns Array<PlotGroup>
         return plotGroups
+    end
+
+    /*
+        Returns the number of boxes currently added to the Box Plot
+    */
+    action GetNumberOfPlots returns integer
+        return numberOfPlots
     end
 
     /* 
@@ -495,18 +617,22 @@ class ViolinPlot is Chart
         of  the chart.
     */
     action GenerateSummary returns text
-        text lineText = "Groups"
-        text plotText = "violin plots"
-        if GetGroupPanels():GetSize() = 1
-            linetext = "Group"
-            plotText = "violin plot"
-        end
+        text grouptext = ""
         if HasGroups()
-            SetDescription(" with " + GetGroupPanels():GetSize() + " " + lineText 
-            + ". " + "Use the arrow keys to navigate the chart.")
+            text groups = " groups and "
+            if GetPlotGroups():GetSize() = 1
+                groups = " group and "
+            end
+            grouptext = GetPlotGroups():GetSize() + groups
+        end
+        text plottext = numberOfPlots + " plots"
+        if numberOfPlots = 1
+            plottext = numberOfPlots + " plot"
+        end
+        if GetName() = "Violin Plot"
+            SetDescription(" with " + grouptext + plottext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription(" with " + GetGroupPanels():GetSize() + " " + plotText 
-            + ". " + "Use the arrow keys to navigate the chart.")
+            SetDescription(", Violin Plot with " + grouptext + plottext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -518,34 +644,30 @@ class ViolinPlot is Chart
     */
     action GenerateInfoTree
         if GetDefaultLayoutProperties():NeedsRendering()
-            return now //we haven't loaded graphics yet, so bail.
+            // We haven't loaded graphics yet, so bail.
+            return now
         end
-        //NOTE: These nodes implement a cheap form of ordinality might need changing
-        ChartItem xAxis
-        ChartItem yAxis
-        ChartItem chartArea //not to be confused with panels
-        ChartItem summary = GetInfoTreeRoot()
+
+        ChartItem xAxis = GetHorizontalPanel()
+        ChartItem yAxis = GetVerticalPanel()
+        ChartItem chartArea = GetChartArea()
+        ChartItem summary = me
+
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetChild(chartArea)
+        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
-        summary:SetFocusTarget(me)
-        chartArea:SetFocusTarget(me:GetChartArea())
-        chartArea:SetParent(summary)
-        chartArea:SetContainer(me)
+
         chartArea:SetDisplayName("Violin Plot")
-        if HasGroups()
-            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " groups")
-        else
-            me:GetChartArea():SetDescription(" with " + plotGroups:GetSize() + " violin plots")
-        end
+        chartArea:SetPreviousFocus(summary)
+        chartArea:SetContainer(me)
     
-        // If any of these are not showing the tree will skip them in the navigation        
-        if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
-        end
+        // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
             GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+        end        
+        if IsShowingYAxis()
+            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
             GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
@@ -553,334 +675,217 @@ class ViolinPlot is Chart
 
         if IsSeparated()
             //Chart Areas
-            integer subAreaCount = GetNumberOfVisibleChartAreas()
-            ChartItem firstArea
-            firstArea:SetContainer(me)
+            integer subAreaCount = GetLegend():GetSeriesList():GetSize()
             if GetNumberOfChartAreas() > 0
-                GetChartArea():SetDescription(" with " + subAreaCount + " sub charts")
-                chartArea:SetChild(firstArea)
-                firstArea:SetParent(chartArea)
-                firstArea:SetFocusTarget(GetSubChartAreas():Get(0))
+                ChartItem firstArea = GetSubChartAreas():Get(0)
+                firstArea:SetContainer(me)
+                firstArea:SetPreviousFocus(summary)
+                chartArea:SetEnterItem(firstArea)
+                firstArea:SetEscapeItem(chartArea)
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
-                
-                Array <Item> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                GetSubChartAreas():Get(0):SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, 1 of " + subAreaCount + " sub charts.")
+                Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
+                AddPlots(summary, firstArea, CastToPlots(chartAreaItems))
 
-                //Plots within Chart Areas
-                if chartAreaItems:GetSize() > 0 
-                    ChartItem prev_target
-                    integer k = 0
-                    repeat while k < chartAreaItems:GetSize()
-                        ChartItem next_target
-                        if not (chartAreaItems:Get(k) is Plot)
-                            return now
-                        end
-                        Plot plot = cast(Plot, chartAreaItems:Get(k))
-                        Array<ChartDrawable> items = plot:GetPlotItems() //First plot
-                        if k = 0
-                            firstArea:SetChild(next_target)
-                        else
-                            next_target:SetPrevious(prev_target)
-                            prev_target:SetNext(next_target)
-                        end
-                        
-                        next_target:SetContainer(me)
-                        next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
-                        next_target:SetFocusTarget(plot:GetPlotArea()) 
-                        next_target:SetParent(firstArea)
-                        prev_target = next_target    
-
-                        ChartItem previous
-                        integer target_index = 0
-                        integer index = 1
-                        repeat while index < items:GetSize()
-                            ChartDrawable item = items:Get(index)
-                            ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                            text Description = item:GetDescription()
-                    
-                            if Description not= ""
-            
-                                ChartItem next
-                                if target_index = 0
-                                    next_target:SetChild(next)
-                                else
-                                    next:SetPrevious(previous)
-                                    previous:SetNext(next)
-                                end
-                                next:SetContainer(me)
-                                next:SetDisplayName(item:GetName()) 
-                                next:SetFocusTarget(item)
-                                next:SetParent(next_target)
-                                
-                                previous = next
-                                target_index = target_index+1 
-                            end
-                            index = index + 1
-                        end
-                        next_target:SetLastChild(previous)
-                        k = k + 1
-                    end
-                    firstArea:SetLastChild(prev_target)
-                end
-            end
-
-            i = 1
-            ChartItem previousArea = firstArea
-            repeat while i < GetNumberOfChartAreas()
-                ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
-                if chartSubArea:IsShowing()
-                    ChartItem nextArea
-                    nextArea:SetContainer(me)
-                    nextArea:SetParent(chartArea)
-                    nextArea:SetFocusTarget(chartSubArea)
-                    previousArea:SetNext(nextArea)
-                    nextArea:SetPrevious(previousArea)
-                    previousArea = nextArea
-                    nextArea:SetDisplayName(chartSubArea:GetName())
-                    Array <Item> chartAreaItems = chartSubArea:GetChartAreaItems()
-                    chartSubArea:SetDescription(" chart area with " + chartAreaItems:GetSize() + " plots, " + (i+1) + " of " + subAreaCount + " sub charts.")
-
-                    //Plots within Chart Areas
-                    if chartAreaItems:GetSize() > 0 
-                        ChartItem prev_target
-                        integer k = 0
-                        repeat while k < chartAreaItems:GetSize()
-                            ChartItem next_target
-                            if not (chartAreaItems:Get(k) is Plot)
-                                return now
-                            end
-                            Plot plot = cast(Plot, chartAreaItems:Get(k))
-                            Array<ChartDrawable> items = plot:GetPlotItems() //First plot
-                            if k = 0
-                                nextArea:SetChild(next_target)
-                            else
-                                next_target:SetPrevious(prev_target)
-                                prev_target:SetNext(next_target)
-                            end
-    
-                            next_target:SetContainer(me)
-                            next_target:SetDisplayName(plot:GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plot:GetPlotArea())  
-                            next_target:SetParent(nextArea)
-                            prev_target = next_target      
-                            ChartItem previous
-                            integer target_index = 0
-                            integer index = 1
-                            repeat while index < items:GetSize()
-                                ChartDrawable item = items:Get(index)
-                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                text Description = item:GetDescription()
-                        
-                                if Description not= ""
-                
-                                    ChartItem next
-                                    if target_index = 0
-                                        next_target:SetChild(next)
-                                    else
-                                        next:SetPrevious(previous)
-                                        previous:SetNext(next)
-                                    end
-                                    next:SetContainer(me)
-                                    next:SetDisplayName(item:GetName()) 
-                                    next:SetFocusTarget(item)
-                                    next:SetParent(next_target)
-                                    
-                                    previous = next
-                                    target_index = target_index+1 
-                                end
-                                index = index + 1
-                            end
-                            next_target:SetLastChild(previous)
-                            k = k + 1
-                        end
-                        nextArea:SetLastChild(prev_target)
-                    end
-                end
-                i = i + 1
-            end
-            chartArea:SetLastChild(previousArea)
-        else
-            if HasGroups()
-                //Plot Groups
-                ChartItem firstGroup
-                firstGroup:SetContainer(me)
-                if plotGroups:GetSize() > 0
-                    chartArea:SetChild(firstGroup)
-                    firstGroup:SetParent(chartArea)
-                    firstGroup:SetFocusTarget(plotGroups:Get(0))
-        
-                    //Plots within Plot Groups
-                    if plotGroups:Get(0):GetSize() > 0 
-                        ChartItem prev_target
-                        integer k = 0
-                        repeat while k < plotGroups:Get(0):GetSize()
-                            ChartItem next_target
-                            Array<ChartDrawable> items = plotGroups:Get(0):Get(k):GetPlotItems() //First plot
-                            if k = 0
-                                firstGroup:SetChild(next_target)
-                            else
-                                next_target:SetPrevious(prev_target)
-                                prev_target:SetNext(next_target)
-                            end
-                            
-                            next_target:SetContainer(me)
-                            next_target:SetDisplayName(plotGroups:Get(0):Get(k):GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plotGroups:Get(0):Get(k):GetPlotArea())  
-                            next_target:SetParent(firstGroup)
-                            prev_target = next_target    
-                            ChartItem previous
-                            integer target_index = 0
-                            integer index = 1
-                            repeat while index < items:GetSize()
-                                ChartDrawable item = items:Get(index)
-                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                text Description = item:GetDescription()
-                      
-                                if Description not= ""
-                
-                                    ChartItem next
-                                    if target_index = 0
-                                        next_target:SetChild(next)
-                                    else
-                                        next:SetPrevious(previous)
-                                        previous:SetNext(next)
-                                    end
-                                    next:SetContainer(me)
-                                    next:SetDisplayName(item:GetName()) 
-                                    next:SetFocusTarget(item)
-                                    next:SetParent(next_target)
-                                    
-                                    previous = next
-                                    target_index = target_index+1 
-                                end
-                                index = index + 1
-                            end
-                            next_target:SetLastChild(previous)
-                            k = k + 1
-                        end
-                        firstGroup:SetLastChild(prev_target)
-                    end
-                end
-        
                 i = 1
-                ChartItem previousGroup = firstGroup
-                repeat while i < plotGroups:GetSize()
-                    ChartItem group
-                    group:SetContainer(me)
-                    group:SetParent(chartArea)
-                    group:SetFocusTarget(plotGroups:Get(i))
-                    previousGroup:SetNext(group)
-                    group:SetPrevious(previousGroup)
-                    previousGroup = group
-    
-                    //Plots within Plot Groups
-                    if plotGroups:Get(i):GetSize() > 0 
-                        ChartItem prev_target
-                        integer k = 0
-                        repeat while k < plotGroups:Get(i):GetSize()
-                            ChartItem next_target
-                            Array<ChartDrawable> items = plotGroups:Get(i):Get(k):GetPlotItems() //First plot
-                            if k = 0
-                                group:SetChild(next_target)
-                            else
-                                next_target:SetPrevious(prev_target)
-                                prev_target:SetNext(next_target)
-                            end
-    
-                            next_target:SetContainer(me)
-                            next_target:SetDisplayName(plotGroups:Get(i):Get(k):GetPlotArea():GetName()) 
-                            next_target:SetFocusTarget(plotGroups:Get(i):Get(k):GetPlotArea())  
-                            next_target:SetParent(group)
-                            prev_target = next_target      
-                            ChartItem previous
-                            integer target_index = 0
-                            integer index = 1
-                            repeat while index < items:GetSize()
-                                ChartDrawable item = items:Get(index)
-                                ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                                text Description = item:GetDescription()
-                      
-                                if Description not= ""
-                
-                                    ChartItem next
-                                    if target_index = 0
-                                        next_target:SetChild(next)
-                                    else
-                                        next:SetPrevious(previous)
-                                        previous:SetNext(next)
-                                    end
-                                    next:SetContainer(me)
-                                    next:SetDisplayName(item:GetName()) 
-                                    next:SetFocusTarget(item)
-                                    next:SetParent(next_target)
-                                    
-                                    previous = next
-                                    target_index = target_index+1 
-                                end
-                                index = index + 1
-                            end
-                            next_target:SetLastChild(previous)
-                            k = k + 1
-                        end
-                        group:SetLastChild(prev_target)
+                ChartItem previousArea = firstArea
+                repeat while i < GetNumberOfChartAreas()
+                    ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
+                    if chartSubArea:IsShowing()
+                        ChartItem nextArea = chartSubArea
+                        nextArea:SetContainer(me)
+                        nextArea:SetPreviousFocus(summary)
+                        nextArea:SetEscapeItem(chartArea)
+                        previousArea:SetRightItem(nextArea)
+                        nextArea:SetLeftItem(previousArea)
+                        previousArea = nextArea
+                        nextArea:SetDisplayName(chartSubArea:GetName())
+                        Array<ChartItem> chartSubAreaItems = chartSubArea:GetChartAreaItems()
+                        AddPlots(summary, nextArea, CastToPlots(chartSubAreaItems))
                     end
                     i = i + 1
                 end
-                chartArea:SetLastChild(previousGroup)
-            else
-                ChartItem prev_target
-                integer k = 0
-                repeat while k < plotGroups:GetSize()
-                    ChartItem next_target
-                    Array<ChartDrawable> items = plotGroups:Get(k):Get(0):GetPlotItems() //First plot
-                    if k = 0
-                        chartArea:SetChild(next_target)
-                    else
-                        next_target:SetPrevious(prev_target)
-                        prev_target:SetNext(next_target)
+            end
+        else
+            if HasGroups()
+                if plotGroups:GetSize() > 0
+                    ChartItem firstGroup = plotGroups:Get(0)
+                    firstGroup:SetContainer(me)
+                    firstGroup:SetPreviousFocus(summary)
+                    chartArea:SetEnterItem(firstGroup)
+                    firstGroup:SetEscapeItem(chartArea)
+                    firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
+                    AddPlots(summary, firstGroup, plotGroups:Get(0):GetPlots())
+
+                    i = 1
+                    ChartItem previousGroup = firstGroup
+                    repeat while i < plotGroups:GetSize()
+                        ChartItem group = plotGroups:Get(i)
+                        group:SetContainer(me)
+                        group:SetPreviousFocus(summary)
+                        group:SetEscapeItem(chartArea)
+                        group:SetDisplayName(plotGroups:Get(i):GetName())
+                        previousGroup:SetRightItem(group)
+                        group:SetLeftItem(previousGroup)
+                        previousGroup = group
+                        AddPlots(summary, group, plotGroups:Get(i):GetPlots())
+                        i = i + 1
                     end
-    
-                    next_target:SetContainer(me)
-                    next_target:SetDisplayName(plotGroups:Get(k):Get(0):GetPlotArea():GetName()) 
-                    next_target:SetFocusTarget(plotGroups:Get(k):Get(0):GetPlotArea())  
-                    next_target:SetParent(chartArea)
-                    prev_target = next_target      
-                    ChartItem previous
-                    integer target_index = 0
-                    integer index = 1
-                    repeat while index < items:GetSize()
-                        ChartDrawable item = items:Get(index)
-                        ChartDrawable lastItem = items:Get(items:GetSize() - 1)
-                        text Description = item:GetDescription()
-                
-                        if Description not= ""
-        
-                            ChartItem next
-                            if target_index = 0
-                                next_target:SetChild(next)
-                            else
-                                next:SetPrevious(previous)
-                                previous:SetNext(next)
-                            end
-                            next:SetContainer(me)
-                            next:SetDisplayName(item:GetName()) 
-                            next:SetFocusTarget(item)
-                            next:SetParent(next_target)
-                            
-                            previous = next
-                            target_index = target_index+1 
-                        end
-                        index = index + 1
-                    end
-                    next_target:SetLastChild(previous)
-                    k = k + 1
                 end
-                chartArea:SetLastChild(prev_target)
+            else
+                if plotGroups:GetSize() > 0 and plotGroups:Get(0):GetSize() > 0
+                    // Add LEFT/RIGHT navigation
+                    Plot firstPlot = plotGroups:Get(0):Get(0)
+                    AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
+                    firstPlot:SetDisplayName(firstPlot:GetName())
+                    firstPlot:SetContainer(me)
+                    firstPlot:SetPreviousFocus(summary)
+                    firstPlot:SetEscapeItem(chartArea)
+                    chartArea:SetEnterItem(firstPlot)
+            
+                    integer i = 1
+                    ChartItem previousPlot = firstPlot
+                    repeat while i < plotGroups:GetSize()
+                        if plotGroups:Get(i):GetSize() > 0
+                            Plot plot = plotGroups:Get(i):Get(0)
+                            AddPlotItems(summary, plot, plot:GetPlotItems())
+                            plot:SetDisplayName(plot:GetName())
+                            plot:SetContainer(me)
+                            plot:SetPreviousFocus(summary)
+                            plot:SetEscapeItem(chartArea)
+                            plot:SetLeftItem(previousPlot)
+                            previousPlot:SetRightItem(plot)
+                            previousPlot = plot
+                        end
+                        i = i + 1
+                    end
+        
+                    // Add UP/DOWN navigation
+                    PlotGroupComparison comparison
+                    comparison:SetAscending(true)
+                    Array<PlotGroup> sortUDPlots = plotGroups:CopyToArray()
+                    sortUDPlots:Sort(comparison)
+                    if sortUDPlots:Get(0):GetSize() > 0
+                        firstPlot = sortUDPlots:Get(0):Get(0)
+                        i = 1
+                        previousPlot = firstPlot
+                        repeat while i < sortUDPlots:GetSize()
+                            if sortUDPlots:Get(i):GetSize() > 0
+                                Plot plot = sortUDPlots:Get(i):Get(0)
+                                plot:SetDownItem(previousPlot)
+                                previousPlot:SetUpItem(plot)
+                                previousPlot = plot
+                            end
+                            i = i + 1
+                        end
+                    end
+                end
             end
         end
         
         ChartSelection selection = GetSelection()
         selection:Set(summary)
+    end
+
+    /* 
+        This action converts sub chart area chart items into an array of plots (if applicable). This is not directly handled by the user.
+    */
+    private action CastToPlots(Array <ChartItem> chartAreaItems) returns Array <Plot>
+        Array <Plot> plots
+        integer i = 0
+        repeat while i < chartAreaItems:GetSize()
+            if (chartAreaItems:Get(i) is Plot)
+                plots:Add(cast(Plot, chartAreaItems:Get(i)))
+            end
+            i = i + 1
+        end
+        return plots
+    end
+
+    /* 
+        This action sets the navigation within an array of plots. This is not directly handled by the user.
+    */
+    private action AddPlots(ChartItem summary, ChartItem parentItem, Array<Plot> plots)
+        if not plots:IsEmpty()
+            // Add LEFT/RIGHT navigation
+            Plot firstPlot = plots:Get(0)
+            AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
+            firstPlot:SetDisplayName(firstPlot:GetName())
+            firstPlot:SetContainer(me)
+            firstPlot:SetPreviousFocus(summary)
+            firstPlot:SetEscapeItem(parentItem)
+            parentItem:SetEnterItem(firstPlot)
+    
+            integer i = 1
+            ChartItem previousPlot = firstPlot
+            repeat while i < plots:GetSize()
+                Plot plot = plots:Get(i)
+                AddPlotItems(summary, plot, plot:GetPlotItems())
+                plot:SetDisplayName(plot:GetName())
+                plot:SetContainer(me)
+                plot:SetPreviousFocus(summary)
+                plot:SetEscapeItem(parentItem)
+                plot:SetLeftItem(previousPlot)
+                previousPlot:SetRightItem(plot)
+                previousPlot = plot
+                i = i + 1
+            end
+
+            // Add UP/DOWN navigation
+            PlotComparison comparison
+            comparison:SetAscending(true)
+            Array<Plot> sortUDPlots = plots:CopyToArray()
+            sortUDPlots:Sort(comparison)
+            firstPlot = sortUDPlots:Get(0)
+            i = 1
+            previousPlot = firstPlot
+            repeat while i < sortUDPlots:GetSize()
+                Plot plot = sortUDPlots:Get(i)
+                plot:SetDownItem(previousPlot)
+                previousPlot:SetUpItem(plot)
+                previousPlot = plot
+                i = i + 1
+            end
+        end
+    end
+
+    /* 
+        This action sets the plot summary items' navigation. This is not directly handled by the user.
+    */
+    private action AddPlotItems(ChartItem summary, ChartItem parentItem, Array <ChartDrawable> items)
+        if not items:IsEmpty()
+            // Add LEFT/RIGHT navigation
+            ChartDrawable firstItem = items:Get(0)
+            text description = firstItem:GetDescription() 
+            integer i = 0
+            repeat while description = "" and i < items:GetSize()
+                firstItem = items:Get(i)
+                description = firstItem:GetDescription()   
+                i = i + 1
+            end
+            firstItem:SetDisplayName(firstItem:GetName())
+            firstItem:SetContainer(me)
+            firstItem:SetPreviousFocus(summary)
+            firstItem:SetEscapeItem(parentItem)
+            parentItem:SetEnterItem(firstItem)
+    
+            ChartItem previousItem = firstItem
+            repeat while i < items:GetSize()
+                ChartDrawable item = items:Get(i)
+                description = item:GetDescription() 
+                if description not= ""
+                    item:SetDisplayName(item:GetName())
+                    item:SetContainer(me)
+                    item:SetPreviousFocus(summary)
+                    item:SetEscapeItem(parentItem)
+                    item:SetLeftItem(previousItem)
+                    previousItem:SetRightItem(item)
+                    item:SetDownItem(previousItem)
+                    previousItem:SetUpItem(item)
+                    previousItem = item
+                end
+                i = i + 1
+            end
+        end
     end
 
     /* 
@@ -906,7 +911,77 @@ class ViolinPlot is Chart
         if file:GetFileExtension() = "svg"
             ViolinPlotWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            ViolinPlotWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
+        end
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
+    end
+
+    /*
+    This action generates the instruction text for a chart item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartItemInstructions(Item chartItem, text description)
+
+        description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in list order," 
+        description = description + " use Page Up Down to move between " + GetChartItemsText() + " by median value order,"
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " use Shift + Enter to return to the chart area."
+        else
+            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+        end
+        chartItem:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a plot item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddPlotItemInstructions(Item chartItem, text description)
+        description = description + " To navigate the list of plot summary items, use the arrow keys to move between plot summary items in list order," 
+        description = description + " use Shift + Enter to return to the " + GetChartItemsText() + " list."
+        chartItem:SetDescription(description)
     end
 
 end

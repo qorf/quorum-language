@@ -68,6 +68,12 @@ class DrawableShape
     // A specialized mesh used to render this shape. If this shape is just a rectangle, this is left undefined, and the Painter2D uses its default mesh instead.
     Mesh mesh = undefined
 
+    /*
+    A constant value added before integer truncating position values.
+    This applies slight up-rounding to position values to correct for
+    floating point errors.
+    */
+    constant number PIXEL_SNAP_THRESHOLD = 0.01
 
     action LoadRectangle(number width, number height)
         LoadRectangle(width, height, 0, 1, 0, 1)
@@ -627,8 +633,8 @@ class DrawableShape
             integer baseIndex = 0
 
             repeat while i < vertices:GetSize()
-                vertices:Set(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX))
-                vertices:Set(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY))
+                vertices:Set(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
+                vertices:Set(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
                 vertices:Set(i + Z_OFFSET, negatedZ)
 
                 baseIndex = baseIndex + 2
@@ -739,7 +745,10 @@ class DrawableShape
         if mesh not= undefined
             mesh:GetVertexData():SetVertices(vertices)
         elseif drawable not= undefined and drawable:GetMesh() not= undefined
-            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex(), vertices)
+            // TO-DO: Review the transformation between index and vertices.
+            // Here we multiply by 4 (a default quad takes 6 indices to render, and 24 vertices across those 6 indices).
+            // This value likely needs to change if we adjust the vertices/indices for custom objects.
+            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex() * 4, vertices)
         end
     end
 

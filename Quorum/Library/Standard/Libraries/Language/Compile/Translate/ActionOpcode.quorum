@@ -82,26 +82,40 @@ class ActionOpcode is QuorumOpcode
             return now
         end
 
+        //follow the standard procedure for system calls, with the exception of Object, which we inline
         if method:IsSystem()
-            methodWriter:VisitCode()
-            methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
-            methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
-                clazz:GetPluginName(), clazz:ConvertStaticKeyToPluginPathTypeName())
-
-            Iterator<Variable> parameters = method:GetParameterIterator()
-            integer position = 1
-            repeat while parameters:HasNext()
-                Variable param = parameters:Next()
-                Type type = param:GetType()
-                methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
-                position = position + type:GetBytecodeSize()
+            //objects are special, for efficiency
+            if not clazz:IsObject()
+                methodWriter:VisitCode()
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                methodWriter:VisitField(opcodes:GetField(), clazz:ConvertStaticKeyToBytecodePath(),
+                    clazz:GetPluginName(), clazz:ConvertStaticKeyToPluginPathTypeName())
+    
+                Iterator<Variable> parameters = method:GetParameterIterator()
+                integer position = 1
+                repeat while parameters:HasNext()
+                    Variable param = parameters:Next()
+                    Type type = param:GetType()
+                    methodWriter:VisitVariable(opcodes:GetLoadOpcode(type), position)
+                    position = position + type:GetBytecodeSize()
+                end
+    
+                methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                    clazz:ConvertStaticKeyToPluginPath(), method:GetName(), 
+                    method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
+    
+                methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+            else
+                if method:GetStaticKey() = "GetHashCode" //inline this action
+                    methodWriter:VisitCode()
+                    methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+                    methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
+                        "quorum/Libraries/Language/Object", "hashCode", 
+                        "()I", false)
+                    methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+                end
             end
-
-            methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
-                clazz:ConvertStaticKeyToPluginPath(), method:GetName(), 
-                method:ConvertActionToBytecodeParameterInterfaceSignature(), false)
-
-            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(method:GetReturnType()))
+            
         elseif method:IsBlueprint()
             methodWriter:VisitCode()
 
@@ -206,18 +220,24 @@ class ActionOpcode is QuorumOpcode
         end
 
         if method:IsSystem() //write to a Javascript plugin
-            result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
-                + "("
-            parameters = method:GetParameterIterator()
-            repeat while parameters:HasNext()
-                Variable param = parameters:Next()
-                result = result + param:GetJavaScriptName()
-                if parameters:HasNext()
-                    result = result + ", "
+            if not clazz:IsObject()
+                result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+                    + "("
+                parameters = method:GetParameterIterator()
+                repeat while parameters:HasNext()
+                    Variable param = parameters:Next()
+                    result = result + param:GetJavaScriptName()
+                    if parameters:HasNext()
+                        result = result + ", "
+                    end
+                end
+    
+                result = result + ");" + EOL
+            else
+                if method:GetStaticKey() = "GetHashCode" //inline this action
+                    result = result + "return this.myHash;" + EOL
                 end
             end
-
-            result = result + ");" + EOL
         elseif method:IsBlueprint()
             result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
                 + "("

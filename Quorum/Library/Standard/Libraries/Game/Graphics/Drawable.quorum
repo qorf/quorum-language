@@ -1392,9 +1392,10 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action LoadFilledRectangle(integer width, integer height, ColorGroup color)
-        Texture temp
-        temp:LoadFilledRectangle(width, height)
+        SharedTextureManager manager
+        Texture temp = manager:GetUnitTexture()
         Load(temp)
+        SetSize(width, height)
         SetColor(color)
 
         SceneProperties properties

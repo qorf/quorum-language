@@ -27,19 +27,17 @@ Boolean.prototype.Equals$quorum_Libraries_Language_Object = function (value) {
 };
 
 Boolean.prototype.Compare$quorum_Libraries_Language_Object = function(value) {
-    var result = new quorum_Libraries_Language_Support_CompareResult_();
     var b = global_CheckCast(value, "Libraries.Language.Types.Boolean");
     
     var me = this.valueOf();
     var other = b.GetValue();
     if ((me == other)) {
-        result.result = result.EQUAL;
+        return 0;
     }
     else if ((me < other)) {
-        result.result = result.SMALLER;
+        return -1;
     }
     else {
-        result.result = result.LARGER;
+        return 1;
     }
-    return result;
 };

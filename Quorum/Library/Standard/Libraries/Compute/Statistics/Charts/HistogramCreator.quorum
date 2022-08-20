@@ -73,7 +73,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while n < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(n))
            if not column:IsNumberColumn()
-                alert("HistogramCreator does not support text columns. " + column:GetHeader() + " is a text column.")
+                alert("HistogramCreator requires columns have number values. " + column:GetHeader() + " does not.")
                 return undefined
             end
             chart:GetColumns():Add(column)
@@ -82,6 +82,11 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
             end
             InterQuartileRange range
             column:Calculate(range)
+            if n = 0
+                min = range:GetMinimum()
+                max = range:GetMaximum()
+            end
+
             if(range:GetMinimum() < min)
                 min = range:GetMinimum()
             end

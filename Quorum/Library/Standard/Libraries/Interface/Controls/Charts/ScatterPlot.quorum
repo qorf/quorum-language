@@ -4,8 +4,9 @@ use Libraries.Interface.Layouts.ScatterPlotLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.Gradient
 use Libraries.System.File
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 
 /*
     The ScatterPlot class is Chart object that inherits from TwoVariableChart and like other
@@ -33,6 +34,16 @@ use Libraries.System.File
     end
 */
 class ScatterPlot is TwoVariableChart
+    // Terminology for navigation instructions
+    private text groupText = "series"
+    private text groupsText = "series"
+    private text chartItemText = "point"
+    private text chartItemsText = "points"
+
+    Array<ResidualSquare> residualSquares
+    boolean showSquaresOfResiduals = false
+    number residualSquareThickness = 1.2
+
     on create
         ScatterPlotLayout layout
         SetLayout(layout)
@@ -44,14 +55,6 @@ class ScatterPlot is TwoVariableChart
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
-        Color color
-        Gradient gradient
-        Color gray = color:LightGray()
-        Color lightGray = color:CustomColor(0.9, 0.9, 0.9, 1)
-        gradient:Set(gray, gray, lightGray, lightGray)
-
-        properties:SetBackgroundColor(gradient)
-        properties:SetBorderColor(color:Black())
         properties:SetBorderThickness(2)
         SetName("Scatter Plot")
 
@@ -77,9 +80,9 @@ class ScatterPlot is TwoVariableChart
             pointText = "point"
         end
         if GetName() = "Scatter Plot"
-            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + points + " " + pointText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         else
-            SetDescription("Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate the chart.")
+            SetDescription(", Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
         return GetDescription()
     end
@@ -121,7 +124,180 @@ class ScatterPlot is TwoVariableChart
         if file:GetFileExtension() = "svg"
             ScatterPlotWriter chartWriter
             chartWriter:WriteOutChart(me,file)
+        else
+           alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
         end
     end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Hypertext Markup Language (HTML) is currently
+        supported, and Scalable Vector Graphics (SVG) conversion is used. This makes a file that can
+        be opened in the browser that imports the Javascript and Cascading Stylesheets necessary
+        to navigate the charts accessibly on the web.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Share(File file)
+        if file:GetFileExtension() = "html"
+            ScatterPlotWriter chartWriter
+            chartWriter:WriteOutHTML(me,file)
+        else
+            alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
+        end
+    end
+
+    /*
+    This action generates the instruction text for a sub chart area description.
+
+    Attribute: Parameter subChartArea The sub chart area that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
+        //Separated, by the Factor levels with multiple Series per subplot
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Escape to return to the chart area."
+        //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " To navigate the list of " + GetSeriesText() + ", use the arrow keys to move between " + GetSeriesText() + " in list order,"
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Escape to return to the chart area."
+        end
+        subChartArea:SetDescription(description)
+    end
+
+    /*
+    This action generates the instruction text for a chart item description.
+
+    Attribute: Parameter chartItem The chart item that will have the instructions
+    Attribute: Parameter description The base portion of the description that will appear before the instructions
+    */
+    action AddChartItemInstructions(Item chartItem, text description)
+
+        description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in value order on the X axis," 
+        description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order on the Y axis,"
+
+        if IsShowingLinearRegression()
+            description = description + " use Enter to view the regression,"
+        end
+
+        if not IsSeparatedBySeries() and IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " use Escape to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " use Escape to return to the chart area."
+        else
+            description = description + " use Escape to return to the " + GetGroupText() + " list."
+        end
+        chartItem:SetDescription(description)
+    end
+
+    action GetGroupText returns text
+        return groupText
+    end
+
+    action GetGroupsText returns text
+        return groupsText
+    end
+
+    action GetChartItemText returns text
+        return chartItemText
+    end
+
+    action GetChartItemsText returns text
+        return chartItemsText
+    end
+
+    /*
+    This action returns true if squares of residuals are being displayed in the chart,
+    or false if they are not. 
+    
+    Attribute: Returns True if residual squares are showing, or false otherwise.
+    */
+    action IsShowingSquaresOfResiduals returns boolean
+        return showSquaresOfResiduals
+    end
+
+    /*
+    This action enables or disables the visual squares of residuals within the interactive chart.
+    These appear as squares between points and the regression line, if the line is visible.
+
+    Attribute: Parameter showSquaresOfResiduals True to show residual squares, or false to hide them.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action ShowSquaresOfResiduals(boolean showSquaresOfResiduals)
+        integer i = 0
+        repeat while i < residualSquares:GetSize()
+            if showSquaresOfResiduals
+                residualSquares:Get(i):Show()
+            else
+                residualSquares:Get(i):Hide()
+            end
+            i = i + 1
+        end
+
+        me:showSquaresOfResiduals = showSquaresOfResiduals
+    end
+
+    action GetResidualSquares returns Array<ResidualSquare>
+        return residualSquares
+    end
+
+    /*
+    This action returns how thick the borders of the residual squares should be, in pixels.
+
+    Attribute: Parameter Returns How thick, in pixels, each side of the squares should be.
+    */
+    action GetResidualSquareThickness returns number
+        return residualSquareThickness
+    end
+
+    /*
+    This action sets how thick the borders of the residual squares should be, in pixels.
+
+    Attribute: Parameter residualSquareThickness How thick, in pixels, each side of the squares should be.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+    
+    DataFrame frame
+    frame:Load("Data/ChartTestData.csv")
+    frame:AddSelectedColumns("Column1")
+    frame:AddSelectedColumns("Column2")
+    frame:AddSelectedFactors("Factor1")
+    
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("ScatterPlot Feature Example")
+    chart:SetSubtitle("Two Columns - One Factor")
+    chart:ShowLinearRegression(true)
+    chart:ShowSquaresOfResiduals(true)
+    chart:SetMovableRegressionLines(true)
+    chart:SetResidualSquareThickness(2)
+    chart:LockRegressionYIntercept(0)
+    chart:Display(1200, 1200)
+    */
+    action SetResidualSquareThickness(number residualSquareThickness)
+        me:residualSquareThickness = residualSquareThickness
+    end
+
 end
 

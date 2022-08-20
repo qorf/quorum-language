@@ -153,19 +153,18 @@ Number.prototype.GetMinimumValue$IntegerPrimitive = function() {
   return  -2147483648;
 };
 Number.prototype.Compare$quorum_Libraries_Language_Object$IntegerPrimitive = function(value) {
-    var result = new quorum_Libraries_Language_Support_CompareResult_();
     var b = global_CheckCast(value, "Libraries.Language.Types.Integer");
     
     var me = this.valueOf();
     var other = b.GetValue();
     if ((me == other)) {
-        result.result = result.EQUAL;
+        return 0;
     }
     else if ((me < other)) {
-        result.result = result.SMALLER;
+        return -1;
     }
     else {
-        result.result = result.LARGER;
+        return 1;
     }
     return result;
 };

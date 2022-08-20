@@ -38,7 +38,7 @@ void main()
     float angle = atan(x, y);
     if (angle < 0.0)
         angle = PI + (PI + angle);
-    angle = angle / (2 * PI);
+    angle = angle / (2.0 * PI);
 
     if (angle < u_minAngle || angle > u_maxAngle || length < u_innerRadius || length > u_outerRadius)
         outputColor = vec4(0.0);

@@ -112,7 +112,7 @@ class GraphicsManager
     using the given source code. If the shader code successfully compiles, this action will return an integer ID
     representing that shader. If the shader can't be created or it does not successfully compile, this will alert an error.
     */
-    blueprint action CreateShader(integer shaderType, text sourceCode) returns integer
+    blueprint action CreateShader(integer shaderType, text sourceCode, text shaderName) returns integer
 
     /*
     This action returns log information for a shader program, or the empty string if no log information is available.

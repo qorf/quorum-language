@@ -203,6 +203,38 @@ class Vector
         end
         return sum
     end
+
+    /*
+        This action calculates the euclidian distance between two vectors. 
+
+        Attribute: vector The vector to dot product with
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+
+        Vector vector2
+        vector2:SetSize(3)
+        output vector:Distance(vector2) //0
+    */
+    action Distance(Vector vector) returns number
+        if GetSize() not= vector:GetSize()
+            alert(ERROR)
+        end
+
+        number distance = 0
+        i = 0
+        repeat while i < GetSize()
+            number sub = Get(i) - vector:Get(i)
+            distance = distance + (sub * sub)
+            i = i + 1
+        end
+        Math math
+        return math:SquareRoot(distance)
+    end
+
     /*
         This action returns a copy of the current vector. The new vector's
         components are a deep copy.

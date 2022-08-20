@@ -57,6 +57,7 @@ class ControlShaderMapping is ShaderMapping
         number aspectRatio = width / height
 
         boolean selected = false
+        boolean renderBorders = false
 
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
@@ -67,17 +68,23 @@ class ControlShaderMapping is ShaderMapping
         if drawable:GetShaderData() is LayoutProperties
             LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
             
-            if properties:HasLeftBorder()
-                leftBorder = 1.0
-            end
-            if properties:HasTopBorder()
-                topBorder = 1.0
-            end
-            if properties:HasRightBorder()
-                rightBorder = 1.0
-            end
-            if properties:HasBottomBorder()
-                bottomBorder = 1.0
+            if properties:GetBorderThickness() > 0
+                if properties:HasLeftBorder()
+                    renderBorders = true
+                    leftBorder = 1.0
+                end
+                if properties:HasTopBorder()
+                    renderBorders = true
+                    topBorder = 1.0
+                end
+                if properties:HasRightBorder()
+                    renderBorders = true
+                    rightBorder = 1.0
+                end
+                if properties:HasBottomBorder()
+                    renderBorders = true
+                    bottomBorder = 1.0
+                end
             end
 
             bottomLeftRounding = properties:GetBottomLeftRounding()
@@ -110,17 +117,23 @@ class ControlShaderMapping is ShaderMapping
             end
 
             if control not= undefined
-                if control:HasLeftBorder()
-                    leftBorder = 1.0
-                end
-                if control:HasTopBorder()
-                    topBorder = 1.0
-                end
-                if control:HasRightBorder()
-                    rightBorder = 1.0
-                end
-                if control:HasBottomBorder()
-                    bottomBorder = 1.0
+                if control:GetBorderThickness() > 0
+                    if control:HasLeftBorder()
+                        renderBorders = true
+                        leftBorder = 1.0
+                    end
+                    if control:HasTopBorder()
+                        renderBorders = true
+                        topBorder = 1.0
+                    end
+                    if control:HasRightBorder()
+                        renderBorders = true
+                        rightBorder = 1.0
+                    end
+                    if control:HasBottomBorder()
+                        renderBorders = true
+                        bottomBorder = 1.0
+                    end
                 end
     
                 bottomLeftRounding = control:GetBottomLeftRounding()
@@ -191,6 +204,7 @@ class ControlShaderMapping is ShaderMapping
         program:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
         program:SetShaderInput("u_borderThickness", borderThickness)
         program:SetShaderInput("u_antiAliasDistance", 1.0 / height)
+        program:SetShaderInput("u_renderBorders", renderBorders)
 
         if borderColor not= undefined
             Color border = borderColor:GetBottomLeft()

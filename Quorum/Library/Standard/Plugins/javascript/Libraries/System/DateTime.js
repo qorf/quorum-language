@@ -41,22 +41,22 @@ function plugins_quorum_Libraries_System_DateTime_() {
         if(this.now) {
             this.date = new Date();
         }
-        return this.date.getHour();
+        return this.date.getHours();
     };  
     
     this.GetMinute = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return this.date.getMinute();
+        return this.date.getMinutes();
     };  
     
     this.GetSecond = function () {
         if(this.now) {
             this.date = new Date();
         }
-        return this.date.getSecond();
-    };  
+        return this.date.getSeconds();
+    }; 
     
     this.GetTimeZone = function () {
         if(this.now) {
