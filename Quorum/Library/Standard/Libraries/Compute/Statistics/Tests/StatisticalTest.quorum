@@ -1,9 +1,76 @@
 package Libraries.Compute.Statistics.Tests
 
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.Reporting.StatisticalTestResult
 
-class StatisticalTest
+class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
     StatisticsFormatting formatting
+
+    number significanceLevel = 0.05
+
+    action Calculate(DataFrame frame) 
+        /* 
+            With most of these tests we want to make sure there are no undefined values.
+            Since there are several ways to call this action, let's empty and reload 
+            the selected columns here to ensure we remove all of the undesired rows.
+
+            This is necessary since the mean, variance and other values of each 
+            column are calculated independently and these values impact the results of this test.
+
+            Some tests may need to keep all undefined values, for those this action will be overridden
+            in those specific tests.
+        */
+        frame:EmptySelectedColumns()
+        i = 0
+        repeat while i < GetColumnSize()
+            frame:AddSelectedColumn(GetColumn(i))
+            i = i + 1
+        end
+        DataFrame cleanFrame = frame:RemoveUndefinedRowsFromSelectedColumns()    
+
+        if GetFactorSize() > 0
+            if GetFactorSize() = 1
+                CalculateByFactor(cleanFrame, GetFactor(0)) // Separate and run each based on factor
+            else
+                alert("Only one factor allowed right now.")
+            end
+        else
+            RunTest(cleanFrame)
+        end
+    end
+
+    /*
+        This action takes a DataFrame and a DataFrameColumn (factor) and separates that frame 
+        into smaller DataFrames. One DataFrame for each unique item in the selected factor.
+    */
+    private action CalculateByFactor(DataFrame frame, integer factorIndex) 
+        DataFrameColumn factor = frame:GetColumn(factorIndex):Copy(true,true)
+        integer i = 0
+        repeat while i < factor:GetSize()
+            text header = factor:GetHeader()
+            text dq = header:GetDoubleQuote()
+            DataFrame newFrame     
+
+            if factor:IsNumberColumn() or factor:IsIntegerColumn()
+                newFrame = frame:Copy(header+"="+factor:GetAsNumber(i))
+            elseif factor:IsDateTimeColumn()
+                alert("Dataframe factor by datetime doesn't seem to work right now.")
+                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
+            elseif factor:IsBooleanColumn()
+                newFrame = frame:Copy(header+"="+factor:GetAsBoolean(i))
+            else
+                newFrame = frame:Copy(header+"="+dq+factor:GetAsText(i)+dq)
+            end
+
+            RunTest(newFrame)
+            i = i + 1
+        end
+    end
 
     action GetStatisticalFormatting returns StatisticsFormatting
         return formatting
@@ -12,4 +79,26 @@ class StatisticalTest
     action SetStatisticalFormatting(StatisticsFormatting formatting)
         me:formatting = formatting
     end
+
+    /*
+        Obtains the significance level.
+
+        Attribute: Returns the significance level.
+    */
+    action GetSignificanceLevel returns number
+        return significanceLevel
+    end
+
+    /*
+        Sets the significance level of the test (default is 0.05).
+
+        Attribute: Parameter significanceLevel the significance level between 0 and 1.
+    */
+    action SetSignificanceLevel(number significanceLevel)
+        if significanceLevel >= 0 and significanceLevel <= 1
+            me:significanceLevel = significanceLevel
+        end
+    end
+
+    private blueprint action RunTest(DataFrame frame) 
 end

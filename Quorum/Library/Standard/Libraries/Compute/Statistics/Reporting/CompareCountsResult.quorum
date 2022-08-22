@@ -190,18 +190,18 @@ class CompareCountsResult is StatisticalTestResult, ColumnInput
 
         if goodnessOfFit
             if factor = ""
-                summary = summary + "A "+ GetFormalTestName() + " was performed to determine whether the proportion of " 
+                summary = summary + "A "+ GetFormalTestName() + " was performed to determine whether the distribution of " 
                                   + variable1 + " was equal between " + GetObserved():GetColumn(0):GetSize() + " categories."
             else
-                summary = summary + "A "+ GetFormalTestName() + " was performed on " + factor + " to determine whether the proportion of " 
+                summary = summary + "A "+ GetFormalTestName() + " was performed on " + factor + " to determine whether the distribution of " 
                                   + variable1 + " was equal between " + GetObserved():GetColumn(0):GetSize() + " categories."
             end
             if GetProbabilityValue() <= GetSignificanceLevel()
                 //P-value ≤ α: The variables have a statistically significant association (Reject H0)
-                summary = summary + lf + "The proportions did differ by " + variable1
+                summary = summary + lf + "The distributions did differ by " + variable1
             else
                 //P-value > α: Cannot conclude that the variables are associated (Fail to reject H0)
-                summary = summary + lf + "The proportions did not differ by " + variable1
+                summary = summary + lf + "The distributions did not differ by " + variable1
             end
         else
             if factor = ""

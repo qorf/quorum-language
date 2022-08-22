@@ -1,7 +1,5 @@
 package Libraries.Compute.Statistics.Tests
 
-use Libraries.Compute.Statistics.Inputs.ColumnInput
-use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Compute.Statistics.Tests.StatisticalTest
 use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrameColumn
@@ -46,12 +44,9 @@ use Libraries.Compute.Matrix
     output compare:GetSummary()      
 */
 
-class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
+class CompareCounts is StatisticalTest
     /* The distribution used to calculate the p-value from x2 and df.*/
     ClassificationDistribution distribution
-
-    /* A flag that just stores if this calculates only one result. */
-    boolean oneResult = false
 
     /* A flag to let the user know approximation may be incorrect due to low counts. */
     boolean approximationWarning = false
@@ -65,54 +60,15 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
 
     Math math
 
-    action Calculate(DataFrame frame) 
+    private action RunTest(DataFrame frame)
         if GetColumnSize() < 1
             alert("Must include at least one column.")
         end
-        if GetFactorSize() > 0
-            if GetFactorSize() = 1
-                CalculateByFactor(frame) // Separate and run each based on factor
-            else
-                alert("Only one factor allowed right now.")
-            end
+
+        if GetColumnSize() = 1
+            GoodnessOfFit(frame)
         else
-            if GetColumnSize() = 1
-                GoodnessOfFit(frame)
-            else
-                TestOfIndependence(frame)
-            end
-        end
-    end
-
-    /*
-        This action takes a DataFrame and a DataFrameColumn (factor) and separates that frame 
-        into smaller DataFrames. One DataFrame for each unique item in the selected factor.
-    */
-    private action CalculateByFactor(DataFrame frame) 
-        DataFrameColumn factor = frame:GetColumn(GetFactor(0)):Copy(true,true)
-        integer i = 0
-        repeat while i < factor:GetSize()
-            text header = factor:GetHeader()
-            text dq = header:GetDoubleQuote()
-            DataFrame newFrame     
-
-            if factor:IsNumberColumn() or factor:IsIntegerColumn()
-                newFrame = frame:Copy(header+"="+factor:GetAsNumber(i))
-            elseif factor:IsDateTimeColumn()
-                alert("Dataframe factor by datetime seems to not work right now.")
-                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
-            elseif factor:IsBooleanColumn()
-                newFrame = frame:Copy(header+"="+factor:GetAsBoolean(i))
-            else
-                newFrame = frame:Copy(header+"="+dq+factor:GetAsText(i)+dq)
-            end
-
-            if GetColumnSize() = 1
-                GoodnessOfFit(newFrame)
-            else
-                TestOfIndependence(newFrame)
-            end        
-            i = i + 1
+            TestOfIndependence(frame)
         end
     end
 
@@ -167,9 +123,7 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                 result:SetProbabilityValue(p)
                 result:SetGoodnessOfFit(true)
                 result:SetVariable1(variable)
-                if factor not= ""
-                    result:SetFactor(factor)
-                end
+                result:SetFactor(factor)
                 result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
                 result:SetSampleSize(frame:GetColumn(GetColumn(i)):GetSize())
                 result:AddColumn(i)
@@ -477,9 +431,7 @@ class CompareCounts is DataFrameCalculation, StatisticalTest, ColumnInput, Facto
                     result:SetProbabilityValue(p)
                     result:SetVariable1(left:GetHeader())
                     result:SetVariable2(right:GetHeader())
-                    if factor not= ""
-                        result:SetFactor(factor)
-                    end
+                    result:SetFactor(factor)
                     result:SetSampleSize(left:GetSize())
                     result:SetFormalTestName("Pearson's Chi-Squared Test of Independence")
                     if approximationWarning

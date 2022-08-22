@@ -45,10 +45,10 @@ class TwoColumnTest is Test
         tests:AddColumn(1)
         tests:Calculate(frame)
 
-        Check(tests:GetCriticalValue(), -1.85164019954510284)
-        Check(tests:GetProbabilityValue(), 0.093792551579223227)
-        Check(tests:GetDegreesOfFreedom(), 10.0000000000000018)
-        Check(tests:GetMean1(), 3.5)
-        Check(tests:GetMean2(), 5.5)
+        Check(tests:GetResult():GetCriticalValue(), -1.85164019954510284)
+        Check(tests:GetResult():GetProbabilityValue(), 0.093792551579223227)
+        Check(tests:GetResult():GetDegreesOfFreedom(), 10.0000000000000018)
+        Check(tests:GetResult():GetMean1(), 3.5)
+        Check(tests:GetResult():GetMean2(), 5.5)
     end
 end

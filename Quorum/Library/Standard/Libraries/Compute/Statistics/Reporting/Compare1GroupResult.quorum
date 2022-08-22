@@ -1,0 +1,97 @@
+package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Compute.Math
+
+/*
+    This class represents data that comes back from a one sample t-test 
+    in CompareGroups/CompareGroupToMean.
+
+    Attribute: Author Hannah Williams
+*/
+class Compare1GroupResult is Compare2GroupsResult
+    /*
+        This action summarizes the result and lists it informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        text sample1 = ""
+        if GetGroups():GetSize() > 0
+            sample1 = GetGroups():Get(0):GetHeader()
+        end
+
+        summary = summary + "A "+ GetFormalTestName() + " was conducted to compare "+ sample1 +" to a mean of " + GetMean2()
+        if GetFactor() not= ""
+            summary = summary + lf + "Factor: " + GetFactor()
+        end
+
+        summary = summary + lf + "Mean of " + sample1 + ": " + GetMean1()
+
+        summary = summary + lf + "Statistic (t): " + GetTestStatistic()
+
+        summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
+
+        summary = summary + lf + "Probability: " + GetProbabilityValue()
+
+        if GetEffectSizeName() not= ""
+            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + GetEffectSize()
+        end
+
+        if GetProbabilityValue() < 0.05
+            summary = summary + lf + "The difference between the "+ sample1 +" mean and the passed mean did not appear to be random chance."
+        elseif GetProbabilityValue() >= 0.05 and GetProbabilityValue() < 0.2
+            summary = summary + lf + "It was unclear whether or not the difference was due to random chance"
+        else
+            summary = summary + lf + "Very little difference was observed between the means"
+        end
+
+        if GetEffectSize() > 1
+            summary = summary + lf + "The size of the difference between the means was greater than a standard deviation."
+        else 
+            summary = summary + lf + "The size of the difference between the means was less than a standard deviation."
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        Math math
+        text m1 = GetFormat():FormatTestStatistic(GetMean1())
+        text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance1()))
+        text m2 = GetFormat():FormatTestStatistic(GetMean2())
+
+        if GetGroups():GetSize() > 0
+            text sample1 = GetGroups():Get(0):GetHeader()
+            if GetFactor() = ""
+                summary = summary + "A " + GetFormalTestName() + " was conducted to compare " + sample1 + " to a mean of " + m2 + ". " + lf
+            else
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " to compare " + sample1 + " to a mean of " + m2 + ". " + lf
+            end
+            if GetMean1() > GetMean2()
+                summary = summary + sample1 + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ")" 
+            else
+                summary = summary + sample1 + " had a lower overall mean (M = " + m1 + ", SD = " + sd1 + ")"
+            end
+        end
+
+        summary = summary + ", t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        number p = GetProbabilityValue()
+        if p < GetFormat():PRECISION_LIMIT
+            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+        else
+            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+        end
+        summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize()) + "."
+        return summary
+    end
+end

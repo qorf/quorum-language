@@ -2,13 +2,12 @@ package Libraries.Compute.Statistics.Reporting
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 
 /*
-    This class represents data that comes back from a CorrelateGroups or CorrelateRanks calculation (Pearson correlation).
+    This class represents data that comes back from a CorrelateGroups or 
+    CorrelateRanks calculation (Pearson or Spearman correlation).
 
-    Attribute: Author Andreas Stefik
+    Attribute: Author Andreas Stefik, Hannah Williams
 */
 class CorrelateGroupsResult is StatisticalTestResult, ColumnInput
-//    integer leftIndex = 0
-//    integer rightIndex = 0
     number correlation = 0
     boolean spearman = false
     boolean rankTieWarning = false 
@@ -33,42 +32,6 @@ class CorrelateGroupsResult is StatisticalTestResult, ColumnInput
     action SetCorrelation(number correlation)
         me:correlation = correlation
     end
-
-//    /*
-//        This indicates the left column index
-//
-//        Attribute: Returns the left index
-//    */
-//    action GetLeftIndex returns integer
-//        return leftIndex
-//    end
-//
-//    /*
-//        This sets the left column index
-//
-//        Attribute: Parameter leftIndex the left index
-//    */
-//    action SetLeftIndex(integer leftIndex)
-//        me:leftIndex = leftIndex
-//    end
-//
-//    /*
-//        This indicates the right column index
-//
-//        Attribute: Returns the right index
-//    */
-//    action GetRightIndex returns integer
-//        return rightIndex
-//    end
-//
-//    /*
-//        This sets the right column index
-//
-//        Attribute: Parameter rightIndex the right index
-//    */
-//    action SetRightIndex(integer rightIndex)
-//        me:rightIndex = rightIndex
-//    end
 
     /*
         Sets the first column used in this calculation.
@@ -104,15 +67,6 @@ class CorrelateGroupsResult is StatisticalTestResult, ColumnInput
     */
     action SetSpearman(boolean spearman)
         me:spearman = spearman
-    end
-
-    /*
-        Sets the warning flag for the test. Only applicable for CorrelateRank (spearman) tests
-
-        Attribute: Parameter warning is true if ranking ties may cause p-value to be incorrect.
-    */
-    action SetRankTiesWarningFlag(boolean flag)
-        me:rankTieWarning = flag
     end
 
     /*

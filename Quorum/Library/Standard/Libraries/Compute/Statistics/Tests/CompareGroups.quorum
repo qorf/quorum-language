@@ -11,62 +11,134 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
-use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
 use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
+use Libraries.Compute.Statistics.Reporting.Compare1GroupResult
+use Libraries.Compute.Statistics.Reporting.Compare2GroupsResult
+use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
-    This class implements a one-sample t-test. For more information, see
-    this: https://en.wikipedia.org/wiki/Student%27s_t-test
+    This class implements several tests
+        Compare1Group is a one sample t-test. 
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
-    Attribute: Author Andreas Stefik
+        Compare2Groups is a two sample unpaired/paired t-test. 
+        For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test
+
+        Compare2Groups is a two sample equal variance unpaired t-test
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
+
+        CompareNGroups is a one-way analysis of variance (ANOVA). 
+        For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
+
+    It was adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library and add a variety of helper actions that were missing.
+    More information about this class can be found on its documentation page OneWayAnova and TTest:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+
+    Attribute: Author Andreas Stefik, Hannah Williams
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Tests.CompareTwoColumns
+    use Libraries.Compute.Statistics.Tests.CompareGroups
 
     DataFrame frame
     frame:Load("Data/Data.csv")
 
-    //independent samples t-test
-    CompareTwoColumns compare
-    compare:SetColumn1("DT")
-    compare:SetColumn1("DRT")
+    CompareGroups compare
+    compare:AddColumn(0)
+    compare:AddColumn(1)
   
-    //calculate the t-test and output a summary
     frame:Calculate(compare)
     output compare:GetFormalSummary()
 */
-class CompareGroups is DataFrameCalculation, ColumnInput
-    number probabilityValue = 0
-    number column1Variance = 0
-    number column2Variance = 0
-    number column1Mean = 0
-    number column2Mean = 0
-    number cohensD = 0
-    number tValue = 0
-    number degreesOfFreedom = 0
-    boolean twoGroups = false
+class CompareGroups is StatisticalTest
+    /* The distribution used to calculate the p-value from the f and df values */
+    VarianceRatioDistribution fDistribution
+
+    /* The distribution used to calculate the p-value from the t and df values.*/
+    HeavyTailNormalDistribution tDistribution
+
+    /* This stores a hash of all of the results. */
+    HashTable<text, CompareGroupsResult> results        // Used to find the result by column or pair of columns.        
+    HashTable<text, CompareGroupsResult> indexResults   // Used to find the result by index or pair of indices.
+
+    /* Flag if the samples are paired in a two-sample test */
+    boolean paired = false
+
+    /* Flag if repeated measures are used in one-way within-subjects anova */
+    boolean repeatedMeasures = false
+
+    /* Flag if calculations are to assume variances are equal or not */
+    boolean equalVariances = true
+
+    /* User determined mean to be used in one-sample or paired two-sample tests */
+    number userMean = 0
+
+    Math math
+
     boolean correctFamilyWiseError = true
-    Array<CompareGroupsResult> pairwise
 
-    CompareGroupsResult result = undefined
-
-    action Calculate(DataFrame frame)  
-               
-        if GetColumnSize() < 2
-            alert("I cannot compare less than two groups.")
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 1
+            alert("Must include at least one column.")
         end
 
-        if GetColumnSize() = 2 //technically this all boils down to the same thing, 
-                               //but doing it this way allows those that want to to report it this way.
-            twoGroups = true
-            Compare2Groups(frame)
+        if GetColumnSize() = 1
+            Compare1Group(frame)
+        elseif GetColumnSize() = 2     
+            if paired
+                Compare2DependentGroups(frame)
+            else             
+                Compare2IndependentGroups(frame)
+            end
         elseif GetColumnSize() > 2 //run one of the various ANOVAs
-            CompareNGroups(frame)
+            if repeatedMeasures
+                CompareNDependentGroups(frame)
+            else
+                CompareNIndependentGroups(frame)
+            end
         end
     end
 
-    private action CompareNGroups(DataFrame frame)
+    /* 
+        One-way analysis of variance (ANOVA) for 3 or more independent groups.
+
+        Null hypothesis: the means of each of the groups are equal
+        Alternative hypothesis: At least one group mean is not equal to the others.
+
+        Assumptions: 
+            Independent groups
+            Equal variances
+            Normal distributions
+
+        Recommendations if assumptions are not met:
+            If groups are not independent use SetRepeatedMeasures(true) on this test
+            If variances are not equal use SetEqualVariances(false) on this test
+            If distributions are not normal use CompareRanks test instead (Kruskal Wallis Test)
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+        frame:AddSelectedColumns(2)
+    
+        CompareGroups compare = frame:CompareSelectedColumns()
+        output compare:GetSummary()
+    */
+    action CompareNIndependentGroups(DataFrame frame)
+        if GetColumnSize() < 2
+            RunTest(frame)
+        end
         integer totalSize = 0
         number degreesFreedomWithinGroup = 0
         number degreesFreedomBetweenGroup = GetColumnSize() - 1
@@ -75,13 +147,21 @@ class CompareGroups is DataFrameCalculation, ColumnInput
 
         number totalSum = 0
         number totalSumOfSquares = 0
+        Array<DataFrameColumn> groups
         Array<Summarize> summaries
         i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if column:IsUndefined()
+                alert("Column is undefined.")
+            end
+
             if not column:IsNumberColumn() and not column:IsIntegerColumn()
                 alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
             end
+            groups:Add(column)
+
+            // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)
 
             totalSize = totalSize + column:GetSize()
 
@@ -99,27 +179,17 @@ class CompareGroups is DataFrameCalculation, ColumnInput
 
         totalSumOfSquares = totalSumOfSquares - (totalSum * totalSum / totalSize)
         sumOfSquaresBetweenGroup = totalSumOfSquares - sumOfSquaresWithinGroup
-        number meanSumofSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
-        number meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
-        number criticalValue = meanSumofSquaresBetweenGroup / meanSumOfSquaresWithinGroup
-
         number eta = sumOfSquaresBetweenGroup / totalSumOfSquares
-        
-        VarianceRatioDistribution distribution
-        distribution:Setup(degreesFreedomBetweenGroup, degreesFreedomWithinGroup)
-        number p = 1.0 - distribution:CumulativeDistribution(criticalValue)
+        number meanSumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
+        number meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
 
-        CompareGroupsResult result
-        result:SetCriticalValue(criticalValue)
-        result:SetProbabilityValue(p)
-        result:SetFormalTestName("1-Way Analysis of Variance")
-        result:SetEffectSize(eta)
-        result:SetEffectSizeName("Eta-Squared")
-        me:result = result
-
-        Math math
+        number f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresWithinGroup        
+        fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomWithinGroup)
+        number p = 1.0 - fDistribution:CumulativeDistribution(f)
+        number criticalFValue = f//fDistribution:CriticalValue(GetSignificanceLevel())
         number pooledSD = math:SquareRoot(meanSumOfSquaresWithinGroup)
-        
+
+        Array<CompareGroupsResult> pairwise
         //Now calculate a pairwise t-test with pooled standard deviations
         //and do a bonferroni correction.
         i = 0
@@ -129,30 +199,31 @@ class CompareGroups is DataFrameCalculation, ColumnInput
                 DataFrameColumn left = frame:GetColumn(GetColumn(i))
                 DataFrameColumn right = frame:GetColumn(GetColumn(j))
 
-                if not left:IsNumberColumn() and not left:IsIntegerColumn()
-                    alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
-                end
-        
-                if not right:IsNumberColumn() and not right:IsIntegerColumn()
-                    alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
-                end
+                Summarize summaryL = summaries:Get(i)
+                Summarize summaryR = summaries:Get(j)
 
-                Summarize leftSummary = summaries:Get(i)
-                Summarize rightSummary = summaries:Get(j)
+                number meanL = summaryL:GetMean()
+                number meanR = summaryR:GetMean()
 
-                number error = pooledSD * 
-                    math:SquareRoot(1.0 / left:GetSize()  + 1.0 / right:GetSize())
-                number meanDifference = leftSummary:GetMean() - rightSummary:GetMean()
-                number t = meanDifference / error
+                number sizeL = left:GetSize()
+                number sizeR = right:GetSize()
+                number bf = (sizeL + sizeR) / 2.0
 
-                number bf = (left:GetSize() + right:GetSize()) / 2.0
-                
-                HeavyTailNormalDistribution norm
-                norm:Setup(degreesFreedomWithinGroup)
-                number newP = 2.0 * norm:CumulativeDistribution(-math:AbsoluteValue(t))
+                tDistribution:Setup(degreesFreedomWithinGroup)
 
-                CompareGroupsResult pair
-                pair:SetCriticalValue(t)
+                number error = pooledSD * math:SquareRoot(1.0 / sizeL  + 1.0 / sizeR)
+                number t = (meanL - meanR) / error
+                number newP = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                number criticalTValue = t//tDistribution:CriticalValue(GetSignificanceLevel())
+
+                Compare2GroupsResult pair
+                pair:SetSignificanceLevel(GetSignificanceLevel())
+                pair:SetFormat(GetStatisticalFormatting())
+                pair:SetCriticalValue(criticalTValue)
+                pair:SetTestStatistic(t)
+                pair:SetGroups(left, right)
+                pair:AddColumn(i)
+                pair:AddColumn(j)
                 
                 //apply bonferroni correction
                 if IsCorrectingFamilyWiseError()
@@ -160,103 +231,539 @@ class CompareGroups is DataFrameCalculation, ColumnInput
                     if corrected > 1
                         corrected = 1
                     end
-                    pair:SetFormalTestName("Pairwise T-test with Bonferroni Correction.")
+                    pair:SetFormalTestName("Pairwise T-test with Bonferroni Correction")
                     pair:SetProbabilityValue(corrected)
                 else
-                    pair:SetFormalTestName("Pairwise T-test with no family-wise error correction.")
+                    pair:SetFormalTestName("Pairwise T-test with no family-wise error correction")
                     pair:SetProbabilityValue(newP)
                 end
-                pair:AddColumn(i)
-                pair:AddColumn(j)
                 pairwise:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        CompareNGroupsResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetCriticalValue(criticalFValue)
+        result:SetTestStatistic(f)
+        result:SetSumOfSquaresBetweenGroups(sumOfSquaresBetweenGroup)
+        result:SetSumOfSquaresWithinGroups(sumOfSquaresWithinGroup)
+        result:SetDegreesOfFreedomBetweenGroups(degreesFreedomBetweenGroup)
+        result:SetDegreesOfFreedomWithinGroups(degreesFreedomWithinGroup)
+        result:SetMeanSumOfSquaresBetweenGroups(meanSumOfSquaresBetweenGroup)
+        result:SetMeanSumOfSquaresWithinGroups(meanSumOfSquaresWithinGroup)
+        result:SetProbabilityValue(p)
+        if equalVariances
+            result:SetFormalTestName("One-Way Analysis of Variance")
+        else
+            result:SetFormalTestName("Welch's One-Way Analysis of Variance")
+        end
+        result:SetEffectSize(eta)
+        result:SetEffectSizeName("Eta-Squared")
+        result:SetGroups(groups)
+        result:SetPairwiseResults(pairwise)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        results:Add(resultKey, result)
+    end
+
+    /* 
+        One-way repeated measures analysis of variance (ANOVA) for 3 or more dependent groups.
+        This action assumes each row in the data set is an individual subject and calculates  
+
+        Null hypothesis: the means of each of the groups are equal
+        Alternative hypothesis: At least one group mean is not equal to the others.
+
+        Assumptions: 
+            Dependent groups
+            Sphericity: Equal variance in differences between groups
+            Normal distributions
+            No significant outliers
+
+        Recommendations if assumptions are not met:
+            If groups are not dependent, use SetRepeatedMeasures(false) on this test
+            If difference variances are not equal, use SetEqualVariances(false) on this test
+            If distributions are not normal, use CompareRanks test instead (Kruskal Wallis Test)
+            If outliers exist, remove them.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("data.csv")
+    
+        CompareGroups compare 
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:SetRepeatedMeasures(true)
+        compare:Calculate(frame)
+
+        output compare:GetSummary()
+    */
+    action CompareNDependentGroups(DataFrame frame)
+        if GetColumnSize() < 2
+            RunTest(frame)
+        end
+        number degreesFreedomWithinGroup = 0
+        number degreesFreedomBetweenGroup = 0
+        number degreesFreedomError = 0
+        number sumOfSquaresWithinGroup = 0
+        number sumOfSquaresBetweenGroup = 0
+        number sumOfSquaresError = 0
+        number sumOfSquaresTotal = 0
+        number meanSumOfSquaresWithinGroup = 0
+        number meanSumOfSquaresBetweenGroup = 0
+        number meanSumOfSquaresError = 0
+
+        integer totalSize = 0
+        number totalSum = 0
+        number totalSumOfSquares = 0
+        Array<DataFrameColumn> columns
+        Array<NumberColumn> rows
+        Array<Summarize> summaries
+
+
+        // Calculate across columns (between groups)
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            columns:Add(column)
+
+            if column:IsUndefined()
+                alert("Column is undefined.")
+            end
+
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+
+            Summarize summarize
+            column:Calculate(summarize)
+            summaries:Add(summarize)
+
+            number ss = summarize:GetSumOfSquares() - (summarize:GetSum() * summarize:GetSum() / column:GetSize())
+            sumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup + ss
+
+            totalSize = totalSize + column:GetSize()
+            totalSum = totalSum + summarize:GetSum()
+            totalSumOfSquares = totalSumOfSquares + summarize:GetSumOfSquares()
+
+            if i = 0 or rows:GetSize() not= column:GetSize()
+                j = 0
+                repeat while j < column:GetSize()
+                    NumberColumn col
+                    col:Add(column:GetAsNumber(j))
+                    rows:Add(col)
+                    j = j + 1
+                end
+            else
+                j = 0
+                repeat while j < column:GetSize()
+                    rows:Get(j):Add(column:GetAsNumber(j))
+                    j = j + 1
+                end
+            end
+
+            i = i + 1
+        end
+
+        // Calculate across rows (within groups)
+        i = 0
+        repeat while i < rows:GetSize()
+            Summarize summarize
+            rows:Get(i):Calculate(summarize)
+            
+            sumOfSquaresWithinGroup = sumOfSquaresWithinGroup + (summarize:GetSum() * summarize:GetSum())
+            i = i + 1
+        end
+
+        // Calculate pairwise t-tests with corrections?
+        Array<CompareGroupsResult> pairwise
+        i = 0
+        repeat while i < GetColumnSize()
+            j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
+
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        // Calculate sum of squares
+        sumOfSquaresTotal = totalSumOfSquares - (totalSum * totalSum / totalSize) 
+        sumOfSquaresBetweenGroup = sumOfSquaresTotal - sumOfSquaresBetweenGroup                                  
+        sumOfSquaresWithinGroup = (sumOfSquaresWithinGroup/GetColumnSize()) - (totalSum * totalSum / totalSize) 
+        sumOfSquaresError = sumOfSquaresTotal - sumOfSquaresBetweenGroup - sumOfSquaresWithinGroup
+
+        // Calculate degrees of freedom
+        degreesFreedomBetweenGroup = GetColumnSize() - 1                        // number of groups - 1 
+        degreesFreedomWithinGroup = totalSize/(degreesFreedomBetweenGroup+1)-1  // number of subjects - 1
+        degreesFreedomError = degreesFreedomBetweenGroup*degreesFreedomWithinGroup
+
+        // Calculate mean sum of squares 
+        meanSumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
+        meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
+        meanSumOfSquaresError = sumOfSquaresError / degreesFreedomError
+
+        number f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError        
+        fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
+        number p = 1.0 - fDistribution:CumulativeDistribution(f)
+        number criticalFValue = f//fDistribution:CriticalValue(GetSignificanceLevel())
+        number eta = sumOfSquaresBetweenGroup / totalSumOfSquares
+
+        CompareNGroupsResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetRepeatedMeasures(true)
+        result:SetCriticalValue(criticalFValue)
+        result:SetTestStatistic(f)
+        result:SetProbabilityValue(p)
+        result:SetSumOfSquaresBetweenGroups(sumOfSquaresBetweenGroup)
+        result:SetDegreesOfFreedomBetweenGroups(degreesFreedomBetweenGroup)
+        result:SetMeanSumOfSquaresBetweenGroups(meanSumOfSquaresBetweenGroup)
+        result:SetSumOfSquaresWithinGroups(sumOfSquaresWithinGroup)
+        result:SetDegreesOfFreedomWithinGroups(degreesFreedomWithinGroup)
+        result:SetMeanSumOfSquaresWithinGroups(meanSumOfSquaresWithinGroup)
+        result:SetSumOfSquaresError(sumOfSquaresError)
+        result:SetDegreesOfFreedomError(degreesFreedomError)
+        result:SetMeanSumOfSquaresError(meanSumOfSquaresError)
+        result:SetFormalTestName("Repeated Measures Analysis of Variance")
+        result:SetEffectSize(eta)
+        result:SetEffectSizeName("Eta-Squared")
+        result:SetGroups(columns)
+        result:SetPairwiseResults(pairwise)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        results:Add(resultKey, result)
+    end
+
+    /*
+        This action represents a two sample t-test on two columns of data.
+
+        Null hypothesis: the two groups have equal means
+        Alternative hypothesis: the two groups do not have equal means
+
+        Assumptions: 
+            Equal variances
+            Normal distributions
+
+        Recommendations if assumptions are not met:
+            If variances are not equal use SetEqualVariances(false) on this test
+            If distributions are not normal use CompareRanks test instead (Wilcoxon Test)
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+    
+        CompareGroups compare = frame:CompareSelectedColumns()
+        output compare:GetSummary()
+    */
+    action Compare2IndependentGroups(DataFrame frame)
+        if GetColumnSize() < 2
+            RunTest(frame)
+        end
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                if left = undefined or right = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not left:IsNumberColumn() and not left:IsIntegerColumn()
+                    alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
+                end
+        
+                if not right:IsNumberColumn() and not right:IsIntegerColumn()
+                    alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
+                end
+        
+                if left:GetSize() < 2 or right:GetSize() < 2
+                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+                end
+                
+                // Check normality of left and right using IsNormalDistribution (Shapiro-Wilk's Test)
+
+                Compare2GroupsResult result
+                result:SetSignificanceLevel(GetSignificanceLevel())
+                result:SetFormat(GetStatisticalFormatting())
+                result:AddColumn(i)
+                result:AddColumn(j)
+                result:SetGroups(left, right)
+
+                number mean1 = result:GetMean1()
+                number mean2 = result:GetMean2()
+                number var1 = result:GetVariance1()
+                number var2 = result:GetVariance2()
+                number size1 = left:GetSize()
+                number size2 = right:GetSize()
+
+                number t = 0
+                number df = 0
+                if equalVariances
+                    number pooledVar = ((size1  - 1) * var1 + (size2 - 1) * var2 ) / (size1 + size2 - 2)
+                    t = (mean1 - mean2) / (math:SquareRoot(pooledVar * ((1 / size1) + (1 / size2))))
+                    df = size1 + size2 - 2
+                    result:SetFormalTestName("Two Sample T-test")
+                else
+                    t = (mean1 - mean2) / (math:SquareRoot((var1 / size1) + (var2 / size2)))
+                    df = DegreesOfFreedom(var1, var2, size1, size2)
+                    result:SetFormalTestName("Welch's Two Sample T-test")
+                end
+                tDistribution:Setup(df)
+                number p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                number criticalTValue = t//tDistribution:CriticalValue(GetSignificanceLevel())
+
+                number cohensD = math:SquareRoot((var1 + var2) / 2.0)
+                cohensD = (mean1 - mean2) / cohensD
+        
+                text factor = ""
+                text resultKey = left:GetHeader()+" & "+right:GetHeader()
+                if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                    factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
+                end
+                if not results:HasKey(resultKey)
+                    result:SetCriticalValue(criticalTValue) 
+                    result:SetTestStatistic(t)
+                    result:SetDegreesOfFreedom(df)
+                    result:SetProbabilityValue(p)
+                    result:SetFactor(factor)
+                    result:SetEffectSize(cohensD)
+                    result:SetEffectSizeName("Cohen's D")
+                    result:SetFormat(GetStatisticalFormatting())
+                    results:Add(resultKey, result)
+                    indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
+                end
                 j = j + 1
             end
             i = i + 1
         end
     end
 
-    private action Compare2Groups(DataFrame frame)
-        DataFrameColumn left = frame:GetColumn(GetColumn(0))
-        DataFrameColumn right = frame:GetColumn(GetColumn(1))
+    /*
+        This action represents a two sample paired t-test.
 
-        if not left:IsNumberColumn() and not left:IsIntegerColumn()
-            alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
-        end
+        Null hypothesis: the difference mean is equal to the given mean
+        Alternative hypothesis: the difference mean is not equal to the given mean
 
-        if not right:IsNumberColumn() and not right:IsIntegerColumn()
-            alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
-        end
+        Assumptions: 
+            Normal distribution of difference
 
-        Mean mean
-        left:Calculate(mean)
-        number leftMean = mean:GetMean()
-        mean:Empty()
+        Recommendations if assumptions are not met:
+            If the distribution is not normal use CompareRanks test instead (Wilcoxon Test)
 
-        right:Calculate(mean)
-        number rightMean = mean:GetMean()
-
-        column1Mean = leftMean
-        column2Mean = rightMean
-
-        leftSize = left:GetSize()
-        rightSize = right:GetSize()
-
-        Variance variance
-        variance:SetMean(leftMean)
-        left:Calculate(variance)
-        number leftVariance = variance:GetVariance()
-        variance:Empty()
-
-        variance:SetMean(rightMean)
-        right:Calculate(variance)
-        number rightVariance = variance:GetVariance()
-
-        column1Variance = leftVariance
-        column2Variance = rightVariance
-
-        xS1 = leftVariance
-        yS1 = rightVariance
-
-        Math math
-        cohensD = math:SquareRoot((xS1 + yS1) / 2.0)
-        cohensD = (leftMean - rightMean) / cohensD
-
-        xS1 =  xS1 / left:GetSize()
-        yS1 =  yS1 / right:GetSize()
-
-        //compute the top part of the equation
-        top = leftMean - rightMean
-        bottom = math:SquareRoot(xS1 + yS1)
-
-        t = top / bottom
-        tValue = t
-
-        number df = DegreesOfFreedom(leftVariance, rightVariance, 
-                left:GetSize(), right:GetSize())
-        degreesOfFreedom = df
-
-        HeavyTailNormalDistribution distribution
-        distribution:Setup(df)
-        number absoluteValueT = math:AbsoluteValue(t)
-        number p = 2.0 * distribution:CumulativeDistribution(-absoluteValueT)
-        probabilityValue = p
-
-        CompareGroupsResult result
-        result:SetCriticalValue(t)
-        result:SetProbabilityValue(p)
-        result:SetTestStatistic(t)
-        result:SetCohensD(cohensD)
-        result:SetDegreesOfFreedom(df)
-        result:SetSample1(left:GetHeader())
-        result:SetSample2(right:GetHeader())
-        result:SetMean1(column1Mean)
-        result:SetMean2(column2Mean)
-        result:SetVariance1(column1Variance)
-        result:SetVariance2(column2Variance)
-        result:SetFormalTestName("Welch's T-test")
-        me:result = result
-    end
+        Attribute: Example
     
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("data.csv")
+
+        CompareGroups compare 
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:SetPaired(true)
+        compare:SetMean(30)
+        compare:Calculate(frame)
+
+        output compare:GetSummary()
+    */
+    action Compare2DependentGroups(DataFrame frame)
+        if GetColumnSize() < 2
+            RunTest(frame)
+        end
+        integer i = 0
+        repeat while i < GetColumnSize()
+            integer j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                if left = undefined or right = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not left:IsNumberColumn() and not left:IsIntegerColumn()
+                    alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
+                end
+        
+                if not right:IsNumberColumn() and not right:IsIntegerColumn()
+                    alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
+                end
+        
+                if left:GetSize() < 2 or right:GetSize() < 2
+                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+                end
+                
+                DataFrame newFrame
+                newFrame:AddColumn(left)
+                newFrame:AddColumn(right)
+                newFrame:AddColumn("difference", left:GetHeader()+"-"+right:GetHeader())
+
+                // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
+
+                CompareGroupToMean compare
+                compare:AddColumn(2)
+                compare:SetMean(userMean)
+                compare:Calculate(newFrame)
+                CompareGroupsResult res = compare:GetResult()
+
+                text factor = ""
+                text resultKey = left:GetHeader()+" & "+right:GetHeader()
+                if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                    factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
+                end
+                if not results:HasKey(resultKey)
+                    Compare2GroupsResult result
+                    result:SetSignificanceLevel(GetSignificanceLevel())
+                    result:SetFormat(GetStatisticalFormatting())
+                    result:AddColumn(i)
+                    result:AddColumn(j)
+                    result:SetGroups(left, right)
+                    result:SetMean1(res:GetMean1())
+                    result:SetVariance1(res:GetVariance1())
+                    result:SetMean2(res:GetMean2())
+                    result:SetVariance2(0)
+                    result:SetCriticalValue(res:GetCriticalValue())
+                    result:SetTestStatistic(res:GetTestStatistic())
+                    result:SetDegreesOfFreedom(res:GetDegreesOfFreedom())
+                    result:SetProbabilityValue(res:GetProbabilityValue())
+                    result:SetFactor(res:GetFactor())
+                    result:SetEffectSize(res:GetEffectSize())
+                    result:SetEffectSizeName(res:GetEffectSizeName())
+                    result:SetFormalTestName("Paired T-test")
+                    result:SetPaired(true)
+                    results:Add(resultKey, result)
+                    indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    /* 
+        This is a one-sample t-test there are two ways to reach this action
+            Using CompareGroupToMean class where the user can decide what the compared mean is.
+            Using CompareGroups class where the compared mean is always 0.
+
+        Null hypothesis: the group mean is equal to the given mean
+        Alternative hypothesis: the group mean is not equal to the given mean
+
+        Assumptions: 
+            Normal distribution
+
+        Recommendations if assumptions are not met:
+            If the distribution is not normal use CompareRanks test instead (Wilcoxon Test)
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupToMean
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+    
+        CompareGroupToMean compare = frame:CompareSelectedColumnToMean(35)
+        output compare:GetSummary()
+    */
+    action Compare1Group(DataFrame frame)
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+
+            if column = undefined
+                alert("Column is undefined.")
+            end
+
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+
+            if column:GetSize() < 2
+                alert("Columns must have 2 or more entries. Not enough data for comparison to be calculated.")
+            end
+
+            // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)
+
+            Compare1GroupResult result
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:AddColumn(i)
+            result:SetGroups(column, undefined)
+
+            number mean = result:GetMean1()
+
+            number variance = result:GetVariance1()
+
+            number size = column:GetSize()
+
+            number cohensD = math:SquareRoot(variance)
+            cohensD = (mean - userMean) / cohensD
+   
+            number t = (mean - userMean) / (math:SquareRoot(variance / size))
+            number df = size - 1
+            tDistribution:Setup(df)
+            number p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+            number criticalTValue = t//tDistribution:CriticalValue(GetSignificanceLevel())
+
+            text factor = ""
+            text resultKey = column:GetHeader()
+            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+                factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
+            end
+            if not results:HasKey(resultKey)
+                result:SetCriticalValue(criticalTValue)
+                result:SetTestStatistic(t)
+                result:SetProbabilityValue(p)
+                result:SetDegreesOfFreedom(df)
+                result:SetFactor(factor)
+                result:SetMean2(userMean)
+                result:SetEffectSize(cohensD)
+                result:SetEffectSizeName("Cohen's D")
+                result:SetFormalTestName("One Sample T-test")
+                result:SetFormat(GetStatisticalFormatting())
+                results:Add(resultKey, result)
+                indexResults:Add(""+GetColumn(i), result)
+            end
+            i = i + 1
+        end
+    end
+
+    /* Computes approximate degrees of freedom for 2-sample t-test in Compare2Groups */
     private action DegreesOfFreedom(number variance1, number variance2, number size1, number size2) returns number
         return (((variance1 / size1) + (variance2 / size2)) * ((variance1 / size1) + (variance2 / size2))) /
         ((variance1 * variance1) / (size1 * size1 * (size1 - 1.0)) + (variance2 * variance2) /
@@ -264,82 +771,69 @@ class CompareGroups is DataFrameCalculation, ColumnInput
     end
 
     /*
-        Obtains the degrees of freedom calculated by the test.
-    */
-    action GetDegreesOfFreedom returns number
-        return degreesOfFreedom
-    end
+        This returns the probability if only one result exists.
 
-    /*
-        In Statistics, this is often termed a p-value. 
+        Attribute: Returns the P-Value. 
     */
     action GetProbabilityValue returns number
-        return me:probabilityValue
+        return GetResult():GetProbabilityValue()
     end
 
     /*
-        This returns a critical value, or the place on the distribution where are 
-        caluclating our probability values from. The critical value, for a test like a t-test,
-        would be equivalent to a t-value.
+        This returns the degrees of freedom if only one result exists.
+
+        Attribute: Returns the Degrees of Freedom. 
     */
-    action GetCriticalValue returns number
-        return tValue
+    action GetDegreesOfFreedom returns number
+        return GetResult():GetDegreesOfFreedom()
     end
 
     /*
-        Returns the mean of the first column.
+        This returns the x2 test statistic if only one result exists.
+
+        Attribute: Returns the x2 test statistic. 
     */
-    action GetMean1 returns number
-        return column1Mean
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
     end
 
-    /*
-        Returns the mean of the second column.
-    */
-    action GetMean2 returns number
-        return column2Mean
+    /* Used in Compare1Group and Compare2Groups (paired) */
+    action GetMean returns number
+        return userMean
     end
 
-    /*
-        Returns the variance of the first column.
-    */
-    action GetVariance1 returns number
-        return column1Variance
+    action SetMean(number mean)
+        me:userMean = mean
     end
 
-    /*
-        Returns the variance of the second column.
-    */
-    action GetVariance2 returns number
-        return column2Variance
+    /* Used in Compare2Groups */
+    action GetPaired returns boolean
+        return paired
     end
 
-    /* This action obtains an informal summary of the result. */
-    action GetSummary returns text
-        return ""
+    action SetPaired(boolean paired)
+        me:paired = paired
     end
 
-    /* This action returns a formal academic summary of the result. */
-    action GetFormalSummary returns text
-        Math math
-        text result = "We conducted a Welch's T-test with two independent samples. "
-        if column1Mean > column2Mean
-            result = result + " The first group had a higher overall mean (M = " + column1Mean + ", SD = " + math:SquareRoot(column1Variance) + ") compared to "
-                +   "the second (M = " + column2Mean + ", SD = " + math:SquareRoot(column2Variance) + ")"
-        else
-            result = result + " The second group had a higher overall mean (M = " + column2Mean + ", SD = " + math:SquareRoot(column2Variance) + ") compared to "
-                +   "the second (M = " + column1Mean + ", SD = " + math:SquareRoot(column1Variance) + ")"
-        end
-
-        result = result + ", t("
-            + degreesOfFreedom + ") = " + tValue + ", p = " + probabilityValue + ", Cohen's D = "
-            + cohensD
-        return result
-    end
-    action GetResult returns CompareGroupsResult
-        return result
+    /* Used in Compare2Groups */
+    action GetEqualVariances returns boolean
+        return equalVariances
     end
 
+    action SetEqualVariances(boolean equalVariances)
+        me:equalVariances = equalVariances
+    end
+
+    /* Used in CompareNGroups */
+    action GetRepeatedMeasures returns boolean
+        return repeatedMeasures
+    end
+
+    action SetRepeatedMeasures(boolean repeatedMeasures)
+        me:repeatedMeasures = repeatedMeasures
+    end
+
+    /* Used in CompareNGroups */
     action IsCorrectingFamilyWiseError returns boolean
         return correctFamilyWiseError
     end
@@ -348,7 +842,203 @@ class CompareGroups is DataFrameCalculation, ColumnInput
         me:correctFamilyWiseError = correctFamilyWiseError
     end
 
-    action GetPairwiseResults returns Array<CompareGroupsResult>
-        return pairwise
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult()
+    */
+    action GetResult returns CompareGroupsResult
+        if results:GetSize() = 1
+            return results:GetValueIterator():Next()
+        else
+            alert("There is more than one test result, either specify which result or use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        This returns a result on one particular column. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns("age")
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult("age")
+    */
+    action GetResult(text columnName) returns CompareGroupsResult
+        if results:HasKey(columnName)
+            return results:GetValue(columnName)
+        else
+            alert("There are no test results with the column " + columnName)
+        end
+    end
+
+    /*
+        This returns a result on one particular column. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns(0)
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult(0)
+    */
+    action GetResult(integer columnIndex) returns CompareGroupsResult
+        if indexResults:HasKey(""+columnIndex)
+            return indexResults:GetValue(""+columnIndex)
+        else
+            alert("There are no test results with the column index " + columnIndex)
+        end
+    end
+
+    /*
+        This returns a result between two particular columns. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns("age")
+        frame:AddSelectedColumns("bmi")
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult("age", "bmi")
+    */
+    action GetResult(text column1Name, text column2Name) returns CompareGroupsResult
+        text hash1 = column1Name + " & " + column2Name
+        text hash2 = column2Name + " & " + column1Name
+        if results:HasKey(hash1)
+            return results:GetValue(hash1)
+        elseif results:HasKey(hash2)
+            return results:GetValue(hash2)
+        else
+            alert("There are no test results with the columns " + hash1)
+        end
+    end
+
+    /*
+        This returns a result between two particular columns. If no such result exists, 
+        this action returns undefined.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+        frame:AddSelectedColumns(2)
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult(0, 1)
+    */
+    action GetResult(integer column1Index, integer column2Index) returns CompareGroupsResult
+        text hash1 = "" + column1Index + " & " + column2Index
+        text hash2 = "" + column2Index + " & " + column1Index
+        if indexResults:HasKey(hash1)
+            return indexResults:GetValue(hash1)
+        elseif indexResults:HasKey(hash2)
+            return indexResults:GetValue(hash2)
+        else
+            alert("There are no test results with the column indices " + hash1)
+        end
+    end
+
+    /*
+        This returns the results between all computed columns.
+
+        Attribute: Returns the CompareCountsResults. 
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareGroups compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        frame:Calculate(compare)
+        
+        Array<CompareGroupsResult> results = compare:GetResults()
+    */
+    action GetResults returns Array<CompareGroupsResult>
+        return results:CopyToValueArray()
+    end
+
+    /*
+        This action summarizes the results and lists them informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        Iterator<CompareGroupsResult> i = results:GetValueIterator()
+        CompareGroupsResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        Iterator<CompareGroupsResult> i = results:GetValueIterator()
+        CompareGroupsResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+        end
+
+        return summary
     end
 end

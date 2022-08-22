@@ -8,7 +8,6 @@ use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
@@ -41,11 +40,11 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
     output result:GetProbabilityValue()
 */
 class CompareVariances is CompareGroups
+    boolean useMeanAsCenter = false
 
-    action Calculate(DataFrame frame) 
-        
+    private action RunTest(DataFrame frame)
         if GetColumnSize() < 2
-            alert("I cannot correlate less than two groups.")
+            alert("Must include at least two columns.")
         end
 
         CompareVariances(frame)
@@ -85,20 +84,20 @@ class CompareVariances is CompareGroups
         medianDifferencesDataFrame:SetColumns(medianDifferencesDataFrameColumns)
         
         parent:ColumnInput:columns = medianDifferencesColumns
-        parent:CompareGroups:CompareNGroups(medianDifferencesDataFrame)
-        parent:CompareGroups:result:SetFormalTestName("Levene's Test")
+        parent:CompareGroups:CompareNIndependentGroups(medianDifferencesDataFrame)
+        parent:CompareGroups:GetResult():SetFormalTestName("Levene's Test")
 
         parent:ColumnInput:columns = preservedColumns
     end
 
-    /* This action obtains an informal summary of the result. */
-    action GetSummary returns text
-        return ""
-    end
-
-    /* This action returns a formal academic summary of the result. */
-    action GetFormalSummary returns text
-        return ""
-    end
+//    /* This action obtains an informal summary of the result. */
+//    action GetSummary returns text
+//        return ""
+//    end
+//
+//    /* This action returns a formal academic summary of the result. */
+//    action GetFormalSummary returns text
+//        return ""
+//    end
 
 end

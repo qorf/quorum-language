@@ -1,7 +1,6 @@
 package Libraries.Compute.Statistics.Tests
 
 use Libraries.Compute.Statistics.Tests.StatisticalTest
-use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
 use Libraries.Containers.Array
@@ -10,12 +9,8 @@ use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.Variance
-use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Containers.HashTable
-use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
-use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class implements a Spearman Correlation Coefficient. For more information, see the 
@@ -44,9 +39,12 @@ use Libraries.Compute.Statistics.Inputs.FactorInput
     
     output correlate:GetCorrelation()
 */
-class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput, FactorInput
+class CorrelateRanks is StatisticalTest
     /* The distribution used to calculate the p-value from the t and df values.*/
     HeavyTailNormalDistribution distribution
+
+    /* A flag to let the user know approximation may be incorrect due to tied rankings. */
+    boolean rankTiesWarning = false
 
     /* This stores a hash of all of the results. */
     HashTable<text, CorrelateGroupsResult> results        // Used to find the result by column or pair of columns.        
@@ -54,60 +52,12 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput, Fact
 
     Math math
 
-    action Calculate(DataFrame frame) 
-        /* 
-            With this test we want to make sure there are no undefined values.
-            Since there are several ways to call this action, let's empty and reload 
-            the selected columns here to ensure we remove all of the undesired rows.
-
-            This is necessary since the mean and variance of each column is calculated 
-            independently and these values impact the results of this test.
-        */
-        frame:EmptySelectedColumns()
-        i = 0
-        repeat while i < GetColumnSize()
-            frame:AddSelectedColumn(GetColumn(i))
-            i = i + 1
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
         end
-        DataFrame cleanFrame = frame:RemoveUndefinedRowsFromSelectedColumns()     
 
-        if GetFactorSize() > 0
-            if GetFactorSize() = 1
-                CalculateByFactor(cleanFrame) // Separate and run each based on factor
-            else
-                alert("Only one factor allowed right now.")
-            end
-        else
-            CalculateCorrelation(cleanFrame)
-        end
-    end
-
-    /*
-        This action takes a DataFrame and a DataFrameColumn (factor) and separates that frame 
-        into smaller DataFrames. One DataFrame for each unique item in the selected factor.
-    */
-    private action CalculateByFactor(DataFrame frame) 
-        DataFrameColumn factor = frame:GetColumn(GetFactor(0)):Copy(true,true)
-        integer i = 0
-        repeat while i < factor:GetSize()
-            text header = factor:GetHeader()
-            text dq = header:GetDoubleQuote()
-            DataFrame newFrame     
-
-            if factor:IsNumberColumn() or factor:IsIntegerColumn()
-                newFrame = frame:Copy(header+"="+factor:GetAsNumber(i))
-            elseif factor:IsDateTimeColumn()
-                alert("Dataframe factor by datetime doesn't seem to work right now.")
-                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
-            elseif factor:IsBooleanColumn()
-                newFrame = frame:Copy(header+"="+factor:GetAsBoolean(i))
-            else
-                newFrame = frame:Copy(header+"="+dq+factor:GetAsText(i)+dq)
-            end
-
-            CalculateCorrelation(newFrame)
-            i = i + 1
-        end
+        CalculateCorrelation(frame)
     end
 
     /* This action calculates the CorrelateGroupsResult for each set of two selected column combinations in the frame. */
@@ -119,7 +69,7 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput, Fact
             transform:AddColumn(value)
             i = i + 1
         end
-        DataFrame newFrame = frame:Transform(transform)   
+        DataFrame newFrame = frame:Transform(transform)      
 
         i = 0
         repeat while i < GetColumnSize()
@@ -158,9 +108,7 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput, Fact
                     result:SetVariable1(left:GetHeader())
                     result:SetVariable2(right:GetHeader())
                     result:SetFormalTestName("Spearman's Rank Correlation")
-                    if factor not= ""
-                        result:SetFactor(factor)
-                    end
+                    result:SetFactor(factor)
                     result:AddColumn(GetColumn(i))
                     result:AddColumn(GetColumn(i))
                     results:Add(resultKey, result)
@@ -198,89 +146,6 @@ class CorrelateRanks is DataFrameCalculation, StatisticalTest, ColumnInput, Fact
     action GetResultIterator returns Iterator<CorrelateGroupsResult>
         return results:GetValueIterator()
     end
-
-    /*
-        Obtains the raw correlation, typically named "r" in statistics. This calculation only 
-        returns a result in the case where the left and right indexes are valid.
-        Attribute: Parameter leftIndex the first group
-        Attribute: Parameter rightIndex the second group
-        Attribute: Returns the correlation between two groups. 
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-    
-        CorrelateRanks correlate
-        correlate:Add(0)
-        correlate:Add(1)
-        frame:Calculate(correlate)
-        
-        output correlate:GetCorrelation(0, 1)
-    */
-    action GetCorrelation(integer leftIndex, integer rightIndex) returns number
-        return GetResult(leftIndex, rightIndex):GetCorrelation()
-    end
-
-    /*
-        Obtains the raw degrees of freedom. This calculation only 
-        returns a result in the case where the left and right indexes are valid.
-
-        Attribute: Parameter leftIndex the first group
-        Attribute: Parameter rightIndex the second group
-
-        Attribute: Returns the degrees of freedom. 
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-    
-        CorrelateRanks correlate
-        correlate:Add(0)
-        correlate:Add(1)
-        frame:Calculate(correlate)
-        
-        output correlate:GetDegreesOfFreedom(0, 1)
-    */
-    action GetDegreesOfFreedom(integer leftIndex, integer rightIndex) returns number
-        return GetResult(leftIndex, rightIndex):GetDegreesOfFreedom()
-    end
-
-    /*
-        Obtains the raw probability value (p in statistics). This calculation only 
-        returns a result in the case where the left and right indexes are valid.
-
-        Attribute: Parameter leftIndex the first group
-        Attribute: Parameter rightIndex the second group
-
-        Attribute: Returns the probability. 
-
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-    
-        CorrelateRanks correlate
-        correlate:Add(0)
-        correlate:Add(1)
-        frame:Calculate(correlate)
-        
-        output correlate:GetProbabilityValue(0, 1)
-    */
-    action GetProbabilityValue(integer leftIndex, integer rightIndex) returns number
-        return GetResult(leftIndex, rightIndex):GetProbabilityValue()
-    end
-
 
     /*
         This returns the probability value if only one result exists.

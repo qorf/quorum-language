@@ -61,7 +61,7 @@ class CompareNGroupsTestFromSelection is Test
         Check(result:GetProbabilityValue(), 0.000027087573816753086)
         Check(result:GetEffectSize(), 0.68832901780750122)
 
-        Array<CompareGroupsResult> results = compare:GetPairwiseResults()
+        Array<CompareGroupsResult> results = compare:GetResult():GetPairwiseResults()
         i = 0
         repeat while i < results:GetSize()
             CompareGroupsResult res = results:Get(i)
