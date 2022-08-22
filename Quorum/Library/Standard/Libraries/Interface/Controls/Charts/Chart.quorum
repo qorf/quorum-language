@@ -1607,12 +1607,38 @@ class Chart is ChartItem
     end
 
     /*
-        Returns the title for the legend of the Chart.
+        Sets the legend to show on top of the chart area.
     */
-    action SetLegendLocation(text location)
+    action SetLegendLocationToTop
         if IsShowingLegend()
-            text newlocation = location:ToLowerCase()
-            legend:SetLocation(newlocation)
+            legend:SetLocationToTop()
+        end
+    end
+
+    /*
+        Sets the legend to show beneath the chart area.
+    */
+    action SetLegendLocationToBottom
+        if IsShowingLegend()
+            legend:SetLocationToBottom()
+        end
+    end
+
+    /*
+        Sets the legend to show left of the chart area.
+    */
+    action SetLegendLocationToLeft
+        if IsShowingLegend()
+            legend:SetLocationToLeft()
+        end
+    end
+
+    /*
+        Sets the legend to show right of the chart area.
+    */
+    action SetLegendLocationToRight
+        if IsShowingLegend()
+            legend:SetLocationToRight()
         end
     end
 
