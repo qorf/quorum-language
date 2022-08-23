@@ -1,5 +1,8 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
+import plugins.quorum.Libraries.Game.AndroidApplication;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
@@ -13,6 +16,7 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
+import android.view.accessibility.AccessibilityManager;
 
 /**
  *
@@ -39,11 +43,40 @@ public class AndroidAccessibility {
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
-    public void  FocusChanged(FocusEvent_ event) {}
+    public void  FocusChanged(FocusEvent_ event) {
+        Item_ item = event.Get_Libraries_Interface_Events_FocusEvent__gainedFocus_();
+        if(item == null) {
+            return;
+        }
 
-    public void  Add(Item_ item) {}
+        int id = item.GetHashCode();
+    }
 
-    public void  Remove(Item_ item) {}
+    public void  Add(Item_ item) {
+        AccessibilityManager accessibilityManager = AndroidApplication.accessibilityManager;
+        if(accessibilityManager == null) {
+            return;
+        }
+
+        String name = item.GetName();
+        String description = item.GetDescription();
+        int id = item.GetHashCode();
+        int code = item.GetAccessibilityCode();
+        if(code == item.Get_Libraries_Interface_Item__BUTTON_()) { //this is a button.
+            System.out.println("This is a button.");
+            Button_ button = (Button_) item;
+
+        }
+
+    }
+
+    public void  Remove(Item_ item) {
+        if(item == null) {
+            return;
+        }
+
+        int id = item.GetHashCode();
+    }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
 

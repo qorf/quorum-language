@@ -57,6 +57,7 @@ public class AndroidApplication
     private int wasFocusChanged = -1;
     private boolean isWaitingForAudio = false;
     private boolean hasBeenOriented = false;
+    public static AccessibilityManager accessibilityManager = null;
     
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
@@ -71,7 +72,7 @@ public class AndroidApplication
         */
         quorumApp = (AndroidApplication_)GameStateManager.application;
         display = (AndroidDisplay_)GameStateManager.display;
-        AccessibilityManager access = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        accessibilityManager = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         
         if (GetVersion() < MINIMUM_SDK) 
         {
