@@ -1,0 +1,27 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This behavior is used in the scene editor to stop a selection. In the scene 
+    editor when an item or items are selected a highlight is created and the user 
+    can cycle through selected items. When this behavior is run the selection is 
+    emptied and the user can no longer cycle through them and interact with other 
+    parts of the editor without affecting the selected items. 
+*/
+class SelectionCancelBehavior is Behavior
+
+    // An empty array passed to clear the filtered items list.
+    Array<Item3D> emptyArray
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is EditorItem
+            EditorItem item = cast(EditorItem, event:GetItem())
+            item:GetSceneEditor():SetFilteredItems(emptyArray, true)
+        end
+    end
+end

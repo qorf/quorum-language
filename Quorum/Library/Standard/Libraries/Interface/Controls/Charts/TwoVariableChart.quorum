@@ -11,6 +11,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Calculations.StandardDeviation
@@ -198,6 +200,13 @@ class TwoVariableChart is Chart
             comparison:SetSortByX(true)
             points:Sort(comparison)
             integer i = 0
+
+            Array<ResidualSquare> squares = undefined
+            if me is ScatterPlot
+                ScatterPlot scatter = cast(ScatterPlot, me)
+                squares = scatter:GetResidualSquares()
+            end
+
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
                 point:SetFocusable(true)
@@ -219,6 +228,14 @@ class TwoVariableChart is Chart
                         j = j + 1
                     end
                 end
+
+                if squares not= undefined
+                    ResidualSquare square
+                    square:SetPoint(point)
+                    squares:Add(square)
+                    chartArea:Add(square)
+                end
+
                 chartArea:Add(point)
                 chartArea:Add(point:GetSelectionArrow())
                 if point:ShowAnnotation() or ShowAnnotations()
@@ -765,6 +782,27 @@ class TwoVariableChart is Chart
                     end
                 end
             end
+
+            // If regression lines are visible, make it possible to reach them via the points.
+            if IsShowingLinearRegression()
+                Array<ChartPoint> sortedPoints = points:CopyToArray()
+                sortedPoints:Sort(comparison)
+
+                integer i = 0
+                repeat while i < points:GetSize()
+                    ChartPoint point = sortedPoints:Get(i)
+                    RegressionLine line = point:GetSeries():GetRegressionLine()
+
+                    if line not= undefined
+                        point:SetEnterItem(line)
+                        if line:GetEscapeItem() = undefined
+                            line:SetEscapeItem(point)
+                        end
+                    end
+
+                    i = i + 1
+                end
+            end
         end
         chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
@@ -1254,6 +1292,7 @@ class TwoVariableChart is Chart
             else
                 firstPoint:SetDescription(lineSegmentChange + ", 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName() + ".")
             end
+
             AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
             firstPointItem:SetEscapeItem(parentItem)
             parentItem:SetEnterItem(firstPointItem)
@@ -1299,6 +1338,7 @@ class TwoVariableChart is Chart
                 else
                     point:SetDescription(lineSegmentChange + ", " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName() + ".")
                 end
+
                 pointItem:SetEscapeItem(parentItem)
                 if GetHorizontalFlag()
                     pointItem:SetLeftItem(previousPointItem)
@@ -1342,6 +1382,51 @@ class TwoVariableChart is Chart
         end
     end
 
+    /*
+    Updates the description of all of the points in the array of points. The array should
+    contain all points inside of a single series.
+    Useful if data changes during dynamic use (e.g., movable regression line changes,
+    so residuals need to be updated in the descriptions).
+    */
+    action UpdatePointDescriptions(Array<ChartPoint> points)
+        ChartPointComparison comparison
+        comparison:SetAscending(true)
+        if GetHorizontalFlag()
+            comparison:SetSortByX(true)
+        else
+            comparison:SetSortByY(true)
+        end
+        Array<ChartPoint> sortLRPoints = points:CopyToArray()
+        sortLRPoints:Sort(comparison)
+
+        integer i = 0
+        repeat while i < points:GetSize()
+            ChartPoint point = sortLRPoints:Get(i)
+            point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
+
+            // Add the residual to the beginning of the description if this is a scatter plot.
+            if me is ScatterPlot
+                RegressionLine regression = point:GetSeries():GetRegressionLine()
+                if regression not= undefined
+                    number residual = point:GetValueY() - regression:CalculateDependentValue(point:GetValueX())
+                    if residual = cast(integer, residual)
+                        point:SetDescription(" Residual is " + cast(integer, residual) + point:GetDescription() + ",")
+                    else
+                        Math math
+                        residual = math:Round(residual, 2)
+                        point:SetDescription(" Residual is " + residual + point:GetDescription() + ",")
+                    end
+                end
+            end
+
+            if i = 0
+                AddChartItemInstructions(point, point:GetDescription())
+            end
+
+            i = i + 1
+        end
+    end
+
     action CalculateLineSegmentPhrase(ChartPoint point1, ChartPoint point2, integer iteration) returns text
         number rise = point2:GetValueY() - point1:GetValueY()
         number run = point2:GetValueX() - point1:GetValueX()
@@ -1367,7 +1452,6 @@ class TwoVariableChart is Chart
         
         return description
     end
-
 
     action SetQuadrantThreshold(integer threshold)
         quadrantThreshold = threshold

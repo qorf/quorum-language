@@ -1,0 +1,64 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Item
+use Libraries.Game.Layer
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+
+/*
+    The SceneTreeItem represents an Item in the SceneTree. The SceneTree describes the items
+    and layers that are found in a scene. The SceneTreeItem allows the user to see what items are
+    in the scene and what layer they belong to. From this item they can also select it and edit its
+    properties.
+*/
+class SceneTreeItem is TreeItem
+
+    /*
+    If this TreeItem represents an item, the sceneItem will be defined.
+    If it represents a layer, the sceneLayer should be defined instead.
+    */
+    Item sceneItem = undefined
+    EditorLayer sceneLayer = undefined
+
+    /*
+        SetSceneItem sets an Item2D or Item3D that this TreeItem will present.
+        If this item is set then it signifies that this TreeItem represents an object
+        in the scene and the item will not have any children in the tree.
+    */
+    action SetSceneItem(Item item)
+        sceneItem = item
+    end
+
+    /*
+        Returns the item this TreeItem represents. If it is undefined then either this SceneTreeItem
+        has not been initialized or this item represents a layer.
+    */
+    action GetSceneItem returns Item
+        return sceneItem
+    end
+
+    /*
+        SetSceneLayer sets the EditorLayer that this TreeItem represents. Scenes can have multiple layers
+        and the SceneTree separates items based on the layer they are on. Default scenes created by the editor
+        contain a 3D layer and a 2D layer. If this layer is set then the item should be not be set.
+    */
+    action SetSceneLayer(EditorLayer layer)
+        sceneLayer = layer
+    end
+
+    /*
+        Returns the EditorLayer this TreeItem represents. If it is undefined then either this SceneTreeItem
+        has not been initialized or this item represents an item.
+    */
+    action GetSceneLayer returns EditorLayer
+        return sceneLayer
+    end
+
+    /*
+        Returns the SceneEditor that is associated with the Tree this TreeItem is a part of. 
+    */
+    action GetSceneEditor returns SceneEditor
+        SceneTree tree = cast(SceneTree, GetTree())
+        return tree:GetSceneEditor()
+    end
+end

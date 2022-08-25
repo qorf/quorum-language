@@ -73,7 +73,7 @@ class HistogramCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while n < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(n))
            if not column:IsNumberColumn()
-                alert("HistogramCreator does not support text columns. " + column:GetHeader() + " is a text column.")
+                alert("HistogramCreator requires columns have number values. " + column:GetHeader() + " does not.")
                 return undefined
             end
             chart:GetColumns():Add(column)

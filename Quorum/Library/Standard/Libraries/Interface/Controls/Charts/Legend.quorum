@@ -359,36 +359,32 @@ class Legend is ChartItem
         itemNames:Empty()
     end
 
-    /*
-        These actions will be used to place the legend on the chart.
-        The user can adjust this by using the word "left" "right" "top" or "bottom"
+    action SetLocationToTop
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = true
+        displayOnBottom = false
+    end
 
-        Attribute: Returns true if to be placed in that location
-    */
-    action SetLocation(text location)
-        if location = "left"
-            displayOnLeft = true
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = false
-        elseif location = "right"
-            displayOnLeft = false
-            displayOnRight = true
-            displayOnTop = false
-            displayOnBottom = false
-        elseif location = "top"
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = true
-            displayOnBottom = false
-        elseif location = "bottom"
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = true
-        else
-            //Those are the only options right now.
-        end
+    action SetLocationToBottom
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = true
+    end
+
+    action SetLocationToLeft
+        displayOnLeft = true
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = false
+    end
+
+    action SetLocationToRight
+        displayOnLeft = false
+        displayOnRight = true
+        displayOnTop = false
+        displayOnBottom = false
     end
 
     action DisplayOnLeft returns boolean

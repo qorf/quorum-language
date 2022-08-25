@@ -1,0 +1,59 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
+
+/*
+    PointLightSelectionHightlight is a SelectionHighlight3D that is used when an EditorPointLight
+    is being selected. The box used to highlight the point light is the same but this class contains
+    actions to modify properties specific to PointLights such as intensity and color.
+*/
+class PointLightSelectionHighlight is SelectionHighlight3D
+
+    /*
+        Returns the item being selected as an EditorPointLight
+    */
+    action GetEditorPointLight returns EditorPointLight
+        return cast(EditorPointLight, GetItem())
+    end
+
+    /*
+        Returns the color of the PointLight
+    */
+    action GetColor returns Color
+        EditorPointLight item = GetEditorPointLight()
+        if item not= undefined
+            return item:GetColor()
+        else
+            return undefined
+        end
+    end
+
+    /*
+        Sets the color of the PointLight
+    */
+    action SetColor(Color color)
+        EditorPointLight item = GetEditorPointLight()
+        if item not= undefined
+            item:SetColor(color)
+        end
+    end
+
+    /*
+        Returns the intensity of the PointLight. Intensity affects
+        the brightness of the light
+    */
+    action GetIntensity returns number
+        EditorPointLight item = GetEditorPointLight()
+        return item:GetIntensity()
+    end
+
+    /*
+        Sets the intensity of the PointLight. Intensity affects
+        the brightness of the light.
+    */
+    action SetIntensity(number intensity)
+        EditorPointLight item = GetEditorPointLight()
+        item:SetIntensity(intensity)
+    end
+end

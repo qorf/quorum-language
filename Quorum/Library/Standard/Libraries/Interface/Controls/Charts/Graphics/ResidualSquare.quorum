@@ -1,0 +1,136 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+use Libraries.Interface.Controls.Charts.ChartPoint
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Compute.Vector2
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+
+class ResidualSquare is ChartDrawable
+
+    ChartPoint point = undefined
+    Color borderColor = undefined
+
+    on create
+        Color color
+        color:SetColor(0, 0, 0, 0)
+        SetBackgroundColor(color)
+
+        borderColor = color:Black()
+
+        SetClipping(true)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        // Set this to use the Control shader, if we haven't already
+        if GetShaderProgram() = undefined
+            Color color
+            color:SetColor(1, 1, 1, 1)
+            LoadFilledRectangle(2, 2, color)
+    
+            ShaderManager manager
+            ShaderProgram program = undefined
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+            SetShaderProgram(program)
+        end
+    end
+
+    action GetPoint returns ChartPoint
+        return point
+    end
+
+    action SetPoint(ChartPoint point)
+        me:point = point
+    end
+
+    action GetResidual returns number
+        number x = point:GetValueX()
+        number y = point:GetValueY()
+
+        RegressionLine regression = point:GetSeries():GetRegressionLine()
+
+        return y - regression:CalculateDependentValue(x)
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        if point not= undefined and point:GetSeries() not= undefined
+            Color color = point:GetBackgroundColor():GetBottomLeft()
+            borderColor:SetColor(color:GetRed() - 0.2, color:GetGreen() - 0.2, color:GetBlue() - 0.2, color:GetAlpha())
+
+            return borderColor
+        end
+
+        return GetParentChart():GetBorderColor()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Chart chart = GetParentChart()
+        if chart is ScatterPlot
+            ScatterPlot plot = cast(ScatterPlot, chart)
+            return plot:GetResidualSquareThickness()
+        else
+            // Return a default value. This is arbitrary, but this value seems nice at casual inspection.
+            return 1.2
+        end
+    end
+
+    action GetClipCoordinates(Vector2 xCoords, Vector2 yCoords) returns boolean
+        /*
+        Grab our clipping coordinates from the parent chart area instead of from ourselves.
+        This trick lets us always ensure the squares cull themselves if they're outside of
+        the chart area, instead of asking the culling to be applied from the chart area
+        (which would then apply to all objects attached to the chart, including the axes,
+        which might protrude slightly from the chart area).
+        */
+        ChartAreaPanel area = GetChartArea()
+        if area not= undefined and IsClipping()
+            
+            // Store the current clipping state of the chart so we can set it back after.
+            boolean clipState = area:IsClipping()
+
+            // Temporarily enable clipping on the chart area. It won't successfully set the clipping coordinates if it isn't clipping.
+            area:SetClipping(true)
+
+            // Actually store the clip coordinates in the provided vectors.
+            area:GetClipCoordinates(xCoords, yCoords)
+
+            // Reset the clip state of the chart area panel.
+            area:SetClipping(clipState)
+
+            // We only enter this if statement if clipping was enabled, so the action must return true.
+            return true
+        else
+            return parent:Item2D:GetClipCoordinates(xCoords, yCoords)
+        end
+    end
+
+    private action GetChartArea returns ChartAreaPanel
+        Item2D item = point:GetParent()
+        repeat until item is ChartAreaPanel or item = undefined
+            item = item:GetParent()
+        end
+
+        return cast(ChartAreaPanel, item)
+    end
+end
