@@ -1094,7 +1094,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             integer lineIndex = textValue:LineIndexFromCharacterIndex(i)
             integer localIndex = i - textValue:CharacterIndexFromLineIndex(lineIndex)
             Array<Drawable> drawables = background:GetLine(lineIndex)
-            if localIndex < drawables:GetSize()
+            if drawables not= undefined and localIndex < drawables:GetSize()
                 drawables:Get(localIndex):SetColor(fontColor)
             end
             i = i + 1
