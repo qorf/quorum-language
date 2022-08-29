@@ -582,12 +582,17 @@ end
             p2:Set(GetCatmullRomPoint(i + 1))
             p3:Set(GetCatmullRomPoint(i + 2))
 
+            output "Before mapping: p0 = " + p0:GetX() + ", " + p0:GetY() + " -- p1 = " + p1:GetX() + ", " + p1:GetY() + " -- p2 = " + p2:GetX() + ", " + p2:GetY() + " -- p3 = " + p3:GetX() + ", " + p3:GetY()
+            output "Bounds are " + leftBound + ", " + rightBound + ", " + bottomBound + ", " + topBound
+
             // The mapping step isn't part of the Catmull-Rom to Bezier conversion.
             // It's something we do to facilitate rendering a path that might want a different coordinate system than the raw pixels.
             TranslateFromMappedSpace(p0, leftBound, rightBound, bottomBound, topBound)
             TranslateFromMappedSpace(p1, leftBound, rightBound, bottomBound, topBound)
             TranslateFromMappedSpace(p2, leftBound, rightBound, bottomBound, topBound)
             TranslateFromMappedSpace(p3, leftBound, rightBound, bottomBound, topBound)
+
+            output "After mapping: p0 = " + p0:GetX() + ", " + p0:GetY() + " -- p1 = " + p1:GetX() + ", " + p1:GetY() + " -- p2 = " + p2:GetX() + ", " + p2:GetY() + " -- p3 = " + p3:GetX() + ", " + p3:GetY()
 
             curve:SetPoint1(p1)
             curve:SetPoint2(p2)
@@ -615,6 +620,8 @@ end
             curve:SetDrawPoints(drawPoints)
             // Setting the size to match the path's is easy and makes it responsive to resizing, but is less performant than setting a more specific size and position.
             curve:SetSize(GetWidth(), GetHeight())
+
+            output "Curve " + i + ": p1 = " + curve:GetPoint1():GetX() + ", " + curve:GetPoint1():GetY() + " -- p2 = " + curve:GetPoint2():GetX() + ", " + curve:GetPoint2():GetY() + " -- size = " + curve:GetWidth() + "x" + curve:GetHeight()
 
             i = i + 1
         end
@@ -758,7 +765,7 @@ end
     Translate the values in the given Vector2 from the mapped space (the custom region set by the user via the mapping action)
     to the real space (pixel values contained within the dimensions of the LinePath object).
     */
-    private action TranslateFromMappedSpace(Vector2 point)
+    action TranslateFromMappedSpace(Vector2 point)
         number leftBound = mappedLeft
         if mappedLeft:IsNotANumber()
             leftBound = 0
@@ -792,7 +799,7 @@ end
     Translate the values in the given Vector2 from the real space (pixel values contained within the dimensions of the LinePath object)
     to the mapped space (the custom region set by the user via the mapping action)
     */
-    private action TranslateToMappedSpace(Vector2 point)
+    action TranslateToMappedSpace(Vector2 point)
         number leftBound = mappedLeft
         if mappedLeft:IsNotANumber()
             leftBound = 0
