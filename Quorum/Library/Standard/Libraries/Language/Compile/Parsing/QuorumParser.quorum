@@ -1006,7 +1006,8 @@ class QuorumParser
             end
             next = tokenIterator:GetCurrent()
             if next:category = constants:END //advance the token
-                context:SetLastToken(tokenIterator:Next())
+                context:SetLastToken(next)
+                tokenIterator:Next()
             else //this is an error
                 SendDefaultError("Expected 'end' at the end of an action. " + CalculateMatchedBracesMessage(), codes:PARSER_ACTION_DECLARATION_BAD_END)
                 return undefined 
@@ -2185,6 +2186,7 @@ class QuorumParser
         if next not= undefined and next:category = constants:ID
             context:actionName = next:value
             context:SetLastToken(next)
+            SetLocationToToken(context:actionNameLocation, next)
             next = tokenIterator:Next()
         else //an error
             text value = ""
