@@ -18,6 +18,10 @@ class NetworkExchange
 
     system action VerifyPassword(text password, text hash) returns boolean
 
+    system action URLEncodeValue(text value) returns text
+
+    system action HashString(text algorithm, text value) returns text
+
     system action GetHeaders returns HashTable<text, List<text>>
 
     system action GetParameters returns HashTable<text,text>
