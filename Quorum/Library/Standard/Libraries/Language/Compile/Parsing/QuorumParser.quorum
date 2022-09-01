@@ -530,6 +530,7 @@ class QuorumParser
                 name:Add(next:value)
                 context:name = name
                 context:className = next:value
+                SetLocationToToken(context:classNameLocation, next)
             else //this is an error. We expected an ID.
                 SendDefaultError("A name was expected, but the next value was "
                 + next:value + ". " + identifierMessage + " " + moreInformationClasses, codes:PARSER_FULL_CLASS_BAD_ID)
