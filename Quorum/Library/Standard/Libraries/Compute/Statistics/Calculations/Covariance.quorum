@@ -1,8 +1,6 @@
 package Libraries.Compute.Statistics.Calculations
 
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Math
-use Libraries.Compute.Statistics.DataFrameColumnCalculation
 use Libraries.Compute.Statistics.Calculations.Mean
 
 /*
@@ -33,13 +31,12 @@ use Libraries.Compute.Statistics.Calculations.Mean
     number covar = covariance:GetCovariance()
 */
 class Covariance
-    integer size = 0
     number mean1 = 0
     number mean2 = 0
     number covariance = 0
     boolean mean1Set = false
     boolean mean2Set = false
-    boolean biasCorrected = false
+    boolean biasCorrected = true
     boolean population = true
     boolean sample = false
 
@@ -99,7 +96,6 @@ class Covariance
         This calculation can be used again if Empty is called after using it on a column.
     */
     action Empty
-        size = 0
         mean1 = 0
         mean2 = 0
         covariance = 0

@@ -285,14 +285,15 @@ class CompareNGroupsResult is CompareGroupsResult
         end
         p:Add(nan:GetNotANumberValue())
 
-        NumberColumn cv
-        cv:SetHeader("F Critical Value")
-        cv:Add(GetCriticalValue())
-        cv:Add(nan:GetNotANumberValue()) // Not implemented yet.
-        if repeatedMeasures
-            cv:Add(nan:GetNotANumberValue())
-        end
-        cv:Add(nan:GetNotANumberValue())
+        // Wait until we get critical values working.
+//        NumberColumn cv
+//        cv:SetHeader("F Critical Value")
+//        cv:Add(GetCriticalValue())
+//        cv:Add(nan:GetNotANumberValue()) // Not implemented yet.
+//        if repeatedMeasures
+//            cv:Add(nan:GetNotANumberValue())
+//        end
+//        cv:Add(nan:GetNotANumberValue())
 
         DataFrame anovaTable
         anovaTable:AddColumn(source)
@@ -301,7 +302,7 @@ class CompareNGroupsResult is CompareGroupsResult
         anovaTable:AddColumn(ms)
         anovaTable:AddColumn(f)
         anovaTable:AddColumn(p)
-        anovaTable:AddColumn(cv)
+//        anovaTable:AddColumn(cv)
         return anovaTable
     end
 

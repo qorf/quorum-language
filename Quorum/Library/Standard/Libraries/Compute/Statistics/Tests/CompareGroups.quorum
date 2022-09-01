@@ -26,14 +26,26 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
         Compare1Group is a one sample t-test. 
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
-        Compare2Groups is a two sample unpaired/paired t-test. 
+        Compare2IndependentGroups is a two sample unpaired t-test. 
         For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test
 
-        Compare2Groups is a two sample equal variance unpaired t-test
+        Compare2IndependentGroups is a two sample equal variance unpaired t-test
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
-        CompareNGroups is a one-way analysis of variance (ANOVA). 
+        Compare2DependentGroups is a two sample paired t-test
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test        
+
+        CompareNIndependentGroups is a one-way analysis of variance (ANOVA). 
         For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
+
+        CompareNDependentGroups is a one-way repeated measures analysis of variance (ANOVA). 
+        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+
+        _____________ is a one-way analysis of covariance (ANCOVA). 
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
+
+        _____________ is a one-way multivariate analysis of variance (MANOVA). 
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance
 
     It was adapted from the same model in Apache Commons, but was expanded 
     upon to simplify the library and add a variety of helper actions that were missing.
@@ -96,7 +108,7 @@ class CompareGroups is StatisticalTest
             else             
                 Compare2IndependentGroups(frame)
             end
-        elseif GetColumnSize() > 2 //run one of the various ANOVAs
+        elseif GetColumnSize() > 2
             if repeatedMeasures
                 CompareNDependentGroups(frame)
             else
@@ -135,7 +147,7 @@ class CompareGroups is StatisticalTest
         CompareGroups compare = frame:CompareSelectedColumns()
         output compare:GetSummary()
     */
-    action CompareNIndependentGroups(DataFrame frame)
+    private action CompareNIndependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -310,7 +322,7 @@ class CompareGroups is StatisticalTest
 
         output compare:GetSummary()
     */
-    action CompareNDependentGroups(DataFrame frame)
+    private action CompareNDependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -483,7 +495,7 @@ class CompareGroups is StatisticalTest
         CompareGroups compare = frame:CompareSelectedColumns()
         output compare:GetSummary()
     */
-    action Compare2IndependentGroups(DataFrame frame)
+    private action Compare2IndependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -598,7 +610,7 @@ class CompareGroups is StatisticalTest
 
         output compare:GetSummary()
     */
-    action Compare2DependentGroups(DataFrame frame)
+    private action Compare2DependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -625,10 +637,12 @@ class CompareGroups is StatisticalTest
                     alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
                 end
                 
+                NumberColumn numLeft = left:ConvertToNumberColumn()
+                NumberColumn numRight = right:ConvertToNumberColumn()
+                NumberColumn difference = numLeft:Subtract(numRight)
+
                 DataFrame newFrame
-                newFrame:AddColumn(left)
-                newFrame:AddColumn(right)
-                newFrame:AddColumn("difference", left:GetHeader()+"-"+right:GetHeader())
+                newFrame:AddColumn(difference)
 
                 // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
 
@@ -699,7 +713,7 @@ class CompareGroups is StatisticalTest
         CompareGroupToMean compare = frame:CompareSelectedColumnToMean(35)
         output compare:GetSummary()
     */
-    action Compare1Group(DataFrame frame)
+    private action Compare1Group(DataFrame frame)
         i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -807,7 +821,7 @@ class CompareGroups is StatisticalTest
     end
 
     /* Used in Compare2Groups */
-    action GetPaired returns boolean
+    action Paired returns boolean
         return paired
     end
 
@@ -816,7 +830,7 @@ class CompareGroups is StatisticalTest
     end
 
     /* Used in Compare2Groups */
-    action GetEqualVariances returns boolean
+    action EqualVariances returns boolean
         return equalVariances
     end
 
@@ -825,7 +839,7 @@ class CompareGroups is StatisticalTest
     end
 
     /* Used in CompareNGroups */
-    action GetRepeatedMeasures returns boolean
+    action RepeatedMeasures returns boolean
         return repeatedMeasures
     end
 

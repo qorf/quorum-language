@@ -1,0 +1,111 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+    A Schur decomposition is a matrix decomposition of a matrix A into 
+    a quasi-triangular matrix T and a orthogonal matrix P such that:
+         A = P*T*P^(T)
+
+    This was adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library and add a variety of helper actions that were missing.
+    More information about this class can be found on its documentation page SchurTransformer:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+
+    For more information: https://en.wikipedia.org/wiki/Schur_decomposition
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Compute.MatrixTransform.SchurDecomposition
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 5.0)
+            SchurDecomposition calc
+            calc:Calculate(matrix)
+            output calc:GetResult():ToText()
+        end
+    end
+*/
+
+class SchurDecomposition
+    /* Maximum allowed iterations for convergence of the transformation. */
+    constant integer maxIterations = 100
+
+    /* This matrix represents the original matrix */
+    Matrix original = undefined
+
+    /* This matrix represents the quasi-triangular matrix (T) */
+    Matrix triangular = undefined
+
+    /* This matrix represents the orthogonal matrix (P). */
+    Matrix orthogonal = undefined
+
+    /* This matrix represents the orthogonal matrix transposed (PT). */
+    Matrix orthogonalTransposed = undefined
+
+    Math math
+
+    action Calculate(Matrix matrix)
+        if not matrix:IsSquare()
+            alert("SchurDecomposition is only valid for square matrices.")
+        end
+        original = matrix
+        triangular = undefined
+        orthogonal = undefined
+        orthogonalTransposed = undefined
+        
+        HessenbergDecomposition decomp
+        decomp:Calculate(matrix)
+
+        triangular = decomp:GetHessenbergMatrix()
+        orthogonal = decomp:GetOrthogonalMatrix()
+
+        integer size = triangular:GetColumns()
+
+        // compute matrix norm
+        number norm = GetNorm()
+
+        //TODO: Complex number and Shift info needed perhaps?
+        
+    end
+
+    private action GetNorm() returns number
+        number norm = 0
+        integer size = triangular:GetColumns()
+        integer i = 0
+        repeat while i < size
+            integer j = cast(integer, math:MaximumOf(i-1, 0))
+            repeat while j < size
+                norm = norm + math:AbsoluteValue(triangular:Get(i, j))
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return norm
+    end
+
+    action GetOriginalMatrix returns Matrix
+        return original
+    end
+
+    action GetTriangularMatrix returns Matrix
+        return triangular
+    end
+
+    action GetOrthogonalMatrix returns Matrix
+        return orthogonal
+    end
+
+    action GetOrthogonalTransposedMatrix returns Matrix
+        if orthogonalTransposed = undefined
+            orthogonalTransposed = GetOrthogonalMatrix():Transpose()
+        end
+        return orthogonalTransposed
+    end
+end

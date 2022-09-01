@@ -1384,6 +1384,107 @@ class Matrix
     end
 
     /*
+    This method returns true if the matrix rows and columns are equal in size
+    therefore it is square.
+
+    Attribute Returns a boolean.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            output matrix:IsSquare()
+        end
+    end
+    */
+    action IsSquare returns boolean
+        if GetRows() = GetColumns()
+            return true
+        else
+            return false
+        end
+    end
+
+    /*
+    This method returns true if the tranpose of this matrix is equal to itself
+    therefore it is symmetric. 
+
+    Attribute Returns a boolean.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            output matrix:IsSymmetric()
+        end
+    end
+    */
+    action IsSymmetric returns boolean
+        if not IsSquare()
+            return false
+        else
+            integer i = 0
+            repeat while i < GetRows()
+                integer j = 0
+                repeat while j < GetRows()
+                    if i not= j
+                        number mij = Get(i,j)
+                        number mji = Get(j,i)
+                        
+                        if mij not= mji
+                            return false
+                        end  
+                    end  
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+        return true
+    end
+
+    /*
+    This method rounds the values this matrix to the given decimalPlace
+    and returns a new matrix. 
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7.8887)
+            Matrix newMatrix = matrix:Round(2)
+        end
+    end
+    */
+    action Round(integer decimalPlace) returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer i = 0
+        repeat while i < GetColumns()
+            integer j = 0
+            repeat while j < GetRows()
+                newMatrix:Set(i,j, math:Round(Get(i,j), decimalPlace))                    
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return newMatrix
+    end
+
+    /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
 
     Attribute Parameter offsetRow The row offset for the first element in the new matrix.

@@ -3,16 +3,14 @@ package Libraries.Compute.Statistics.Tests
 use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.Mean
-use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Containers.Array
-use Libraries.Compute.Vector
-use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
-use Libraries.Compute.Statistics.Calculations.InterQuartileRange
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
+use Libraries.Compute.Statistics.Calculations.Median
+use Libraries.Compute.Statistics.Calculations.Mean
 
 /*
 
@@ -22,7 +20,9 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 
     https://en.wikipedia.org/wiki/Levene%27s_test
 
-    Attribute: Author Tim Kluthe
+    https://en.wikipedia.org/wiki/Mauchly%27s_sphericity_test
+
+    Attribute: Author Tim Kluthe, Hannah Williams
     Attribute: Example
 
     DataFrame frame
@@ -40,64 +40,215 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
     output result:GetProbabilityValue()
 */
 class CompareVariances is CompareGroups
-    boolean useMeanAsCenter = false
+    /* The distribution used to calculate the p-value from x2 and df.*/
+    ClassificationDistribution distribution
+
+    /* Default uses median as center for calculations */
+    boolean useMedianAsCenter = true 
+    boolean useMeanAsCenter = false 
+
+    boolean violatesAssumption = false
+
+    Math math
 
     private action RunTest(DataFrame frame)
         if GetColumnSize() < 2
             alert("Must include at least two columns.")
         end
 
-        CompareVariances(frame)
+        if Paired() or RepeatedMeasures()
+            CompareDifferenceVariances(frame)   // Mauchly's Sphericity Test
+        else
+            CompareVariances(frame)             // Levene's Test
+        end
     end
 
-    private action CompareVariances(DataFrame frame)
-        Array<DataFrameColumn> medianDifferencesDataFrameColumns
-        Array<integer> preservedColumns = parent:ColumnInput:columns
-        Array<integer> medianDifferencesColumns
-        Math math
+    /* 
+        Levene's Test 
 
+        Null hypothesis: The variances are equal
+        Alternative hypothesis: The variances are not equal
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("data.csv")
+    
+        CompareVariances compare 
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:Calculate(frame)
+
+        output compare:GetSummary()
+    */
+    private action CompareVariances(DataFrame frame)
+        Array<DataFrameColumn> differencesDataFrameColumns
+        Array<integer> preservedColumns = parent:ColumnInput:columns
+        Array<integer> differencesColumns
+
+        if useMedianAsCenter
+            i = 0
+            repeat while i < GetColumnSize()
+                DataFrameColumn column = frame:GetColumn(GetColumn(i))
+
+                if column = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+        
+                if column:GetSize() < 2
+                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+                end
+
+                Median median
+                column:Calculate(median)    
+                NumberColumn medianDifferencesColumn    
+                
+                j = 0
+                repeat while j < column:GetSize()
+                    medianDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - median:GetMedian()))
+    
+                    j = j + 1
+                end
+
+                differencesDataFrameColumns:Add(medianDifferencesColumn)
+                differencesColumns:Add(i)
+                i = i + 1
+            end
+        elseif useMeanAsCenter
+            i = 0
+            repeat while i < GetColumnSize()
+                DataFrameColumn column = frame:GetColumn(GetColumn(i))
+
+                if column = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+        
+                if column:GetSize() < 2
+                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+                end
+    
+                Mean mean
+                column:Calculate(mean)    
+                NumberColumn meanDifferencesColumn
+                
+                j = 0
+                repeat while j < column:GetSize()
+                    meanDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - mean:GetMean()))
+    
+                    j = j + 1
+                end
+
+                differencesDataFrameColumns:Add(meanDifferencesColumn)
+                differencesColumns:Add(i)
+                i = i + 1
+            end           
+        end
+
+        DataFrame differencesDataFrame
+        differencesDataFrame:SetColumns(differencesDataFrameColumns)
+        
+        parent:ColumnInput:columns = differencesColumns
+        parent:CompareGroups:CompareNIndependentGroups(differencesDataFrame)
+        parent:CompareGroups:GetResult():SetFormalTestName("Levene's Test")
+        parent:ColumnInput:columns = preservedColumns
+
+        violatesAssumption = GetProbabilityValue() < GetSignificanceLevel()
+    end
+
+    /* 
+        Mauchly's Sphericity Test 
+
+        Null hypothesis: The variances of the differences are equal
+        Alternative hypothesis: The variances of the differences are not equal
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("data.csv")
+    
+        CompareVariances compare 
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:SetRepeatedMeasures(true)
+        compare:Calculate(frame)
+
+        output compare:GetSummary()
+    */
+    action CompareDifferenceVariances(DataFrame frame)
+        DataFrame differences
         i = 0
         repeat while i < GetColumnSize()
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            InterQuartileRange interQuartileRangeCalculation
+            j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
 
-            column:Calculate(interQuartileRangeCalculation)
-            number median = interQuartileRangeCalculation:GetMedian()
+                if left = undefined or right = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not left:IsNumberColumn() and not left:IsIntegerColumn()
+                    alert("Columns must be numerical. " + left:GetHeader() + " is not a numerical column.")
+                end
+        
+                if not right:IsNumberColumn() and not right:IsIntegerColumn()
+                    alert("Columns must be numerical. " + right:GetHeader() + " is not a numerical column.")
+                end
+        
+                if left:GetSize() < 2 or right:GetSize() < 2
+                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+                end
 
-            
-            NumberColumn medianDifferencesColumn    
-            
-            j = 0
-            repeat while j < column:GetSize()
-                medianDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - median))
+                NumberColumn numLeft = left:ConvertToNumberColumn()
+                NumberColumn numRight = right:ConvertToNumberColumn()
+                NumberColumn difference = numLeft:Subtract(numRight)
+
+                differences:AddColumn(difference)
 
                 j = j + 1
             end
-
-            medianDifferencesDataFrameColumns:Add(medianDifferencesColumn)
-            medianDifferencesColumns:Add(i)
-
             i = i + 1
         end
 
-        DataFrame medianDifferencesDataFrame
-        medianDifferencesDataFrame:SetColumns(medianDifferencesDataFrameColumns)
-        
-        parent:ColumnInput:columns = medianDifferencesColumns
-        parent:CompareGroups:CompareNIndependentGroups(medianDifferencesDataFrame)
-        parent:CompareGroups:GetResult():SetFormalTestName("Levene's Test")
+        if differences:GetSize() > 1
+            differences:AddSelectedColumnRange(0, differences:GetSize()-1)
+            CompareVariances compare = differences:CompareSelectedVariances()
+            compare:GetResult():SetFormalTestName("Mauchly's Sphericity Test")
+            parent:CompareGroups:results:Add("NA", compare:GetResult())
+        end
 
-        parent:ColumnInput:columns = preservedColumns
+        violatesAssumption = GetProbabilityValue() < GetSignificanceLevel()
+        alert("Mauchly's test is not complete")
     end
 
-//    /* This action obtains an informal summary of the result. */
-//    action GetSummary returns text
-//        return ""
-//    end
-//
-//    /* This action returns a formal academic summary of the result. */
-//    action GetFormalSummary returns text
-//        return ""
-//    end
+    action UseMedianAsCenter
+        useMedianAsCenter = true
+        useMeanAsCenter = false
+    end
+
+    action UseMeanAsCenter
+        useMedianAsCenter = false
+        useMeanAsCenter = true
+    end
+
+    action ViolatesAssumption returns boolean
+        return violatesAssumption
+    end
 
 end

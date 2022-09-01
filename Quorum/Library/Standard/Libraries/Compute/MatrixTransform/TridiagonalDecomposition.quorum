@@ -1,0 +1,246 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+    A Tridiagonal decomposition is a matrix decomposition/reduction of a symmetric matrix A into 
+    a symmetric tridiagonal matrix T and a orthogonal matrix Q such that:
+         A = Q*T*Q^(T)
+
+    This was adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library and add a variety of helper actions that were missing.
+    More information about this class can be found on its documentation page TriDiagonalTransformer:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+
+    For more information: https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Compute.MatrixTransform.TridiagonalDecomposition
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 5.0)
+            TridiagonalDecomposition decomp
+            decomp:Calculate(matrix)
+            output decomp:GetTridiagonalMatrix():ToText()
+        end
+    end
+*/
+
+class TridiagonalDecomposition
+    /* This matrix represents the original matrix */
+    Matrix original = undefined
+
+    /* This matrix represents the house holder matrix */
+    Matrix holder = undefined
+
+    /* This matrix represents the symmetrical tridiagonal matrix (T) */
+    Matrix tridiagonal = undefined
+
+    /* This matrix represents the orthogonal matrix (Q). */
+    Matrix orthogonal = undefined
+
+    /* This matrix represents the orthogonal matrix transposed (QT). */
+    Matrix orthogonalTransposed = undefined
+
+    /* This array represents the center (primary) diagonal. */
+    Array<number> primary
+
+    /* This array represents the next to center (secondary) diagonal. */
+    Array<number> secondary
+
+    /* This is used if the user explicitly wants to assume symmetry or not */
+    boolean symmetric = false
+    boolean symmetricOverride = false
+
+    Math math
+
+    action Calculate(Matrix matrix)
+        if not symmetricOverride
+            symmetric = matrix:IsSymmetric()
+        end
+        if not symmetric
+            alert("TridiagonalDecomposition is only valid for symmetric matrices.")
+        end
+
+        if not matrix:IsSquare()
+            alert("TridiagonalDecomposition is only valid for square matrices.")
+        end
+        original = matrix
+        holder = original:Copy()
+        tridiagonal = undefined
+        orthogonal = undefined
+        orthogonalTransposed = undefined
+
+        integer size = holder:GetRows()
+
+        primary:SetSize(size)
+        secondary:SetSize(size-1)
+
+        Array<number> z
+        z:SetSize(size)
+
+        integer k = 0
+        repeat while k < size - 1
+            number xNormSqr = 0
+            integer j = k + 1
+            repeat while j < size
+                xNormSqr = xNormSqr + holder:Get(k,j) * holder:Get(k,j)
+                j = j + 1
+            end
+
+            number a = 0
+            if holder:Get(k, k+1) > 0
+                a = -math:SquareRoot(xNormSqr)
+            else
+                a = math:SquareRoot(xNormSqr)
+            end
+
+            primary:Set(k, holder:Get(k,k))
+            secondary:Set(k, a)
+
+            if a not= 0
+                holder:Set(k,k+1, holder:Get(k,k+1) - a)
+                number beta = -1.0 / (a * holder:Get(k,k+1))
+                
+                // Fill z array
+                i = k + 1
+                repeat while i < size
+                    z:Set(i, 0)
+                    i = i + 1
+                end                
+                
+                // compute gamma = beta vT z / 2
+                number gamma = 0
+                i = k + 1
+                repeat while i < size
+                    gamma = gamma + (z:Get(i) * holder:Get(k,i))
+                    i = i + 1
+                end
+                gamma = gamma * (beta / 2.0)
+
+                // compute z = z - gamma v
+                i = k + 1
+                repeat while i < size
+                    z:Set(i, z:Get(i) - (gamma * holder:Get(k,i)))
+                    i = i + 1
+                end      
+
+                // update matrix: A = A - v zT - z vT
+                // only the upper triangular part of the matrix is updated
+                i = k + 1
+                repeat while i < size
+                    j = i
+                    repeat while j < size
+                        holder:Set(i, j, holder:Get(i,j) - holder:Get(k,i) * z:Get(j) + z:Get(i) * holder:Get(k,j))
+                        j = j + 1
+                    end
+                    i = i + 1
+                end               
+            end
+            k = k + 1
+        end
+        primary:Set(size-1, holder:Get(size-1,size-1))
+    end
+
+    action GetOriginalMatrix returns Matrix
+        return original
+    end
+
+    action GetTridiagonalMatrix returns Matrix
+        if tridiagonal = undefined and original not= undefined
+            integer size = primary:GetSize()
+            Matrix matrix
+            matrix:Fill(size, size, 0)
+            i = 0
+            repeat while i < size
+                matrix:Set(i, i, primary:Get(i))
+                if i > 0
+                    matrix:Set(i, i-1, secondary:Get(i-1))
+                end
+                if i < size - 1
+                    matrix:Set(i, i+1, secondary:Get(i))
+                end
+                i = i + 1
+            end
+            tridiagonal = matrix
+        end
+        return tridiagonal
+    end
+
+    action GetOrthogonalMatrix returns Matrix
+        if orthogonal = undefined and holder not= undefined
+            orthogonal = GetOrthogonalTransposedMatrix():Transpose()
+        end
+        return orthogonal
+    end
+
+
+    action GetOrthogonalTransposedMatrix returns Matrix
+        if orthogonalTransposed = undefined and holder not= undefined
+            integer size = holder:GetColumns()
+            Matrix matrix
+            matrix:Fill(size, size, 0)
+
+            k = size - 1
+            repeat while k > 0
+                matrix:Set(k, k, 1)
+
+                if holder:Get(k-1,k) not= 0
+                    number inv = 1.0 / (secondary:Get(k-1) * holder:Get(k-1,k))
+                    number beta = 1.0 / secondary:Get(k-1)
+                    matrix:Set(k, k, 1 + beta * holder:Get(k-1,k))
+
+                    i = k + 1
+                    repeat while i < size
+                        matrix:Set(k, i, beta * holder:Get(k-1,i))
+                        i = i + 1
+                    end
+
+                    j = k + 1
+                    repeat while j < size
+                        beta = 0
+                        i = k + 1
+                        repeat while i < size
+                            beta = beta + matrix:Get(j, i) * holder:Get(k-1,i)
+                            i = i + 1
+                        end
+                        beta = beta * inv
+                        matrix:Set(j, k, beta * holder:Get(k-1,k))
+
+                        i = k + 1
+                        repeat while i < size
+                            matrix:Set(j, i, matrix:Get(j, i) + beta * holder:Get(k-1,i))
+                            i = i + 1
+                        end
+                        j = j + 1
+                    end
+                end
+                k = k - 1
+            end
+            matrix:Set(0, 0, 1)   
+
+            orthogonalTransposed = matrix
+        end
+        return orthogonalTransposed
+    end
+
+    action GetPrimary returns Array<number>
+        return primary
+    end
+
+    action GetSecondary returns Array<number>
+        return secondary
+    end
+
+    action Symmetric(boolean symmetric)
+        me:symmetric = symmetric
+        me:symmetricOverride = true
+    end
+end

@@ -36,6 +36,7 @@ use Libraries.Compute.Matrix
 */
 class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
     Matrix covarianceMatrix = undefined
+    boolean biasCorrected = true
     boolean population = true
     boolean sample = false
 
@@ -67,6 +68,7 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
 
                 Covariance cov
                 cov:UsePopulation(population)
+                cov:BiasCorrected(biasCorrected)
                 cov:Calculate(column1, column2)
 
                 col:Add(cov:GetCovariance())
@@ -110,6 +112,20 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
         end
         
         return matrix
+    end
+
+    /*
+        Returns the biasCorrected
+    */
+    action BiasCorrected returns boolean
+        return biasCorrected
+    end
+
+    /*
+        Sets the bias corrected boolean. True if correction is applied.
+    */
+    action BiasCorrected(boolean biasCorrected)
+        me:biasCorrected = biasCorrected
     end
 
     /*
