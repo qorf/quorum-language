@@ -14,13 +14,21 @@ import android.view.WindowManager;
 import java.io.IOException;
 import java.io.InputStream;
 
+import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
+import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
+import quorum.Libraries.Game.AndroidDisplay;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.AndroidApplication_;
 import quorum.Libraries.Game.AndroidDisplay_;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import quorum.Libraries.Game.AndroidConfiguration_;
 import quorum.Libraries.System.File_;
 
@@ -28,6 +36,7 @@ import quorum.Libraries.System.File_;
  *
  * @author alleew
  */
+
 public class AndroidApplication
 {
     public java.lang.Object me_ = null;
@@ -58,7 +67,11 @@ public class AndroidApplication
     private boolean isWaitingForAudio = false;
     private boolean hasBeenOriented = false;
     public static AccessibilityManager accessibilityManager = null;
-    
+    public static AccessibilityEvent accessibilityEvent = null;
+    public static AccessibilityNodeProvider accessibilityNodeProvider = null;
+    public static View viewRoot = null;
+    public static final List<AndroidAccessibility.VirtualView> virtualChildren = new ArrayList<AndroidAccessibility.VirtualView>();
+
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
         initialized = true;
@@ -73,12 +86,11 @@ public class AndroidApplication
         quorumApp = (AndroidApplication_)GameStateManager.application;
         display = (AndroidDisplay_)GameStateManager.display;
         accessibilityManager = (AccessibilityManager) GetContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-        
+        accessibilityEvent = AccessibilityEvent.obtain();
         if (GetVersion() < MINIMUM_SDK) 
         {
             throw new GameRuntimeError("Android API level " + GetVersion() + " was detected, but " + MINIMUM_SDK + " or later is required.");
         }
-        
         ((quorum.Libraries.Game.AndroidDisplay)display).plugin_.Initialize(this, config);
         //input = AndroidInputFactory.newAndroidInput(this, this, graphics.view, config);
         //audio = new AndroidAudio(this, config);
@@ -129,12 +141,50 @@ public class AndroidApplication
         androidActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         androidActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         //setContentView(graphics.getView(), createLayoutParams());
-        androidActivity.setContentView(((quorum.Libraries.Game.AndroidDisplay)GameStateManager.display).plugin_.GetView());
+        androidActivity.setContentView(((AndroidDisplay)GameStateManager.display).plugin_.GetView());
         //}
 
         CreateWakeLock(config.preventScreenDimming);
         HideStatusBar(this.hideStatusBar);
         UseImmersiveMode(this.useImmersiveMode);
+
+        viewRoot = androidActivity.getWindow().getDecorView();
+
+        accessibilityNodeProvider = new AccessibilityNodeProvider() {
+            @Override
+            public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
+                AccessibilityNodeInfo info = null;
+                if (virtualViewId == View.NO_ID) {
+                    // We are requested to create an AccessibilityNodeInfo describing
+                    // this View, i.e. the root of the virtual sub-tree. Note that the
+                    // host View has an AccessibilityNodeProvider which means that this
+                    // provider is responsible for creating the node info for that root.
+                    info = AccessibilityNodeInfo.obtain(AndroidApplication.viewRoot);
+                    // Add the virtual children of the root View.
+                    List<AndroidAccessibility.VirtualView> children = AndroidApplication.virtualChildren;
+                    final int childCount = children.size();
+                    for (int i = 0; i < childCount; i++) {
+                        AndroidAccessibility.VirtualView child = children.get(i);
+                        info.addChild(AndroidApplication.viewRoot, child.id);
+                    }
+                } else {
+                    // Find the view that corresponds to the given id.
+                    AndroidAccessibility.VirtualView virtualView = AndroidAccessibility.findVirtualViewById(virtualViewId);
+                    if (virtualView == null) {
+                        return null;
+                    }
+                    // Obtain and initialize an AccessibilityNodeInfo with
+                    // information about the virtual view.
+                    info = AccessibilityNodeInfo.obtain();
+                    info.setClassName(virtualView.name);
+                    info.setSource(AndroidApplication.viewRoot, virtualViewId);
+                    info.setParent(AndroidApplication.viewRoot);
+                    info.setText(virtualView.description);
+                }
+                return info;
+            }
+        };
+
         /*
         if (this.useImmersiveMode && getVersion() >= Build.VERSION_CODES.KITKAT) {
                 try {
@@ -147,6 +197,10 @@ public class AndroidApplication
                 }
         }
         */
+
+        /*AndroidDisplay displayFullObject = (AndroidDisplay)GameStateManager.display;
+        plugins.quorum.Libraries.Game.AndroidDisplay displayPlugin = displayFullObject.plugin_;
+        View view = displayPlugin.GetView();*/
     }
     
     public boolean RequiresOrientationChange(AndroidConfiguration_ config)
