@@ -1,0 +1,116 @@
+package Libraries.Interface.Controls.Charts.Flowcharts
+
+use Libraries.Interface.Controls.Control
+use Libraries.System.File
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+
+class Flowchart is Control
+
+    ColorGroup nodeBackgroundColor = undefined
+    ColorGroup nodeBorderColor = undefined
+
+    number nodeBorderThickness = 2
+    number nodeCornerRounding = 0.3
+
+    number arrowLineThickness = 5
+    number arrowHeadThickness = 30
+
+    on create
+        SetInterfaceOptionsKey("Flowchart")
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+    end
+
+    /* 
+        This action converts this chart to a text value that contains information 
+        for a scalable vector graphics file. This is useful for saving charts to disk.
+        Each sub-class of chart must implement this action separately.
+
+        Attribute: Returns the Scalable Vector Graphics (SVG) text.
+    */
+    action ConvertToScalableVectorGraphics returns text
+        return ""
+    end
+
+    /*
+        This action saves this chart to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Scalable Vector Graphics (SVG) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+    */
+    action Save(File file)
+        if file:GetFileExtension() = "svg"
+            text value = ConvertToScalableVectorGraphics()
+            file:Write(value)
+        end
+    end
+
+    /*
+        This is a helper action for saving that saves at the path relative to the current working directory.
+
+        Attribute: Parameter path the path relative to the working directory.
+    */
+    action Save(text path)
+        File file
+        file:SetPath(path)
+        Save(file)
+    end
+
+    action GetNodeBackgroundColor returns ColorGroup
+        return nodeBackgroundColor
+    end
+
+    action SetNodeBackgroundColor(ColorGroup nodeBackgroundColor)
+        me:nodeBackgroundColor = nodeBackgroundColor
+    end
+
+    action GetNodeBorderColor returns ColorGroup
+        return nodeBorderColor
+    end
+
+    action SetNodeBorderColor(ColorGroup nodeBorderColor)
+        me:nodeBorderColor = nodeBorderColor
+    end
+
+    action GetNodeBorderThickness returns number
+        return nodeBorderThickness
+    end
+
+    action SetNodeBorderThickness(number nodeBorderThickness)
+        me:nodeBorderThickness = nodeBorderThickness
+    end
+
+    action GetNodeCornerRounding returns number
+        return nodeCornerRounding
+    end
+
+    action SetNodeCornerRounding(number nodeCornerRounding)
+        me:nodeCornerRounding = nodeCornerRounding
+    end
+
+    action GetArrowLineThickness returns number
+        return arrowLineThickness
+    end
+
+    action SetArrowLineThickness(number arrowLineThickness)
+        me:arrowLineThickness = arrowLineThickness
+    end
+
+    action GetArrowHeadThickness returns number
+        return arrowHeadThickness
+    end
+
+    action SetArrowHeadThickness(number arrowHeadThickness)
+        me:arrowHeadThickness = arrowHeadThickness
+    end
+
+end
