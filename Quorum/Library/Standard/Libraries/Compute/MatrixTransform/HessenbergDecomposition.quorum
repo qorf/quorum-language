@@ -6,7 +6,7 @@ use Libraries.Compute.Math
 
 /*
     A Hessenberg decomposition is a matrix decomposition of a matrix A into 
-    a unitary matrix P and a Hessenberg matrix H such that:
+    a unitary orthogonal matrix P and a Hessenberg matrix H such that:
          A = P*H*P^(T)
 
     This was adapted from the same model in Apache Commons, but was expanded 
@@ -35,6 +35,7 @@ use Libraries.Compute.Math
 */
 
 class HessenbergDecomposition
+    Math math
     /* Maximum allowed iterations for convergence of the transformation. */
     constant integer maxIterations = 100
 
@@ -53,9 +54,13 @@ class HessenbergDecomposition
     /* This matrix represents the orthogonal matrix transposed (PT). */
     Matrix orthogonalTransposed = undefined
 
-    Array<number> ort
+    /* This array represents the center diagonal. */
+    Array<number> diagonal
 
-    Math math
+    /* This array represents the below center diagonal. */
+    Array<number> subdiagonal
+
+    Array<number> ort
 
     action Calculate(Matrix matrix)
         if not matrix:IsSquare()
@@ -66,6 +71,8 @@ class HessenbergDecomposition
         hessenberg = undefined
         orthogonal = undefined
         orthogonalTransposed = undefined
+        diagonal:Empty()
+        subdiagonal:Empty()
         ort:Empty()
 
         integer size = holder:GetColumns()
@@ -141,13 +148,14 @@ class HessenbergDecomposition
             end
             m = m + 1
         end
+        CalculateHessenbergMatrix()
     end
 
     action GetOriginalMatrix returns Matrix
         return original
     end
 
-    action GetHessenbergMatrix returns Matrix
+    private action CalculateHessenbergMatrix
         if hessenberg = undefined and holder not= undefined
             integer size = holder:GetColumns()
             Matrix matrix
@@ -167,6 +175,9 @@ class HessenbergDecomposition
             end
             hessenberg = matrix
         end
+    end
+
+    action GetHessenbergMatrix returns Matrix
         return hessenberg
     end
 
@@ -232,4 +243,37 @@ class HessenbergDecomposition
         return orthogonalTransposed
     end
 
+    action GetDiagonal returns Array<number>
+        if diagonal:IsEmpty() and hessenberg not= undefined
+            subdiagonal:Empty()
+            integer size = hessenberg:GetRows()
+
+            integer i = 0
+            repeat while i < size
+                diagonal:Add(hessenberg:Get(i, i))
+                if i > 0 
+                    subdiagonal:Add(hessenberg:Get(i, i-1))
+                end
+                i = i + 1
+            end
+        end
+        return diagonal
+    end
+
+    action GetSubDiagonal returns Array<number>
+        if subdiagonal:IsEmpty() and hessenberg not= undefined
+            diagonal:Empty()
+            integer size = hessenberg:GetRows()
+
+            integer i = 0
+            repeat while i < size
+                diagonal:Add(hessenberg:Get(i, i))
+                if i > 0 
+                    subdiagonal:Add(hessenberg:Get(i, i-1))
+                end
+                i = i + 1
+            end
+        end
+        return subdiagonal
+    end
 end

@@ -1434,7 +1434,7 @@ class Matrix
             integer i = 0
             repeat while i < GetRows()
                 integer j = 0
-                repeat while j < GetRows()
+                repeat while j < GetColumns()
                     if i not= j
                         number mij = Get(i,j)
                         number mji = Get(j,i)
@@ -1473,9 +1473,9 @@ class Matrix
         Matrix newMatrix
         newMatrix = me:Copy()
         integer i = 0
-        repeat while i < GetColumns()
+        repeat while i < GetRows()
             integer j = 0
-            repeat while j < GetRows()
+            repeat while j < GetColumns()
                 newMatrix:Set(i,j, math:Round(Get(i,j), decimalPlace))                    
                 j = j + 1
             end
