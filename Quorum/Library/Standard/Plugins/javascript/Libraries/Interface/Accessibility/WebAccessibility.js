@@ -765,7 +765,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var text = textbox.GetText();
             var id = textbox.GetHashCode();
             var element = document.getElementById(id);
-            element.innerHTML = text;
+            if(element != null) {
+              element.value = text;
+            }
             //console.log("TextBox text Changed");
         }
         else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
@@ -774,7 +776,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var text = textfield.GetText();
             var id = textfield.GetHashCode();
             var element = document.getElementById(id);
-            element.value = text;
+            if(element != null) {
+              element.value = text;
+            }
             //console.log("TextField Text Changed");
         }
         else {
