@@ -766,7 +766,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var id = textbox.GetHashCode();
             var element = document.getElementById(id);
             if(element != null) {
-              element.value = text;
+              element.innerHTML = text;
             }
             //console.log("TextBox text Changed");
         }
