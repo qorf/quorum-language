@@ -260,4 +260,25 @@ class FlowchartArrow is Control
         waypoints:Empty()
         RecalculateArrow()
     end
+
+    /*
+    This action updates the name/description of the arrow to have the full accessibility information
+    it needs, depending on whether the arrow is an input or output (as determined by the
+    source node, e.g. the node this arrow was accessed from).
+    */
+    action SetNavigationText(FlowchartNode sourceNode)
+        if sourceNode = origin
+            // TO-DO: Set the name here, in this format:
+            // Name: DEST-NAME, output X of Y.
+            // Description: Press DOWN to follow the arrow, or press UP to return to ORIGIN-NAME.
+            // The hard part is getting the indices X and Y.
+        elseif sourceNode = destination
+            // TO-DO: Set the name here, in this format:
+            // Name: ORIGIN-NAME, input X of Y.
+            // Description: Press UP to follow the arrow, or press DOWN to return to DESTINATION-NAME.
+            // The hard part is getting the indices X and Y.
+        else
+            // Error condition? Default name?
+        end
+    end
 end

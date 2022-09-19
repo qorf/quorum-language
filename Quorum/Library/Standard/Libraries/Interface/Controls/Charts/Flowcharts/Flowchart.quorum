@@ -5,6 +5,7 @@ use Libraries.System.File
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Selections.FlowchartSelection
 
 class Flowchart is Control
 
@@ -17,8 +18,11 @@ class Flowchart is Control
     number arrowLineThickness = 5
     number arrowHeadThickness = 30
 
+    FlowchartSelection selection
+
     on create
         SetInterfaceOptionsKey("Flowchart")
+        selection:Initialize(me)
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -113,4 +117,14 @@ class Flowchart is Control
         me:arrowHeadThickness = arrowHeadThickness
     end
 
+    action OnSelectionChange(FlowchartNode oldNode, FlowchartArrow oldArrow)
+        FlowchartNode node = selection:GetNode()
+        FlowchartArrow arrow = selection:GetArrow()
+
+        if arrow = undefined
+            node:Focus()
+        else
+            
+        end
+    end
 end
