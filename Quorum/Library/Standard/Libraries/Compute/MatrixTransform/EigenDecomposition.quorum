@@ -61,6 +61,10 @@ class EigenDecomposition
 
     private number precisionEpsilon = 0
 
+    /* This is used if the user explicitly wants to assume symmetry or not */
+    boolean symmetric = false
+    boolean symmetricOverride = false
+
     on create
         BitwiseOperations ops
         integer p = ops:ShiftLeft(1023-53, 52)
@@ -75,10 +79,13 @@ class EigenDecomposition
         realEigenvalues:Empty()
         imaginaryEigenvalues:Empty()
         eigenvectors:Empty()
-        if matrix:IsSymmetric()
-            HessenbergDecomposition decomposition
+        if not symmetricOverride
+            symmetric = matrix:IsSymmetric()
+        end
+        if symmetric
+            TridiagonalDecomposition decomposition
             decomposition:Calculate(matrix)
-            CalculateEigenVectorsFromHessenbergDecomposition(decomposition)
+            CalculateEigenVectorsFromTridiagonalDecomposition(decomposition)
         else
             SchurDecomposition decomposition
             decomposition:Calculate(matrix)
@@ -86,7 +93,7 @@ class EigenDecomposition
         end
     end
 
-    private action CalculateEigenVectorsFromHessenbergDecomposition(HessenbergDecomposition decomposition)
+    private action CalculateEigenVectorsFromTridiagonalDecomposition(TridiagonalDecomposition decomposition)
         Matrix z = decomposition:GetOrthogonalMatrix()
         Array<number> diagonal = decomposition:GetDiagonal()
         Array<number> subdiagonal = decomposition:GetSubDiagonal()
@@ -598,11 +605,17 @@ class EigenDecomposition
         end
         return eigenvectorTransposedMatrix
     end
-
+       
     action GetEigenvectorInverseMatrix returns Matrix
         if eigenvectorInverseMatrix = undefined
             eigenvectorInverseMatrix = eigenvectorMatrix//:Inverse()
         end
         return eigenvectorInverseMatrix
+        alert("Inverse is not implemented yet.")
+    end
+
+    action Symmetric(boolean symmetric)
+        me:symmetric = symmetric
+        me:symmetricOverride = true
     end
 end

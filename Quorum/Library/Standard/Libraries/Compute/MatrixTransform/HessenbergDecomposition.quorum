@@ -54,12 +54,6 @@ class HessenbergDecomposition
     /* This matrix represents the orthogonal matrix transposed (PT). */
     Matrix orthogonalTransposed = undefined
 
-    /* This array represents the center diagonal. */
-    Array<number> diagonal
-
-    /* This array represents the below center diagonal. */
-    Array<number> subdiagonal
-
     Array<number> ort
 
     action Calculate(Matrix matrix)
@@ -71,8 +65,6 @@ class HessenbergDecomposition
         hessenberg = undefined
         orthogonal = undefined
         orthogonalTransposed = undefined
-        diagonal:Empty()
-        subdiagonal:Empty()
         ort:Empty()
 
         integer size = holder:GetColumns()
@@ -241,39 +233,5 @@ class HessenbergDecomposition
             orthogonalTransposed = GetOrthogonalMatrix():Transpose()
         end
         return orthogonalTransposed
-    end
-
-    action GetDiagonal returns Array<number>
-        if diagonal:IsEmpty() and hessenberg not= undefined
-            subdiagonal:Empty()
-            integer size = hessenberg:GetRows()
-
-            integer i = 0
-            repeat while i < size
-                diagonal:Add(hessenberg:Get(i, i))
-                if i > 0 
-                    subdiagonal:Add(hessenberg:Get(i, i-1))
-                end
-                i = i + 1
-            end
-        end
-        return diagonal
-    end
-
-    action GetSubDiagonal returns Array<number>
-        if subdiagonal:IsEmpty() and hessenberg not= undefined
-            diagonal:Empty()
-            integer size = hessenberg:GetRows()
-
-            integer i = 0
-            repeat while i < size
-                diagonal:Add(hessenberg:Get(i, i))
-                if i > 0 
-                    subdiagonal:Add(hessenberg:Get(i, i-1))
-                end
-                i = i + 1
-            end
-        end
-        return subdiagonal
     end
 end

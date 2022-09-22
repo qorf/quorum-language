@@ -1485,6 +1485,63 @@ class Matrix
     end
 
     /*
+    This action double centers the matrix and returns a new matrix.
+    This is useful in cases like estimating a population covariance matrix
+    using a sample covariance matrix. 
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:DoubleCenter()
+        end
+    end
+    */
+    action DoubleCenter() returns Matrix
+        if not IsSquare()
+            alert("Double center works on square matrices.")
+        end
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer rowCount = GetRows()
+        integer colCount = GetColumns()
+
+        Array<number> rowMeans 
+        i = 0
+        repeat while i < rowCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            rowMeans:Add(mean)
+            i = i + 1  
+        end
+        // Subtract Row Means
+        Matrix rowMeansMatrix
+        rowMeansMatrix:FillByRow(rowCount, rowMeans)
+        newMatrix = newMatrix:SubtractElements(rowMeansMatrix)
+
+        Array<number> colMeans 
+        i = 0
+        repeat while i < colCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            colMeans:Add(mean)
+            i = i + 1  
+        end
+        // Subtract Column Means
+        Matrix colMeansMatrix
+        colMeansMatrix:FillByColumn(colCount, colMeans)
+        newMatrix = newMatrix:SubtractElements(colMeansMatrix)
+
+        // Add Grand Mean
+        newMatrix = newMatrix:Add(newMatrix:GetMean())
+        return newMatrix
+    end
+
+    /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
 
     Attribute Parameter offsetRow The row offset for the first element in the new matrix.

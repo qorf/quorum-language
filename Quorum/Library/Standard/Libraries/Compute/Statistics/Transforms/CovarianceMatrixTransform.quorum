@@ -37,8 +37,8 @@ use Libraries.Compute.Matrix
 class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
     Matrix covarianceMatrix = undefined
     boolean biasCorrected = true
-    boolean population = true
-    boolean sample = false
+    boolean population = false
+    boolean sample = true
 
     action Transform(DataFrame frame) returns DataFrame 
         if GetColumnSize() < 1

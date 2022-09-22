@@ -344,7 +344,7 @@ class CompareGroups is StatisticalTest
         Array<NumberColumn> rows
         Array<Summarize> summaries
 
-
+        DataFrame newFrame
         // Calculate across columns (between groups)
         i = 0
         repeat while i < GetColumnSize()
@@ -358,6 +358,7 @@ class CompareGroups is StatisticalTest
             if not column:IsNumberColumn() and not column:IsIntegerColumn()
                 alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
             end
+            newFrame:AddColumn(column)
 
             Summarize summarize
             column:Calculate(summarize)
@@ -408,6 +409,7 @@ class CompareGroups is StatisticalTest
                 DataFrameColumn left = frame:GetColumn(GetColumn(i))
                 DataFrameColumn right = frame:GetColumn(GetColumn(j))
 
+                // Check Assumption - Normal Distribution
                 // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
 
                 j = j + 1
@@ -434,6 +436,31 @@ class CompareGroups is StatisticalTest
         number f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError        
         fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
         number p = 1.0 - fDistribution:CumulativeDistribution(f)
+
+        // If P-value ≤ α, then shows significance, run a mauchly's CompareVariance test 
+        // This is not necessary if already not significant with standard f
+        text sphericity = ""
+        if p < GetSignificanceLevel()
+            newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
+            CompareVariances compare
+            newFrame:GetSelection():CopyTo(cast(ColumnInput, compare))
+            compare:SetRepeatedMeasures(true)
+            compare:Calculate(newFrame)
+            number correctionEpsilon = compare:GetCorrectionEpsilon()
+
+            // Implement correction then recalculate f and p
+            degreesFreedomBetweenGroup = degreesFreedomBetweenGroup * correctionEpsilon
+            degreesFreedomError = degreesFreedomError * correctionEpsilon
+
+            meanSumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
+            meanSumOfSquaresError = sumOfSquaresError / degreesFreedomError
+    
+            f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError 
+            fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
+            p = 1.0 - fDistribution:CumulativeDistribution(f)
+            sphericity = " With Mauchly's Test Of Sphericity" 
+        end
+
         number criticalFValue = f//fDistribution:CriticalValue(GetSignificanceLevel())
         number eta = sumOfSquaresBetweenGroup / totalSumOfSquares
 
@@ -453,7 +480,7 @@ class CompareGroups is StatisticalTest
         result:SetSumOfSquaresError(sumOfSquaresError)
         result:SetDegreesOfFreedomError(degreesFreedomError)
         result:SetMeanSumOfSquaresError(meanSumOfSquaresError)
-        result:SetFormalTestName("Repeated Measures Analysis of Variance")
+        result:SetFormalTestName("Repeated Measures Analysis of Variance"+sphericity)
         result:SetEffectSize(eta)
         result:SetEffectSizeName("Eta-Squared")
         result:SetGroups(columns)
