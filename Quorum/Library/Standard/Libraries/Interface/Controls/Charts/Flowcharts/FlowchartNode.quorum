@@ -6,6 +6,7 @@ use Libraries.Containers.Array
 
 class FlowchartNode is Control
 
+    Array<FlowchartArrow> inArrows
     Array<FlowchartArrow> outArrows
 
     on create
@@ -17,6 +18,8 @@ class FlowchartNode is Control
         arrow:SetNodes(me, node)
         outArrows:Add(arrow)
 
+        node:AddInArrow(arrow)
+
         Flowchart chart = GetFlowchart()
         if chart not= undefined
             chart:Add(arrow)
@@ -27,6 +30,14 @@ class FlowchartNode is Control
 
     action GetOutArrows returns Array<FlowchartArrow>
         return outArrows
+    end
+
+    action GetInArrows returns Array<FlowchartArrow>
+        return inArrows
+    end
+
+    action AddInArrow(FlowchartArrow arrow)
+        inArrows:Add(arrow)
     end
 
     action GetBackgroundColor returns ColorGroup

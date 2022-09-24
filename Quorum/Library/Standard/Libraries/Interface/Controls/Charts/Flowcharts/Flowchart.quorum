@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Selections.FlowchartSelection
+use Libraries.Containers.Array
 
 class Flowchart is Control
 
@@ -19,6 +20,8 @@ class Flowchart is Control
     number arrowHeadThickness = 30
 
     FlowchartSelection selection
+
+    FlowchartNode startNode = undefined
 
     on create
         SetInterfaceOptionsKey("Flowchart")
@@ -117,6 +120,28 @@ class Flowchart is Control
         me:arrowHeadThickness = arrowHeadThickness
     end
 
+    action GetStartNode returns FlowchartNode
+        // If a start node has been set, begin there. Otherwise, get the first node added.
+        if startNode not= undefined
+            return startNode
+        else
+            Array<Item2D> items = GetChildren()
+            integer i = 0
+            repeat while i < items:GetSize()
+                if items:Get(i) is FlowchartNode
+                    return cast(FlowchartNode, items:Get(i))
+                end
+                i = i + 1
+            end
+        end
+
+        return undefined
+    end
+
+    action SetStartNode(FlowchartNode node)
+        startNode = node
+    end
+
     action OnSelectionChange(FlowchartNode oldNode, FlowchartArrow oldArrow)
         FlowchartNode node = selection:GetNode()
         FlowchartArrow arrow = selection:GetArrow()
@@ -124,7 +149,164 @@ class Flowchart is Control
         if arrow = undefined
             node:Focus()
         else
-            
+            arrow:SetNavigationText(oldNode)
+            arrow:Focus()
         end
     end
+
+    action Select(FlowchartNode node)
+        selection:Set(node, undefined)
+    end
+
+    action Select(FlowchartNode node, FlowchartArrow arrow)
+        selection:Set(node, arrow)
+    end
+
+    action NavigateLeft
+        if selection:IsEmpty()
+            Select(GetStartNode())
+            return now
+        end
+
+        FlowchartNode node = selection:GetNode()
+        FlowchartArrow arrow = selection:GetArrow()
+        if arrow = undefined
+            // Left/Right navigation is only valid for top-level nodes. If this isn't one, return now.
+            if node:GetInArrows():IsEmpty() = false
+                return now
+            end
+
+            // In this case, find the next top-level node and jump to it.
+            FlowchartNode target = undefined
+            Array<Item2D> items = GetChildren()
+            integer i = 0
+            repeat while i < items:GetSize()
+                if items:Get(i) is FlowchartNode
+                    FlowchartNode current = cast(FlowchartNode, items:Get(i))
+                    // If we've found the currently selected node, select the candidate if we found one already, otherwise bail.
+                    if current = node
+                        if target not= undefined
+                            Select(target)
+                        end
+                        return now
+                    end
+
+                    // If this node has no inputs, it's a candidate. Store it.
+                    if current:GetInArrows():IsEmpty()
+                        target = current
+                    end
+                end
+
+                i = i + 1
+            end
+
+        else
+            // Find the previous arrow and select it, maintaining the same node.
+            Array<FlowchartArrow> arrows = undefined
+            if node = arrow:GetOrigin()
+                arrows = node:GetOutArrows()
+            else
+                arrows = node:GetInArrows()
+            end
+
+            integer index = arrows:GetFirstLocation(arrow)
+            if index > 0
+                Select(node, arrows:Get(index - 1))
+            end
+        end
+    end
+
+    action NavigateRight
+        if selection:IsEmpty()
+            Select(GetStartNode())
+            return now
+        end
+
+        FlowchartNode node = selection:GetNode()
+        FlowchartArrow arrow = selection:GetArrow()
+        if arrow = undefined
+            // Left/Right navigation is only valid for top-level nodes. If this isn't one, return now.
+            if node:GetInArrows():IsEmpty() = false
+                return now
+            end
+
+            // In this case, find the next top-level node and jump to it.
+            FlowchartNode target = undefined
+            Array<Item2D> items = GetChildren()
+            integer i = items:GetSize()
+            repeat while i > 0
+                i = i - 1
+                if items:Get(i) is FlowchartNode
+                    FlowchartNode current = cast(FlowchartNode, items:Get(i))
+                    // If we've found the currently selected node, select the candidate if we found one already, otherwise bail.
+                    if current = node
+                        if target not= undefined
+                            Select(target)
+                        end
+                        return now
+                    end
+
+                    // If this node has no inputs, it's a candidate. Store it.
+                    if current:GetInArrows():IsEmpty()
+                        target = current
+                    end
+                end
+            end
+
+        else
+            // Find the previous arrow and select it, maintaining the same node.
+            Array<FlowchartArrow> arrows = undefined
+            if node = arrow:GetOrigin()
+                arrows = node:GetOutArrows()
+            else
+                arrows = node:GetInArrows()
+            end
+
+            integer index = arrows:GetFirstLocation(arrow)
+            if index < arrows:GetSize() - 1
+                Select(node, arrows:Get(index + 1))
+            end
+        end
+    end
+
+    action NavigateDown
+        if selection:IsEmpty()
+            Select(GetStartNode())
+            return now
+        end
+
+        FlowchartNode node = selection:GetNode()
+        FlowchartArrow arrow = selection:GetArrow()
+        if arrow = undefined
+            Array<FlowchartArrow> arrows = node:GetOutArrows()
+            if arrows:IsEmpty() = false
+                Select(node, arrows:Get(0))
+            end
+        else
+            if arrow:GetDestination() not= undefined
+                Select(arrow:GetDestination())
+            end
+        end
+    end
+
+    action NavigateUp
+        if selection:IsEmpty()
+            Select(GetStartNode())
+            return now
+        end
+
+        FlowchartNode node = selection:GetNode()
+        FlowchartArrow arrow = selection:GetArrow()
+        if arrow = undefined
+            Array<FlowchartArrow> arrows = node:GetInArrows()
+            if arrows:IsEmpty() = false
+                Select(node, arrows:Get(0))
+            end
+        else
+            if arrow:GetOrigin() not= undefined
+                Select(arrow:GetOrigin())
+            end
+        end
+    end
+
 end
