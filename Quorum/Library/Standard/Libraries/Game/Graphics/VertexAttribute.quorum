@@ -15,6 +15,14 @@ class VertexAttribute
     public constant integer TANGENT = 128
     public constant integer BINORMAL = 256
 
+    public constant text POSITION_ALIAS = "a_position"
+    public constant text COLOR_ALIAS = "a_color"
+    public constant text NORMAL_ALIAS = "a_normal"
+    public constant text TEXTURE_COORDINATES_ALIAS = "a_texCoord"
+    public constant text BONE_WEIGHT_ALIAS = "a_boneWeight"
+    public constant text TANGENT_ALIAS = "a_tangent"
+    public constant text BINORMAL_ALIAS = "a_binormal"
+
     /* An integer formed from the bits of the above constants, representing its usage. */
     public integer usage = 0
 
@@ -84,7 +92,7 @@ class VertexAttribute
     */
     action Position returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(POSITION, 3, "a_position")
+        temp:SetAttribute(POSITION, 3, POSITION_ALIAS)
         return temp
     end
 
@@ -94,7 +102,7 @@ class VertexAttribute
     */
     action TextureCoordinates(integer unit) returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(TEXTURE_COORDINATES, 2, "a_texCoord" + unit, unit)
+        temp:SetAttribute(TEXTURE_COORDINATES, 2, TEXTURE_COORDINATES_ALIAS + unit, unit)
         return temp
     end
 
@@ -104,7 +112,7 @@ class VertexAttribute
     */
     action Normal returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(NORMAL, 3, "a_normal")
+        temp:SetAttribute(NORMAL, 3, NORMAL_ALIAS)
         return temp
     end
 
@@ -115,7 +123,7 @@ class VertexAttribute
     action ColorPacked returns VertexAttribute
         VertexAttribute temp
         // 5121 is the integer value of GL_UNSIGNED_BYTE.
-        temp:SetAttribute(COLOR_PACKED, 4, 5121, true, "a_color")
+        temp:SetAttribute(COLOR_PACKED, 4, 5121, true, COLOR_ALIAS)
         return temp
     end
 
@@ -126,7 +134,7 @@ class VertexAttribute
     action ColorUnpacked returns VertexAttribute
         VertexAttribute temp
         // 5126 is the integer value of GL_FLOAT.
-        temp:SetAttribute(COLOR_UNPACKED, 4, 5126, false, "a_color")
+        temp:SetAttribute(COLOR_UNPACKED, 4, 5126, false, COLOR_ALIAS)
         return temp
     end
 
@@ -136,7 +144,7 @@ class VertexAttribute
     */
     action Tangent returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(TANGENT, 3, "a_tangent")
+        temp:SetAttribute(TANGENT, 3, TANGENT_ALIAS)
         return temp
     end
 
@@ -146,7 +154,7 @@ class VertexAttribute
     */
     action Binormal returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(BINORMAL, 3, "a_binormal")
+        temp:SetAttribute(BINORMAL, 3, BINORMAL_ALIAS)
         return temp
     end
 
@@ -156,7 +164,7 @@ class VertexAttribute
     */
     action BoneWeight(integer unit) returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(BONE_WEIGHT, 2, "a_boneWeight" + unit, unit)
+        temp:SetAttribute(BONE_WEIGHT, 2, BONE_WEIGHT_ALIAS + unit, unit)
         return temp
     end
 

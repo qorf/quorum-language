@@ -6,6 +6,10 @@ use Libraries.Game.Graphics.Camera
 
 class ShaderMapping
 
+    blueprint action Begin(ShaderProgram program, Camera camera)
+
+    blueprint action End(ShaderProgram program)
+
     action MapInputs(ShaderProgram program, Renderable renderable)
         alert("Error while trying to render a renderable with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 3D renderables.")
     end
@@ -14,8 +18,9 @@ class ShaderMapping
         alert("Error while trying to render the drawable " + drawable:GetName() + " with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 2D drawables.")
     end
 
-    blueprint action Begin(ShaderProgram program, Camera camera)
+    action SupportsBatching2D returns boolean
+        return false
+    end
 
-    blueprint action End(ShaderProgram program)
-
+    
 end

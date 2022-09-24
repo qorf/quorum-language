@@ -1,0 +1,38 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+
+class DefaultVertexAttributes2D is VertexAttributes
+
+    on create
+        SetAttributes(undefined)
+    end
+
+    action SetAttributes(Array<VertexAttribute> array)
+        Array<VertexAttribute> attributes = parent:VertexAttributes:attributes
+        
+        if array not= undefined
+            // At a minimum, the size will contain our three default vertex values.
+            attributes:SetSize(3 + array:GetSize())
+        else
+            attributes:SetSize(3)
+        end
+        
+        // Insert the 3 default vertex properties: position, color (RGBA packed into a single 32-bit integer), and texture coordinates
+        VertexAttribute dummy
+        attributes:Set(0, dummy:Position())
+        attributes:Set(1, dummy:ColorPacked())
+        attributes:Set(2, dummy:TextureCoordinates(0))
+
+        if array not= undefined
+            integer counter = 0
+            repeat while counter < array:GetSize()
+                attributes:Set(counter + 3, array:Get(counter))
+                counter = counter + 1
+            end
+        end
+
+        parent:VertexAttributes:vertexSize = CalculateOffsets()
+    end
+
+end

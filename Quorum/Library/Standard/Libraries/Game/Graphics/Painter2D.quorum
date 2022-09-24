@@ -342,22 +342,7 @@ class Painter2D
         end
     */
     private action LoadDefaultPainter
-        VertexAttributes attributes
-        Array<VertexAttribute> array
-        
-        // TO-DO: Instead of hardcoded names for the attributes, fetch these names from a common source 
-        VertexAttribute position
-        position:SetAttribute(position:POSITION, 3, "a_position")
-        VertexAttribute colorPacked
-        colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
-        VertexAttribute textureCoords
-        textureCoords:SetAttribute(textureCoords:TEXTURE_COORDINATES, 2, "a_texCoord0")
-
-        array:Add(position)
-        array:Add(colorPacked)
-        array:Add(textureCoords)
-        attributes:SetAttributes(array)
-
+        DefaultVertexAttributes2D attributes
         mesh:Load(false, 4800, 6000, attributes)
 
         vertices:SetSize(4800)

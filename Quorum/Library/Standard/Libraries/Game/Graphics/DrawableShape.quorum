@@ -27,8 +27,11 @@ class DrawableShape
     // The vertex index of the first "v" coordinate. When applying a texture to the shape, this is the y-coordinate on the texture where sampling will occur for this point.
     public constant integer V_OFFSET = 5
 
+    // The minimum legal size a vertex can be and still be usable for a standard Drawable.
+    public constant integer MINIMUM_VERTEX_SIZE = 6
+
     // How many number components are stored for each vertex.
-    public constant integer VERTEX_SIZE = 6
+    integer vertexSize = MINIMUM_VERTEX_SIZE
 
     Number32BitArray vertices
 
@@ -84,7 +87,7 @@ class DrawableShape
     end
 
     action LoadRectangle(number width, number height, number textureLeft, number textureRight, number textureBottom, number textureTop)
-        vertices:SetSize(VERTEX_SIZE * 4)
+        vertices:SetSize(vertexSize * 4)
 
         Number32BitArray array
         basePositions = array
@@ -99,20 +102,20 @@ class DrawableShape
         // 2nd vertex: top-left corner
         basePositions:Set(2, 0)
         basePositions:Set(3, height)
-        vertices:Set(U_OFFSET + VERTEX_SIZE, textureLeft)
-        vertices:Set(V_OFFSET + VERTEX_SIZE, textureTop)
+        vertices:Set(U_OFFSET + vertexSize, textureLeft)
+        vertices:Set(V_OFFSET + vertexSize, textureTop)
 
         // 3rd vertex: top-right corner
         basePositions:Set(4, width)
         basePositions:Set(5, height)
-        vertices:Set(U_OFFSET + VERTEX_SIZE * 2, textureRight)
-        vertices:Set(V_OFFSET + VERTEX_SIZE * 2, textureTop)
+        vertices:Set(U_OFFSET + vertexSize * 2, textureRight)
+        vertices:Set(V_OFFSET + vertexSize * 2, textureTop)
 
         // 4th vertex: bottom-right corner
         basePositions:Set(6, width)
         basePositions:Set(7, 0)
-        vertices:Set(U_OFFSET + VERTEX_SIZE * 3, textureRight)
-        vertices:Set(V_OFFSET + VERTEX_SIZE * 3, textureBottom)
+        vertices:Set(U_OFFSET + vertexSize * 3, textureRight)
+        vertices:Set(V_OFFSET + vertexSize * 3, textureBottom)
 
         mesh = undefined
         baseWidth = width
@@ -126,7 +129,7 @@ class DrawableShape
     end
 
     action LoadTriangle(number x1, number y1, number x2, number y2, number x3, number y3)
-        vertices:SetSize(VERTEX_SIZE * 3)
+        vertices:SetSize(vertexSize * 3)
         
         number minX = x1
         number maxX = x1
@@ -172,7 +175,7 @@ class DrawableShape
         basePositions:Set(4, x3)
         basePositions:Set(5, y3)
         
-        mesh = GenerateMesh(3 * VERTEX_SIZE, 3)
+        mesh = GenerateMesh(3 * vertexSize, 3)
         Integer32BitArray indices
         indices:SetSize(3)
         indices:Set(0, 0)
@@ -194,7 +197,7 @@ class DrawableShape
     This action generates a Drawable shape from the set of given points. These points must be in clockwise order.
     */
     action Load(Array<number> points, TextureRegion region)
-        vertices:SetSize((points:GetSize() / 2) * VERTEX_SIZE)
+        vertices:SetSize((points:GetSize() / 2) * vertexSize)
 
         Number32BitArray array
         basePositions = array
@@ -281,7 +284,7 @@ class DrawableShape
             vertices:Set(vertexIndex + 1, resultY)
 
             i = i + 2
-            vertexIndex = vertexIndex + VERTEX_SIZE
+            vertexIndex = vertexIndex + vertexSize
         end
 
         if needsUpdate = false
@@ -368,7 +371,7 @@ class DrawableShape
                 valuesChanged = true
                 vertices:Set(i, colorCode)
             end
-            i = i + VERTEX_SIZE
+            i = i + vertexSize
         end
 
         if valuesChanged and needsUpdate = false
@@ -387,8 +390,8 @@ class DrawableShape
         end
 
         // A ColorGroup has four colors. If the shape doesn't have 4 vertices, it's an error.
-        if vertices:GetSize() / VERTEX_SIZE not= 4
-            alert("I cannot apply this group of 4 colors to this shape because there are " + (vertices:GetSize() / VERTEX_SIZE) + " vertices. The number of colors and vertices must match.")
+        if GetVertexCount() not= 4
+            alert("I cannot apply this group of 4 colors to this shape because there are " + GetVertexCount() + " vertices. The number of colors and vertices must match.")
         end
 
         // We'll only update the mesh if at least one of the values actually changed.
@@ -401,21 +404,21 @@ class DrawableShape
             vertices:Set(index, colorCode)
         end
 
-        index = index + VERTEX_SIZE
+        index = index + vertexSize
         colorCode = group:GetTopLeft():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
             vertices:Set(index, colorCode)
         end
 
-        index = index + VERTEX_SIZE
+        index = index + vertexSize
         colorCode = group:GetTopRight():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
             vertices:Set(index, colorCode)
         end
 
-        index = index + VERTEX_SIZE
+        index = index + vertexSize
         colorCode = group:GetBottomRight():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
@@ -428,8 +431,8 @@ class DrawableShape
     end
 
     action SetColor(Array<Color> colors)
-        if colors:GetSize() not= vertices:GetSize() / VERTEX_SIZE
-            alert("I was asked to apply " + colors:GetSize() + " colors to " + (vertices:GetSize() / VERTEX_SIZE) + " vertices, but I can't do that. The number of colors and vertices must match.")
+        if colors:GetSize() not= GetVertexCount()
+            alert("I was asked to apply " + colors:GetSize() + " colors to " + GetVertexCount() + " vertices, but I can't do that. The number of colors and vertices must match.")
         end
 
         // We'll only update the mesh if at least one of the values actually changed.
@@ -446,7 +449,7 @@ class DrawableShape
             end
 
             i = i + 1
-            index = index + VERTEX_SIZE
+            index = index + vertexSize
         end
 
         if valuesChanged and needsUpdate = false
@@ -638,7 +641,7 @@ class DrawableShape
                 vertices:Set(i + Z_OFFSET, negatedZ)
 
                 baseIndex = baseIndex + 2
-                i = i + VERTEX_SIZE
+                i = i + vertexSize
             end
         else
             number originX = drawable:GetOriginX()
@@ -671,7 +674,7 @@ class DrawableShape
                 vertices:Set(i + Z_OFFSET, negatedZ)
 
                 baseIndex = baseIndex + 2
-                i = i + VERTEX_SIZE
+                i = i + vertexSize
             end
         end
 
@@ -694,7 +697,7 @@ class DrawableShape
         number maxX = minX
         number maxY = minY
 
-        integer i = X_OFFSET + VERTEX_SIZE
+        integer i = X_OFFSET + vertexSize
         repeat while i < vertices:GetSize()
             number x = vertices:Get(i)
             number y = vertices:Get(i + 1)
@@ -711,7 +714,7 @@ class DrawableShape
                 maxY = y
             end
 
-            i = i + VERTEX_SIZE
+            i = i + vertexSize
         end
 
         bounds:SetRectangle(minX, minY, maxX - minX, maxY - minY)
@@ -720,22 +723,7 @@ class DrawableShape
     end
 
     private action GenerateMesh(integer vertices, integer indices) returns Mesh
-        VertexAttributes attributes
-        Array<VertexAttribute> array
-
-        // TO-DO: Instead of hardcoded names for the attributes, fetch these names from a common source 
-        VertexAttribute position
-        position:SetAttribute(position:POSITION, 3, "a_position")
-        VertexAttribute colorPacked
-        colorPacked:SetAttribute(colorPacked:COLOR_PACKED, 4, "a_color")
-        VertexAttribute textureCoords
-        textureCoords:SetAttribute(textureCoords:TEXTURE_COORDINATES, 2, "a_texCoord0")
-
-        array:Add(position)
-        array:Add(colorPacked)
-        array:Add(textureCoords)
-        attributes:SetAttributes(array)
-
+        DefaultVertexAttributes2D attributes
         Mesh mesh
         mesh:Load(false, vertices, indices, attributes)
         return mesh
@@ -745,10 +733,7 @@ class DrawableShape
         if mesh not= undefined
             mesh:GetVertexData():SetVertices(vertices)
         elseif drawable not= undefined and drawable:GetMesh() not= undefined
-            // TO-DO: Review the transformation between index and vertices.
-            // Here we multiply by 4 (a default quad takes 6 indices to render, and 24 vertices across those 6 indices).
-            // This value likely needs to change if we adjust the vertices/indices for custom objects.
-            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex() * 4, vertices)
+            drawable:GetMesh():UpdateVertices(drawable:GetMeshIndex() * GetVertexCount(), vertices)
         end
     end
 
@@ -765,7 +750,7 @@ class DrawableShape
     This action returns how many vertices are used to form this shape.
     */
     action GetVertexCount returns integer
-        return vertices:GetSize() / VERTEX_SIZE
+        return vertices:GetSize() / vertexSize
     end
 
     /*
@@ -796,6 +781,50 @@ class DrawableShape
 
     action IsRenderable returns boolean
         return baseWidth not= 0 and baseHeight not= 0
+    end
+
+    action GetVertexSize returns integer
+        return vertexSize
+    end
+
+    action SetVertexSize(integer newSize)
+        // Don't change anything if the size didn't actually change.
+        if newSize = vertexSize
+            return now
+        end
+
+        // Throw an error if the size would be set to be less than the minimum allowed amount.
+        if newSize < MINIMUM_VERTEX_SIZE
+            alert("I cannot set a DrawableShape's vertex size to less than " + MINIMUM_VERTEX_SIZE + ", but I was asked to set it to " + newSize)
+        end
+
+        // If we haven't actually initialized the vertices yet, just set the variable and stop.
+        if vertices:GetSize() = 0
+            vertexSize = newSize
+            return now
+        end
+
+        // Copy any values that are still legitimate to the new array.
+
+        integer copyAmount = newSize
+        if vertexSize < newSize
+            copyAmount = vertexSize
+        end
+
+        integer sourceCounter = 0
+        integer resultCounter = 0
+        Number32BitArray result
+        repeat while sourceCounter < vertices:GetSize()
+            integer i = 0
+            repeat while i < copyAmount
+                result:Set(resultCounter + i, vertices:Get(sourceCounter + i))
+                i = i + 1
+            end
+            sourceCounter = sourceCounter + vertexSize
+            resultCounter = resultCounter + newSize
+        end
+
+        vertices = result
     end
 
 end
