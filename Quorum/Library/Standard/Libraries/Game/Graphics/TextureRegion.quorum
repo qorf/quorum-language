@@ -126,20 +126,22 @@ class TextureRegion is Disposable
     */
     action SetRegion(number left, number top, number right, number bottom)
 
-        integer textureWidth = cast(integer, texture:GetWidth())
-        integer textureHeight = cast(integer, texture:GetHeight())
-
-        regionWidth = cast(integer, math:Round(math:AbsoluteValue(right - left) * textureWidth))
-        regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottom - top) * textureHeight))
-
-        // For a 1x1 region, adjust UVs toward pixel center to avoid filtering artifacts on AMD GPUs when drawing very stretched.
-        if regionWidth = 1 and regionHeight = 1
-            number adjustX = 0.25 / textureWidth
-            left = left + adjustX
-            right = right - adjustX
-            number adjustY = 0.25 / textureHeight
-            top = top + adjustY
-            bottom = bottom - adjustY
+        if texture not= undefined
+            integer textureWidth = cast(integer, texture:GetWidth())
+            integer textureHeight = cast(integer, texture:GetHeight())
+    
+            regionWidth = cast(integer, math:Round(math:AbsoluteValue(right - left) * textureWidth))
+            regionHeight = cast(integer, math:Round(math:AbsoluteValue(bottom - top) * textureHeight))
+    
+            // For a 1x1 region, adjust UVs toward pixel center to avoid filtering artifacts on AMD GPUs when drawing very stretched.
+            if regionWidth = 1 and regionHeight = 1
+                number adjustX = 0.25 / textureWidth
+                left = left + adjustX
+                right = right - adjustX
+                number adjustY = 0.25 / textureHeight
+                top = top + adjustY
+                bottom = bottom - adjustY
+            end
         end
 
         leftSide = left
