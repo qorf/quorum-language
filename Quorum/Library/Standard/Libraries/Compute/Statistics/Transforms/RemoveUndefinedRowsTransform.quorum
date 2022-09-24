@@ -47,7 +47,7 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
     end
 
     action Transform(DataFrame frame) returns DataFrame 
-        DataFrame newFrame = frame:Copy()
+        DataFrame newFrame = frame:Copy(0, frame:GetSize(), -1, -1)
         DataFrameSelection selection = frame:GetSelection()
         if accountForSelectedColumns
             HashSelection(selection)
@@ -55,9 +55,6 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
 
         //traverse every row and check each spot for an undefined value
         integer row = 0
-        if ignoreFirst
-            row = 1
-        end
 
         Array<integer> sizes
         integer change = 0
@@ -71,28 +68,17 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
         boolean done = false
         repeat while not done
             boolean markForRemoval = false
-            if HasUndefined(newFrame, row)
+            if HasUndefined(frame, row)
                 skip = skip + 1
                 markForRemoval = true
+            else 
+                MoveRow(frame, newFrame, row, markForRemoval)
             end
 
-            MoveRow(newFrame, row, skip, sizes, markForRemoval)
-
-            if not HasAnotherRow(frame, row)
+            if not HasAnotherRow(frame, row + 1)
                 done = true
             end
             row = row + 1
-        end
-
-        //if we skipped any values, we need to re-calculate the total sizes
-        if skip > 0
-            i = 0
-            repeat while i < sizes:GetSize()
-                integer size = sizes:Get(i) + 1
-                DataFrameColumn col = newFrame:GetColumn(i)
-                col:SetSize(size)
-                i = i + 1
-            end
         end
         
         return newFrame
@@ -111,27 +97,16 @@ class RemoveUndefinedRowsTransform is DataFrameTransform
         return false
     end
 
-    private action MoveRow(DataFrame frame, integer row, integer skip, Array<integer> sizes, boolean markForRemoval)
-        if skip = 0
-            i = 0
-            repeat while i < sizes:GetSize()
-                sizes:Set(i, sizes:Get(i) + 1)
-                i = i + 1
-            end
-            return now
-        end
-
+    private action MoveRow(DataFrame frame, DataFrame newFrame, integer row, boolean markForRemoval)
         integer column = 0
         integer i = row
         repeat while column < frame:GetSize()
             DataFrameColumn col = frame:GetColumn(column)
 
             //make sure there are actually rows here
-            if i + 1 < col:GetSize()
-                col:Move(i+1, i + 1 - skip)
-                if not markForRemoval
-                    sizes:Set(column, sizes:Get(column) + 1)
-                end
+            if i < col:GetSize()
+                DataFrameColumn newCol = newFrame:GetColumn(column)
+                newCol:Add(col:GetAsText(row))
             end
             column = column + 1
         end
