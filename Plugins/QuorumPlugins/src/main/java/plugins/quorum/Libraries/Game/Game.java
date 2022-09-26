@@ -47,8 +47,12 @@ public class Game
                     String runLocation = file.getParentFile().getAbsolutePath();
                     String lwjgl = runLocation + "/jni";
                     System.setProperty("org.lwjgl.librarypath", lwjgl);
-                
-                    nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
+
+                    if (System.getProperty("os.arch").contains("aarch64")) {
+                        nativeFile = runLocation + "/jni/libGameEngineCPluginsArm.so";
+                    } else {
+                        nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";
+                    }
                 }
             }
             else if (os.contains("Windows"))
