@@ -11,6 +11,9 @@ class FlowchartNode is Control
 
     on create
         SetInterfaceOptionsKey("FlowchartNode")
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
     end
 
     action AddChildNode(FlowchartNode node) returns FlowchartArrow

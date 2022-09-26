@@ -25,7 +25,11 @@ class Flowchart is Control
 
     on create
         SetInterfaceOptionsKey("Flowchart")
+        SetInputGroup("Flowchart")
         selection:Initialize(me)
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
     end
 
     action LoadGraphics(LayoutProperties properties)

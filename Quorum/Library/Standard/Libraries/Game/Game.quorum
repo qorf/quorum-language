@@ -195,6 +195,10 @@ use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
+use Libraries.Interface.Behaviors.Controls.FlowchartNavigateLeftBehavior
+use Libraries.Interface.Behaviors.Controls.FlowchartNavigateRightBehavior
+use Libraries.Interface.Behaviors.Controls.FlowchartNavigateDownBehavior
+use Libraries.Interface.Behaviors.Controls.FlowchartNavigateUpBehavior
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -1675,6 +1679,21 @@ class Game
         gutterTable:Add(clickDown, gutterClickBehavior)
 
         gameInput:AddInputTable(gutterTable)
+
+        InputTable flowchartTable
+        flowchartTable:SetIdentifier("Flowchart")
+        
+        FlowchartNavigateLeftBehavior flowchartLeft
+        FlowchartNavigateRightBehavior flowchartRight
+        FlowchartNavigateDownBehavior flowchartDown
+        FlowchartNavigateUpBehavior flowchartUp
+
+        flowchartTable:Add(leftSet, flowchartLeft)
+        flowchartTable:Add(rightSet, flowchartRight)
+        flowchartTable:Add(downSet, flowchartDown)
+        flowchartTable:Add(upSet, flowchartUp)
+
+        gameInput:AddInputTable(flowchartTable)
     end
 
     /*

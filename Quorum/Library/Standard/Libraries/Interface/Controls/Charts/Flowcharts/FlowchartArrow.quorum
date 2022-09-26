@@ -52,6 +52,9 @@ class FlowchartArrow is Control
         // Add the LinePath and arrowhead so they'll be drawn.
         Add(lines)
         Add(arrowHead)
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
     end
 
     action SetNodes(FlowchartNode origin, FlowchartNode destination)
