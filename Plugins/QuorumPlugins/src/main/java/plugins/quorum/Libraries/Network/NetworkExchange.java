@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,6 +65,13 @@ public class NetworkExchange {
     }
     public String GenerateSessionKey() {
         byte[] bytes = new byte[32];
+        SecureRandom rand = new SecureRandom();
+        rand.nextBytes(bytes);
+        return bytesToHex(bytes);
+    }
+
+    public String GenerateResetKey() {
+        byte[] bytes = new byte[25];
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(bytes);
         return bytesToHex(bytes);
@@ -173,6 +181,10 @@ public class NetworkExchange {
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex.getCause());
         }
+    }
+
+    public String Base64EncodeValue(String value) {
+        return Base64.getEncoder().encodeToString(value.getBytes());
     }
 
     public HashTable_ GetHeaders() {
