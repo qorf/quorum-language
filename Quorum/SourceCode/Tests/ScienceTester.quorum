@@ -37,6 +37,7 @@ use Science.Tests.BetaDistributionTest
 use Science.Tests.CompareCountsGoodnessOfFitTest
 use Science.Tests.CompareCountsIndependenceTest
 use Science.Tests.MatrixDecompositionTest
+use Science.Tests.CompareVariancesRepeatedMeasuresTest
 
 class ScienceTester
     Tester tester = undefined
@@ -65,6 +66,7 @@ class ScienceTester
         ZeroFinder()
         NormalDistribution()
         TestCompareVariances()
+        TestCompareVariancesRepeatedMeasures()
         GammaDistribution()
         BetaDistribution()
         LoadingTest()
@@ -146,6 +148,11 @@ class ScienceTester
 
     action TestCompareVariances
         CompareVariancesTest test
+        tester:Run(test)
+    end
+
+    action TestCompareVariancesRepeatedMeasures
+        CompareVariancesRepeatedMeasuresTest test
         tester:Run(test)
     end
 

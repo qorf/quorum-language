@@ -165,7 +165,7 @@ class CompareCountsResult is StatisticalTestResult, ColumnInput
             summary = summary + lf + "Columns: " + variable1 + " and " + variable2
         end
 
-        summary = summary + lf + "Statistic (x2): " + GetTestStatistic()
+        summary = summary + lf + "Statistic (χ2): " + GetTestStatistic()
 
         summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
 
@@ -220,7 +220,14 @@ class CompareCountsResult is StatisticalTestResult, ColumnInput
             end
         end
 
-        summary = summary + ", X2("
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    action GetFormalNumericalResult() returns text
+        text summary = ""
+        summary = summary + "χ2("
             + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ", N = " + GetSampleSize() + ") = " 
             + GetFormat():FormatTestStatistic(GetTestStatistic())
 
@@ -230,8 +237,6 @@ class CompareCountsResult is StatisticalTestResult, ColumnInput
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + "."
-
         return summary
     end
 end

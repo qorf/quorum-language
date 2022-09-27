@@ -58,6 +58,24 @@ class StatisticsFormatting
         end
     end
 
+    /*
+        This action formats any value that require the leading 0 to be drop but need more 
+        or less decimal places than correlation and are not formatted like probability.
+        This applies for statistics that CANNOT be greater than 1. Remove leading 0.
+
+        Attribute: Parameter value the value to format
+    */
+    action FormatWithoutLeadingZero(number value, integer significantDigits) returns text
+        value = math:Round(value, significantDigits)
+        text str = "" + value
+
+        if str:GetCharacter(0) = "0"
+            return str:GetSubtext(1, str:GetSize())
+        else
+            return str
+        end
+    end
+
 
     /*
         This action formats specifically the critical value for a particular statistical test.

@@ -80,107 +80,54 @@ class TridiagonalDecomposition
         diagonal:Empty()
         subdiagonal:Empty()
 
-        integer size = holder:GetColumns()
+        integer size = original:GetColumns() 
+          
+        tridiagonal = original:Copy()  
 
-        Array<number> z
-        z:SetSize(size)
-
-        diagonal:SetSize(size)
-        subdiagonal:SetSize(size-1)
-
-        integer k = 0
-        repeat while k < size - 1
-            diagonal:Set(k, holder:Get(k,k))
-            number xNormSqr = 0
-            integer j = k + 1
-            repeat while j < size
-                number c = holder:Get(k,j)
-                xNormSqr = xNormSqr + c * c
-                j = j + 1
-            end
-
-            number alpha = 0
-            if holder:Get(k, k+1) > 0
-                alpha = -math:SquareRoot(xNormSqr)
-            else
-                alpha = math:SquareRoot(xNormSqr)
-            end
-            subdiagonal:Set(k, alpha)
-
-            if alpha not= 0
-                // apply Householder transform from left and right simultaneously
-                holder:Set(k, k+1, holder:Get(k, k+1) - alpha)
-                number beta = -1.0 / (alpha * holder:Get(k, k+1))
-                
-                // Fill z array
-                i = k + 1
-                repeat while i < size
-                    z:Set(i, 0)
-                    i = i + 1
-                end  
-
-                // Compute a = beta A v, where v is the Householder vector
-                // this loop is written in such a way
-                //   1) only the upper triangular part of the matrix is accessed
-                //   2) access is cache-friendly for a matrix stored in rows
-                i = k + 1
-                repeat while i < size
-                    number hki = holder:Get(k,i)
-                    number zi = holder:Get(i,i) * hki
-                    j = i + 1 
-                    repeat while j < size
-                        number hij = holder:Get(i,j)
-                        zi = zi + hij * holder:Get(k,j)
-                        z:Set(j, z:Get(j) + hij * hki)
-                        j = j + 1
+        // For each column before the last two
+        integer i = 0
+        repeat while i < size - 2
+            // Working column's vector (matrix)
+            Matrix w
+            w:Fill(size,1,0)
+            j = size - 1 
+            repeat while j > i
+                number value = tridiagonal:Get(j, i)
+                if j = i + 1
+                    if value < 0
+                        w:Set(j, 0, value - math:SquareRoot(w:GetSumOfSquares() + value * value))
+                    else
+                        w:Set(j, 0, value + math:SquareRoot(w:GetSumOfSquares() + value * value))
                     end
-                    z:Set(i, beta * (z:Get(i) + zi))
-                    i = i + 1
-                end               
-                
-                // compute gamma = beta vT z / 2
-                number gamma = 0
-                i = k + 1
-                repeat while i < size
-                    gamma = gamma + (z:Get(i) * holder:Get(k,i))
-                    i = i + 1
+                else
+                    w:Set(j, 0, value)
                 end
-                gamma = gamma * (beta / 2.0)
-
-                // compute z = z - gamma v
-                i = k + 1
-                repeat while i < size
-                    z:Set(i, z:Get(i) - (gamma * holder:Get(k,i)))
-                    i = i + 1
-                end      
-
-                // update matrix: A = A - v zT - z vT
-                // only the upper triangular part of the matrix is updated
-                i = k + 1
-                repeat while i < size
-                    j = i
-                    repeat while j < size
-                        holder:Set(i, j, holder:Get(i,j) - holder:Get(k,i) * z:Get(j) + z:Get(i) * holder:Get(k,j))
-                        j = j + 1
-                    end
-                    i = i + 1
-                end               
+                j = j - 1
             end
-            k = k + 1
+            number s = 2.0 / w:GetSumOfSquares()
+
+            Matrix change = w:Multiply(s):Multiply(w:Transpose())
+
+            Matrix id = tridiagonal:Identity()
+            Matrix p = id:SubtractElements(change)
+
+            if i = 0
+                holder = p
+            else
+                holder = holder:Multiply(p)
+            end
+
+            tridiagonal = p:Transpose():Multiply(tridiagonal):Multiply(p):Round(12)
+            i = i + 1
         end
-        diagonal:Set(size-1, holder:Get(size-1,size-1))
-        CalculateTridiagonalMatrix()
+
+        orthogonal = holder
+        orthogonalTransposed = orthogonal:Transpose()
+        FillDiagonalArrays()
     end
 
     action GetOriginalMatrix returns Matrix
         return original
-    end
-
-    private action CalculateTridiagonalMatrix
-        if tridiagonal = undefined
-            tridiagonal = GetOrthogonalTransposedMatrix():Multiply(GetOriginalMatrix()):Multiply(GetOrthogonalMatrix())
-            FillDiagonalArrays()
-        end
     end
 
     private action FillDiagonalArrays
@@ -203,59 +150,10 @@ class TridiagonalDecomposition
     end
 
     action GetOrthogonalMatrix returns Matrix
-        if orthogonal = undefined and holder not= undefined
-            orthogonal = GetOrthogonalTransposedMatrix():Transpose()
-        end
         return orthogonal
     end
 
-
     action GetOrthogonalTransposedMatrix returns Matrix
-        if orthogonalTransposed = undefined and holder not= undefined
-            integer size = holder:GetColumns()
-            Matrix matrix
-            matrix:Fill(size, size, 0)
-
-            k = size - 1
-            repeat while k > 0
-                matrix:Set(k, k, 1)
-
-                if holder:Get(k-1,k) not= 0
-                    number inv = 1.0 / (subdiagonal:Get(k-1) * holder:Get(k-1,k))
-                    number beta = 1.0 / subdiagonal:Get(k-1)
-                    matrix:Set(k, k, 1 + beta * holder:Get(k-1,k))
-
-                    i = k + 1
-                    repeat while i < size
-                        matrix:Set(k, i, beta * holder:Get(k-1,i))
-                        i = i + 1
-                    end
-
-                    j = k + 1
-                    repeat while j < size
-                        beta = 0
-                        i = k + 1
-                        repeat while i < size
-                            beta = beta + matrix:Get(j, i) * holder:Get(k-1, i)
-                            i = i + 1
-                        end
-                        beta = beta * inv
-                        matrix:Set(j, k, beta * holder:Get(k-1, k))
-
-                        i = k + 1
-                        repeat while i < size
-                            matrix:Set(j, i, matrix:Get(j, i) + beta * holder:Get(k-1, i))
-                            i = i + 1
-                        end
-                        j = j + 1
-                    end
-                end
-                k = k - 1
-            end
-            matrix:Set(0, 0, 1)   
- 
-            orthogonalTransposed = matrix
-        end
         return orthogonalTransposed
     end
 

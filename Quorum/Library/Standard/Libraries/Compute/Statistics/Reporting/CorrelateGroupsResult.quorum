@@ -138,10 +138,18 @@ class CorrelateGroupsResult is StatisticalTestResult, ColumnInput
             summary = summary + lf + "There was a " + level + " positive correlation between the two variables"
         end   
 
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    action GetFormalNumericalResult() returns text
+        text summary = ""
+
         if spearman
-            summary = summary + ", rs("
+            summary = summary + "rs("
         else
-            summary = summary + ", r("
+            summary = summary + "r("
         end
         summary = summary + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " 
                           + GetFormat():FormatCorrelation(GetCorrelation())
@@ -152,7 +160,6 @@ class CorrelateGroupsResult is StatisticalTestResult, ColumnInput
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + "."
 
         return summary
     end

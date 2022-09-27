@@ -20,6 +20,7 @@ use Libraries.Compute.Statistics.Reporting.Compare1GroupResult
 use Libraries.Compute.Statistics.Reporting.Compare2GroupsResult
 use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 
 /*
     This class implements several tests
@@ -129,8 +130,8 @@ class CompareGroups is StatisticalTest
             Normal distributions
 
         Recommendations if assumptions are not met:
-            If groups are not independent use SetRepeatedMeasures(true) on this test
-            If variances are not equal use SetEqualVariances(false) on this test
+            If groups are not independent use RepeatedMeasures(true) on this test
+            If variances are not equal use EqualVariances(false) on this test
             If distributions are not normal use CompareRanks test instead (Kruskal Wallis Test)
 
         Attribute: Example
@@ -147,7 +148,7 @@ class CompareGroups is StatisticalTest
         CompareGroups compare = frame:CompareSelectedColumns()
         output compare:GetSummary()
     */
-    private action CompareNIndependentGroups(DataFrame frame)
+    action CompareNIndependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -233,6 +234,7 @@ class CompareGroups is StatisticalTest
                 pair:SetFormat(GetStatisticalFormatting())
                 pair:SetCriticalValue(criticalTValue)
                 pair:SetTestStatistic(t)
+                pair:SetDegreesOfFreedom(degreesFreedomWithinGroup)
                 pair:SetGroups(left, right)
                 pair:AddColumn(i)
                 pair:AddColumn(j)
@@ -300,7 +302,7 @@ class CompareGroups is StatisticalTest
             No significant outliers
 
         Recommendations if assumptions are not met:
-            If groups are not dependent, use SetRepeatedMeasures(false) on this test
+            If groups are not dependent, use RepeatedMeasures(false) on this test
             If difference variances are not equal, use SetEqualVariances(false) on this test
             If distributions are not normal, use CompareRanks test instead (Kruskal Wallis Test)
             If outliers exist, remove them.
@@ -317,12 +319,12 @@ class CompareGroups is StatisticalTest
         compare:AddColumn(0)
         compare:AddColumn(1)
         compare:AddColumn(2)
-        compare:SetRepeatedMeasures(true)
+        compare:RepeatedMeasures(true)
         compare:Calculate(frame)
 
         output compare:GetSummary()
     */
-    private action CompareNDependentGroups(DataFrame frame)
+    action CompareNDependentGroups(DataFrame frame)
         if GetColumnSize() < 2
             RunTest(frame)
         end
@@ -433,24 +435,31 @@ class CompareGroups is StatisticalTest
         meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
         meanSumOfSquaresError = sumOfSquaresError / degreesFreedomError
 
+        // Calculate the standard f statistic assuming sphericity
         number f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError        
         fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
         number p = 1.0 - fDistribution:CumulativeDistribution(f)
 
-        // If P-value ≤ α, then shows significance, run a mauchly's CompareVariance test 
-        // This is not necessary if already not significant with standard f
-        text sphericity = ""
-        if p < GetSignificanceLevel()
+
+        CompareNGroupsResult result
+        // Assumption Testing
+        // If P-value ≤ α, then run a mauchly's CompareVariances test 
+        // This is not necessary if this test is already not significant with standard f
+        if p <= GetSignificanceLevel()
             newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
+
             CompareVariances compare
             newFrame:GetSelection():CopyTo(cast(ColumnInput, compare))
-            compare:SetRepeatedMeasures(true)
+            compare:RepeatedMeasures(true)
             compare:Calculate(newFrame)
-            number correctionEpsilon = compare:GetCorrectionEpsilon()
+
+            CompareVariancesResult vResult = cast(CompareVariancesResult, compare:GetResult())
+            vResult:SetFormalTestName("Mauchly's test")
+            number correction = vResult:GetCorrection()
 
             // Implement correction then recalculate f and p
-            degreesFreedomBetweenGroup = degreesFreedomBetweenGroup * correctionEpsilon
-            degreesFreedomError = degreesFreedomError * correctionEpsilon
+            degreesFreedomBetweenGroup = degreesFreedomBetweenGroup * correction
+            degreesFreedomError = degreesFreedomError * correction
 
             meanSumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
             meanSumOfSquaresError = sumOfSquaresError / degreesFreedomError
@@ -458,16 +467,18 @@ class CompareGroups is StatisticalTest
             f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError 
             fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
             p = 1.0 - fDistribution:CumulativeDistribution(f)
-            sphericity = " With Mauchly's Test Of Sphericity" 
+
+            if correction not= 1
+                result:SetCompareVariancesResult(vResult)
+            end
         end
 
         number criticalFValue = f//fDistribution:CriticalValue(GetSignificanceLevel())
         number eta = sumOfSquaresBetweenGroup / totalSumOfSquares
 
-        CompareNGroupsResult result
         result:SetSignificanceLevel(GetSignificanceLevel())
         result:SetFormat(GetStatisticalFormatting())
-        result:SetRepeatedMeasures(true)
+        result:RepeatedMeasures(true)
         result:SetCriticalValue(criticalFValue)
         result:SetTestStatistic(f)
         result:SetProbabilityValue(p)
@@ -480,7 +491,7 @@ class CompareGroups is StatisticalTest
         result:SetSumOfSquaresError(sumOfSquaresError)
         result:SetDegreesOfFreedomError(degreesFreedomError)
         result:SetMeanSumOfSquaresError(meanSumOfSquaresError)
-        result:SetFormalTestName("Repeated Measures Analysis of Variance"+sphericity)
+        result:SetFormalTestName("Repeated Measures Analysis of Variance")
         result:SetEffectSize(eta)
         result:SetEffectSizeName("Eta-Squared")
         result:SetGroups(columns)
@@ -631,7 +642,7 @@ class CompareGroups is StatisticalTest
         CompareGroups compare 
         compare:AddColumn(0)
         compare:AddColumn(1)
-        compare:SetPaired(true)
+        compare:Paired(true)
         compare:SetMean(30)
         compare:Calculate(frame)
 
@@ -674,7 +685,7 @@ class CompareGroups is StatisticalTest
                 // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
 
                 CompareGroupToMean compare
-                compare:AddColumn(2)
+                compare:AddColumn(0)
                 compare:SetMean(userMean)
                 compare:Calculate(newFrame)
                 CompareGroupsResult res = compare:GetResult()
@@ -704,7 +715,7 @@ class CompareGroups is StatisticalTest
                     result:SetEffectSize(res:GetEffectSize())
                     result:SetEffectSizeName(res:GetEffectSizeName())
                     result:SetFormalTestName("Paired T-test")
-                    result:SetPaired(true)
+                    result:Paired(true)
                     results:Add(resultKey, result)
                     indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
                 end
@@ -852,7 +863,7 @@ class CompareGroups is StatisticalTest
         return paired
     end
 
-    action SetPaired(boolean paired)
+    action Paired(boolean paired)
         me:paired = paired
     end
 
@@ -861,7 +872,7 @@ class CompareGroups is StatisticalTest
         return equalVariances
     end
 
-    action SetEqualVariances(boolean equalVariances)
+    action EqualVariances(boolean equalVariances)
         me:equalVariances = equalVariances
     end
 
@@ -870,7 +881,7 @@ class CompareGroups is StatisticalTest
         return repeatedMeasures
     end
 
-    action SetRepeatedMeasures(boolean repeatedMeasures)
+    action RepeatedMeasures(boolean repeatedMeasures)
         me:repeatedMeasures = repeatedMeasures
     end
 
@@ -1021,7 +1032,7 @@ class CompareGroups is StatisticalTest
     /*
         This returns the results between all computed columns.
 
-        Attribute: Returns the CompareCountsResults. 
+        Attribute: Returns the CompareGroupsResults. 
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame

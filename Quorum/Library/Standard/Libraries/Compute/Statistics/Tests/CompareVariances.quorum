@@ -4,7 +4,6 @@ use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
@@ -15,6 +14,9 @@ use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Matrix
 use Libraries.Compute.MatrixTransform.EigenDecomposition
 use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 
 /*
 
@@ -43,22 +45,22 @@ use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
     
     output result:GetProbabilityValue()
 */
-class CompareVariances is CompareGroups
+class CompareVariances is StatisticalTest
     /* The distribution used to calculate the p-value from x2 and df.*/
     ClassificationDistribution distribution
 
     /* Default uses median as center for calculations */
     boolean useMedianAsCenter = true 
     boolean useMeanAsCenter = false 
+    boolean useTrimmedMeanAsCenter = false
+    number trimmedMeanPercent = 0
 
-    /* Boolean for violation flag */
-    boolean violatesAssumption = false
+    /* Flag if repeated measures are used in one-way within-subjects anova */
+    boolean repeatedMeasures = false
 
-    /* Greenhouse-Geisser correction */
-    number ggCorrectionEpsilon = 1.0 
-    
-    /* Huynh-Feldt correction. */
-    number hfCorrectionEpsilon = 1.0
+    /* This stores a hash of all of the results. */
+    HashTable<text, CompareGroupsResult> results        // Used to find the result by column or pair of columns.        
+    HashTable<text, CompareGroupsResult> indexResults   // Used to find the result by index or pair of indices.
 
     Math math
 
@@ -67,18 +69,27 @@ class CompareVariances is CompareGroups
             alert("Must include at least two columns.")
         end
 
-        if Paired() or RepeatedMeasures()
-            CompareDifferenceVariances(frame)   // Mauchly's Sphericity Test
+        if repeatedMeasures
+            CompareDependentVariances(frame)    // Mauchly's Sphericity Test
         else
-            CompareVariances(frame)             // Levene's Test
+            CompareIndependentVariances(frame)  // Levene's Homogeneity Test
         end
     end
 
     /* 
-        Levene's Test 
+        This action tests for variance equality (homogeneity). It is commonly used with 
+        a one-way ANOVA in CompareGroups. 
+        It conducts the following tests: 
+            Levene's Orignal Test :: UseMeanAsCenter()
+            Brown-Forsythe Extensions :: UseMedianAsCenter() or UseTrimmedMeanAsCenter(0.05)
 
-        Null hypothesis: The variances are equal
-        Alternative hypothesis: The variances are not equal
+        Null hypothesis: 
+            The variances are equal
+        Alternative hypothesis: 
+            The variances are NOT equal
+
+        Assumptions:
+            Samples are independent
 
         Attribute: Example
     
@@ -94,95 +105,105 @@ class CompareVariances is CompareGroups
         compare:AddColumn(2)
         compare:Calculate(frame)
 
-        output compare:GetSummary()
+        output compare:GetFormalSummary()
     */
-    private action CompareVariances(DataFrame frame)
+    action CompareIndependentVariances(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
+        end
+
+        Array<DataFrameColumn> groups
         Array<DataFrameColumn> differencesDataFrameColumns
-        Array<integer> preservedColumns = parent:ColumnInput:columns
-        Array<integer> differencesColumns
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
 
-        if useMedianAsCenter
-            i = 0
-            repeat while i < GetColumnSize()
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-
-                if column = undefined
-                    alert("Column is undefined.")
-                end
-        
-                if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-                end
-        
-                if column:GetSize() < 2
-                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
-                end
-
-                Median median
-                column:Calculate(median)    
-                NumberColumn medianDifferencesColumn    
-                
-                j = 0
-                repeat while j < column:GetSize()
-                    medianDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - median:GetMedian()))
-    
-                    j = j + 1
-                end
-
-                differencesDataFrameColumns:Add(medianDifferencesColumn)
-                differencesColumns:Add(i)
-                i = i + 1
+            if column = undefined
+                alert("Column is undefined.")
             end
-        elseif useMeanAsCenter
-            i = 0
-            repeat while i < GetColumnSize()
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-
-                if column = undefined
-                    alert("Column is undefined.")
-                end
-        
-                if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-                end
-        
-                if column:GetSize() < 2
-                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
-                end
     
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+    
+            if column:GetSize() < 2
+                alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+            end
+
+            NumberColumn differencesColumn 
+            number difference = 0 
+
+            if useMedianAsCenter
+                Median median
+                column:Calculate(median) 
+                difference = median:GetMedian()
+            elseif useMeanAsCenter
                 Mean mean
                 column:Calculate(mean)    
-                NumberColumn meanDifferencesColumn
-                
-                j = 0
-                repeat while j < column:GetSize()
-                    meanDifferencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - mean:GetMean()))
-    
-                    j = j + 1
-                end
+                difference = mean:GetMean() 
+            elseif useTrimmedMeanAsCenter
+                Mean mean
+                //mean:SetTrim(trimmedMeanPercent)
+                column:Calculate(mean)    
+                difference = mean:GetMean()   
+                alert("Trimmed mean not yet implemented")             
+            end
 
-                differencesDataFrameColumns:Add(meanDifferencesColumn)
-                differencesColumns:Add(i)
-                i = i + 1
-            end           
+            j = 0
+            repeat while j < column:GetSize()
+                differencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - difference))
+                j = j + 1
+            end
+
+            differencesDataFrameColumns:Add(differencesColumn)
+            groups:Add(column)
+            i = i + 1 
         end
 
-        DataFrame differencesDataFrame
-        differencesDataFrame:SetColumns(differencesDataFrameColumns)
-        
-        parent:ColumnInput:columns = differencesColumns
-        parent:CompareGroups:CompareNIndependentGroups(differencesDataFrame)
-        parent:CompareGroups:GetResult():SetFormalTestName("Levene's Test")
-        parent:ColumnInput:columns = preservedColumns
+        // Collect and select the absolute differences data frame
+        DataFrame differences
+        differences:SetColumns(differencesDataFrameColumns)
+        differences:SetSelectedColumnRange(0, differences:GetSize()-1)
 
-        violatesAssumption = GetProbabilityValue() < GetSignificanceLevel()
+        // Conduct a one-way ANOVA on the absolute differences
+        CompareGroups compare       
+        differences:GetSelection():CopyTo(cast(ColumnInput, compare))
+        compare:CompareNIndependentGroups(differences)
+
+        // Get anova result
+        CompareNGroupsResult anovaResult = cast(CompareNGroupsResult, compare:GetResult())
+
+        CompareVariancesResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetTestStatistic(anovaResult:GetTestStatistic())
+        result:SetDegreesOfFreedomBetweenGroups(anovaResult:GetDegreesOfFreedomBetweenGroups())
+        result:SetDegreesOfFreedomWithinGroups(anovaResult:GetDegreesOfFreedomWithinGroups())
+        result:SetProbabilityValue(anovaResult:GetProbabilityValue())
+        result:SetFormalTestName("Levene's Test For Homogeneity of Variance")
+        result:SetGroups(groups)
+        
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        results:Add(resultKey, result)
     end
 
     /* 
-        Mauchly's Sphericity Test 
+        This action tests for variance of differences equality (sphericity). 
+        It conducts the following test: 
+            Mauchly's Sphericity Test :: RepeatedMeasures(true)
 
-        Null hypothesis: The variances of the differences are equal
-        Alternative hypothesis: The variances of the differences are not equal
+        Null hypothesis: 
+            The variances of the differences are equal
+        Alternative hypothesis: 
+            The variances of the differences are NOT equal
+
+        Assumptions:
+            
 
         Attribute: Example
     
@@ -196,13 +217,17 @@ class CompareVariances is CompareGroups
         compare:AddColumn(0)
         compare:AddColumn(1)
         compare:AddColumn(2)
-        compare:SetRepeatedMeasures(true)
+        compare:UseRepeatedMeasures()
         compare:Calculate(frame)
 
-        output compare:GetSummary()
+        output compare:GetFormalSummary()
     */
-    action CompareDifferenceVariances(DataFrame frame)
-        DataFrame newFrame
+    action CompareDependentVariances(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
+        end
+
+        Array<DataFrameColumn> groups
         i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -217,130 +242,226 @@ class CompareVariances is CompareGroups
             if column:GetSize() < 2
                 alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
             end
-            newFrame:AddColumn(column)
+
+            groups:Add(column)
             i = i + 1
         end
 
-        if GetColumnSize() > 0
-            newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
+        // Collect only the selected data into a frame
+        DataFrame newFrame
+        newFrame:SetColumns(groups)
+        newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
 
-            // Get covariance matrix
-            CovarianceMatrixTransform cov
-            newFrame:GetSelection():CopyTo(cast(ColumnInput, cov))
-            DataFrame eaterframe = cov:Transform(newFrame)
-            Matrix matrix = cov:GetMatrix()
+        // Get covariance matrix from frame
+        // By default the sample covariance will be calculated.
+        CovarianceMatrixTransform cov
+        newFrame:GetSelection():CopyTo(cast(ColumnInput, cov))
+        DataFrame eaterframe = cov:Transform(newFrame)
+        Matrix covarianceMatrix = cov:GetMatrix()
 
-            // If a sample covariance matrix is calculated, it must first be estimated 
-            // to a population matrix by double centering it.
-            Matrix populationCovarMatrix
-            if cov:UseSample()
-                populationCovarMatrix = matrix:DoubleCenter()
-            else
-                populationCovarMatrix = matrix
-            end
-    
-            // Get eigenvalues of covariance matrix
-            EigenDecomposition eig
-            eig:Calculate(populationCovarMatrix)
-    
-            number k = GetColumnSize()
-            number n = frame:GetColumn(0):GetSize()
-            number productOfEvals = 1
-            number sumOfEvals = 0
-            number sumOfSquaredEvals = 0
-            Array<number> evals = eig:GetEigenvalues()
-            i = 0
-            repeat while i < evals:GetSize()
-                eval = evals:Get(i)
-                if eval > 0
-                    productOfEvals = productOfEvals * eval
-                    sumOfEvals = sumOfEvals + eval
-                    sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
-                end
-                i = i + 1 
-            end
-
-            // These equations can be found here: 
-            // https://pingouin-stats.org/generated/pingouin.sphericity.html#r5b1fac2e46ff-1
-
-            // Mauchly's W test statistic
-            number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
-
-            // Chi-Squared W Test Statistic
-            number f = (2 * math:RaiseToPower(k-1, 2) + k + 1) / (6 * (k-1) * (n-1))
-            number chi_w_squared = (f-1) * (n-1) * math:NaturalLogarithm(w)
-
-            // JNS's V Test Statistic
-            number v = math:RaiseToPower(sumOfEvals, 2) / (sumOfSquaredEvals)
-
-            // Chi-Squared V Test Statistic
-            number chi_v_squared = 0.5 * n * math:RaiseToPower(k-1, 2) * (v - 1.0/(k-1))
-
-            // Degrees of Freedom
-            number df = 0.5 * k * (k-1) - 1
-
-            // Box Coefficient
-            number e = v/(k-1)
-            ggCorrectionEpsilon = e
-            hfCorrectionEpsilon = (n * (k-1) * e - 2) / ((k-1) * (n - 1 - ((k-1) * e)))
-            
-            distribution:Setup(df)
-            number p = 1.0 - distribution:CumulativeDistribution(chi_w_squared)
-
-//            output "productOfEvals: "+productOfEvals
-//            output "sumOfEvals: "+sumOfEvals
-//            output "w: "+w
-//            output "x2w: "+chi_w_squared
-//            output "df: "+df
-//            output "p: "+p
-//            output "gg: "+ggCorrectionEpsilon
-//            output "hf: "+hfCorrectionEpsilon
-//            output "v: "+v
-//            output "x2v: "+chi_v_squared
-
-            CompareNGroupsResult result
-            result:SetSignificanceLevel(GetSignificanceLevel())
-            result:SetFormat(GetStatisticalFormatting())
-            result:SetRepeatedMeasures(true)
-            result:SetTestStatistic(w)
-            result:SetProbabilityValue(p)
-    
-            violatesAssumption = p < GetSignificanceLevel()
-
-//            if newFrame:GetSize() > 1
-//                newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
-//                CompareVariances compare = newFrame:CompareSelectedVariances()
-//                compare:GetResult():SetFormalTestName("Mauchly's Sphericity Test")
-//                parent:CompareGroups:results:Add("NA", compare:GetResult())
-//            end
+        // If a sample covariance matrix is calculated, it must first be estimated 
+        // to a population matrix for the later calculations, acheieved by double centering it.
+        Matrix populationCovarMatrix
+        if cov:UseSample()
+            populationCovarMatrix = covarianceMatrix:DoubleCenter()
+        else
+            populationCovarMatrix = covarianceMatrix
         end
-        alert("Mauchly's test is not complete")
+
+        // Get eigenvalues of population covariance matrix
+        EigenDecomposition eig
+        eig:Symmetric(true) //Force it to be recognized as symmetric for eigen calculations
+        eig:Calculate(populationCovarMatrix)
+    
+        number productOfEvals = 1
+        number sumOfEvals = 0
+        number sumOfSquaredEvals = 0
+        Array<number> evals = eig:GetEigenvalues()
+        i = 0
+        repeat while i < evals:GetSize()
+            eval = evals:Get(i)
+            if math:Round(eval, 12) not= 0 // Anything that's not basically zero
+                productOfEvals = productOfEvals * eval
+                sumOfEvals = sumOfEvals + eval
+                sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
+            end
+            i = i + 1 
+        end
+
+        // The equations can be found here: 
+        // https://pingouin-stats.org/generated/pingouin.sphericity.html#r5b1fac2e46ff-1
+        // https://pingouin-stats.org/generated/pingouin.epsilon.html
+
+        // Number of measurements
+        number k = GetColumnSize() 
+
+        // Number of subjects
+        number n = frame:GetColumn(0):GetSize()
+
+        // Mauchly's W test statistic
+        number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
+
+        // Chi-Squared W Test Statistic
+        number f = (2 * (k-1) * (k-1) + k + 1) / (6 * (k-1) * (n-1))
+        number chi_w_squared = (f-1) * (n-1) * math:NaturalLogarithm(w)
+
+        // JNS's V Test Statistic
+        number v = math:RaiseToPower(sumOfEvals, 2) / (sumOfSquaredEvals)
+
+        // Chi-Squared V Test Statistic
+        number chi_v_squared = 0.5 * n * math:RaiseToPower(k-1, 2) * (v - 1.0/(k-1))
+
+        // Degrees of Freedom
+        number df = 0.5 * k * (k-1) - 1
+
+        // Lower-bound epsilon
+        number lbCorrectionEpsilon = 1.0/(k-1)
+
+        // Greenhouse-Geisser epsilon
+        number covMean = populationCovarMatrix:GetMean()
+        number covSumOfSquares = 0
+        number covSumOfRowMeanSquares = 0
+        number covSumOfDiagonal = 0
+        i = 0
+        repeat while i < populationCovarMatrix:GetRows()
+            j = 0
+            repeat while j < populationCovarMatrix:GetColumns()
+                number value = populationCovarMatrix:Get(i,j)
+                covSumOfSquares = covSumOfSquares + value * value
+                j = j + 1
+            end
+            covSumOfDiagonal = covSumOfDiagonal + populationCovarMatrix:Get(i,i)
+            number rowMean = populationCovarMatrix:GetRow(i):GetMean()
+            covSumOfSqauredRowMeans = covSumOfRowMeanSquares + rowMean * rowMean
+            i = i + 1
+        end
+        number covDiagonalMean = covSumOfDiagonal/k
+
+        number top = k * k * (covDiagonalMean-covMean) * (covDiagonalMean-covMean)
+        number bottom = (k-1) * (covSumOfSquares - (2 * k * covSumOfRowMeanSquares + (k * k * covMean * covMean)))
+        number ggCorrectionEpsilon = top / bottom
+
+        // Huynh-Feldt epsilon
+        number hfCorrectionEpsilon = (n * (k-1) * ggCorrectionEpsilon - 2) / ((k-1) * ((n-1) - ggCorrectionEpsilon * (k-1)))
+        
+        // Probability
+        distribution:Setup(df)
+        number p = 1.0 - distribution:CumulativeDistribution(chi_w_squared)
+
+        CompareVariancesResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:RepeatedMeasures(true)
+        result:SetWTestStatistic(w)
+        result:SetChiWSquaredTestStatistic(chi_w_squared)
+        result:SetVTestStatistic(v)
+        result:SetChiVSquaredTestStatistic(chi_v_squared)
+        result:SetDegreesOfFreedom(df)
+        result:SetProbabilityValue(p)
+        result:SetLowerBoundCorrection(lbCorrectionEpsilon)
+        result:SetGreenhouseGeisserCorrection(ggCorrectionEpsilon)
+        result:SetHuynhFeldtCorrection(hfCorrectionEpsilon)
+        result:SetFormalTestName("Mauchly's Test For Sphericity of Variance")
+        result:SetGroups(groups)
+        
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        results:Add(resultKey, result)
     end
 
     action UseMedianAsCenter
         useMedianAsCenter = true
         useMeanAsCenter = false
+        useTrimmedMeanAsCenter = false
     end
 
     action UseMeanAsCenter
         useMedianAsCenter = false
         useMeanAsCenter = true
+        useTrimmedMeanAsCenter = false
     end
 
-    action ViolatesAssumption returns boolean
-        return violatesAssumption
-    end
-
-    action GetCorrectionEpsilon returns number
-        if violatesAssumption
-            if ggCorrectionEpsilon < 0.75
-                return ggCorrectionEpsilon
-            else
-                return hfCorrectionEpsilon
-            end
-        else
-            return 1.0
+    action UseTrimmedMeanAsCenter(number percent)
+        if percent < 0 or percent >= 0.5
+            alert("Trimmed mean percent must be between 0 and 0.5")
         end
+        useMedianAsCenter = false
+        useMeanAsCenter = false
+        useTrimmedMeanAsCenter = true
+        trimmedMeanPercent = percent
+    end
+
+    action RepeatedMeasures(boolean repeatedMeasures)
+        me:repeatedMeasures = repeatedMeasures
+    end
+
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareGroups compare = frame:CompareSelectedColumns()
+        
+        CompareGroupsResult result = compare:GetResult()
+    */
+    action GetResult returns CompareGroupsResult
+        if results:GetSize() = 1
+            return results:GetValueIterator():Next()
+        else
+            alert("There is more than one test result, either specify which result or use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        This action summarizes the results and lists them informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        Iterator<CompareGroupsResult> i = results:GetValueIterator()
+        CompareGroupsResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        Iterator<CompareGroupsResult> i = results:GetValueIterator()
+        CompareGroupsResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+        end
+
+        return summary
     end
 
 end

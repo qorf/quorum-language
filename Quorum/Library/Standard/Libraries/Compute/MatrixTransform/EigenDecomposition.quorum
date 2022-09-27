@@ -84,6 +84,7 @@ class EigenDecomposition
         end
         if symmetric
             TridiagonalDecomposition decomposition
+            decomposition:Symmetric(symmetric)
             decomposition:Calculate(matrix)
             CalculateEigenVectorsFromTridiagonalDecomposition(decomposition)
         else

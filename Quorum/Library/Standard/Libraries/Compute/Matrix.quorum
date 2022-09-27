@@ -1798,6 +1798,41 @@ class Matrix
         return result
     end
 
+
+    /*
+    This method returns the sum of all the elements squared in a Matrix
+
+    Attribute Returns The sum of all the elements squared in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetSumOfSquares()
+        end
+    end
+    */
+    action GetSumOfSquares returns number
+        result = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                result = result + Get(row, col) * Get(row, col)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
     /*
     This method returns the mean (average) of all the elements in a Matrix
     

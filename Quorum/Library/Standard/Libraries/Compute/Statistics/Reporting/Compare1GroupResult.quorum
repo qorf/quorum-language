@@ -84,14 +84,22 @@ class Compare1GroupResult is Compare2GroupsResult
             end
         end
 
-        summary = summary + ", t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    action GetFormalNumericalResult() returns text
+        text summary = ""
+        summary = summary + "t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
         number p = GetProbabilityValue()
         if p < GetFormat():PRECISION_LIMIT
             summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize()) + "."
+        summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize())
+
         return summary
     end
 end

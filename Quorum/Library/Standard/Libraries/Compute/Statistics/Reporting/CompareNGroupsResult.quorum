@@ -31,6 +31,7 @@ class CompareNGroupsResult is CompareGroupsResult
     DataFrame anovaTable
 
     Array<CompareGroupsResult> pairwise // The pairwise results of each two-sample t-test within the anova.
+    CompareVariancesResult varianceResult
 
     action GetDegreesOfFreedomBetweenGroups returns number
         return degreesOfFreedomBetweenGroups
@@ -112,12 +113,20 @@ class CompareNGroupsResult is CompareGroupsResult
         me:pairwise = pairwise
     end
 
-    action GetRepeatedMeasures returns boolean
+    action RepeatedMeasures returns boolean
         return repeatedMeasures
     end
 
-    action SetRepeatedMeasures(boolean repeatedMeasures)
+    action RepeatedMeasures(boolean repeatedMeasures)
         me:repeatedMeasures = repeatedMeasures
+    end
+
+    action GetCompareVariancesResult returns CompareVariancesResult
+        return varianceResult
+    end
+
+    action SetCompareVariancesResult(CompareVariancesResult varianceResult)
+        me:varianceResult = varianceResult
     end
 
     /*
@@ -191,6 +200,12 @@ class CompareNGroupsResult is CompareGroupsResult
             else
                 summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " across " + GetGroups():GetSize() + " dependent samples."
             end
+
+            if varianceResult:GetCorrection() not= 1
+                summary = summary  + lf + varianceResult:GetFormalTestName() + " indicated that the assumption of sphericity had been violated, " 
+                + varianceResult:GetFormalNumericalResult() + ", therefore the degrees of freedom were corrected using Greenhouse-Geisser estimates of sphericity "
+                + "(ε ="+GetFormat():FormatWithoutLeadingZero(varianceResult:GetCorrection(), 2)+")."
+            end
         else
             if GetFactor() = ""
                 summary = summary + "A " + GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " independent samples."
@@ -207,12 +222,19 @@ class CompareNGroupsResult is CompareGroupsResult
             summary = summary + lf + "There was not statistically significant differences in means"
         end
 
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    action GetFormalNumericalResult() returns text
+        text summary = ""
         if repeatedMeasures
-            summary = summary + ", F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+            summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
                                        + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomError) + ") = " 
                                        + GetFormat():FormatTestStatistic(GetTestStatistic())
         else
-            summary = summary + ", F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+            summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
                                        + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
                                        + GetFormat():FormatTestStatistic(GetTestStatistic())
         end
@@ -222,7 +244,8 @@ class CompareNGroupsResult is CompareGroupsResult
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + ", η2 = " + GetFormat():FormatTestStatistic(GetEffectSize()) + "."
+        summary = summary + ", η2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+
         return summary
     end
 
