@@ -28,7 +28,14 @@ class GestureEvent
     // What kind of gesture the event represents, such as DOUBLE_TAP or PAN.
     public integer eventType = 0
 
+    // The maximum amount of fingers that was detected during the GestureEvent
+    public integer maxFingerCount = 0
 
+    // The current amount of fingers that was detected during the GestureEvent
+    public integer currentFingerCount = 0
+
+    // If the scale factor is large enough to be considered a pinch, then this will be true. (0.5 < scale factor > 1.5)
+    public boolean isPinch = false
 
     // A code indicating that the event has just begun. Discrete gestures always use this timing code (i.e. gestures that trigger only once when they occur, such as SWIPE or LONG_PRESS).
     public constant integer BEGIN = 0

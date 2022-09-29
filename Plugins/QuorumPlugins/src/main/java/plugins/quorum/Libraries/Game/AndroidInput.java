@@ -33,7 +33,10 @@ public class AndroidInput
     private final HashMap<Integer, Coordinates> map = new HashMap<>();
 
     boolean longPressed = false;
-    
+    int maxFingerCount;
+    int currentFingerCount;
+    float scaleFactor;
+
     public void InitializePlugin(List_ list, List_ gestureList)
     {
         touchEvents = list;
@@ -64,12 +67,14 @@ public class AndroidInput
             {
                     case (MotionEvent.ACTION_DOWN):
                     case (MotionEvent.ACTION_POINTER_DOWN):
+                        scaleFactor = 1.0f;
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();
                         id = e.getPointerId(e.getActionIndex());
-            
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
+                        maxFingerCount = e.getPointerCount();
+                        currentFingerCount = e.getPointerCount();
 
                         event.x = x;
                         event.y = y;
@@ -92,6 +97,7 @@ public class AndroidInput
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
 
+                        currentFingerCount = e.getPointerCount();
                         event.x = x;
                         event.y = y;
                         event.fingerID = id;
@@ -105,11 +111,12 @@ public class AndroidInput
                     }
                     break;
                     case (MotionEvent.ACTION_UP):
+                        currentFingerCount = e.getPointerCount();
                     case (MotionEvent.ACTION_POINTER_UP):
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();
                         id = e.getPointerId(e.getActionIndex());
-            
+                        currentFingerCount = e.getPointerCount();
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
                         event.eventType = event.ENDED;
@@ -123,7 +130,6 @@ public class AndroidInput
                         break;
                     case (MotionEvent.ACTION_CANCEL):
                         eventArray = new TouchEvent_[e.getPointerCount()];
-
                     for (int i = 0; i < e.getPointerCount(); i++)
                     {
                         event = new TouchEvent();
@@ -158,7 +164,6 @@ public class AndroidInput
                         event.eventType = -1;
                         eventArray[0] = event;
             }
-        
         return eventArray;
     }
     
@@ -179,6 +184,8 @@ public class AndroidInput
 
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__maxFingerCount_(maxFingerCount);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__currentFingerCount_(currentFingerCount);
     }
 
     private void InitializeValues(ScaleGestureDetector detector, GestureEvent quorumEvent)
@@ -188,6 +195,8 @@ public class AndroidInput
 
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__maxFingerCount_(maxFingerCount);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__currentFingerCount_(currentFingerCount);
     }
 
     public void AddSingleTapEvent(MotionEvent event)
@@ -297,7 +306,6 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
-
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
 
         InitializeValues(detector, quorumEvent);
@@ -311,6 +319,7 @@ public class AndroidInput
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
 
+        scaleFactor *= detector.getScaleFactor();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
 
         InitializeValues(detector, quorumEvent);
@@ -323,8 +332,10 @@ public class AndroidInput
         GestureEvent quorumEvent = new GestureEvent();
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
+        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(scaleFactor);
+        if (scaleFactor > 1.5 || scaleFactor < 0.5)
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__isPinch_(true);
 
-        quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
 
         InitializeValues(detector, quorumEvent);
 
