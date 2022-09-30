@@ -200,11 +200,19 @@ class Texture is Disposable
         LoadFromTextureData(data)
 
         if drawable not= undefined
+            number width = drawable:GetWidth()
+            number height = drawable:GetHeight()
+
             drawable:Load(me)
             // Reset the scale of the drawable after loading to ensure proper positioning.
             drawable:SetScale(drawable:GetScaleX(), drawable:GetScaleY())
             if drawable:GetPhysicsProperties() not= undefined and not drawable:IsPhysicsEnabled()
                 drawable:EnablePhysics(true)
+            end
+
+            // If the drawable had a size set before, reset it back to those values after loading.
+            if width not= 0 or height not= 0
+                drawable:SetSize(width, height)
             end
         end
     end
