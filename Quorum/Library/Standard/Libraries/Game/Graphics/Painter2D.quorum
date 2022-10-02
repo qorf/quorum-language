@@ -18,6 +18,7 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 /*
 The Painter2D class is used to draw Drawable objects on the screen. The Game class
@@ -65,8 +66,7 @@ class Painter2D
     
     Texture lastTexture = undefined
 
-    private boolean drawing = false
-    integer drawIndex = 0
+    boolean drawing = false
     number inverseTextureWidth = 0
     number inverseTextureHeight = 0
 
@@ -87,8 +87,9 @@ class Painter2D
 
     Item2DDepthComparison depthSorter
 
-    // The Drawables which have been processed by the "Draw" action, but haven't been flushed yet.
-    Queue<Drawable> queuedDrawables
+    // The current Drawable which has been processed by the "Draw" action, but hasn't been flushed yet.
+    // Only used if the current shader mapping doesn't support batching. Otherwise this is undefined.
+    Drawable currentDrawable = undefined
 
     /*
     Values used for clipping via glScissor. The coordinates form an axis
@@ -122,6 +123,9 @@ class Painter2D
 
     // The current shader program in use.
     ShaderProgram currentProgram = undefined
+
+    // The current shader mapping in use. Especially important in case it supports batching.
+    ShaderMapping currentMapping = undefined
 
     // The reusable mesh, used to render quads in bulk.
     Mesh mesh
@@ -565,6 +569,10 @@ class Painter2D
             return now
         end
 
+        // Update the shape to use the Painter's color if there's none set.
+        if drawable:UsingCustomTint() = false
+            shape:SetColor(colorValue)
+        end
 
         ShaderProgram candidate = drawable:GetShaderProgram()
         if candidate = undefined
@@ -579,44 +587,61 @@ class Painter2D
 
             currentProgram = candidate
             currentProgram:Begin()
+            currentMapping = undefined
+        end
 
-            batchDrawables = (currentProgram = shaderManager:GetDefaultShaderProgram2D())
+        ShaderMapping candidateMapping = drawable:GetShaderMapping()
+        if candidateMapping = undefined
+            candidateMapping = currentProgram:GetShaderMapping()
+        end
+
+        if candidateMapping not= currentMapping
+            Flush()
+            if currentMapping not= undefined
+                currentMapping:End(currentProgram)
+            end
+
+            currentMapping = candidateMapping
+            currentMapping:Begin(currentProgram, camera)
         end
 
         integer verticesLength = GetVertices():GetSize()
         if drawable:GetTexture() not= lastTexture
             SwitchTexture(drawable:GetTexture())
-
-        // Default quads use 24 vertices to render. We need at least that much space.
-        elseif verticesLength - drawIndex < 24
-            Flush()
         end
 
-        
-        if drawable:UsingCustomTint() = false
-            shape:SetColor(colorValue)
-        end
+        if currentMapping:SupportsBatching()
+            batchDrawables = true
 
-        if shape:GetMesh() = undefined
-            integer counter = 0
-            repeat while counter < shape:GetDataCount()
-                SetVertex(drawIndex, shape:GetVertexData(counter))
-                drawIndex = drawIndex + 1
-                counter = counter + 1
+            if currentMapping:CanIncludeInBatch(currentProgram, drawable) = false
+                Flush()
             end
-            batchDrawables = (currentProgram = shaderManager:GetDefaultShaderProgram2D())
-        else
-            batchDrawables = false
-        end
 
-        if batchDrawables = false
-            queuedDrawables:Add(drawable)
+            currentMapping:MapInputs(currentProgram, drawable)
+        else
+            // If we can't batch this drawable, map its inputs then render it immediately.
+            batchDrawables = false
+            currentDrawable = drawable
+
+            currentMapping:MapInputs(currentProgram, drawable)
+
+            // Set the vertices of the default mesh before flushing.
+            if shape:GetMesh() = undefined
+                integer counter = 0
+                repeat while counter < shape:GetDataCount()
+                    SetVertex(counter, shape:GetVertexData(counter))
+                    counter = counter + 1
+                end
+            end
+
+            Flush()
         end
     end
 
     private action SwitchTexture(Texture texture)
         Flush()
 
+        output "Switch texture, setting texture to undefined = " + (texture = undefined)
         lastTexture = texture
         inverseTextureWidth = 1.0 / texture:GetWidth()
         inverseTextureHeight = 1.0 / texture:GetHeight()
@@ -665,20 +690,17 @@ class Painter2D
     inside of it that are awaiting processing.
     */
     action Flush
-        if drawIndex = 0 and queuedDrawables:IsEmpty()
+        if (currentMapping = undefined or currentMapping:IsBatching() = false) and (currentDrawable = undefined)
             return now
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
 
-        // The count is equal to the index dividied by DRAWABLE_SIZE, multiplied by 6 (because we render each quad as 2 triangles of 3 vertices each).
-        // TO-DO: If a custom shader wants to send extra vertex information, then DRAWABLE_SIZE will be wrong.
-        // This needs to be updated to a value retrieved from a mapping.
-        integer count = (drawIndex / 24) * 6
-
+        output "Mapping = undefined is " + (currentMapping = undefined)
+        output "currentDrawable undefined is " + (currentDrawable = undefined)
+        output "currentMapping is batching = " + currentMapping:IsBatching()
+        output "lastTexture = undefined is " + (lastTexture = undefined)
         lastTexture:Bind() 
-
-        mesh:SetVertices(GetVertices())
 
         if blendingDisabled
             graphics:DisableProperty(constants:GL_BLEND)
@@ -687,28 +709,21 @@ class Painter2D
             graphics:SetBlendFunction(constants:GL_SRC_ALPHA, constants:GL_ONE_MINUS_SRC_ALPHA)
         end
 
-        if batchDrawables
-            currentProgram:Draw(mesh, camera, 0, count)
+        if currentMapping:IsBatching()
+            currentMapping:RenderBatch(currentProgram)
         else
-            integer i = 0
-            integer currentIndex = 0
-            repeat until queuedDrawables:IsEmpty()
-                Drawable current = queuedDrawables:RemoveFromFront()
-                DrawableShape shape = current:GetDrawableShape()
-                if shape:GetMesh() not= undefined
-                    current:SetMesh(shape:GetMesh())
-                    currentProgram:Draw(current)
-                else
-                    current:SetMesh(mesh)
-                    currentProgram:Draw(current, currentIndex, 6)
-                    currentIndex = currentIndex + 6
-                end
-
-                i = i + 1
+            DrawableShape shape = currentDrawable:GetDrawableShape()
+            if shape:GetMesh() not= undefined
+                currentDrawable:SetMesh(shape:GetMesh())
+                currentProgram:Draw(currentDrawable)
+            else
+                mesh:SetVertices(GetVertices())
+                currentDrawable:SetMesh(mesh)
+                currentProgram:Draw(currentDrawable, 0, shape:GetIndexCount())
             end
         end
 
-        drawIndex = 0
+        currentDrawable = undefined
     end
 
     /*

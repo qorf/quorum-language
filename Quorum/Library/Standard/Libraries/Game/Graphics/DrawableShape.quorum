@@ -678,6 +678,12 @@ class DrawableShape
             end
         end
 
+        integer k = 0
+        repeat while k < vertices:GetSize()
+            output k + ": " + vertices:Get(k)
+            k = k + 1
+        end
+
         needsUpdate = false
         UpdateMeshVertices()
     end
@@ -773,6 +779,10 @@ class DrawableShape
 
     action GetVertexData(integer index) returns number
         return vertices:Get(index)
+    end
+
+    action GetVertexData returns Number32BitArray
+        return vertices
     end
 
     action GetMesh returns Mesh

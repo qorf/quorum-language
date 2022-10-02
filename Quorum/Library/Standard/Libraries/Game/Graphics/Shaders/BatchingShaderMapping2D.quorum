@@ -1,27 +1,26 @@
 package Libraries.Game.Graphics.Shaders
 
-use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.Renderable
-use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.VertexData
+use Libraries.Game.Graphics.Camera
 
-class ShaderMapping
+class BatchingShaderMapping2D is ShaderMapping
 
-    blueprint action Begin(ShaderProgram program, Camera camera)
+    Mesh mesh
 
-    blueprint action End(ShaderProgram program)
+    integer vertexOffset = 0
 
-    action MapInputs(ShaderProgram program, Renderable renderable)
-        alert("Error while trying to render a renderable with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 3D renderables.")
+    on create
+        InitializeMesh(mesh)
     end
 
-    action MapInputs(ShaderProgram program, Drawable drawable)
-        alert("Error while trying to render the drawable " + drawable:GetName() + " with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 2D drawables.")
-    end
-
-    action SupportsBatching returns boolean
-        return GetBatchingMesh() not= undefined
-    end
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private blueprint action InitializeMesh(Mesh mesh)
 
     /*
     Returns the Mesh used by this ShaderMapping to support batching.
@@ -32,21 +31,34 @@ class ShaderMapping
     using this ShaderMapping.
     */
     action GetBatchingMesh returns Mesh
-        return undefined
+        return mesh
     end
     
     /*
     This action is called just before the first item in a Batch is passed to the MapInputs call.
     */
     action BeginBatch(ShaderProgram program)
-        // By default, do nothing. This can be overridden.
+        vertexOffset = 0
     end
 
     /*
     This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
     */
-    action RenderBatch(ShaderProgram program)
-        // By default, do nothing. This can be overridden.
+    action RenderBatch(ShaderProgram program, Camera camera)
+        program:Draw(mesh, camera, 0, vertexOffset)
+
+        vertexOffset = 0
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        DrawableShape shape = drawable:GetDrawableShape()
+
+        Mesh mesh = GetBatchingMesh()
+        VertexData data = mesh:GetVertexData()
+
+        data:UpdateVertices(vertexOffset, shape:GetVertexData(), 0, shape:GetDataCount())
+
+        vertexOffset = vertexOffset + shape:GetDataCount()
     end
 
     /*
@@ -58,7 +70,7 @@ class ShaderMapping
     that doesn't support batching will return false from this action.
     */
     action CanIncludeInBatch(ShaderProgram program, Drawable drawable) returns boolean
-        return false
+        return vertexOffset + drawable:GetDrawableShape():GetDataCount() < mesh:GetVertexData():GetMaxSize()
     end
 
     /*
@@ -69,6 +81,7 @@ class ShaderMapping
     that doesn't support batching will return false from this action.
     */
     action IsBatching returns boolean
-        return false
+        return vertexOffset not= 0
     end
+
 end
