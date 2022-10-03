@@ -2466,7 +2466,6 @@ class Chart is ChartItem
         end
 
         if selected:HasSpecialNavigation(selected:UP)
-            output "Doing UP navigation with " + selected:UP
             selected:DoSpecialNavigation(selected:UP)
             return now
         end
