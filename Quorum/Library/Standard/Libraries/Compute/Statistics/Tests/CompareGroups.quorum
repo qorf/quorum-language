@@ -23,7 +23,7 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 
 /*
-    This class implements several tests
+    This class implements several parametric tests:
         Compare1Group is a one sample t-test. 
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
@@ -48,7 +48,7 @@ use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
         _____________ is a one-way multivariate analysis of variance (MANOVA). 
         For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance
 
-    It was adapted from the same model in Apache Commons, but was expanded 
+    It was partially adapted from the same model in Apache Commons, but was expanded 
     upon to simplify the library and add a variety of helper actions that were missing.
     More information about this class can be found on its documentation page OneWayAnova and TTest:
     https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html

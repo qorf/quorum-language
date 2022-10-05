@@ -101,7 +101,11 @@ class CalculateRanks is DataFrameColumnCalculation
                     firstTie = i
                 else
                     lastTie = i
-                    averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie) + firstRank) / 2.0)
+                    if firstRank > 1
+                        averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie) + firstRank) / 2.0)
+                    else
+                        averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie)) / 2.0)
+                    end
                     manageTies = true
                 end
             end
