@@ -678,12 +678,6 @@ class DrawableShape
             end
         end
 
-        integer k = 0
-        repeat while k < vertices:GetSize()
-            output k + ": " + vertices:Get(k)
-            k = k + 1
-        end
-
         needsUpdate = false
         UpdateMeshVertices()
     end
@@ -824,6 +818,7 @@ class DrawableShape
         integer sourceCounter = 0
         integer resultCounter = 0
         Number32BitArray result
+        result:SetSize(newSize * GetIndexCount())
         repeat while sourceCounter < vertices:GetSize()
             integer i = 0
             repeat while i < copyAmount
@@ -835,6 +830,7 @@ class DrawableShape
         end
 
         vertices = result
+        vertexSize = newSize
     end
 
 end

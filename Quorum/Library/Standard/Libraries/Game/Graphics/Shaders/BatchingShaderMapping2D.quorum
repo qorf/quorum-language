@@ -5,12 +5,19 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.VertexData
 use Libraries.Game.Graphics.Camera
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Game.GameStateManager
 
 class BatchingShaderMapping2D is ShaderMapping
 
+    ShaderProgram program = undefined
+    GameStateManager manager
     Mesh mesh
 
     integer vertexOffset = 0
+    integer indexCount = 0
 
     on create
         InitializeMesh(mesh)
@@ -21,6 +28,25 @@ class BatchingShaderMapping2D is ShaderMapping
     the initial values of the Mesh using the Mesh's Load action.
     */
     private blueprint action InitializeMesh(Mesh mesh)
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
+        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+        program:SetShaderInput("u_texture", 0)
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
 
     /*
     Returns the Mesh used by this ShaderMapping to support batching.
@@ -39,15 +65,17 @@ class BatchingShaderMapping2D is ShaderMapping
     */
     action BeginBatch(ShaderProgram program)
         vertexOffset = 0
+        indexCount = 0
     end
 
     /*
     This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
     */
     action RenderBatch(ShaderProgram program, Camera camera)
-        program:Draw(mesh, camera, 0, vertexOffset)
+        program:Draw(mesh, camera, 0, vertexOffset / 4)
 
         vertexOffset = 0
+        indexCount = 0
     end
 
     action MapInputs(ShaderProgram program, Drawable drawable)
@@ -56,10 +84,19 @@ class BatchingShaderMapping2D is ShaderMapping
         Mesh mesh = GetBatchingMesh()
         VertexData data = mesh:GetVertexData()
 
+        // VertexAttributes stores its size as 8-bit bytes instead of 32-bit floats, so we need to divide by 4 to account for that.
+        shape:SetVertexSize(data:GetAttributes():vertexSize / 4)
+
+        // Let the shader mapping set implementation-specific values for any non-default vertex values.
+        SetVertexData(program, drawable, shape)
+
         data:UpdateVertices(vertexOffset, shape:GetVertexData(), 0, shape:GetDataCount())
 
         vertexOffset = vertexOffset + shape:GetDataCount()
+        indexCount = indexCount + shape:GetIndexCount()
     end
+
+    blueprint action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
 
     /*
     This action determines if the provided Drawable can be included in the current batch.

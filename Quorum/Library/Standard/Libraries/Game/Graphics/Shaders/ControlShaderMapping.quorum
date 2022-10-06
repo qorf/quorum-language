@@ -16,28 +16,48 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Views.ToggleView
 use Libraries.Interface.Controls.Tab
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DefaultVertexAttributes2D
+use Libraries.Containers.Integer32BitArray
 
-class ControlShaderMapping is ShaderMapping
+class ControlShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
 
-    action Begin(ShaderProgram program, Camera camera)
-        me:program = program
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private action InitializeMesh(Mesh mesh)
+        DefaultVertexAttributes2D attributes
+        mesh:Load(false, 4800, 6000, attributes)
 
-        GraphicsManager graphics = manager:GetGameGraphics()
-        OpenGLConstants constants
-        graphics:SetDepthMask(true)
-        graphics:EnableProperty(constants:GL_DEPTH_TEST)
-        graphics:SetDepthFunction(constants:GL_LEQUAL)
-        graphics:DisableProperty(constants:GL_CULL_FACE)
+        integer length = 6000
+        Integer32BitArray indices
+        indices:SetSize(length)
 
-        // TO-DO: Replace hard-coded values with references to constants
-        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
-        program:SetShaderInput("u_texture", 0)
+        integer indexCounter = 0
+        integer vertexCounter = 0
+
+        // Setup the indices to make pairs of triangles to render quads of vertices.
+        repeat while indexCounter < length
+            indices:Set(indexCounter, vertexCounter)
+            indices:Set(indexCounter + 1, vertexCounter + 1)
+            indices:Set(indexCounter + 2, vertexCounter + 2)
+            indices:Set(indexCounter + 3, vertexCounter + 2)
+            indices:Set(indexCounter + 4, vertexCounter + 3)
+            indices:Set(indexCounter + 5, vertexCounter)
+
+            indexCounter = indexCounter + 6
+            vertexCounter = vertexCounter + 4
+        end
+
+        mesh:SetIndices(indices)
     end
 
-    action MapInputs(ShaderProgram program, Drawable drawable)
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
         number leftBorder = 0
         number topBorder = 0
         number rightBorder = 0
@@ -212,10 +232,6 @@ class ControlShaderMapping is ShaderMapping
         else
             program:SetShaderInput("u_borderColor", 0.0, 0.0, 0.0, 1.0)
         end
-    end
-
-    action End(ShaderProgram program)
-        me:program = undefined
     end
 
 end

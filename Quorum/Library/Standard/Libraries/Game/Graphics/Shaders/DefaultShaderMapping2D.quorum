@@ -19,9 +19,6 @@ use Libraries.Game.Graphics.VertexData
 use Libraries.Game.Graphics.DrawableShape
 
 class DefaultShaderMapping2D is BatchingShaderMapping2D
-    
-    ShaderProgram program = undefined
-    GameStateManager manager
 
     /*
     This action is called when the mapping is created. It must be used to set
@@ -54,23 +51,11 @@ class DefaultShaderMapping2D is BatchingShaderMapping2D
         mesh:SetIndices(indices)
     end
 
-    action Begin(ShaderProgram program, Camera camera)
-        me:program = program
-
-        GraphicsManager graphics = manager:GetGameGraphics()
-        OpenGLConstants constants
-        graphics:SetDepthMask(true)
-        graphics:EnableProperty(constants:GL_DEPTH_TEST)
-        graphics:SetDepthFunction(constants:GL_LEQUAL)
-        graphics:DisableProperty(constants:GL_CULL_FACE)
-
-        // TO-DO: Replace hard-coded values with references to constants
-        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
-        program:SetShaderInput("u_texture", 0)
-    end
-
-    action End(ShaderProgram program)
-        me:program = undefined
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        /*
+        Do nothing. The default shader mapping doesn't need to set any
+        vertex values past the defaults already handled by the DrawableShape.
+        */
     end
 
 end

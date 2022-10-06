@@ -641,7 +641,6 @@ class Painter2D
     private action SwitchTexture(Texture texture)
         Flush()
 
-        output "Switch texture, setting texture to undefined = " + (texture = undefined)
         lastTexture = texture
         inverseTextureWidth = 1.0 / texture:GetWidth()
         inverseTextureHeight = 1.0 / texture:GetHeight()
@@ -696,10 +695,6 @@ class Painter2D
 
         GraphicsManager graphics = manager:GetGameGraphics()
 
-        output "Mapping = undefined is " + (currentMapping = undefined)
-        output "currentDrawable undefined is " + (currentDrawable = undefined)
-        output "currentMapping is batching = " + currentMapping:IsBatching()
-        output "lastTexture = undefined is " + (lastTexture = undefined)
         lastTexture:Bind() 
 
         if blendingDisabled
@@ -710,7 +705,7 @@ class Painter2D
         end
 
         if currentMapping:IsBatching()
-            currentMapping:RenderBatch(currentProgram)
+            currentMapping:RenderBatch(currentProgram, camera)
         else
             DrawableShape shape = currentDrawable:GetDrawableShape()
             if shape:GetMesh() not= undefined
