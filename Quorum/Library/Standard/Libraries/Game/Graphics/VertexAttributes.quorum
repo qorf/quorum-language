@@ -33,9 +33,16 @@ class VertexAttributes
         
         attributes:SetSize(array:GetSize())
         integer counter = 0
-
+        integer customUsage = 512
         repeat array:GetSize() times
-            attributes:Set(counter, array:Get(counter))
+            VertexAttribute attribute = array:Get(counter)
+            if attribute:usage = -1
+                // Update the usage to have a custom value unique to this set of VertexAttributes.
+                attribute:SetAttribute(customUsage, attribute:componentCount, attribute:type, attribute:normalized, attribute:alias, attribute:unit)
+                customUsage = 512 * 2
+            end
+
+            attributes:Set(counter, attribute)
             counter = counter + 1
         end
 

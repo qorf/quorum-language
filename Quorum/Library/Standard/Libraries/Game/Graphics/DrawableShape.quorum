@@ -771,12 +771,24 @@ class DrawableShape
         end
     end
 
+    action SetVertexData(integer index, number value)
+        vertices:Set(index, value)
+    end
+
     action GetVertexData(integer index) returns number
         return vertices:Get(index)
     end
 
     action GetVertexData returns Number32BitArray
         return vertices
+    end
+
+    action SetDataForAllVertices(integer offset, number value)
+        integer i = offset
+        repeat while i < vertices:GetSize()
+            vertices:Set(i, value)
+            i = i + vertexSize
+        end
     end
 
     action GetMesh returns Mesh

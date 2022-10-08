@@ -20,11 +20,34 @@ use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.Mesh
 use Libraries.Game.Graphics.DefaultVertexAttributes2D
 use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Containers.Array
 
 class ControlShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
+
+    integer arrayIndex = 0
+
+    constant integer ARRAY_SIZE = 200
+    Number32BitArray roundingArray
+    Number32BitArray borderThicknessArray
+    Number32BitArray aspectRatioArray
+    Number32BitArray antiAliasArray
+
+    VertexAttribute borderColorAttribute = undefined
+    VertexAttribute arrayIndexAttribute = undefined
+
+    on create
+        // The rounding and border thickness arrays store vector4 objects, so they need 4 numbers for each component.
+        roundingArray:SetSize(ARRAY_SIZE * 4)
+        borderThicknessArray:SetSize(ARRAY_SIZE * 4)
+
+        aspectRatioArray:SetSize(ARRAY_SIZE)
+        antiAliasArray:SetSize(ARRAY_SIZE)
+    end
 
     /*
     This action is called when the mapping is created. It must be used to set
@@ -32,9 +55,15 @@ class ControlShaderMapping is BatchingShaderMapping2D
     */
     private action InitializeMesh(Mesh mesh)
         DefaultVertexAttributes2D attributes
-        mesh:Load(false, 4800, 6000, attributes)
+        Array<VertexAttribute> extraAttributes
+        VertexAttribute dummy
+        borderColorAttribute = dummy:CustomColorAttribute("a_borderColor")
+        arrayIndexAttribute = dummy:CustomIntegerAttribute("a_arrayIndex")
+        attributes:SetAttributes(extraAttributes)
+        
+        mesh:Load(false, 8 * 4 * ARRAY_SIZE, 6 * ARRAY_SIZE, attributes)
 
-        integer length = 6000
+        integer length = 1200
         Integer32BitArray indices
         indices:SetSize(length)
 
@@ -137,22 +166,24 @@ class ControlShaderMapping is BatchingShaderMapping2D
             end
 
             if control not= undefined
+                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+
                 if control:GetBorderThickness() > 0
                     if control:HasLeftBorder()
                         renderBorders = true
-                        leftBorder = 1.0
+                        leftBorder = borderThickness
                     end
                     if control:HasTopBorder()
                         renderBorders = true
-                        topBorder = 1.0
+                        topBorder = borderThickness
                     end
                     if control:HasRightBorder()
                         renderBorders = true
-                        rightBorder = 1.0
+                        rightBorder = borderThickness
                     end
                     if control:HasBottomBorder()
                         renderBorders = true
-                        bottomBorder = 1.0
+                        bottomBorder = borderThickness
                     end
                 end
     
@@ -160,8 +191,6 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 bottomRightRounding = control:GetBottomRightRounding()
                 topRightRounding = control:GetTopRightRounding()
                 topLeftRounding = control:GetTopLeftRounding()
-
-                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
 
                 /*
                 Determine what color the control should be, based on how the user is interacting with it.
@@ -219,19 +248,56 @@ class ControlShaderMapping is BatchingShaderMapping2D
             drawable:GetDrawableShape():SetColor(backgroundColor)
         end
 
-        program:SetShaderInput("u_aspectRatio", aspectRatio)
-        program:SetShaderInput("u_enabledBorders", leftBorder, topBorder, rightBorder, bottomBorder)
-        program:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
-        program:SetShaderInput("u_borderThickness", borderThickness)
-        program:SetShaderInput("u_antiAliasDistance", 1.0 / height)
-        program:SetShaderInput("u_renderBorders", renderBorders)
+        integer vectorIndex = arrayIndex * 4
+
+        roundingArray:Set(vectorIndex, bottomRightRounding)
+        roundingArray:Set(vectorIndex + 1, topRightRounding)
+        roundingArray:Set(vectorIndex + 2, bottomLeftRounding)
+        roundingArray:Set(vectorIndex + 3, topLeftRounding)
+
+        borderThicknessArray:Set(vectorIndex, leftBorder)
+        borderThicknessArray:Set(vectorIndex + 1, topBorder)
+        borderThicknessArray:Set(vectorIndex + 2, rightBorder)
+        borderThicknessArray:Set(vectorIndex + 3, bottomBorder)
+
+        aspectRatioArray:Set(arrayIndex, aspectRatio)
+        antiAliasArray:Set(arrayIndex, 1.0 / height)
 
         if borderColor not= undefined
-            Color border = borderColor:GetBottomLeft()
-            program:SetShaderInput("u_borderColor", border:GetRed(), border:GetGreen(), border:GetBlue(), border:GetAlpha())
+            if borderColor is Color
+                Color border = cast(Color, borderColor)
+                shape:SetDataForAllVertices(borderColorAttribute:offset, border:EncodeColorAsNumber())
+            else
+                Color bottomRight = borderColor:GetBottomRight()
+                Color bottomLeft = borderColor:GetBottomLeft()
+                Color topRight = borderColor:GetTopRight()
+                Color topLeft = borderColor:GetTopLeft()
+                shape:SetVertexData(borderColorAttribute:offset, bottomRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset + 8, topRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset + 16, bottomLeft:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset + 24, topLeft:EncodeColorAsNumber())
+            end
         else
-            program:SetShaderInput("u_borderColor", 0.0, 0.0, 0.0, 1.0)
+            shape:SetDataForAllVertices(borderColorAttribute:offset, 0)
         end
+
+        shape:SetDataForAllVertices(arrayIndexAttribute:offset, arrayIndex)
+
+        arrayIndex = arrayIndex + 1
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        program:SetShaderInputArray("u_rounding[0]", roundingArray, 0, arrayIndex * 4)
+        program:SetShaderInputArray("u_borderThickness[0]", borderThicknessArray, 0, arrayIndex * 4)
+        program:SetShaderInputArray("u_aspectRatio[0]", aspectRatioArray, 0, arrayIndex)
+        program:SetShaderInputArray("u_antiAliasDistance[0]", antiAliasArray, 0, arrayIndex)
+
+        arrayIndex = 0
+
+        parent:BatchingShaderMapping2D:RenderBatch(program, camera)
     end
 
 end
