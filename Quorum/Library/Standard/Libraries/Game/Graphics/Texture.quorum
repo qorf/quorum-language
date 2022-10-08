@@ -11,6 +11,9 @@ use Libraries.Game.Graphics.TextureWrap
 use Libraries.Compute.Matrix
 use Libraries.System.File
 use Libraries.Language.Errors.Error
+use Libraries.Containers.Array
+use Libraries.Interface.Events.TextureLoadListener
+use Libraries.Interface.Events.TextureLoadEvent
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -57,6 +60,10 @@ class Texture is Disposable
     TextureWrap verticalWrap
 
     text source = undefined
+
+    boolean isLoadingAsync = false
+
+    Array<TextureLoadListener> loadListeners
 
     on create
         GameStateManager manager
@@ -199,6 +206,15 @@ class Texture is Disposable
         data:InitializeFileTextureData(file, pixelMap, format, useMipMaps)
         LoadFromTextureData(data)
 
+        TextureLoadEvent event
+        event:SetTexture(me)
+
+        integer counter = 0
+        repeat while counter < loadListeners:GetSize()
+            loadListeners:Get(counter):OnTextureLoad(event)
+            counter = counter + 1
+        end
+
         if drawable not= undefined
             number width = drawable:GetWidth()
             number height = drawable:GetHeight()
@@ -214,6 +230,8 @@ class Texture is Disposable
             if width not= 0 or height not= 0
                 drawable:SetSize(width, height)
             end
+
+            drawable:OnTextureLoad(event)
         end
     end
 
@@ -1375,5 +1393,44 @@ class Texture is Disposable
     */
     action GetSource returns text
         return source
+    end
+
+    /*
+    This action returns true if the texture is asynchronously loading.
+    While loading, the texture won't be ready for use yet. 
+    Once the texture has loaded, any registered TextureLoadListeners
+    will be triggered.
+
+    Attribute: Returns True if this texture is currently loading a file, or false otherwise.
+    */
+    action IsLoadingAsynchronously returns boolean
+        return isLoadingAsync
+    end
+
+    /*
+    This action adds a TextureLoadListener to the texture. If the texture
+    finishes asynchronously loading an image, the listener will be alerted.
+
+    Attribute: Parameter listener A TextureLoadListener to be alerted when this texture finishes asynchronous loading.
+    */
+    action AddTextureLoadListener(TextureLoadListener listener)
+        loadListeners:Add(listener)
+    end
+
+    /*
+    This action removes a TextureLoadListener from the texture. If the listener
+    was not previously added to this texture, this does nothing.
+
+    Attribute: Parameter listener A TextureLoadListener to be removed from the Texture. 
+    */
+    action RemoveTextureLoadListener(TextureLoadListener listener)
+        loadListeners:Remove(listener)
+    end
+
+    /*
+    This action removes all TextureLoadListeners that have been added to the texture.
+    */
+    action EmptyTextureLoadListeners
+        loadListeners:Empty()
     end
 end
