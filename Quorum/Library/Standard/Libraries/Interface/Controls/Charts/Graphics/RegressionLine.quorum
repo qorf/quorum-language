@@ -151,22 +151,17 @@ class RegressionLine is ChartDrawable, LinePath
         number yMin = GetMappedBottom() + verticalMapPadding
         number yMax = GetMappedTop() - verticalMapPadding
 
-        output "Starting with slope = " + slope + ", constant = " + constantValue
-
         // Starting position for line
         if not IsHorizontalOrientation()
             number yVal = yMin
             number xVal = CalculateDependentValue(yVal)
             if (xVal < xMin)
-                output "A"
                 yVal = CalculateIndependentValue(xMin)
                 xVal = CalculateDependentValue(yVal)
             elseif xVal > xMax
-                output "B"
                 yVal = CalculateIndependentValue(xMax)
                 xVal = CalculateDependentValue(yVal)
             end
-            output "Setting point 1 to " + xVal + ", " + yVal
             SetPoint1(xVal, yVal)
         else
             number xVal = xMin
@@ -186,16 +181,13 @@ class RegressionLine is ChartDrawable, LinePath
             number yVal = yMax
             number xVal = CalculateDependentValue(yVal)
             if (xVal > xMax)
-                output "C"
                 yVal = CalculateIndependentValue(xMax)
                 xVal = CalculateDependentValue(yVal)
             end
             if (xVal < xMin)
-                output "D"
                 yVal = CalculateIndependentValue(xMin)
                 xVal = CalculateDependentValue(yVal)
             end
-            output "Setting point 2 to " + xVal + ", " + yVal
             SetPoint2(xVal, yVal)
         else
             number xVal = xMax
@@ -535,7 +527,6 @@ class RegressionLine is ChartDrawable, LinePath
                 Vector2 point2
                 point2:Set(GetMidpointX(), GetMidpointY())
     
-                output "Dragging, line through " + point1:GetX() + ", " + point1:GetY() + " and " + point2:GetX() + ", " + point2:GetY()
                 SetLineThroughMappedPoints(point1, point2)
     
             // Dragging the mid point
@@ -781,7 +772,6 @@ class RegressionLine is ChartDrawable, LinePath
 
         slope = (point2:GetY() - point1:GetY()) / (point2:GetX() - point1:GetX())
         constantValue = point1:GetY() - slope * point1:GetX()
-        output "Set slope to " + slope + ", constant to " + constantValue
 
         RefreshPoints()
         GetParentChart():RequestLayout()

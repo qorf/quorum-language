@@ -21,6 +21,7 @@ use Libraries.System.FileWriter
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Web.Page.WebPage
 use Libraries.Web.Page.MetaData
+use Libraries.Compute.Vector2
 
 class ChartWriter
     private number axisPointX = 105
@@ -1613,10 +1614,13 @@ class ChartWriter
             RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
                 Line svgElementRegLine
-                svgElementRegLine:SetFirstPoint(line:GetX1()+line:GetOffsetX(), svgHeight-(line:GetY1()+line:GetOffsetY()))
-                svgElementRegLine:SetSecondPoint(line:GetX2()+line:GetOffsetX(), svgHeight-(line:GetY2()+line:GetOffsetY()))
+                Vector2 startPoint = line:GetPixelStartPosition()
+                Vector2 endPoint = line:GetPixelEndPosition()
+
+                svgElementRegLine:SetFirstPoint(startPoint:GetX() + line:GetGlobalX(), svgHeight - (startPoint:GetY() + line:GetGlobalY()))
+                svgElementRegLine:SetSecondPoint(endPoint:GetX() + line:GetGlobalX(), svgHeight - (endPoint:GetY() + line:GetGlobalY()))
                 svgElementRegLine:SetStroke(line:GetColor())
-                svgElementRegLine:SetStrokeWidth(line:GetHeight())
+                svgElementRegLine:SetStrokeWidth(line:GetLineThickness())
                 svgElementRegLine:SetTabIndex(-1)
                 svgElementRegLine:SetID(canvas:GetID() + "_" + chart:GetSeriesList():Get(i):GetHashCode() + "_regression")
                 svgElementRegLine:SetStyleClass("quorum-chart-linesegment")

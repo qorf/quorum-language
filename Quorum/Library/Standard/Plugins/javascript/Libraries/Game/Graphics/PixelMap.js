@@ -115,6 +115,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         {
             FinishLoadingAsynchronously(loadImage, file, format, useMipMaps, drawable, texture, pixelMap);
         };
+        loadImage.crossOrigin = "anonymous";
         loadImage.src = url;
     };
     

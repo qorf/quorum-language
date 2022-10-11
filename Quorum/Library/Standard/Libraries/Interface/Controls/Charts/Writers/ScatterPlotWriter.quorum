@@ -188,7 +188,7 @@ class ScatterPlotWriter is ChartWriter
 
                             Circle point
                             point:SetRadius(radius)
-                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)-radius) 
                             point:SetFill(currentPoint:GetColor())
                             point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeWidth(currentPoint:GetBorderThickness())

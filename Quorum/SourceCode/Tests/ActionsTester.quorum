@@ -152,6 +152,7 @@ class ActionsTester
         TextJunk2()
         InvalidActionName()
         AssignmentAfterReturn()
+        VoidReturnWrong()
     end
 
     action GetName returns text
@@ -1598,6 +1599,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "AssignmentAfterReturn.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action VoidReturnWrong
+        Array<File> files
+        File main
+        main:SetPath(path + "VoidReturnWrong.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
