@@ -1,0 +1,17 @@
+package Libraries.Interface.Events
+
+use Libraries.Game.Graphics.Texture
+
+class TextureLoadEvent
+
+    Texture texture = undefined
+
+    action GetTexture returns Texture
+        return texture
+    end
+
+    action SetTexture(Texture texture)
+        me:texture = texture
+    end
+
+end
