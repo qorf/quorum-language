@@ -25,27 +25,35 @@ use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 /*
     This class implements several parametric tests:
         Compare1Group is a one sample t-test. 
+        Difference between one group and a given mean
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
         Compare2IndependentGroups is a two sample unpaired t-test. 
+        Difference between two groups
         For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test
 
         Compare2IndependentGroups is a two sample equal variance unpaired t-test
+        Difference between two equal variance groups
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
 
         Compare2DependentGroups is a two sample paired t-test
+        Difference between two paired groups
         For more information: https://en.wikipedia.org/wiki/Student%27s_t-test        
 
         CompareNIndependentGroups is a one-way analysis of variance (ANOVA). 
+        Difference between several groups
         For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
 
         CompareNDependentGroups is a one-way repeated measures analysis of variance (ANOVA). 
+        Difference between several groups when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
 
-        _____________ is a one-way analysis of covariance (ANCOVA). 
+        _____________ is a one-way analysis of covariance (ANCOVA).
+        Difference between several groups while controlling for nuisance variables
         For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
 
         _____________ is a one-way multivariate analysis of variance (MANOVA). 
+        Difference between several groups on more than one dependent variable
         For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance
 
     It was partially adapted from the same model in Apache Commons, but was expanded 
@@ -65,8 +73,8 @@ use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
     CompareGroups compare
     compare:AddColumn(0)
     compare:AddColumn(1)
-  
     frame:Calculate(compare)
+
     output compare:GetFormalSummary()
 */
 class CompareGroups is StatisticalTest
@@ -245,10 +253,10 @@ class CompareGroups is StatisticalTest
                     if corrected > 1
                         corrected = 1
                     end
-                    pair:SetFormalTestName("Pairwise T-test with Bonferroni Correction")
+                    pair:SetFormalTestName("Pairwise T-test with Pooled SD and Bonferroni Correction")
                     pair:SetProbabilityValue(corrected)
                 else
-                    pair:SetFormalTestName("Pairwise T-test with no family-wise error correction")
+                    pair:SetFormalTestName("Pairwise T-test with Pooled SD and no family-wise error correction")
                     pair:SetProbabilityValue(newP)
                 end
                 pairwise:Add(pair)
@@ -402,7 +410,9 @@ class CompareGroups is StatisticalTest
             i = i + 1
         end
 
-        // Calculate pairwise t-tests with corrections?
+        // Calculate pairwise paired t-tests with Bonnferroni Correction
+        integer k = GetColumnSize()
+        number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k)) // #samples choose 2
         Array<CompareGroupsResult> pairwise
         i = 0
         repeat while i < GetColumnSize()
@@ -411,9 +421,28 @@ class CompareGroups is StatisticalTest
                 DataFrameColumn left = frame:GetColumn(GetColumn(i))
                 DataFrameColumn right = frame:GetColumn(GetColumn(j))
 
-                // Check Assumption - Normal Distribution
-                // Check normality of difference between left and right using IsNormalDistribution (Shapiro-Wilk's Test)
+                DataFrame pairFrame
+                pairFrame:AddColumn(left)
+                pairFrame:AddColumn(right)
 
+                CompareGroups compare
+                compare:AddColumn(0)
+                compare:AddColumn(1)
+                compare:Compare2DependentGroups(pairFrame)
+
+                Compare2GroupsResult pair = cast(Compare2GroupsResult, compare:GetResult())
+                // Apply bonferroni correction
+                if IsCorrectingFamilyWiseError()
+                    number newP = pair:GetProbabilityValue() * numberOfTestsPerformed
+                    if newP > 1
+                        newP = 1
+                    end
+                    pair:SetProbabilityValue(newP)
+                    pair:SetFormalTestName("Pairwise Paired T-test with Bonferroni Correction")
+                else
+                    pair:SetFormalTestName("Pairwise Paired T-test with no family-wise error correction")
+                end
+                pairwise:Add(pair)
                 j = j + 1
             end
             i = i + 1

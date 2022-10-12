@@ -12,6 +12,10 @@ use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
+use Libraries.Compute.Statistics.Reporting.CompareRanksResult
+use Libraries.Compute.Statistics.Reporting.CompareNRanksResult
+use Libraries.Compute.Statistics.Reporting.Compare2RanksResult
 
 /*
     This class implements several non-parametric tests: 
@@ -31,7 +35,7 @@ use Libraries.Containers.Array
         Difference between three or more rank ordered repeated measures groups without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Friedman_test
 
-    It was partially adapted from the same model in Apache Commons, but was expanded 
+    It was partially adapted from a similar model in Apache Commons, but was expanded 
     upon to simplify the library and add a variety of helper actions and calculations that were missing.
     More information about this class can be found on then documentation pages MannWhitneyUTest and WilcoxonSignedRankTest:
     https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
@@ -46,43 +50,40 @@ use Libraries.Containers.Array
     frame:Load("Data/Data.csv")
 
     CompareRanks compare
-    compare:Add(0)
-    compare:Add(1)
+    compare:AddColumn(1)
+    compare:AddColumn(2)
     frame:Calculate(compare)
-    
-    output compare:GetCorrelation()
+
+    output frame:GetFormalSummary()
 */
 class CompareRanks is StatisticalTest
-    /* The distribution used to calculate the p-value from the z value for 2 samples.*/
+    /* The distribution used to calculate the p-value in 2-sample tests.*/
     NormalDistribution zdistribution
 
-    /* The distribution used to calculate the p-value from the H/Q and df values for N samples.*/
+    /* The distribution used to calculate the p-value in N-sample tests.*/
     ClassificationDistribution x2distribution
+
+    /* This stores a hash of all of the results. */
+    HashTable<text, CompareRanksResult> results        // Used to find the result by column or pair of columns.        
+    HashTable<text, CompareRanksResult> indexResults   // Used to find the result by index or pair of indices.
+
+    /* Flag if the samples are paired in a two-sample test */
+    boolean paired = false
+
+    /* Flag if repeated measures are used in a several-sample test */
+    boolean repeatedMeasures = false
+
+    /* Flag to determine if continuity correction is applied or not in 2-sample tests */
+    boolean correctContinuityError = true // For now, this is always true since we use normal approximation
+
+    /* Flag to determine if bonferroni correction is applied or not in N-sample tests */
+    boolean correctFamilyWiseError = true
 
     /* A flag to let the user know probability may be incorrect due to tied rankings. */
     boolean rankTiesWarning = false
 
     /* A flag to let the user know probability may be incorrect due to zero values. */
     boolean zeroRankWarning = false
-
-//    /* This stores a hash of all of the results. */
-//    HashTable<text, CompareGroupsResult> results        // Used to find the result by column or pair of columns.        
-//    HashTable<text, CompareGroupsResult> indexResults   // Used to find the result by index or pair of indices.
-
-    /* Flag if the samples are paired in a two-sample test */
-    boolean paired = false
-
-    /* Flag if repeated measures are used in one-way within-subjects anova */
-    boolean repeatedMeasures = false
-
-    /* Flag if calculations are to assume variances are equal or not */
-    boolean equalVariances = true
-
-    /* Flag for use of continuity correction in 2 sample tests */
-    boolean useCorrection = true
-
-    /* User determined mean to be used in one-sample or paired two-sample tests */
-    number userMean = 0
 
     Math math
 
@@ -91,13 +92,13 @@ class CompareRanks is StatisticalTest
             alert("Must include at least one column.")
         end
 
-        if GetColumnSize() < 2     
+        if GetColumnSize() <= 2     
             if paired or GetColumnSize() = 1
                 Compare2DependentRanks(frame)
             else             
                 Compare2IndependentRanks(frame)
             end
-        elseif GetColumnSize() > 2
+        else
             if repeatedMeasures
                 CompareNDependentRanks(frame)
             else
@@ -107,10 +108,24 @@ class CompareRanks is StatisticalTest
     end
 
     /* 
-        Mann-Whiteney U-Test aka Wilcoxon Rank-Sum Test is for 2 independent groups.
+        Mann-Whiteney U-Test aka Wilcoxon Rank-Sum Test is for 2 independent samples.
 
-        Null hypothesis: The population medians are equal
-        Alternative hypothesis: The population medians are not equal
+        Assumptions:
+            1. Two samples:
+                If more than two samples: Use a Kruskal-Wallis Test > CompareRanks
+              
+            2. Samples are independent:
+                If not independent: Wilcoxon Signed-Rank Test       > CompareRanks:Paired(true)
+
+            3. Samples are skewed, or not normally distributed:
+                To test this: Use a Shapiro-Wilk test               > 
+                If not skewed: Use a Two-Sample T-Test              > CompareGroups
+
+            4. Samples follow a similarly-shaped distribution
+                To test this: Use a Kolmogorov-Smirnov Test         >
+
+        Null hypothesis: The two populations are equal
+        Alternative hypothesis: The two populations are not equal
 
         Attribute: Example
     
@@ -127,7 +142,7 @@ class CompareRanks is StatisticalTest
         output compare:GetSummary()
     */
     action Compare2IndependentRanks(DataFrame frame)
-        if GetColumnSize() < 2
+        if GetColumnSize() not= 2
             RunTest(frame)
         end
 
@@ -136,6 +151,7 @@ class CompareRanks is StatisticalTest
         group:SetHeader("group")
         NumberColumn data
         data:SetHeader("data")
+        Array<DataFrameColumn> samples
         i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
@@ -146,6 +162,7 @@ class CompareRanks is StatisticalTest
             if not column:IsNumberColumn() and not column:IsIntegerColumn()
                 alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
             end
+            samples:Add(column)
             j = 0
             repeat while j < column:GetSize()
                 group:Add(column:GetHeader())
@@ -165,7 +182,6 @@ class CompareRanks is StatisticalTest
         transform:AddColumn(1)
         DataFrame ranked = sorted:Transform(transform)
         ranked:AddColumn(0, sorted:GetColumn(0))
-        output ranked:ToText()
 
         // Add up the different ranks for each group/sample.
         HashTable<text, number> sums
@@ -196,7 +212,7 @@ class CompareRanks is StatisticalTest
         // Calculate the W statistic, the smaller of the two u values
         number u1 = sum1 - (n1 * (n1 + 1) / 2.0)
         number u2 = sum2 - (n2 * (n2 + 1) / 2.0)
-        number W = math:MinimumOf(u1, u2)
+        number U = math:MinimumOf(u1, u2)
         
         // Calculate normal approximation and corrections
         // See: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Normal_approximation_and_tie_correction
@@ -209,7 +225,7 @@ class CompareRanks is StatisticalTest
         end
         number sdSum = math:SquareRoot(varSum)
         number correction = 0
-        if useCorrection
+        if correctContinuityError
             correction = 0.5 // The continuity correction
         end
         number z = (maxSum - meanSum - correction) / sdSum
@@ -217,18 +233,50 @@ class CompareRanks is StatisticalTest
         // Calculate two-tailed probability value from normal distribution
         number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
 
-        output "sum1: "+sum1
-        output "sum2: "+sum2
-        output "W: "+W
-        output "z: "+z
-        output "p: "+p
+        // Calculate effect size
+        number r = z / math:SquareRoot(N) 
+
+        // Save result
+        Compare2RanksResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetCriticalValue(U)
+        result:SetTestStatistic(U)
+        result:SetProbabilityValue(p)
+        result:SetEffectSize(r)
+        result:SetEffectSizeName("Rosenthal Correlation Coefficient")
+        result:SetFormalTestName("Wilcoxon Rank-Sum Test")
+        result:SetSamples(samples)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        results:Add(resultKey, result)
     end
 
     /* 
         Wilcoxon Signed-Ranks Test for 2 dependent (paired) groups.
         This can also be used on 1 group.
 
-        Null hypothesis: The median difference is zero 
+        Assumptions:
+            1. One or two samples:
+                If more than two samples: Use a Friedman Test       > CompareRanks:RepeatedMeasures(true)
+              
+            2. Samples are dependent:
+                If not dependent: Use a Mann-Whitney U-Test         > CompareRanks:Paired(false)
+
+            3. Samples are skewed, or not normally distributed:
+                To test this: Use a Shapiro-Wilk test               > 
+                If not skewed: Use a Paired Two-Sample T-Test       > CompareGroups:Paired(true)
+
+            4. Samples follow a similarly-shaped distribution
+                To test this: Use a Kolmogorov-Smirnov Test         >
+
+
+        Null hypothesis: The median difference between the two groups is zero.  
         Alternative hypothesis: The median difference is negative
 
         Attribute: Example
@@ -250,13 +298,38 @@ class CompareRanks is StatisticalTest
         if GetColumnSize() < 1
             alert("Compare2DependentRanks must have at least one column.")
         end
+        if GetColumnSize() > 2
+            RunTest(frame)
+        end
 
+        Array<DataFrameColumn> samples
         NumberColumn difference 
         if GetColumnSize() = 1
-            difference = frame:GetColumn(GetColumn(0)):ConvertToNumberColumn()
+            DataFrameColumn column = frame:GetColumn(GetColumn(0))
+            if column:IsUndefined()
+                alert("Column is undefined.")
+            end
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+            samples:Add(column)
+            difference = column:ConvertToNumberColumn()
         else
-            NumberColumn left = frame:GetColumn(GetColumn(0)):ConvertToNumberColumn()
-            NumberColumn right = frame:GetColumn(GetColumn(1)):ConvertToNumberColumn()
+            DataFrameColumn column1 = frame:GetColumn(GetColumn(0))
+            DataFrameColumn column2 = frame:GetColumn(GetColumn(1))
+            if column1:IsUndefined() or column2:IsUndefined()
+                alert("Column is undefined.")
+            end
+            if not column1:IsNumberColumn() and not column1:IsIntegerColumn()
+                alert("Columns must be numerical. " + column1:GetHeader() + " is not a numerical column.")
+            end
+            if not column2:IsNumberColumn() and not column2:IsIntegerColumn()
+                alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
+            end
+            samples:Add(column1)
+            samples:Add(column2)
+            NumberColumn left = column1:ConvertToNumberColumn()
+            NumberColumn right = column2:ConvertToNumberColumn()
             if left:GetSize() not= right:GetSize()
                 alert("Columns must be the same size.")
             end
@@ -278,6 +351,8 @@ class CompareRanks is StatisticalTest
                     absoluteDifference:Add(value)
                 end
                 noZerosDifference:Add(value)
+            else
+                zeroRankWarning = true
             end
             i = i + 1
         end
@@ -327,7 +402,7 @@ class CompareRanks is StatisticalTest
         end
         number sdW = math:SquareRoot(varW)
         number correction = 0
-        if useCorrection
+        if correctContinuityError
             correction = 0.5 // The continuity correction
         end
         number z = (math:AbsoluteValue(W - meanW) - correction) / sdW
@@ -335,19 +410,51 @@ class CompareRanks is StatisticalTest
         // Calculate two-tailed probability value from normal distribution
         number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
 
-        output "sumPos: "+sumPos
-        output "sumNeg: "+sumNeg
-        output "W: "+W
-        output "z: "+z
-        output "p: "+p
+        // Calculate effect size
+        number r = z / math:SquareRoot(n)
+
+        // Save result
+        Compare2RanksResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetCriticalValue(z)
+        result:SetTestStatistic(z)
+        result:SetProbabilityValue(p)
+        result:SetEffectSize(r)
+        result:SetEffectSizeName("Rosenthal Correlation Coefficient")
+        result:SetFormalTestName("Wilcoxon Signed-Rank Test")
+        result:IndependentSamples(false)
+        result:SetSamples(samples)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        results:Add(resultKey, result)
     end
 
     /* 
-        Kruskal-Wallis ranked one-way analysis of variance (ANOVA) for 3 or more independent groups.
+        Kruskal-Wallis H-Test for 3 or more independent groups.
         This can be used on 2 independent groups, although the better option would be the Mann-Whiteney U Test
 
-        Null hypothesis: The population medians are equal
-        Alternative hypothesis: The population medians are not equal
+        Assumptions:
+            1. Two or more samples:
+                If two samples: Best to use a Mann-Whiteney U-Test  > CompareRanks:Compare2IndependentRanks
+              
+            2. Samples are independent:
+                If not independent: Use a Friedman Test             > CompareRanks:CompareNDependentRanks
+
+            3. Samples are skewed, or not normally distributed:
+                To test this: Use a Shapiro-Wilk test               > 
+                If not skewed: Use a One-Way Anova Test             > CompareGroups:CompareNIndependentGroups
+
+            4. Samples follow a similarly-shaped distribution
+                To test this: Use a Kolmogorov-Smirnov Test         >
+
+        Null hypothesis: The population medians are equal across all samples.
+        Alternative hypothesis: At least one population median is not equal to the others.
 
         Attribute: Example
     
@@ -369,6 +476,7 @@ class CompareRanks is StatisticalTest
             alert("CompareNIndependentRanks must have at least two columns.")
         end
 
+        Array<DataFrameColumn> samples
         // Sort the data for all groups/samples into ascending order in one combined set.
         TextColumn group
         group:SetHeader("group")
@@ -384,6 +492,7 @@ class CompareRanks is StatisticalTest
             if not column:IsNumberColumn() and not column:IsIntegerColumn()
                 alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
             end
+            samples:Add(column)
             j = 0
             repeat while j < column:GetSize()
                 group:Add(column:GetHeader())
@@ -420,7 +529,7 @@ class CompareRanks is StatisticalTest
 
         // Calculate the H statistic:
         number n = groups:GetSize() // Overall size (all sample sizes)
-        number c = GetColumnSize()  // Number of samples
+        integer k = GetColumnSize()  // Number of samples
         number sumOfRanks = 0
         i = 0
         repeat while i < GetColumnSize()
@@ -441,21 +550,94 @@ class CompareRanks is StatisticalTest
         end
 
         // Calculate probability value from chi-squared distribution
-        number df = c-1
+        number df = k-1
         x2distribution:Setup(df)
         number p = 1.0 - x2distribution:CumulativeDistribution(h)
 
-        output "h: "+h
-        output "df: "+df
-        output "p: "+p
+        // Calculate effect size
+        number epsilon_sqr = h - (n + 1) / (n * n - 1)
+
+        // Calculate pairwise wilcoxon sum-rank (Mann-Whiteney) tests with Bonnferroni Correction
+        number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+        Array<CompareRanksResult> pairwise
+        i = 0
+        repeat while i < GetColumnSize()
+            j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                DataFrame newFrame
+                newFrame:AddColumn(left)
+                newFrame:AddColumn(right)
+
+                CompareRanks compare
+                compare:AddColumn(0)
+                compare:AddColumn(1)
+                compare:Compare2IndependentRanks(newFrame)
+                compare:GetResult():SetSignificanceLevel(GetSignificanceLevel())
+
+                Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
+                // Apply bonferroni correction
+                if correctFamilyWiseError
+                    number newP = pair:GetProbabilityValue() * numberOfTestsPerformed
+                    if newP > 1
+                        newP = 1
+                    end
+                    pair:SetProbabilityValue(newP)
+                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
+                else
+                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+                end
+                pairwise:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        // Save result
+        CompareNRanksResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetCriticalValue(h)
+        result:SetTestStatistic(h)
+        result:SetDegreesOfFreedom(df)
+        result:SetProbabilityValue(p)
+        result:SetEffectSize(epsilon_sqr)
+        result:SetEffectSizeName("Epsilon-Squared")
+        result:SetFormalTestName("Kruskal-Wallis Test")
+        result:SetSamples(samples)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        result:SetPairwiseResults(pairwise)
+        results:Add(resultKey, result)
     end
 
     /* 
-        Friedman rank sum one-way repeated measures analysis of variance (ANOVA) for 3 or more independent groups.
+        Friedman Test for 3 or more dependent groups.
         This can be used on 2 dependent groups, although the better option would be the Wilcoxon Signed-Ranks Test
        
-        Null hypothesis: the means of each of the groups are equal
-        Alternative hypothesis: At least one group mean is not equal to the others.
+        Assumptions:
+            1. Two or more related samples:
+                If two samples: Best to use a Wilcoxon Signed-Ranks Test    > CompareRanks:Compare2DependentRanks
+              
+            2. Samples are dependent:
+                If not dependent: Use a Kruskal-Wallis H-Test               > CompareRanks:CompareNIndependentRanks
+
+            3. Samples are skewed, or not normally distributed:
+                To test this: Use a Shapiro-Wilk test                       > 
+                If not skewed: Use a One-Way Repeated-Measures Anova Test   > CompareGroups:CompareNDependentGroups
+
+            4. Samples follow a similarly-shaped distribution
+                To test this: Use a Kolmogorov-Smirnov Test                 >
+
+        Null hypothesis: The population medians are equal across all samples.
+        Alternative hypothesis: At least one population median is not equal to the others.
 
         Attribute: Example
     
@@ -482,6 +664,7 @@ class CompareRanks is StatisticalTest
         // Assign ranks, give tied values the average rank.
         ConvertColumnsToRanksTransform transform
 
+        Array<DataFrameColumn> samples
         // Ensure the columns are all the same size
         // Make rotated dataframe at the same time
         DataFrame rotated
@@ -495,6 +678,7 @@ class CompareRanks is StatisticalTest
             if not column:IsNumberColumn() and not column:IsIntegerColumn()
                 alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
             end
+            samples:Add(column)
             j = 0
             repeat while j < column:GetSize()
                 if i = 0
@@ -513,7 +697,6 @@ class CompareRanks is StatisticalTest
 
         // Rank the data for each subject (each column in rotated frame)
         DataFrame ranked = rotated:Transform(transform)
-        output ranked:ToText()
        
         // Number of subjects
         integer n = ranked:GetColumns():GetSize()
@@ -567,9 +750,68 @@ class CompareRanks is StatisticalTest
         x2distribution:Setup(df)
         number p = 1.0 - x2distribution:CumulativeDistribution(q)
 
-        output "q: "+q
-        output "df: "+df
-        output "p: "+p
+        // Calculate effect size
+        number kendalls_w = q / (n * (k -1))
+
+        // Calculate pairwise wilcoxon signed-rank tests with Bonnferroni Correction
+        number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+        Array<CompareRanksResult> pairwise
+        i = 0
+        repeat while i < GetColumnSize()
+            j = i + 1
+            repeat while j < GetColumnSize()
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                DataFrame pairFrame
+                pairFrame:AddColumn(left)
+                pairFrame:AddColumn(right)
+
+                CompareRanks compare
+                compare:AddColumn(0)
+                compare:AddColumn(1)
+                compare:Compare2DependentRanks(pairFrame)
+
+                Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
+                // Apply bonferroni correction
+                if correctFamilyWiseError
+                    number newP = pair:GetProbabilityValue() * numberOfTestsPerformed
+                    if newP > 1
+                        newP = 1
+                    end
+                    pair:SetProbabilityValue(newP)
+                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
+                else
+                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+                end
+                pairwise:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        // Save result
+        CompareNRanksResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetCriticalValue(q)
+        result:SetTestStatistic(q)
+        result:SetDegreesOfFreedom(df)
+        result:SetProbabilityValue(p)
+        result:SetEffectSize(kendalls_w)
+        result:SetEffectSizeName("Kendall's W")
+        result:SetFormalTestName("Friedman Test")
+        result:IndependentSamples(false)
+        result:SetSamples(samples)
+        text factor = ""
+        text resultKey = ""
+        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
+            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
+            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+        end
+        result:SetFactor(factor)
+        result:SetPairwiseResults(pairwise)
+        results:Add(resultKey, result)
     end
 
     /*
@@ -588,12 +830,86 @@ class CompareRanks is StatisticalTest
         repeat while i:HasNext()
             result = i:Next()
             sum = sum + (result * result * result - result)
+            if result > 1
+                rankTiesWarning = true
+            end
         end
         return sum
     end
 
+    /* Used in 2-sample tests */
+    action Paired(boolean paired)
+        me:paired = paired
+    end
+
+    /* Used in 2-sample tests */
+    action CorrectContinuityError(boolean correctContinuityError)
+        me:correctContinuityError = correctContinuityError
+    end
+
+    /* Used in N-sample tests */
+    action RepeatedMeasures(boolean repeatedMeasures)
+        me:repeatedMeasures = repeatedMeasures
+    end
+
+    /* Used in N-sample tests */
+    action CorrectFamilyWiseError(boolean correctFamilyWiseError)
+        me:correctFamilyWiseError = correctFamilyWiseError
+    end
+
     /*
-        This action summarizes the results and lists them informally.
+        This returns a result if only one exists.
+
+        Attribute: Returns the result
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareRanks
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+
+        CompareRanks compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:Calculate(frame)
+        
+        CompareRanksResult result = compare:GetResult()
+    */
+    action GetResult returns CompareRanksResult
+        if results:GetSize() = 1
+            return results:GetValueIterator():Next()
+        else
+            alert("There is more than one test result, use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        This returns an array of the CompareRanks results
+
+        Attribute: Returns the CompareRanksResults 
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareRanks
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareRanks compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        frame:Calculate(compare)
+        
+        Array<CompareRanksResult> results = compare:GetResults()
+    */
+    action GetResults returns Array<CompareRanksResult>
+        return results:CopyToValueArray()
+    end
+
+    /*
+        This action summarizes the results and lists them informally
 
         Attribute: Example
 
@@ -612,16 +928,16 @@ class CompareRanks is StatisticalTest
     */
     action GetSummary returns text
         text summary = ""
-//        text lf = summary:GetLineFeed()
-//        Iterator<CorrelateGroupsResult> i = results:GetValueIterator()
-//        CorrelateGroupsResult result 
-//        repeat while i:HasNext()
-//            result = i:Next()
-//
-//            summary = summary + lf
-//            summary = summary + result:GetSummary()
-//            summary = summary + lf
-//        end
+        text lf = summary:GetLineFeed()
+        Iterator<CompareRanksResult> i = results:GetValueIterator()
+        CompareRanksResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+        end
 
         return summary
     end
@@ -648,19 +964,19 @@ class CompareRanks is StatisticalTest
         output correlate:GetFormalSummary()
     */
     action GetFormalSummary returns text
-//        StatisticsFormatting format = GetStatisticalFormatting()
+        StatisticsFormatting format = GetStatisticalFormatting()
         text summary = ""
-//        text lf = summary:GetLineFeed()
-//        Iterator<CorrelateGroupsResult> i = results:GetValueIterator()
-//        CorrelateGroupsResult result 
-//        repeat while i:HasNext()
-//            result = i:Next()
-//            result:SetFormat(format)
-//
-//            summary = summary + lf
-//            summary = summary + result:GetFormalSummary()
-//            summary = summary + lf
-//        end
+        text lf = summary:GetLineFeed()
+        Iterator<CompareRanksResult> i = results:GetValueIterator()
+        CompareRanksResult result 
+        repeat while i:HasNext()
+            result = i:Next()
+            result:SetFormat(format)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+        end
 
         return summary
     end
