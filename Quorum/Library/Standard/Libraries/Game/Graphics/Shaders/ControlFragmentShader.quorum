@@ -55,6 +55,7 @@ void main()
     float aspectRatio = u_aspectRatio[v_arrayIndex];
     float antiAliasDistance = u_antiAliasDistance[v_arrayIndex];
 
+    vec4 borderColor = v_borderColor;
     bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0;
 
     vec2 point = (v_texCoords.xy - 0.5) * 2.0;
@@ -75,7 +76,7 @@ void main()
         vec2 fillDimensions = vec2(dimensions.x - borderThickness.x - borderThickness.z, dimensions.y - borderThickness.y - borderThickness.w);
         float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, rounding);
     
-        resultColor = mix(v_borderColor * texture(u_texture, v_texCoords), vec4(v_borderColor.rgb, 0.0), smoothstep(0.0, antiAliasDistance, distance));
+        resultColor = mix(borderColor * texture(u_texture, v_texCoords), vec4(borderColor.rgb, 0.0), smoothstep(0.0, antiAliasDistance, distance));
         resultColor = mix(v_color * texture(u_texture, v_texCoords), resultColor, smoothstep(0.0, antiAliasDistance, fillDistance));
     }
     else

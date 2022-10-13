@@ -26,6 +26,8 @@ class VertexAttributes
 
     BitwiseOperations bits
 
+    OpenGLConstants constants
+
     action SetAttributes(Array<VertexAttribute> array)
         if array = undefined or array:GetSize() = 0
             alert("SetAttributes requires an array with at least one element.")
@@ -119,7 +121,7 @@ class VertexAttributes
         repeat attributes:GetSize() times
             VertexAttribute attribute = attributes:Get(index)
             attribute:offset = count
-            if attribute:usage = COLOR_PACKED
+            if attribute:type = constants:GL_UNSIGNED_BYTE
                 count = count + 4
             else
                 count = count + 4 * attribute:componentCount

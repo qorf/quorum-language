@@ -96,26 +96,26 @@ class DrawableShape
         // 1st vertex: bottom-left corner
         basePositions:Set(0, 0)
         basePositions:Set(1, 0)
-        vertices:Set(U_OFFSET, textureLeft)
-        vertices:Set(V_OFFSET, textureBottom)
+        SetVertexData(U_OFFSET, textureLeft)
+        SetVertexData(V_OFFSET, textureBottom)
 
         // 2nd vertex: top-left corner
         basePositions:Set(2, 0)
         basePositions:Set(3, height)
-        vertices:Set(U_OFFSET + vertexSize, textureLeft)
-        vertices:Set(V_OFFSET + vertexSize, textureTop)
+        SetVertexData(U_OFFSET + vertexSize, textureLeft)
+        SetVertexData(V_OFFSET + vertexSize, textureTop)
 
         // 3rd vertex: top-right corner
         basePositions:Set(4, width)
         basePositions:Set(5, height)
-        vertices:Set(U_OFFSET + vertexSize * 2, textureRight)
-        vertices:Set(V_OFFSET + vertexSize * 2, textureTop)
+        SetVertexData(U_OFFSET + vertexSize * 2, textureRight)
+        SetVertexData(V_OFFSET + vertexSize * 2, textureTop)
 
         // 4th vertex: bottom-right corner
         basePositions:Set(6, width)
         basePositions:Set(7, 0)
-        vertices:Set(U_OFFSET + vertexSize * 3, textureRight)
-        vertices:Set(V_OFFSET + vertexSize * 3, textureBottom)
+        SetVertexData(U_OFFSET + vertexSize * 3, textureRight)
+        SetVertexData(V_OFFSET + vertexSize * 3, textureBottom)
 
         mesh = undefined
         baseWidth = width
@@ -276,12 +276,12 @@ class DrawableShape
             // This is a value between 0 and 1, indicating how far to the left or right this point is within the shape.
             number relativeHorizontal = (basePositions:Get(i) - minX) / rangeX
             number resultX = left + relativeHorizontal * textureRangeX
-            vertices:Set(vertexIndex, resultX)
+            SetVertexData(vertexIndex, resultX)
 
             // This is a value between 0 and 1, indicating where this point is between the top and the bottom of the shape.
             number relativeVertical = (basePositions:Get(i + 1) - minY) / rangeY
             number resultY = bottom + relativeVertical * textureRangeY
-            vertices:Set(vertexIndex + 1, resultY)
+            SetVertexData(vertexIndex + 1, resultY)
 
             i = i + 2
             vertexIndex = vertexIndex + vertexSize
@@ -369,7 +369,7 @@ class DrawableShape
         repeat while i < vertices:GetSize()
             if vertices:Get(i) not= colorCode
                 valuesChanged = true
-                vertices:Set(i, colorCode)
+                SetVertexData(i, colorCode)
             end
             i = i + vertexSize
         end
@@ -401,28 +401,28 @@ class DrawableShape
         number colorCode = group:GetBottomLeft():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
-            vertices:Set(index, colorCode)
+            SetVertexData(index, colorCode)
         end
 
         index = index + vertexSize
         colorCode = group:GetTopLeft():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
-            vertices:Set(index, colorCode)
+            SetVertexData(index, colorCode)
         end
 
         index = index + vertexSize
         colorCode = group:GetTopRight():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
-            vertices:Set(index, colorCode)
+            SetVertexData(index, colorCode)
         end
 
         index = index + vertexSize
         colorCode = group:GetBottomRight():EncodeColorAsNumber()
         if vertices:Get(index) not= colorCode
             valuesChanged = true
-            vertices:Set(index, colorCode)
+            SetVertexData(index, colorCode)
         end
 
         if valuesChanged and needsUpdate = false
@@ -445,7 +445,7 @@ class DrawableShape
 
             if vertices:Get(index) not= colorCode
                 valuesChanged = true
-                vertices:Set(index, colorCode)
+                SetVertexData(index, colorCode)
             end
 
             i = i + 1
@@ -636,9 +636,9 @@ class DrawableShape
             integer baseIndex = 0
 
             repeat while i < vertices:GetSize()
-                vertices:Set(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
-                vertices:Set(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
-                vertices:Set(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
+                SetVertexData(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
+                SetVertexData(i + Z_OFFSET, negatedZ)
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
@@ -669,9 +669,9 @@ class DrawableShape
                     localY = vector:GetY()
                 end
 
-                vertices:Set(i + X_OFFSET, localX + worldOriginX)
-                vertices:Set(i + Y_OFFSET, localY + worldOriginY)
-                vertices:Set(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + X_OFFSET, localX + worldOriginX)
+                SetVertexData(i + Y_OFFSET, localY + worldOriginY)
+                SetVertexData(i + Z_OFFSET, negatedZ)
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
@@ -786,7 +786,7 @@ class DrawableShape
     action SetDataForAllVertices(integer offset, number value)
         integer i = offset
         repeat while i < vertices:GetSize()
-            vertices:Set(i, value)
+            SetVertexData(i, value)
             i = i + vertexSize
         end
     end
@@ -830,7 +830,7 @@ class DrawableShape
         integer sourceCounter = 0
         integer resultCounter = 0
         Number32BitArray result
-        result:SetSize(newSize * GetIndexCount())
+        result:SetSize(newSize * GetVertexCount())
         repeat while sourceCounter < vertices:GetSize()
             integer i = 0
             repeat while i < copyAmount

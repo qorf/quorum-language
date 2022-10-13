@@ -16,7 +16,7 @@ class ControlVertexShader is Shader
 in vec4 " + attributes:COLOR + ";
 in vec2 " + attributes:TEXTURE_COORDINATES + "0;
 in vec4 a_borderColor;
-in int a_arrayIndex;
+in float a_arrayIndex;
 uniform mat4 u_projTrans;
 out vec4 v_color;
 out vec4 v_borderColor;
@@ -29,8 +29,13 @@ void main()
     v_color.a = v_color.a * (255.0/254.0);
     v_borderColor = a_borderColor;
     v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
-    v_arrayIndex = a_arrayIndex;
+    v_arrayIndex = int(a_arrayIndex);
     gl_Position =  u_projTrans * " + attributes:POSITION + ";
+
+//    if (v_arrayIndex == 0)
+//        gl_Position.y += 0.25;
+//    else if (v_arrayIndex > 2)
+//        gl_Position.y += 0.75;
 }"
 )
     end

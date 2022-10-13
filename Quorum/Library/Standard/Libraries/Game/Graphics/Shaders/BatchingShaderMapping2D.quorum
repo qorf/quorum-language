@@ -72,7 +72,7 @@ class BatchingShaderMapping2D is ShaderMapping
     This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
     */
     action RenderBatch(ShaderProgram program, Camera camera)
-        program:Draw(mesh, camera, 0, vertexOffset / 4)
+        program:Draw(mesh, camera, 0, indexCount)
 
         vertexOffset = 0
         indexCount = 0
