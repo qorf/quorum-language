@@ -3,6 +3,9 @@ package Libraries.Game.Graphics
 use Libraries.Language.Errors.Error
 use Libraries.Compute.Math
 use Libraries.Game.Disposable
+use Libraries.Containers.Array
+use Libraries.Interface.Events.TextureLoadListener
+use Libraries.Interface.Events.TextureLoadEvent
 
 /*
 The TextureRegion class is made up of two features: a Texture, and a rectangular
@@ -15,7 +18,7 @@ system. A coordinate of (0,0) is the very botom left corner of the screen.
 Increasing the first value will make the texture move to the right.
 Increasing the second value will make the texture move up the screen.
 */
-class TextureRegion is Disposable
+class TextureRegion is Disposable, TextureLoadListener
     
     Texture texture = undefined
 
@@ -30,6 +33,8 @@ class TextureRegion is Disposable
     integer regionWidth = 0
     integer regionHeight = 0
     Math math
+
+    Array<TextureLoadListener> loadListeners
 
     /*
     This action loads an entire texture into the TextureRegion.
@@ -378,4 +383,38 @@ class TextureRegion is Disposable
         end
     end
 
+    /*
+    This action adds a TextureLoadListener to the texture. If the texture
+    finishes asynchronously loading an image, the listener will be alerted.
+
+    Attribute: Parameter listener A TextureLoadListener to be alerted when this texture finishes asynchronous loading.
+    */
+    action AddTextureLoadListener(TextureLoadListener listener)
+        loadListeners:Add(listener)
+    end
+
+    /*
+    This action removes a TextureLoadListener from the texture. If the listener
+    was not previously added to this texture, this does nothing.
+
+    Attribute: Parameter listener A TextureLoadListener to be removed from the Texture. 
+    */
+    action RemoveTextureLoadListener(TextureLoadListener listener)
+        loadListeners:Remove(listener)
+    end
+
+    /*
+    This action removes all TextureLoadListeners that have been added to the texture.
+    */
+    action EmptyTextureLoadListeners
+        loadListeners:Empty()
+    end
+
+    action OnTextureLoad(TextureLoadEvent event)
+        integer counter = 0
+        repeat while counter < loadListeners:GetSize()
+            loadListeners:Get(counter):OnTextureLoad(event)
+            counter = counter + 1
+        end
+    end
 end
