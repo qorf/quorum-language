@@ -34,4 +34,27 @@ shared class NumberUtilities
     */
     system action EncodeIntegerAsNumber(integer target) returns number
 
+    /*
+    This action takes 4 ordered number inputs between 0.0 and 1.0 and compresses
+    them into a single number that can be passed into the shader system as an
+    input for a 4-dimensional vector (in GLSL, a "vec4" variable). This action
+    doesn't check the incoming values, and if they don't fall within the allowed
+    range, the result will be abnormal. Users should make sure they only pass values
+    between 0.0 and 1.0 into this action.
+
+    Attribute: Parameter x The first value to be stored in the compressed vector.
+    Attribute: Parameter y The second value to be stored in the compressed vector.
+    Attribute: Parameter z The third value to be stored in the compressed vector.
+    Attribute: Parameter w The fourth value to be stored in the compressed vector.
+    */
+    action PackNormalizedVector4(number x, number y, number z, number w) returns number
+        integer a = ops:ShiftLeft(cast(integer, w * 255), 24)
+        integer b = ops:ShiftLeft(cast(integer, z * 255), 16)
+        integer g = ops:ShiftLeft(cast(integer, y * 255), 8)
+        integer r = cast(integer, x * 255)
+
+        integer result = ops:Or(ops:Or(a, b), ops:Or(g, r))
+
+        return EncodeIntegerAsNumber(result)
+    end
 end

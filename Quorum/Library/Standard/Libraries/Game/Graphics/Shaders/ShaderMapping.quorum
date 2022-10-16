@@ -4,6 +4,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DrawableShape
 
 class ShaderMapping
 
@@ -11,12 +12,22 @@ class ShaderMapping
 
     blueprint action End(ShaderProgram program)
 
+    action GetVertexSize returns integer
+        // The default vertex size for a 2D shader.
+        // TO-DO: Figure out what this needs to be for 3D (that problem gets more complicated due to optional components)
+        return 6
+    end
+
     action MapInputs(ShaderProgram program, Renderable renderable)
         alert("Error while trying to render a renderable with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 3D renderables.")
     end
 
     action MapInputs(ShaderProgram program, Drawable drawable)
         alert("Error while trying to render the drawable " + drawable:GetName() + " with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 2D drawables.")
+    end
+
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        // This action does nothing by default, but can overridden.
     end
 
     action SupportsBatching returns boolean

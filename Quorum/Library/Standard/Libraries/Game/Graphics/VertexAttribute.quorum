@@ -223,6 +223,23 @@ class VertexAttribute
     end
 
     /*
+    This helper action produces a new VertexAttribute that describes a "packed"
+    Vector4 vertex attribute. This vertex value can be described as a single
+    number produced by the NumberUtilities' "PackNormalizedVector4" action.
+    In a shader, this represents a Vector4 whose values are all between 0 and 1.
+    This is functionally the same as an attribute produced by the
+    CustomColorAttribute action.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomNormalizedVector4Attribute(text alias) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, 4, constants:GL_UNSIGNED_BYTE, true, alias)
+        return temp
+    end
+
+    /*
     This action determines if the given object is a VertexAttribute with the
     same usage, component count, alias, and unit values as this VertexAttribute.
     */

@@ -16,12 +16,18 @@ class ControlVertexShader is Shader
 in vec4 " + attributes:COLOR + ";
 in vec2 " + attributes:TEXTURE_COORDINATES + "0;
 in vec4 a_borderColor;
-in float a_arrayIndex;
+in vec4 a_rounding;
+in vec4 a_borderThickness;
+in float a_aspectRatio;
+in float a_antiAlias;
 uniform mat4 u_projTrans;
 out vec4 v_color;
 out vec4 v_borderColor;
 out vec2 v_texCoords;
-out int v_arrayIndex;
+out vec4 v_rounding;
+out vec4 v_borderThickness;
+out float v_aspectRatio;
+out float v_antiAlias;
 
 void main()
 {
@@ -29,15 +35,19 @@ void main()
     v_color.a = v_color.a * (255.0/254.0);
     v_borderColor = a_borderColor;
     v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
-    v_arrayIndex = int(a_arrayIndex);
+    v_rounding = a_rounding;
+    v_borderThickness = a_borderThickness;
+    v_aspectRatio = a_aspectRatio;
+    v_antiAlias = a_antiAlias;
     gl_Position =  u_projTrans * " + attributes:POSITION + ";
-
-//    if (v_arrayIndex == 0)
-//        gl_Position.y += 0.25;
-//    else if (v_arrayIndex > 2)
-//        gl_Position.y += 0.75;
 }"
 )
     end
 
 end
+/*
+VertexAttribute roundingAttribute = undefined
+    VertexAttribute borderThicknessAttribute = undefined
+    VertexAttribute aspectRatioAttribute = undefined
+    VertexAttribute antiAliasAttribute = undefined
+*/

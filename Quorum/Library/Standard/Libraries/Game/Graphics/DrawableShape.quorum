@@ -6,6 +6,7 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.Triangulation.Triangulation
+use Libraries.Game.Graphics.Shaders.ShaderMapping
 
 class DrawableShape
 
@@ -599,6 +600,15 @@ class DrawableShape
             return now
         end
 
+        ShaderMapping mapping = drawable:GetShaderMapping()
+        if mapping = undefined and drawable:GetShaderProgram() not= undefined
+            mapping = drawable:GetShaderProgram():GetShaderMapping()
+        end
+
+        if mapping not= undefined
+            SetVertexSize(mapping:GetVertexSize())
+        end
+
         /*
         If the base width/height ever need to become 0, we want to try to store a copy of the last valid
         value we had. This will make it possible to resize the base vertices in the future if we receive
@@ -676,6 +686,10 @@ class DrawableShape
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
             end
+        end
+
+        if mapping not= undefined
+            mapping:SetVertexData(drawable:GetShaderProgram(), drawable, me)
         end
 
         needsUpdate = false

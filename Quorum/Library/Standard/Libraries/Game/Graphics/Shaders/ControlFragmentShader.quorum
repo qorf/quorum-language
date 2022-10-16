@@ -20,13 +20,12 @@ class ControlFragmentShader is Shader
 in LOWP vec4 v_color;
 in LOWP vec4 v_borderColor;
 in vec2 v_texCoords;
-flat in int v_arrayIndex;
+in vec4 v_rounding;
+in vec4 v_borderThickness;
+in float v_aspectRatio;
+in float v_antiAlias;
 
 uniform sampler2D u_texture;
-uniform vec4 u_rounding[200];
-uniform vec4 u_borderThickness[200];
-uniform float u_aspectRatio[200];
-uniform float u_antiAliasDistance[200];
 
 layout (location = 0) out vec4 outputColor;
 
@@ -50,10 +49,10 @@ float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding
 
 void main()
 {
-    vec4 rounding = u_rounding[v_arrayIndex];
-    vec4 borderThickness = u_borderThickness[v_arrayIndex];
-    float aspectRatio = u_aspectRatio[v_arrayIndex];
-    float antiAliasDistance = u_antiAliasDistance[v_arrayIndex];
+    vec4 rounding = v_rounding;
+    vec4 borderThickness = v_borderThickness;
+    float aspectRatio = v_aspectRatio;
+    float antiAliasDistance = v_antiAlias;
 
     vec4 borderColor = v_borderColor;
     bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0;

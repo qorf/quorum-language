@@ -29,6 +29,10 @@ class BatchingShaderMapping2D is ShaderMapping
     */
     private blueprint action InitializeMesh(Mesh mesh)
 
+    action GetVertexSize returns integer
+        return mesh:GetVertexAttributes():vertexSize / 4
+    end
+
     action Begin(ShaderProgram program, Camera camera)
         me:program = program
 
@@ -83,20 +87,12 @@ class BatchingShaderMapping2D is ShaderMapping
 
         Mesh mesh = GetBatchingMesh()
         VertexData data = mesh:GetVertexData()
-
-        // VertexAttributes stores its size as 8-bit bytes instead of 32-bit floats, so we need to divide by 4 to account for that.
-        shape:SetVertexSize(data:GetAttributes():vertexSize / 4)
-
-        // Let the shader mapping set implementation-specific values for any non-default vertex values.
-        SetVertexData(program, drawable, shape)
-
         data:UpdateVertices(vertexOffset, shape:GetVertexData(), 0, shape:GetDataCount())
 
         vertexOffset = vertexOffset + shape:GetDataCount()
         indexCount = indexCount + shape:GetIndexCount()
     end
 
-    blueprint action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
 
     /*
     This action determines if the provided Drawable can be included in the current batch.
