@@ -1,7 +1,6 @@
 package Libraries.Compute.Statistics.Reporting
 
 use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.DataFrame
 
@@ -10,7 +9,7 @@ use Libraries.Compute.Statistics.DataFrame
 
     Attribute: Author Hannah Williams
 */
-class CompareRanksResult is StatisticalTestResult, ColumnInput
+class CompareRanksResult is StatisticalTestResult
     /* The factor (if used) for this calculation. */
     text factor = ""
 

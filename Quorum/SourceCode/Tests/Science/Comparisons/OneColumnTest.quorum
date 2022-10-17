@@ -4,7 +4,7 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Tests.CompareGroupToMean
+use Libraries.Compute.Statistics.Tests.CompareGroups
 
 class OneColumnTest is Test
 
@@ -28,7 +28,7 @@ class OneColumnTest is Test
         columns:Add(column0)
         frame:SetColumns(columns)
         
-        CompareGroupToMean tests
+        CompareGroups tests
         tests:AddColumn(0)
         tests:SetMean(-1)
         tests:Calculate(frame)

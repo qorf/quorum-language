@@ -20,7 +20,7 @@ class VarianceRatioDistribution is NumberDistribution
 
     action Setup(number numerator, number denominator)
         if numerator <= 0 or denominator <= 0
-            alert("Cannot compute a F-distribution with a degree of freedom value of " + degreesOfFreedom)
+            alert("Cannot compute a F-distribution with degree of freedom value of (" + numerator + ", " + denominator + ")")
         end
         numeratorDegreesOfFreedom = numerator
         denominatorDegreesOfFreedom = denominator

@@ -1,13 +1,13 @@
 package Libraries.Compute.Statistics.Reporting
+
 use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.Inputs.ColumnInput
 
 /*
     This class represents data that comes back from a CompareCounts calculation (chi-squared test).
 
     Attribute: Author Hannah Williams
 */
-class CompareCountsResult is StatisticalTestResult, ColumnInput
+class CompareCountsResult is StatisticalTestResult
     DataFrame observed
     DataFrame expected
     DataFrame residuals     // Pearson residuals (observed - expected) / sqrt(expected)

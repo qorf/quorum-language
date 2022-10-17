@@ -27,6 +27,7 @@ class CompareNGroupsResult is CompareGroupsResult
     number meanSumOfSquaresError = 0
 
     boolean repeatedMeasures = false
+    boolean equalVariances = false
 
     DataFrame anovaTable
 
@@ -121,6 +122,10 @@ class CompareNGroupsResult is CompareGroupsResult
         me:repeatedMeasures = repeatedMeasures
     end
 
+    action EqualVariances(boolean equalVariances)
+        me:equalVariances = equalVariances
+    end
+
     action GetCompareVariancesResult returns CompareVariancesResult
         return varianceResult
     end
@@ -145,17 +150,23 @@ class CompareNGroupsResult is CompareGroupsResult
             summary = summary + lf + "Factor: " + GetFactor()
         end
 
-        summary = summary + lf + "Sum Of Squares Between Groups: " + sumOfSquaresBetweenGroup
-
-        summary = summary + lf + "Degrees Of Freedom Between Groups: " + degreesOfFreedomBetweenGroups
-
-        summary = summary + lf + "Mean Sum Of Squares Between Groups: " + meanSumOfSquaresBetweenGroup
-
-        summary = summary + lf + "Sum Of Squares Within Groups: " + sumOfSquaresWithinGroup
-
-        summary = summary + lf + "Degrees Of Freedom Within Groups: " + degreesOfFreedomWithinGroups
-
-        summary = summary + lf + "Mean Sum Of Squares Within Groups: " + meanSumOfSquaresWithinGroup
+        if equalVariances
+            summary = summary + lf + "Sum Of Squares Between Groups: " + sumOfSquaresBetweenGroup
+    
+            summary = summary + lf + "Degrees Of Freedom Between Groups: " + degreesOfFreedomBetweenGroups
+    
+            summary = summary + lf + "Mean Sum Of Squares Between Groups: " + meanSumOfSquaresBetweenGroup
+    
+            summary = summary + lf + "Sum Of Squares Within Groups: " + sumOfSquaresWithinGroup
+    
+            summary = summary + lf + "Degrees Of Freedom Within Groups: " + degreesOfFreedomWithinGroups
+    
+            summary = summary + lf + "Mean Sum Of Squares Within Groups: " + meanSumOfSquaresWithinGroup
+        else
+            summary = summary + lf + "Degrees Of Freedom Between Groups: " + degreesOfFreedomBetweenGroups
+    
+            summary = summary + lf + "Degrees Of Freedom Within Groups: " + degreesOfFreedomWithinGroups
+        end
 
         if repeatedMeasures
             summary = summary + lf + "Sum Of Squares Error: " + sumOfSquaresError
@@ -166,11 +177,7 @@ class CompareNGroupsResult is CompareGroupsResult
 
             summary = summary + lf + "Statistic (F) Between Groups: " + GetTestStatistic()
 
-            //summary = summary + lf + "Statistic (F) Within Groups: " + GetTestStatistic()
-
             summary = summary + lf + "Probability Between Groups: " + GetProbabilityValue()
-
-            //summary = summary + lf + "Probability Within Groups: " + GetProbabilityValue()
         else
             summary = summary + lf + "Statistic (F): " + GetTestStatistic()
 
@@ -234,9 +241,15 @@ class CompareNGroupsResult is CompareGroupsResult
                                        + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomError) + ") = " 
                                        + GetFormat():FormatTestStatistic(GetTestStatistic())
         else
-            summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+            if equalVariances
+                summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
                                        + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
                                        + GetFormat():FormatTestStatistic(GetTestStatistic())
+            else
+                summary = summary + "Welch's F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+                                       + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
+                                       + GetFormat():FormatTestStatistic(GetTestStatistic())
+            end
         end
         number p = GetProbabilityValue()
         if p < GetFormat():PRECISION_LIMIT
@@ -244,7 +257,11 @@ class CompareNGroupsResult is CompareGroupsResult
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + ", η2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+        if repeatedMeasures or equalVariances
+            summary = summary + ", η2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+        else
+            summary = summary + ", ω2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+        end
 
         return summary
     end
@@ -308,16 +325,6 @@ class CompareNGroupsResult is CompareGroupsResult
         end
         p:Add(nan:GetNotANumberValue())
 
-        // Wait until we get critical values working.
-//        NumberColumn cv
-//        cv:SetHeader("F Critical Value")
-//        cv:Add(GetCriticalValue())
-//        cv:Add(nan:GetNotANumberValue()) // Not implemented yet.
-//        if repeatedMeasures
-//            cv:Add(nan:GetNotANumberValue())
-//        end
-//        cv:Add(nan:GetNotANumberValue())
-
         DataFrame anovaTable
         anovaTable:AddColumn(source)
         anovaTable:AddColumn(ss)
@@ -325,7 +332,6 @@ class CompareNGroupsResult is CompareGroupsResult
         anovaTable:AddColumn(ms)
         anovaTable:AddColumn(f)
         anovaTable:AddColumn(p)
-//        anovaTable:AddColumn(cv)
         return anovaTable
     end
 

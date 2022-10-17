@@ -19,7 +19,11 @@ class Compare2GroupsResult is CompareGroupsResult
     number group2Variance = 0
     number group1Mean = 0
     number group2Mean = 0
-    boolean paired = true
+    number differenceMean = 0
+    number differenceVariance = 0
+    number userMean = 0
+    boolean paired = false
+    boolean equalVariances = false
 
     action SetGroups(DataFrameColumn group1, DataFrameColumn group2)
         me:group1 = group1
@@ -114,12 +118,25 @@ class Compare2GroupsResult is CompareGroupsResult
         group2Variance = variance
     end
 
-    action GetPaired returns boolean
-        return paired
+    /* Used for paired tests */
+    action SetDifferenceMean(number differenceMean)
+        me:differenceMean = differenceMean
+    end
+
+    action SetDifferenceVariance(number differenceVariance)
+        me:differenceVariance = differenceVariance
+    end
+
+    action SetUserMean(number userMean)
+        me:userMean = userMean
     end
 
     action Paired(boolean paired)
         me:paired = paired
+    end
+
+    action EqualVariances(boolean equalVariances)
+        me:equalVariances = equalVariances
     end
 
     /*
@@ -130,9 +147,9 @@ class Compare2GroupsResult is CompareGroupsResult
         text lf = summary:GetLineFeed()
         text dependence = ""
         if paired
-            dependence = "independent"
-        else
             dependence = "dependent"
+        else
+            dependence = "independent"
         end
 
         summary = summary + "A "+ GetFormalTestName() + " was conducted on two "+dependence+" samples."
@@ -145,14 +162,15 @@ class Compare2GroupsResult is CompareGroupsResult
         if GetGroups():GetSize() > 1
             sample1 = GetGroups():Get(0):GetHeader()
             sample2 = GetGroups():Get(1):GetHeader()
-            summary = summary + lf + "Columns: " + sample1 + " and " + sample2
-            if not paired
-                sample1 = "difference"
-                sample2 = "given"
-            end
+            summary = summary + lf + "Samples: " + sample1 + " and " + sample2
+
             summary = summary + lf + "Mean of " + sample1 + ": " + GetMean1()
         
             summary = summary + lf + "Mean of " + sample2 + ": " + GetMean2()
+
+            if paired
+                summary = summary + lf + "Mean of differences: " + differenceMean
+            end
         end
 
         summary = summary + lf + "Statistic (t): " + GetTestStatistic()
@@ -183,41 +201,60 @@ class Compare2GroupsResult is CompareGroupsResult
         text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance1()))
         text m2 = GetFormat():FormatTestStatistic(GetMean2())
         text sd2 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance2()))
+        text diffM = GetFormat():FormatTestStatistic(differenceMean)
+        text diffSD = GetFormat():FormatTestStatistic(math:SquareRoot(differenceVariance))
+        text userM = GetFormat():FormatTestStatistic(userMean)
         text dependence = ""
         if paired
-            dependence = "independent"
-        else
             dependence = "dependent"
+        else
+            dependence = "independent"
         end
 
         if GetGroups():GetSize() > 1 
-            if paired
-                text sample1 = GetGroups():Get(0):GetHeader()
-                text sample2 = GetGroups():Get(1):GetHeader()
+            text sample1 = GetGroups():Get(0):GetHeader()
+            text sample2 = GetGroups():Get(1):GetHeader()
+            if not paired
                 if GetFactor() = ""
                     summary = summary + "A " + GetFormalTestName() + " was conducted to compare two "+dependence+" samples " + sample1 + " and " + sample2 + "."
                 else
                     summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " to compare two "+dependence+" samples " + sample1 + " and " + sample2 + "."
                 end
+
                 if GetMean1() > GetMean2()
                     summary = summary + lf + sample1 + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
                         + sample2 + " (M = " + m2 + ", SD = " + sd2 + ")"
-                else
+                elseif GetMean1() < GetMean2()
                     summary = summary + lf + sample2 + " had a higher overall mean (M = " + m2 + ", SD = " + sd2 + ") compared to "
+                        + sample1 + " (M = " + m1 + ", SD = " + sd1 + ")"
+                else
+                    summary = summary + lf + sample2 + " had an equal mean (M = " + m2 + ", SD = " + sd2 + ") compared to "
                         + sample1 + " (M = " + m1 + ", SD = " + sd1 + ")"
                 end
             else
-                text sample1 = "difference"
+                text difference = "difference"
                 if GetFactor() = ""
-                    summary = summary + lf + "A " + GetFormalTestName() + " was conducted to compare " + sample1 + " to a mean of " + m2 + "."
-                else
-                    summary = summary + lf + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " to compare " + sample1 + " to a mean of " + m2 + "."
+                    summary = summary + lf + "A " + GetFormalTestName() + " was conducted to compare the mean of difference between "
+                                      + sample1 + " and " + sample2 +" to a mean of " + userM + "."
+                else 
+                    summary = summary + lf + "A " + GetFormalTestName() + " was conducted on " 
+                                      + GetFactor() + " to compare the mean of difference between " 
+                                      + sample1 + " and " + sample2 +" to a mean of " + userM + "."
                 end
-                if GetMean1() > GetMean2()
-                    summary = summary + lf + sample1 + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ")" 
+
+                if differenceMean > userMean
+                    summary = summary + lf + difference + " had a higher overall mean (M = " + diffM + ", SD = " + diffSD + ")" 
+                elseif differenceMean < userMean
+                    summary = summary + lf + difference + " had a lower overall mean (M = " + diffM + ", SD = " + diffSD + ")"
                 else
-                    summary = summary + lf + sample1 + " had a lower overall mean (M = " + m1 + ", SD = " + sd1 + ")"
+                    summary = summary + lf + difference + " had an equal mean (M = " + diffM + ", SD = " + diffSD + ")"
                 end
+            end
+
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                summary = summary + lf + "The difference was indicated to be statistically significant"
+            else
+                summary = summary + lf + "The difference was indicated not to be statistically significant"
             end
         end
 

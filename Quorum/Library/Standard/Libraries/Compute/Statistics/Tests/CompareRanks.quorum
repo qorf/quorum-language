@@ -19,12 +19,16 @@ use Libraries.Compute.Statistics.Reporting.Compare2RanksResult
 
 /*
     This class implements several non-parametric tests: 
+        CompareRanksToMedian is a Wilcoxon Signed-Ranks Test
+        Difference between one rank ordered group and a given median without assumptions about the distribution.
+        For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
+
         Compare2IndependentRanks is a Mann-Whiteney U-Test aka Wilcoxon Rank-Sum Test
         Difference between two rank ordered groups without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
     
         Compare2DependentRanks is a Wilcoxon Signed-Ranks Test
-        Difference between one or two rank ordered paired groups without assumptions about the distribution.
+        Difference between two rank ordered paired groups without assumptions about the distribution.
         For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
     
         CompareNIndependentRanks is a Kruskal-Wallis H Test
@@ -64,8 +68,7 @@ class CompareRanks is StatisticalTest
     ClassificationDistribution x2distribution
 
     /* This stores a hash of all of the results. */
-    HashTable<text, CompareRanksResult> results        // Used to find the result by column or pair of columns.        
-    HashTable<text, CompareRanksResult> indexResults   // Used to find the result by index or pair of indices.
+    HashTable<text, CompareRanksResult> results         
 
     /* Flag if the samples are paired in a two-sample test */
     boolean paired = false
@@ -73,11 +76,23 @@ class CompareRanks is StatisticalTest
     /* Flag if repeated measures are used in a several-sample test */
     boolean repeatedMeasures = false
 
+    /* Flag if calculations are to assume distributions shaped similarly or not */
+    boolean assumeSimilarShapedDistribution = false
+
+    /* Flag if distributions are found to be shaped similarly or not */
+    boolean similarShapedDistribution = false
+
+    /* Flag if requested to test distribution assumptions */
+    boolean testDistributionAssumption = false
+
     /* Flag to determine if continuity correction is applied or not in 2-sample tests */
     boolean correctContinuityError = true // For now, this is always true since we use normal approximation
 
-    /* Flag to determine if bonferroni correction is applied or not in N-sample tests */
+    /* Flag to determine if family-wise correction is applied or not in N-sample tests */
     boolean correctFamilyWiseError = true
+
+    /* Flag to determine if bonferroni correction is applied or not in N-sample tests */
+    boolean useBonferroniCorrection = true
 
     /* A flag to let the user know probability may be incorrect due to tied rankings. */
     boolean rankTiesWarning = false
@@ -85,26 +100,69 @@ class CompareRanks is StatisticalTest
     /* A flag to let the user know probability may be incorrect due to zero values. */
     boolean zeroRankWarning = false
 
+    /* Flag to ensure requested N-sample test is run even if there are only 2 samples */
+    private boolean userRequestedNSampleTest = false
+
+    /* User determined median to be used in one-sample or paired two-sample tests */
+    number userMedian = 0
+
     Math math
+
+    action Calculate(DataFrame frame) 
+        if paired or repeatedMeasures
+            parent:StatisticalTest:RemoveUndefined(true)
+        end
+        if GetFactorSize() = 0
+            parent:StatisticalTest:Calculate(frame)
+        else
+            parent:StatisticalTest:CalculateWithFactor(frame)
+        end
+    end
 
     private action RunTest(DataFrame frame)
         if GetColumnSize() < 1
             alert("Must include at least one column.")
         end
 
-        if GetColumnSize() <= 2     
-            if paired or GetColumnSize() = 1
+        if GetColumnSize() = 1
+            CompareRanksToMedian(frame)
+        elseif GetColumnSize() = 2 and not userRequestedNSampleTest     
+            if paired or repeatedMeasures
                 Compare2DependentRanks(frame)
             else             
                 Compare2IndependentRanks(frame)
             end
         else
-            if repeatedMeasures
+            if paired or repeatedMeasures
                 CompareNDependentRanks(frame)
             else
                 CompareNIndependentRanks(frame)
             end
         end
+    end
+
+    /*
+        Wilcoxon Signed-Ranks Test for 1 group.
+
+        Null hypothesis: The median difference between this group and given median is zero.  
+        Alternative hypothesis: The median difference is negative
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareRanks
+    
+        DataFrame frame
+        frame:Load("data.csv")
+    
+        CompareRanks compare
+        compare:SetMedian(10)
+        compare:AddColumn(0)
+        compare:Calculate(frame)
+        output compare:GetSummary()
+    */
+    action CompareRanksToMedian(DataFrame frame)
+        Compare2DependentRanks(frame)
     end
 
     /* 
@@ -142,119 +200,123 @@ class CompareRanks is StatisticalTest
         output compare:GetSummary()
     */
     action Compare2IndependentRanks(DataFrame frame)
-        if GetColumnSize() not= 2
-            RunTest(frame)
-        end
-
-        // Sort the data for all groups/samples into ascending order in one combined set.
-        TextColumn group
-        group:SetHeader("group")
-        NumberColumn data
-        data:SetHeader("data")
-        Array<DataFrameColumn> samples
-        i = 0
-        repeat while i < GetColumnSize()
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column:IsUndefined()
-                alert("Column is undefined.")
+        if GetFactorSize() > 0
+            me:Calculate(frame) // The factor needs to be processed
+        else
+            if GetColumnSize() < 2
+                alert("Compare2IndependentRanks must have 2 groups.")
             end
 
-            if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            // Sort the data for all groups/samples into ascending order in one combined set.
+            TextColumn group
+            group:SetHeader("group")
+            NumberColumn data
+            data:SetHeader("data")
+            Array<DataFrameColumn> samples
+            i = 0
+            repeat while i < GetColumnSize()
+                DataFrameColumn column = frame:GetColumn(GetColumn(i))
+                if column:IsUndefined()
+                    alert("Column is undefined.")
+                end
+    
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+                samples:Add(column)
+                j = 0
+                repeat while j < column:GetSize()
+                    group:Add(column:GetHeader())
+                    data:Add(column:GetAsNumber(j))
+                    j = j + 1
+                end
+                i = i + 1
             end
-            samples:Add(column)
-            j = 0
-            repeat while j < column:GetSize()
-                group:Add(column:GetHeader())
-                data:Add(column:GetAsNumber(j))
-                j = j + 1
+
+            DataFrame sorted
+            sorted:AddColumn(group)
+            sorted:AddColumn(data)
+            sorted:Sort("data")
+    
+            // Assign ranks to the sorted data points. Give tied values the average rank.
+            ConvertColumnsToRanksTransform transform
+            transform:AddColumn(1)
+            DataFrame ranked = sorted:Transform(transform)
+            ranked:AddColumn(0, sorted:GetColumn(0))
+    
+            // Add up the different ranks for each group/sample.
+            HashTable<text, number> sums
+            DataFrameColumn groups = ranked:GetColumn(0)
+            DataFrameColumn ranks = ranked:GetColumn(1)
+            i = 0
+            repeat while i < ranks:GetSize()
+                if not sums:HasKey(groups:GetAsText(i))
+                    sums:Add(groups:GetAsText(i), ranks:GetAsNumber(i))
+                else
+                    sums:Set(groups:GetAsText(i), sums:GetValue(groups:GetAsText(i)) + ranks:GetAsNumber(i))
+                end
+                i = i + 1
             end
-            i = i + 1
-        end
 
-        DataFrame sorted
-        sorted:AddColumn(group)
-        sorted:AddColumn(data)
-        sorted:Sort("data")
-
-        // Assign ranks to the sorted data points. Give tied values the average rank.
-        ConvertColumnsToRanksTransform transform
-        transform:AddColumn(1)
-        DataFrame ranked = sorted:Transform(transform)
-        ranked:AddColumn(0, sorted:GetColumn(0))
-
-        // Add up the different ranks for each group/sample.
-        HashTable<text, number> sums
-        DataFrameColumn groups = ranked:GetColumn(0)
-        DataFrameColumn ranks = ranked:GetColumn(1)
-        i = 0
-        repeat while i < ranks:GetSize()
-            if not sums:HasKey(groups:GetAsText(i))
-                sums:Add(groups:GetAsText(i), ranks:GetAsNumber(i))
-            else
-                sums:Set(groups:GetAsText(i), sums:GetValue(groups:GetAsText(i)) + ranks:GetAsNumber(i))
+            // Calculate the max sum statistic, the larger of the two sums
+            number n1 = frame:GetColumn(GetColumn(0)):GetSize()
+            number n2 = frame:GetColumn(GetColumn(1)):GetSize()
+            number sum1 = sums:GetValue(frame:GetColumn(GetColumn(0)):GetHeader())
+            number sum2 = sums:GetValue(frame:GetColumn(GetColumn(1)):GetHeader())
+            number maxSum = sum1
+            number n = n1   // The size of the larger sum sample
+            if sum2 > sum1
+                maxSum = sum2
+                n = n2
             end
-            i = i + 1
-        end
 
-        // Calculate the max sum statistic, the larger of the two sums
-        number n1 = frame:GetColumn(GetColumn(0)):GetSize()
-        number n2 = frame:GetColumn(GetColumn(1)):GetSize()
-        number sum1 = sums:GetValue(frame:GetColumn(GetColumn(0)):GetHeader())
-        number sum2 = sums:GetValue(frame:GetColumn(GetColumn(1)):GetHeader())
-        number maxSum = sum1
-        number n = n1   // The size of the larger sum sample
-        if sum2 > sum1
-            maxSum = sum2
-            n = n2
-        end
+            // Calculate the W statistic, the smaller of the two u values
+            number u1 = sum1 - (n1 * (n1 + 1) / 2.0)
+            number u2 = sum2 - (n2 * (n2 + 1) / 2.0)
+            number U = math:MinimumOf(u1, u2)
+            
+            // Calculate normal approximation and corrections
+            // See: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Normal_approximation_and_tie_correction
+            number N = n1 + n2
+            number meanSum = n * (N + 1) / 2.0 // The mean of the larger sum sample
+            number varSum = n1 * n2 * (N + 1) / 12.0
+            number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
+            if tieCorrectionSum not= 0
+                varSum = (n1 * n2 / 12.0) * ((N + 1) - (tieCorrectionSum / (N * (N - 1)))) // The tie correction
+            end
+            number sdSum = math:SquareRoot(varSum)
+            number correction = 0
+            if correctContinuityError
+                correction = 0.5 // The continuity correction
+            end
+            number z = (maxSum - meanSum - correction) / sdSum
 
-        // Calculate the W statistic, the smaller of the two u values
-        number u1 = sum1 - (n1 * (n1 + 1) / 2.0)
-        number u2 = sum2 - (n2 * (n2 + 1) / 2.0)
-        number U = math:MinimumOf(u1, u2)
-        
-        // Calculate normal approximation and corrections
-        // See: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Normal_approximation_and_tie_correction
-        number N = n1 + n2
-        number meanSum = n * (N + 1) / 2.0 // The mean of the larger sum sample
-        number varSum = n1 * n2 * (N + 1) / 12.0
-        number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
-        if tieCorrectionSum not= 0
-            varSum = (n1 * n2 / 12.0) * ((N + 1) - (tieCorrectionSum / (N * (N - 1)))) // The tie correction
+            // Calculate two-tailed probability value from normal distribution
+            number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
+    
+            // Calculate effect size
+            number r = z / math:SquareRoot(N) 
+    
+            // Save result
+            Compare2RanksResult result
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetCriticalValue(U)
+            result:SetTestStatistic(U)
+            result:SetProbabilityValue(p)
+            result:SetEffectSize(r)
+            result:SetEffectSizeName("Rosenthal Correlation Coefficient")
+            result:SetFormalTestName("Wilcoxon Rank-Sum Test")
+            result:SetSamples(samples)
+            text factor = ""
+            text resultKey = ""
+            if UseFactor()
+                factor = GetFactorText()
+                resultKey = factor + " : " + resultKey
+            end
+            result:SetFactor(factor)
+            results:Add(resultKey, result)
         end
-        number sdSum = math:SquareRoot(varSum)
-        number correction = 0
-        if correctContinuityError
-            correction = 0.5 // The continuity correction
-        end
-        number z = (maxSum - meanSum - correction) / sdSum
-
-        // Calculate two-tailed probability value from normal distribution
-        number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
-
-        // Calculate effect size
-        number r = z / math:SquareRoot(N) 
-
-        // Save result
-        Compare2RanksResult result
-        result:SetSignificanceLevel(GetSignificanceLevel())
-        result:SetFormat(GetStatisticalFormatting())
-        result:SetCriticalValue(U)
-        result:SetTestStatistic(U)
-        result:SetProbabilityValue(p)
-        result:SetEffectSize(r)
-        result:SetEffectSizeName("Rosenthal Correlation Coefficient")
-        result:SetFormalTestName("Wilcoxon Rank-Sum Test")
-        result:SetSamples(samples)
-        text factor = ""
-        text resultKey = ""
-        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
-        end
-        result:SetFactor(factor)
-        results:Add(resultKey, result)
     end
 
     /* 
@@ -295,144 +357,145 @@ class CompareRanks is StatisticalTest
         output compare:GetSummary()
     */
     action Compare2DependentRanks(DataFrame frame)
-        if GetColumnSize() < 1
-            alert("Compare2DependentRanks must have at least one column.")
-        end
-        if GetColumnSize() > 2
-            RunTest(frame)
-        end
-
-        Array<DataFrameColumn> samples
-        NumberColumn difference 
-        if GetColumnSize() = 1
-            DataFrameColumn column = frame:GetColumn(GetColumn(0))
-            if column:IsUndefined()
-                alert("Column is undefined.")
-            end
-            if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-            end
-            samples:Add(column)
-            difference = column:ConvertToNumberColumn()
+        if GetFactorSize() > 0
+            me:Calculate(frame) // The factor needs to be processed
         else
-            DataFrameColumn column1 = frame:GetColumn(GetColumn(0))
-            DataFrameColumn column2 = frame:GetColumn(GetColumn(1))
-            if column1:IsUndefined() or column2:IsUndefined()
-                alert("Column is undefined.")
+            if GetColumnSize() < 1
+                alert("Compare2DependentRanks must have at least 1 group.")
             end
-            if not column1:IsNumberColumn() and not column1:IsIntegerColumn()
-                alert("Columns must be numerical. " + column1:GetHeader() + " is not a numerical column.")
-            end
-            if not column2:IsNumberColumn() and not column2:IsIntegerColumn()
-                alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
-            end
-            samples:Add(column1)
-            samples:Add(column2)
-            NumberColumn left = column1:ConvertToNumberColumn()
-            NumberColumn right = column2:ConvertToNumberColumn()
-            if left:GetSize() not= right:GetSize()
-                alert("Columns must be the same size.")
-            end
-            difference = left:Subtract(right)
-        end
-        difference:SetHeader("difference")
 
-        NumberColumn noZerosDifference
-        noZerosDifference:SetHeader("noZerosDifference")
-        NumberColumn absoluteDifference
-        absoluteDifference:SetHeader("absoluteDifference")
-        i = 0
-        repeat while i < difference:GetSize()
-            number value = difference:GetAsNumber(i)
-            if value not= 0 // Drop any zero difference from test
-                if value < 0
-                    absoluteDifference:Add(math:AbsoluteValue(value))
-                else
-                    absoluteDifference:Add(value)
+            Array<DataFrameColumn> samples
+            NumberColumn difference 
+            if GetColumnSize() = 1
+                DataFrameColumn column = frame:GetColumn(GetColumn(0))
+                if column:IsUndefined()
+                    alert("Column is undefined.")
                 end
-                noZerosDifference:Add(value)
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+                samples:Add(column)
+                difference = column:ConvertToNumberColumn()
             else
-                zeroRankWarning = true
+                DataFrameColumn column1 = frame:GetColumn(GetColumn(0))
+                DataFrameColumn column2 = frame:GetColumn(GetColumn(1))
+                if column1:IsUndefined() or column2:IsUndefined()
+                    alert("Column is undefined.")
+                end
+                if not column1:IsNumberColumn() and not column1:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column1:GetHeader() + " is not a numerical column.")
+                end
+                if not column2:IsNumberColumn() and not column2:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
+                end
+                samples:Add(column1)
+                samples:Add(column2)
+                NumberColumn left = column1:ConvertToNumberColumn()
+                NumberColumn right = column2:ConvertToNumberColumn()
+                if left:GetSize() not= right:GetSize()
+                    alert("Columns must be the same size.")
+                end
+                difference = left:Subtract(right)
             end
-            i = i + 1
-        end
+            difference:SetHeader("difference")
 
-        // Sort the data for the difference into ascending order by absolute difference.
-        DataFrame sorted
-        sorted:AddColumn(noZerosDifference)
-        sorted:AddColumn(absoluteDifference)
-        sorted:Sort("absoluteDifference")
-        
-        // Assign ranks to the sorted data points. Give tied values the average rank.
-        ConvertColumnsToRanksTransform transform
-        transform:AddColumn(1)
-        DataFrame ranked = sorted:Transform(transform)
-
-        // Reapply signs to ranks and add to postive or negative sums
-        HashTable<text, number> sums
-        sums:Add("positive", 0)
-        sums:Add("negative", 0)
-        DataFrameColumn values = sorted:GetColumn(0)
-        DataFrameColumn ranksSigned = ranked:GetColumn(0):Copy()
-        i = 0
-        repeat while i < ranksSigned:GetSize()
-            number value = values:GetAsNumber(i)
-            number rank = ranksSigned:GetAsNumber(i)
-            if value < 0
-                ranksSigned:SetAsNumber(i, -1.0 * rank)
-                sums:Set("negative", sums:GetValue("negative") + rank)
-            else
-                sums:Set("positive", sums:GetValue("positive") + rank)
+            NumberColumn noZerosDifference
+            noZerosDifference:SetHeader("noZerosDifference")
+            NumberColumn absoluteDifference
+            absoluteDifference:SetHeader("absoluteDifference")
+            i = 0
+            repeat while i < difference:GetSize()
+                number value = difference:GetAsNumber(i)
+                if value not= 0 // Drop any zero difference from test
+                    if value < 0
+                        absoluteDifference:Add(math:AbsoluteValue(value))
+                    else
+                        absoluteDifference:Add(value)
+                    end
+                    noZerosDifference:Add(value)
+                else
+                    zeroRankWarning = true
+                end
+                i = i + 1
             end
-            i = i + 1
+
+            // Sort the data for the difference into ascending order by absolute difference.
+            DataFrame sorted
+            sorted:AddColumn(noZerosDifference)
+            sorted:AddColumn(absoluteDifference)
+            sorted:Sort("absoluteDifference")
+            
+            // Assign ranks to the sorted data points. Give tied values the average rank.
+            ConvertColumnsToRanksTransform transform
+            transform:AddColumn(1)
+            DataFrame ranked = sorted:Transform(transform)
+    
+            // Reapply signs to ranks and add to postive or negative sums
+            HashTable<text, number> sums
+            sums:Add("positive", 0)
+            sums:Add("negative", 0)
+            DataFrameColumn values = sorted:GetColumn(0)
+            DataFrameColumn ranksSigned = ranked:GetColumn(0):Copy()
+            i = 0
+            repeat while i < ranksSigned:GetSize()
+                number value = values:GetAsNumber(i)
+                number rank = ranksSigned:GetAsNumber(i)
+                if value < userMedian
+                    ranksSigned:SetAsNumber(i, -1.0 * rank)
+                    sums:Set("negative", sums:GetValue("negative") + rank)
+                else
+                    sums:Set("positive", sums:GetValue("positive") + rank)
+                end
+                i = i + 1
+            end
+
+            // Calculate the W Statistic, the smaller of the two sums
+            number sumPos = sums:GetValue("positive")
+            number sumNeg = sums:GetValue("negative")
+            number W = math:MinimumOf(sumPos, sumNeg)
+    
+            // Calculate normal approximation and corrections
+            number n = ranksSigned:GetSize()
+            number meanW = (n * (n + 1)) / 4.0
+            number varW = (n * (n + 1) * (2 * n + 1)) / 24.0
+            number tieCorrectionSum = CalculateTieCorrectionSum(ranked:GetColumn(0)) // Do tie correction on unsigned ranks
+            if tieCorrectionSum not= 0
+                varW = varW - (tieCorrectionSum / 48.0) // The tie correction
+            end
+            number sdW = math:SquareRoot(varW)
+            number correction = 0
+            if correctContinuityError
+                correction = 0.5 // The continuity correction
+            end
+            number z = (math:AbsoluteValue(W - meanW) - correction) / sdW
+    
+            // Calculate two-tailed probability value from normal distribution
+            number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
+    
+            // Calculate effect size
+            number r = z / math:SquareRoot(n)
+
+            // Save result
+            Compare2RanksResult result
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetCriticalValue(z)
+            result:SetTestStatistic(z)
+            result:SetProbabilityValue(p)
+            result:SetEffectSize(r)
+            result:SetEffectSizeName("Rosenthal Correlation Coefficient")
+            result:SetFormalTestName("Wilcoxon Signed-Rank Test")
+            result:IndependentSamples(false)
+            result:SetSamples(samples)
+            text factor = ""
+            text resultKey = ""
+            if UseFactor()
+                factor = GetFactorText()
+                resultKey = factor + " : " + resultKey
+            end
+            result:SetFactor(factor)
+            results:Add(resultKey, result)
         end
-
-        // Calculate the W Statistic, the smaller of the two sums
-        number sumPos = sums:GetValue("positive")
-        number sumNeg = sums:GetValue("negative")
-        number W = math:MinimumOf(sumPos, sumNeg)
-
-        // Calculate normal approximation and corrections
-        number n = ranksSigned:GetSize()
-        number meanW = (n * (n + 1)) / 4.0
-        number varW = (n * (n + 1) * (2 * n + 1)) / 24.0
-        number tieCorrectionSum = CalculateTieCorrectionSum(ranked:GetColumn(0)) // Do tie correction on unsigned ranks
-        if tieCorrectionSum not= 0
-            varW = varW - (tieCorrectionSum / 48.0) // The tie correction
-        end
-        number sdW = math:SquareRoot(varW)
-        number correction = 0
-        if correctContinuityError
-            correction = 0.5 // The continuity correction
-        end
-        number z = (math:AbsoluteValue(W - meanW) - correction) / sdW
-
-        // Calculate two-tailed probability value from normal distribution
-        number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
-
-        // Calculate effect size
-        number r = z / math:SquareRoot(n)
-
-        // Save result
-        Compare2RanksResult result
-        result:SetSignificanceLevel(GetSignificanceLevel())
-        result:SetFormat(GetStatisticalFormatting())
-        result:SetCriticalValue(z)
-        result:SetTestStatistic(z)
-        result:SetProbabilityValue(p)
-        result:SetEffectSize(r)
-        result:SetEffectSizeName("Rosenthal Correlation Coefficient")
-        result:SetFormalTestName("Wilcoxon Signed-Rank Test")
-        result:IndependentSamples(false)
-        result:SetSamples(samples)
-        text factor = ""
-        text resultKey = ""
-        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
-        end
-        result:SetFactor(factor)
-        results:Add(resultKey, result)
     end
 
     /* 
@@ -472,150 +535,158 @@ class CompareRanks is StatisticalTest
         output compare:GetSummary()
     */
     action CompareNIndependentRanks(DataFrame frame)
-        if GetColumnSize() < 2
-            alert("CompareNIndependentRanks must have at least two columns.")
-        end
-
-        Array<DataFrameColumn> samples
-        // Sort the data for all groups/samples into ascending order in one combined set.
-        TextColumn group
-        group:SetHeader("group")
-        NumberColumn data
-        data:SetHeader("data")
-        i = 0
-        repeat while i < GetColumnSize()
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column:IsUndefined()
-                alert("Column is undefined.")
+        if GetFactorSize() > 0
+            userRequestedNSampleTest = true
+            me:Calculate(frame) // The factor needs to be processed
+        else
+            if GetColumnSize() < 2
+                alert("CompareNIndependentRanks must have at least 2 groups.")
             end
 
-            if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-            end
-            samples:Add(column)
-            j = 0
-            repeat while j < column:GetSize()
-                group:Add(column:GetHeader())
-                data:Add(column:GetAsNumber(j))
-                j = j + 1
-            end
-            i = i + 1
-        end
-
-        DataFrame sorted
-        sorted:AddColumn(group)
-        sorted:AddColumn(data)
-        sorted:Sort("data")
-
-        // Assign ranks to the sorted data points. Give tied values the average rank.
-        ConvertColumnsToRanksTransform transform
-        transform:AddColumn(1)
-        DataFrame ranked = sorted:Transform(transform)
-        ranked:AddColumn(0, sorted:GetColumn(0))
-
-        // Add up the different ranks for each group/sample.
-        HashTable<text, number> sums
-        DataFrameColumn groups = ranked:GetColumn(0)
-        DataFrameColumn ranks = ranked:GetColumn(1)
-        i = 0
-        repeat while i < ranks:GetSize()
-            if not sums:HasKey(groups:GetAsText(i))
-                sums:Add(groups:GetAsText(i), ranks:GetAsNumber(i))
-            else
-                sums:Set(groups:GetAsText(i), sums:GetValue(groups:GetAsText(i)) + ranks:GetAsNumber(i))
-            end
-            i = i + 1
-        end
-
-        // Calculate the H statistic:
-        number n = groups:GetSize() // Overall size (all sample sizes)
-        integer k = GetColumnSize()  // Number of samples
-        number sumOfRanks = 0
-        i = 0
-        repeat while i < GetColumnSize()
-            number tj = sums:GetValue(frame:GetColumn(GetColumn(i)):GetHeader()) // Sum of ranks in the jth sample
-            number nj = frame:GetColumn(GetColumn(i)):GetSize() // Size of the jth sample
-
-            sumOfRanks = sumOfRanks + (tj * tj / nj)
-            i = i + 1
-        end
-        number h = (12.0 / (n * (n + 1))) * sumOfRanks - (3 * (n + 1)) 
-
-        // Correct for ties in ranking.
-        // See: https://www.dataanalytics.org.uk/adjustment-for-tied-ranks-in-the-kruskal-wallis-test/
-        number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
-        if tieCorrectionSum not= 0
-            number d = 1 - (tieCorrectionSum / ((n - 1) * n * (n + 1))) // The tie correction
-            h = h / d
-        end
-
-        // Calculate probability value from chi-squared distribution
-        number df = k-1
-        x2distribution:Setup(df)
-        number p = 1.0 - x2distribution:CumulativeDistribution(h)
-
-        // Calculate effect size
-        number epsilon_sqr = h - (n + 1) / (n * n - 1)
-
-        // Calculate pairwise wilcoxon sum-rank (Mann-Whiteney) tests with Bonnferroni Correction
-        number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
-        Array<CompareRanksResult> pairwise
-        i = 0
-        repeat while i < GetColumnSize()
-            j = i + 1
-            repeat while j < GetColumnSize()
-                DataFrameColumn left = frame:GetColumn(GetColumn(i))
-                DataFrameColumn right = frame:GetColumn(GetColumn(j))
-
-                DataFrame newFrame
-                newFrame:AddColumn(left)
-                newFrame:AddColumn(right)
-
-                CompareRanks compare
-                compare:AddColumn(0)
-                compare:AddColumn(1)
-                compare:Compare2IndependentRanks(newFrame)
-                compare:GetResult():SetSignificanceLevel(GetSignificanceLevel())
-
-                Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
-                // Apply bonferroni correction
-                if correctFamilyWiseError
-                    number newP = pair:GetProbabilityValue() * numberOfTestsPerformed
-                    if newP > 1
-                        newP = 1
-                    end
-                    pair:SetProbabilityValue(newP)
-                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
-                else
-                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+            Array<DataFrameColumn> samples
+            // Sort the data for all groups/samples into ascending order in one combined set.
+            TextColumn group
+            group:SetHeader("group")
+            NumberColumn data
+            data:SetHeader("data")
+            i = 0
+            repeat while i < GetColumnSize()
+                DataFrameColumn column = frame:GetColumn(GetColumn(i))
+                if column:IsUndefined()
+                    alert("Column is undefined.")
                 end
-                pairwise:Add(pair)
-                j = j + 1
+    
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+                samples:Add(column)
+                j = 0
+                repeat while j < column:GetSize()
+                    group:Add(column:GetHeader())
+                    data:Add(column:GetAsNumber(j))
+                    j = j + 1
+                end
+                i = i + 1
             end
-            i = i + 1
-        end
 
-        // Save result
-        CompareNRanksResult result
-        result:SetSignificanceLevel(GetSignificanceLevel())
-        result:SetFormat(GetStatisticalFormatting())
-        result:SetCriticalValue(h)
-        result:SetTestStatistic(h)
-        result:SetDegreesOfFreedom(df)
-        result:SetProbabilityValue(p)
-        result:SetEffectSize(epsilon_sqr)
-        result:SetEffectSizeName("Epsilon-Squared")
-        result:SetFormalTestName("Kruskal-Wallis Test")
-        result:SetSamples(samples)
-        text factor = ""
-        text resultKey = ""
-        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+            DataFrame sorted
+            sorted:AddColumn(group)
+            sorted:AddColumn(data)
+            sorted:Sort("data")
+    
+            // Assign ranks to the sorted data points. Give tied values the average rank.
+            ConvertColumnsToRanksTransform transform
+            transform:AddColumn(1)
+            DataFrame ranked = sorted:Transform(transform)
+            ranked:AddColumn(0, sorted:GetColumn(0))
+    
+            // Add up the different ranks for each group/sample.
+            HashTable<text, number> sums
+            DataFrameColumn groups = ranked:GetColumn(0)
+            DataFrameColumn ranks = ranked:GetColumn(1)
+            i = 0
+            repeat while i < ranks:GetSize()
+                if not sums:HasKey(groups:GetAsText(i))
+                    sums:Add(groups:GetAsText(i), ranks:GetAsNumber(i))
+                else
+                    sums:Set(groups:GetAsText(i), sums:GetValue(groups:GetAsText(i)) + ranks:GetAsNumber(i))
+                end
+                i = i + 1
+            end
+
+            // Calculate the H statistic:
+            number n = groups:GetSize() // Overall size (all sample sizes)
+            integer k = GetColumnSize()  // Number of samples
+            number sumOfRanks = 0
+            i = 0
+            repeat while i < GetColumnSize()
+                number tj = sums:GetValue(frame:GetColumn(GetColumn(i)):GetHeader()) // Sum of ranks in the jth sample
+                number nj = frame:GetColumn(GetColumn(i)):GetSize() // Size of the jth sample
+    
+                sumOfRanks = sumOfRanks + (tj * tj / nj)
+                i = i + 1
+            end
+            number h = (12.0 / (n * (n + 1))) * sumOfRanks - (3 * (n + 1)) 
+    
+            // Correct for ties in ranking.
+            // See: https://www.dataanalytics.org.uk/adjustment-for-tied-ranks-in-the-kruskal-wallis-test/
+            number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
+            if tieCorrectionSum not= 0
+                number d = 1 - (tieCorrectionSum / ((n - 1) * n * (n + 1))) // The tie correction
+                h = h / d
+            end
+
+            // Calculate probability value from chi-squared distribution
+            number df = k-1
+            x2distribution:Setup(df)
+            number p = 1.0 - x2distribution:CumulativeDistribution(h)
+    
+            // Calculate effect size
+            number epsilon_sqr = h - (n + 1) / (n * n - 1)
+
+            // Calculate pairwise wilcoxon sum-rank (Mann-Whiteney) tests with Bonnferroni Correction
+            number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+            Array<CompareRanksResult> pairwise
+            i = 0
+            repeat while i < GetColumnSize()
+                j = i + 1
+                repeat while j < GetColumnSize()
+                    DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                    DataFrameColumn right = frame:GetColumn(GetColumn(j))
+    
+                    DataFrame newFrame
+                    newFrame:AddColumn(left)
+                    newFrame:AddColumn(right)
+    
+                    CompareRanks compare
+                    compare:AddColumn(0)
+                    compare:AddColumn(1)
+                    compare:Compare2IndependentRanks(newFrame)
+                    compare:GetResult():SetSignificanceLevel(GetSignificanceLevel())
+    
+                    Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
+                    // Apply bonferroni correction
+                    if correctFamilyWiseError
+                        number newP = pair:GetProbabilityValue() 
+                        if useBonferroniCorrection
+                            newP = newP * numberOfTestsPerformed
+                        end
+                        if newP > 1
+                            newP = 1
+                        end
+                        pair:SetProbabilityValue(newP)
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
+                    else
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+                    end
+                    pairwise:Add(pair)
+                    j = j + 1
+                end
+                i = i + 1
+            end
+
+            // Save result
+            CompareNRanksResult result
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetCriticalValue(h)
+            result:SetTestStatistic(h)
+            result:SetDegreesOfFreedom(df)
+            result:SetProbabilityValue(p)
+            result:SetEffectSize(epsilon_sqr)
+            result:SetEffectSizeName("Epsilon-Squared")
+            result:SetFormalTestName("Kruskal-Wallis Test")
+            result:SetSamples(samples)
+            text factor = ""
+            text resultKey = ""
+            if UseFactor()
+                factor = GetFactorText()
+                resultKey = factor + " : " + resultKey
+            end
+            result:SetFactor(factor)
+            result:SetPairwiseResults(pairwise)
+            results:Add(resultKey, result)
         end
-        result:SetFactor(factor)
-        result:SetPairwiseResults(pairwise)
-        results:Add(resultKey, result)
     end
 
     /* 
@@ -657,161 +728,169 @@ class CompareRanks is StatisticalTest
         output compare:GetSummary()
     */
     action CompareNDependentRanks(DataFrame frame)
-        if GetColumnSize() < 2
-            alert("CompareNDependentRanks must have at least two columns.")
-        end
-
-        // Assign ranks, give tied values the average rank.
-        ConvertColumnsToRanksTransform transform
-
-        Array<DataFrameColumn> samples
-        // Ensure the columns are all the same size
-        // Make rotated dataframe at the same time
-        DataFrame rotated
-        i = 0
-        repeat while i < GetColumnSize()
-            DataFrameColumn column = frame:GetColumn(GetColumn(i))
-            if column:IsUndefined()
-                alert("Column is undefined.")
+        if GetFactorSize() > 0
+            userRequestedNSampleTest = true
+            me:Calculate(frame) // The factor needs to be processed
+        else
+            if GetColumnSize() < 2
+                alert("CompareNDependentRanks must have at least 2 groups.")
             end
 
-            if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            // Assign ranks, give tied values the average rank.
+            ConvertColumnsToRanksTransform transform
+    
+            Array<DataFrameColumn> samples
+            // Ensure the columns are all the same size
+            // Make rotated dataframe at the same time
+            DataFrame rotated
+            i = 0
+            repeat while i < GetColumnSize()
+                DataFrameColumn column = frame:GetColumn(GetColumn(i))
+                if column:IsUndefined()
+                    alert("Column is undefined.")
+                end
+    
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+                samples:Add(column)
+                j = 0
+                repeat while j < column:GetSize()
+                    if i = 0
+                        NumberColumn jCol
+                        jCol:SetHeader(""+j)
+                        jCol:Add(column:GetAsNumber(j))
+                        rotated:AddColumn(jCol) // Add new column to rotated frame
+                        transform:AddColumn(j)  // Add new column to ranking tranform
+                    else
+                        rotated:GetColumn(j):Add(cast(text, column:GetAsNumber(j)))
+                    end
+                    j = j + 1   
+                end        
+                i = i + 1
             end
-            samples:Add(column)
-            j = 0
-            repeat while j < column:GetSize()
-                if i = 0
-                    NumberColumn jCol
-                    jCol:SetHeader(""+j)
-                    jCol:Add(column:GetAsNumber(j))
-                    rotated:AddColumn(jCol) // Add new column to rotated frame
-                    transform:AddColumn(j)  // Add new column to ranking tranform
-                else
-                    rotated:GetColumn(j):Add(cast(text, column:GetAsNumber(j)))
+
+            // Rank the data for each subject (each column in rotated frame)
+            DataFrame ranked = rotated:Transform(transform)
+           
+            // Number of subjects
+            integer n = ranked:GetColumns():GetSize()
+    
+            // Number of measurements (groups)
+            integer k = GetColumnSize()
+    
+            number sumOfRanksSquared = 0
+            number tieCorrectionSum = 0
+            // Get a rank sum for each group (sample) (each row in ranked frame)
+            Array <number> rankSums
+            i = 0
+            repeat while i < n
+                DataFrameColumn column = ranked:GetColumn(i)
+                j = 0
+                repeat while j < column:GetSize()
+                    if i = 0
+                        rankSums:Add(column:GetAsNumber(j))
+                    else
+                        rankSums:Set(j, rankSums:Get(j) + column:GetAsNumber(j))
+                    end
+                    sumOfRanksSquared = sumOfRanksSquared + column:GetAsNumber(j) * column:GetAsNumber(j)
+                    j = j + 1
                 end
-                j = j + 1   
-            end        
-            i = i + 1
-        end
+        
+                // If ties occurred, apply adjustment later
+                tieCorrectionSum = tieCorrectionSum + CalculateTieCorrectionSum(column)
+                i = i + 1
+            end
+    
+            // Calculate Q Statistic:
+            number sumOfRankSumsSquared = 0
+            number sumOfRankCalcsSquared = 0 
+            number subtract = (n * (k + 1)) / 2.0
+            i = 0
+            repeat while i < k
+                number value = rankSums:Get(i)
+                sumOfRankCalcsSquared = sumOfRankCalcsSquared + (value - subtract) * (value - subtract)
+                sumOfRankSumsSquared = sumOfRankSumsSquared + value * value
+                i = i + 1
+            end  
 
-        // Rank the data for each subject (each column in rotated frame)
-        DataFrame ranked = rotated:Transform(transform)
-       
-        // Number of subjects
-        integer n = ranked:GetColumns():GetSize()
-
-        // Number of measurements (groups)
-        integer k = GetColumnSize()
-
-        number sumOfRanksSquared = 0
-        number tieCorrectionSum = 0
-        // Get a rank sum for each group (sample) (each row in ranked frame)
-        Array <number> rankSums
-        i = 0
-        repeat while i < n
-            DataFrameColumn column = ranked:GetColumn(i)
-            j = 0
-            repeat while j < column:GetSize()
-                if i = 0
-                    rankSums:Add(column:GetAsNumber(j))
-                else
-                    rankSums:Set(j, rankSums:Get(j) + column:GetAsNumber(j))
-                end
-                sumOfRanksSquared = sumOfRanksSquared + column:GetAsNumber(j) * column:GetAsNumber(j)
-                j = j + 1
+            number q = (12.0 / (n * k * (k + 1))) * sumOfRankCalcsSquared
+            if tieCorrectionSum not= 0
+                number d = 1 - (tieCorrectionSum / (n * k * (k * k - 1))) // The tie correction
+                q = q / d
             end
         
-            // If ties occurred, apply adjustment later
-            tieCorrectionSum = tieCorrectionSum + CalculateTieCorrectionSum(column)
-            i = i + 1
-        end
-
-        // Calculate Q Statistic:
-        number sumOfRankSumsSquared = 0
-        number sumOfRankCalcsSquared = 0 
-        number subtract = (n * (k + 1)) / 2.0
-        i = 0
-        repeat while i < k
-            number value = rankSums:Get(i)
-            sumOfRankCalcsSquared = sumOfRankCalcsSquared + (value - subtract) * (value - subtract)
-            sumOfRankSumsSquared = sumOfRankSumsSquared + value * value
-            i = i + 1
-        end  
-
-        number q = (12.0 / (n * k * (k + 1))) * sumOfRankCalcsSquared
-        if tieCorrectionSum not= 0
-            number d = 1 - (tieCorrectionSum / (n * k * (k * k - 1))) // The tie correction
-            q = q / d
-        end
+            // Calculate probability value from chi-squared distribution
+            number df = k-1
+            x2distribution:Setup(df)
+            number p = 1.0 - x2distribution:CumulativeDistribution(q)
     
-        // Calculate probability value from chi-squared distribution
-        number df = k-1
-        x2distribution:Setup(df)
-        number p = 1.0 - x2distribution:CumulativeDistribution(q)
+            // Calculate effect size
+            number kendalls_w = q / (n * (k -1))
 
-        // Calculate effect size
-        number kendalls_w = q / (n * (k -1))
+            // Calculate pairwise wilcoxon signed-rank tests with Bonnferroni Correction
+            number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+            Array<CompareRanksResult> pairwise
+            i = 0
+            repeat while i < GetColumnSize()
+                j = i + 1
+                repeat while j < GetColumnSize()
+                    DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                    DataFrameColumn right = frame:GetColumn(GetColumn(j))
+    
+                    DataFrame pairFrame
+                    pairFrame:AddColumn(left)
+                    pairFrame:AddColumn(right)
+    
+                    CompareRanks compare
+                    compare:AddColumn(0)
+                    compare:AddColumn(1)
+                    compare:Compare2DependentRanks(pairFrame)
 
-        // Calculate pairwise wilcoxon signed-rank tests with Bonnferroni Correction
-        number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
-        Array<CompareRanksResult> pairwise
-        i = 0
-        repeat while i < GetColumnSize()
-            j = i + 1
-            repeat while j < GetColumnSize()
-                DataFrameColumn left = frame:GetColumn(GetColumn(i))
-                DataFrameColumn right = frame:GetColumn(GetColumn(j))
-
-                DataFrame pairFrame
-                pairFrame:AddColumn(left)
-                pairFrame:AddColumn(right)
-
-                CompareRanks compare
-                compare:AddColumn(0)
-                compare:AddColumn(1)
-                compare:Compare2DependentRanks(pairFrame)
-
-                Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
-                // Apply bonferroni correction
-                if correctFamilyWiseError
-                    number newP = pair:GetProbabilityValue() * numberOfTestsPerformed
-                    if newP > 1
-                        newP = 1
+                    Compare2RanksResult pair = cast(Compare2RanksResult, compare:GetResult())
+                    // Apply bonferroni correction
+                    if correctFamilyWiseError
+                        number newP = pair:GetProbabilityValue()
+                        if useBonferroniCorrection
+                            newP = newP * numberOfTestsPerformed
+                        end
+                        if newP > 1
+                            newP = 1
+                        end
+                        pair:SetProbabilityValue(newP)
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
+                    else
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
                     end
-                    pair:SetProbabilityValue(newP)
-                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
-                else
-                    pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+                    pairwise:Add(pair)
+                    j = j + 1
                 end
-                pairwise:Add(pair)
-                j = j + 1
+                i = i + 1
             end
-            i = i + 1
-        end
 
-        // Save result
-        CompareNRanksResult result
-        result:SetSignificanceLevel(GetSignificanceLevel())
-        result:SetFormat(GetStatisticalFormatting())
-        result:SetCriticalValue(q)
-        result:SetTestStatistic(q)
-        result:SetDegreesOfFreedom(df)
-        result:SetProbabilityValue(p)
-        result:SetEffectSize(kendalls_w)
-        result:SetEffectSizeName("Kendall's W")
-        result:SetFormalTestName("Friedman Test")
-        result:IndependentSamples(false)
-        result:SetSamples(samples)
-        text factor = ""
-        text resultKey = ""
-        if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-            factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-            resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0)
+            // Save result
+            CompareNRanksResult result
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetCriticalValue(q)
+            result:SetTestStatistic(q)
+            result:SetDegreesOfFreedom(df)
+            result:SetProbabilityValue(p)
+            result:SetEffectSize(kendalls_w)
+            result:SetEffectSizeName("Kendall's W")
+            result:SetFormalTestName("Friedman Test")
+            result:IndependentSamples(false)
+            result:SetSamples(samples)
+            text factor = ""
+            text resultKey = ""
+            if UseFactor()
+                factor = GetFactorText()
+                resultKey = factor + " : " + resultKey
+            end
+            result:SetFactor(factor)
+            result:SetPairwiseResults(pairwise)
+            results:Add(resultKey, result)
         end
-        result:SetFactor(factor)
-        result:SetPairwiseResults(pairwise)
-        results:Add(resultKey, result)
     end
 
     /*
@@ -837,6 +916,11 @@ class CompareRanks is StatisticalTest
         return sum
     end
 
+    /* Used in 1-sample and 2-sample (paired) tests */
+    action SetMedian(number median)
+        me:userMedian = median
+    end
+
     /* Used in 2-sample tests */
     action Paired(boolean paired)
         me:paired = paired
@@ -852,15 +936,86 @@ class CompareRanks is StatisticalTest
         me:repeatedMeasures = repeatedMeasures
     end
 
+    action AssumeSimilarShapedDistribution
+        assumeSimilarShapedDistribution = true
+        testDistributionAssumption = false
+    end
+
+    /* Used in 1-sample, 2-sample, and N-sample tests */
+    action TestDistributionAssumption
+        testDistributionAssumption = true
+        assumeSimilarShapedDistribution = false
+    end
+
+    /* This action will set all of the assumption tests to be calculated */
+    action TestAllAssumptions
+        TestDistributionAssumption()
+    end
+
     /* Used in N-sample tests */
+    /* Bonferroni method is the default if another is not selected */
     action CorrectFamilyWiseError(boolean correctFamilyWiseError)
         me:correctFamilyWiseError = correctFamilyWiseError
+        useBonferroniCorrection = correctFamilyWiseError
+    end
+
+    /* Choose bonferroni method as correction for N-sample pairwise tests */
+    action UseBonferroniCorrection
+        useBonferroniCorrection = true
+        correctFamilyWiseError = true
+    end
+
+    /*
+        This returns the probability if only one result exists.
+
+        Attribute: Returns the P-Value. 
+    */
+    action GetProbabilityValue returns number
+        return GetResult():GetProbabilityValue()
+    end
+
+    /*
+        This returns the degrees of freedom if only one result exists.
+
+        Attribute: Returns the Degrees of Freedom. 
+    */
+    action GetDegreesOfFreedom returns number
+        return GetResult():GetDegreesOfFreedom()
+    end
+
+    /*
+        This returns the test statistic if only one result exists.
+
+        Attribute: Returns the test statistic. 
+    */
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
+    end
+
+    /*
+        This returns the effect size if only one result exists.
+
+        Attribute: Returns the effect size. 
+    */
+    action GetEffectSize returns number
+        return GetResult():GetEffectSize()
+    end
+
+    /*
+        This returns the pairwise results if only one result exists.
+        Pairwise results are only calculated in N-sample tests, 
+        otherwise this will return undefined.
+
+        Attribute: Returns the pairwise results. 
+    */
+    action GetPairwiseResults returns Array<CompareRanksResult>
+        return GetResult():GetPairwiseResults()
     end
 
     /*
         This returns a result if only one exists.
 
-        Attribute: Returns the result
+        Attribute: Returns the CompareRanksResult object
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
@@ -887,7 +1042,7 @@ class CompareRanks is StatisticalTest
     /*
         This returns an array of the CompareRanks results
 
-        Attribute: Returns the CompareRanksResults 
+        Attribute: Returns an array of CompareRanksResult objects
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
@@ -909,22 +1064,20 @@ class CompareRanks is StatisticalTest
     end
 
     /*
-        This action summarizes the results and lists them informally
-
+        Attribute: Returns a list of the important statistics of the test
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
+        use Libraries.Compute.Statistics.Tests.CompareRanks
     
         DataFrame frame
         frame:Load("Data/Data.csv")
     
-        CorrelateRanks correlate
-        correlate:Add(0)
-        correlate:Add(1)
-        frame:Calculate(correlate)
-        
-        output correlate:GetSummary()
+        CompareRanks compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+        output compare:GetSummary()
     */
     action GetSummary returns text
         text summary = ""
@@ -945,23 +1098,22 @@ class CompareRanks is StatisticalTest
     /*
         This action summarizes the results and places them into formal academic language, in 
         APA format.
-
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
 
+        Attribute: Returns a condensed formal result of the test
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
+        use Libraries.Compute.Statistics.Tests.CompareRanks
     
         DataFrame frame
         frame:Load("Data/Data.csv")
     
-        CorrelateRanks correlate
-        correlate:Add(0)
-        correlate:Add(1)
-        frame:Calculate(correlate)
-        
-        output correlate:GetFormalSummary()
+        CompareRanks compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+        output compare:GetFormalSummary()
     */
     action GetFormalSummary returns text
         StatisticsFormatting format = GetStatisticalFormatting()

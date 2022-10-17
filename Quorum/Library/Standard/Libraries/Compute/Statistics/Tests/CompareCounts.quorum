@@ -126,7 +126,6 @@ class CompareCounts is StatisticalTest
                 result:SetFactor(factor)
                 result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
                 result:SetSampleSize(frame:GetColumn(GetColumn(i)):GetSize())
-                result:AddColumn(i)
                 results:Add(resultKey, result)
                 indexResults:Add(""+GetColumn(i), result)
             end 
@@ -200,7 +199,6 @@ class CompareCounts is StatisticalTest
                 result:SetTestStatistic(x2)
                 result:SetProbabilityValue(p)
                 result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                result:AddColumn(i)
                 results:Add(resultKey, result)
                 indexResults:Add(""+GetColumn(i), result)
             else
@@ -289,7 +287,6 @@ class CompareCounts is StatisticalTest
                     result:SetCriticalValue(x2)
                     result:SetProbabilityValue(p)
                     result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                    result:AddColumn(i)
                     results:Add(resultKey, result)
                     indexResults:Add(""+GetColumn(i), result)
                 else
@@ -370,7 +367,6 @@ class CompareCounts is StatisticalTest
                 result:SetTestStatistic(x2)
                 result:SetProbabilityValue(p)
                 result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                result:AddColumn(i)
                 results:Add(resultKey, result)
                 indexResults:Add(""+GetColumn(i), result)
             end 
@@ -438,8 +434,6 @@ class CompareCounts is StatisticalTest
                         result:SetApproximationWarningFlag(true)
                         approximationWarning = false //reset
                     end
-                    result:AddColumn(i)
-                    result:AddColumn(j)
                     results:Add(resultKey, result)
                     indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
                 end  
