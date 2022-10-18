@@ -12,12 +12,14 @@ class Flowchart is Control
 
     ColorGroup nodeBackgroundColor = undefined
     ColorGroup nodeBorderColor = undefined
-
-    number nodeBorderThickness = 2
-    number nodeCornerRounding = 0.3
+    ColorGroup arrowColor = undefined
+    ColorGroup arrowHeadColor = undefined
 
     number arrowLineThickness = 5
     number arrowHeadThickness = 30
+
+    number nodeBorderThickness = arrowLineThickness:GetNotANumberValue()
+    number nodeCornerRounding = nodeBorderThickness
 
     FlowchartSelection selection
 
@@ -311,6 +313,46 @@ class Flowchart is Control
                 Select(arrow:GetOrigin())
             end
         end
+    end
+
+    /*
+    This action returns the default color of arrows in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual arrows can override this value.
+    */
+    action GetArrowColor returns ColorGroup
+        return arrowColor
+    end
+
+    /*
+    This action sets the default color of arrows in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual arrows can override this value.
+    */
+    action SetArrowColor(ColorGroup arrowColor)
+        me:arrowColor = arrowColor
+    end
+
+    /*
+    This action returns the default color of arrow heads in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual arrows can override this value.
+    */
+    action GetArrowHeadColor returns ColorGroup
+        return arrowHeadColor
+    end
+
+    /*
+    This action sets the default color of arrow heads in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual arrows can override this value.
+    */
+    action SetArrowHeadColor(ColorGroup arrowHeadColor)
+        me:arrowHeadColor = arrowHeadColor
     end
 
 end

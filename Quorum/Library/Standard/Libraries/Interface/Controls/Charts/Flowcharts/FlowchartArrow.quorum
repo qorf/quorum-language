@@ -9,6 +9,7 @@ use Libraries.Containers.Array
 use Libraries.Compute.Vector2
 use Libraries.Game.Graphics.TextureFilter
 use Libraries.Compute.Math
+use Libraries.Game.Graphics.ColorGroup
 
 class FlowchartArrow is Control
 
@@ -24,6 +25,7 @@ class FlowchartArrow is Control
 
     on create
         SetName("Arrow")
+        SetInterfaceOptionsKey("FlowchartArrow")
 
         // If we're using a GridFlowchart, set our base grid coordinates.
         // We'll start at (0, 0), and in LoadGraphics we'll set our size to fill the grid.
@@ -88,7 +90,36 @@ class FlowchartArrow is Control
             arrowHead:LoadFilledTriangle(0, 0, arrowThickness, 0, arrowThickness, arrowThickness)
         end
 
+        lines:SetBackgroundColor(GetBackgroundColor())
+        arrowHead:SetColor(GetIconColor())
+
         parent:Control:LoadGraphics(properties)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowColor() not= undefined
+            return chart:GetArrowColor()
+        end
+
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action GetIconColor returns ColorGroup
+        if HasColorPropertyOverride("iconColor")
+            return parent:Control:GetIconColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowHeadColor() not= undefined
+            return chart:GetArrowHeadColor()
+        end
+
+        return parent:Control:GetIconColor()
     end
 
     action Resize
@@ -222,6 +253,7 @@ class FlowchartArrow is Control
         end
         return cast(Flowchart, result)
     end
+
     action GetOrigin returns FlowchartNode
         return origin
     end

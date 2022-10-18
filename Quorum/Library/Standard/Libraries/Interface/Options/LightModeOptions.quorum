@@ -175,5 +175,18 @@ class LightModeOptions is InterfaceOptions
 
         // Label specific properties.
         SetLabelBackgroundColor(color:CustomColor(1, 1, 1, 0))
+
+        // Flowchart and flowchart element properties.
+        SetFlowchartBackgroundColor(color:White())
+        
+        SetFlowchartNodeBackgroundColor(color:CustomColor(0.8, 0.92, 1.0, 1.0))
+        SetFlowchartNodeBorderThickness(3)
+        SetFlowchartNodeTopLeftRounding(0.2)
+        SetFlowchartNodeTopRightRounding(0.2)
+        SetFlowchartNodeBottomLeftRounding(0.2)
+        SetFlowchartNodeBottomRightRounding(0.2)
+
+        SetFlowchartArrowBackgroundColor(color:Black())
+        SetFlowchartArrowIconColor(color:Black())
     end
 end
