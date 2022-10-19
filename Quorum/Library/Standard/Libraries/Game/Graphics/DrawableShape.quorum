@@ -79,6 +79,11 @@ class DrawableShape
     */
     constant number PIXEL_SNAP_THRESHOLD = 0.01
 
+    // Values used to cache pixel clipping values.
+    boolean hasClipping = false
+    Vector2 clippingX
+    Vector2 clippingY
+
     action LoadRectangle(number width, number height)
         LoadRectangle(width, height, 0, 1, 0, 1)
     end
@@ -609,6 +614,9 @@ class DrawableShape
             SetVertexSize(mapping:GetVertexSize())
         end
 
+        // Fetch and cache the clipping values.
+        hasClipping = drawable:GetClipCoordinates(clippingX, clippingY)
+
         /*
         If the base width/height ever need to become 0, we want to try to store a copy of the last valid
         value we had. This will make it possible to resize the base vertices in the future if we receive
@@ -859,4 +867,23 @@ class DrawableShape
         vertexSize = newSize
     end
 
+    action HasClipping returns boolean
+        return hasClipping
+    end
+
+    action GetClippingX1 returns number
+        return clippingX:GetX()
+    end
+
+    action GetClippingX2 returns number
+        return clippingX:GetY()
+    end
+
+    action GetClippingY1 returns number
+        return clippingY:GetX()
+    end
+
+    action GetClippingY2 returns number
+        return clippingY:GetY()
+    end
 end
