@@ -4731,7 +4731,24 @@ class Item2D is Item
     Attribute: Parameter clip True to enable pixel clipping, false to disable.
     */
     action SetClipping(boolean clip)
+        if clip = clipPixels
+            return now
+        end
+
         clipPixels = clip
+        
+    end
+
+    // Recursive action to make the entire children hierarchy set a dirty flag to regenerate their vertex values and recalculate clipping coordinates.
+    private action RequestHierarchyUpdate(Item2D item)
+        item:RequestVerticesUpdate()
+
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            RequestHierarchyUpdate(children:Get(i))
+            i = i + 1
+        end
     end
 
     /*
