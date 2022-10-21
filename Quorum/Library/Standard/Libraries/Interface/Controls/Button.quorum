@@ -25,8 +25,10 @@ use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.TextureLoadListener
+use Libraries.Interface.Events.TextureLoadEvent
 
-class Button is Control
+class Button is Control, TextureLoadListener
 
     Behavior activationBehavior = undefined
     Label label = undefined
@@ -322,6 +324,14 @@ class Button is Control
                 end
             end
         elseif iconTexture not= undefined
+            if manager:GetApplication() is Libraries.Game.WebApplication 
+                if iconTexture:GetTextureField() = undefined
+                    iconTexture:AddTextureLoadListener(me)
+                else
+                    iconTexture:RemoveTextureLoadListener(me)
+                end
+            end
+
             ImageControlView content
             content:Load(iconTexture)
 
@@ -365,5 +375,10 @@ class Button is Control
     */
     action SetDepression(boolean depress)
         depressed = depress
+    end
+
+    action OnTextureLoad(TextureLoadEvent event)
+        // If a texture we were listening to has loaded, refresh the visuals.
+        LoadGraphics(GetDefaultLayoutProperties())
     end
 end

@@ -311,11 +311,11 @@ class SharedBarChartParent is Chart
         Sorts the bars by size in descending order (only if there are no groups)
         Updates the axis labels to the correct position after sorting.
     */
-    action SortByBarSize()
+    action SortByBarSize
         if not HasGroups()
             BarGroupComparison comparison
             barGroups:Sort(comparison)
-            Array <text> labels = GetUpdatedLabels()
+            Array <text> labels = GetBarGroupNames()
             if GetHorizontalFlag()
                 GetVerticalPanel():SetTextLabels(labels)
             else
@@ -323,7 +323,16 @@ class SharedBarChartParent is Chart
             end
         end
     end
-    action GetUpdatedLabels() returns Array<text>
+
+    /*
+    This action returns an array containing all of the names of the bar groups (or
+    individual bars, if this chart doesn't use bar groups) in the order they appear
+    in the chart. The array is a copy, and so it can be safely modified without
+    effecting the chart.
+
+    Attribute: Returns An array containing the names of the bars/bar groups in the order they appear in the chart.
+    */
+    action GetBarGroupNames returns Array<text>
         Array <text> grouplabels
         integer i = 0
         repeat while i < barGroups:GetSize()
@@ -331,6 +340,94 @@ class SharedBarChartParent is Chart
             i = i + 1
         end
         return grouplabels
+    end
+
+    /*
+    This action sets the order the bars appear in the chart. The bars will appear in the same
+    order that their names appear in the given input array. The input array must contain each
+    name of the bars exactly once. If the array doesn't include all of the names, if any names
+    are repeated, or if any name in the array doesn't appear in the chart, an error will occur.
+
+    Attribute: Parameter names An array containing the names of the bars or bar groups, in the order they should appear in the chart.
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    use Libraries.Containers.Array
+    
+    // Create a dataframe to hold the data and select the factor and column we're interested in.
+    DataFrame frame
+    frame:Load("data/WorldNightOut.csv")
+    frame:AddSelectedFactors("Country")
+    frame:AddSelectedColumns("Cost")
+    
+    // Using the frame, create a BarChart object.
+    BarChart chart = frame:BarChart()
+    
+    // We need an array of the names to order by. We can make this ourselves manually,
+    // or we can use GetBarGroupNames() to get them in default order from the chart.
+    Array<text> names = chart:GetBarGroupNames()
+    
+    // For this example, we'll take the last name out of the array, and insert it back in front.
+    names:AddToFront(names:RemoveFromEnd())
+    
+    // Now, sort the order of the bars by the order they appear in the array.
+    chart:OrderByBarNames(names)
+    
+    // Display your bar chart.
+    chart:Display()
+    */
+    action OrderByBarNames(Array<text> names)
+        text barTitle = "bar"
+        if HasGroups()
+            barTitle = "bar group"
+        end
+
+        if names:GetSize() not= barGroups:GetSize()
+            alert("I cannot order " + barGroups:GetSize() + " " + barTitle + "s using " + names:GetSize() + " names. There must be exactly the same number of " + barTitle + "s and names.")
+        end
+
+        // The index accesses array is used to double check that we never try to use the same bar group twice. If we do, we had duplicate names in the input, which is an error.
+        Array<integer> indexAccesses
+        repeat barGroups:GetSize() times
+            indexAccesses:Add(0)
+        end
+
+        Array<BarGroup> newOrder
+        integer nameCount = 0
+        repeat while nameCount < names:GetSize()
+            text name = names:Get(nameCount)
+            integer foundIndex = -1
+
+            integer barCount = 0
+            repeat while barCount < barGroups:GetSize()
+                BarGroup group = barGroups:Get(barCount)
+                if group:GetName() = name
+                    foundIndex = barCount
+                    barCount = barGroups:GetSize()
+                    newOrder:Add(group)
+                end
+                barCount = barCount + 1
+            end
+
+            if foundIndex = -1
+                text dq = barTitle:GetDoubleQuote()
+                alert("I could not find a " + barTitle + " named " + dq + name + dq + " in the chart. Is it spelled and capitalized correctly?")
+            elseif indexAccesses:Get(foundIndex) > 0
+                text dq = barTitle:GetDoubleQuote()
+                alert("The name " + dq + name + dq + " was given twice, but each name must be unique.")
+            else
+                indexAccesses:Set(foundIndex, 1)
+            end
+
+            nameCount = nameCount + 1
+        end
+
+        barGroups = newOrder
+        if GetHorizontalFlag()
+            GetVerticalPanel():SetTextLabels(names)
+        else
+            GetHorizontalPanel():SetTextLabels(names)
+        end
     end
 
     /*
