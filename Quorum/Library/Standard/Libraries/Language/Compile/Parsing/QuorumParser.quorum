@@ -3498,8 +3498,10 @@ class QuorumParser
     end
 
     action Undefined returns UndefinedContext
+        if not IsValid() return undefined end
         UndefinedContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
+        tokenIterator:Next()
         context:SetFirstToken(current)
         context:SetLastToken(current)
         SetLocation(context)
