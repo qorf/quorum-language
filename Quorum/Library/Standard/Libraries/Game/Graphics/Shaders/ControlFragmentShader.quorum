@@ -55,7 +55,7 @@ void main()
     float antiAliasDistance = v_antiAlias;
 
     vec4 borderColor = v_borderColor;
-    bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0;
+    bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0.0;
 
     vec2 point = (v_texCoords.xy - 0.5) * 2.0;
     point.x *= aspectRatio;
