@@ -212,7 +212,7 @@ class CompareGroups is StatisticalTest
                 CompareVariances compare
                 i = 0
                 repeat while i < GetColumnSize()
-                    compare:AddColumn(i)
+                    compare:AddColumn(GetColumn(i))
                     i = i + 1
                 end
                 compare:CompareIndependentVariances(frame)
@@ -756,7 +756,7 @@ class CompareGroups is StatisticalTest
                         CompareVariances compare
                         i = 0
                         repeat while i < GetColumnSize()
-                            compare:AddColumn(i)
+                            compare:AddColumn(GetColumn(i))
                             i = i + 1
                         end
                         compare:CompareIndependentVariances(frame)

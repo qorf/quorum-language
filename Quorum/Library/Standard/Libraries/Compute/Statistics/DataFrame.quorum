@@ -68,6 +68,8 @@ use Libraries.Compute.Statistics.Tests.CompareCounts
 use Libraries.System.Properties
 use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 use Libraries.Compute.Statistics.Tests.CompareRanks
+use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+use Libraries.Compute.Statistics.Tests.CompareDistributions
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2600,6 +2602,40 @@ class DataFrame
         return compare
     end
 
+
+    /*
+        This action uses the selection to conduct a comparison between a column distribution and
+        a normal distribution. 
+        The CompareDistributions object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1  Shapiro-Wilk Normality Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareDistributions compare = frame:CompareSelectedDistributionsToNormal()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedDistributionsToNormal returns CompareDistributions
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareDistributions compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
     /*
         This action uses the selection to conduct a regression.
         The comparison is traditionally called a Regression. The CompareGroups object
@@ -3488,6 +3524,39 @@ class DataFrame
         CrossTab tab
         selection:CopyTo(cast(ColumnInput, tab))
         return Transform(tab)
+    end
+
+    /*
+        The CovarianceMatrixTransform class takes a DataFrame and its selection to decide how to transform it. 
+        Specifically, CovarianceMatrixTransform takes the every pair of two columns in the selection and 
+        computes the covariance placing it into a matrix. The diagonal of that matrix will contain the variance
+        for each column.
+        
+        Attribute: Author Hannah Williams
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+      
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        frame:AddSelectedColumn(3)
+        
+        Matrix covMatrix = frame:CovarianceMatrix()
+        output covMatrix:ToText()
+    */
+    action CovarianceMatrix returns Matrix
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CovarianceMatrixTransform cov
+        selection:CopyTo(cast(ColumnInput, cov))
+        DataFrame frame = Transform(cov)
+        return cov:GetMatrix()
     end
 
     /*

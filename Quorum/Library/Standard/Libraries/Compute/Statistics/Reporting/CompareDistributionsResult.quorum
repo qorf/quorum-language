@@ -1,0 +1,107 @@
+package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+
+/*
+    This class represents data that comes back from CompareIndependentVariances 
+    or CompareDependentVariances in a CompareVariances calculation (levene's or mauchly's test).
+
+    Attribute: Author Hannah Williams
+*/
+class CompareDistributionsResult is StatisticalTestResult
+    /* The factor (if used) for this calculation. */
+    text factor = ""
+
+    /* The columns that were used in this calculation. */
+    Array<DataFrameColumn> samples 
+
+    action SetFactor(text factor)
+        me:factor = factor
+    end
+
+    action GetFactor returns text
+        return factor
+    end
+
+    action SetSamples(Array<DataFrameColumn> samples)
+        me:samples = samples
+    end
+
+    action GetSamples returns Array<DataFrameColumn>
+        return samples
+    end
+
+    /*
+        This action summarizes the result and lists it informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        if samples:GetSize() = 1
+            summary = summary + "A "+ GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader()
+        elseif samples:GetSize() = 2
+            text sample1 = samples:Get(0):GetHeader()
+            text sample2 = samples:Get(1):GetHeader()
+            summary = summary + "A "+ GetFormalTestName() + " was conducted to compare " + sample1 + " and " + sample2 + "."
+        end
+        if GetFactor() not= ""
+            summary = summary + lf + "Factor: " + GetFactor()
+        end
+
+        summary = summary + lf + "Statistic (W): " + GetTestStatistic()
+
+        summary = summary + lf + "Probability: " + GetProbabilityValue()
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in 
+        APA format.
+
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        if samples:GetSize() = 1
+            if GetFactor() = ""
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader() + "."
+            else
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader() + " in " + GetFactor() + "."
+            end
+        elseif samples:GetSize() = 2
+            text sample1 = samples:Get(0):GetHeader()
+            text sample2 = samples:Get(1):GetHeader()
+            summary = summary + "A "+ GetFormalTestName() + " was conducted to compare the distributions of " + sample1 + " and " + sample2 + "."
+        end
+
+        if GetProbabilityValue() <= GetSignificanceLevel()
+            //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
+            summary = summary + lf + "There was significant evidence of non-normality"
+        else
+            //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
+            summary = summary + lf + "There was not significant evidence of non-normality"
+        end
+
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    action GetFormalNumericalResult() returns text
+        text summary = ""
+        summary = summary + "W = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+
+        number p = GetProbabilityValue()
+        if p < GetFormat():PRECISION_LIMIT
+            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+        else
+            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+        end
+        return summary
+    end
+end

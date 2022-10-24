@@ -609,10 +609,9 @@ class EigenDecomposition
        
     action GetEigenvectorInverseMatrix returns Matrix
         if eigenvectorInverseMatrix = undefined
-            eigenvectorInverseMatrix = eigenvectorMatrix//:Inverse()
+            eigenvectorInverseMatrix = eigenvectorMatrix:Inverse()
         end
         return eigenvectorInverseMatrix
-        alert("Inverse is not implemented yet.")
     end
 
     action Symmetric(boolean symmetric)

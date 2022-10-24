@@ -52,6 +52,9 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
         integer i = 0
         repeat while i < GetColumnSize()
             DataFrameColumn column1 = frame:GetColumn(GetColumn(i))
+            if not column1:IsNumberColumn() and not column1:IsIntegerColumn()
+                alert("Columns must be numerical. " + column1:GetHeader() + " is not a numerical column.")
+            end
             rows:Add(column1:GetHeader())
 
             NumberColumn col
@@ -65,6 +68,9 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
                     j = j + 1
                 end
                 DataFrameColumn column2 = frame:GetColumn(GetColumn(j))
+                if not column2:IsNumberColumn() and not column2:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
+                end
 
                 Covariance cov
                 cov:UsePopulation(population)

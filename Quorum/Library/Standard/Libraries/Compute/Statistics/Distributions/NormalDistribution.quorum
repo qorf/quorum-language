@@ -38,6 +38,11 @@ class NormalDistribution is NumberDistribution
         return standardDeviation * standardDeviation
     end
 
+    action Setup(number mean, number standardDeviation)
+        me:mean = mean
+        me:standardDeviation = standardDeviation      
+    end
+
     /*
         For a random variable {@code X} whose values are distributed according
         to this distribution, this method returns P(X <= x). In other
@@ -90,11 +95,9 @@ class NormalDistribution is NumberDistribution
         end
 
         Math math
-        number ret = mean + standardDeviation * math:squareRoot2
-
         ErrorAction act
-        number otherX = 2 * p - 1
-        return ret * act:InverseError(otherX)
+        number qnorm = math:squareRoot2 * act:InverseError(2 * p - 1)
+        return mean + standardDeviation * qnorm
     end
 
     action IsSupportConnected returns boolean
