@@ -90,8 +90,13 @@ class FlowchartArrow is Control
             arrowHead:LoadFilledTriangle(0, 0, arrowThickness, 0, arrowThickness, arrowThickness)
         end
 
-        lines:SetBackgroundColor(GetBackgroundColor())
-        arrowHead:SetColor(GetIconColor())
+        if IsRenderingSelection()
+            lines:SetBackgroundColor(GetSelectionColor())
+            arrowHead:SetColor(GetSelectionColor())
+        else
+            lines:SetBackgroundColor(GetBackgroundColor())
+            arrowHead:SetColor(GetIconColor())
+        end
 
         parent:Control:LoadGraphics(properties)
     end
@@ -120,6 +125,33 @@ class FlowchartArrow is Control
         end
 
         return parent:Control:GetIconColor()
+    end
+
+    action GetSelectionColor returns ColorGroup
+        if HasColorPropertyOverride("selectionColor")
+            return parent:Control:GetSelectionColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowSelectionColor() not= undefined
+            return chart:GetArrowSelectionColor()
+        end
+
+        return parent:Control:GetSelectionColor()
+    end
+
+    action GainedSelection
+        lines:SetBackgroundColor(GetSelectionColor())
+        arrowHead:SetColor(GetSelectionColor())
+
+        parent:Control:GainedSelection()
+    end
+
+    action LostSelection
+        lines:SetBackgroundColor(GetBackgroundColor())
+        arrowHead:SetColor(GetIconColor())
+
+        parent:Control:LostSelection()
     end
 
     action Resize

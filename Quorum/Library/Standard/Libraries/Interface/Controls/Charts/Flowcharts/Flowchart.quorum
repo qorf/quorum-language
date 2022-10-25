@@ -11,9 +11,12 @@ use Libraries.Containers.Array
 class Flowchart is Control
 
     ColorGroup nodeBackgroundColor = undefined
+    ColorGroup nodeSelectionColor = undefined
     ColorGroup nodeBorderColor = undefined
+    ColorGroup nodeSelectionBorderColor = undefined
     ColorGroup arrowColor = undefined
     ColorGroup arrowHeadColor = undefined
+    ColorGroup arrowSelectionColor = undefined
 
     number arrowLineThickness = 5
     number arrowHeadThickness = 30
@@ -152,10 +155,20 @@ class Flowchart is Control
         FlowchartNode node = selection:GetNode()
         FlowchartArrow arrow = selection:GetArrow()
 
+        if oldArrow not= undefined and oldArrow:IsRenderingSelection()
+            oldArrow:LostSelection()
+        end
+
+        if oldNode not= undefined and oldNode:IsRenderingSelection()
+            oldNode:LostSelection()
+        end
+
         if arrow = undefined
+            node:GainedSelection()
             node:Focus()
         else
             arrow:SetNavigationText(oldNode)
+            arrow:GainedSelection()
             arrow:Focus()
         end
     end
@@ -353,6 +366,30 @@ class Flowchart is Control
     */
     action SetArrowHeadColor(ColorGroup arrowHeadColor)
         me:arrowHeadColor = arrowHeadColor
+    end
+
+    action GetNodeSelectionColor returns ColorGroup
+        return nodeSelectionColor
+    end
+
+    action SetNodeSelectionColor(ColorGroup nodeSelectionColor)
+        me:nodeSelectionColor = nodeSelectionColor
+    end
+
+    action GetNodeSelectionBorderColor returns ColorGroup
+        return nodeSelectionBorderColor
+    end
+
+    action SetNodeSelectionBorderColor(ColorGroup nodeSelectionBorderColor)
+        me:nodeSelectionBorderColor = nodeSelectionBorderColor
+    end
+
+    action GetArrowSelectionColor returns ColorGroup
+        return arrowSelectionColor
+    end
+
+    action SetArrowSelectionColor(ColorGroup arrowSelectionColor)
+        me:arrowSelectionColor = arrowSelectionColor
     end
 
 end

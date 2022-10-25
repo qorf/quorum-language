@@ -69,6 +69,32 @@ class FlowchartNode is Control
         return parent:Control:GetBorderColor()
     end
 
+    action GetSelectionColor returns ColorGroup
+        if HasColorPropertyOverride("selectionColor")
+            return parent:Control:GetSelectionColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeSelectionColor() not= undefined
+            return chart:GetNodeSelectionColor()
+        end
+
+        return parent:Control:GetSelectionColor()
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeSelectionBorderColor() not= undefined
+            return chart:GetNodeSelectionBorderColor()
+        end
+
+        return parent:Control:GetSelectionBorderColor()
+    end
+
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()

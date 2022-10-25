@@ -1489,4 +1489,26 @@ end
             end
         end
     end
+
+    action SetBackgroundColor(ColorGroup group)
+        integer i = 0
+        repeat while i < curves:GetSize()
+            BezierCurve curve = curves:Get(i)
+            curve:SetBackgroundColor(group)
+            i = i + 1
+        end
+
+        parent:Control:SetBackgroundColor(group)
+    end
+
+    action SetIconColor(ColorGroup group)
+        integer i = 0
+        repeat while i < curves:GetSize()
+            BezierCurve curve = curves:Get(i)
+            curve:SetIconColor(group)
+            i = i + 1
+        end
+
+        parent:Control:SetIconColor(group)
+    end
 end
