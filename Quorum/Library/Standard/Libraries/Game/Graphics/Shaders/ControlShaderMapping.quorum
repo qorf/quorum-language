@@ -37,7 +37,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
     VertexAttribute borderColorAttribute = undefined
     VertexAttribute arrayIndexAttribute = undefined
     VertexAttribute roundingAttribute = undefined
-    VertexAttribute borderThicknessAttribute = undefined
+    VertexAttribute leftBorderAttribute = undefined
+    VertexAttribute rightBorderAttribute = undefined
+    VertexAttribute bottomBorderAttribute = undefined
+    VertexAttribute topBorderAttribute = undefined
     VertexAttribute aspectRatioAttribute = undefined
     VertexAttribute antiAliasAttribute = undefined
     
@@ -52,12 +55,18 @@ class ControlShaderMapping is BatchingShaderMapping2D
         VertexAttribute dummy
         borderColorAttribute = dummy:CustomColorAttribute("a_borderColor")
         roundingAttribute = dummy:CustomNormalizedVector4Attribute("a_rounding")
-        borderThicknessAttribute = dummy:CustomNormalizedVector4Attribute("a_borderThickness")
+        leftBorderAttribute = dummy:CustomNumberAttribute("a_leftBorder")
+        rightBorderAttribute = dummy:CustomNumberAttribute("a_rightBorder")
+        bottomBorderAttribute = dummy:CustomNumberAttribute("a_bottomBorder")
+        topBorderAttribute = dummy:CustomNumberAttribute("a_topBorder")
         aspectRatioAttribute = dummy:CustomNumberAttribute("a_aspectRatio")
         antiAliasAttribute = dummy:CustomNumberAttribute("a_antiAlias")
         extraAttributes:Add(borderColorAttribute)
         extraAttributes:Add(roundingAttribute)
-        extraAttributes:Add(borderThicknessAttribute)
+        extraAttributes:Add(leftBorderAttribute)
+        extraAttributes:Add(rightBorderAttribute)
+        extraAttributes:Add(bottomBorderAttribute)
+        extraAttributes:Add(topBorderAttribute)
         extraAttributes:Add(aspectRatioAttribute)
         extraAttributes:Add(antiAliasAttribute)
         attributes:SetAttributes(extraAttributes)
@@ -267,7 +276,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
         end
 
         shape:SetDataForAllVertices(roundingAttribute:offset / 4, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
-        shape:SetDataForAllVertices(borderThicknessAttribute:offset / 4, utility:PackNormalizedVector4(leftBorder, topBorder, rightBorder, bottomBorder))
+        shape:SetDataForAllVertices(leftBorderAttribute:offset / 4, leftBorder)
+        shape:SetDataForAllVertices(rightBorderAttribute:offset / 4, rightBorder)
+        shape:SetDataForAllVertices(bottomBorderAttribute:offset / 4, bottomBorder)
+        shape:SetDataForAllVertices(topBorderAttribute:offset / 4, topBorder)
         shape:SetDataForAllVertices(aspectRatioAttribute:offset / 4, aspectRatio)
         shape:SetDataForAllVertices(antiAliasAttribute:offset / 4, 1.0 / height)
     end
