@@ -121,6 +121,10 @@ class CompareGroups is StatisticalTest
     /* Flag to determine if bonferroni correction is applied or not in N-sample tests */
     boolean useBonferroniCorrection = true
 
+    /* Flag to determine if tukey HSD correction is applied or not in N-sample tests */
+    /* This is only applicable in an independent N-sample equal variance test */
+    boolean useTukeyCorrection = true
+
     /* Flag to ensure requested N-sample test is run even if there are only 2 samples */
     private boolean userRequestedNSampleTest = false
 
@@ -173,11 +177,12 @@ class CompareGroups is StatisticalTest
                 If not independent: Use a Repeated Measures Anova   > CompareGroups:CompareNDependentGroups
 
             3. Samples are normally distributed:
-                To test this: Use a Shapiro-Wilk test               > 
+                To test this: Use a Shapiro-Wilk test               > CompareDistributions:CompareDistributionToNormal
                 If not normal: Use a Kruskal-Wallis Test            > CompareRanks:CompareNIndependentRanks
 
             4. Samples have equal variances:
                 To test this: Use a Levene's Test                   > CompareVariances:CompareIndependentVariances
+                If not equal: Use Welch's Anova                     > CompareGroups:EqualVariances(false)
 
         Null hypothesis: The means are equal across all samples.
         Alternative hypothesis: At least one mean is not equal to the others.
@@ -256,7 +261,15 @@ class CompareGroups is StatisticalTest
     
                 // Assumption Testing
                 if testDistributionAssumption
-                    // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)  
+                    // Run a Shapiro-Wilk's CompareDistributions Test
+                    CompareDistributions compare
+                    compare:AddColumn(GetColumn(i))
+                    compare:CompareDistributionToNormal(frame)
+                    if compare:GetProbabilityValue() < GetSignificanceLevel()
+                        normalDistribution = false  // Not normal
+                    else
+                        normalDistribution = true   // Maybe normal
+                    end
                 end
 
                 Summarize summarize
@@ -299,9 +312,9 @@ class CompareGroups is StatisticalTest
                 integer k = GetColumnSize()
                 number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
                 i = 0
-                repeat while i < GetColumnSize()
+                repeat while i < k
                     j = i + 1
-                    repeat while j < GetColumnSize()
+                    repeat while j < k
                         DataFrameColumn left = frame:GetColumn(GetColumn(i))
                         DataFrameColumn right = frame:GetColumn(GetColumn(j))
         
@@ -316,10 +329,20 @@ class CompareGroups is StatisticalTest
         
                         tDistribution:Setup(degreesFreedomWithinGroup)
         
+                        // Used for pooled sd 
                         number error = pooledSD * math:SquareRoot(1.0 / sizeL  + 1.0 / sizeR)
                         number t = (meanL - meanR) / error
                         number newP = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
                         number criticalTValue = t//tDistribution:CriticalValue(GetSignificanceLevel())
+    
+                        if useTukeyCorrection
+                            // Used for tukey hsd 
+                            error = math:SquareRoot(meanSumOfSquaresWithinGroup / math:MinimumOf(sizeL, sizeR))
+                            t = math:AbsoluteValue(meanL - meanR) / error
+
+                            number q = math:AbsoluteValue(meanL - meanR) / error
+                            // qtukey(0.95, nmeans=k, df=degreesFreedomWithinGroup) = critcal value to compare
+                        end
         
                         Compare2GroupsResult pair
                         pair:SetSignificanceLevel(GetSignificanceLevel())
@@ -431,11 +454,12 @@ class CompareGroups is StatisticalTest
                 If not dependent: Use a One-Way Anova               > CompareGroups:CompareNIndependentGroups
 
             3. Samples are normally distributed:
-                To test this: Use a Shapiro-Wilk test               > 
+                To test this: Use a Shapiro-Wilk test               > CompareDistributions:CompareDistributionToNormal
                 If not normal: Use a Friedman Test                  > CompareRanks:CompareNDependentRanks
 
             4. Difference between samples have equal variances:
                 To test this: Use a Mauchly's Test                  > CompareVariances:CompareDependentVariances
+                If not equal: Use Greenhouse-Geisser correction     > CompareGroups:EqualVariances(false)
 
         Null hypothesis: The means are equal across all samples.
         Alternative hypothesis: At least one mean is not equal to the others.
@@ -502,7 +526,15 @@ class CompareGroups is StatisticalTest
 
                 // Assumption Testing
                 if testDistributionAssumption
-                    // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)  
+                    // Run a Shapiro-Wilk's CompareDistributions Test
+                    CompareDistributions compare
+                    compare:AddColumn(GetColumn(i))
+                    compare:CompareDistributionToNormal(frame)
+                    if compare:GetProbabilityValue() < GetSignificanceLevel()
+                        normalDistribution = false  // Not normal
+                    else
+                        normalDistribution = true   // Maybe normal
+                    end
                 end
 
                 Summarize summarize
@@ -611,8 +643,8 @@ class CompareGroups is StatisticalTest
             if testVarianceAssumption
                 // Assumption Testing
                 // If P-value ≤ α, then run a Mauchly's CompareVariances test 
-                // This is not necessary if this test is already not significant with standard f
-                if p <= GetSignificanceLevel()
+                    // This is not necessary if this test is already not significant with standard f
+                    if p <= GetSignificanceLevel()
                     newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
         
                     CompareVariances compare
@@ -690,11 +722,12 @@ class CompareGroups is StatisticalTest
                 If not independent: Use a Paired T-Test             > CompareGroups:Compare2DependentGroups
 
             3. Samples are normally distributed:
-                To test this: Use a Shapiro-Wilk test               > 
+                To test this: Use a Shapiro-Wilk test               > CompareDistributions:CompareDistributionToNormal
                 If not normal: Use a Mann-Whiteney U-Test           > CompareRanks:Compare2IndependentRanks
 
             4. Samples have equal variances:
                 To test this: Use a Levene's Test                   > CompareVariances:CompareIndependentVariances
+                If not equal: Use Welch's T-Test                    > CompareGroups:EqualVariances(false)
 
         Null hypothesis: The two means are equal
         Alternative hypothesis: The two means are not equal
@@ -747,7 +780,15 @@ class CompareGroups is StatisticalTest
 
                     // Assumption Testing
                     if testDistributionAssumption
-                        // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)  
+                        // Run a Shapiro-Wilk's CompareDistributions Test
+                        CompareDistributions compare
+                        compare:AddColumn(GetColumn(i))
+                        compare:CompareDistributionToNormal(frame)
+                        if compare:GetProbabilityValue() < GetSignificanceLevel()
+                            normalDistribution = false  // Not normal
+                        else
+                            normalDistribution = true   // Maybe normal
+                        end
                     end
 
                     // Assumption Testing
@@ -835,7 +876,7 @@ class CompareGroups is StatisticalTest
                 If not dependent: Use a Two-Sample T-Test               > CompareGroups:Compare2IndependentGroups
 
             3. Samples are normally distributed:
-                To test this: Use a Shapiro-Wilk test                   > 
+                To test this: Use a Shapiro-Wilk test                   > CompareDistributions:CompareDistributionToNormal
                 If not normal: Use a Wilcoxon Signed-Ranks Test         > CompareRanks:Compare2DependentRanks
 
         Null hypothesis: The difference mean is equal to given (default 0) mean
@@ -895,7 +936,15 @@ class CompareGroups is StatisticalTest
 
                     // Assumption Testing
                     if testDistributionAssumption
-                        // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)  
+                        // Run a Shapiro-Wilk's CompareDistributions Test
+                        CompareDistributions compare
+                        compare:AddColumn(GetColumn(i))
+                        compare:CompareDistributionToNormal(frame)
+                        if compare:GetProbabilityValue() < GetSignificanceLevel()
+                            normalDistribution = false  // Not normal
+                        else
+                            normalDistribution = true   // Maybe normal
+                        end
                     end
                     
                     NumberColumn numLeft = left:ConvertToNumberColumn()
@@ -951,7 +1000,7 @@ class CompareGroups is StatisticalTest
                 If more than one sample: Use a Paired T-Test        > CompareGroups:Compare2DependentGroups
 
             3. Sample is normally distributed:
-                To test this: Use a Shapiro-Wilk test               > 
+                To test this: Use a Shapiro-Wilk test               > CompareDistributions:CompareDistributionToNormal
                 If not normal: Use a Wilcoxon Signed-Ranks Test     > CompareRanks:CompareRanksToMedian
 
         Null hypothesis: The mean is equal to given (default 0) mean
@@ -998,7 +1047,15 @@ class CompareGroups is StatisticalTest
 
                 // Assumption Testing
                 if testDistributionAssumption
-                    // Check normality of column using IsNormalDistribution (Shapiro-Wilk's Test)  
+                    // Run a Shapiro-Wilk's CompareDistributions Test
+                    CompareDistributions compare
+                    compare:AddColumn(GetColumn(i))
+                    compare:CompareDistributionToNormal(frame)
+                    if compare:GetProbabilityValue() < GetSignificanceLevel()
+                        normalDistribution = false  // Not normal
+                    else
+                        normalDistribution = true   // Maybe normal
+                    end
                 end
     
                 Compare1GroupResult result
@@ -1101,12 +1158,22 @@ class CompareGroups is StatisticalTest
     /* Bonferroni method is the default if another is not selected */
     action CorrectFamilyWiseError(boolean correctFamilyWiseError)
         me:correctFamilyWiseError = correctFamilyWiseError
-        useBonferroniCorrection = correctFamilyWiseError
+        if not useTukeyCorrection
+            useBonferroniCorrection = correctFamilyWiseError
+        end
     end
 
     /* Choose bonferroni method as correction for N-sample pairwise tests */
     action UseBonferroniCorrection
         useBonferroniCorrection = true
+        correctFamilyWiseError = true
+        useTukeyCorrection = false
+    end
+
+    /* Choose tukey method as correction for independent N-sample pairwise tests */
+    action UseTukeyCorrection
+        useTukeyCorrection = true
+        useBonferroniCorrection = false
         correctFamilyWiseError = true
     end
 
