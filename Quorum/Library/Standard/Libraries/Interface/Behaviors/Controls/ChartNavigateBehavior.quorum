@@ -1,4 +1,4 @@
-package Libraries.Interface.Behaviors.Controls
+ package Libraries.Interface.Behaviors.Controls
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
@@ -48,7 +48,7 @@ class ChartNavigateBehavior is Behavior
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
-                if gesture:GetScaleFactor() > 1
+                if gesture:GetScaleFactor() > 1 and gesture:isPinch and gesture:timingCode = gesture:FINISH
                         direction = TAB
                 elseif gesture:eventType = gesture:SINGLE_TAP
                         direction = ENTER

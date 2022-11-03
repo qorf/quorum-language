@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -18,7 +20,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityNodeProvider;
-import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
+
 import quorum.Libraries.Game.AndroidDisplay;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.ApplicationConfiguration_;
@@ -26,11 +28,17 @@ import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.AndroidApplication_;
 import quorum.Libraries.Game.AndroidDisplay_;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import quorum.Libraries.Game.AndroidConfiguration_;
+import quorum.Libraries.Game.Shapes.Rectangle_;
+import quorum.Libraries.Interface.Item2D_;
+import quorum.Libraries.Interface.Item3D_;
+import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.System.File_;
+
+import static android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.*;
 
 /**
  *
@@ -43,7 +51,7 @@ public class AndroidApplication
     
     static final int MINIMUM_SDK = 21;
     
-    private static Activity androidActivity = null;
+    public static Activity androidActivity = null;
     private static boolean initialized = false;
     
     public AndroidApplication_ quorumApp;
@@ -70,7 +78,8 @@ public class AndroidApplication
     public static AccessibilityEvent accessibilityEvent = null;
     public static AccessibilityNodeProvider accessibilityNodeProvider = null;
     public static View viewRoot = null;
-    public static final List<AndroidAccessibility.VirtualView> virtualChildren = new ArrayList<AndroidAccessibility.VirtualView>();
+    public static final Map<Integer, Item_> quorumItems = new HashMap<Integer, Item_>();;
+    public static int screenHeight;
 
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
@@ -149,37 +158,83 @@ public class AndroidApplication
         UseImmersiveMode(this.useImmersiveMode);
 
         viewRoot = androidActivity.getWindow().getDecorView();
-
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        androidActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenHeight = displayMetrics.heightPixels;
         accessibilityNodeProvider = new AccessibilityNodeProvider() {
             @Override
             public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
                 AccessibilityNodeInfo info = null;
                 if (virtualViewId == View.NO_ID) {
-                    // We are requested to create an AccessibilityNodeInfo describing
-                    // this View, i.e. the root of the virtual sub-tree. Note that the
-                    // host View has an AccessibilityNodeProvider which means that this
-                    // provider is responsible for creating the node info for that root.
                     info = AccessibilityNodeInfo.obtain(AndroidApplication.viewRoot);
                     // Add the virtual children of the root View.
-                    List<AndroidAccessibility.VirtualView> children = AndroidApplication.virtualChildren;
-                    final int childCount = children.size();
-                    for (int i = 0; i < childCount; i++) {
-                        AndroidAccessibility.VirtualView child = children.get(i);
-                        info.addChild(AndroidApplication.viewRoot, child.id);
+                    for (Map.Entry<Integer, Item_> set : AndroidApplication.quorumItems.entrySet())
+                    {
+                        Item_ item = set.getValue();
+                        info.addChild(AndroidApplication.viewRoot, item.GetHashCode());
                     }
                 } else {
                     // Find the view that corresponds to the given id.
-                    AndroidAccessibility.VirtualView virtualView = AndroidAccessibility.findVirtualViewById(virtualViewId);
-                    if (virtualView == null) {
+                    Item_ item = quorumItems.get(virtualViewId);
+                    if (item == null) {
                         return null;
                     }
                     // Obtain and initialize an AccessibilityNodeInfo with
                     // information about the virtual view.
                     info = AccessibilityNodeInfo.obtain();
-                    info.setClassName(virtualView.name);
-                    info.setSource(AndroidApplication.viewRoot, virtualViewId);
-                    info.setParent(AndroidApplication.viewRoot);
-                    info.setText(virtualView.description);
+                    info.setPackageName(androidActivity.getPackageName());
+                    info.setClassName(item.GetName());
+                    info.setSource(viewRoot, virtualViewId);
+                    info.setParent(viewRoot);
+                    info.setText(item.GetDescription());
+                    info.addAction(ACTION_SELECT);
+                    info.addAction(ACTION_CLEAR_SELECTION);
+                    info.setFocusable(true);
+                    info.setVisibleToUser(true);
+
+                    Rect bounds;
+                    if (item instanceof Item2D_)
+                    {
+                        double itemX = ((Item2D_)item).GetScreenX();
+                        double itemY = (((Item2D_) item).GetScreenY());
+
+                        if (itemX == Double.NaN)
+                            itemX = 0;
+
+                        if (itemY == Double.NaN)
+                            itemY = 0;
+
+                        int left = (int)itemX;
+                        int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
+                        int right = (int) (itemX + ((Item2D_) item).GetWidth());
+                        int bottom = AndroidApplication.screenHeight - (int)(itemY);
+                        bounds = new Rect(left, top, right, bottom);
+                    }
+                    else if (item instanceof Item3D_)
+                    {
+                        // This is only a place holder, to place a small box roughly at the
+                        // center of a 3D object in the screen. To calculate this correctly,
+                        // check how we calculate mouse input detection for 3D objects.
+
+                        Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+
+                        int left = (int)rectangle.GetX();
+                        int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
+                        int right = (int) (rectangle.GetX() + rectangle.GetWidth());
+                        int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
+                        bounds = new Rect(left, top, right, bottom);
+                    }
+                    else
+                    {
+                        int left = 0;
+                        int top = 0;
+                        int right = 0;
+                        int bottom = 0;
+                        bounds = new Rect(left, top, right, bottom);
+                    }
+
+
+                    info.setBoundsInScreen(bounds);
                 }
                 return info;
             }
