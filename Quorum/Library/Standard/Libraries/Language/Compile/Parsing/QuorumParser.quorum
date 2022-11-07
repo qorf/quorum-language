@@ -630,7 +630,8 @@ class QuorumParser
                     end
                 elseif next:category = constants:GREATER
                     done = true
-                    Token last = tokenIterator:Next()
+                    Token last = tokenIterator:GetCurrent()
+                    tokenIterator:Next()
                     context:SetLastToken(last)
                     SetLocation(context)
                 else //This is a syntax error
@@ -2276,7 +2277,10 @@ class QuorumParser
                 return undefined
             else
                 context:returnType = theReturn:type
-                context:SetLastToken(theReturn:GetLastToken())
+                context:SetLastToken(theReturn:GetFirstToken())
+                Location loc
+                context:returnLocation = loc
+                SetLocationToToken(context:returnLocation, theReturn:GetFirstToken())
             end
         else
             Type type
