@@ -134,6 +134,32 @@ class CompareNGroupsResult is CompareGroupsResult
         me:varianceResult = varianceResult
     end
 
+    /* 
+        This action summarizes the pairwise results if computes and lists them.
+    */
+    action GetPairwiseSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        integer i = 0
+        repeat while i < pairwise:GetSize()
+            CompareGroupsResult pair = pairwise:Get(i)
+            if i = 0
+                summary = summary + "A "+ pair:GetFormalTestName() + " was conducted."
+            end
+            if pair:GetGroups():GetSize() > 1
+                summary = summary + lf + pair:GetGroups():Get(0):GetHeader() + "-" + pair:GetGroups():Get(1):GetHeader()
+                summary = summary + lf + "  Probability: " + pair:GetProbabilityValue()
+                if pair:GetProbabilityValue() <= pair:GetSignificanceLevel()
+                    summary = summary + " ** significant **"
+                end
+            end
+            i = i + 1
+        end
+
+        return summary
+    end
+
     /*
         This action summarizes the result and lists it informally.
     */

@@ -21,6 +21,7 @@ use Libraries.Compute.Statistics.Reporting.Compare2GroupsResult
 use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+use Libraries.Compute.Statistics.Distributions.StudentizedRangeDistribution
 
 /*
     This class implements several parametric tests:
@@ -88,6 +89,9 @@ class CompareGroups is StatisticalTest
     /* The distribution used to calculate the p-value in 2-sample tests.*/
     HeavyTailNormalDistribution tDistribution
 
+    /* The distribution used to calculate the p-value in N-sample tukey correction tests.*/
+    StudentizedRangeDistribution qDistribution
+
     /* This stores a hash of all of the results. */
     HashTable<text, CompareGroupsResult> results            
 
@@ -98,7 +102,7 @@ class CompareGroups is StatisticalTest
     boolean repeatedMeasures = false
 
     /* Flag if calculations are to assume variances are equal or not */
-    boolean assumeEqualVariances = false
+    boolean assumeEqualVariances = true
 
     /* Flag if variances are found to be equal or not */
     boolean equalVariances = false
@@ -122,8 +126,11 @@ class CompareGroups is StatisticalTest
     boolean useBonferroniCorrection = true
 
     /* Flag to determine if tukey HSD correction is applied or not in N-sample tests */
-    /* This is only applicable in an independent N-sample equal variance test */
-    boolean useTukeyCorrection = true
+    /* This is only applicable in an independent N-sample test */
+    boolean useTukeyCorrection = false
+
+    /* Flag for user to force the pairwise computations to take place when applicable */
+    boolean mustCalculatePairwise = false
 
     /* Flag to ensure requested N-sample test is run even if there are only 2 samples */
     private boolean userRequestedNSampleTest = false
@@ -182,7 +189,7 @@ class CompareGroups is StatisticalTest
 
             4. Samples have equal variances:
                 To test this: Use a Levene's Test                   > CompareVariances:CompareIndependentVariances
-                If not equal: Use Welch's Anova                     > CompareGroups:EqualVariances(false)
+                If not equal: Use Welch's Anova                     > CompareGroups:AssumeEqualVariances(false)
 
         Null hypothesis: The means are equal across all samples.
         Alternative hypothesis: At least one mean is not equal to the others.
@@ -303,74 +310,13 @@ class CompareGroups is StatisticalTest
                 number f = meanSumOfSquaresBetweenGroup / meanSumOfSquaresWithinGroup        
                 fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomWithinGroup)
                 number p = 1.0 - fDistribution:CumulativeDistribution(f)
-                number criticalFValue = f //fDistribution:CriticalValue(GetSignificanceLevel())
+                number criticalFValue = f //fDistribution:InverseCumulativeDistribution(GetSignificanceLevel())
                 number pooledSD = math:SquareRoot(meanSumOfSquaresWithinGroup)
         
-                Array<CompareGroupsResult> pairwise
-                //Now calculate a pairwise t-test with pooled standard deviations
-                //and do a family-wise correction.
-                integer k = GetColumnSize()
-                number numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
-                i = 0
-                repeat while i < k
-                    j = i + 1
-                    repeat while j < k
-                        DataFrameColumn left = frame:GetColumn(GetColumn(i))
-                        DataFrameColumn right = frame:GetColumn(GetColumn(j))
-        
-                        Summarize summaryL = summaries:Get(i)
-                        Summarize summaryR = summaries:Get(j)
-        
-                        number meanL = summaryL:GetMean()
-                        number meanR = summaryR:GetMean()
-        
-                        number sizeL = left:GetSize()
-                        number sizeR = right:GetSize()
-        
-                        tDistribution:Setup(degreesFreedomWithinGroup)
-        
-                        // Used for pooled sd 
-                        number error = pooledSD * math:SquareRoot(1.0 / sizeL  + 1.0 / sizeR)
-                        number t = (meanL - meanR) / error
-                        number newP = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
-                        number criticalTValue = t//tDistribution:CriticalValue(GetSignificanceLevel())
-    
-                        if useTukeyCorrection
-                            // Used for tukey hsd 
-                            error = math:SquareRoot(meanSumOfSquaresWithinGroup / math:MinimumOf(sizeL, sizeR))
-                            t = math:AbsoluteValue(meanL - meanR) / error
-
-                            number q = math:AbsoluteValue(meanL - meanR) / error
-                            // qtukey(0.95, nmeans=k, df=degreesFreedomWithinGroup) = critcal value to compare
-                        end
-        
-                        Compare2GroupsResult pair
-                        pair:SetSignificanceLevel(GetSignificanceLevel())
-                        pair:SetFormat(GetStatisticalFormatting())
-                        pair:SetCriticalValue(criticalTValue)
-                        pair:SetTestStatistic(t)
-                        pair:SetDegreesOfFreedom(degreesFreedomWithinGroup)
-                        pair:SetGroups(left, right)
-                        
-                        // Apply family-wise correction
-                        if correctFamilyWiseError
-                            number corrected = newP
-                            if useBonferroniCorrection
-                                corrected = corrected * numberOfTestsPerformed
-                            end
-                            if corrected > 1
-                                corrected = 1
-                            end
-                            pair:SetFormalTestName("Pairwise T-test with Pooled SD and Bonferroni Correction")
-                            pair:SetProbabilityValue(corrected)
-                        else
-                            pair:SetFormalTestName("Pairwise T-test with Pooled SD and no family-wise error correction")
-                            pair:SetProbabilityValue(newP)
-                        end
-                        pairwise:Add(pair)
-                        j = j + 1
-                    end
-                    i = i + 1
+                // Only necessary to calculate pairwise if the anova null hypothesis has failed or if requested
+                Array<CompareGroupsResult> pairwise 
+                if p <= GetSignificanceLevel() or mustCalculatePairwise
+                    pairwise = ComputePairwiseTests(frame, summaries, pooledSD, degreesFreedomWithinGroup)
                 end
 
                 result:SetSumOfSquaresBetweenGroups(sumOfSquaresBetweenGroup)
@@ -416,6 +362,12 @@ class CompareGroups is StatisticalTest
                 number p = 1.0 - fDistribution:CumulativeDistribution(f)
                 number criticalFValue = f //fDistribution:CriticalValue(GetSignificanceLevel())
                 number omega_squared = (numeratorDegreesOfFreedom * (f - 1)) / (numeratorDegreesOfFreedom * (f - 1) + totalSize)
+        
+                // Only necessary to calculate pairwise if the anova null hypothesis has failed or if requested
+                Array<CompareGroupsResult> pairwise 
+                if p <= GetSignificanceLevel() or mustCalculatePairwise
+                    pairwise = ComputePairwiseTests(frame, summaries, 0/*non-pooled*/, denominatorDegreesOfFreedom)
+                end
 
                 result:SetDegreesOfFreedomBetweenGroups(numeratorDegreesOfFreedom)
                 result:SetDegreesOfFreedomWithinGroups(denominatorDegreesOfFreedom)
@@ -424,6 +376,7 @@ class CompareGroups is StatisticalTest
                 result:SetProbabilityValue(p)
                 result:SetEffectSize(omega_squared)
                 result:SetEffectSizeName("Omega-Squared")
+                result:SetPairwiseResults(pairwise)
                 result:SetFormalTestName("Welch's One-Way Analysis of Variance")
             end
 
@@ -442,6 +395,112 @@ class CompareGroups is StatisticalTest
         end
     end
 
+    /*
+        This action is a helper action to CompareNIndependentGroups to compute the pairwise results.
+    */
+    private action ComputePairwiseTests(DataFrame frame, Array<Summarize> summaries, number pooledSD, number degreesOfFreedom) returns Array<CompareGroupsResult>
+        Array<CompareGroupsResult> pairwise
+        integer k = GetColumnSize()
+        number numberOfTestsPerformed = 0
+        if useBonferroniCorrection
+            numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+        end
+
+        i = 0
+        repeat while i < k
+            j = i + 1
+            repeat while j < k
+                DataFrameColumn left = frame:GetColumn(GetColumn(i))
+                DataFrameColumn right = frame:GetColumn(GetColumn(j))
+
+                Summarize summaryL = summaries:Get(i)
+                Summarize summaryR = summaries:Get(j)
+
+                number meanL = summaryL:GetMean()
+                number meanR = summaryR:GetMean()
+                number varL = summaryL:GetVariance()
+                number varR = summaryR:GetVariance()
+
+                number sizeL = left:GetSize()
+                number sizeR = right:GetSize()
+
+                Compare2GroupsResult pair
+                pair:SetSignificanceLevel(GetSignificanceLevel())
+                pair:SetFormat(GetStatisticalFormatting())
+                pair:SetGroups(left, right)
+                pair:SetDegreesOfFreedom(degreesOfFreedom)
+
+                number t = 0
+                number p = 0
+                if useBonferroniCorrection
+                    tDistribution:Setup(degreesOfFreedom)
+                    if equalVariances or assumeEqualVariances 
+                        // Use pooled SD 
+                        number error = pooledSD * math:SquareRoot(1.0 / sizeL + 1.0 / sizeR)
+                        t = (meanL - meanR) / error
+                        pair:SetFormalTestName("Pairwise T-test with pooled SD and Bonferroni Correction")
+                    else
+                        number error = math:SquareRoot(varL / sizeL + varR / sizeR)
+                        t = (meanL - meanR) / error
+                        pair:SetFormalTestName("Pairwise T-test with non-pooled SD and Bonferroni Correction")
+                    end
+                    p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                    p = p * numberOfTestsPerformed 
+                    if p > 1
+                        p = 1
+                    end       
+                elseif useTukeyCorrection
+                    if equalVariances or assumeEqualVariances
+                        // Tukey HSD - use pooled SD 
+                        number error = pooledSD * math:SquareRoot((1.0 / sizeL + 1.0 / sizeR) / 2.0)
+                        number q = math:AbsoluteValue(meanL - meanR) / error
+                        qDistribution:Setup(k, degreesOfFreedom)
+                        p = (1 - qDistribution:CumulativeDistribution(q))
+                        if p > 1
+                            p = 1
+                        end 
+                        t = q
+                        pair:SetFormalTestName("Multiple Comparisons Tukey Post Hoc Analysis")
+                    else
+                        // Games-Howell - uses Welch's correction as degreesOfFreedom 
+                        number error = math:SquareRoot((varL / sizeL + varR / sizeR))
+                        number q = math:AbsoluteValue(meanL - meanR) / error
+                        qDistribution:Setup(k, degreesOfFreedom)
+                        p = (1 - qDistribution:CumulativeDistribution(q * math:SquareRoot(2)))
+                        if p > 1
+                            p = 1
+                        end 
+                        t = q
+                        pair:SetFormalTestName("Multiple Comparisons Games-Howell Post Hoc Analysis")       
+                    end
+                else
+                    tDistribution:Setup(degreesOfFreedom)
+                    if equalVariances or assumeEqualVariances
+                        // Use pooled SD 
+                        number error = pooledSD * math:SquareRoot(1.0 / sizeL + 1.0 / sizeR)
+                        t = (meanL - meanR) / error
+                        pair:SetFormalTestName("Pairwise T-test with pooled SD and no family-wise error correction")
+                    else
+                        number error = math:SquareRoot(varL / sizeL + varR / sizeR)
+                        t = (meanL - meanR) / error
+                        pair:SetFormalTestName("Pairwise T-test with non-pooled SD and no family-wise error correction")
+                    end
+                    p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                    if p > 1
+                        p = 1
+                    end 
+                end
+                pair:SetCriticalValue(t)
+                pair:SetTestStatistic(t)
+                pair:SetProbabilityValue(p)
+                pairwise:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return pairwise
+    end 
+
     /* 
         One-way repeated measures analysis of variance (ANOVA) for 3 or more dependent groups.
         This action assumes each row in the data set is an individual subject and calculates  
@@ -459,7 +518,7 @@ class CompareGroups is StatisticalTest
 
             4. Difference between samples have equal variances:
                 To test this: Use a Mauchly's Test                  > CompareVariances:CompareDependentVariances
-                If not equal: Use Greenhouse-Geisser correction     > CompareGroups:EqualVariances(false)
+                If not equal: Use Greenhouse-Geisser correction     > CompareGroups:AssumeEqualVariances(false)
 
         Null hypothesis: The means are equal across all samples.
         Alternative hypothesis: At least one mean is not equal to the others.
@@ -727,7 +786,7 @@ class CompareGroups is StatisticalTest
 
             4. Samples have equal variances:
                 To test this: Use a Levene's Test                   > CompareVariances:CompareIndependentVariances
-                If not equal: Use Welch's T-Test                    > CompareGroups:EqualVariances(false)
+                If not equal: Use Welch's T-Test                    > CompareGroups:AssumeEqualVariances(false)
 
         Null hypothesis: The two means are equal
         Alternative hypothesis: The two means are not equal
@@ -1125,9 +1184,11 @@ class CompareGroups is StatisticalTest
     end
 
     /* Used in 2-sample and N-sample tests */
-    action AssumeEqualVariances
-        assumeEqualVariances = true
-        testVarianceAssumption = false
+    action AssumeEqualVariances(boolean assume)
+        assumeEqualVariances = assume
+        if assume
+            testVarianceAssumption = false
+        end
     end
 
     /* Used in 2-sample and N-sample tests */
@@ -1137,9 +1198,11 @@ class CompareGroups is StatisticalTest
     end
 
     /* Used in 1-sample, 2-sample, and N-sample tests */
-    action AssumeNormalDistribution
+    action AssumeNormalDistribution(boolean assume)
         assumeNormalDistribution = true
-        testDistributionAssumption = false
+        if assume
+            testDistributionAssumption = false
+        end
     end
 
     /* Used in 1-sample, 2-sample, and N-sample tests */
@@ -1175,6 +1238,12 @@ class CompareGroups is StatisticalTest
         useTukeyCorrection = true
         useBonferroniCorrection = false
         correctFamilyWiseError = true
+    end
+
+    /* Force calculation of pairwise results in N-sample tests. */
+    /* By default, these are only calculated if the null hypothesis of the test is failed */
+    action MustCalculatePairwiseTests(boolean mustCalculatePairwise)
+        me:mustCalculatePairwise = mustCalculatePairwise
     end
 
     /*

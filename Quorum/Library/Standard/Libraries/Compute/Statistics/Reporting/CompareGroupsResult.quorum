@@ -72,6 +72,13 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
 
     end
 
+    /* 
+        Used in CompareNGroupsResult to list pairwise results 
+    */
+    action GetPairwiseSummary returns text
+        return ""
+    end
+
     /*
         This action summarizes the result and lists it informally.
     */
