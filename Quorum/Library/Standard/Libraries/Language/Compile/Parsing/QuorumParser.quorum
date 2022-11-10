@@ -2017,6 +2017,9 @@ class QuorumParser
         end
         next = tokenIterator:GetCurrent()
         if next:category = constants:ELSE
+            Location elseLoc
+            SetLocationToToken(elseLoc, next)
+            context:elseLocation = elseLoc
             next = tokenIterator:Next()
             BlockContext block = Block()
             elseBlock = block

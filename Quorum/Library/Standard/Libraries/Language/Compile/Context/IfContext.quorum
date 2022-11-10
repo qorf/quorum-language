@@ -1,12 +1,14 @@
 package Libraries.Language.Compile.Context
 use Libraries.Containers.Array
 use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Location
 
 class IfContext is ParseContext
     public BlockContext ifBlock = undefined
     public ParseContext ifExpression = undefined
     public Array<BlockContext> elseIfBlocks = undefined
     public Array<ParseContext> elseIfExpressions = undefined
+    public Location elseLocation = undefined
     public BlockContext elseBlock = undefined
 
     action Traverse(QuorumSourceListener listener)
