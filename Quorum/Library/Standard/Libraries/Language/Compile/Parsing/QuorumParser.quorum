@@ -1874,6 +1874,7 @@ class QuorumParser
 
         if next not= undefined and next:category = constants:ID
             context:name = next:value
+            SetLocationToToken(context:nameLocation, next)
             next = tokenIterator:Next()
         else //an error
             SendDefaultError("Expected 'detect'. " + moreInformationIdentifier, codes:PARSER_DETECT_STATEMENT_BAD_ID)
