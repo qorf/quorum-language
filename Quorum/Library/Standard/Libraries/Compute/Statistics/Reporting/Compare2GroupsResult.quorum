@@ -1,126 +1,58 @@
 package Libraries.Compute.Statistics.Reporting
 
 use Libraries.Compute.Math
-use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Statistics.Calculations.Mean
-use Libraries.Compute.Statistics.Calculations.Variance
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
 
 /*
-    This class represents data that comes back from a two sample t-test 
-    in CompareGroups.
+    This class represents data that comes back from a two-sample test 
+    in CompareGroups:
+        Compare2DependentGroups 
+        Compare2IndependentGroups
+        Compare2DependentRankedGroups 
+        Compare2IndependentRankedGroups
 
     Attribute: Author Hannah Williams
 */
 class Compare2GroupsResult is CompareGroupsResult
-    DataFrameColumn group1 = undefined
-    DataFrameColumn group2 = undefined
-    number group1Variance = 0
-    number group2Variance = 0
-    number group1Mean = 0
-    number group2Mean = 0
+    Math math
+    /* Saved result for normal distribution tests (if conducted) */
+    Array<CompareDistributionsResult> distributionResults = undefined
+
+    /* Saved result for equal variance test (if conducted) */
+    CompareVariancesResult varianceResult = undefined
+
+    /* Mean of the difference between two groups. Used in paired tests */
     number differenceMean = 0
+
+    /* Mean of the difference between two groups. Used in paired tests */
+    number differenceMedian = 0
+
+    /* Variance of the difference between two groups. Used in paired tests */
     number differenceVariance = 0
+
+    /* User determined mean to compare in paired tests. */
     number userMean = 0
-    boolean paired = false
-    boolean equalVariances = false
+
+    /* User determined mean to compare in paired tests. */
+    number userMedian = 0
 
     action SetGroups(DataFrameColumn group1, DataFrameColumn group2)
-        me:group1 = group1
-        if group1 not= undefined
-            Mean mean
-            group1:Calculate(mean)
-            group1Mean = mean:GetMean()
-
-            Variance variance
-            variance:SetMean(group1Mean)
-            group1:Calculate(variance)
-            group1Variance = variance:GetVariance()
-        else
-            group1Mean = 0
-            group1Variance = 0
-        end
-
-        me:group2 = group2
-        if group2 not= undefined
-            Mean mean
-            group2:Calculate(mean)
-            group2Mean = mean:GetMean()
-
-            Variance variance
-            variance:SetMean(group2Mean)
-            group2:Calculate(variance)
-            group2Variance = variance:GetVariance()
-        else
-            group2Mean = 0
-            group2Variance = 0
-        end
-
         Array<DataFrameColumn> groups
         groups:Add(group1)
         groups:Add(group2)
         SetGroups(groups)
     end
 
-    /*
-        Returns the mean of the first column.
-    */
-    action GetMean1 returns number
-        return group1Mean
-    end
-
-    /*
-        Sets the mean of the first column.
-    */
-    action SetMean1(number mean)
-        group1Mean = mean
-    end
-
-    /*
-        Returns the mean of the second column.
-    */
-    action GetMean2 returns number
-        return group2Mean
-    end
-
-    /*
-        Sets the mean of the second column.
-    */
-    action SetMean2(number mean)
-        group2Mean = mean
-    end
-
-    /*
-        Returns the variance of the first column.
-    */
-    action GetVariance1 returns number
-        return group1Variance
-    end
-
-    /*
-        Sets the variance of the first column.
-    */
-    action SetVariance1(number variance)
-        group1Variance = variance
-    end
-
-    /*
-        Returns the variance of the second column.
-    */
-    action GetVariance2 returns number
-        return group2Variance
-    end
-
-    /*
-        Sets the variance of the second column.
-    */
-    action SetVariance2(number variance)
-        group2Variance = variance
-    end
-
     /* Used for paired tests */
     action SetDifferenceMean(number differenceMean)
         me:differenceMean = differenceMean
+    end
+
+    /* Used for paired tests */
+    action SetDifferenceMedian(number differenceMedian)
+        me:differenceMedian = differenceMedian
     end
 
     action SetDifferenceVariance(number differenceVariance)
@@ -131,100 +63,233 @@ class Compare2GroupsResult is CompareGroupsResult
         me:userMean = userMean
     end
 
-    action Paired(boolean paired)
-        me:paired = paired
+    action GetUserMean returns number
+        return userMean
     end
 
-    action EqualVariances(boolean equalVariances)
-        me:equalVariances = equalVariances
+    action SetUserMedian(number userMedian)
+        me:userMedian = userMedian
+    end
+
+    action GetUserMedian returns number
+        return userMedian
+    end
+
+    // Saved result for equal variance test (if conducted)
+    action GetVarianceResult returns CompareVariancesResult
+        return varianceResult
+    end
+
+    action SetVarianceResult(CompareVariancesResult varianceResult)
+        me:varianceResult = varianceResult
+    end
+
+    // Saved results for normal distribution test (if conducted)
+    action GetDistributionResults returns Array<CompareDistributionsResult>
+        return distributionResults
+    end
+
+    action SetDistributionResults(Array<CompareDistributionsResult> distributionResults)
+        me:distributionResults = distributionResults
+    end
+
+    action GetNullHypothesis returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            if Paired()
+                return "The paired difference mean is equal to the proposed mean"
+            else
+                return "The two means are equal"
+            end
+        end
+        return ""
+    end
+
+    private action GetRankedNullHypothesis returns text
+        if Paired()
+            return "The paired difference median is equal to the proposed median"
+        else
+            return "The two medians are equal"
+        end
+    end
+
+    action GetAlternativeHypothesis returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            if Paired()
+                return "The difference mean is different from the proposed mean"
+            else
+                return "The two means are different"
+            end
+        end
+        return ""
+    end
+
+    private action GetRankedAlternativeHypothesis returns text
+        if Paired()
+            return "The paired difference median is different from the proposed median"
+        else
+            return "The two medians are different"
+        end
     end
 
     /*
         This action summarizes the result and lists it informally.
     */
     action GetSummary returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedSummary()
+            end
+            integer digits = GetFormat():GetSignificantDigits()
+
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            Summarize summary1 = GetGroupSummary(GetGroups():Get(0))
+            Summarize summary2 = GetGroupSummary(GetGroups():Get(1))
+    
+            text dependence = ""
+            if Paired()
+                dependence = "dependent"
+            else
+                dependence = "independent"
+            end
+
+            summary = summary + "A "+ GetFormalTestName() + " was conducted on two "+dependence+" samples"
+            if GetFactor() not= ""
+                summary = summary + lf + "Factor: " + GetFactor()
+            end
+       
+            text sample1 = GetGroups():Get(0):GetHeader()
+            text sample2 = GetGroups():Get(1):GetHeader()
+
+            summary = summary + lf + "Samples: " + sample1 + " and " + sample2
+
+            summary = summary + lf + "Mean of " + sample1 + ": " + math:Round(summary1:GetMean(), digits)
+        
+            summary = summary + lf + "Mean of " + sample2 + ": " + math:Round(summary2:GetMean(), digits)
+
+            if Paired()
+                summary = summary + lf + "Paired Difference Mean: " + math:Round(differenceMean, digits)
+
+                summary = summary + lf + "Proposed Mean: " + math:Round(userMean, digits)
+            end
+
+            summary = summary + lf + "Statistic (t): " + math:Round(GetTestStatistic(), digits)
+    
+            summary = summary + lf + "Degrees Of Freedom: " + math:Round(GetDegreesOfFreedom(), digits)
+    
+            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+    
+            if GetEffectSizeName() not= ""
+                summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+            end
+
+            if IsSignificant()
+                summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
+            else
+                summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
+            end
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        integer digits = GetFormat():GetSignificantDigits()
+
+        Summarize summary1 = GetGroupSummary(GetGroups():Get(0))
+        Summarize summary2 = GetGroupSummary(GetGroups():Get(1))
+
         text dependence = ""
-        if paired
+        if Paired()
             dependence = "dependent"
         else
             dependence = "independent"
         end
 
-        summary = summary + "A "+ GetFormalTestName() + " was conducted on two "+dependence+" samples."
+        summary = summary + "A " + GetFormalTestName() + " was conducted to compare two " + dependence + " samples"
         if GetFactor() not= ""
             summary = summary + lf + "Factor: " + GetFactor()
         end
        
-        text sample1 = ""
-        text sample2 = ""
-        if GetGroups():GetSize() > 1
-            sample1 = GetGroups():Get(0):GetHeader()
-            sample2 = GetGroups():Get(1):GetHeader()
-            summary = summary + lf + "Samples: " + sample1 + " and " + sample2
+        text sample1 = GetGroups():Get(0):GetHeader()
+        text sample2 = GetGroups():Get(1):GetHeader()
+        summary = summary + lf + "Samples: " + sample1 + " and " + sample2
 
-            summary = summary + lf + "Mean of " + sample1 + ": " + GetMean1()
-        
-            summary = summary + lf + "Mean of " + sample2 + ": " + GetMean2()
+        summary = summary + lf + "Median of " + sample1 + ": " + math:Round(summary1:GetMedian(), digits)
+    
+        summary = summary + lf + "Median of " + sample2 + ": " + math:Round(summary2:GetMedian(), digits)
 
-            if paired
-                summary = summary + lf + "Mean of differences: " + differenceMean
-            end
+        if Paired()
+            summary = summary + lf + "Median of differences: " + math:Round(differenceMedian, digits)
+
+            summary = summary + lf + "Proposed Median: " + math:Round(userMedian, digits)
+
+            summary = summary + lf + "Statistic (Z): " + math:Round(GetTestStatistic(), digits)
+        else
+            summary = summary + lf + "Statistic (U): " + math:Round(GetTestStatistic(), digits)
         end
 
-        summary = summary + lf + "Statistic (t): " + GetTestStatistic()
+        summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
 
-        summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
+        summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
 
-        summary = summary + lf + "Probability: " + GetProbabilityValue()
-
-        if GetEffectSizeName() not= ""
-            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + GetEffectSize()
+        if IsSignificant()
+            summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
+        else
+            summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
         end
-
         return summary
     end
 
     /*
-        This action summarizes the result and places it into formal academic language, in 
-        APA format.
-
+        This action summarizes the result and places it into formal academic language, in APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
     action GetFormalSummary returns text
-        text summary = ""
-        text lf = summary:GetLineFeed()
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedFormalSummary()
+            end
 
-        Math math
-        text m1 = GetFormat():FormatTestStatistic(GetMean1())
-        text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance1()))
-        text m2 = GetFormat():FormatTestStatistic(GetMean2())
-        text sd2 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance2()))
-        text diffM = GetFormat():FormatTestStatistic(differenceMean)
-        text diffSD = GetFormat():FormatTestStatistic(math:SquareRoot(differenceVariance))
-        text userM = GetFormat():FormatTestStatistic(userMean)
-        text dependence = ""
-        if paired
-            dependence = "dependent"
-        else
-            dependence = "independent"
-        end
-
-        if GetGroups():GetSize() > 1 
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            Summarize summary1 = GetGroupSummary(GetGroups():Get(0))
+            Summarize summary2 = GetGroupSummary(GetGroups():Get(1))
+            text m1 = GetFormat():FormatTestStatistic(summary1:GetMean())
+            text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(summary1:GetVariance()))
+            text m2 = GetFormat():FormatTestStatistic(summary2:GetMean())
+            text sd2 = GetFormat():FormatTestStatistic(math:SquareRoot(summary2:GetVariance()))         
+            text diffM = GetFormat():FormatTestStatistic(differenceMean)
+            text diffSD = GetFormat():FormatTestStatistic(math:SquareRoot(differenceVariance))
+            text userM = GetFormat():FormatTestStatistic(userMean)
+            text dependence = ""
+            if Paired()
+                dependence = "dependent"
+            else
+                dependence = "independent"
+            end
+    
             text sample1 = GetGroups():Get(0):GetHeader()
             text sample2 = GetGroups():Get(1):GetHeader()
-            if not paired
+            if not Paired()
                 if GetFactor() = ""
                     summary = summary + "A " + GetFormalTestName() + " was conducted to compare two "+dependence+" samples " + sample1 + " and " + sample2 + "."
                 else
                     summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " to compare two "+dependence+" samples " + sample1 + " and " + sample2 + "."
                 end
 
-                if GetMean1() > GetMean2()
+                if summary1:GetMean() > summary2:GetMean()
                     summary = summary + lf + sample1 + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
                         + sample2 + " (M = " + m2 + ", SD = " + sd2 + ")"
-                elseif GetMean1() < GetMean2()
+                elseif summary1:GetMean() < summary2:GetMean()
                     summary = summary + lf + sample2 + " had a higher overall mean (M = " + m2 + ", SD = " + sd2 + ") compared to "
                         + sample1 + " (M = " + m1 + ", SD = " + sd1 + ")"
                 else
@@ -256,24 +321,120 @@ class Compare2GroupsResult is CompareGroupsResult
             else
                 summary = summary + lf + "The difference was indicated not to be statistically significant"
             end
+            summary = summary + ", " + GetFormalNumericalResult() + "."
+    
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        Summarize summary1 = GetGroupSummary(GetGroups():Get(0))
+        Summarize summary2 = GetGroupSummary(GetGroups():Get(1))
+        number sample1Median = summary1:GetMedian()
+        number sample2Median = summary2:GetMedian()
+        text m1 = GetFormat():FormatTestStatistic(sample1Median)
+        text m2 = GetFormat():FormatTestStatistic(sample2Median)        
+        text diffM = GetFormat():FormatTestStatistic(differenceMedian)
+        text userM = GetFormat():FormatTestStatistic(userMedian)
+        text dependence = ""
+        if Paired()
+            dependence = "dependent"
+        else
+            dependence = "independent"
         end
 
-        summary = summary + ", " + GetFormalNumericalResult() + "."
+        text sample1 = GetGroups():Get(0):GetHeader()
+        text sample2 = GetGroups():Get(1):GetHeader()
+        if GetFactor() = ""
+            summary = summary + "A " + GetFormalTestName() + " was conducted to compare two " + dependence 
+                                + " samples, " + sample1 + " and " + sample2 + "."
+        else
+            summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() 
+                                + " to compare two "+dependence+" samples, " + sample1 + " and " + sample2 + "."
+        end
 
+        if sample1Median > sample2Median
+            summary = summary + lf + sample1 + " had a higher overall median (Mdn = " + m1 + ") compared to "
+                + sample2 + " (Mdn = " + m2 +")"
+        elseif sample1Median < sample2Median
+            summary = summary + lf + sample2 + " had a higher overall median (Mdn = " + m2 + ") compared to "
+                + sample1 + " (Mdn = " + m1 + ")"
+        else
+                summary = summary + lf + sample1 + " had an equal median (Mdn = " + m1 + ") compared to "
+                + sample2 + " (Mdn = " + m2 + ")"               
+        end
+        if GetProbabilityValue() <= GetSignificanceLevel()
+            summary = summary + lf + "The difference was indicated to be statistically significant"
+        else
+            summary = summary + lf + "The difference was indicated not to be statistically significant"
+        end
+        summary = summary + ", " + GetFormalNumericalResult() + "."
         return summary
     end
 
+    /*
+        This action returns the formal numrical result in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        Compare2DependentGroups (A Paired T-Test)
+        Numerical result format: t(degress of freedom) = t-statistic, p = probability-value, d = effect-size
+        Example:
+            t(1337) = 40.08, p < .001, d = 1.1
+   
+        Compare2IndependentGroups (A Two-Sample T-Test)
+        Numerical result format: t(degress of freedom) = t-statistic, p = probability-value, d = effect-size
+        Example:
+            t(2674) = -39.99, p < .001, d = -1.55
+
+        Compare2DependentRankedGroups (A Wilcoxon Signed-Ranks Test)
+        Numerical result format: Z = z-score, p = probability-value, r = effect-size
+        Example:
+            Z = 31.68, p < .001, r = .87
+   
+        Compare2IndependentRankedGroups (A Mann-Whitney U-Test)
+        Numerical result format: U(sample1-size, sample2-size) = u-statistic, p = probability-value, r = effect-size
+        Example:
+            U(n1 = 1338, n2 = 1338) = 592901, p < .001, r = .29
+    */
     action GetFormalNumericalResult() returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedFormalNumericalResult()
+            end
+            text summary = ""
+            summary = summary + "t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+            number p = GetProbabilityValue()
+            if p < GetFormat():PRECISION_LIMIT
+                summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+            else
+                summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+            end
+            summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize())
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalNumericalResult returns text
         text summary = ""
-        summary = summary + "t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        if Paired()
+            summary = summary + "Z = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        else
+            summary = summary + "U(n1 = " + cast(integer, GetGroups():Get(0):GetSize())
+                                + ", n2 = " + cast(integer, GetGroups():Get(1):GetSize())
+                                + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        end
         number p = GetProbabilityValue()
         if p < GetFormat():PRECISION_LIMIT
             summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize())
-
+        summary = summary + ", r = " + GetFormat():FormatCorrelation(GetEffectSize())
         return summary
     end
 end

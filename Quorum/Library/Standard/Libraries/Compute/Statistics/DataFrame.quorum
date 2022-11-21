@@ -12,7 +12,6 @@ use Libraries.Compute.Matrix
 use Libraries.Compute.Statistics.Tests.CompareGroups
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Tests.CorrelateGroups
-use Libraries.Compute.Statistics.Tests.CorrelateRanks
 use Libraries.Compute.Statistics.Tests.CompareVariances
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Compute.Statistics.Inputs.FactorInput
@@ -67,7 +66,6 @@ use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
 use Libraries.Compute.Statistics.Tests.CompareCounts
 use Libraries.System.Properties
 use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
-use Libraries.Compute.Statistics.Tests.CompareRanks
 use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Statistics.Tests.CompareDistributions
 
@@ -2364,7 +2362,7 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between two or more ranked columns. 
-        The CompareRanks object returned gives information back in several formats, 
+        The CompareGroups object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
         
         This action runs a test based on how many columns are selected:
@@ -2376,29 +2374,30 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareRanks
+        use Libraries.Compute.Statistics.Tests.CompareGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareRanks compare = CompareSelectedRanks()
+        CompareGroups compare = CompareSelectedRankedGroups()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRanks returns CompareRanks
+    action CompareSelectedRankedGroups returns CompareGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareRanks compare
+        CompareGroups compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:Ranked(true)
         compare:Calculate(me)
         return compare
     end
 
     /*
         This action uses the selection to conduct a comparison between two or more ranked related columns. 
-        The CompareRanks object returned gives information back in several formats, 
+        The CompareGroups object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
         
         This action runs a test based on how many columns are selected:
@@ -2410,31 +2409,32 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareRanks
+        use Libraries.Compute.Statistics.Tests.CompareGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareRanks compare = CompareSelectedRelatedRanks()
+        CompareGroups compare = CompareSelectedRelatedRankedGroups()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRelatedRanks returns CompareRanks
+    action CompareSelectedRelatedRankedGroups returns CompareGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareRanks compare
+        CompareGroups compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
         compare:Paired(true)
+        compare:Ranked(true)
         compare:Calculate(me)
         return compare
     end
 
     /*
         This action uses the selection to conduct a comparison between a ranked column and a median. 
-        The CompareRanks object returned gives information back in several formats, 
+        The CompareGroups object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
         This action runs a test based on how many columns are selected:
@@ -2445,15 +2445,15 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareRanks
+        use Libraries.Compute.Statistics.Tests.CompareGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(0)
-        CompareRanks compare = CompareSelectedRanksToMedian(0)
+        CompareGroups compare = CompareSelectedRanksToMedian(0)
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRanksToMedian(number median) returns CompareRanks
+    action CompareSelectedRankedGroupToMedian(number median) returns CompareGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
@@ -2462,9 +2462,10 @@ class DataFrame
             alert("No more than 2 columns can be paired to compare to a median.")
         end
 
-        CompareRanks compare
+        CompareGroups compare
         selection:CopyTo(cast(ColumnInput, compare))
         selection:CopyTo(cast(FactorInput, compare))
+        compare:Ranked(true)
         compare:SetMedian(median)
         compare:Paired(true)
         compare:Calculate(me)
@@ -2506,7 +2507,7 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a correlation between two or more independent ranked columns. 
-        The CorrelateRanks object returned gives information back in several formats, 
+        The CorrelateGroups object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
         This action runs a test based on how many columns are selected:
@@ -2517,22 +2518,23 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CorrelateRanks
+        use Libraries.Compute.Statistics.Tests.CorrelateGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateRanks correlate = CorrelateSelectedRanks()
+        CorrelateGroups correlate = CorrelateSelectedRankedColumns()
         output correlate:GetFormalSummary()
     */
-    action CorrelateSelectedRanks returns CorrelateRanks
+    action CorrelateSelectedRankedColumns returns CorrelateGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CorrelateRanks correlate
+        CorrelateGroups correlate
         selection:CopyTo(cast(FactorInput, correlate))
         selection:CopyTo(cast(ColumnInput, correlate))
+        correlate:Ranked(true)
         correlate:Calculate(me)
         return correlate
     end

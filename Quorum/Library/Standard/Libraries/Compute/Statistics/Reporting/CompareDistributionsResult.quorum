@@ -2,6 +2,7 @@ package Libraries.Compute.Statistics.Reporting
 
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
 
 /*
     This class represents data that comes back from CompareDistributionToNormal
@@ -12,6 +13,7 @@ use Libraries.Compute.Statistics.DataFrameColumn
 class CompareDistributionsResult is StatisticalTestResult
     /* The factor (if used) for this calculation. */
     text factor = ""
+    Math math
 
     /* The columns that were used in this calculation. */
     Array<DataFrameColumn> samples 
@@ -38,6 +40,7 @@ class CompareDistributionsResult is StatisticalTestResult
     action GetSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        integer digits = GetFormat():GetSignificantDigits()
 
         if samples:GetSize() = 1
             summary = summary + "A "+ GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader()
@@ -50,9 +53,9 @@ class CompareDistributionsResult is StatisticalTestResult
             summary = summary + lf + "Factor: " + GetFactor()
         end
 
-        summary = summary + lf + "Statistic (W): " + GetTestStatistic()
+        summary = summary + lf + "Statistic (W): " + math:Round(GetTestStatistic(), digits)
 
-        summary = summary + lf + "Probability: " + GetProbabilityValue()
+        summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
 
         return summary
     end

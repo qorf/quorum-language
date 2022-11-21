@@ -1,105 +1,262 @@
 package Libraries.Compute.Statistics.Reporting
 
 use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
 
 /*
-    This class represents data that comes back from a one sample t-test 
-    in CompareGroups/CompareGroupToMean.
+    This class represents data that comes back from a one-sample test 
+    in CompareGroups:
+        CompareGroupToMean
+        CompareRankedGroupToMedian
 
     Attribute: Author Hannah Williams
 */
 class Compare1GroupResult is Compare2GroupsResult
+    Math math
+
+    action SetGroup(DataFrameColumn group)
+        Array<DataFrameColumn> groups
+        groups:Add(group)
+        SetGroups(groups)
+    end
+
+    action GetNullHypothesis returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            return "The mean is equal to the proposed mean"
+        end
+        return ""
+    end
+
+    private action GetRankedNullHypothesis returns text
+        return "The median is equal to the proposed median"
+    end
+
+    action GetAlternativeHypothesis returns text
+        if GetGroups():GetSize() = 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            return "The mean is different from the proposed mean"
+        end
+        return ""
+    end
+
+    private action GetRankedAlternativeHypothesis returns text
+        return "The median is different from the proposed median"
+    end
+
     /*
         This action summarizes the result and lists it informally.
     */
     action GetSummary returns text
+        if GetGroups():GetSize() = 1
+            if Ranked()
+                return GetRankedSummary()
+            end
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            integer digits = GetFormat():GetSignificantDigits()
+    
+            Summarize groupSummary = GetGroupSummary(GetGroups():Get(0))
+            text sample1 = GetGroups():Get(0):GetHeader()
+    
+            summary = summary + "A "+ GetFormalTestName() + " was conducted to compare "+ sample1 +" to a proposed mean of " + GetUserMean()
+            if GetFactor() not= ""
+                summary = summary + lf + "Factor: " + GetFactor()
+            end
+
+            summary = summary + lf + "Mean of " + sample1 + ": " + math:Round(groupSummary:GetMean(), digits)
+    
+            summary = summary + lf + "Statistic (t): " + math:Round(GetTestStatistic(), digits)
+    
+            summary = summary + lf + "Degrees Of Freedom: " + math:Round(GetDegreesOfFreedom(), digits)
+    
+            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+    
+            if GetEffectSizeName() not= ""
+                summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+            end
+
+            if IsSignificant()
+                summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
+            else
+                summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
+            end
+    
+            if GetProbabilityValue() < 0.05
+                summary = summary + lf + "The difference between the "+ sample1 +" mean and the proposed mean did not appear to be random chance"
+            elseif GetProbabilityValue() >= 0.05 and GetProbabilityValue() < 0.2
+                summary = summary + lf + "It was unclear whether or not the difference was due to random chance"
+            else
+                summary = summary + lf + "Very little difference was observed between the means"
+            end
+    
+            if GetEffectSize() > 1
+                summary = summary + lf + "The size of the difference between the means was greater than a standard deviation"
+            else 
+                summary = summary + lf + "The size of the difference between the means was less than a standard deviation"
+            end
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        Summarize groupSummary = GetGroupSummary(GetGroups():Get(0))
+        text sample = GetGroups():Get(0):GetHeader()
+        integer digits = GetFormat():GetSignificantDigits()
 
-        text sample1 = ""
-        if GetGroups():GetSize() > 0
-            sample1 = GetGroups():Get(0):GetHeader()
-        end
-
-        summary = summary + "A "+ GetFormalTestName() + " was conducted to compare "+ sample1 +" to a mean of " + GetMean2()
+        summary = summary + "A "+ GetFormalTestName() + " was conducted to compare "+ sample +" to a proposed median of " + GetUserMedian()
         if GetFactor() not= ""
             summary = summary + lf + "Factor: " + GetFactor()
         end
+        summary = summary + lf + "Median of " + sample + ": " + math:Round(groupSummary:GetMedian(), digits)
 
-        summary = summary + lf + "Mean of " + sample1 + ": " + GetMean1()
+        summary = summary + lf + "Statistic (Z): " + math:Round(GetTestStatistic(), digits)
 
-        summary = summary + lf + "Statistic (t): " + GetTestStatistic()
-
-        summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
-
-        summary = summary + lf + "Probability: " + GetProbabilityValue()
+        summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
 
         if GetEffectSizeName() not= ""
-            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + GetEffectSize()
+            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
         end
 
-        if GetProbabilityValue() < 0.05
-            summary = summary + lf + "The difference between the "+ sample1 +" mean and the passed mean did not appear to be random chance."
-        elseif GetProbabilityValue() >= 0.05 and GetProbabilityValue() < 0.2
-            summary = summary + lf + "It was unclear whether or not the difference was due to random chance"
+        if IsSignificant()
+            summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
         else
-            summary = summary + lf + "Very little difference was observed between the means"
+            summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
         end
-
-        if GetEffectSize() > 1
-            summary = summary + lf + "The size of the difference between the means was greater than a standard deviation."
-        else 
-            summary = summary + lf + "The size of the difference between the means was less than a standard deviation."
-        end
-
         return summary
     end
 
     /*
-        This action summarizes the result and places it into formal academic language, in 
-        APA format.
-
+        This action summarizes the result and places it into formal academic language, in APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
     action GetFormalSummary returns text
+        if GetGroups():GetSize() = 1
+            if Ranked()
+                return GetRankedFormalSummary()
+            end
+            text summary = ""
+            text lf = summary:GetLineFeed()
+        
+            Summarize groupSummary = GetGroupSummary(GetGroups():Get(0))
+            text sample = GetGroups():Get(0):GetHeader()
+            number sampleMean = groupSummary:GetMean()
+            text m1 = GetFormat():FormatTestStatistic(sampleMean)
+            text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(groupSummary:GetVariance()))
+            text m2 = GetFormat():FormatTestStatistic(GetUserMean())
+
+            if GetFactor() = ""
+                summary = summary + "A " + GetFormalTestName() + " was conducted on one sample " + sample + "."
+            else
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " on one sample " + sample + "."
+            end
+            if sampleMean > GetUserMean()
+                summary = summary + lf + sample + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
+                    + " (M = " + m2 +")"
+            elseif sampleMean < GetUserMean()
+                summary = summary + lf + sample + " had a lower overall mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
+                    + " (M = " + m2 +")"
+            else
+                    summary = summary + lf + sample + " had an equal mean (M = " + m1 + ", SD = " + sd1 + ") compared to "
+                    + " (M = " + m2 +")"             
+            end
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                summary = summary + lf + "The difference was indicated to be statistically significant"
+            else
+                summary = summary + lf + "The difference was not indicated to be statistically significant"
+            end
+ 
+            summary = summary + ", " + GetFormalNumericalResult() + "."
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-
-        Math math
-        text m1 = GetFormat():FormatTestStatistic(GetMean1())
-        text sd1 = GetFormat():FormatTestStatistic(math:SquareRoot(GetVariance1()))
-        text m2 = GetFormat():FormatTestStatistic(GetMean2())
-
         if GetGroups():GetSize() > 0
-            text sample1 = GetGroups():Get(0):GetHeader()
+            Summarize groupSummary = GetGroupSummary(GetGroups():Get(0))
+            text sample = GetGroups():Get(0):GetHeader()
+            number sampleMedian = groupSummary:GetMedian()
+            text m1 = GetFormat():FormatTestStatistic(sampleMedian)
+            text m2 = GetFormat():FormatTestStatistic(GetUserMedian())
+
             if GetFactor() = ""
-                summary = summary + "A " + GetFormalTestName() + " was conducted to compare " + sample1 + " to a mean of " + m2 + ". " + lf
+                summary = summary + "A " + GetFormalTestName() + " was conducted on one sample " + sample + "."
             else
-                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " to compare " + sample1 + " to a mean of " + m2 + ". " + lf
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " on one sample " + sample + "."
             end
-            if GetMean1() > GetMean2()
-                summary = summary + sample1 + " had a higher overall mean (M = " + m1 + ", SD = " + sd1 + ")" 
+            if sampleMedian > GetUserMedian()
+                summary = summary + lf + sample + " had a higher overall median (Mdn = " + m1 + ") compared to "
+                    + " (Mdn = " + m2 +")"
+            elseif sampleMedian < GetUserMedian()
+                summary = summary + lf + sample + " had a lower overall median (Mdn = " + m1 + ") compared to "
+                    + " (Mdn = " + m2 +")"
             else
-                summary = summary + sample1 + " had a lower overall mean (M = " + m1 + ", SD = " + sd1 + ")"
+                    summary = summary + lf + sample + " had an equal median (Mdn = " + m1 + ") compared to "
+                    + " (Mdn = " + m2 +")"             
+            end
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                summary = summary + lf + "The difference was indicated to be statistically significant"
+            else
+                summary = summary + lf + "The difference was not indicated to be statistically significant"
             end
         end
-
         summary = summary + ", " + GetFormalNumericalResult() + "."
-
         return summary
     end
 
+    /*
+        This action returns the formal numrical result in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        CompareGroupToMean (A One-Sample T-Test)
+        Numerical result format: t(degress of freedom) = t-statistic, p = probability-value, d = effect-size
+        Example:
+            t(1337) = 40.08, p < .001, d = 1.1
+   
+        CompareRankedGroupToMedian (A Wilcoxon Signed-Ranks Test)
+        Numerical result format: Z = z-score, p = probability-value, r = effect-size
+        Example:
+            Z = 31.68, p < .001, r = .87
+    */
     action GetFormalNumericalResult() returns text
-        text summary = ""
-        summary = summary + "t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+        if GetGroups():GetSize() = 1
+            if Ranked()
+                return GetRankedFormalNumericalResult()
+            end
+            text summary = "t(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " + GetFormat():FormatTestStatistic(GetTestStatistic())
+            number p = GetProbabilityValue()
+            if p < GetFormat():PRECISION_LIMIT
+                summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+            else
+                summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+            end
+            summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize())
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalNumericalResult returns text
+        text summary = "Z = " + GetFormat():FormatTestStatistic(GetTestStatistic())
         number p = GetProbabilityValue()
         if p < GetFormat():PRECISION_LIMIT
             summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
         else
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
-        summary = summary + ", d = " + GetFormat():FormatTestStatistic(GetEffectSize())
-
+        summary = summary + ", r = " + GetFormat():FormatCorrelation(GetEffectSize())
         return summary
     end
 end

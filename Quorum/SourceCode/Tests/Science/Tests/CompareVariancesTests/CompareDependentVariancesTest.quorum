@@ -1,16 +1,17 @@
 package Science.Tests
+
 use Libraries.Testing.Test
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Tests.CompareVariances
 use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 
 /*
-    This class tests mauchly's test for sphericity of variances
+    This class tests a mauchly's sphericity test
 */
-class CompareVariancesRepeatedMeasuresTest is Test
+class CompareDependentVariancesTest is Test
 
     on create
-        SetName("Calculate Mauchly's test")
+        SetName("Calculate CompareDependentVariances")
     end
 
     action Run
@@ -18,16 +19,18 @@ class CompareVariancesRepeatedMeasuresTest is Test
         DataFrame frame = framer:GetDefaultDataFrame()
 
         CompareVariances compare
+        compare:RepeatedMeasures(true)
         compare:AddColumn(0)
         compare:AddColumn(1)
         compare:AddColumn(2)
         compare:AddColumn(3)
-        compare:RepeatedMeasures(true)
         frame:Calculate(compare)
         
-        CompareVariancesResult result = cast(CompareVariancesResult, compare:GetResult())
+        CompareVariancesResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 0.00930567715078534)
-        Check(result:GetChiWSquaredTestStatistic(), 17.409319525341587)
+        Check(result:GetDegreesOfFreedom(), 5.0)
         Check(result:GetProbabilityValue(), 0.003785502714980238)
+        Check(result:GetGreenhouseGeisserCorrection(), 0.4723101080615547)
+        Check(result:GetHuynhFeldtCorrection(), 0.6048428241098917)
     end
 end

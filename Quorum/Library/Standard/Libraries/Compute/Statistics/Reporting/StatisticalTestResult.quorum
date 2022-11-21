@@ -164,6 +164,13 @@ class StatisticalTestResult
         end
     end
 
+    /* 
+        Returns true if this result is significant against the significance level
+    */
+    action IsSignificant returns boolean
+        return GetProbabilityValue() <= GetSignificanceLevel()
+    end
+
     action GetFormat returns StatisticsFormatting
         return format
     end

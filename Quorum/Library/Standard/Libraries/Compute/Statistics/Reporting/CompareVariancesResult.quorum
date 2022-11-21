@@ -5,6 +5,7 @@ use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Math
 
 /*
     This class represents data that comes back from CompareIndependentVariances 
@@ -24,6 +25,7 @@ class CompareVariancesResult is CompareGroupsResult
     number degreesOfFreedomWithinGroups = 0
     number degreesOfFreedomError = 0
     boolean repeatedMeasures = false
+    Math math
 
     action GetDegreesOfFreedomBetweenGroups returns number
         return degreesOfFreedomBetweenGroups
@@ -130,12 +132,29 @@ class CompareVariancesResult is CompareGroupsResult
         end
     end
 
+    action GetCorrectionName returns text
+        if repeatedMeasures
+            if GetProbabilityValue() <= GetSignificanceLevel() // significant result
+                if ggCorrection > 0.75
+                    return "Huynh-Feldt"
+                else
+                    return "Greenhouse-Geisser"
+                end
+            else
+                return ""
+            end
+        else
+            return "" // Needs to return correction degrees of freedom for levene's test?
+        end
+    end
+
     /*
         This action summarizes the result and lists it informally.
     */
     action GetSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        integer digits = GetFormat():GetSignificantDigits()
 
         if repeatedMeasures
             summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " dependent samples."
@@ -148,28 +167,28 @@ class CompareVariancesResult is CompareGroupsResult
 
         if repeatedMeasures
 
-            summary = summary + lf + "Statistic (W): " + w_statistic
+            summary = summary + lf + "Statistic (W): " +  math:Round(w_statistic, digits)
 
-            summary = summary + lf + "Statistic (Approximate χ2): " + chi_w_squared
+            summary = summary + lf + "Statistic (Approximate χ2): " + math:Round(chi_w_squared, digits)
 
-            summary = summary + lf + "Degrees Of Freedom: " + GetDegreesOfFreedom()
+            summary = summary + lf + "Degrees Of Freedom: " + math:Round(GetDegreesOfFreedom(), digits)
 
-            summary = summary + lf + "Probability: " + GetProbabilityValue()
+            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
 
-            summary = summary + lf + "Greenhouse-Geisser Correction (ε): " + ggCorrection
+            summary = summary + lf + "Greenhouse-Geisser Correction (ε): " + math:Round(ggCorrection, digits)
 
-            summary = summary + lf + "Huynh-Feldt Correction (ε): " + hfCorrection
+            summary = summary + lf + "Huynh-Feldt Correction (ε): " + math:Round(hfCorrection, digits)
 
-            summary = summary + lf + "Lower-Bound Correction (ε): " + lbCorrection
+            summary = summary + lf + "Lower-Bound Correction (ε): " + math:Round(lbCorrection, digits)
         else
 
-            summary = summary + lf + "Degrees Of Freedom Between Groups: " + degreesOfFreedomBetweenGroups
+            summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
     
-            summary = summary + lf + "Degrees Of Freedom Within Groups: " + degreesOfFreedomWithinGroups
+            summary = summary + lf + "Degrees Of Freedom Within Groups: " + math:Round(degreesOfFreedomWithinGroups, digits)
 
-            summary = summary + lf + "Statistic (F): " + GetTestStatistic()
+            summary = summary + lf + "Statistic (F): " + math:Round(GetTestStatistic(), digits)
 
-            summary = summary + lf + "Probability: " + GetProbabilityValue()
+            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
         end
 
         return summary

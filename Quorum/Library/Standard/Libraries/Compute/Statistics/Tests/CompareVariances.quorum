@@ -1,29 +1,21 @@
 package Libraries.Compute.Statistics.Tests
 
-use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
-use Libraries.Compute.Math
-use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
 use Libraries.Compute.Statistics.Calculations.Median
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
-use Libraries.Compute.Matrix
-use Libraries.Compute.MatrixTransform.EigenDecomposition
 use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
-use Libraries.Containers.HashTable
-use Libraries.Containers.Iterator
 use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+use Libraries.Compute.MatrixTransform.EigenDecomposition
+use Libraries.Compute.Matrix
+use Libraries.Compute.Math
+use Libraries.Containers.Array
 
 /*
-    This class implements several parametric tests: 
-        _________________ is a Bartlett's Homogeneity Test
-        Check that several groups vary in the same way if all are normally distributed 
-        For more information: https://en.wikipedia.org/wiki/Bartlett%27s_test
-
+    This class implements several tests:
         CompareIndependentVariances is a Levene's Homogeneity Test 
         Check that several groups vary in the same way using the mean
         For more information: https://en.wikipedia.org/wiki/Levene%27s_test
@@ -35,6 +27,15 @@ use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
         CompareDependentVariances is a Mauchly's Sphericity Test
         Check that several groups vary in the same way when there are repeated measures.
         For more information: https://en.wikipedia.org/wiki/Mauchly%27s_sphericity_test
+
+        _________________ is a Bartlett’s Test for Homogeneity of Variances (very sensitive to non-normality)
+        Check that several groups vary in the same way if all are normally distributed 
+        For more information: https://en.wikipedia.org/wiki/Bartlett%27s_test
+        For more information: https://www.statology.org/bartletts-test/
+
+        _________________ is a Conover Equal Variance Test aka Squared Ranks Test
+        Check that several groups vary in the same way without assumptions about the distribution
+        For more information: https://en.wikipedia.org/wiki/Squared_ranks_test
 
     Attribute: Author Tim Kluthe, Hannah Williams
     Attribute: Example
@@ -55,7 +56,7 @@ use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 */
 class CompareVariances is StatisticalTest
     /* The distribution used to calculate the p-value.*/
-    ClassificationDistribution distribution
+    ClassificationDistribution x2distribution
 
     /* Default uses median as center for calculations */
     boolean useMedianAsCenter = true 
@@ -72,12 +73,27 @@ class CompareVariances is StatisticalTest
     /* Flag if repeated measures are used in one-way within-subjects anova */
     boolean repeatedMeasures = false
 
+    /* Flag if distribution is found to be normal or not */
+    boolean normalDistribution = false
+
     /* This stores a hash of all of the results. */
-    HashTable<text, CompareVariancesResult> results 
+    Array<CompareVariancesResult> results
 
     Math math
 
     action Calculate(DataFrame frame) 
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+
         if repeatedMeasures
             parent:StatisticalTest:RemoveUndefined(true)
         end
@@ -132,8 +148,8 @@ class CompareVariances is StatisticalTest
         output compare:GetFormalSummary()
     */
     action CompareIndependentVariances(DataFrame frame)
-        if GetFactorSize() > 0
-            me:Calculate(frame) // The factor needs to be processed
+        if GetColumnSize() = 0 or GetFactorSize() > 0
+            me:Calculate(frame) 
         else
             if GetColumnSize() < 2
                 alert("CompareIndependentVariances must have at least 2 groups.")
@@ -165,18 +181,18 @@ class CompareVariances is StatisticalTest
                     Median median
                     column:Calculate(median) 
                     difference = median:GetMedian()
-                    center = " With Median As Center"
+                    center = " with median as center"
                 elseif useMeanAsCenter
                     Mean mean
                     column:Calculate(mean)    
                     difference = mean:GetMean() 
-                    center = " With Mean As Center"
+                    center = " with mean as center"
                 elseif useTrimmedMeanAsCenter
                     //Mean mean
                     //mean:SetTrim(trimmedMeanPercent)
                     //column:Calculate(mean)    
                     //difference = mean:GetMean()   
-                    center = " With Trimmed Mean As Center"
+                    center = " with trimmed mean as Center"
                     alert("Trimmed mean not yet implemented")             
                 end
     
@@ -194,11 +210,10 @@ class CompareVariances is StatisticalTest
             // Collect and select the absolute differences data frame
             DataFrame differences
             differences:SetColumns(differencesDataFrameColumns)
-            differences:SetSelectedColumnRange(0, differences:GetSize()-1)
+            differences:SelectAllColumns()
     
             // Conduct a one-way ANOVA on the absolute differences
             CompareGroups compare       
-            differences:GetSelection():CopyTo(cast(ColumnInput, compare))
             compare:CompareNIndependentGroups(differences)
     
             // Get anova result
@@ -211,16 +226,10 @@ class CompareVariances is StatisticalTest
             result:SetDegreesOfFreedomBetweenGroups(anovaResult:GetDegreesOfFreedomBetweenGroups())
             result:SetDegreesOfFreedomWithinGroups(anovaResult:GetDegreesOfFreedomWithinGroups())
             result:SetProbabilityValue(anovaResult:GetProbabilityValue())
-            result:SetFormalTestName("Levene's Test For Homogeneity of Variance"+center)
+            result:SetFormalTestName("Levene's Test of Homogeneity"+center)
             result:SetGroups(groups)
-            
-            text factor = ""
-            text resultKey = ""
-            if UseFactor()
-                factor = GetFactorText()
-                resultKey = factor + " : " + resultKey
-            end
-            results:Add(resultKey, result)
+            result:SetFactor(GetFactorText())
+            results:Add(result)
         end
     end
 
@@ -252,8 +261,8 @@ class CompareVariances is StatisticalTest
         output compare:GetFormalSummary()
     */
     action CompareDependentVariances(DataFrame frame)
-        if GetFactorSize() > 0
-            me:Calculate(frame) // The factor needs to be processed
+        if GetColumnSize() = 0 or GetFactorSize() > 0
+            me:Calculate(frame) 
         else
             if GetColumnSize() < 2
                 alert("CompareDependentVariances must have at least 2 groups.")
@@ -377,8 +386,8 @@ class CompareVariances is StatisticalTest
             number hfCorrectionEpsilon = (n * (k-1) * ggCorrectionEpsilon - 2) / ((k-1) * ((n-1) - ggCorrectionEpsilon * (k-1)))
             
             // Probability
-            distribution:Setup(df)
-            number p = 1.0 - distribution:CumulativeDistribution(chi_w_squared)
+            x2distribution:Setup(df)
+            number p = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
     
             CompareVariancesResult result
             result:SetSignificanceLevel(GetSignificanceLevel())
@@ -393,16 +402,10 @@ class CompareVariances is StatisticalTest
             result:SetLowerBoundCorrection(lbCorrectionEpsilon)
             result:SetGreenhouseGeisserCorrection(ggCorrectionEpsilon)
             result:SetHuynhFeldtCorrection(hfCorrectionEpsilon)
-            result:SetFormalTestName("Mauchly's Test For Sphericity of Variance")
+            result:SetFormalTestName("Mauchly's Test of Sphericity")
             result:SetGroups(groups)
-            
-            text factor = ""
-            text resultKey = ""
-            if UseFactor()
-                factor = GetFactorText()
-                resultKey = factor + " : " + resultKey
-            end
-            results:Add(resultKey, result)
+            result:SetFactor(GetFactorText())
+            results:Add(result)
         end
     end
 
@@ -434,6 +437,11 @@ class CompareVariances is StatisticalTest
     /* Used in dependent-sample tests */
     action RepeatedMeasures(boolean repeatedMeasures)
         me:repeatedMeasures = repeatedMeasures
+    end
+
+    /* Used in independent-sample tests */
+    action AssumeNormalDistribution(boolean assume)
+        assumeNormalDistribution = assume
     end
 
     /*
@@ -492,8 +500,10 @@ class CompareVariances is StatisticalTest
         CompareVariancesResult result = compare:GetResult()
     */
     action GetResult returns CompareVariancesResult
-        if results:GetSize() = 1
-            return results:GetValueIterator():Next()
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
         else
             alert("There is more than one test result, use GetResults() for an array of all results")
         end
@@ -518,7 +528,7 @@ class CompareVariances is StatisticalTest
         Array<CompareVariancesResult> results = compare:GetResults()
     */
     action GetResults returns Array<CompareVariancesResult>
-        return results:CopyToValueArray()
+        return results
     end
 
     /*
@@ -541,16 +551,16 @@ class CompareVariances is StatisticalTest
     action GetSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareVariancesResult> i = results:GetValueIterator()
+        i = 0
         CompareVariancesResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        repeat while i < results:GetSize()
+            result = results:Get(i)
 
             summary = summary + lf
             summary = summary + result:GetSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
 
@@ -578,16 +588,16 @@ class CompareVariances is StatisticalTest
     action GetFormalSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareVariancesResult> i = results:GetValueIterator()
+        i = 0
         CompareVariancesResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        repeat while i < results:GetSize()
+            result = results:Get(i)
 
             summary = summary + lf
             summary = summary + result:GetFormalSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
 

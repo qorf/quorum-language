@@ -2,17 +2,14 @@ package Libraries.Compute.Statistics.Tests
 
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Calculations.SumOfSquares
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Distributions.NormalDistribution
+use Libraries.Compute.Statistics.Reporting.CompareDistributionsResult
+use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
-use Libraries.Compute.Statistics.Calculations.SumOfSquares
-use Libraries.Compute.Matrix
-use Libraries.Compute.Statistics.Distributions.NormalDistribution
-use Libraries.Compute.Statistics.Calculations.Kurtosis
-use Libraries.Compute.Statistics.Columns.NumberColumn
-use Libraries.Compute.Statistics.Calculations.Mean
-use Libraries.Compute.Statistics.Reporting.CompareDistributionsResult
-use Libraries.Containers.HashTable
-use Libraries.Containers.Iterator
 
 /*
     This class implements two tests: 
@@ -48,12 +45,23 @@ class CompareDistributions is StatisticalTest
     /* The distribution used to calculate the p-value in normality tests.*/
     NormalDistribution zdistribution
 
-    /* This stores a hash of all of the results. */
-    HashTable<text, CompareDistributionsResult> results 
+    Array<CompareDistributionsResult> results
 
     Math math
 
     action Calculate(DataFrame frame) 
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+
         if GetFactorSize() = 0
             parent:StatisticalTest:Calculate(frame)
         else
@@ -92,8 +100,8 @@ class CompareDistributions is StatisticalTest
         output compare:GetFormalSummary()
     */
     action CompareDistributionToNormal(DataFrame frame) 
-        if GetFactorSize() > 0
-            me:Calculate(frame) // The factor needs to be processed
+        if GetColumnSize() = 0 or GetFactorSize() > 0
+            me:Calculate(frame) 
         else
             if GetColumnSize() < 1
                 alert("CompareDistributionToNormal must have at least 1 group.")
@@ -293,15 +301,9 @@ class CompareDistributions is StatisticalTest
                 result:SetTestStatistic(w)
                 result:SetProbabilityValue(p)
                 result:SetFormalTestName("Shapiro-Wilk Normality Test")
-                text factor = ""
-                text resultKey = column:GetHeader()
-                if UseFactor()
-                    factor = GetFactorText()
-                    resultKey = factor + " : " + resultKey
-                end
-                result:SetFactor(factor)
+                result:SetFactor(GetFactorText())
                 result:SetSamples(sample)
-                results:Add(resultKey, result)
+                results:Add(result)
                 i = i + 1
             end
         end
@@ -375,8 +377,10 @@ class CompareDistributions is StatisticalTest
         CompareDistributions result = compare:GetResult()
     */
     action GetResult returns CompareDistributionsResult
-        if results:GetSize() = 1
-            return results:GetValueIterator():Next()
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
         else
             alert("There is more than one test result, use GetResults() for an array of all results")
         end
@@ -401,7 +405,7 @@ class CompareDistributions is StatisticalTest
         Array<CompareDistributionsResult> results = compare:GetResults()
     */
     action GetResults returns Array<CompareDistributionsResult>
-        return results:CopyToValueArray()
+        return results
     end
 
     /*
@@ -424,16 +428,16 @@ class CompareDistributions is StatisticalTest
     action GetSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareDistributionsResult> i = results:GetValueIterator()
+        i = 0
         CompareDistributionsResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        repeat while i < results:GetSize()
+            result = results:Get(i)
 
             summary = summary + lf
             summary = summary + result:GetSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
 
@@ -461,16 +465,16 @@ class CompareDistributions is StatisticalTest
     action GetFormalSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareDistributionsResult> i = results:GetValueIterator()
+        i = 0
         CompareDistributionsResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        repeat while i < results:GetSize()
+            result = results:Get(i)
 
             summary = summary + lf
             summary = summary + result:GetFormalSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
 

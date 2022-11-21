@@ -41,7 +41,7 @@ class Median is DataFrameColumnCalculation
             if size mod 2 = 1
                 median = v:Get(size / 2)
             else
-                median = 0.5 * (v:Get((size / 2) - 1) + v:Get(size / 2))
+                median = 0.5 * (v:Get((size / 2) + 1) + v:Get(size / 2))
             end
         else
             return now

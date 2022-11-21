@@ -1,0 +1,160 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
+
+/*
+    This class calculates the correlation coefficient between two particular DataFrameColumns. 
+    The correlation computed from this class is the pearson correlation
+    For more information: https://en.wikipedia.org/wiki/Correlation
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Correlation
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Correlation correlation
+
+    //set the mean before using it. Alternatively, we can allow it to calculate for us.
+    //The result is received slightly faster if we set it.
+    correlation:SetMean1(17) 
+    correlation:SetMean2(12) 
+    correlation:SetVariance1(3) 
+    correlation:SetVariance2(2) 
+    DataFrameColumn column1 = frame:GetColumn(0)
+    DataFrameColumn column2 = frame:GetColumn(1)
+    correlation:Calculate(column1, column2)
+    number corr = correlation:GetCorrelation()
+*/
+class Correlation
+    number mean1 = 0
+    number mean2 = 0
+    number var1 = 0
+    number var2 = 0
+    number correlation = 0
+    boolean mean1Set = false
+    boolean mean2Set = false
+    boolean var1Set = false
+    boolean var2Set = false
+    Math math
+
+    action Calculate(DataFrameColumn column1, DataFrameColumn column2)
+        if column1:GetSize() not= column2:GetSize()
+            alert("The columns must have the same size for a correlation calculation.")
+        end
+        if column1:GetSize() < 2 or column2:GetSize() < 2
+            alert("Columns must have 2 or more entries. Not enough data for a correlation calculation.")
+        end
+
+        size = column1:GetSize()
+        if not mean1Set
+            Mean meanCalc
+            column1:Calculate(meanCalc)
+            mean1 = meanCalc:GetMean()
+        end
+        if not mean2Set
+            Mean meanCalc
+            column2:Calculate(meanCalc)
+            mean2 = meanCalc:GetMean()
+        end   
+        if not var1Set
+            Variance varCalc
+            column1:Calculate(varCalc)
+            var1 = varCalc:GetVariance()
+        end
+        if not var2Set
+            Variance varCalc
+            column2:Calculate(varCalc)
+            var2 = varCalc:GetVariance()
+        end  
+
+        number sd1 = math:SquareRoot(var1)
+        number sd2 = math:SquareRoot(var2)
+
+        number sum = 0
+        i = 0
+        repeat while i < column1:GetSize()
+            if not column1:IsUndefined(i) and not column2:IsUndefined(i)
+
+                number valueLeft = column1:GetAsNumber(i)
+                number middleLeft = valueLeft - mean1
+                middleLeft = middleLeft / sd1
+    
+                number valueRight = column2:GetAsNumber(i)
+                number middleRight = valueRight - mean2
+                middleRight = middleRight / sd2
+    
+                sum = sum + (middleLeft * middleRight)
+            end
+            i = i + 1
+        end
+
+        number result = 1.0 / (column1:GetSize() - 1.0)
+        result = result * sum
+
+        correlation = result
+    end
+   
+    /*
+        This calculation can be used again if Empty is called after using it on a column.
+    */
+    action Empty
+        mean1 = 0
+        mean2 = 0
+        var1 = 0
+        var2 = 0
+        correlation = 0
+        mean1Set = false
+        mean2Set = false
+        var1Set = false
+        var2Set = false
+    end
+
+    /*
+        Returns the correlation coefficient.
+    */
+    action GetCorrelation returns number
+        return correlation
+    end
+
+    /*
+        Sets the mean1. The correlation then uses this value in its calculation.
+        Saves on computing time if value is already known.
+    */
+    action SetMean1(number mean)
+        mean1 = mean
+        mean1Set = true
+    end
+
+    /*
+        Sets the mean2. The correlation then uses this value in its calculation.
+        Saves on computing time if value is already known.
+    */
+    action SetMean2(number mean)
+        mean2 = mean
+        mean2Set = true
+    end
+
+    /*
+        Sets the var1. The correlation then uses this value in its calculation.
+        Saves on computing time if value is already known.
+    */
+    action SetVariance1(number variance)
+        var1 = variance
+        var1Set = true
+    end
+
+    /*
+        Sets the var2. The correlation then uses this value in its calculation.
+        Saves on computing time if value is already known.
+    */
+    action SetVariance2(number variance)
+        var2 = variance
+        var2Set = true
+    end
+end

@@ -6,43 +6,38 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
-use Libraries.Compute.Statistics.Calculations.Covariance
+use Libraries.Compute.Statistics.Calculations.Correlation
 use Libraries.Compute.Matrix
 
 /*
-    CovarianceMatrixTransform calculates the covariance for every selected column against 
-    the other selected columns in a DataFrame and returns a DataFrame of the covariances.
-    The default covariance calculated in this case is the sample covariance.
-    Use UsePopulation(true) to get the population covariance.
-    For more information: https://en.wikipedia.org/wiki/Covariance_matrix
+    CorrelationMatrixTransform calculates the pearson correlation for every selected column against 
+    the other selected columns in a DataFrame and returns a DataFrame of the correlations.
+    For more information: https://en.wikipedia.org/wiki/Correlation
 
     Attribute: Author Hannah Williams
 
     Attribute: Example
 
     use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+    use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
     
     DataFrame frame
     frame:Load("Data.csv")
     
-    CovarianceMatrixTransform cov
-    cov:AddColumn(0)
-    cov:AddColumn(1)
-    cov:AddColumn(2)
-    cov:AddColumn(3)
-    DataFrame dataframeMatrix = frame:Transform(cov)
-    dataframeMatrix:Save("Covariances.csv")
+    CorrelationMatrixTransform cor
+    cor:AddColumn(0)
+    cor:AddColumn(1)
+    cor:AddColumn(2)
+    cor:AddColumn(3)
+    DataFrame dataframeMatrix = frame:Transform(cor)
+    dataframeMatrix:Save("Correlations.csv")
 */
-class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
-    Matrix covarianceMatrix = undefined
-    boolean biasCorrected = true
-    boolean population = false
-    boolean sample = true
+class CorrelationMatrixTransform is DataFrameTransform, ColumnInput
+    Matrix correlationMatrix = undefined
 
     action Transform(DataFrame frame) returns DataFrame 
         if GetColumnSize() < 1
-            alert("At least one column must be selected to conduct a Covariance Matrix Transform.")
+            alert("At least one column must be selected to conduct a Correlation Matrix Transform.")
         end
 
         DataFrame newFrame
@@ -72,18 +67,19 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
                     alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
                 end
 
-                Covariance cov
-                cov:UsePopulation(population)
-                cov:BiasCorrected(biasCorrected)
-                cov:Calculate(column1, column2)
-
-                col:Add(cov:GetCovariance())
+                if i = j
+                    col:Add(1)
+                else
+                    Correlation cor
+                    cor:Calculate(column1, column2)
+                    col:Add(cor:GetCorrelation())
+                end
                 j = j + 1
             end
             i = i + 1
         end
         
-        covarianceMatrix = ConvertToMatrix(newFrame)
+        correlationMatrix = ConvertToMatrix(newFrame)
         return newFrame
     end
 
@@ -93,19 +89,19 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
         Attribute: Example
 
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+        use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
     
         DataFrame frame
         frame:Load("Data.csv")
         
-        CovarianceMatrixTransform transform
+        CorrelationMatrixTransform transform
         transform:AddColumn(0)
         transform:AddColumn(1)
         DataFrame dataframeMatrix = frame:Transform(transform)    
         Matrix actualMatrix = transform:GetMatrix()
     */
     action GetMatrix returns Matrix
-        return covarianceMatrix
+        return correlationMatrix
     end
 
     private action ConvertToMatrix(DataFrame frame) returns Matrix
@@ -120,49 +116,4 @@ class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
         
         return matrix
     end
-
-    /*
-        Returns the biasCorrected
-    */
-    action BiasCorrected returns boolean
-        return biasCorrected
-    end
-
-    /*
-        Sets the bias corrected boolean. True if correction is applied.
-    */
-    action BiasCorrected(boolean biasCorrected)
-        me:biasCorrected = biasCorrected
-    end
-
-    /*
-        Returns the population boolean
-    */
-    action UsePopulation returns boolean
-        return population
-    end
-
-    /*
-        Sets the population boolean. True if population covariance is applied.
-    */
-    action UsePopulation(boolean population)
-        me:population = population
-        me:sample = not population
-    end
-
-    /*
-        Returns the sample boolean
-    */
-    action UseSample returns boolean
-        return sample
-    end
-
-    /*
-        Sets the sample boolean. True if sample covariance is applied.
-    */
-    action UseSample(boolean sample)
-        me:sample = sample
-        me:population = not sample
-    end
-
 end
