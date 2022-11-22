@@ -47,6 +47,7 @@ use Libraries.Interface.Controls.Charts.ViolinPlot
 use Libraries.Compute.Statistics.Transforms.CrossTab
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+use Libraries.Compute.Statistics.Charts.CheckNormalityChartCreator
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Transforms.DataTuple
 use Libraries.Compute.Statistics.Columns.IntegerColumn
@@ -3092,6 +3093,36 @@ class DataFrame
     */
     action ScatterPlot returns ScatterPlot
         ScatterPlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates what is often called a QQ plot, or quartile quartile plot, 
+        in the academic literature. The broad idea is that it maps the values in a column 
+        to the theoretical ranking values in a normal distribution. If the chart is largely 
+        linear up and to the right, then the data appears to be reasonably, although informally, 
+        normally distributed. This action is a helper that can only conduct this calculation on 
+        one column for a normal distribution, although the broad idea could be extended further 
+        if needed.
+
+        Attribute: Returns a ScatterPlot that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ScatterPlot
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        ScatterPlot chart = frame:NormalityCheckChart()
+        chart:SetTitle("My Normality Check Chart")
+        chart:Display()
+    */
+    action NormalityCheckChart returns ScatterPlot
+        CheckNormalityChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
