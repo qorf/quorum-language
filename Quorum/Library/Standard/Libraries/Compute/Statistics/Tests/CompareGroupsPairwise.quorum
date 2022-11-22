@@ -87,10 +87,9 @@ class CompareGroupsPairwise is CompareGroups
 
     // Correction options
     boolean correctFamilyWiseError = true
-    boolean useBonferroniCorrection = true
+    boolean useBonferroniCorrection = true      // UseConservativeCorrection
     boolean useHolmCorrection = false
-    boolean useTukeyCorrection = false
-    boolean useGamesHowellCorrection = false
+    boolean useTukeyCorrection = false          // UseHonestSignificantDifferenceCorrection
     boolean useDunCorrection = false
 
     Math math
@@ -219,7 +218,7 @@ class CompareGroupsPairwise is CompareGroups
                     compare:Calculate(pairFrame)
                    
                     CompareGroupsResult pair = compare:GetResult() 
-                    if useBonferroniCorrection
+                    if correctFamilyWiseError and useBonferroniCorrection
                         p = pair:GetProbabilityValue() 
                         p = p * numberOfTestsPerformed 
                         if p > 1
@@ -343,14 +342,14 @@ class CompareGroupsPairwise is CompareGroups
     end
 
     /* Choose bonferroni method as correction for N-sample pairwise tests */
-    action UseBonferroniCorrection
+    action UseConservativeCorrection
         useBonferroniCorrection = true
         correctFamilyWiseError = true
         useTukeyCorrection = false
     end
 
     /* Choose tukey method as correction for independent N-sample pairwise tests */
-    action UseTukeyCorrection
+    action UseHonestSignificantDifferenceCorrection
         useTukeyCorrection = true
         useBonferroniCorrection = false
         correctFamilyWiseError = true

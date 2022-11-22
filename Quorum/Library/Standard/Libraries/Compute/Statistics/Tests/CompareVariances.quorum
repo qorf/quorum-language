@@ -13,6 +13,7 @@ use Libraries.Compute.MatrixTransform.EigenDecomposition
 use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Compute.Vector
 
 /*
     This class implements several tests:
@@ -178,9 +179,16 @@ class CompareVariances is StatisticalTest
                 number difference = 0 
     
                 if useMedianAsCenter
-                    Median median
-                    column:Calculate(median) 
-                    difference = median:GetMedian()
+                    if column:CanConvertToVector()
+                        Vector v = column:ConvertToVector()
+                        v:Sort()
+                        size = v:GetSize()
+                        if size mod 2 = 1
+                            difference = v:Get(size / 2)
+                        else
+                            difference = 0.5 * (v:Get((size / 2) - 1) + v:Get(size / 2))
+                        end
+                    end
                     center = " with median as center"
                 elseif useMeanAsCenter
                     Mean mean
@@ -227,6 +235,8 @@ class CompareVariances is StatisticalTest
             result:SetDegreesOfFreedomWithinGroups(anovaResult:GetDegreesOfFreedomWithinGroups())
             result:SetProbabilityValue(anovaResult:GetProbabilityValue())
             result:SetFormalTestName("Levene's Test of Homogeneity"+center)
+            result:SetEffectSize(anovaResult:GetEffectSize())
+            result:SetEffectSizeName(anovaResult:GetEffectSizeName())
             result:SetGroups(groups)
             result:SetFactor(GetFactorText())
             results:Add(result)

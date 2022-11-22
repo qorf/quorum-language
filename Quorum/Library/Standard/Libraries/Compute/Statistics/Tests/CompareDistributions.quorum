@@ -302,7 +302,7 @@ class CompareDistributions is StatisticalTest
                 result:SetProbabilityValue(p)
                 result:SetFormalTestName("Shapiro-Wilk Normality Test")
                 result:SetFactor(GetFactorText())
-                result:SetSamples(sample)
+                result:SetGroups(sample)
                 results:Add(result)
                 i = i + 1
             end
@@ -346,15 +346,6 @@ class CompareDistributions is StatisticalTest
     */
     action GetTestStatistic returns number
         return GetResult():GetTestStatistic()
-    end
-
-    /*
-        This returns the effect size if only one result exists.
-
-        Attribute: Returns the effect size. 
-    */
-    action GetEffectSize returns number
-        return GetResult():GetEffectSize()
     end
 
     /*

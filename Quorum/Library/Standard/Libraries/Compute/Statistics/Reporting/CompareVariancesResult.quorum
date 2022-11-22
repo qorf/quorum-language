@@ -191,6 +191,10 @@ class CompareVariancesResult is CompareGroupsResult
             summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
         end
 
+        if GetEffectSizeName() not= ""
+            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+        end
+
         return summary
     end
 

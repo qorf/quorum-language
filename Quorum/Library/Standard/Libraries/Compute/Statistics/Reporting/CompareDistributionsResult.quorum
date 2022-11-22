@@ -16,7 +16,7 @@ class CompareDistributionsResult is StatisticalTestResult
     Math math
 
     /* The columns that were used in this calculation. */
-    Array<DataFrameColumn> samples 
+    Array<DataFrameColumn> groups 
 
     action SetFactor(text factor)
         me:factor = factor
@@ -26,12 +26,12 @@ class CompareDistributionsResult is StatisticalTestResult
         return factor
     end
 
-    action SetSamples(Array<DataFrameColumn> samples)
-        me:samples = samples
+    action SetGroups(Array<DataFrameColumn> groups)
+        me:groups = groups
     end
 
-    action GetSamples returns Array<DataFrameColumn>
-        return samples
+    action GetGroups returns Array<DataFrameColumn>
+        return groups
     end
 
     /*
@@ -42,11 +42,11 @@ class CompareDistributionsResult is StatisticalTestResult
         text lf = summary:GetLineFeed()
         integer digits = GetFormat():GetSignificantDigits()
 
-        if samples:GetSize() = 1
-            summary = summary + "A "+ GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader()
-        elseif samples:GetSize() = 2
-            text sample1 = samples:Get(0):GetHeader()
-            text sample2 = samples:Get(1):GetHeader()
+        if groups:GetSize() = 1
+            summary = summary + "A "+ GetFormalTestName() + " was conducted on " + groups:Get(0):GetHeader()
+        elseif groups:GetSize() = 2
+            text sample1 = groups:Get(0):GetHeader()
+            text sample2 = groups:Get(1):GetHeader()
             summary = summary + "A "+ GetFormalTestName() + " was conducted to compare " + sample1 + " and " + sample2 + "."
         end
         if GetFactor() not= ""
@@ -56,6 +56,10 @@ class CompareDistributionsResult is StatisticalTestResult
         summary = summary + lf + "Statistic (W): " + math:Round(GetTestStatistic(), digits)
 
         summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+
+        if GetEffectSizeName() not= ""
+            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+        end
 
         return summary
     end
@@ -70,15 +74,15 @@ class CompareDistributionsResult is StatisticalTestResult
         text summary = ""
         text lf = summary:GetLineFeed()
 
-        if samples:GetSize() = 1
+        if groups:GetSize() = 1
             if GetFactor() = ""
-                summary = summary + "A " + GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader() + "."
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + groups:Get(0):GetHeader() + "."
             else
-                summary = summary + "A " + GetFormalTestName() + " was conducted on " + samples:Get(0):GetHeader() + " in " + GetFactor() + "."
+                summary = summary + "A " + GetFormalTestName() + " was conducted on " + groups:Get(0):GetHeader() + " in " + GetFactor() + "."
             end
-        elseif samples:GetSize() = 2
-            text sample1 = samples:Get(0):GetHeader()
-            text sample2 = samples:Get(1):GetHeader()
+        elseif groups:GetSize() = 2
+            text sample1 = groups:Get(0):GetHeader()
+            text sample2 = groups:Get(1):GetHeader()
             summary = summary + "A "+ GetFormalTestName() + " was conducted to compare the distributions of " + sample1 + " and " + sample2 + "."
         end
 
