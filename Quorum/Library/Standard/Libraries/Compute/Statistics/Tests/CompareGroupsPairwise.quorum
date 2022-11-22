@@ -106,7 +106,19 @@ class CompareGroupsPairwise is CompareGroups
             if frame:GetSelection() not= undefined 
                 frame:GetSelection():CopyTo(cast(FactorInput, me))
             end
-        end      
+        end
+
+        if Paired() or RepeatedMeasures() or Ranked()
+            parent:StatisticalTest:RemoveUndefined(true)
+        end
+        if GetFactorSize() = 0
+            parent:StatisticalTest:Calculate(frame)
+        else
+            parent:StatisticalTest:CalculateWithFactor(frame)
+        end
+    end
+
+    private action RunTest(DataFrame frame)
         if GetColumnSize() < 2
             alert("Must include at least two columns.")
         end
@@ -431,6 +443,7 @@ class CompareGroupsPairwise is CompareGroups
     action GetPairwiseSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
         integer i = 0
         repeat while i < GetResults():GetSize()
             CompareGroupsResult pair = GetResults():Get(i)
@@ -440,7 +453,7 @@ class CompareGroupsPairwise is CompareGroups
             if pair:GetGroups():GetSize() > 1
                 text group1 = pair:GetGroups():Get(0):GetHeader()
                 text group2 = pair:GetGroups():Get(1):GetHeader()
-                summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + pair:GetProbabilityValue()
+                summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + math:Round(pair:GetProbabilityValue(), digits)
                 if pair:IsSignificant()
                     summary = summary + " ** significant **"
                 end

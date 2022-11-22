@@ -250,11 +250,6 @@ class CompareNGroupsResult is CompareGroupsResult
                 summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
             end
     
-            if IsSignificant()
-                summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
-            else
-                summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
-            end
             return summary
         end
         return ""
@@ -289,11 +284,6 @@ class CompareNGroupsResult is CompareGroupsResult
 
         summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
 
-        if IsSignificant()
-            summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
-        else
-            summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
-        end
         return summary
     end
 

@@ -81,12 +81,6 @@ class Compare1GroupResult is Compare2GroupsResult
             if GetEffectSizeName() not= ""
                 summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
             end
-
-            if IsSignificant()
-                summary = summary + lf + "Alternative Hypothesis: " + GetAlternativeHypothesis()
-            else
-                summary = summary + lf + "Null Hypothesis: " + GetNullHypothesis()
-            end
     
             if GetProbabilityValue() < 0.05
                 summary = summary + lf + "The difference between the "+ sample1 +" mean and the proposed mean did not appear to be random chance"
