@@ -1,52 +1,53 @@
 package Libraries.Compute.Statistics.Reporting
 
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Math
+
 /*
-    This class represents data that comes back from a correlation.
+    This class represents data that comes back from a CorrelateGroups
+    calculation (Pearson or Spearman correlation).
 
-    Attribute: Author Andreas Stefik
+    Attribute: Author Andreas Stefik, Hannah Williams
 */
-class CorrelateGroupsResult
-    integer leftIndex = 0
-    integer rightIndex = 0
-    number probabilityValue = 0
-    number criticalValue = 0
-    number degreesOfFreedom = 0
+class CorrelateGroupsResult is StatisticalTestResult
+    Array<DataFrameColumn> groups                       // The groups used in this calculation.
+    boolean ranked = false 
     number correlation = 0
+    text factor = ""
+    Math math
 
-    /*
-        Obtains the probability value (p in statistics) calculated by the test.
-
-        Attribute: Returns the probability
-    */
-    action GetProbabilityValue returns number
-        return probabilityValue
+    /* Returns the factor, if used in this calculation */
+    action GetFactor returns text
+        return factor
     end
 
-    /*
-        Sets the probability value (p in statistics) calculated by the test.
-
-        Attribute: Parameter probabilityValue the probability
-    */
-    action SetProbabilityValue(number probabilityValue)
-        me:probabilityValue = probabilityValue
+    /* Sets the factor, if used in this calculation */
+    action SetFactor(text factor)
+        me:factor = factor
     end
 
-    /*
-        Obtains the degrees of freedom value (df in statistics) calculated by the test.
-
-        Attribute: Returns the degrees of freedom
-    */
-    action GetDegreesOfFreedom returns number
-        return degreesOfFreedom
+    /* Returns the groups used in this calculation */
+    action GetGroups returns Array<DataFrameColumn>
+        return groups
     end
 
-    /*
-        Sets the degrees of freedom value (df in statistics) calculated by the test.
+    /* Sets the groups used in this calculation */
+    action SetGroups(DataFrameColumn group1, DataFrameColumn group2)
+        Array<DataFrameColumn> groups
+        groups:Add(group1)
+        groups:Add(group2)
+        me:groups = groups
+    end
 
-        Attribute: Parameter degreesOfFreedom the degrees of freedom
-    */
-    action SetDegreesOfFreedom(number degreesOfFreedom)
-        me:degreesOfFreedom = degreesOfFreedom
+    action Ranked returns boolean
+        return ranked
+    end
+
+    action Ranked(boolean ranked)
+        me:ranked = ranked
     end
 
     /*
@@ -67,57 +68,127 @@ class CorrelateGroupsResult
         me:correlation = correlation
     end
 
-    /*
-        This indicates the left column index
 
-        Attribute: Returns the left index
+    /*
+        This action summarizes the result and lists it informally.
     */
-    action GetLeftIndex returns integer
-        return leftIndex
+    action GetSummary returns text
+        if GetGroups():GetSize() = 2
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            text variable1 = GetGroups():Get(0):GetHeader()
+            text variable2 = GetGroups():Get(1):GetHeader()
+            integer digits = GetFormat():GetSignificantDigits()
+    
+            summary = summary + "A "+ GetFormalTestName() + " was performed."
+            if factor not= ""
+                summary = summary + lf + "Factor: " + factor
+            end
+           
+            summary = summary + lf + "Columns: " + variable1 + " and " + variable2
+    
+            summary = summary + lf + "Statistic (t): " + math:Round(GetTestStatistic(), digits)
+    
+            summary = summary + lf + "Degrees Of Freedom: " + math:Round(GetDegreesOfFreedom(), digits)
+    
+            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+    
+            summary = summary + lf + "Correlation: " + math:Round(GetCorrelation(), digits)
+    
+            if GetEffectSizeName() not= ""
+                summary = summary + lf + "Effect Size: " + GetEffectSizeName() + " = " + math:Round(GetEffectSize(), digits)
+            end
+    
+            return summary
+        end
+        return ""
     end
 
     /*
-        This sets the left column index
-
-        Attribute: Parameter leftIndex the left index
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
-    action SetLeftIndex(integer leftIndex)
-        me:leftIndex = leftIndex
+    action GetFormalSummary returns text
+        if GetGroups():GetSize() = 2
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            text variable1 = GetGroups():Get(0):GetHeader()
+            text variable2 = GetGroups():Get(1):GetHeader()
+    
+            if factor = ""
+                summary = summary + "A "+ GetFormalTestName() + " was performed to assess the linear relationship between " 
+                                    + variable1 + " and " + variable2 + "."
+            else
+                summary = summary + "A "+ GetFormalTestName() + " was performed on " + factor + " to assess the linear relationship between " 
+                                    + variable1 + " and " + variable2 + "."
+            end
+    
+            if correlation = -1 
+                summary = summary + lf + "There was a perfect negative correlation between the two variables"
+            elseif correlation = 1
+                summary = summary + lf + "There was a perfect positive correlation between the two variables"
+            elseif correlation = 0
+                summary = summary + lf + "There was no correlation between the two variables"
+            elseif correlation < 0 
+                text level = ""
+                if correlation <= -0.5
+                    level = "strong"
+                elseif correlation <= -0.3 and correlation > -0.5
+                    level = "moderate"
+                else
+                    level = "weak"
+                end
+                summary = summary + lf + "There was a " + level + " negative correlation between the two variables"
+            else
+                text level = ""
+                if correlation >= 0.5
+                    level = "strong"
+                elseif correlation >= 0.3 and correlation < 0.5
+                    level = "moderate"
+                else
+                    level = "weak"
+                end
+                summary = summary + lf + "There was a " + level + " positive correlation between the two variables"
+            end   
+            summary = summary + ", " + GetFormalNumericalResult() + "."
+            return summary
+        end
+        return ""
     end
 
     /*
-        This indicates the right column index
+        This action returns the formal numrical result in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
 
-        Attribute: Returns the right index
+        Correlate2Groups (Pearson Correlation)
+        Numerical result format: r(degress of freedom) = correlation, p = probability-value
+        Example:
+            r(4) = .23, p = .667
+   
+        Correlate2RankedGroups (Spearman Correlation)
+        Numerical result format: rs(degress of freedom) = correlation, p = probability-value
+        Example:
+            rs(4) = .03, p = .957
     */
-    action GetRightIndex returns integer
-        return rightIndex
-    end
-
-    /*
-        This sets the right column index
-
-        Attribute: Parameter rightIndex the right index
-    */
-    action SetRightIndex(integer rightIndex)
-        me:rightIndex = rightIndex
-    end
-
-    /*
-        This indicates the critical value for any statistical test that was run
-
-        Attribute: Returns the critical value
-    */
-    action GetCriticalValue returns number
-        return criticalValue
-    end
-
-    /*
-        This sets the critical value for any statistical test that was run
-
-        Attribute: Paremeter criticalValue the critical value
-    */
-    action SetCriticalValue(number criticalValue)
-        me:criticalValue = criticalValue
+    action GetFormalNumericalResult() returns text
+        if GetGroups():GetSize() = 2
+            text summary = ""
+            if ranked
+                summary = summary + "rs("
+            else
+                summary = summary + "r("
+            end
+            summary = summary + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " 
+                              + GetFormat():FormatCorrelation(GetCorrelation())
+    
+            number p = GetProbabilityValue()
+            if p < GetFormat():PRECISION_LIMIT
+                summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+            else
+                summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+            end
+            return summary
+        end
+        return ""
     end
 end

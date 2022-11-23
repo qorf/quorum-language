@@ -1,0 +1,89 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.Tests.CompareCounts
+use Libraries.Compute.Statistics.Reporting.CompareCountsResult
+use Libraries.Compute.Statistics.Columns.TextColumn
+
+/*
+    This class tests pearson chi-squared test for independence.
+*/
+class CompareCountsIndependenceTest is Test
+
+    on create
+        SetName("Compare Counts Test of Independence test - Pearson Chi-Squared")
+    end
+
+    action Run
+        DataFrame frame
+        TextColumn column
+        column:SetHeader("sex")
+        i = 0
+        repeat while i < 662
+            column:Add("female")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 676
+            column:Add("male")
+            i = i + 1
+        end
+        frame:AddColumn(column)
+
+        TextColumn column2
+        column2:SetHeader("region")
+        i = 0
+        repeat while i < 161
+            column2:Add("NE")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 164
+            column2:Add("NW")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 175
+            column2:Add("SE")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 162
+            column2:Add("SW")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 163
+            column2:Add("NE")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 161
+            column2:Add("NW")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 189
+            column2:Add("SE")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 163
+            column2:Add("SW")
+            i = i + 1
+        end
+        frame:AddColumn(column2)
+
+        CompareCounts compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:TestOfIndependence(frame)
+
+        CompareCountsResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 0.4351367935432728)
+        Check(result:GetDegreesOfFreedom(), 3.0)
+        Check(result:GetProbabilityValue(), 0.9328921288772234)  
+    end
+end

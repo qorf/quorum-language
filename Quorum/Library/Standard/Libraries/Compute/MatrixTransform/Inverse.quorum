@@ -1,0 +1,79 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.Matrix
+
+/*
+    This is a MatrixTransform class to transpose matrix. 
+
+    Attribute Returns A new matrix after the operation is performed.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Compute.MatrixTransform.Transpose
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            matrix:SetColumn(3, 4.1)
+            Transpose transpose
+            Matrix result = transpose:Transform(matrix)
+            output result:ToText()
+        end
+    end
+*/
+class Inverse is MatrixTransform
+    /*
+        This method applies the transform to the Matrix. 
+
+        Attribute Parameter The matrix to transform.
+
+        Attribute Returns A new matrix after the operation is performed.
+
+        Attribute: Example
+
+        use Libraries.Compute.Matrix
+        use Libraries.Compute.MatrixTransform.Transpose
+
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(4, 4, 0.0)
+                matrix:SetColumn(0, 1.1)
+                matrix:SetColumn(1, 2.1)
+                matrix:SetColumn(2, 3.1)
+                matrix:SetColumn(3, 4.1)
+                Inverse transpose
+                Matrix result = Inverse:Transform(matrix)
+                output result:ToText()
+            end
+        end
+    */
+    action Transform(Matrix matrix) returns Matrix
+        if not matrix:IsSquare()
+            alert("Inverse is only valid for square matrices.")
+        end
+
+        Matrix newMatrix
+        if matrix:IsDiagonal() 
+            // If it is diagonal, simply return 1/diag
+            newMatrix:Fill(matrix:GetRows(), matrix:GetColumns(), 0)
+            integer i = 0
+            repeat while i < matrix:GetRows()
+                if matrix:Get(i,i) not= 0
+                    newMatrix:Set(i, i, 1.0 / matrix:Get(i,i))
+                end
+                i = i + 1
+            end
+        else
+            OrthonormalTriangularDecomposition decomp
+            decomp:Calculate(matrix)
+            newMatrix = decomp:Solve(matrix:Identity())
+        end
+        return newMatrix
+    end
+end
