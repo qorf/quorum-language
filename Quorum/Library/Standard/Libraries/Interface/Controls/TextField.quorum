@@ -784,7 +784,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         if caretActive
             caretTimer = caretTimer - seconds
             if caretTimer < 0
-                caretTimer = caretTimer + caretBlinkTime
+                caretTimer = caretBlinkTime
                 if caret:IsShowing()
                     caret:Hide()
                 else
