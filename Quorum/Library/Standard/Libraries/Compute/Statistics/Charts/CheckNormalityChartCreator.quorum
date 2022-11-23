@@ -1,0 +1,94 @@
+package Libraries.Compute.Statistics.Charts
+
+use Libraries.Compute.Statistics.DataFrameChartCreator
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Distributions.NormalDistribution
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.Calculations.CalculateRanks
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Compute.Statistics.DataFrameSelection
+
+/*
+    This action creates what is often called a QQ plot, or quartile quartile plot, 
+    in the academic literature. The broad idea is that it maps the values in a column 
+    to the theoretical ranking values in a normal distribution. If the chart is largely 
+    linear up and to the right, then the data appears to be reasonably, although informally, 
+    normally distributed. This action is a helper that can only conduct this calculation on 
+    one column for a normal distribution, although the broad idea could be extended further 
+    if needed.
+
+    Attribute: Returns a ScatterPlot that can be displayed or placed into a user interface or game.
+
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.ScatterPlot
+
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    ScatterPlot chart = frame:NormalityCheckChart()
+    chart:SetTitle("My Normality Check Chart")
+    chart:Display()
+*/
+class CheckNormalityChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
+
+    action Create(DataFrame frame) returns Chart
+        integer columns = GetColumnSize()
+        integer factors = GetFactorSize()
+
+        if columns = 1 and factors = 0
+            return CreateChart(frame, false)
+        else
+            alert("CheckNormalityCreator does not support the number of column/factors that were selected.")
+        end
+
+        return undefined
+    end
+
+    action CreateChart(DataFrame frame, boolean useFactor) returns Chart
+        integer index = GetColumn(0)
+        DataFrameColumn theCol = frame:GetColumn(index)
+        text columnName = theCol:GetHeader()
+
+        CalculateRanks ranks
+        theCol:Calculate(ranks)
+        DataFrameColumn ranked = ranks:GetRanks()
+        ranked:SetHeader(columnName + "Ranked")
+        
+        //Make a new DataFrame with the items
+        DataFrame newFrame
+        newFrame:AddColumn(theCol)
+        newFrame:AddColumn(ranked)
+        
+        
+        newFrame:AddColumn(columnName + "DistCalc",columnName + "Ranked" + " - 0.5")
+        newFrame:AddColumn(columnName + "Dist",columnName + "DistCalc" + " / " + ranked:GetSize())
+        DataFrameColumn dist = newFrame:GetColumn(columnName + "Dist")
+        
+        NumberColumn theoretical
+        theoretical:SetHeader("Theoretical")
+        theoretical:SetSize(ranked:GetSize())
+        newFrame:AddColumn(theoretical)
+        
+        NormalDistribution normal
+        i = 0
+        repeat while dist:GetSize() times
+            number rank = dist:GetAsNumber(i)
+            number inverse = normal:InverseCumulativeDistribution(rank)
+            theoretical:SetAsNumber(i, inverse)
+            i = i + 1
+        end
+        
+        newFrame:EmptySelectedColumns()
+        newFrame:AddSelectedColumns("Theoretical")
+        newFrame:AddSelectedColumns(columnName)
+        
+        
+        ScatterPlot chart = newFrame:ScatterPlot()
+        return chart
+    end
+end

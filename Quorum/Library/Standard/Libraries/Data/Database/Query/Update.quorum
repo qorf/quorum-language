@@ -242,6 +242,27 @@ class Update is Query
         Attribute: Example
 
         use Libraries.Data.Database.Update
+
+        Update query
+        query:SetTable("orders")
+        query:Add("shipped", true)
+
+    */
+    action Add(text column, boolean value)
+        Parameter param
+        param:SetToBoolean(value)
+        AddValue(column, param)
+    end
+
+    /*
+        This action is used to add which column will be modified and what value it will be set to.
+
+        Attribute: Parameter column The name of the column that will be updated
+        Attribute: Parameter value The value the column will be updated with
+
+        Attribute: Example
+
+        use Libraries.Data.Database.Update
         use Libraries.Compute.BigInteger
         
         text value = "2147483648"

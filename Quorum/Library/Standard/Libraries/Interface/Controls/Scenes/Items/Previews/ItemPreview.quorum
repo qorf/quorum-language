@@ -1,0 +1,57 @@
+package Libraries.Interface.Controls.Scenes.Items.Previews
+
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.DialogLayer
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+/*
+    The ItemPreview class is an item only meant to visible in the editor that represents
+    an ItemBlueprint so the user can have information about where they are putting an item
+    into the scene and how it fits into the scene before the final drawable is added to the
+    layer and scene. ItemPreviews are built on different ItemBlueprints that function as 
+    schematics for how the preview should look like and if the user focuses away from the 
+    Editor than the prevew is removed and the user's scene is unchanged. 
+*/
+class ItemPreview is EditorItem
+
+    ItemBlueprint schematic = undefined
+
+    /*
+        This action sets the blueprint this preview will represent. The blueprint is how
+        previews know what to draw to screen so the user can get an understanding of the 
+        item before adding it.
+
+        Attribute: Parameter itemBlueprint Blueprint to use as a schematic to make preview
+    */
+    action SetItemBlueprint(ItemBlueprint itemBlueprint)
+        schematic = itemBlueprint
+    end
+
+    /*
+        This action returns the blueprint this preview is representing. The blueprint is how
+        previews know what to draw to screen so the user can get an understanding of the 
+        item before adding it.
+
+        Attribute: Returns  The blueprint being used as a schematic to make preview
+    */
+    action GetItemBlueprint returns ItemBlueprint
+        return schematic
+    end
+
+    /*
+        If the user focuses away from the editor the preview is cancelled and removed.
+    */
+    action LostFocus(FocusEvent event)
+        if event:GetNewFocus() is Item2D
+            Item2D item = cast(Item2D, event:GetNewFocus())
+            if item:GetLayer() is DialogLayer
+                return now
+            end
+        end
+
+        GetSceneEditor():CancelItemPreview(me)
+    end
+
+end

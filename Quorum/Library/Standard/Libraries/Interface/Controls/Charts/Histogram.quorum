@@ -90,7 +90,14 @@ class Histogram is SharedBarChartParent
     */
     private action GenerateSummary returns text
         text grouptext = ""
-        if HasGroups()
+
+        if IsSeparated()
+            text subcharts = " subcharts and "
+            if GetNumberOfVisibleChartAreas() = 1
+                subcharts = " subchart and "
+            end
+            grouptext = GetNumberOfVisibleChartAreas() + subcharts
+        elseif HasGroups()
             text groups = " groups and "
             if GetBarGroups():GetSize() = 1
                 groups = " group and "
@@ -98,7 +105,9 @@ class Histogram is SharedBarChartParent
             grouptext = GetBarGroups():GetSize() + groups
         end
         text bartext = GetNumberOfBars() + " bars."
-        if GetNumberOfBars() = 1
+        if IsSeparated() and GetSubChartAreas():GetSize() > 0
+            bartext = (GetSubChartAreas():Get(0):GetChartAreaItems():GetSize() * GetNumberOfVisibleChartAreas()) + " bars."
+        elseif GetNumberOfBars() = 1
             bartext = GetNumberOfBars() + " bar."
         end
         if GetName() = "Histogram"
@@ -519,6 +528,7 @@ class Histogram is SharedBarChartParent
     */
     action ConvertToScalableVectorGraphics returns text
         HistogramWriter writer
+        writer:SetAccessibilityFlag(HasAccessibility())
         return writer:WriteOutChart(me)
     end
 
@@ -532,6 +542,7 @@ class Histogram is SharedBarChartParent
     action Save(File file)
         if file:GetFileExtension() = "svg"
             HistogramWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
             chartWriter:WriteOutChart(me,file)
         else
            alert("Save currently only supports Scalable Vector Graphics (SVG), please use a .svg file extension.")
@@ -550,6 +561,9 @@ class Histogram is SharedBarChartParent
     action Share(File file)
         if file:GetFileExtension() = "html"
             HistogramWriter chartWriter
+            chartWriter:SetAccessibilityFlag(HasAccessibility())
+            chartWriter:SetScriptFilepath(GetScriptFilepath())
+            chartWriter:SetStyleFilepath(GetStyleFilepath())
             chartWriter:WriteOutHTML(me,file)
         else
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")

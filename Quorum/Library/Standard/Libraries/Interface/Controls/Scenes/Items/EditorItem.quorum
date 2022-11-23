@@ -1,0 +1,276 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Interface.Item
+
+
+/*
+    The Editor Item class represents an object in the Scene Editor that is in the 
+    scene and is being added, removed, or having its properties modified. 
+    The main purpose of this class is to get and set information about certain properties 
+    of an item in the scene such as those for physics calculations like mass and restitution. 
+    Properties relating to physics and others important to the scene like position and the 
+    texture of the object will be saved to the scene file.  
+*/
+class EditorItem is Item
+    
+    SceneConstants constants
+    SceneEditor editor = undefined
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CUSTOM)
+    end
+
+    /*
+        ResetScale sets the scale of the object along each axis to the default which is usually 1. 
+        The scale of the object affects how large it is in the scene. So a scale of 2 on the x-axis
+        means the object is twice as big on the x-axis than when normally sized. 
+    */
+    blueprint action ResetScale
+
+    /*
+        Sets the SceneEditor object that this item is a part of.
+
+        Attribute: Parameter editor The SceneEditor this item is attached to 
+    */
+    action SetSceneEditor(SceneEditor editor)
+        me:editor = editor
+    end
+
+    /*
+        Returns the SceneEditor object that this item is a part of.
+
+        Attribute: Returns The SceneEditor this item is attached to 
+    */
+    action GetSceneEditor returns SceneEditor
+        return editor
+    end
+
+    /*
+        Used Internally. This action returns the class that contains all the constants
+        used by this object. 
+    */
+    action GetConstants returns SceneConstants
+        return constants
+    end
+
+    /*
+        Internal action so that when an object in the editor gains focus it also tells the SceneEditor
+        class that this is the item that currently has the selection.
+    */
+    action GainedFocus(FocusEvent event)
+        if editor not= undefined
+            editor:SetSelectedItem(me)
+        end
+    end
+
+    action GainedSelection
+        // Do nothing here -- inheriting classes may override this.
+    end
+
+    action LostSelection
+        // Do nothing here -- inheriting classes may override this.
+    end
+
+    /*
+        This action is used to send a message down to the Accessibility system so the user can notified
+        of something that has changed or something the user may need to know to understand what is happening. 
+    */
+    action NotifyAccessibility(text message)
+        editor:NotifyAccessibility(me, message)
+    end
+
+
+    /*
+        This action returns true if physics is currently enabled for this item. 
+
+        Attribute: Returns True if physics is enabled, false otherwise. 
+    */
+    action IsEditorPhysicsEnabled returns boolean
+        SceneProperties properties
+        if HasProperty(properties:PHYSICS_ENABLED)
+            return GetProperty(properties:PHYSICS_ENABLED):GetBoolean()
+        end
+        return false
+    end
+
+    /*
+        This action sets whether or not this object will part of physics calculations that happen as the game
+        runs. If phyics is not enabled then certain properties of the item will cause an error if the user 
+        attempts to view or change them. If physics is enabled than the object can be affected by force, and 
+        velocity calculations as the game runs. 
+
+        Attribute: Parameter enable If true the physics enabled property will be set to true, false otherwise
+    */
+    action SetEditorPhysicsEnabled(boolean enable)
+        SceneProperties properties
+        if HasProperty(properties:PHYSICS_ENABLED)
+            JavaScriptObjectNotation json = GetProperty(properties:PHYSICS_ENABLED)
+            json:SetBoolean(enable)
+        else
+            JavaScriptObjectNotation json
+            json:SetBoolean(enable)
+            SetProperty(properties:PHYSICS_ENABLED, json)
+        end
+    end
+
+    /*
+        This action returns how physics (linear velocity, angular velocity, force, 
+        torque) will affect the object.
+        There are three possible values to be returned:
+            0 indicates that the object is UNMOVABLE, which means no matter 
+                what forces or torques is applied to the object, the object 
+                will not move.
+            1 indicates that the object is NON_RESPONSIVE, which means that only
+                setting the angular velocity and linear velocity of this object
+                will affect how the object behaves.
+            2 indicates that the object is REPONSIVE, which means that this object
+                will behave differently when you apply forces and torques to 
+                this object.
+        
+        Attribute: Returns Returns how physics will affect the object. 
+    */
+    action GetEditorResponsiveness returns integer
+        SceneProperties properties
+        if HasProperty(properties:RESPONSIVENESS)
+            return GetProperty(properties:RESPONSIVENESS):GetInteger()
+        end
+
+        // The default value is UNMOVABLE, or 0.
+        return 0
+    end
+
+    /*
+        This action sets how physics (linear velocity, angular velocity, force, 
+        torque) will affect the object.
+        There are three possible values to be set:
+            0 indicates that the object is UNMOVABLE, which means no matter 
+                what forces or torques is applied to the object, the object 
+                will not move.
+            1 indicates that the object is NON_RESPONSIVE, which means that only
+                setting the angular velocity and linear velocity of this object
+                will affect how the object behaves.
+            2 indicates that the object is REPONSIVE, which means that this object
+                will behave differently when you apply forces and torques to 
+                this object.
+        
+        Attribute: Parameter responsive Integer representing how physics will affect the object. 
+    */
+    action SetEditorResponsiveness(integer responsive)
+        SceneProperties properties
+        if HasProperty(properties:RESPONSIVENESS)
+            JavaScriptObjectNotation json = GetProperty(properties:RESPONSIVENESS)
+            json:SetInteger(responsive)
+        else
+            JavaScriptObjectNotation json
+            json:SetInteger(responsive)
+            SetProperty(properties:RESPONSIVENESS, json)
+        end
+    end
+
+    /*
+    This action returns the mass of the object set in the editor in kilograms.
+
+    Attribute: Returns the mass of the object.
+    */
+    action GetEditorMass returns number
+        SceneProperties properties
+        if HasProperty(properties:MASS)
+            return GetProperty(properties:MASS):GetNumber()
+        end
+
+        return 0
+    end
+
+    /*
+    This action changes the mass of this object. 
+
+    Attribute: Parameter mass The mass of the object in kilograms.
+    */
+    action SetEditorMass(number mass)
+        SceneProperties properties
+        if HasProperty(properties:MASS)
+            JavaScriptObjectNotation json = GetProperty(properties:MASS)
+            json:SetNumber(mass)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(mass)
+            SetProperty(properties:MASS, json)
+        end
+    end
+
+    /*
+    This action gets the coefficient of friction that is stored inside this editor property holder.
+
+    Attribute: Returns the coefficient of friction.
+    */
+    action GetEditorFriction returns number
+        SceneProperties properties
+        if HasProperty(properties:FRICTION)
+            return GetProperty(properties:FRICTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    /*
+    This action sets the coefficient of friction that is stored inside this editor property holder.
+
+    Attribute: Parameter friction the coefficient of friction.
+    */
+    action SetEditorFriction(number friction)
+        SceneProperties properties
+        if HasProperty(properties:FRICTION)
+            JavaScriptObjectNotation json = GetProperty(properties:FRICTION)
+            json:SetNumber(friction)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(friction)
+            SetProperty(properties:FRICTION, json)
+        end
+    end
+
+    /*
+    This action returns how much energy that this object will loose after a collision.
+
+    Attribute: Returns the coefficient of restitution.
+    */
+    action GetEditorRestitution returns number
+        SceneProperties properties
+        if HasProperty(properties:RESTITUTION)
+            return GetProperty(properties:RESTITUTION):GetNumber()
+        end
+
+        // The default value is 0.
+        return 0
+    end
+
+    /*
+    This action sets how much energy that this object will loose after a collision.
+    If you want the object to not loose any energy, then you can pass in 1.0. If
+    you want the object to loose a lot of energy (meaning, they would probably
+    move a lot slower after the collision), then you can pass in a 0.0.
+    You can also use the values between 0 and 1.
+
+    Attribute: Parameter restitution The coefficient of restitution.
+    */
+    action SetEditorRestitution(number restitution)
+        SceneProperties properties
+        if HasProperty(properties:RESTITUTION)
+            JavaScriptObjectNotation json = GetProperty(properties:RESTITUTION)
+            json:SetNumber(restitution)
+        else
+            JavaScriptObjectNotation json
+            json:SetNumber(restitution)
+            SetProperty(properties:RESTITUTION, json)
+        end
+    end
+
+end

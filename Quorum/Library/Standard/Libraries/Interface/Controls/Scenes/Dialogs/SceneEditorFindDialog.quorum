@@ -1,0 +1,168 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Controls.Dialog
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Game.Layer3D
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+
+/*
+    The SceneEditorFindDialog class is a Dialog used by the SceneEditor to find objects in the scene.
+    The functionality of the dialog is similar to the normal find in the text editor but instead of 
+    searching for text in a file the search is for an object in the scene. The search is based on the
+    name of the object.
+*/
+class SceneEditorFindDialog is Dialog, TextChangeListener
+
+    boolean initialized = false
+
+    SceneEditor controller = undefined
+
+    // Controls used on the dialog itself
+    Label findLabel = undefined
+    TextField findField = undefined
+
+    /*
+        Sets up the dialog by connecting to an input group and creating all the controls that will be 
+        visibile in the dialog. 
+    */
+    action Initialize(SceneEditor controller)
+        if initialized
+            return now
+        end
+
+        SetInputGroup("VisualEditorFindDialog")
+
+        initialized = true
+
+        me:controller = controller
+
+        Label label
+        findLabel = label
+        
+        TextField field
+        findField = field
+
+        SetName("Find Objects")
+
+        SetPixelWidth(300)
+        SetVerticalLayoutMode(parent:Libraries.Interface.Controls.Control:FIT_CONTENTS)
+
+        LabelBoxView view
+        Color color
+        view:SetBorderThickness(1)
+        view:SetBorderStyle(view:ALL - view:TOP)
+        view:Initialize(color:CustomColor(0.9, 0.9, 0.9, 1), color:Black())
+        
+        Control panel
+        FlowLayout propertiesLayout
+        panel:SetLayout(propertiesLayout)
+        panel:SetPercentageWidth(1.0)
+        panel:SetVerticalLayoutMode(panel:FIT_CONTENTS)
+        panel:SetBorderColor(color:Black())
+        panel:SetBorderThickness(1)
+        panel:SetView2D(view)
+
+        FlowLayout findContainerLayout
+        Control findContainer
+        findContainer:SetLayout(findContainerLayout)
+        findContainer:SetPercentageWidth(1.0)
+        findContainer:SetVerticalLayoutMode(findContainer:FIT_CONTENTS)
+        findContainer:SetLeftPadding(20)
+        findContainer:SetTopPadding(20)
+        findContainer:SetRightPadding(30)
+        findContainer:SetBottomPadding(20)
+
+        findLabel:SetText("Find:")
+        findLabel:SetRightPadding(10)
+        findContainer:Add(findLabel)
+        
+        findField:SetHorizontalLayoutMode(findField:parent:Libraries.Interface.Controls.Control:FILL)
+        findField:SetName("Name")
+        findField:SetText("")
+        findField:SetFocusable(true)
+        findField:AddTextChangeListener(me)
+        findContainer:Add(findField)
+        panel:Add(findContainer)
+
+        Add(panel)
+    end
+
+    /*
+        This action is called when the dialog should appear. This positions the dialog correctly, sets the text
+        in the field to be blank and then shows the dialog. 
+    */
+    action Show
+        if controller not= undefined
+            LayoutProperties properties = GetDefaultLayoutProperties()
+            properties:SetPercentageX(0)
+            properties:SetPercentageY(0)
+            properties:SetPercentageOriginX(1)
+            properties:SetPercentageOriginY(0)
+            properties:SetPixelX(controller:GetGlobalX() + controller:GetWidth() - 20)
+            properties:SetPixelY(controller:GetGlobalY() + 20)
+        end
+
+        findField:RemoveTextChangeListener(me)
+        findField:SetText("")
+        findField:AddTextChangeListener(me)
+
+        parent:Dialog:Show()
+    end
+
+    /*
+        This Find dialog will search for objects in the scene as text is being typed into the 
+        text field. Therefore this class is a TextChangeListener so that the search can happen
+        as the user types. 
+    */
+    action TextChanged(TextChangeEvent event)
+        text searchText = findField:GetText()
+        text editorTag = controller:GetEditorTag()
+
+        if controller:GetSelectedLayer() is Layer3D
+            EditorLayer3D layer = cast(EditorLayer3D, controller:GetSelectedLayer())
+            Iterator<Item3D> iterator = layer:GetIterator()
+    
+            Array<Item3D> itemsInView
+    
+            repeat while iterator:HasNext()
+                Item3D item = iterator:Next()
+                if item:HasProperty(editorTag) = false and item:GetName():Contains(searchText)
+                    itemsInView:Add(item)
+                end
+            end
+    
+            controller:SetFilteredItems(itemsInView, false)
+        else
+            // Do something to filter the 2D layer instead
+        end
+    end
+
+    /*
+        Returns the SceneEditor this dialog interacts with.
+    */
+    action GetSceneEditor returns SceneEditor
+        return controller
+    end
+
+    /*
+        This action moves focus to the text field in this dialog. This is called when the dialog is opened
+        so that the user's focus moves to the dialog and is not lost is the process of opening the dialog.
+    */
+    action FocusField
+        findField:Focus()
+        findField:Select(0, findField:GetSize(), true)
+    end
+
+end
