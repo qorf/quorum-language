@@ -69,6 +69,7 @@ use Libraries.System.Properties
 use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Statistics.Tests.CompareDistributions
+use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -3590,6 +3591,39 @@ class DataFrame
         selection:CopyTo(cast(ColumnInput, cov))
         DataFrame frame = Transform(cov)
         return cov:GetMatrix()
+    end
+
+    /*
+        The CorrelationMatrixTransform class takes a DataFrame and its selection to decide how to transform it. 
+        Specifically, CorrelationMatrixTransform takes the every pair of two columns in the selection and 
+        computes the pearson correlation placing it into a matrix. The diagonal of that matrix will contain 1.0
+        for each column.
+        
+        Attribute: Author Hannah Williams
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+      
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        frame:AddSelectedColumn(3)
+        
+        Matrix corMatrix = frame:CorrelationMatrix()
+        output corMatrix:ToText()
+    */
+    action CorrelationMatrix returns Matrix
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CorrelationMatrixTransform cor
+        selection:CopyTo(cast(ColumnInput, cor))
+        DataFrame frame = Transform(cor)
+        return cor:GetMatrix()
     end
 
     /*

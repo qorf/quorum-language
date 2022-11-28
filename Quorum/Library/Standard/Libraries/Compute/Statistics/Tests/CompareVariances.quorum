@@ -52,8 +52,8 @@ use Libraries.Compute.Vector
     compare:AddColumn(1)
     compare:AddColumn(2)
     compare:AddColumn(3)
-    frame:Calculate(compare)
-    output frame:GetFormalSummary()
+    compare:Calculate(frame)
+    output compare:GetFormalSummary()
 */
 class CompareVariances is StatisticalTest
     /* The distribution used to calculate the p-value.*/
