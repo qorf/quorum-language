@@ -26,9 +26,9 @@ class CompareIndependentVariancesTest is Test
         frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 0.8774193548387108)
+        Check(result:GetTestStatistic(), 1.2757362522804279)
         Check(result:GetDegreesOfFreedomBetweenGroups(), 3.0)
         Check(result:GetDegreesOfFreedomWithinGroups(), 20.0)
-        Check(result:GetProbabilityValue(), 0.46939093687061384)
+        Check(result:GetProbabilityValue(), 0.3097265758691006)
     end
 end
