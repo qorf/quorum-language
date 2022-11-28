@@ -73,6 +73,8 @@ class OrthonormalTriangularDecomposition
     /* The default threshold. */
     number threshold = 0.0
 
+    constant integer BLOCK_SIZE = 52
+
     /*
         This action does the decomposition and stores the matrices as state inside of this class. Thus, the matrices can
         then be copied, stored, or used as desired. To obtain the orthonormal matrix (Q), we call GetOrthonormalMatrix, and
@@ -339,6 +341,173 @@ class OrthonormalTriangularDecomposition
             row = row - 1
         end
 
+        return x
+    end
+
+    action Solve(Matrix matrix) returns Matrix
+        integer n = transpose:GetColumns()
+        integer m = transpose:GetRows()
+
+        if matrix:GetRows() not= m
+            alert("Matrix row dimension of size " + matrix:GetRows() + " do not match matrix dimension of " + m)
+        end
+
+        integer columns = matrix:GetColumns()
+        integer blockSize = BLOCK_SIZE
+        integer cBlocks = (columns + blockSize - 1) / blockSize
+
+        Array<Array<number>> xBlocks
+        integer maxSize = columns
+        integer blockRows = (n + BLOCK_SIZE - 1) / BLOCK_SIZE
+        integer blockColumns = (columns + BLOCK_SIZE - 1) / BLOCK_SIZE
+        integer blockIndex = 0
+        integer iBlock = 0
+        repeat while iBlock < blockRows
+            integer pStart = iBlock * BLOCK_SIZE
+            integer pEnd = cast(integer, math:MinimumOf(pStart + BLOCK_SIZE, n))
+            integer iHeight = pEnd - pStart
+            integer jBlock = 0
+            repeat while jBlock < blockColumns
+                integer qStart = jBlock * BLOCK_SIZE
+                integer qEnd = cast(integer, math:MinimumOf(qStart + BLOCK_SIZE, columns))
+                integer jWidth = qEnd - qStart
+
+                Array<number> col
+                i = 0
+                repeat while i < iHeight * jWidth
+                    col:Add(0)
+                    i = i + 1
+                end
+                xBlocks:Add(col)
+
+                blockIndex = blockIndex + 1
+                jBlock = jBlock + 1
+            end
+            iBlock = iBlock + 1
+        end
+
+        Matrix y
+        y:Fill(matrix:GetRows(), blockSize, 0)
+
+        Matrix alpha
+        alpha:Fill(blockSize,1,0)
+
+        integer kBlock = 0
+        repeat while kBlock < cBlocks
+            integer kStart = kBlock * blockSize
+            integer kEnd   = cast(integer, math:MinimumOf(kStart + blockSize, columns))
+            integer kWidth = kEnd - kStart
+
+            Matrix sub = matrix:GetSubMatrix(0, kStart, m, kEnd)
+            i = 0
+            repeat while i < y:GetRows() and i < sub:GetRows()
+                j = 0
+                repeat while j < y:GetColumns() and j < sub:GetColumns()
+                    y:Set(i, j, sub:Get(i,j))
+                    j = j + 1
+                end
+                i = i + 1
+            end
+
+            // apply Householder transforms to solve Q.y = b
+            integer minor = 0
+            integer min = m
+            if n < m
+                min = n
+            end
+            repeat while minor < min
+                number factor = 1.0 / (rDiag:Get(minor) * transpose:Get(minor, minor))
+    
+                //Arrays.fill(alpha, 0, kWidth, 0.0);
+                i = 0   
+                repeat while i < kWidth
+                    alpha:Set(i, 0, 0.0)
+                    i = i + 1
+                end
+
+                integer row = minor
+                repeat while row < m
+                    number d = transpose:Get(minor, row)
+                    k = 0
+                    repeat while k < kWidth
+                        alpha:Set(k,0, alpha:Get(k,0) + d * y:Get(row,k))
+                        k = k + 1
+                    end
+                    row = row + 1
+                end
+
+                k = 0
+                repeat while k < kWidth
+                    alpha:Set(k,0, alpha:Get(k,0) * factor)
+                    k = k + 1
+                end
+
+                row = minor
+                repeat while row < m
+                    number d = transpose:Get(minor, row)
+                    k = 0
+                    repeat while k < kWidth
+                        y:Set(row,k, y:Get(row,k) + d * alpha:Get(k,0))
+                        k = k + 1
+                    end
+                    row = row + 1
+                end
+                minor = minor + 1
+            end
+    
+            // solve triangular system R.x = y
+            integer j = rDiag:GetSize() - 1
+            repeat while j >= 0
+                integer jBlock = j / blockSize
+                integer jStart = jBlock * blockSize
+                number factor = 1.0 / rDiag:Get(j)
+
+                integer index = (j - jStart) * kWidth
+                k = 0
+                repeat while k < kWidth
+                    y:Set(j,k, y:Get(j,k) * factor)
+                    xBlocks:Get(jBlock * cBlocks + kBlock):Set(index, y:Get(j,k))
+                    index = index + 1
+                    k = k + 1
+                end
+
+                i = 0
+                repeat while i < j
+                    number rji = transpose:Get(j, i)
+                    k = 0
+                    repeat while k < kWidth
+                        y:Set(i,k, y:Get(i,k) - y:Get(j,k) * rji)
+                        k = k + 1
+                    end
+                    i = i + 1
+                end
+                j = j - 1
+            end
+
+            kBlock = kBlock + 1
+        end
+
+        Matrix x
+        x:Fill(matrix:GetRows(), matrix:GetColumns(), 0)
+        matrixIndex = 0
+        arrayIndex = 0
+        i = 0
+        repeat while i < xBlocks:GetSize()
+            Array<number> row
+            j = 0
+            repeat while arrayIndex < xBlocks:Get(i):GetSize() 
+                if j mod n = 0 and j not= 0
+                    x:SetRow(matrixIndex, row)
+                    row:Empty()
+                    matrixIndex = matrixIndex + 1
+                end
+                row:Add(xBlocks:Get(i):Get(arrayIndex))
+                arrayIndex = arrayIndex + 1 
+                j = j + 1
+            end
+            x:SetRow(matrixIndex, row)
+            i = i + 1
+        end
         return x
     end
 end

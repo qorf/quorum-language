@@ -1,0 +1,185 @@
+package Libraries.Compute.Statistics.Reporting
+use Libraries.System.File
+
+/*
+    This class represents data that comes back from a statistical test.
+    Each specific test may have additional data.
+
+    Attribute: Author Hannah Williams
+*/
+class StatisticalTestResult
+    StatisticsFormatting format
+    number probabilityValue = 0
+    number testStatistic = 0
+    number criticalValue = 0
+    number degreesOfFreedom = 0
+    number significanceLevel = 0.05
+    text formalTestName = ""
+    number effectSize = 0
+    text effectSizeName = ""
+
+    /*
+        Obtains the probability value (p in statistics) calculated by the test.
+
+        Attribute: Returns the probability
+    */
+    action GetProbabilityValue returns number
+        return probabilityValue
+    end
+
+    /*
+        Sets the probability value (p in statistics) calculated by the test.
+
+        Attribute: Parameter probabilityValue the probability
+    */
+    action SetProbabilityValue(number probabilityValue)
+        me:probabilityValue = probabilityValue
+    end
+
+    /*
+        This indicates the test statistic for any statistical test that was run
+
+        Attribute: Returns the test statistic
+    */
+    action GetTestStatistic returns number
+        return testStatistic
+    end
+
+    /*
+        This sets the calculated test statistic for any statistical test that was run
+
+        Attribute: Paremeter testStatistic the test statistic
+    */
+    action SetTestStatistic(number testStatistic)
+        me:testStatistic = testStatistic
+    end
+
+    /*
+        This indicates the critical value for any statistical test that was run
+
+        Attribute: Returns the critical value
+    */
+    action GetCriticalValue returns number
+        return criticalValue
+    end
+
+    /*
+        This sets the critical value for any statistical test that was run
+
+        Attribute: Paremeter criticalValue the critical value
+    */
+    action SetCriticalValue(number criticalValue)
+        me:criticalValue = criticalValue
+    end
+
+    /*
+        Obtains the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Returns the degrees of freedom
+    */
+    action GetDegreesOfFreedom returns number
+        return degreesOfFreedom
+    end
+
+    /*
+        Sets the degrees of freedom value (df in statistics) calculated by the test.
+
+        Attribute: Parameter degreesOfFreedom the degrees of freedom
+    */
+    action SetDegreesOfFreedom(number degreesOfFreedom)
+        me:degreesOfFreedom = degreesOfFreedom
+    end
+
+    /*
+        Returns the name of the test in formal mathematical language.
+
+        Attribute: Returns the name of the test in mathematical language.
+    */
+    action GetFormalTestName returns text
+        return formalTestName
+    end
+
+    /*
+        Sets the name of the test in formal mathematical language.
+
+        Attribute: Parameter formalTestName the name of the test in mathematical language.
+    */
+    action SetFormalTestName(text formalTestName)
+        me:formalTestName = formalTestName
+    end
+
+    /*
+        Returns the effect size used for this test.
+
+        Attribute: Returns the effect size used for this test.
+    */
+    action GetEffectSize returns number
+        return effectSize
+    end
+
+    /*
+        Sets the effect size used for this test.
+
+        Attribute: Parameter effectSize is the effect size used for this test.
+    */
+    action SetEffectSize(number effectSize)
+        me:effectSize = effectSize
+    end
+
+    /*
+        Returns the name of the effect size used for this test.
+
+        Attribute: Returns the name of the effect size used for this test.
+    */
+    action GetEffectSizeName returns text
+        return effectSizeName
+    end
+
+    /*
+        Sets the name of the effect size used for this test.
+
+        Attribute: Parameter effectSizeName is the name of the effect size used for this test.
+    */
+    action SetEffectSizeName(text effectSizeName)
+        me:effectSizeName = effectSizeName
+    end
+
+    /*
+        Obtains the significance level.
+
+        Attribute: Returns the significance level.
+    */
+    action GetSignificanceLevel returns number
+        return significanceLevel
+    end
+
+    /*
+        Sets the significance level of the test (default is 0.05).
+
+        Attribute: Parameter significanceLevel the significance level between 0 and 1.
+    */
+    action SetSignificanceLevel(number significanceLevel)
+        if significanceLevel >= 0 and significanceLevel <= 1
+            me:significanceLevel = significanceLevel
+        end
+    end
+
+    /* 
+        Returns true if this result is significant against the significance level
+    */
+    action IsSignificant returns boolean
+        return GetProbabilityValue() <= GetSignificanceLevel()
+    end
+
+    action GetFormat returns StatisticsFormatting
+        return format
+    end
+
+    action SetFormat(StatisticsFormatting format)
+        me:format = format
+    end
+
+    blueprint action GetSummary returns text
+
+    blueprint action GetFormalSummary returns text
+end

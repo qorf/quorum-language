@@ -1,0 +1,186 @@
+package Libraries.Compute.Statistics.Calculations
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Calculations.Mean
+
+/*
+    This class calculates the covariance of two particular DataFrameColumns. 
+    The default covariance calculated in this case is the population covariance.
+    Use UseSample(true) to get the sample covariance.
+    For more information: https://en.wikipedia.org/wiki/Covariance
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Calculations.Covariance
+
+    //Load a comma separated file
+    DataFrame frame
+    frame:Load("Data.csv") 
+    Covariance covariance
+
+    //set the mean before using it. Alternatively, we can allow it to calculate for us.
+    //The result is received slightly faster if we set it.
+    covariance:SetMean1(17) 
+    covariance:SetMean2(12) 
+    DataFrameColumn column1 = frame:GetColumn(0)
+    DataFrameColumn column2 = frame:GetColumn(1)
+    covariance:Calculate(column1, column2)
+    number covar = covariance:GetCovariance()
+*/
+class Covariance
+    number mean1 = 0
+    number mean2 = 0
+    number covariance = 0
+    boolean mean1Set = false
+    boolean mean2Set = false
+    boolean biasCorrected = true
+    boolean population = true
+    boolean sample = false
+
+    action Calculate(DataFrameColumn column1, DataFrameColumn column2)
+        if column1:GetSize() not= column2:GetSize()
+            alert("The columns must have the same size for a covariance calculation.")
+        end
+        if column1:GetSize() < 2 or column2:GetSize() < 2
+            alert("Columns must have 2 or more entries. Not enough data for a covariance calculation.")
+        end
+
+        size = column1:GetSize()
+        if not mean1Set
+            Mean meanCalc
+            column1:Calculate(meanCalc)
+            mean1 = meanCalc:GetMean()
+        end
+        if not mean2Set
+            Mean meanCalc
+            column2:Calculate(meanCalc)
+            mean2 = meanCalc:GetMean()
+        end    
+
+        number result = 0
+        // Any undefined values will be treated as 0
+        i = 0
+        repeat while i < size     
+            number dev1 = 0
+            number dev2 = 0
+            if column1:IsUndefined(i)
+                dev1 = 0 - mean1
+            else
+                dev1 = column1:GetAsNumber(i) - mean1
+            end
+            if column2:IsUndefined(i)
+                dev2 = 0 - mean2
+            else
+                dev2 = column2:GetAsNumber(i) - mean2
+            end
+
+            if population
+                result = result + (dev1 * dev2) / cast(number, size)
+            elseif sample
+                result = result + (dev1 * dev2) / cast(number, size - 1)
+            end
+            i = i + 1
+        end
+
+        if biasCorrected
+            covariance = result * (size / (size - 1))
+        else
+            covariance = result
+        end
+    end
+   
+    /*
+        This calculation can be used again if Empty is called after using it on a column.
+    */
+    action Empty
+        mean1 = 0
+        mean2 = 0
+        covariance = 0
+        mean1Set = false
+        mean2Set = false
+    end
+
+    /*
+        Returns the sample covariance.
+    */
+    action GetCovariance returns number
+        return covariance
+    end
+
+    /*
+        Returns the mean1
+    */
+    action GetMean1 returns number
+        return mean1
+    end
+
+    /*
+        Sets the mean1. The covariance then uses this value in its calculation.
+    */
+    action SetMean1(number mean)
+        mean1 = mean
+        mean1Set = true
+    end
+
+    /*
+        Returns the mean2
+    */
+    action GetMean2 returns number
+        return mean2
+    end
+
+    /*
+        Sets the mean2. The covariance then uses this value in its calculation.
+    */
+    action SetMean2(number mean)
+        mean2 = mean
+        mean2Set = true
+    end
+
+    /*
+        Returns the biasCorrected
+    */
+    action BiasCorrected returns boolean
+        return biasCorrected
+    end
+
+    /*
+        Sets the bias corrected boolean. True if correction is applied.
+    */
+    action BiasCorrected(boolean biasCorrected)
+        me:biasCorrected = biasCorrected
+    end
+
+    /*
+        Returns the population boolean
+    */
+    action UsePopulation returns boolean
+        return population
+    end
+
+    /*
+        Sets the population boolean. True if population covariance is applied.
+    */
+    action UsePopulation(boolean population)
+        me:population = population
+        me:sample = not population
+    end
+
+    /*
+        Returns the sample boolean
+    */
+    action UseSample returns boolean
+        return sample
+    end
+
+    /*
+        Sets the sample boolean. True if sample covariance is applied.
+    */
+    action UseSample(boolean sample)
+        me:sample = sample
+        me:population = not sample
+    end
+end

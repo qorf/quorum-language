@@ -1,0 +1,549 @@
+package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.System.File
+use Libraries.Compute.Math
+
+/*
+    This class represents data that comes back from an N-sample test 
+    in CompareGroups:
+        CompareNDependentGroups 
+        CompareNIndependentGroups
+        CompareNDependentRankedGroups 
+        CompareNIndependentRankedGroups
+
+    Attribute: Author Hannah Williams
+*/
+class CompareNGroupsResult is CompareGroupsResult
+    Math math
+    /* The pairwise results of each two-sample tests within the post hoc test (if conducted) */
+    Array<CompareGroupsResult> pairwise 
+
+    /* Saved result for normal distribution tests (if conducted) */
+    Array<CompareDistributionsResult> distributionResults = undefined
+
+    /* Saved result for equal variance test (if conducted) */
+    CompareVariancesResult varianceResult = undefined
+
+    number degreesOfFreedomBetweenGroups = 0
+    number sumOfSquaresBetweenGroup = 0
+    number meanSumOfSquaresBetweenGroup = 0
+
+    number degreesOfFreedomWithinGroups = 0
+    number sumOfSquaresWithinGroup = 0
+    number meanSumOfSquaresWithinGroup = 0
+
+    number degreesOfFreedomError = 0
+    number sumOfSquaresError = 0
+    number meanSumOfSquaresError = 0
+
+    integer sampleSize = 0
+
+    DataFrame anovaTable
+
+    action SetGroups(Array<DataFrameColumn> groups)
+        if RepeatedMeasures()
+            if groups:GetSize() > 0
+                sampleSize = groups:Get(0):GetSize()
+            end
+        else
+            i = 0
+            repeat while i < groups:GetSize()
+                sampleSize = sampleSize + groups:Get(i):GetSize()
+                i = i + 1
+            end
+        end
+        parent:CompareGroupsResult:SetGroups(groups)
+    end
+
+    action GetDegreesOfFreedomBetweenGroups returns number
+        return degreesOfFreedomBetweenGroups
+    end
+
+    action SetDegreesOfFreedomBetweenGroups(number degreesOfFreedomBetweenGroups)
+        me:degreesOfFreedomBetweenGroups = degreesOfFreedomBetweenGroups
+    end
+
+    action GetSumOfSquaresBetweenGroups returns number
+        return sumOfSquaresBetweenGroup
+    end
+
+    action SetSumOfSquaresBetweenGroups(number sumOfSquaresBetweenGroup)
+        me:sumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup
+    end
+
+    action GetMeanSumOfSquaresBetweenGroups returns number
+        return meanSumOfSquaresBetweenGroup
+    end
+
+    action SetMeanSumOfSquaresBetweenGroups(number meanSumOfSquaresBetweenGroup)
+        me:meanSumOfSquaresBetweenGroup = meanSumOfSquaresBetweenGroup
+    end
+
+    action GetDegreesOfFreedomWithinGroups returns number
+        return degreesOfFreedomWithinGroups
+    end
+
+    action SetDegreesOfFreedomWithinGroups(number degreesOfFreedomWithinGroups)
+        me:degreesOfFreedomWithinGroups = degreesOfFreedomWithinGroups
+    end
+
+    action GetSumOfSquaresWithinGroups returns number
+        return sumOfSquaresWithinGroup
+    end
+
+    action SetSumOfSquaresWithinGroups(number sumOfSquaresWithinGroup)
+        me:sumOfSquaresWithinGroup = sumOfSquaresWithinGroup
+    end
+
+    action GetMeanSumOfSquaresWithinGroups returns number
+        return meanSumOfSquaresWithinGroup
+    end
+
+    action SetMeanSumOfSquaresWithinGroups(number meanSumOfSquaresWithinGroup)
+        me:meanSumOfSquaresWithinGroup = meanSumOfSquaresWithinGroup
+    end
+
+    action GetDegreesOfFreedomError returns number
+        return degreesOfFreedomError
+    end
+
+    action SetDegreesOfFreedomError(number degreesOfFreedomError)
+        me:degreesOfFreedomError = degreesOfFreedomError
+    end
+
+    action GetSumOfSquaresError returns number
+        return sumOfSquaresError
+    end
+
+    action SetSumOfSquaresError(number sumOfSquaresError)
+        me:sumOfSquaresError = sumOfSquaresError
+    end
+
+    action GetMeanSumOfSquaresError returns number
+        return meanSumOfSquaresError
+    end
+
+    action SetMeanSumOfSquaresError(number meanSumOfSquaresError)
+        me:meanSumOfSquaresError = meanSumOfSquaresError
+    end
+
+    // Saved result for equal variance test (if conducted)
+    action GetVarianceResult returns CompareVariancesResult
+        return varianceResult
+    end
+
+    action SetVarianceResult(CompareVariancesResult varianceResult)
+        me:varianceResult = varianceResult
+    end
+
+    // Saved results for normal distribution test (if conducted)
+    action GetDistributionResults returns Array<CompareDistributionsResult>
+        return distributionResults
+    end
+
+    action SetDistributionResults(Array<CompareDistributionsResult> distributionResults)
+        me:distributionResults = distributionResults
+    end
+
+    // Saved results for pairwise post hoc test (if conducted)
+    action GetPairwiseResults returns Array<CompareGroupsResult>
+        return pairwise
+    end
+
+    action SetPairwiseResults(Array<CompareGroupsResult> pairwise)
+        me:pairwise = pairwise
+    end
+
+    action GetNullHypothesis returns text
+        if GetGroups():GetSize() >= 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            return "There is no significant difference in the means"
+        end
+        return ""
+    end
+
+    private action GetRankedNullHypothesis returns text
+        return "There is no significant difference in the medians"
+    end
+
+    action GetAlternativeHypothesis returns text
+        if GetGroups():GetSize() >= 2
+            if Ranked()
+                return GetRankedNullHypothesis()
+            end
+            return "At least one of the means is significantly different from the others"
+        end
+        return ""
+    end
+
+    private action GetRankedAlternativeHypothesis returns text
+        return "At least one of the medians is significantly different from the others"
+    end
+
+    /*
+        This action summarizes the result and lists it informally.
+    */
+    action GetSummary returns text
+        if GetGroups():GetSize() >= 2
+            if Ranked()
+                return GetRankedSummary()
+            end
+            text summary = ""
+            text lf = summary:GetLineFeed()
+            integer digits = GetFormat():GetSignificantDigits()
+    
+            if RepeatedMeasures()
+                summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " dependent samples."
+            else
+                summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " independent samples."
+            end
+            if GetFactor() not= ""
+                summary = summary + lf + "Factor: " + GetFactor()
+            end
+    
+            if EqualVariances()
+                summary = summary + lf + "Sum Of Squares Between Groups: " + math:Round(sumOfSquaresBetweenGroup, digits)
+        
+                summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
+        
+                summary = summary + lf + "Mean Sum Of Squares Between Groups: " + math:Round(meanSumOfSquaresBetweenGroup, digits)
+        
+                summary = summary + lf + "Sum Of Squares Within Groups: " + math:Round(sumOfSquaresWithinGroup, digits)
+        
+                summary = summary + lf + "Degrees Of Freedom Within Groups: " + math:Round(degreesOfFreedomWithinGroups, digits)
+        
+                summary = summary + lf + "Mean Sum Of Squares Within Groups: " + math:Round(meanSumOfSquaresWithinGroup, digits)
+            else
+                summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
+        
+                summary = summary + lf + "Degrees Of Freedom Within Groups: " + math:Round(degreesOfFreedomWithinGroups, digits)
+            end
+    
+            if RepeatedMeasures()
+                summary = summary + lf + "Sum Of Squares Error: " + math:Round(sumOfSquaresError, digits)
+        
+                summary = summary + lf + "Degrees Of Freedom Error: " + math:Round(degreesOfFreedomError, digits)
+        
+                summary = summary + lf + "Mean Sum Of Squares Error: " + math:Round(meanSumOfSquaresError, digits)
+    
+                summary = summary + lf + "Statistic (F) Between Groups: " + math:Round(GetTestStatistic(), digits)
+    
+                summary = summary + lf + "Probability Between Groups: " + math:Round(GetProbabilityValue(), digits)
+            else
+                if EqualVariances()
+                    summary = summary + lf + "Statistic (F): " + math:Round(GetTestStatistic(), digits)
+                else
+                    summary = summary + lf + "Statistic (Welch F): " + math:Round(GetTestStatistic(), digits)
+                end
+    
+                summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+            end
+    
+            if GetEffectSizeName() not= ""
+                summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+            end
+    
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = GetFormat():GetSignificantDigits()
+
+        text dependence = ""
+        if RepeatedMeasures()
+            dependence = "dependent"
+        else
+            dependence = "independent"
+        end
+
+        summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " " + dependence +" samples."
+        if GetFactor() not= ""
+            summary = summary + lf + "Factor: " + GetFactor()
+        end
+
+        if RepeatedMeasures()
+            summary = summary + lf + "Statistic (Friedman χ2): " + math:Round(GetTestStatistic(), digits)
+        else
+            summary = summary + lf + "Statistic (H): " + math:Round(GetTestStatistic(), digits)
+        end
+
+        summary = summary + lf + "Degrees Of Freedome: " + math:Round(GetDegreesOfFreedom(), digits)
+
+        summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
+
+        summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        if GetGroups():GetSize() >= 2
+            if Ranked()
+                return GetRankedFormalSummary()
+            end
+            text summary = ""
+            text lf = summary:GetLineFeed()
+    
+            if RepeatedMeasures()
+                if GetFactor() = ""
+                    summary = summary + "A " + GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " dependent samples."
+                else
+                    summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " across " + GetGroups():GetSize() + " dependent samples."
+                end
+    
+                if varianceResult not= undefined and varianceResult:GetCorrection() not= 1
+                    summary = summary  + lf + varianceResult:GetFormalTestName() + " indicated that the assumption of sphericity had been violated, " 
+                    + varianceResult:GetFormalNumericalResult() + ", therefore the degrees of freedom were corrected using Greenhouse-Geisser estimates of sphericity "
+                    + "(ε ="+GetFormat():FormatWithoutLeadingZero(varianceResult:GetCorrection(), 2)+")."
+                end
+            else
+                if GetFactor() = ""
+                    summary = summary + "A " + GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " independent samples."
+                else
+                    summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " across " + GetGroups():GetSize() + " independent samples."
+                end
+            end
+
+            if GetProbabilityValue() <= GetSignificanceLevel()
+                //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
+                summary = summary + lf + "There was statistically significant differences in means of at least two groups"
+            else
+                //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
+                summary = summary + lf + "There was not statistically significant differences in means"
+            end
+    
+            summary = summary + ", " + GetFormalNumericalResult() + "."
+    
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        text dependence = ""
+        if RepeatedMeasures()
+            dependence = "dependent"
+        else
+            dependence = "independent"
+        end
+
+        summary = summary + "A " + GetFormalTestName() + " conducted across " + GetGroups():GetSize()
+                            + " " + dependence + " samples"
+
+        if IsSignificant()
+            summary = summary + " indicated that there was a statistically significant difference between the samples"
+        else
+            summary = summary + " indicated that there was not a statistically significant difference between the samples"
+        end
+        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        return summary
+    end
+
+    /*
+        This action returns the formal numrical result in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        CompareNDependentGroups (A One-Way Repeated Measures ANOVA)
+        Numerical result format: F(between-groups df, within-groups df) = f-statistic, p = probability-value, η2 = effect-size
+        Example:
+            F(3, 1000.5) = 1.35, p = .258, η2 = .003
+   
+        CompareNIndependentGroups (A One-Way ANOVA)
+        Numerical result format: F(between-groups df, within-groups df) = f-statistic, p = probability-value, η2 = effect-size
+        Example:
+            F(3, 1334) = 2.97, p = .031, η2 = .007
+
+        CompareNDependentRankedGroups (A Friedman Test)
+        Numerical result format: χ2(degrees of freedom, N = sample size) = chi-squared-statistic, p = probability-value, W  = effect-size
+        Example:
+            χ2(2, N = 1338) = 2095.99, p < .001, W  = .78.
+   
+        Compare2IndependentRankedGroups (A Kruskal-Wallis Test)
+        Numerical result format: H(degrees of freedom, N = total size) = h-statistic, p = probability-value, Ε^2  = effect-size
+        Example:
+            H(2, N = 4014) = 2777.06, p < .001, Ε^2  = 2777.06
+    */
+    action GetFormalNumericalResult() returns text
+        if GetGroups():GetSize() >= 2
+            if Ranked()
+                return GetRankedFormalNumericalResult()
+            end
+            text summary = ""
+            if RepeatedMeasures()
+                summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+                                           + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomError) + ") = " 
+                                           + GetFormat():FormatTestStatistic(GetTestStatistic())
+            else
+                if EqualVariances()
+                    summary = summary + "F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+                                           + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
+                                           + GetFormat():FormatTestStatistic(GetTestStatistic())
+                else
+                    summary = summary + "Welch's F(" + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
+                                           + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
+                                           + GetFormat():FormatTestStatistic(GetTestStatistic())
+                end
+            end
+            number p = GetProbabilityValue()
+            if p < GetFormat():PRECISION_LIMIT
+                summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+            else
+                summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+            end
+            if RepeatedMeasures() or EqualVariances()
+                summary = summary + ", η2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+            else
+                summary = summary + ", ω2 = " + GetFormat():FormatWithoutLeadingZero(GetEffectSize(),3)
+            end
+
+            return summary
+        end
+        return ""
+    end
+
+    private action GetRankedFormalNumericalResult returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        if RepeatedMeasures()
+            summary = summary + "H(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) 
+                                + ", N = " + sampleSize + ") = " 
+                                + GetFormat():FormatTestStatistic(GetTestStatistic())
+        else
+            summary = summary + "χ2(" + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) 
+                                + ", N = " + sampleSize + ") = " 
+                                + GetFormat():FormatTestStatistic(GetTestStatistic())
+        end
+
+        number p = GetProbabilityValue()
+        if p < GetFormat():PRECISION_LIMIT
+            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
+        else
+            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
+        end
+        if RepeatedMeasures()
+            summary = summary + ", Ε^2  = " + GetFormat():FormatCorrelation(GetEffectSize())
+        else
+            summary = summary + ", W  = " + GetFormat():FormatCorrelation(GetEffectSize())
+        end
+        return summary
+    end
+
+
+    private action ConvertResultToDataFrame returns DataFrame
+        number nan = 0
+
+        TextColumn source
+        source:SetHeader("Source")
+        source:Add("Between Groups")
+        source:Add("Within Groups")
+        if RepeatedMeasures()
+            source:Add("Error")
+        end
+        source:Add("Total")
+
+        NumberColumn ss
+        ss:SetHeader("Sum Of Squares")
+        ss:Add(sumOfSquaresBetweenGroup)
+        ss:Add(sumOfSquaresWithinGroup)
+        if RepeatedMeasures()
+            ss:Add(sumOfSquaresError)
+        end
+        ss:Add(sumOfSquaresBetweenGroup + sumOfSquaresWithinGroup + sumOfSquaresError)
+
+        NumberColumn df
+        df:SetHeader("Degrees Of Freedom")
+        df:Add(degreesOfFreedomBetweenGroups)
+        df:Add(degreesOfFreedomWithinGroups)
+        if RepeatedMeasures()
+            df:Add(degreesOfFreedomError)
+        end
+        df:Add(degreesOfFreedomBetweenGroups + degreesOfFreedomWithinGroups + degreesOfFreedomError)
+
+
+        NumberColumn ms
+        ms:SetHeader("Mean Sum Of Squares")
+        ms:Add(meanSumOfSquaresBetweenGroup)
+        ms:Add(meanSumOfSquaresWithinGroup)
+        if RepeatedMeasures()
+            ms:Add(meanSumOfSquaresError)
+        end
+        ms:Add(nan:GetNotANumberValue())
+
+        NumberColumn f
+        f:SetHeader("F Statistic")
+        f:Add(GetTestStatistic())
+        f:Add(nan:GetNotANumberValue()) // Not implemented yet.
+        if RepeatedMeasures()
+            f:Add(nan:GetNotANumberValue())
+        end
+        f:Add(nan:GetNotANumberValue())
+
+        NumberColumn p
+        p:SetHeader("Probability Value")
+        p:Add(GetProbabilityValue())
+        p:Add(nan:GetNotANumberValue()) // Not implemented yet.
+        if RepeatedMeasures()
+            p:Add(nan:GetNotANumberValue())
+        end
+        p:Add(nan:GetNotANumberValue())
+
+        DataFrame anovaTable
+        anovaTable:AddColumn(source)
+        anovaTable:AddColumn(ss)
+        anovaTable:AddColumn(df)
+        anovaTable:AddColumn(ms)
+        anovaTable:AddColumn(f)
+        anovaTable:AddColumn(p)
+        return anovaTable
+    end
+
+    /*
+        This action saves this result to disk at the position of the current file. To conduct the 
+        conversion, the file extension is used. Only Comma Separated Values (CSV) is currently 
+        supported.
+
+        Attribute: Parameter file the location of where to save the file.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+        frame:AddSelectedColumns(2)
+    
+        CompareGroups compare = frame:CompareSelectedColumns()
+        compare:GetResult():Save("anova.csv")
+    */
+    action Save(text path)
+        File file
+        file:SetPath(path)
+        if file:GetFileExtension() = "csv"
+            ConvertResultToDataFrame():Save(path)
+        else
+           alert("Save currently only supports Comma Separated Values (CSV), please use a .csv file extension.")
+        end
+    end
+end
