@@ -1,0 +1,120 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.VertexData
+use Libraries.Game.Graphics.Camera
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Game.GameStateManager
+
+class BatchingShaderMapping2D is ShaderMapping
+
+    ShaderProgram program = undefined
+    GameStateManager manager
+    Mesh mesh
+
+    integer vertexOffset = 0
+    integer indexCount = 0
+
+    on create
+        InitializeMesh(mesh)
+    end
+
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private blueprint action InitializeMesh(Mesh mesh)
+
+    action GetVertexSize returns integer
+        return mesh:GetVertexAttributes():vertexSize / 4
+    end
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        graphics:SetDepthMask(true)
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+
+        // TO-DO: Replace hard-coded values with references to constants
+        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+        program:SetShaderInput("u_texture", 0)
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
+
+    /*
+    Returns the Mesh used by this ShaderMapping to support batching.
+    By default, this returns undefined, but it can be overridden to
+    provide a custom Mesh.
+
+    If this action returns undefined, no batching will be performed
+    using this ShaderMapping.
+    */
+    action GetBatchingMesh returns Mesh
+        return mesh
+    end
+    
+    /*
+    This action is called just before the first item in a Batch is passed to the MapInputs call.
+    */
+    action BeginBatch(ShaderProgram program)
+        vertexOffset = 0
+        indexCount = 0
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        program:Draw(mesh, camera, 0, indexCount)
+
+        vertexOffset = 0
+        indexCount = 0
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        DrawableShape shape = drawable:GetDrawableShape()
+
+        Mesh mesh = GetBatchingMesh()
+        VertexData data = mesh:GetVertexData()
+        data:UpdateVertices(vertexOffset, shape:GetVertexData(), 0, shape:GetDataCount())
+
+        vertexOffset = vertexOffset + shape:GetDataCount()
+        indexCount = indexCount + shape:GetIndexCount()
+    end
+
+
+    /*
+    This action determines if the provided Drawable can be included in the current batch.
+    If this returns false, then the current batch must be rendered before this Drawable can
+    be added.
+
+    This action should only be called if the mapping supports batching. By default, a mapping
+    that doesn't support batching will return false from this action.
+    */
+    action CanIncludeInBatch(ShaderProgram program, Drawable drawable) returns boolean
+        return vertexOffset + drawable:GetDrawableShape():GetDataCount() < mesh:GetVertexData():GetMaxSize()
+    end
+
+    /*
+    This action returns true if the ShaderMapping currently has a batch awaiting rendering,
+    or false if there are no Drawables awaiting rendering in a batch.
+
+    This action should only be called if the mapping supports batching. By default, a mapping
+    that doesn't support batching will return false from this action.
+    */
+    action IsBatching returns boolean
+        return vertexOffset not= 0
+    end
+
+end

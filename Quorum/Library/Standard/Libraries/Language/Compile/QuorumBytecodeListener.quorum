@@ -2585,8 +2585,34 @@ class QuorumBytecodeListener is QuorumSourceListener
             Operation returnOp
             returnOp:SetOperation(returnOp:RETURN)
 
+            
             TypeChecker checker = GetTypeChecker()
             if right = undefined
+                //we have a case where the return type is not void, but we are returning "now." This is an error
+                if context:isReturnNow
+                    CompilerError error
+                    error:SetCode(codes:TYPE_CHECK_RESULT)
+                    error:SetLocation(context:GetLocation())
+    
+                    text typeName = ""
+                    text quote = typeName:GetDoubleQuote()
+                    if currentAction not= undefined
+                        Type value = currentAction:GetReturnType()
+                        typeName = value:GetStaticKeyWithGenerics()
+                    else
+                        typeName = "Unknown"
+                    end
+                    text messaage = "The action has a return of type of " +
+                                quote + typeName + "," + quote + " so we cannot return " + quote + "now." + quote + " Return now means do not give back a value." 
+    
+                    error:SetErrorMessage(messaage)
+                    CompilerErrorType errorType
+                    errorType:SetCurrentType(errorType:INCOMPATIBLE_TYPES)
+                    error:SetCompilerErrorType(errorType)
+                    CompilerErrorManager manager = GetCompilerErrorManager()
+                    manager:Add(error)
+                    return now
+                end
                 return now
             end
 

@@ -1,85 +1,207 @@
 package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Containers.HashTable
 
 /*
-    This class represents data that comes back from a correlation.
+    This class represents a test result that comes back from 
+    a CompareGroups calculation.
 
     Attribute: Author Andreas Stefik
 */
-class CompareGroupsResult is ColumnInput
-    number probabilityValue = 0
-    number criticalValue = 0
-    number effectSize = 0
-    text formalTestName = ""
-    text effectSizeName = ""
+class CompareGroupsResult is StatisticalTestResult, ColumnInput
+    Array<DataFrameColumn> groups                       // The groups used in this calculation.
+    HashTable<DataFrameColumn, Summarize> summaries     // The summaries of the groups used in this calculation.
+    boolean repeatedMeasures = false
+    boolean paired = false
+    boolean ranked = false
+    boolean equalVariances = false
+    boolean normalDistribution = false
+    text factor = ""                               
 
-    /*
-        Obtains the probability value (p in statistics) calculated by the test.
+    /* Returns the factor, if used in this calculation */
+    action GetFactor returns text
+        return factor
+    end
 
-        Attribute: Returns the probability
-    */
-    action GetProbabilityValue returns number
-        return probabilityValue
+    /* Sets the factor, if used in this calculation */
+    action SetFactor(text factor)
+        me:factor = factor
+    end
+
+    /* Returns the groups used in this calculation */
+    action GetGroups returns Array<DataFrameColumn>
+        return groups
+    end
+
+    /* Sets the groups used in this calculation */
+    action SetGroups(Array<DataFrameColumn> groups)
+        me:groups = groups
+    end
+
+    /* Returns the numerical summary of a group used in this calculation */
+    action GetGroupSummary(DataFrameColumn group) returns Summarize
+        if summaries:HasKey(group)
+            return summaries:GetValue(group)
+        else
+            Summarize summary
+            group:Calculate(summary)
+            summaries:Add(group, summary)
+            return summary
+        end
+    end
+
+    /* Sets the numerical summary of a group used in this calculation */
+    action SetGroupSummary(DataFrameColumn group, Summarize summary)
+        if not summaries:HasKey(group)
+            summaries:Add(group, summary)
+        else
+            summaries:Set(group, summary)
+        end
+    end 
+
+    action RepeatedMeasures returns boolean
+        return repeatedMeasures
+    end
+
+    action RepeatedMeasures(boolean repeatedMeasures)
+        me:repeatedMeasures = repeatedMeasures
+    end
+
+    action Paired returns boolean
+        return paired
+    end
+
+    action Paired(boolean paired)
+        me:paired = paired
+    end
+
+    action Ranked returns boolean
+        return ranked
+    end
+
+    action Ranked(boolean ranked)
+        me:ranked = ranked
+    end
+
+    action EqualVariances returns boolean
+        return equalVariances
+    end
+
+    action EqualVariances(boolean equalVariances)
+        me:equalVariances = equalVariances
+    end
+
+    action NormalDistribution returns boolean
+        return normalDistribution
+    end
+
+    action NormalDistribution(boolean normalDistribution)
+        me:normalDistribution = normalDistribution
+    end
+
+    /* Returns the results of a CompareDistributions test in CompareGroups or CompareRanks (if conducted) */
+    action GetDistributionResults returns Array<CompareDistributionsResult>
+        return undefined
+    end
+
+    /* Returns the result of a CompareVariances test in CompareGroups (if conducted) */
+    action GetVarianceResult returns CompareVariancesResult
+        return undefined
+    end
+
+    /* Returns the results of a CompareGroupsPairwise test in CompareGroups or CompareRanks (if conducted) */
+    action GetPairwiseResults returns Array<CompareGroupsResult>
+        return undefined
+    end
+
+    /* Returns the summary of a CompareGroupsPairwise test in CompareGroups or CompareRanks (if conducted) */
+    action GetPairwiseSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        if GetPairwiseResults() not= undefined
+            integer i = 0
+            repeat while i < GetPairwiseResults():GetSize()
+                CompareGroupsResult pair = GetPairwiseResults():Get(i)
+                if i = 0
+                    summary = summary + pair:GetFormalTestName()
+                end
+                if pair:GetGroups():GetSize() > 1
+                    text group1 = pair:GetGroups():Get(0):GetHeader()
+                    text group2 = pair:GetGroups():Get(1):GetHeader()
+                    summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + pair:GetProbabilityValue()
+                    if pair:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
+                i = i + 1
+            end
+        end
+        return summary
+    end
+
+    /* Returns the summaries of any assumption tests (if conducted) */
+    action GetAssumptionTestSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        if GetDistributionResults() not= undefined
+            integer i = 0
+            repeat while i < GetDistributionResults():GetSize()
+                CompareDistributionsResult dResult = GetDistributionResults():Get(i)
+                if i = 0
+                    summary = summary + lf + dResult:GetFormalTestName()
+                end
+                if dResult:GetGroups():GetSize() = 1
+                    text group = dResult:GetGroups():Get(0):GetHeader()
+                    summary = summary + lf + " " + group + ": p = " + dResult:GetProbabilityValue()
+                    if dResult:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
+                i = i + 1
+            end
+        end
+        if GetVarianceResult() not= undefined
+            CompareVariancesResult vResult = GetVarianceResult()
+            summary = summary + lf + vResult:GetFormalTestName()
+            summary = summary + lf + " p = " + vResult:GetProbabilityValue()
+            if vResult:IsSignificant()
+                summary = summary + " ** significant **"
+            end
+        end
+        return summary
+    end
+
+    /* This action returns the null hypothesis for a CompareGroups test. */
+    action GetNullHypothesis returns text
+        return ""
+    end
+
+    /* This action returns the alternative hypothesis for a CompareGroups test. */
+    action GetAlternativeHypothesis returns text
+        return ""
+    end
+
+    /* This action summarizes the result and lists it informally. */
+    action GetSummary returns text
+        return ""
     end
 
     /*
-        Sets the probability value (p in statistics) calculated by the test.
-
-        Attribute: Parameter probabilityValue the probability
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
-    action SetProbabilityValue(number probabilityValue)
-        me:probabilityValue = probabilityValue
+    action GetFormalSummary returns text
+        return ""
     end
 
     /*
-        This indicates the critical value for any statistical test that was run
-
-        Attribute: Returns the critical value
+        This action is overwritten in descendent classes.
     */
-    action GetCriticalValue returns number
-        return criticalValue
+    action Save(text path)
     end
-
-    /*
-        This sets the critical value for any statistical test that was run
-
-        Attribute: Paremeter criticalValue the critical value
-    */
-    action SetCriticalValue(number criticalValue)
-        me:criticalValue = criticalValue
-    end
-
-    /*
-        Returns the name of the test in formal mathematical language.
-
-        Attribute: Returns the name of the test in mathematical language.
-    */
-    action GetFormalTestName returns text
-        return formalTestName
-    end
-
-    /*
-        Sets the name of the test in formal mathematical language.
-
-        Attribute: Parameter formalTestName the name of the test in mathematical language.
-    */
-    action SetFormalTestName(text formalTestName)
-        me:formalTestName = formalTestName
-    end
-    action GetEffectSize returns number
-        return effectSize
-    end
-
-    action SetEffectSize(number effectSize)
-        me:effectSize = effectSize
-    end
-
-    action GetEffectSizeName returns text
-        return effectSizeName
-    end
-
-    action SetEffectSizeName(text effectSizeName)
-        me:effectSizeName = effectSizeName
-    end
-
 end

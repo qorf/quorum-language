@@ -1,0 +1,535 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Distributions.HeavyTailNormalDistribution
+use Libraries.Compute.Statistics.Distributions.StudentizedRangeDistribution
+use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
+use Libraries.Compute.Statistics.Reporting.Compare2GroupsResult
+use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Calculations.Variance
+
+/*
+    This class implements several post hoc analysis tests:
+    ** These tests are intended to be used after a significant CompareGroups N-Sample test **
+        Bonferroni Procedure 
+            Controls for family-wise error rate by adjusting p-values
+            For more information: https://en.wikipedia.org/wiki/Bonferroni_correction
+
+        ** NOT IMPLEMENTED YET **
+        Holm-Bonferroni Procedure (Bonferroni Extension)
+            After CompareNIndependentGroups OR CompareNDependentGroups
+            Controls for family-wise error rate by adjusting p-values
+            For more information: https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method
+
+        Tukey's HSD Multiple Comparison Test
+            After (ANOVA) CompareNIndependentGroups > AssumeEqualVariances(true)
+            Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
+            For more information: https://en.wikipedia.org/wiki/Tukey%27s_range_test
+
+        Games-Howell Multiple Comparison Test (Tukey Extension for non-equal variances)
+            After (Welch ANOVA) CompareNIndependentGroups > AssumeEqualVariances(false)
+            Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
+            For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
+
+        ** NOT IMPLEMENTED YET **
+        Dunn's Multiple Comparison Test
+            After (Kruskal-Wallis) CompareNIndependentRankedGroups
+            Find which groups differ between pairs of means when there are many rank ordered groups
+            For more information: https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance
+            For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
+
+        ** NOT IMPLEMENTED YET **
+        Conover Multiple Comparison Test
+            After (Friedman) CompareNDependentRankedGroups
+            For more information: https://en.wikipedia.org/wiki/Friedman_test
+            For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
+
+    Attribute: Author Andreas Stefik, Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CompareGroups
+    use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    CompareGroups compare
+    compare:AddColumn(0)
+    compare:AddColumn(1)
+    compare:Calculate(frame)
+
+    CompareGroupsPairwise pairwise
+    pairwise:SetCompareGroupsResult(compare:GetResult)
+    pairwise:Calculate(frame)
+    
+    output pairwise:GetSummary()
+*/
+class CompareGroupsPairwise is CompareGroups
+    /* The distribution used to calculate the p-value .*/
+    HeavyTailNormalDistribution tDistribution
+
+    /* The distribution used to calculate the p-value in tukey tests.*/
+    StudentizedRangeDistribution qDistribution 
+ 
+    Array <CompareGroupsResult> results
+
+    /* Set if the test has already been calculated, and we simply want to run a post hoc follow up */
+    private CompareNGroupsResult testResult = undefined 
+    private boolean defaultVarianceAssumption = true        
+    private boolean defaultDistributionAssumption = true   
+    private number meanSquaredError = 0
+    private number degreesOfFreedom = 0 
+
+    // Correction options
+    boolean correctFamilyWiseError = true
+    boolean useBonferroniCorrection = true      // UseConservativeCorrection
+    boolean useHolmCorrection = false
+    boolean useTukeyCorrection = false          // UseHonestSignificantDifferenceCorrection
+    boolean useDunCorrection = false
+
+    Math math
+
+    action Calculate(DataFrame frame)       
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+
+        if Paired() or RepeatedMeasures() or Ranked()
+            parent:StatisticalTest:RemoveUndefined(true)
+        end
+        if GetFactorSize() = 0
+            parent:StatisticalTest:Calculate(frame)
+        else
+            parent:StatisticalTest:CalculateWithFactor(frame)
+        end
+    end
+
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
+        end
+
+        // Copy this test's selection to frame
+        frame:EmptySelectedFactors()
+        frame:EmptySelectedColumns()
+        i = 0
+        repeat while i < GetColumnSize()
+            frame:AddSelectedColumn(GetColumn(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < GetFactorSize()
+            frame:AddSelectedFactor(GetFactor(i))
+            i = i + 1
+        end
+
+        /* 
+        Run a CompareGroups test, one of the following:
+            Repeated Measures ANOVA
+            Friedman Test
+            ANOVA
+            Welch ANOVA
+            Kruskall Wallis Test 
+        */
+        CompareGroups compare
+        compare:Ranked(Ranked())
+        compare:Paired(Paired())
+        compare:RepeatedMeasures(RepeatedMeasures())
+        if not defaultVarianceAssumption
+            compare:AssumeEqualVariances(AssumeEqualVariances())
+        end
+        if not defaultDistributionAssumption
+            compare:AssumeNormalDistribution(AssumeNormalDistribution())
+        end
+        compare:Calculate(frame)
+        Calculate(compare:GetResult())
+    end
+
+    action Calculate(CompareGroupsResult result)
+        if result = undefined
+            alert("Prior test result is undefined.")
+        end
+        if not(result is CompareNGroupsResult)
+            alert("Prior test result must be from an N-sample test.")
+        end
+
+        testResult = cast(CompareNGroupsResult, result)
+        Ranked(testResult:Ranked())
+        RepeatedMeasures(testResult:RepeatedMeasures())
+        AssumeNormalDistribution(testResult:NormalDistribution())
+        AssumeEqualVariances(testResult:EqualVariances())
+        if not RepeatedMeasures()
+            if not Ranked() and AssumeNormalDistribution()
+                if AssumeEqualVariances()     
+                    meanSquaredError = testResult:GetMeanSumOfSquaresWithinGroups()
+                    degreesOfFreedom = testResult:GetDegreesOfFreedomWithinGroups()            
+                else
+                    degreesOfFreedom = testResult:GetDegreesOfFreedomWithinGroups()
+                end
+            else
+                degreesOfFreedom = testResult:GetDegreesOfFreedom()
+            end
+        end
+        CalculatePairwise()
+    end
+
+    /* Computes the pairwise tests and corrections for N-Sample tests */
+    private action CalculatePairwise()
+        integer k = testResult:GetGroups():GetSize()
+
+        number numberOfTestsPerformed = 0
+        if useBonferroniCorrection
+            numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
+        end
+
+        if RepeatedMeasures() or Ranked() or not AssumeNormalDistribution()
+            i = 0
+            repeat while i < k
+                j = i + 1
+                repeat while j < k
+                    DataFrameColumn left = testResult:GetGroups():Get(i)
+                    DataFrameColumn right = testResult:GetGroups():Get(j)
+    
+                    DataFrame pairFrame
+                    pairFrame:AddColumn(left)
+                    pairFrame:AddColumn(right)
+                    pairFrame:SelectAllColumns()
+    
+                    CompareGroups compare
+                    if RepeatedMeasures() or Paired()
+                        compare:Paired(true)
+                    end
+                    if Ranked()
+                        compare:Ranked(true)
+                    end
+                    compare:Calculate(pairFrame)
+                   
+                    CompareGroupsResult pair = compare:GetResult() 
+                    if correctFamilyWiseError and useBonferroniCorrection
+                        p = pair:GetProbabilityValue() 
+                        p = p * numberOfTestsPerformed 
+                        if p > 1
+                            p = 1
+                        end
+                        pair:SetProbabilityValue(p)
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
+                    else
+                        pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
+                    end
+                    results:Add(pair)
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        else
+            if useTukeyCorrection
+                qDistribution:Setup(k, degreesOfFreedom)
+            else
+                tDistribution:Setup(degreesOfFreedom)
+            end
+            number pooledSD = math:SquareRoot(meanSquaredError)
+            i = 0
+            repeat while i < k
+                j = i + 1
+                repeat while j < k
+                    DataFrameColumn left = testResult:GetGroups():Get(i)
+                    DataFrameColumn right = testResult:GetGroups():Get(j)
+    
+                    Variance var
+                    left:Calculate(var)
+                    number meanL = var:GetMean()
+                    number varL = var:GetVariance()
+    
+                    var:Empty()
+                    right:Calculate(var)
+                    number meanR = var:GetMean()
+                    number varR = var:GetVariance()
+    
+                    number sizeL = left:GetSize()
+                    number sizeR = right:GetSize()
+    
+                    Compare2GroupsResult pair
+                    pair:SetSignificanceLevel(GetSignificanceLevel())
+                    pair:SetFormat(GetStatisticalFormatting())
+                    pair:SetGroups(left, right)
+                    pair:SetDegreesOfFreedom(degreesOfFreedom)
+    
+                    number error = 0
+                    number t = 0
+                    number p = 0
+                    if useBonferroniCorrection
+                        if AssumeEqualVariances() or defaultVarianceAssumption
+                            // Use pooled SD 
+                            error = pooledSD * math:SquareRoot(1.0 / sizeL + 1.0 / sizeR)
+                            t = (meanL - meanR) / error
+                            pair:SetFormalTestName("Pairwise T-test with pooled SD and Bonferroni Correction")
+                        else
+                            error = math:SquareRoot(varL / sizeL + varR / sizeR)
+                            t = (meanL - meanR) / error
+                            pair:SetFormalTestName("Pairwise T-test with non-pooled SD and Bonferroni Correction")
+                        end
+                        p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                        p = p * numberOfTestsPerformed 
+                        if p > 1
+                            p = 1
+                        end   
+                    elseif useTukeyCorrection
+                        if AssumeEqualVariances() or defaultVarianceAssumption
+                            // Tukey HSD - use pooled SD 
+                            error = pooledSD * math:SquareRoot((1.0 / sizeL + 1.0 / sizeR) / 2.0)
+                            number q = math:AbsoluteValue(meanL - meanR) / error
+                            p = (1 - qDistribution:CumulativeDistribution(q))
+                            pair:SetFormalTestName("Tukey HSD Multiple Comparison Analysis")
+                            t = q
+                        else
+                            // Games-Howell - uses Welch's correction as degreesOfFreedom 
+                            error = math:SquareRoot((varL / sizeL + varR / sizeR))
+                            number q = math:AbsoluteValue(meanL - meanR) / error
+                            p = (1 - qDistribution:CumulativeDistribution(q * math:SquareRoot(2)))
+                            pair:SetFormalTestName("Games-Howell Multiple Comparisons Analysis")  
+                            t = q     
+                        end
+                        if p > 1
+                            p = 1
+                        end 
+                    else
+                        if AssumeEqualVariances() or defaultVarianceAssumption
+                            // Use pooled SD 
+                            error = pooledSD * math:SquareRoot(1.0 / sizeL + 1.0 / sizeR)
+                            t = (meanL - meanR) / error
+                            pair:SetFormalTestName("Pairwise T-test with pooled SD and no family-wise error correction")
+                        else
+                            error = math:SquareRoot(varL / sizeL + varR / sizeR)
+                            t = (meanL - meanR) / error
+                            pair:SetFormalTestName("Pairwise T-test with non-pooled SD and no family-wise error correction")
+                        end
+                        p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
+                        if p > 1
+                            p = 1
+                        end 
+                    end
+
+                    // Save the result
+                    pair:SetTestStatistic(t)
+                    pair:SetProbabilityValue(p)
+                    results:Add(pair)
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    /* Bonferroni method is the default if another is not selected */
+    action CorrectFamilyWiseError(boolean correctFamilyWiseError)
+        me:correctFamilyWiseError = correctFamilyWiseError
+        if not useTukeyCorrection
+            useBonferroniCorrection = correctFamilyWiseError
+        end
+    end
+
+    /* Choose bonferroni method as correction for N-sample pairwise tests */
+    action UseConservativeCorrection
+        useBonferroniCorrection = true
+        correctFamilyWiseError = true
+        useTukeyCorrection = false
+    end
+
+    /* Choose tukey method as correction for independent N-sample pairwise tests */
+    action UseHonestSignificantDifferenceCorrection
+        useTukeyCorrection = true
+        useBonferroniCorrection = false
+        correctFamilyWiseError = true
+    end
+
+    action AssumeEqualVariances(boolean assume)
+        defaultVarianceAssumption = false
+        parent:CompareGroups:AssumeEqualVariances(assume)
+    end
+
+    action AssumeNormalDistribution(boolean assume)
+        defaultDistributionAssumption = false
+        parent:CompareGroups:AssumeNormalDistribution(assume)
+    end
+
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the CompareGroupsResult object
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+
+        CompareGroupsPairwise compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:Calculate(frame)
+        
+        CompareGroupsResult result = compare:GetResult()
+    */
+    action GetResult returns CompareGroupsResult
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
+        else
+            alert("There is more than one test result, use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        Attribute: Returns an array of CompareGroupsResult objects
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareGroupsPairwise compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        frame:Calculate(compare)
+
+        Array<CompareGroupsResult> results = compare:GetResults()
+    */
+    action GetResults returns Array<CompareGroupsResult>
+        return results
+    end
+
+
+    /*
+        This returns the simple pairwise summary of the results.
+
+        Attribute: Returns the pairwise summary.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareGroupsPairwise compare
+        compare:Add(0)
+        compare:Add(1)
+        compare:Add(2)
+        compare:Add(3)
+
+        frame:Calculate(compare)
+
+        output compare:GetPairwiseSummary() 
+    */
+    action GetPairwiseSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+        integer i = 0
+        repeat while i < GetResults():GetSize()
+            CompareGroupsResult pair = GetResults():Get(i)
+            if i = 0
+                summary = summary + pair:GetFormalTestName()
+            end
+            if pair:GetGroups():GetSize() > 1
+                text group1 = pair:GetGroups():Get(0):GetHeader()
+                text group2 = pair:GetGroups():Get(1):GetHeader()
+                summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + math:Round(pair:GetProbabilityValue(), digits)
+                if pair:IsSignificant()
+                    summary = summary + " ** significant **"
+                end
+            end
+            i = i + 1
+        end
+        return summary
+    end
+
+    /*
+        Attribute: Returns a list of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareGroupsPairwise compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+
+        output compare:GetSummary()
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CompareGroupsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in 
+        APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        Attribute: Returns a condensed formal result of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareGroupsPairwise compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+
+        output compare:GetFormalSummary()
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CompareGroupsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+end

@@ -88,9 +88,25 @@ class CalculateRanks is DataFrameColumnCalculation
                     //if the first tie is not -1, this is the last tie
                     if firstTie not= -1
                         lastTie = i
-                        averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie)) / 2.0)
+                        if firstRank > 1
+                            averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie) + firstRank) / 2.0)
+                        else
+                            averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie)) / 2.0)
+                        end
                         manageTies = true
                     end
+                end
+            else
+                if firstTie = -1    //this is the first tie, otherwise keep going
+                    firstTie = i
+                else
+                    lastTie = i
+                    if firstRank > 1
+                        averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie) + firstRank) / 2.0)
+                    else
+                        averageTie = firstTie + ((1.0 * (2 + lastTie - firstTie)) / 2.0)
+                    end
+                    manageTies = true
                 end
             end
 
@@ -108,10 +124,10 @@ class CalculateRanks is DataFrameColumnCalculation
                     
                     if IsAverageTies()
                         rankColumn:SetAsNumber(tiedIndex, averageTie)
-                    elseif IsMinimumTies()
-                        rankColumn:SetAsInteger(tiedIndex, firstTie)
+                    elseif IsMinimumTies() 
+                        rankColumn:SetAsInteger(tiedIndex, firstTie + firstRank)
                     else
-                        rankColumn:SetAsInteger(tiedIndex, lastTie)
+                        rankColumn:SetAsInteger(tiedIndex, lastTie + firstRank)
                     end
                     j = j + 1
                 end
@@ -119,7 +135,7 @@ class CalculateRanks is DataFrameColumnCalculation
                 firstTie = -1
                 lastTie = -1
                 averageTie = -1
-            elseif firstTie = -1 //we aren't in part of the tie processing
+            else //we aren't in part of the tie processing 
                 if IsAverageTies()
                     rankColumn:SetAsNumber(index, (i + firstRank))
                 else
@@ -184,7 +200,11 @@ class CalculateRanks is DataFrameColumnCalculation
     end
 
     action SetFirstRank(integer firstRank)
-        me:firstRank = firstRank
+        if firstRank < 0
+            me:firstRank = 1
+        else
+            me:firstRank = firstRank
+        end
     end
 
     action GetCompareValues returns boolean

@@ -300,6 +300,20 @@ class NumberColumn is DataFrameColumn
         return set
     end
 
+    action Subtract(NumberColumn column) returns NumberColumn
+        NumberColumn newColumn
+        newColumn:SetHeader(GetHeader() + " - " + column:GetHeader())
+        if column:GetSize() not= rows:GetSize()
+            alert("Columns are not the same size, cannot do this calculation")
+        end
+        i = 0
+        repeat while i < rows:GetSize()
+            newColumn:Add(GetAsNumber(i) - column:GetAsNumber(i))
+            i = i + 1
+        end
+        return newColumn
+    end
+
     action ToText returns text
         text result = ""
         text lf = result:GetLineFeed()

@@ -185,6 +185,19 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     boolean refreshGutters = false
 
+    // Values updated in GetLineDrawables. These are used to quickly find the x, y coordinates related to a character index.
+    number lineBeginningX = 0
+    number glyphWidth = 0
+    number startLineY = 0
+
+    // The line height padding can be used to give extra vertical space to each line. Both pixel and percentage padding can be used.
+    number pixelLinePadding = 0
+    number percentageLinePadding = 0
+
+    // A boolean that checks if line padding should be considered when sizing selection highlights.
+    // Classes that inherit from TextBox can override this.
+    boolean applyPaddingToSelection = true
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -450,15 +463,25 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             font:SetSize(cast(integer, currentProperties:GetFontSize() * currentProperties:GetInterfaceScale()))
         end
 
+        /*
+        For monospaced fonts, this choice is arbitrary. For non-monospaced
+        fonts, W is typically one of the broadest characters, but this is
+        imprecise at best. This approach is only meant as a short-term solution
+        to quickly calculate the width of lines. MultipleLineText will handle
+        this more elegantly in the future.
+        */
+        glyphWidth = font:GetGlyph("W"):horizontalAdvance
+
         // Ensure caret is correct size.
         InitializeCaret()
 
         Array<MultipleLineText> lines = textValue:GetLines()
         text separator = textValue:GetLineSeparator()
         integer totalLines = lines:GetSize()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         firstLine = totalLines - (totalLines * verticalViewPercentage)
         integer firstLineInteger = cast(integer, firstLine)
+        number halfPadding = GetTotalLineHeightPadding() / 2
         
         background:Empty()
         background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
@@ -491,12 +514,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Text Drawables
         */
 
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight
+        startLineY = yPosition - lineHeight
+
         integer counter = firstLineInteger
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
 
-            number drawableY = yPosition - lineHeight / 4.0
+            number drawableY = yPosition - GetSelectionYOffset()
 
             textIndex = GetIndexOfLine(counter)
 
@@ -509,6 +534,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             integer characterCounter = 0
             integer styleCounter = 0
             number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+            lineBeginningX = startX
             number x = startX
 
             // Calculate highlights on this line.
@@ -654,14 +680,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     Drawable highlight = background:GetDrawable()
                     highlight:SetName("TextBox Highlight")
                     highlight:Load(selectionTexture)
-                    highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                     highlight:SetColor(GetSelectionColor())
 
-                    highlight:SetPosition(x, drawableY)
+                    if applyPaddingToSelection
+                        highlight:SetSize(glyph:horizontalAdvance, lineHeight)
+                        highlight:SetPosition(x, drawableY)
+                    else
+                        highlight:SetSize(glyph:horizontalAdvance, GetUnpaddedLineHeight())
+                        highlight:SetPosition(x, drawableY + GetTotalLineHeightPadding() / 2)
+                    end
+
                     background:AddSelectionDrawable(highlight)
                 end
 
-                draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight())
+                draw:SetPosition(x + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - draw:GetHeight() + halfPadding)
                 draw:SetName("TextBox Character " + textIndex)
                 background:AddCharacter(counter, characterCounter, draw)
 
@@ -697,10 +729,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         ColorGroup fontColor = GetFontColor()
 
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine)
+        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2
 
         number xPosition = 0
 
@@ -733,6 +765,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             end
 
             drawable:SetPosition(xPosition + glyph:lengthToGlyph, yPosition + glyph:heightFromBaseLine - drawable:GetHeight())
+            drawable:SetName("TextBox Character " + index + counter)
             background:AddCharacter(lineIndex, index + counter, drawable)
 
             xPosition = xPosition + glyph:horizontalAdvance
@@ -834,7 +867,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             thickness = cast(integer, caretThickness * GetCurrentLayoutProperties():GetInterfaceScale())
         end
 
-        caret:SetSize(thickness, font:GetLineHeight())
+        caret:SetSize(thickness, GetUnpaddedLineHeight())
         caret:SetColor(GetIconColor())
     end
 
@@ -845,7 +878,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     caretX, or ignored to preserve the old value.
     */
     private action PositionCaret returns number
-        number lineOffset = (caretLine - firstLine + 1) * font:GetLineHeight()
+        number lineOffset = GetCharacterY(textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter)
         
         number x = 0
         number horizontalOffset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
@@ -867,7 +900,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         Drawable caret = background:GetCaret()
-        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, GetHeight() - lineOffset - font:GetLineHeight() / 4)
+        caret:SetPosition(x + horizontalOffset + leftCharacterPadding, lineOffset - GetSelectionYOffset())
         return x + leftCharacterPadding
     end
 
@@ -881,7 +914,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GoToLine(number line)
         Array<MultipleLineText> lines = textValue:GetLines()
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
-        number viableLines = lines:GetSize() - (paneHeight / font:GetLineHeight())
+        number viableLines = lines:GetSize() - (paneHeight / GetLineHeight())
         number windowLines = (lines:GetSize() - viableLines) / 2.0
         number newVertical = 1.0 - ((line - windowLines) / viableLines)
         UpdatePaneView(horizontal, newVertical)
@@ -900,6 +933,50 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GetStartLine returns integer
         return background:GetStartLine()
     end
+
+    action GetCharacterX(integer index) returns number
+        return lineBeginningX + (index - textValue:CharacterIndexFromLineIndex(textValue:LineIndexFromCharacterIndex(index))) * glyphWidth
+    end
+
+    action GetCharacterY(integer index) returns number
+        integer lineIndex = textValue:LineIndexFromCharacterIndex(index)
+        integer firstLine = GetStartLine()
+        number lineHeight = GetLineHeight()
+        return startLineY - (lineIndex - firstLine) * lineHeight + GetTotalLineHeightPadding() / 2
+    end
+
+    action SetPixelLineHeightPadding(number padding)
+        pixelLinePadding = padding
+    end
+
+    action GetPixelLineHeightPadding returns number
+        return pixelLinePadding
+    end
+
+    action SetPercentageLineHeightPadding(number padding)
+        percentageLinePadding = padding
+    end
+
+    action GetPercentageLineHeightPadding returns number
+        return percentageLinePadding
+    end
+
+    action GetUnpaddedLineHeight returns number
+        return font:GetLineHeight()
+    end
+
+    action GetSelectionYOffset returns number
+        return GetUnpaddedLineHeight() / 4.0
+    end
+
+    action GetTotalLineHeightPadding returns number
+        return GetPixelLineHeightPadding() + (GetUnpaddedLineHeight() * GetPercentageLineHeightPadding())
+    end
+
+    action GetLineHeight returns number
+        return GetUnpaddedLineHeight() + GetTotalLineHeightPadding()
+    end
+
 
     private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -974,6 +1051,22 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     private action UpdateSelection(integer startIndex, integer endIndex, boolean caretAtEnd, boolean textChanged)
+        integer lockStart = selection:GetLockStart()
+        integer lockEnd = selection:GetLockEnd()
+        if startIndex < lockStart
+            startIndex = lockStart
+        end
+        if endIndex < lockStart
+            endIndex = lockStart
+        end
+
+        if startIndex > lockEnd
+            startIndex = lockEnd
+        end
+        if endIndex > lockEnd
+            endIndex = lockEnd
+        end
+
         // Remove current font highlight colors from the text drawables.
         integer oldStart = selection:GetStartIndex()
         integer oldEnd = selection:GetEndIndex()
@@ -1001,7 +1094,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             integer lineIndex = textValue:LineIndexFromCharacterIndex(i)
             integer localIndex = i - textValue:CharacterIndexFromLineIndex(lineIndex)
             Array<Drawable> drawables = background:GetLine(lineIndex)
-            if localIndex < drawables:GetSize()
+            if drawables not= undefined and localIndex < drawables:GetSize()
                 drawables:Get(localIndex):SetColor(fontColor)
             end
             i = i + 1
@@ -1016,7 +1109,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer lastLine = selection:GetLastLine()
         integer firstLineIndex = selection:GetFirstLineIndex()
         integer lastLineIndex = selection:GetLastLineIndex()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = 0
+        number padding = 0
+        if applyPaddingToSelection
+            lineHeight = GetLineHeight()
+            padding = GetTotalLineHeightPadding() / 2
+        else
+            lineHeight = GetUnpaddedLineHeight()
+        end
 
         background:EmptySelectionDrawables()
 
@@ -1043,7 +1143,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             number right = lineDrawables:Get(lastLineIndex - 1):GetX() - rightGlyph:lengthToGlyph + rightGlyph:horizontalAdvance
 
             highlight:SetSize(right - left, lineHeight)
-            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - lineHeight / 4.0)
+            highlight:SetPosition(left, leftDrawable:GetY() - leftGlyph:heightFromBaseLine + leftDrawable:GetHeight() - GetSelectionYOffset() - padding)
 
             background:AddSelectionDrawable(highlight)
 
@@ -1105,6 +1205,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         integer oldIndex = GetCaretPosition()
 
+        if oldIndex <= selection:GetLockStart()
+            // Don't allow the caret to move left if it'll move us outside of the locked region.
+            // If we aren't selecting this can result in emptying the selection, though.
+            if selecting = false
+                EmptySelectionEvent(false)
+            end
+            return now
+        end
+
         if caretCharacter = 0
             if caretLine = 0
                 if (not selecting) and (not selection:IsEmpty())
@@ -1158,6 +1267,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         integer oldIndex = GetCaretPosition()
 
+        if oldIndex >= selection:GetLockEnd()
+            // Don't allow the caret to move left if it'll move us outside of the locked region.
+            // If we aren't selecting this can result in emptying the selection, though.
+            if selecting = false
+                EmptySelectionEvent(false)
+            end
+            return now
+        end
+
         text lineText = GetCurrentLineText()
         text separator = textValue:GetLineSeparator()
         integer size = lineText:GetSize()
@@ -1175,7 +1293,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             caretLine = caretLine + 1
             caretCharacter = 0
 
-            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
                 GoToLine(caretLine - visibleLines + 1)
             end
@@ -1252,12 +1370,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretPosition()
+        integer oldCaretLine = caretLine
+        integer oldCaretCharacter = caretCharacter
 
         caretLine = caretLine + 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
 
-        number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+        if GetCaretPosition() > selection:GetLockEnd()
+            // If going down a line made us escape the locked region, reset the values back and return.
+            caretLine = oldCaretLine
+            caretCharacter = oldCaretCharacter
+            return now
+        end
+
+        number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
 
         if caretLine > (firstLine + visibleLines - 1)
             GoToLine(caretLine)
@@ -1292,10 +1418,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             return now
         end
 
-        integer oldIndex = GetCaretPosition()
+        integer oldCaretLine = caretLine
+        integer oldCaretCharacter = caretCharacter
 
         caretLine = caretLine - 1
         caretCharacter = GetNearestCharacter(caretLine, caretX)
+
+        if GetCaretPosition() < selection:GetLockStart()
+            // If going up a line made us escape the locked region, reset the values back and return.
+            caretLine = oldCaretLine
+            caretCharacter = oldCaretCharacter
+            return now
+        end
 
         if caretLine < firstLine
             GoToLine(caretLine)
@@ -1444,7 +1578,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, GetCaretPosition())
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
     end
 
@@ -1496,7 +1630,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, GetCaretPosition())
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
     end
 
@@ -1530,6 +1664,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Resize()
         FitCharacterOnScreen(caretLine, caretCharacter)
 
+        // TO-DO: HERE
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
@@ -1537,11 +1672,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         if triggerTextChangeEvent
             TextChangeEvent changeEvent
             changeEvent:Initialize(me, "", deletedText, selection:GetStartIndex())
-            NotifyTextChangeListeners(changeEvent)
+            OnTextChange(changeEvent)
         end
 
         if triggerSelectionEvent
             EmptySelectionEvent(true)
+        else
+            // Normally this would be handled by the selection event, but in this case we have to do it ourselves.
+            ResetFontColors(selection:GetStartIndex(), selection:GetEndIndex())
         end
     end
 
@@ -1580,7 +1718,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", deletedText, startIndex)
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
     end
 
@@ -1667,7 +1805,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, "", index)
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
     end
 
     /*
@@ -1725,7 +1863,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             // Resize the scroll region height and resize bars.
             Resize()
 
-            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / font:GetLineHeight()
+            number visibleLines = (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
             if caretLine > (firstLine + visibleLines - 1)
                 GoToLine(caretLine)
             end
@@ -1750,7 +1888,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
 
         EmptySelectionEvent(true)
     end
@@ -1890,6 +2028,14 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer index = caretCharacter
 
         PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+
+        integer caretPosition = GetCaretPosition()
+        if caretPosition < selection:GetLockStart() or caretPosition > selection:GetLockEnd()
+            caretLine = line
+            caretCharacter = index
+            caretX = PositionCaret()
+            return now
+        end
         
         if dragging
             if line = caretLine and index = caretCharacter
@@ -1899,16 +2045,16 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             boolean atEnd = selection:IsCaretAtEnd()
 
             if atEnd
-                if GetCaretPosition() < selection:GetStartIndex()
-                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
+                if caretPosition < selection:GetStartIndex()
+                    Select(caretPosition, selection:GetStartIndex(), false)
                 else
-                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
+                    Select(selection:GetStartIndex(), caretPosition, true)
                 end
             else
-                if GetCaretPosition() > selection:GetEndIndex()
-                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
+                if caretPosition > selection:GetEndIndex()
+                    Select(selection:GetEndIndex(), caretPosition, true)
                 else
-                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
+                    Select(caretPosition, selection:GetEndIndex(), false)
                 end
             end
         else
@@ -1919,7 +2065,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     private action PositionCaretFromCoordinates(number x, number y)
         integer totalLines = textValue:GetLines():GetSize()
-        integer lineHeight = font:GetLineHeight()
+        number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
         
@@ -2025,7 +2171,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     action GetScrollRegionHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
-        number height = textValue:GetLineCount() * font:GetLineHeight()// + GetSharedSpaceOffset()
+        number height = textValue:GetLineCount() * GetLineHeight()// + GetSharedSpaceOffset()
         if height > GetHeight()
             return height
         else
@@ -2135,7 +2281,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             Array<Gutter> gutters = background:GetGutters()
 
             integer totalLines = lines:GetSize()
-            integer lineHeight = font:GetLineHeight()
+            number lineHeight = GetLineHeight()
             integer firstLineInteger = cast(integer, firstLine)
 
             integer counter = 0
@@ -2206,8 +2352,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     the middle of a line separator, the caret will be placed at the end of the
     line separator on the next line, which can cause the actual index of the
     caret to be slightly higher.
+
+    If the selection is locked to a region, attempting to set the caret to a
+    position outside of the lock will instead go to the appropriate end of the
+    locked region instead.
     */
     action SetCaretPosition(integer index)
+        if index < selection:GetLockStart()
+            index = selection:GetLockStart()
+        elseif index > selection:GetLockEnd()
+            index = selection:GetLockEnd()
+        end
+
         SetCaretToIndex(index)
         caretX = PositionCaret()
 
@@ -2316,7 +2472,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             textEditManager:SetToIgnore(true)
         end
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
 
         if textEditManager not= undefined
@@ -2341,7 +2497,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
     end
 
@@ -2370,7 +2526,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             textEditManager:SetToIgnore(true)
         end
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
 
         if textEditManager not= undefined
@@ -2387,7 +2543,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Resize()
         GoToLine(textValue:GetLines():GetSize() - 1)
 
-        NotifyTextChangeListeners(changeEvent)
+        OnTextChange(changeEvent)
         EmptySelectionEvent(true)
     end
 
@@ -2488,6 +2644,17 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action GetTextChangeListeners returns Array<TextChangeListener>
         return textChangeListeners
+    end
+
+    private action OnTextChange(TextChangeEvent event)
+        if selection:IsLocked()
+            integer offset = event:GetAddedText():GetSize() - event:GetDeletedText():GetSize()
+            if selection:GetEndIndex() not= offset:GetMaximumValue()
+                selection:LockSelection(selection:GetLockStart(), selection:GetLockEnd() + offset)
+            end
+        end
+
+        NotifyTextChangeListeners(event)
     end
 
     private action NotifyTextChangeListeners(TextChangeEvent event)
@@ -3453,7 +3620,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 number newX1 = startDrawable:GetGlobalX() - startGlyph:lengthToGlyph
                 number newX2 = endDrawable:GetGlobalX() - endGlyph:lengthToGlyph + endGlyph:horizontalAdvance
                 number newY1 = startDrawable:GetGlobalY() - startGlyph:heightFromBaseLine + startDrawable:GetHeight()
-                number newY2 = newY1 + font:GetLineHeight()
+                number newY2 = newY1 + GetLineHeight()
 
                 if newX1 < x1
                     x1 = newX1
@@ -3475,4 +3642,38 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         return rectangle
     end
+
+    action GetGlyphWidth returns number
+        if glyphWidth = 0
+            glyphWidth = font:GetGlyph("W"):horizontalAdvance
+        end
+        return glyphWidth
+    end
+    
+    action LockEditableRegion(integer lockStart, integer lockEnd)
+        selection:LockSelection(lockStart, lockEnd)
+        integer start = selection:GetStartIndex()
+        integer finish = selection:GetEndIndex()
+        if start < lockStart
+            start = lockStart
+        end
+        if finish < lockStart
+            finish = lockStart
+        end
+        if start > lockEnd
+            start = lockEnd
+        end
+        if finish < lockEnd
+            finish = lockEnd
+        end
+
+        if (start = selection:GetStartIndex() and finish = selection:GetEndIndex()) = false
+            Select(start, finish, selection:IsCaretAtEnd())
+        end
+    end
+
+    action UnlockEditableRegion
+        selection:UnlockSelection()
+    end
+
 end

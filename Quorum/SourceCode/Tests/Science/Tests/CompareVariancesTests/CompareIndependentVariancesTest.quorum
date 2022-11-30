@@ -1,0 +1,34 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+
+/*
+    This class tests a levene's homogeneity test
+*/
+class CompareIndependentVariancesTest is Test
+
+    on create
+        SetName("Calculate CompareIndependentVariances")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+
+        CompareVariances compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:AddColumn(3)
+        frame:Calculate(compare)
+        
+        CompareVariancesResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 1.2757362522804279)
+        Check(result:GetDegreesOfFreedomBetweenGroups(), 3.0)
+        Check(result:GetDegreesOfFreedomWithinGroups(), 20.0)
+        Check(result:GetProbabilityValue(), 0.3097265758691006)
+    end
+end

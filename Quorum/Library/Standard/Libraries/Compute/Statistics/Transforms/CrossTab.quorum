@@ -9,6 +9,7 @@ use Libraries.Compute.Statistics.DataFrameSelection
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.System.DateTime
 
 /*
     The CrossTab class takes a DataFrame and its selection to decide how to transform it. Specifically, 
@@ -95,27 +96,36 @@ class CrossTab is DataFrameTransform, ColumnInput
             i = i + 1
         end
 
+        /* 
+            Since newLeft contains the sorted items already let's use that
+            This is useful because numbers and dates are not sorted like text values.
+            Meaning the counts could be placed in the wrong spot, since each column 
+            has it's own type sorting this is the best way to account for all types.
+        */
         Array<text> sortedKeys
-        Iterator<text> keys = hash:GetKeyIterator()
-        repeat while keys:HasNext()
-            text key = keys:Next()
-            sortedKeys:Add(key)
-        end
-
-        sortedKeys:Sort()
+        i = 0 
+        repeat while i < newLeft:GetSize()
+            sortedKeys:Add(newLeft:GetAsText(i))
+            i = i + 1
+        end  
 
         i = 0
         repeat while i < sortedKeys:GetSize()
             text key = sortedKeys:Get(i)
             HashTable<text,integer> count = hash:GetValue(key)
             if count not= undefined //doesn't have to be there
+                /* 
+                    Since rightCopy contains the sorted items already let's use that
+                    This is useful because numbers and dates are not sorted like text values.
+                    Meaning the counts could be placed in the wrong spot, since each column 
+                    has it's own type sorting this is the best way to account for all types.
+                */
                 Array<text> sortedCount
-                j = 1
-                repeat while j < columns:GetSize()
-                    text countKey = columns:Get(j):GetHeader()
-                    sortedCount:Add(countKey)
+                j = 0 
+                repeat while j < rightCopy:GetSize()
+                    sortedCount:Add(rightCopy:GetAsText(j))
                     j = j + 1
-                end
+                end 
 
                 j = 0
                 repeat while j < sortedCount:GetSize()

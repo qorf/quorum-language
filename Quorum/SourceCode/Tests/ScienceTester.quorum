@@ -11,28 +11,42 @@ use Libraries.System.StackTraceItem
 use Libraries.Testing.Tester
 use Science.Tests.RegressionTest1
 use Libraries.Containers.Iterator
-use Science.Tests.TwoColumnTest
-use Science.Tests.OneColumnTest
 use Science.Tests.InterQuartileRangeTest
 use Science.Tests.StandardDeviationsFromMeanTest
 use Science.Tests.SkewTest
 use Science.Tests.KurtosisTest
-use Science.Tests.CorrelateGroupsTest
 use Science.Tests.RankTransformTest
-use Science.Tests.CorrelateRanksTest
 use Science.Tests.StandardDeviationTest
 use Science.Tests.VarianceTest
-use Science.Tests.CompareNGroupsTest
 use Science.Tests.ZeroFinderTest
 use Science.Tests.NormalDistributionTest
-use Science.Tests.CompareVariancesTest
 use Science.Tests.GammaDistributionTest
 use Science.Tests.LoadingTest
 use Science.Tests.RemoveUndefinedRowsTest
 use Science.Tests.SummarizeTest
-use Science.Tests.CompareNGroupsTestFromSelection
 use Science.Tests.SummarizeFromSelectionTest
 use Science.Tests.FilterTest
+use Science.Tests.BetaDistributionTest
+use Science.Tests.CompareCountsGoodnessOfFitTest
+use Science.Tests.CompareCountsIndependenceTest
+use Science.Tests.CompareGroupToMeanTest
+use Science.Tests.CompareRankedGroupToMedianTest
+use Science.Tests.Compare2DependentGroupsTest
+use Science.Tests.Compare2DependentRankedGroupsTest
+use Science.Tests.Compare2IndependentGroupsTest
+use Science.Tests.Compare2IndependentRankedGroupsTest
+use Science.Tests.CompareNDependentGroupsTest
+use Science.Tests.CompareNDependentRankedGroupsTest
+use Science.Tests.CompareNIndependentGroupsTest
+use Science.Tests.CompareNIndependentRankedGroupsTest
+use Science.Tests.BonferroniProcedureTest
+use Science.Tests.TukeyProcedureTest
+use Science.Tests.GamesHowellProcedureTest
+use Science.Tests.CompareIndependentVariancesTest
+use Science.Tests.CompareDependentVariancesTest
+use Science.Tests.CompareDistributionToNormalTest
+use Science.Tests.Correlate2GroupsTest
+use Science.Tests.Correlate2RankedGroupsTest
 
 class ScienceTester
     Tester tester = undefined
@@ -42,28 +56,95 @@ class ScienceTester
     end
 
     action Test
-        TestCompareNGroups()
-        TestCompareNGroupsFromSelection()
+        TestCompareGroups()
+        TestCompareGroupsPairwise()
+        TestCompareVariances()
+        TestCompareDistributions()
+        TestCorrelateGroups()
+
+        TestCompareCountsGoodnessOfFit()
+        TestCompareCountsTestOfIndependence()
         TestVariance()
         TestStandardDeviation()
         TestRegression()
-        TestColumns()
         TestInterQuartileRange()
         TestStandardDeviationsFromMean()
         TestSkew()
         TestKurtosis()
-        TestCorrelateGroups()
         TestRankTransform()
-        TestCorrelateRanks()
         ZeroFinder()
         NormalDistribution()
-        TestCompareVariances()
         GammaDistribution()
+        BetaDistribution()
         LoadingTest()
         RemoveUndefinedRowsTest()
         SummarizeTest()
         SummarizeFromSelectionTest()
         TestFilters()
+    end
+
+    action TestCompareGroups
+        CompareGroupToMeanTest test1
+        tester:Run(test1)
+
+        CompareRankedGroupToMedianTest test2
+        tester:Run(test2)
+
+        Compare2DependentGroupsTest test3
+        tester:Run(test3)
+
+        Compare2DependentRankedGroupsTest test4
+        tester:Run(test4)
+
+        Compare2IndependentGroupsTest test5
+        tester:Run(test5)
+
+        Compare2IndependentRankedGroupsTest test6
+        tester:Run(test6)
+
+        CompareNDependentGroupsTest test7
+        tester:Run(test7)
+
+        CompareNDependentRankedGroupsTest test8
+        tester:Run(test8)
+
+        CompareNIndependentGroupsTest test9
+        tester:Run(test9)
+
+        CompareNIndependentRankedGroupsTest test10
+        tester:Run(test10)
+    end
+
+    action TestCompareGroupsPairwise
+        BonferroniProcedureTest test1
+        tester:Run(test1)
+
+        TukeyProcedureTest test2
+        tester:Run(test2)
+
+        GamesHowellProcedureTest test3
+        tester:Run(test3)
+    end
+
+    action TestCompareVariances
+        CompareIndependentVariancesTest test1
+        tester:Run(test1)
+
+        CompareDependentVariancesTest test2
+        tester:Run(test2)
+    end
+
+    action TestCompareDistributions
+        CompareDistributionToNormalTest test
+        tester:Run(test)
+    end
+
+    action TestCorrelateGroups
+        Correlate2GroupsTest test1
+        tester:Run(test1)
+
+        Correlate2RankedGroupsTest test2
+        tester:Run(test2)
     end
 
     action TestFilters
@@ -91,6 +172,11 @@ class ScienceTester
         tester:Run(test)
     end
 
+    action BetaDistribution
+        BetaDistributionTest test
+        tester:Run(test)
+    end
+
     action GammaDistribution
         GammaDistributionTest test
         tester:Run(test)
@@ -106,18 +192,13 @@ class ScienceTester
         tester:Run(test)
     end
 
-    action TestCompareNGroups
-        CompareNGroupsTest test
+    action TestCompareCountsTestOfIndependence
+        CompareCountsIndependenceTest test
         tester:Run(test)
     end
 
-    action TestCompareNGroupsFromSelection
-        CompareNGroupsTestFromSelection test
-        tester:Run(test)
-    end
-
-    action TestCompareVariances
-        CompareVariancesTest test
+    action TestCompareCountsGoodnessOfFit
+        CompareCountsGoodnessOfFitTest test
         tester:Run(test)
     end
 
@@ -131,18 +212,8 @@ class ScienceTester
         tester:Run(test)
     end
 
-    action TestCorrelateRanks
-        CorrelateRanksTest test
-        tester:Run(test)
-    end
-
     action TestRankTransform
         RankTransformTest test
-        tester:Run(test)
-    end
-
-    action TestCorrelateGroups
-        CorrelateGroupsTest test
         tester:Run(test)
     end
 
@@ -164,14 +235,6 @@ class ScienceTester
     action TestInterQuartileRange
         InterQuartileRangeTest test1
         tester:Run(test1)
-    end
-
-    action TestColumns
-        TwoColumnTest test1
-        tester:Run(test1)
-
-        OneColumnTest test2
-        tester:Run(test2)
     end
 
     action TestRegression

@@ -4,10 +4,12 @@ use Libraries.Containers.List
 use Libraries.Language.Compile.QualifiedName
 use Libraries.Containers.Array
 use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Location
 
 class DetectStatementContext is ParseContext
     public List<QualifiedName> parents
     public text name = ""
+    public Location nameLocation
 
     public Array<QualifiedNameContext> qualifiedNameContexts = undefined
     public BlockContext block = undefined
