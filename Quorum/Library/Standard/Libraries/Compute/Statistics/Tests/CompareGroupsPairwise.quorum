@@ -15,6 +15,8 @@ use Libraries.Compute.Statistics.Calculations.Variance
 /*
     This class implements several post hoc analysis tests:
     ** These tests are intended to be used after a significant CompareGroups N-Sample test **
+
+    Conservative:
         Bonferroni Procedure 
             Controls for family-wise error rate by adjusting p-values
             For more information: https://en.wikipedia.org/wiki/Bonferroni_correction
@@ -25,15 +27,21 @@ use Libraries.Compute.Statistics.Calculations.Variance
             Controls for family-wise error rate by adjusting p-values
             For more information: https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method
 
+    Liberal:
         Tukey's HSD Multiple Comparison Test
             After (ANOVA) CompareNIndependentGroups > AssumeEqualVariances(true)
             Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
             For more information: https://en.wikipedia.org/wiki/Tukey%27s_range_test
 
+        Tukey-Kramer Multiple Comparison Test (Tukey Extension for non-equal sample sizes)
+            After (ANOVA) CompareNIndependentGroups > AssumeEqualVariances(true)
+            Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
+            For more information: https://en.wikipedia.org/wiki/Tukey%27s_range_test 
+
         Games-Howell Multiple Comparison Test (Tukey Extension for non-equal variances)
             After (Welch ANOVA) CompareNIndependentGroups > AssumeEqualVariances(false)
             Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
-            For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
+            For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis      
 
         ** NOT IMPLEMENTED YET **
         Dunn's Multiple Comparison Test
@@ -83,14 +91,7 @@ class CompareGroupsPairwise is CompareGroups
     private boolean defaultVarianceAssumption = true        
     private boolean defaultDistributionAssumption = true   
     private number meanSquaredError = 0
-    private number degreesOfFreedom = 0 
-
-    // Correction options
-    boolean correctFamilyWiseError = true
-    boolean useBonferroniCorrection = true      // UseConservativeCorrection
-    boolean useHolmCorrection = false
-    boolean useTukeyCorrection = false          // UseHonestSignificantDifferenceCorrection
-    boolean useDunCorrection = false
+    private number degreesOfFreedom = 0     
 
     Math math
 
@@ -191,7 +192,7 @@ class CompareGroupsPairwise is CompareGroups
         integer k = testResult:GetGroups():GetSize()
 
         number numberOfTestsPerformed = 0
-        if useBonferroniCorrection
+        if UseConservativeCorrection() //bonferroni
             numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
         end
 
@@ -218,7 +219,7 @@ class CompareGroupsPairwise is CompareGroups
                     compare:Calculate(pairFrame)
                    
                     CompareGroupsResult pair = compare:GetResult() 
-                    if correctFamilyWiseError and useBonferroniCorrection
+                    if UseConservativeCorrection() //bonferroni
                         p = pair:GetProbabilityValue() 
                         p = p * numberOfTestsPerformed 
                         if p > 1
@@ -235,7 +236,7 @@ class CompareGroupsPairwise is CompareGroups
                 i = i + 1
             end
         else
-            if useTukeyCorrection
+            if UseLiberalCorrection()
                 qDistribution:Setup(k, degreesOfFreedom)
             else
                 tDistribution:Setup(degreesOfFreedom)
@@ -270,7 +271,7 @@ class CompareGroupsPairwise is CompareGroups
                     number error = 0
                     number t = 0
                     number p = 0
-                    if useBonferroniCorrection
+                    if UseConservativeCorrection() //bonferroni
                         if AssumeEqualVariances() or defaultVarianceAssumption
                             // Use pooled SD 
                             error = pooledSD * math:SquareRoot(1.0 / sizeL + 1.0 / sizeR)
@@ -286,10 +287,15 @@ class CompareGroupsPairwise is CompareGroups
                         if p > 1
                             p = 1
                         end   
-                    elseif useTukeyCorrection
+                    elseif UseLiberalCorrection() //tukey
                         if AssumeEqualVariances() or defaultVarianceAssumption
-                            // Tukey HSD - use pooled SD 
-                            error = pooledSD * math:SquareRoot((1.0 / sizeL + 1.0 / sizeR) / 2.0)
+                            if sizeL = sizeR
+                                // Tukey HSD - use pooled SD 
+                                error = pooledSD * math:SquareRoot(1.0/sizeL)
+                            else
+                                // Tukey-Kramer - use pooled SD 
+                                error = pooledSD * math:SquareRoot((1.0 / sizeL + 1.0 / sizeR) / 2.0)
+                            end
                             number q = math:AbsoluteValue(meanL - meanR) / error
                             p = (1 - qDistribution:CumulativeDistribution(q))
                             pair:SetFormalTestName("Tukey HSD Multiple Comparison Analysis")
@@ -333,28 +339,6 @@ class CompareGroupsPairwise is CompareGroups
         end
     end
 
-    /* Bonferroni method is the default if another is not selected */
-    action CorrectFamilyWiseError(boolean correctFamilyWiseError)
-        me:correctFamilyWiseError = correctFamilyWiseError
-        if not useTukeyCorrection
-            useBonferroniCorrection = correctFamilyWiseError
-        end
-    end
-
-    /* Choose bonferroni method as correction for N-sample pairwise tests */
-    action UseConservativeCorrection
-        useBonferroniCorrection = true
-        correctFamilyWiseError = true
-        useTukeyCorrection = false
-    end
-
-    /* Choose tukey method as correction for independent N-sample pairwise tests */
-    action UseHonestSignificantDifferenceCorrection
-        useTukeyCorrection = true
-        useBonferroniCorrection = false
-        correctFamilyWiseError = true
-    end
-
     action AssumeEqualVariances(boolean assume)
         defaultVarianceAssumption = false
         parent:CompareGroups:AssumeEqualVariances(assume)
@@ -363,35 +347,6 @@ class CompareGroupsPairwise is CompareGroups
     action AssumeNormalDistribution(boolean assume)
         defaultDistributionAssumption = false
         parent:CompareGroups:AssumeNormalDistribution(assume)
-    end
-
-    /*
-        This returns a result if only one exists.
-
-        Attribute: Returns the CompareGroupsResult object
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-
-        CompareGroupsPairwise compare
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:Calculate(frame)
-        
-        CompareGroupsResult result = compare:GetResult()
-    */
-    action GetResult returns CompareGroupsResult
-        if results:GetSize() = 0
-            alert("There are no results calculated")
-        elseif results:GetSize() = 1
-            return results:Get(0)
-        else
-            alert("There is more than one test result, use GetResults() for an array of all results")
-        end
     end
 
     /*
@@ -457,77 +412,6 @@ class CompareGroupsPairwise is CompareGroups
                     summary = summary + " ** significant **"
                 end
             end
-            i = i + 1
-        end
-        return summary
-    end
-
-    /*
-        Attribute: Returns a list of the important statistics of the test
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-    
-        CompareGroupsPairwise compare
-        compare:Add(0)
-        compare:Add(1)
-        frame:Calculate(compare)
-
-        output compare:GetSummary()
-    */
-    action GetSummary returns text
-        text summary = ""
-        text lf = summary:GetLineFeed()
-        i = 0
-        CompareGroupsResult result 
-        repeat while i < results:GetSize()
-            result = results:Get(i)
-
-            summary = summary + lf
-            summary = summary + result:GetSummary()
-            summary = summary + lf
-            i = i + 1
-        end
-
-        return summary
-    end
-
-    /*
-        This action summarizes the results and places them into formal academic language, in 
-        APA format.
-        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
-
-        Attribute: Returns a condensed formal result of the test
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-    
-        CompareGroupsPairwise compare
-        compare:Add(0)
-        compare:Add(1)
-        frame:Calculate(compare)
-
-        output compare:GetFormalSummary()
-    */
-    action GetFormalSummary returns text
-        text summary = ""
-        text lf = summary:GetLineFeed()
-        i = 0
-        CompareGroupsResult result 
-        repeat while i < results:GetSize()
-            result = results:Get(i)
-
-            summary = summary + lf
-            summary = summary + result:GetFormalSummary()
-            summary = summary + lf
             i = i + 1
         end
         return summary

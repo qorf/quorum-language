@@ -10,6 +10,9 @@ use Libraries.Compute.Statistics.Reporting.CorrelateGroupsResult
 use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
 
 /*
     This class implements two tests:
@@ -41,12 +44,11 @@ use Libraries.Containers.Array
 */
 class CorrelateGroups is StatisticalTest
     /* The distribution used to calculate the p-value.*/
-    HeavyTailNormalDistribution tdistribution
+    private HeavyTailNormalDistribution tdistribution
+    private Array<CorrelateGroupsResult> results
 
     // USER CONTROLS
     boolean ranked = false 
-
-    Array<CorrelateGroupsResult> results
 
     Math math
 
@@ -156,6 +158,8 @@ class CorrelateGroups is StatisticalTest
                     number p = 2.0 * tdistribution:CumulativeDistribution(-absoluteValueT)
     
                     CorrelateGroupsResult result
+                    result:SetSignificanceLevel(GetSignificanceLevel())
+                    result:SetFormat(GetStatisticalFormatting())
                     result:SetCorrelation(r)
                     result:SetEffectSize(r)
                     result:SetProbabilityValue(p)
@@ -262,6 +266,15 @@ class CorrelateGroups is StatisticalTest
     end
 
     /*
+        This returns the probabilities of all results in a dataframe
+
+        Attribute: Returns the probability frame
+    */  
+    action GetProbabilities returns DataFrame
+        return GenerateResultDataFrame(false, true)        
+    end
+
+    /*
         This returns the degrees of freedom if only one result exists.
 
         Attribute: Returns the Degrees of Freedom. 
@@ -286,6 +299,15 @@ class CorrelateGroups is StatisticalTest
     */
     action GetCorrelation returns number
         return GetResult():GetCorrelation()
+    end
+
+    /*
+        This returns the correlations of all results in a dataframe
+
+        Attribute: Returns the correlation frame
+    */  
+    action GetCorrelations returns DataFrame
+        return GenerateResultDataFrame(true, false)        
     end
 
     /*
@@ -376,6 +398,32 @@ class CorrelateGroups is StatisticalTest
     end
 
     /*
+        Attribute: Returns a DataFrame of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CorrelateGroups
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CorrelateGroups correlate
+        correlate:Add(0)
+        correlate:Add(1)
+        correlate:Add(2)
+        frame:Calculate(correlate)
+        
+        DataFrame result = correlate:GetSummaryDataFrame()
+        result:Save("myresult.csv")
+    */
+    action GetSummaryDataFrame returns DataFrame
+        if GetResults():GetSize() = 1
+            return GetResult():GetSummaryDataFrame()
+        end
+        return GetMultipleTestSummaryDataFrame()
+    end
+
+    /*
         This action summarizes the results and places them into formal academic language, in APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
 
@@ -408,5 +456,124 @@ class CorrelateGroups is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+
+    private action GetMultipleTestSummaryDataFrame returns DataFrame
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+
+        TextColumn name
+        TextColumn c1
+        TextColumn c2
+        NumberColumn r
+        NumberColumn t
+        NumberColumn df
+        NumberColumn p
+        NumberColumn ef  
+        TextColumn apa
+
+        t:SetHeader("Statistic (T)")
+        c1:SetHeader("Group1")
+        c2:SetHeader("Group2")
+        df:SetHeader("Degrees Of Freedom (DF)")
+        p:SetHeader("Probability (P)")
+        apa:SetHeader("APA report")   
+        r:SetHeader("Correlation (R)")
+
+        i = 0
+        repeat while i < GetResults():GetSize()
+            CorrelateGroupsResult result = GetResults():Get(i)
+            if i = 0
+                name:SetHeader(result:GetFormalTestName()) 
+            end
+            if result:IsSignificant()
+                name:Add("Failed")
+            else
+                name:Add("Passed")
+            end
+            t:Add(math:Round(result:GetTestStatistic(), digits))
+            df:Add(math:Round(result:GetDegreesOfFreedom(), digits))
+            p:Add(math:Round(result:GetProbabilityValue(), digits))
+            apa:Add(result:GetFormalNumericalResult())
+            r:Add(math:Round(result:GetCorrelation(), digits))
+            if result:GetGroups():GetSize() = 2
+                c1:Add(result:GetGroups():Get(0):GetHeader())
+                c2:Add(result:GetGroups():Get(1):GetHeader())
+            end
+            if result:GetEffectSizeName() not= "" 
+                if i = 0
+                    ef:SetHeader("Effect Size (" + result:GetEffectSizeName() + ")")
+                end
+                ef:Add(math:Round(result:GetEffectSize(), digits))
+            end
+            i = i + 1
+        end
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(c1)
+        table:AddColumn(c2)
+        table:AddColumn(t)
+        table:AddColumn(df)
+        table:AddColumn(p)
+        table:AddColumn(r)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
+    end
+
+    private action GenerateResultDataFrame(boolean correlation, boolean probability) returns DataFrame
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+        DataFrame frame
+        HashTable <text, integer> index
+        integer nextIndex = 0
+        TextColumn rowHeaders
+        frame:AddColumn(rowHeaders)
+        i = 0
+        CorrelateGroupsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+            if result:GetGroups():GetSize() = 2
+                text grp1 = result:GetGroups():Get(0):GetHeader()
+                text grp2 = result:GetGroups():Get(1):GetHeader()
+                if not index:HasKey(grp1)
+                    NumberColumn col1
+                    col1:SetHeader(grp1)
+                    col1:SetSize(results:GetSize())
+                    rowHeaders:Add(grp1)
+                    frame:AddColumn(col1)  
+                    index:Add(grp1, nextIndex)
+                    nextIndex = nextIndex + 1
+                end
+                if not index:HasKey(grp2)
+                    NumberColumn col2
+                    col2:SetHeader(grp2)
+                    col2:SetSize(results:GetSize())
+                    rowHeaders:Add(grp2)
+                    frame:AddColumn(col2)  
+                    index:Add(grp2, nextIndex)
+                    nextIndex = nextIndex + 1
+                end
+                number value = 0
+                if correlation
+                    value = result:GetCorrelation()
+                elseif probability
+                    value = result:GetProbabilityValue()
+                end
+                frame:GetColumn(grp1):SetAsNumber(index:GetValue(grp1), 1.0)
+                frame:GetColumn(grp2):SetAsNumber(index:GetValue(grp2), 1.0)
+
+                frame:GetColumn(grp1):SetAsNumber(index:GetValue(grp2), math:Round(value, digits))
+                frame:GetColumn(grp2):SetAsNumber(index:GetValue(grp1), math:Round(value, digits))
+            end
+            i = i + 1
+        end
+        if correlation
+            rowHeaders:SetHeader("Correlation")
+        elseif probability
+            rowHeaders:SetHeader("Probability")
+        end
+        return frame:RemoveUndefinedRows()
     end
 end

@@ -7,6 +7,7 @@ use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.System.File
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 
 /*
     This class represents data that comes back from an N-sample test 
@@ -30,20 +31,22 @@ class CompareNGroupsResult is CompareGroupsResult
     CompareVariancesResult varianceResult = undefined
 
     number degreesOfFreedomBetweenGroups = 0
-    number sumOfSquaresBetweenGroup = 0
-    number meanSumOfSquaresBetweenGroup = 0
+    number sumOfSquaresBetweenGroups = 0
+    number meanSumOfSquaresBetweenGroups = 0
+
+    number degreesOfFreedomBetweenSubjects = 0
+    number sumOfSquaresBetweenSubjects = 0
+    number meanSumOfSquaresBetweenSubjects = 0
 
     number degreesOfFreedomWithinGroups = 0
-    number sumOfSquaresWithinGroup = 0
-    number meanSumOfSquaresWithinGroup = 0
+    number sumOfSquaresWithinGroups = 0
+    number meanSumOfSquaresWithinGroups = 0
 
     number degreesOfFreedomError = 0
     number sumOfSquaresError = 0
     number meanSumOfSquaresError = 0
 
     integer sampleSize = 0
-
-    DataFrame anovaTable
 
     action SetGroups(Array<DataFrameColumn> groups)
         if RepeatedMeasures()
@@ -60,76 +63,84 @@ class CompareNGroupsResult is CompareGroupsResult
         parent:CompareGroupsResult:SetGroups(groups)
     end
 
+    action SetBetweenGroups(number sumOfSquares, number degreesOfFreedom)
+        sumOfSquaresBetweenGroups = sumOfSquares
+        degreesOfFreedomBetweenGroups = degreesOfFreedom
+        if degreesOfFreedom not= 0
+            meanSumOfSquaresBetweenGroups = sumOfSquares / degreesOfFreedom
+        end    
+    end
+
     action GetDegreesOfFreedomBetweenGroups returns number
         return degreesOfFreedomBetweenGroups
     end
 
-    action SetDegreesOfFreedomBetweenGroups(number degreesOfFreedomBetweenGroups)
-        me:degreesOfFreedomBetweenGroups = degreesOfFreedomBetweenGroups
-    end
-
     action GetSumOfSquaresBetweenGroups returns number
-        return sumOfSquaresBetweenGroup
-    end
-
-    action SetSumOfSquaresBetweenGroups(number sumOfSquaresBetweenGroup)
-        me:sumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup
+        return sumOfSquaresBetweenGroups
     end
 
     action GetMeanSumOfSquaresBetweenGroups returns number
-        return meanSumOfSquaresBetweenGroup
+        return meanSumOfSquaresBetweenGroups
     end
 
-    action SetMeanSumOfSquaresBetweenGroups(number meanSumOfSquaresBetweenGroup)
-        me:meanSumOfSquaresBetweenGroup = meanSumOfSquaresBetweenGroup
+    action SetBetweenSubjects(number sumOfSquares, number degreesOfFreedom)
+        sumOfSquaresBetweenSubjects = sumOfSquares
+        degreesOfFreedomBetweenSubjects = degreesOfFreedom
+        if degreesOfFreedom not= 0
+            meanSumOfSquaresBetweenSubjects = sumOfSquares / degreesOfFreedom
+        end
+    end
+
+    action GetDegreesOfFreedomBetweenSubjects returns number
+        return degreesOfFreedomBetweenSubjects
+    end
+
+    action GetSumOfSquaresBetweenSubjects returns number
+        return sumOfSquaresBetweenSubjects
+    end
+
+    action GetMeanSumOfSquaresBetweenSubjects returns number
+        return meanSumOfSquaresBetweenSubjects
+    end
+
+    action SetWithinGroups(number sumOfSquares, number degreesOfFreedom)
+        sumOfSquaresWithinGroups = sumOfSquares
+        degreesOfFreedomWithinGroups = degreesOfFreedom
+        if degreesOfFreedom not= 0
+            meanSumOfSquaresWithinGroups = sumOfSquares / degreesOfFreedom
+        end
     end
 
     action GetDegreesOfFreedomWithinGroups returns number
         return degreesOfFreedomWithinGroups
     end
 
-    action SetDegreesOfFreedomWithinGroups(number degreesOfFreedomWithinGroups)
-        me:degreesOfFreedomWithinGroups = degreesOfFreedomWithinGroups
-    end
-
     action GetSumOfSquaresWithinGroups returns number
-        return sumOfSquaresWithinGroup
-    end
-
-    action SetSumOfSquaresWithinGroups(number sumOfSquaresWithinGroup)
-        me:sumOfSquaresWithinGroup = sumOfSquaresWithinGroup
+        return sumOfSquaresWithinGroups
     end
 
     action GetMeanSumOfSquaresWithinGroups returns number
-        return meanSumOfSquaresWithinGroup
+        return meanSumOfSquaresWithinGroups
     end
 
-    action SetMeanSumOfSquaresWithinGroups(number meanSumOfSquaresWithinGroup)
-        me:meanSumOfSquaresWithinGroup = meanSumOfSquaresWithinGroup
+    action SetError(number sumOfSquares, number degreesOfFreedom)
+        sumOfSquaresError = sumOfSquares
+        degreesOfFreedomError = degreesOfFreedom
+        if degreesOfFreedom not= 0
+            meanSumOfSquaresError = sumOfSquares / degreesOfFreedom
+        end
     end
 
     action GetDegreesOfFreedomError returns number
         return degreesOfFreedomError
     end
 
-    action SetDegreesOfFreedomError(number degreesOfFreedomError)
-        me:degreesOfFreedomError = degreesOfFreedomError
-    end
-
     action GetSumOfSquaresError returns number
         return sumOfSquaresError
     end
 
-    action SetSumOfSquaresError(number sumOfSquaresError)
-        me:sumOfSquaresError = sumOfSquaresError
-    end
-
     action GetMeanSumOfSquaresError returns number
         return meanSumOfSquaresError
-    end
-
-    action SetMeanSumOfSquaresError(number meanSumOfSquaresError)
-        me:meanSumOfSquaresError = meanSumOfSquaresError
     end
 
     // Saved result for equal variance test (if conducted)
@@ -209,17 +220,17 @@ class CompareNGroupsResult is CompareGroupsResult
             end
     
             if EqualVariances()
-                summary = summary + lf + "Sum Of Squares Between Groups: " + math:Round(sumOfSquaresBetweenGroup, digits)
+                summary = summary + lf + "Sum Of Squares Between Groups: " + math:Round(sumOfSquaresBetweenGroups, digits)
         
                 summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
         
-                summary = summary + lf + "Mean Sum Of Squares Between Groups: " + math:Round(meanSumOfSquaresBetweenGroup, digits)
+                summary = summary + lf + "Mean Sum Of Squares Between Groups: " + math:Round(meanSumOfSquaresBetweenGroups, digits)
         
-                summary = summary + lf + "Sum Of Squares Within Groups: " + math:Round(sumOfSquaresWithinGroup, digits)
+                summary = summary + lf + "Sum Of Squares Within Groups: " + math:Round(sumOfSquaresWithinGroups, digits)
         
                 summary = summary + lf + "Degrees Of Freedom Within Groups: " + math:Round(degreesOfFreedomWithinGroups, digits)
         
-                summary = summary + lf + "Mean Sum Of Squares Within Groups: " + math:Round(meanSumOfSquaresWithinGroup, digits)
+                summary = summary + lf + "Mean Sum Of Squares Within Groups: " + math:Round(meanSumOfSquaresWithinGroups, digits)
             else
                 summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
         
@@ -440,110 +451,276 @@ class CompareNGroupsResult is CompareGroupsResult
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
         if RepeatedMeasures()
-            summary = summary + ", Ε^2  = " + GetFormat():FormatCorrelation(GetEffectSize())
-        else
             summary = summary + ", W  = " + GetFormat():FormatCorrelation(GetEffectSize())
+        else
+            summary = summary + ", ε2  = " + GetFormat():FormatCorrelation(GetEffectSize())
         end
         return summary
     end
 
+    action GetSummaryDataFrame returns DataFrame
+        if Ranked()
+            return GetRankedSummaryDataFrame()
+        end
+        boolean welch = not RepeatedMeasures() and not EqualVariances()
+        integer digits = GetFormat():GetSignificantDigits()
+        VarianceRatioDistribution fDistribution
 
-    private action ConvertResultToDataFrame returns DataFrame
-        number nan = 0
+        TextColumn name
+        name:SetHeader(GetFormalTestName())
+        if IsSignificant()
+            name:Add("Failed")
+        else
+            name:Add("Passed")
+        end
 
         TextColumn source
         source:SetHeader("Source")
         source:Add("Between Groups")
-        source:Add("Within Groups")
         if RepeatedMeasures()
+            source:Add("Between Subjects")
+            source:Add("Within Groups")
             source:Add("Error")
+        else
+            source:Add("Within Groups")
         end
         source:Add("Total")
 
         NumberColumn ss
-        ss:SetHeader("Sum Of Squares")
-        ss:Add(sumOfSquaresBetweenGroup)
-        ss:Add(sumOfSquaresWithinGroup)
+        ss:SetHeader("Sum Of Squares (SS)")
+        ss:Add(math:Round(sumOfSquaresBetweenGroups, digits))
         if RepeatedMeasures()
-            ss:Add(sumOfSquaresError)
+            ss:Add(math:Round(sumOfSquaresBetweenSubjects, digits))
         end
-        ss:Add(sumOfSquaresBetweenGroup + sumOfSquaresWithinGroup + sumOfSquaresError)
+        ss:Add(math:Round(sumOfSquaresWithinGroups, digits))
+        if RepeatedMeasures()
+            ss:Add(math:Round(sumOfSquaresError, digits))
+        end
+        ss:Add(math:Round(math:Round(sumOfSquaresBetweenGroups, digits) + math:Round(sumOfSquaresWithinGroups, digits), digits))
 
         NumberColumn df
-        df:SetHeader("Degrees Of Freedom")
-        df:Add(degreesOfFreedomBetweenGroups)
-        df:Add(degreesOfFreedomWithinGroups)
+        df:SetHeader("Degrees Of Freedom (DF)")
+        df:Add(math:Round(degreesOfFreedomBetweenGroups, digits))
         if RepeatedMeasures()
-            df:Add(degreesOfFreedomError)
+            df:Add(math:Round(degreesOfFreedomBetweenSubjects, digits))
         end
-        df:Add(degreesOfFreedomBetweenGroups + degreesOfFreedomWithinGroups + degreesOfFreedomError)
+        df:Add(math:Round(degreesOfFreedomWithinGroups, digits))
+        if RepeatedMeasures()
+            df:Add(math:Round(degreesOfFreedomError, digits))
+        end
+        df:Add(math:Round(math:Round(degreesOfFreedomBetweenGroups, digits) + math:Round(degreesOfFreedomWithinGroups, digits), digits))
 
 
         NumberColumn ms
-        ms:SetHeader("Mean Sum Of Squares")
-        ms:Add(meanSumOfSquaresBetweenGroup)
-        ms:Add(meanSumOfSquaresWithinGroup)
+        ms:SetHeader("Mean Sum Of Squares (MS)")
+        ms:Add(math:Round(meanSumOfSquaresBetweenGroups, digits))
         if RepeatedMeasures()
-            ms:Add(meanSumOfSquaresError)
+            ms:Add(math:Round(meanSumOfSquaresBetweenSubjects, digits))
         end
-        ms:Add(nan:GetNotANumberValue())
+        ms:Add(math:Round(meanSumOfSquaresWithinGroups, digits))
+        if RepeatedMeasures()
+            ms:Add(math:Round(meanSumOfSquaresError, digits))
+        end
 
+        number pBetweenSubjects = 0
+        number pWithinGroups = 0
         NumberColumn f
-        f:SetHeader("F Statistic")
-        f:Add(GetTestStatistic())
-        f:Add(nan:GetNotANumberValue()) // Not implemented yet.
+        f:SetHeader("Statistic (F)")
+        f:Add(math:Round(GetTestStatistic(), digits))
         if RepeatedMeasures()
-            f:Add(nan:GetNotANumberValue())
+            number fBS = meanSumOfSquaresBetweenSubjects / meanSumOfSquaresError        
+            fDistribution:Setup(degreesOfFreedomBetweenSubjects, degreesOfFreedomError)
+            pBetweenSubjects = 1.0 - fDistribution:CumulativeDistribution(fBS)
+            f:Add(math:Round(fBS, digits))
+
+            number fWG = meanSumOfSquaresWithinGroups / meanSumOfSquaresError        
+            fDistribution:Setup(degreesOfFreedomWithinGroups, degreesOfFreedomError)
+            pWithinGroups = 1.0 - fDistribution:CumulativeDistribution(fWG)
+            f:Add(math:Round(fWG, digits))
         end
-        f:Add(nan:GetNotANumberValue())
 
         NumberColumn p
-        p:SetHeader("Probability Value")
-        p:Add(GetProbabilityValue())
-        p:Add(nan:GetNotANumberValue()) // Not implemented yet.
+        p:SetHeader("Probability (P)")
+        p:Add(math:Round(GetProbabilityValue(), digits))
         if RepeatedMeasures()
-            p:Add(nan:GetNotANumberValue())
+            p:Add(math:Round(pBetweenSubjects, digits))
+            p:Add(math:Round(pWithinGroups, digits))
         end
-        p:Add(nan:GetNotANumberValue())
 
         DataFrame anovaTable
+        anovaTable:AddColumn(name)
         anovaTable:AddColumn(source)
-        anovaTable:AddColumn(ss)
+        if not welch
+            anovaTable:AddColumn(ss)
+        end
         anovaTable:AddColumn(df)
-        anovaTable:AddColumn(ms)
+        if not welch
+            anovaTable:AddColumn(ms)
+        end
         anovaTable:AddColumn(f)
         anovaTable:AddColumn(p)
+
+        if GetEffectSizeName() not= "" 
+            number totalSS = 0 
+            if GetEffectSize() not= 0
+                totalSS = sumOfSquaresBetweenGroups / GetEffectSize()
+            end
+            NumberColumn effect
+            effect:SetHeader("Effect Size (" + GetEffectSizeName() + ")")
+            effect:Add(math:Round(GetEffectSize(), digits))
+            if RepeatedMeasures() 
+                if totalSS not= 0
+                    effect:Add(math:Round(sumOfSquaresBetweenSubjects/totalSS, digits))
+                    effect:Add(math:Round(sumOfSquaresWithinGroups/totalSS, digits))
+                end
+            end
+            anovaTable:AddColumn(effect)
+        end
+
+        if GetDistributionResults() not= undefined 
+            TextColumn norm
+            norm:SetHeader("Normality Test")
+            boolean failed = false
+            i = 0
+            repeat while i < GetDistributionResults():GetSize()
+                if GetDistributionResults():Get(i):IsSignificant()
+                    failed = true
+                end
+                i = i + 1
+            end
+            if failed
+                norm:Add("Failed")
+            else
+                norm:Add("Passed")
+            end
+            anovaTable:AddColumn(norm)
+        end
+
+        if GetVarianceResult() not= undefined 
+            TextColumn var
+            if RepeatedMeasures()
+                var:SetHeader("Sphericity Test")
+            else
+                var:SetHeader("Variance Equality Test")
+            end
+            if GetVarianceResult():IsSignificant()
+                var:Add("Failed")
+            else
+                var:Add("Passed")
+            end
+            anovaTable:AddColumn(var)
+        end
+
+        if RepeatedMeasures() and GetVarianceResult() not= undefined and GetVarianceResult():IsSignificant()
+            number correction = GetVarianceResult():GetCorrection()
+            if correction not= 1
+                NumberColumn gg
+                gg:SetHeader(GetVarianceResult():GetCorrectionName())
+                gg:Add(math:Round(correction, digits))
+
+                NumberColumn ggdf
+                ggdf:SetHeader("Adjusted DF")
+
+                NumberColumn ggms
+                ggms:SetHeader("Adjusted MS")
+                
+                NumberColumn ggp
+                ggp:SetHeader("Adjusted P")
+
+                number dferror = degreesOfFreedomError * correction
+                number mse = sumOfSquaresError / dferror
+
+                number dfbg = degreesOfFreedomBetweenGroups * correction
+                number msbg = sumOfSquaresBetweenGroups / dfbg
+                number fbg = msbg / mse        
+                fDistribution:Setup(dfbg, dferror)
+                number newp = 1.0 - fDistribution:CumulativeDistribution(fbg)
+                ggdf:Add(math:Round(dfbg, digits))
+                ggms:Add(math:Round(msbg, digits))
+                ggp:Add(math:Round(newp, digits))
+
+                number dfbs = degreesOfFreedomBetweenSubjects * correction
+                number msbs = sumOfSquaresBetweenSubjects / dfbs
+                number fbs = msbs / mse        
+                fDistribution:Setup(dfbs, dferror)
+                newp = 1.0 - fDistribution:CumulativeDistribution(fbs)
+                ggdf:Add(math:Round(dfbs, digits))
+                ggms:Add(math:Round(msbs, digits))
+                ggp:Add(math:Round(newp, digits))
+
+                number dfwg = degreesOfFreedomWithinGroups * correction
+                number mswg = sumOfSquaresWithinGroups / dfwg
+                number fwg = mswg / mse        
+                fDistribution:Setup(dfwg, dferror)
+                newp = 1.0 - fDistribution:CumulativeDistribution(fwg)
+                ggdf:Add(math:Round(dfwg, digits))
+                ggms:Add(math:Round(mswg, digits))
+                ggp:Add(math:Round(newp, digits))
+
+                ggdf:Add(math:Round(dferror, digits))
+                ggms:Add(math:Round(mse, digits))
+
+                anovaTable:AddColumn(gg)
+                anovaTable:AddColumn(ggdf)
+                anovaTable:AddColumn(ggms)
+                anovaTable:AddColumn(ggp)
+            end
+        end
+
+        TextColumn apa
+        apa:SetHeader("APA report")
+        apa:Add(GetFormalNumericalResult())
+        anovaTable:AddColumn(apa)
+
         return anovaTable
     end
 
-    /*
-        This action saves this result to disk at the position of the current file. To conduct the 
-        conversion, the file extension is used. Only Comma Separated Values (CSV) is currently 
-        supported.
-
-        Attribute: Parameter file the location of where to save the file.
-
-        Attribute: Example
-    
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
-    
-        DataFrame frame
-        frame:Load("data.csv")
-        frame:AddSelectedColumns(0)
-        frame:AddSelectedColumns(1)
-        frame:AddSelectedColumns(2)
-    
-        CompareGroups compare = frame:CompareSelectedColumns()
-        compare:GetResult():Save("anova.csv")
-    */
-    action Save(text path)
-        File file
-        file:SetPath(path)
-        if file:GetFileExtension() = "csv"
-            ConvertResultToDataFrame():Save(path)
+    private action GetRankedSummaryDataFrame returns DataFrame
+        integer digits = GetFormat():GetSignificantDigits()
+  
+        TextColumn name
+        name:SetHeader(GetFormalTestName()) 
+        if IsSignificant()
+            name:Add("Failed")
         else
-           alert("Save currently only supports Comma Separated Values (CSV), please use a .csv file extension.")
+            name:Add("Passed")
         end
+
+        NumberColumn t
+        if RepeatedMeasures()
+            t:SetHeader("Statistic (Friedman χ2)")
+        else
+            t:SetHeader("Statistic (H)")
+        end
+        t:Add(math:Round(GetTestStatistic(), digits))
+
+        NumberColumn df
+        df:SetHeader("Degrees Of Freedom (DF)")
+        df:Add(math:Round(GetDegreesOfFreedom(), digits))
+
+        NumberColumn p
+        p:SetHeader("Probability (P)")
+        p:Add(math:Round(GetProbabilityValue(), digits))
+
+        NumberColumn ef 
+        ef:SetHeader("Effect Size (" + GetEffectSizeName() + ")")
+        if GetEffectSizeName() not= "" 
+            ef:Add(math:Round(GetEffectSize(), digits))
+        end
+
+        TextColumn apa
+        apa:SetHeader("APA report")   
+        apa:Add(GetFormalNumericalResult())
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(t)
+        table:AddColumn(df)
+        table:AddColumn(p)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
     end
 end

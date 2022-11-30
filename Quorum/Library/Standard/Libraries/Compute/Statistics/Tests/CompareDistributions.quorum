@@ -10,6 +10,7 @@ use Libraries.Compute.Statistics.Reporting.CompareDistributionsResult
 use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Columns.TextColumn
 
 /*
     This class implements two tests: 
@@ -433,6 +434,32 @@ class CompareDistributions is StatisticalTest
     end
 
     /*
+        Attribute: Returns a DataFrame of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareDistributions compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+        
+        DataFrame result = compare:GetSummaryDataFrame()
+        result:Save("myresult.csv")
+    */
+    action GetSummaryDataFrame returns DataFrame
+        if GetResults():GetSize() = 1
+            return GetResult():GetSummaryDataFrame()
+        end
+
+        return GetMultipleTestSummaryDataFrame()
+    end
+
+    /*
         This action summarizes the results and places them into formal academic language, in 
         APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
@@ -469,4 +496,46 @@ class CompareDistributions is StatisticalTest
         return summary
     end
 
+    private action GetMultipleTestSummaryDataFrame returns DataFrame
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+  
+        TextColumn name
+        NumberColumn w
+        NumberColumn p
+        NumberColumn ef 
+        TextColumn apa
+        i = 0
+        CompareDistributionsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+            if i = 0
+                name:SetHeader(result:GetFormalTestName()) 
+                w:SetHeader("Statistic (W)")
+                p:SetHeader("Probability (P)")
+                ef:SetHeader("Effect Size (" + result:GetEffectSizeName() + ")")
+                apa:SetHeader("APA report") 
+            end
+            if result:IsSignificant()
+                name:Add("Failed")
+            else
+                name:Add("Passed")
+            end
+            w:Add(math:Round(result:GetTestStatistic(), digits))
+            p:Add(math:Round(result:GetProbabilityValue(), digits))
+            if result:GetEffectSizeName() not= "" 
+                ef:Add(math:Round(result:GetEffectSize(), digits))
+            end
+            apa:Add(result:GetFormalNumericalResult())
+            i = i + 1
+        end
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(w)
+        table:AddColumn(p)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
+    end
 end

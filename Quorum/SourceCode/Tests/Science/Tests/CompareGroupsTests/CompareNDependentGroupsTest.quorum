@@ -29,7 +29,7 @@ class CompareNDependentGroupsTest is Test
         CompareNGroupsResult result = cast(CompareNGroupsResult, compare:GetResult())
         Check(result:GetTestStatistic(), 13.24054268777119)
         Check(result:GetDegreesOfFreedomBetweenGroups(), 3.0)
-        Check(result:GetDegreesOfFreedomWithinGroups(), 5.0)
+        Check(result:GetDegreesOfFreedomWithinGroups(), 20.0)
         Check(result:GetProbabilityValue(), 1.7181881658023812e-4)
         Check(result:GetEffectSize(), 0.6262429182564458)
     end

@@ -107,7 +107,7 @@ class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
             end
             i = i + 1
         end
-        factorFrame:AddSelectedColumnRange(0, factorFrame:GetSize()-1)
+        factorFrame:SelectAllColumns()
         EmptyFactors()
         EmptyColumns()
         factorFrame:GetSelection():CopyTo(cast(ColumnInput, me))

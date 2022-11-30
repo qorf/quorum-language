@@ -6,6 +6,8 @@ use Libraries.Compute.Statistics.Reporting.CheckReducibilityStrengthResult
 use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
 
 /*
     This class implements a suitibiity check before a Factor Analysis: 
@@ -58,6 +60,8 @@ class CheckReducibilityStrength is StatisticalTest
             alert("Must include at least two columns.")
         end
 
+        TextColumn variables
+        variables:SetHeader("variable")
         Array<DataFrameColumn> groups
         i = 0
         repeat while i < GetColumnSize()
@@ -73,7 +77,7 @@ class CheckReducibilityStrength is StatisticalTest
             if column:GetSize() < 2
                 alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
             end
-
+            variables:Add(column:GetHeader())
             groups:Add(column)
             i = i + 1
         end
@@ -107,7 +111,8 @@ class CheckReducibilityStrength is StatisticalTest
         end
 
         // Compute Test Statistic
-        Array<number> samplingAdequacies
+        NumberColumn scores
+        scores:SetHeader("score")
         number sumRSum = 0
         number sumUSum = 0
         i = 0
@@ -126,19 +131,32 @@ class CheckReducibilityStrength is StatisticalTest
             end
             sumRSum = sumRSum + rSum
             sumUSum = sumUSum + uSum
-            samplingAdequacies:Add(rSum / (rSum + uSum))
+            scores:Add(rSum / (rSum + uSum))
             i = i + 1
         end
         number kmo = sumRSum / (sumRSum + sumUSum)
 
+        DataFrame individuals
+        individuals:AddColumn(variables)
+        individuals:AddColumn(scores)
 
         CheckReducibilityStrengthResult result
         result:SetSignificanceLevel(GetSignificanceLevel())
         result:SetFormat(GetStatisticalFormatting())
         result:SetNumberOfVariables(GetColumnSize())
+        result:SetIndividualScores(individuals)
         result:SetTestStatistic(kmo)
         result:SetFormalTestName("The Kaiser-Meyer-Olkin measure of sampling adequacy")
         results:Add(result)
+    end
+
+    /*
+        This returns the test statistic if only one result exists.
+
+        Attribute: Returns the test statistic. 
+    */
+    action GetIndividualScores returns DataFrame
+        return GetResult():GetIndividualScores()
     end
 
     /*

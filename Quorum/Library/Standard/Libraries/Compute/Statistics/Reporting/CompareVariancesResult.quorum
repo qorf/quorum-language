@@ -256,4 +256,116 @@ class CompareVariancesResult is CompareGroupsResult
         end
         return summary
     end
+
+    action GetSummaryDataFrame returns DataFrame
+        if RepeatedMeasures()
+            return DependentSummaryDataFrame()
+        else
+            return IndependentSummaryDataFrame()
+        end
+    end
+    
+    private action IndependentSummaryDataFrame returns DataFrame
+        number nan = 0
+        integer digits = GetFormat():GetSignificantDigits()
+
+        TextColumn name
+        name:SetHeader("Levene's Test Of Homogeneity")
+        if IsSignificant()
+            name:Add("Failed")
+        else
+            name:Add("Passed")
+        end
+
+        NumberColumn f
+        f:SetHeader("Statistic (F)")
+        f:Add(math:Round(GetTestStatistic(), digits))
+
+        NumberColumn df1
+        df1:SetHeader("Degrees Of Freedom (DF1)")
+        df1:Add(math:Round(GetDegreesOfFreedomBetweenGroups(), digits))
+
+        NumberColumn df2
+        df2:SetHeader("Degrees Of Freedom (DF2)")
+        df2:Add(math:Round(GetDegreesOfFreedomWithinGroups(), digits))
+
+        NumberColumn p
+        p:SetHeader("Probability (P)")
+        p:Add(math:Round(GetProbabilityValue(), digits))
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(f)
+        table:AddColumn(df1)
+        table:AddColumn(df2)
+        table:AddColumn(p)
+
+        if GetEffectSizeName() not= "" 
+            NumberColumn effect
+            effect:SetHeader(GetEffectSizeName())
+            effect:Add(math:Round(GetEffectSize(), digits))
+            table:AddColumn(effect)
+        end
+        return table
+    end
+
+    private action DependentSummaryDataFrame returns DataFrame
+        number nan = 0
+        integer digits = GetFormat():GetSignificantDigits()
+
+        TextColumn name
+        name:SetHeader("Mauchly Test Of Sphericity")
+        if IsSignificant()
+            name:Add("Failed")
+        else
+            name:Add("Passed")
+        end
+
+        NumberColumn w
+        w:SetHeader("Statistic (W)")
+        w:Add(math:Round(w_statistic, digits))
+
+        NumberColumn df
+        df:SetHeader("Degrees Of Freedom (DF)")
+        df:Add(math:Round(GetDegreesOfFreedom(), digits))
+
+        NumberColumn x2
+        x2:SetHeader("Approximate χ2")
+        x2:Add(math:Round(chi_w_squared, digits))
+
+        NumberColumn p
+        p:SetHeader("Probability (P)")
+        p:Add(math:Round(GetProbabilityValue(), digits))
+
+        NumberColumn gg
+        gg:SetHeader("Greenhouse-Geisser (ε)")
+        gg:Add(math:Round(ggCorrection, digits))
+
+        NumberColumn hf
+        hf:SetHeader("Huynh-Feldt (ε)")
+        hf:Add(math:Round(hfCorrection, digits))
+
+        NumberColumn lb
+        lb:SetHeader("Lower-Bound (ε)")
+        lb:Add(math:Round(lbCorrection, digits))
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(w)
+        table:AddColumn(x2)
+        table:AddColumn(df)
+        table:AddColumn(p)
+        table:AddColumn(gg)
+        table:AddColumn(hf)
+        table:AddColumn(lb)
+
+        if GetEffectSizeName() not= "" 
+            NumberColumn effect
+            effect:SetHeader(GetEffectSizeName())
+            effect:Add(math:Round(GetEffectSize(), digits))
+            table:AddColumn(effect)
+        end
+
+        return table
+    end
 end
