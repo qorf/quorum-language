@@ -73,6 +73,30 @@ class WebTable is WebTag
         me:Add(body)
     end
 
+    /*
+        This action creates a WebTable object from a two dimensional matrix created with the Matrix class.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Web.Page.WebTable
+
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue(
+"A,B
+1,2
+3,4
+5,6
+7,8
+9,10"
+)
+        WebTable web
+        web:AddCaption("Yo")
+        web:Add(frame)
+    
+        text value = web:ToText()
+        output value
+        */
     action Add(DataFrame frame)
         TableBody body
 
