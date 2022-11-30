@@ -4,6 +4,8 @@ use Libraries.Web.Page.WebTag
 use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
 
 /*
 The WebTable class represents HTML's (Hypertext Markup Language) table tag which 
@@ -13,21 +15,27 @@ of rows that have been added to the table.
 Attribute: Parameter matrix This is the matrix we are converting to HTML on the web
 
 Attribute: Example
-
-use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Web.Page.TableCaption
 use Libraries.Web.Page.WebTable
 
-class Main
-    action main
-        Matrix matrix
-        matrix:Fill(3, 3, 1.0)
+DataFrame frame
+    frame:LoadFromCommaSeparatedValue(
+"A,B
+1,2
+3,4
+5,6
+7,8
+9,10"
+)
+    WebTable web
+    TableCaption caption
+    caption:AddText("My Table")
+    web:Add(caption)
+    web:Add(frame)
 
-        WebTable table
-        table:Add(matrix)
-
-        output table:Generate()
-   end
-end
+    text value = Generate()
+    output value
 */
 class WebTable is WebTag
     constant text border = "border"
@@ -61,6 +69,59 @@ class WebTable is WebTag
             end
             body:Add(tr)
             row = row + 1
+        end
+        me:Add(body)
+    end
+
+    action Add(DataFrame frame)
+        TableBody body
+
+        boolean hasRow = true
+        if frame:GetSize() = 0
+            return now
+        end
+
+        TableRow headerRow
+        col = 0
+        repeat while col < frame:GetSize()
+            DataFrameColumn column = frame:GetColumn(col)
+            text header = column:GetHeader()
+            TableHeaderCell th
+            if header = undefined
+                th:AddText("")
+            else
+                th:AddText(header)
+            end
+
+            th:AddAttribute("scope", "col")
+            headerRow:Add(th)
+            col = col + 1
+        end
+        body:Add(headerRow)
+
+        row = 0
+        repeat while hasRow
+            col = 0
+            hasRow = false//assume empty until proven true
+            TableRow tr
+            repeat while col < frame:GetSize()
+                DataFrameColumn column = frame:GetColumn(col)
+                
+                if row < column:GetSize()
+                    text value = column:GetAsText(row)
+                    TableData data
+                    data:AddText(value)
+                    data:AddAttribute("scope", "row")
+                    tr:Add(data)
+                end
+
+                if row + 1 < column:GetSize()
+                    hasRow = true
+                end
+                col = col + 1
+            end
+            row = row + 1
+            body:Add(tr)
         end
         me:Add(body)
     end
@@ -109,62 +170,32 @@ class WebTable is WebTag
     end
 
     /*
-        This action adds a row to the table element. See TableRow for the construction
-        of a row in a table.
+        This action places an TableCaption object inside of a WebTable object.
 
-        Attribute: Parameter value A TableRow to be added to the table. 
-
-        Attribute: Example
-        use Libraries.Web.Page.WebTable
-        use Libraries.Web.Page.TableRow
-        use Libraries.Web.Page.TableHeader
-        WebTable table
-        TableRow row
-        TableHeader header
-        header:SetDescription("name")
-        row:Add(header)
-        table:AddRow(row)
-    */
-//    action AddRow(TableRow value)
-//        //Add(value)
-//    end
-
-    /*
-        This action sets the column group attribute of the web table. The column
-        group allows a column or group of columns to be controlled and formatted.
-
-        Attribute: Parameter value The column group. 
+        Attribute: Parameter content specifies what will be added to the WebTable.
 
         Attribute: Example
-        use Libraries.Web.Page.WebTable
-        use Libraries.Web.Page.ColumnGroup
+        use Libraries.Web.Page.all
 
-        WebTable table
-        ColumnGroup cg
-        table:SetColumnGroup(cg)
+        class Main
+            action Main
+                WebPage page
+                WebTable table
+                TableCaption caption
+
+                
+                page:Add(table)
+                caption:AddText("This is a table!")
+                table:Add(caption)
+
+                text value = page:Generate()
+                output value
+            end
+        end
     */
-//    action SetColumnGroup(ColumnGroup value)
-//        me:columnGroup = value
-//    end
-
-
-    /*
-        This action gets the Column group attribute of the web table and returns
-        it. The column group is used to format an entire column or group of
-        columns.
-
-        Attribute: Returns The column group. 
-
-        Attribute: Example
-        use Libraries.Web.Page.WebTable
-        use Libraries.Web.Page.ColumnGroup
-        WebTable table
-        ColumnGroup cg = table:GetColumnGroup()
-    */
-//    action GetColumnGroup returns ColumnGroup
-//        return columnGroup
-//    end
-
+    action Add(TableCaption content)
+        parent:WebTag:tags:Add(content)
+    end
 
     /*
         This action places an TableCaption object inside of a WebTable object.
@@ -182,7 +213,7 @@ class WebTable is WebTag
 
                 
                 page:Add(table)
-                caption:SetDescription("This is a table!")
+                caption:AddText("This is a table!")
                 table:Add(caption)
 
                 text value = page:Generate()
@@ -190,8 +221,10 @@ class WebTable is WebTag
             end
         end
     */
-    action Add(TableCaption content)
-        parent:WebTag:tags:Add(content)
+    action AddCaption(text caption)
+        TableCaption cap
+        cap:AddText(caption)
+        Add(cap)
     end
 
     /*
