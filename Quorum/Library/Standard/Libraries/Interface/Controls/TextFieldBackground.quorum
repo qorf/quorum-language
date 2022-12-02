@@ -1,0 +1,71 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.ColorGroup
+
+class TextFieldBackground is Control
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        return GetParentTextField():GetBorderColor()
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        return GetParentTextField():GetBackgroundColor()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        return GetParentTextField():GetBorderThickness()
+    end
+
+    action GetTopLeftRounding returns number
+        if HasNumberPropertyOverride("topLeftRounding")
+            return parent:Control:GetTopLeftRounding()
+        end
+
+        return GetParentTextField():GetTopLeftRounding()
+    end
+
+    action GetTopRightRounding returns number
+        if HasNumberPropertyOverride("topRightRounding")
+            return parent:Control:GetTopRightRounding()
+        end
+
+        return GetParentTextField():GetTopRightRounding()
+    end
+
+    action GetBottomLeftRounding returns number
+        if HasNumberPropertyOverride("bottomLeftRounding")
+            return parent:Control:GetBottomLeftRounding()
+        end
+
+        return GetParentTextField():GetBottomLeftRounding()
+    end
+
+    action GetBottomRightRounding returns number
+        if HasNumberPropertyOverride("bottomRightRounding")
+            return parent:Control:GetBottomRightRounding()
+        end
+
+        return GetParentTextField():GetBottomRightRounding()
+    end
+
+    private action GetParentTextField returns TextField
+        Item2D result = GetParent()
+        repeat until result is TextField or result = undefined
+            result = result:GetParent()
+        end
+
+        return cast(TextField, result)
+    end
+end

@@ -79,7 +79,7 @@ class BoxPlotWriter is ChartWriter
         boxPlot = cast(BoxPlot, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + boxPlot:GetNumberOfPlots() + " plots.")
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -875,7 +875,7 @@ class BoxPlotWriter is ChartWriter
     end
 
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         BoxPlot currentChart
         currentChart = cast(BoxPlot, chart)
         Script script
@@ -1012,6 +1012,6 @@ class BoxPlotWriter is ChartWriter
         end
         scriptText = scriptText + "};" + newLine
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

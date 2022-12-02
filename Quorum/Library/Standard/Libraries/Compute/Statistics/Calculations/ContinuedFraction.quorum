@@ -7,7 +7,7 @@ use Libraries.Compute.Math
     Attribute: Author Andreas Stefik
 */
 class ContinuedFraction 
-    constant number DEFAULT_EPSILON = 0.00000001//10e-9
+    constant number DEFAULT_EPSILON = 1.0e-8
     Math math
     blueprint action GetA(integer n, number x) returns number
     blueprint action GetB(integer n, number x) returns number
@@ -40,7 +40,7 @@ class ContinuedFraction
         for a maximum number of iterations.
     */
     action Evaluate(number x, number epsilon, integer maxIterations) returns number
-        number small = 0.0000000000000000000000000000000000000000000000001
+        number small = 1.0e-50
         number hPrev = GetA(0, x)
 
         if math:Equals(hPrev, 0.0, small)

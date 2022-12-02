@@ -82,7 +82,7 @@ class ViolinPlotWriter is ChartWriter
         violinPlot = cast(ViolinPlot, chart)
 
         if HasAccessibility()
-            GetChartArea():SetAriaLabel("Chart Area " + violinPlot:GetNumberOfPlots() + " plots.")
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
 
@@ -921,7 +921,7 @@ class ViolinPlotWriter is ChartWriter
         end
     end
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         ViolinPlot currentChart
         currentChart = cast(ViolinPlot, chart)
         Script script
@@ -1058,6 +1058,6 @@ class ViolinPlotWriter is ChartWriter
         end
         scriptText = scriptText + "};" + newLine
         script:AddText(scriptText)
-        division:Add(script)
+        canvas:Add(script)
     end
 end

@@ -699,33 +699,33 @@ class ShaderProgram
         drawable:SetMeshIndex(startIndex)
         drawable:SetIndicesCount(totalIndices)
 
-        ShaderMapping candidate = drawable:GetShaderMapping()
-        if candidate = undefined
-            candidate = shaderMapping
-        end
+// TO-DO: Remove or reevaluate the commented section
+//        ShaderMapping candidate = drawable:GetShaderMapping()
+//        if candidate = undefined
+//            candidate = shaderMapping
+//        end
+//
+//        if candidate not= currentMapping
+//            if currentMapping not= undefined
+//                currentMapping:End(me)
+//            end
+//            currentMapping = candidate
+//            currentMapping:Begin(me, drawable:GetLayer():GetCamera())
+//        end
+//
+//        shaderMapping:MapInputs(me, drawable)
 
-        if candidate not= currentMapping
-            if currentMapping not= undefined
-                currentMapping:End(me)
-            end
-            currentMapping = candidate
-            currentMapping:Begin(me, drawable:GetLayer():GetCamera())
-        end
-
-        shaderMapping:MapInputs(me, drawable)
-
-        GraphicsManager graphics = manager:GetGameGraphics()
         drawable:GetMesh():Render(me, constants:GL_TRIANGLES, startIndex, totalIndices)
     end
 
     action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
-        if currentMapping not= shaderMapping
-            if currentMapping not= undefined
-                currentMapping:End(me)
-            end
-            currentMapping = shaderMapping
-            currentMapping:Begin(me, camera)
-        end
+//        if currentMapping not= shaderMapping
+//            if currentMapping not= undefined
+//                currentMapping:End(me)
+//            end
+//            currentMapping = shaderMapping
+//            currentMapping:Begin(me, camera)
+//        end
 
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:EnableProperty(constants:GL_BLEND)

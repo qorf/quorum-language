@@ -1,0 +1,286 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Reporting.CheckReducibilityStrengthResult
+use Libraries.Compute.Matrix
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+
+/*
+    This class implements a suitibiity check before a Factor Analysis: 
+        CheckReducibilityStrength is a Kaiser-Meyer-Olkin Measure Of Sampling Adequacy
+        Measures sampling adequacy for each variable in the model and for the complete model, a prerequisite for factor analysis to work.
+        For more information: https://en.wikipedia.org/wiki/Kaiser%E2%80%93Meyer%E2%80%93Olkin_test
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    frame:SelectAllColumns()
+
+    CheckReducibilityStrength test
+    test:Calculate(frame)
+    output test:GetFormalSummary()
+*/
+class CheckReducibilityStrength is StatisticalTest
+    Math math
+
+    Array<CheckReducibilityStrengthResult> results
+
+    action Calculate(DataFrame frame) 
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+
+        parent:StatisticalTest:RemoveUndefined(true)
+        if GetFactorSize() = 0
+            parent:StatisticalTest:Calculate(frame)
+        else
+            parent:StatisticalTest:CalculateWithFactor(frame)
+        end
+    end
+
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
+        end
+
+        TextColumn variables
+        variables:SetHeader("variable")
+        Array<DataFrameColumn> groups
+        i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column = frame:GetColumn(GetColumn(i))
+            if column = undefined
+                alert("Column is undefined.")
+            end
+        
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+
+            if column:GetSize() < 2
+                alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
+            end
+            variables:Add(column:GetHeader())
+            groups:Add(column)
+            i = i + 1
+        end
+    
+        // Collect only the selected data into a frame
+        DataFrame newFrame
+        newFrame:SetColumns(groups)
+        newFrame:SelectAllColumns()
+
+        // Create correlation matrix of pearson correlations
+        Matrix correlationMatrix = newFrame:CorrelationMatrix()
+
+        // Compute inverse correlation matrix
+        Matrix inverse = correlationMatrix:Inverse()
+
+        // Compute partial correlation matrix
+        Matrix partialCorrelation
+        partialCorrelation:SetSize(inverse)
+        i = 0
+        repeat while i < inverse:GetRows()
+            integer j = 0
+            repeat while j < inverse:GetColumns()
+                number mij = inverse:Get(i,j)
+                number mii = inverse:Get(i,i)
+                number mjj = inverse:Get(j,j)
+                
+                partialCorrelation:Set(i,j, -mij / math:SquareRoot(mii * mjj)) 
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        // Compute Test Statistic
+        NumberColumn scores
+        scores:SetHeader("score")
+        number sumRSum = 0
+        number sumUSum = 0
+        i = 0
+        repeat while i < correlationMatrix:GetColumns()
+            number rSum = 0
+            number uSum = 0
+            integer j = 0
+            repeat while j < correlationMatrix:GetRows()
+                if i not= j
+                    number r = correlationMatrix:Get(i,j)
+                    number u = partialCorrelation:Get(i,j)
+                    rSum = rSum + r * r
+                    uSum = uSum + u * u
+                end
+                j = j + 1
+            end
+            sumRSum = sumRSum + rSum
+            sumUSum = sumUSum + uSum
+            scores:Add(rSum / (rSum + uSum))
+            i = i + 1
+        end
+        number kmo = sumRSum / (sumRSum + sumUSum)
+
+        DataFrame individuals
+        individuals:AddColumn(variables)
+        individuals:AddColumn(scores)
+
+        CheckReducibilityStrengthResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetNumberOfVariables(GetColumnSize())
+        result:SetIndividualScores(individuals)
+        result:SetTestStatistic(kmo)
+        result:SetFormalTestName("The Kaiser-Meyer-Olkin measure of sampling adequacy")
+        results:Add(result)
+    end
+
+    /*
+        This returns the test statistic if only one result exists.
+
+        Attribute: Returns the test statistic. 
+    */
+    action GetIndividualScores returns DataFrame
+        return GetResult():GetIndividualScores()
+    end
+
+    /*
+        This returns the test statistic if only one result exists.
+
+        Attribute: Returns the test statistic. 
+    */
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
+    end
+
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the CheckReducibilityResult object
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+        use Libraries.Compute.Statistics.Reporting.CheckReducibilityStrengthResult
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        CheckReducibilityStrength test
+        test:Calculate(frame)
+        
+        CheckReducibilityStrengthResult result = test:GetResult()
+    */
+    action GetResult returns CheckReducibilityStrengthResult
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
+        else
+            alert("There is more than one test result, use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        Attribute: Returns an array of CheckReducibilityStrengthResult objects
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+        use Libraries.Compute.Statistics.Reporting.CheckReducibilityStrengthResult
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        CheckReducibilityStrength test
+        test:Calculate(frame)
+        
+        Array<CheckReducibilityStrengthResult> results = test:GetResults()
+    */
+    action GetResults returns Array<CheckReducibilityStrengthResult>
+        return results
+    end
+
+    /*
+        Attribute: Returns a list of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        CheckReducibilityStrength test
+        test:Calculate(frame)
+        output test:GetSummary()
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CheckReducibilityStrengthResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in 
+        APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        Attribute: Returns a condensed formal result of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        CheckReducibilityStrength test
+        test:Calculate(frame)
+        output test:GetFormalSummary()
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CheckReducibilityStrengthResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+end

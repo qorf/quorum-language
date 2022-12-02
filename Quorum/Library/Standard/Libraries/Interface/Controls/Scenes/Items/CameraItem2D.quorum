@@ -1,0 +1,153 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+
+/*
+    CameraItem2D represents a camera in a 2D editor. In the 2D scene editor the camera is only
+    visible as a rectangle showing the area that camera will show. This class allows for changing
+    the camera's position and zoom. 
+*/
+class CameraItem2D is CameraItem, EditorItem2D
+
+    on create
+        SetInputGroup("CameraItem2D")
+    end
+
+    /*
+        This action sets up the object from a Camera and positions it.
+    */
+    action Load(Camera camera, SceneEditor editor)
+        SetCamera(camera)
+        SetSceneEditor(editor)
+
+        SetPosition(camera:GetPosition():GetX(), camera:GetPosition():GetY())
+    end
+
+    /*
+        Currently not supported
+    */
+    action SetRotation(number angle)
+        // TO-DO
+    end
+
+    /*
+        Currently not supported
+    */
+    action GetRotation returns number
+        // TO-DO
+        return 0
+    end
+
+    /*
+        MoveX adjusts the position of the camera from the camera's current position.
+        Note this moves the camera's X position and does not set it so a parameter of 5
+        means 5 will be added to camera's X position.
+
+        Attribute: Parameter x Amount of pixels to move the camera on the x-axis
+    */
+    action MoveX(number x)
+        parent:Item2D:MoveX(x)
+        UpdateCameraPosition()
+    end
+
+    /*
+        MoveY adjusts the position of the camera from the camera's current position.
+        Note this moves the camera's Y position and does not set it so a parameter of 5
+        means 5 will be added to camera's Y position.
+
+        Attribute: Parameter y Amount of pixels to move the camera on the y-axis
+    */
+    action MoveY(number y)
+        parent:Item2D:MoveY(y)
+        UpdateCameraPosition()
+    end
+
+    /*
+        Move adjusts the position of the camera from the camera's current position.
+        Note this moves the camera's X and Y position and does not set it so a parameter of 5
+        means 5 the camera's position will shift by 5 pixels
+
+        Attribute: Parameter x Amount of pixels to move the camera on the x-axis
+        Attribute: Parameter y Amount of pixels to move the camera on the y-axis
+    */
+    action Move(number x, number y)
+        parent:Item2D:Move(x, y)
+        UpdateCameraPosition()
+    end
+
+    /*
+        SetX sets the position of the camera on the x-axis.
+
+        Attribute: Parameter x The position on the x-axis to put the camera
+    */
+    action SetX(number x)
+        parent:Item2D:SetX(x)
+        UpdateCameraPosition()
+    end
+
+    /*
+        SetY sets the position of the camera on the y-axis.
+
+        Attribute: Parameter y The position on the y-axis to put the camera
+    */
+    action SetY(number y)
+        parent:Item2D:SetY(y)
+        UpdateCameraPosition()
+    end
+
+    /*
+        SetPosition sets the position of the camera on the x and y axis.
+
+        Attribute: Parameter x The position on the x-axis to put the camera
+        Attribute: Parameter y The position on the y-axis to put the camera
+    */
+    action SetPosition(number x, number y)
+        parent:Item2D:SetPosition(x, y)
+        UpdateCameraPosition()
+    end
+
+    /*
+        Internal action that updates the internal camera object this class points to
+        to the new position and updates the grid in the 2D editor.
+    */
+    private action UpdateCameraPosition
+        Camera camera = GetCamera()
+
+        camera:SetPosition(GetX(), GetY(), camera:GetPosition():GetZ())
+        camera:Update()
+
+        if GetLayer() is EditorLayer2D
+            EditorLayer2D layer = cast(EditorLayer2D, GetLayer())
+            layer:UpdateGridPosition()
+        end
+    end
+
+    /*
+        The SetZoom action will set the zoom level of the camera. A value of 1 will
+        use the default zoom. A smaller value will zoom the camera out, while a
+        larger value will zoom the camera in.
+    */
+    action SetZoom(number zoom)
+        OrthographicCamera camera = cast(OrthographicCamera, GetCamera())
+        camera:SetZoom(zoom)
+        if GetLayer() is EditorLayer2D
+            EditorLayer2D layer = cast(EditorLayer2D, GetLayer())
+            layer:UpdateGridSize()
+        end
+    end
+
+    /*
+        The GetZoom action returns the current level of zoom used by the camera. The
+        default value is 1.
+    */
+    action GetZoom returns number
+        OrthographicCamera camera = cast(OrthographicCamera, GetCamera())
+        return camera:GetZoom()
+    end
+
+end

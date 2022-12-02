@@ -175,6 +175,54 @@ class Vector
     end
 
     /*
+        This action multiplies this scalar onto the current one. Because this action changes the vector
+        being added on, a copy may be needed for non-destructive operations.
+
+        Attribute: vector The vector to add on to this one.
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        vector:Multiply(1)
+
+        //this will output 0s because both vectors are 0
+        output vector:ToText()
+    */
+    action Multiply(number value)
+        i = 0
+        repeat while i < GetSize()
+            Set(i, Get(i) * value)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action divides this scalar onto the current one. Because this action changes the vector
+        being added on, a copy may be needed for non-destructive operations.
+
+        Attribute: vector The vector to add on to this one.
+
+        Attribute: Example
+
+        use Libraries.Compute.Vector
+        Vector vector
+        vector:SetSize(3)
+        vector:Divide(1)
+
+        //this will output 0s because both vectors are 0
+        output vector:ToText()
+    */
+    action Divide(number value)
+        i = 0
+        repeat while i < GetSize()
+            Set(i, Get(i) / value)
+            i = i + 1
+        end
+    end
+
+    /*
         This action calculates the dot product between the two vectors. More information 
         can be found about dot products here: https://en.wikipedia.org/wiki/Dot_product
 

@@ -1,0 +1,399 @@
+package Libraries.Interface.Controls.Scenes.Layers
+
+use Libraries.Game.Layer2D
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.OrthographicCamera
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.Previews.CameraPreview2D
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor2D
+use Libraries.Interface.Controls.Scenes.Items.Grid2D
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    The EditorLayer2D class is used to show and manage objects in a 2D scene. EditorLayer2D 
+    provides a 2D grid, a cursor, and a camera preview for a 2D scene. The cursor goes along
+    the grid and allows the user to select objects and edit them in the scene. For a 2D scene
+    the editor camera does not represent the camera visible in the scene, instead EditorLayer2D
+    provides a preview in the form of a border showing how much of a 2D scene will be visible.
+*/
+class EditorLayer2D is Layer2D, EditorLayer
+
+    SceneConstants constants
+
+    /*
+    The camera preview describes the basic position and dimensions of the camera in the scene.
+    It does NOT represent the editor camera! This represents where the camera will be if
+    you loaded the scene into a game and ran it outside of the editor.
+    */
+    CameraPreview2D preview
+
+    EditorCursor2D cursor
+
+    Grid2D grid
+    boolean gridSnapEnabled = true
+
+    on create
+        preview:SetSize(constants:CAMERA_PREVIEW_2D_DEFAULT_WIDTH, constants:CAMERA_PREVIEW_2D_DEFAULT_HEIGHT)
+        Add(preview)
+        preview:SetPosition(0, 0)
+
+        grid:SetGridSize(GetCamera():GetWidth() + grid:GetGridUnitSize(), GetCamera():GetHeight() + grid:GetGridUnitSize())
+        Add(grid)
+        UpdateGridPosition()
+
+        cursor:Load(me)
+        Add(cursor)
+
+        ShowEditorComponents(false)
+    end
+
+    /*
+    This action will notify mouse listeners that are a part of this layer of the
+    given mouse event. This is called automatically by the Game engine as 
+    needed. Most users will never need to use this action directly. This action is
+    overridden here so that the input gets directed to the Layer2D.
+
+    Attribute: Parameter event The MouseEvent to send to the MouseListeners.
+    Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
+    */
+    action ProcessMouseEvent(MouseEvent event) returns Item
+        SceneEditor editor = GetSceneEditor()
+        if editor = undefined or (not editor:GetSelectedLayer():Equals(me))
+            return undefined
+        end
+
+        Item item = parent:Layer2D:ProcessMouseEvent(event)
+        return item
+    end
+
+    /*
+        This action returns the preview of 2D scene's camera. Note that the preview does 
+        represent the Editor camera, it serves to show where the camera will be when the 
+        scene is loaded in a Game.
+        Attribute: Returns The CameraPreview2D this layer is using
+    */
+    action GetCameraPreview returns CameraPreview2D
+        return preview
+    end
+
+    /*
+        SetCameraPreviewX sets the X position of the camera preview
+
+        Attribute: Parameter x x position of the camera
+    */
+    action SetCameraPreviewX(number x)
+        preview:SetX(x)
+    end
+
+    /*
+        SetCameraPreviewY sets the Y position of the camera preview
+
+        Attribute: Parameter y y position of the camera
+    */
+    action SetCameraPreviewY(number y)
+        preview:SetY(y)
+    end
+
+    /*
+        SetCameraPreviewPosition sets the X and Y position of the camera preview
+
+        Attribute: Parameter x x position of the camera
+        Attribute: Parameter y y position of the camera
+    */
+    action SetCameraPreviewPosition(number x, number y)
+        preview:SetPosition(x, y)
+    end
+
+    /*
+        SetCameraPreviewWidth sets the width of the camera preview
+
+        Attribute: Parameter width width of the camera
+    */
+    action SetCameraPreviewWidth(number width)
+        preview:SetWidth(width)
+    end
+
+    /*
+        SetCameraPreviewHeight sets the height of the camera preview
+
+        Attribute: Parameter height height of the camera
+    */
+    action SetCameraPreviewHeight(number height)
+        preview:SetHeight(height)
+    end
+
+    /*
+        SetCameraPreviewSize sets the width and height of the camera preview
+
+        Attribute: Parameter width width of the camera
+        Attribute: Parameter height height of the camera
+    */
+    action SetCameraPreviewSize(number width, number height)
+        preview:SetSize(width, height)
+    end
+
+    /*
+        GetCameraPreviewX returns the X position of the camera preview
+
+        Attribute: Returns x position of the camera
+    */
+    action GetCameraPreviewX returns number
+        return preview:GetX()
+    end
+
+    /*
+        GetCameraPreviewY returns the Y position of the camera preview
+
+        Attribute: Returns y position of the camera
+    */
+    action GetCameraPreviewY returns number
+        return preview:GetY()
+    end
+
+    /*
+        GetCameraPreviewWidth returns the width of the camera preview
+
+        Attribute: Returns width of the camera
+    */
+    action GetCameraPreviewWidth returns number
+        return preview:GetWidth()
+    end
+
+    /*
+        GetCameraPreviewHeight returns the height of the camera preview
+
+        Attribute: Returns height of the camera
+    */
+    action GetCameraPreviewHeight returns number
+        return preview:GetHeight()
+    end
+
+    /*
+        This is for internal use. This action is meant to do nothing because the Scene Editor
+        handles resizing for the EditorLayers
+    */
+    action Resize(ResizeEvent event)
+        // Don't respond to resizing here -- allow the Scene Editor to handle it for us.
+    end
+
+    /*
+        SetGridSnapping turns the grid on or off
+
+        Attribute: Parameter enabled If true the grid will be enabled, the grid will be hidden if false
+    */
+    action SetGridSnapping(boolean enabled)
+        if enabled
+            grid:Show()
+        else
+            grid:Hide()
+        end
+
+        gridSnapEnabled = enabled
+    end
+
+    /*
+        SetGridUnitSize sets the size of a single grid unit which affects the size
+        of the grid and the size of the cursor.
+
+        Attribute: Parameter units the size of a single grid unit
+    */
+    action SetGridUnitSize(number units)
+        grid:SetGridUnitSize(cast(integer, units))
+        cursor:SetGridUnitSize(cast(integer, units))
+    end
+
+    /*
+        GetGridUnitSize returns the size of a single grid unit
+
+        Attribute: Returns The size of a single grid unit
+    */
+    action GetGridUnitSize returns number
+        return grid:GetGridUnitSize()
+    end
+
+    /*
+        IsGridSnapping returns if the grid snapping is enabled which for editing 2D scene
+        correlates with whether or not the grid is visible.
+
+        Attribute: Returns True if grid snapping is enabled, false otherwise
+    */
+    action IsGridSnapping returns boolean
+        return gridSnapEnabled
+    end
+
+    /*
+        Given a number this action returns the nearest coordinate that lies on the grid of this layer.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The nearest coordinate on the grid
+    */
+    action GetNearestGridCoordinate(number coordinate) returns number
+        return grid:GetNearestGridCoordinate(coordinate)
+    end
+
+    /*
+        Given a number this action returns the nearest coordinate on the grid of this layer that is
+        greater than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The next coordinate on the grid
+    */
+    action GetNextGridCoordinate(number coordinate) returns number
+        return grid:GetNextGridCoordinate(coordinate)
+    end
+
+    /*
+        Given a number this action returns the nearest coordinate on the grid of this layer that is
+        less than the number passed.
+
+        Attribute: Parameter coordinate The number used to calculate the grid coordinate
+        Attribute: Returns The previous coordinate on the grid
+    */
+    action GetPreviousGridCoordinate(number coordinate) returns number
+        return grid:GetPreviousGridCoordinate(coordinate)
+    end
+
+    /*
+        Update is called by the Game loop every frame. This action resizes the viewport
+        to fit the Layer so resizing the Game doesn't leave unused space in the EditorLayer.
+    */
+    action Update(number seconds)
+        SceneEditor editor = GetSceneEditor()
+        integer x = cast(integer, editor:GetGlobalX())
+        integer y = cast(integer, editor:GetGlobalY())
+        integer width = cast(integer, editor:GetWidth())
+        integer height = cast(integer, editor:GetHeight())
+        if GetViewportX() not= x or GetViewportY() not= y or GetViewportWidth() not= width or GetViewportHeight() not= height
+            SetViewport(x, y, width, height)
+            UpdateGridSize()            
+        end
+
+        parent:Layer2D:Update(seconds)
+    end
+
+    /*
+        Returns true if the number passed would lie on the grid of this layer, false otherwise.
+
+        Attribute: Returns True if the number is on the grid, false otherwise.
+    */
+    action IsGridCoordinate(number value) returns boolean
+        return grid:IsGridCoordinate(value)
+    end
+
+    /*
+        UpdateGridPosition positions the grid correctly based on the position and zoom of the 
+        editor camera. Grid2D is a drawable that is redrawn as needed so the Grid is resized
+        and moved as needed so it looks correct in the editor.
+    */
+    action UpdateGridPosition
+        Camera camera = GetCamera()
+        number zoom = 1
+        if camera is OrthographicCamera
+            OrthographicCamera orthographic = cast(OrthographicCamera, camera)
+            zoom = orthographic:GetZoom()
+        end
+
+        number x = camera:GetPosition():GetX() - (camera:GetWidth() / zoom) / 2.0
+        number y = camera:GetPosition():GetY() - (camera:GetHeight() / zoom) / 2.0
+
+        if not grid:IsGridCoordinate(x)
+            x = grid:GetPreviousGridCoordinate(x)
+        end
+        if not grid:IsGridCoordinate(y)
+            y = grid:GetPreviousGridCoordinate(y)
+        end
+
+        grid:SetPosition(x, y)
+    end
+
+    /*
+        UpdateGridSize sizes the grid correctly based on the position and zoom of the 
+        editor camera. Grid2D is a drawable that is redrawn and reshaped as needed 
+        so the Grid is resized and moved as needed so it looks correct in the editor.
+    */
+    action UpdateGridSize
+        Camera camera = GetCamera()
+        number width = camera:GetWidth()
+        number height = camera:GetHeight()
+
+        if camera is OrthographicCamera
+            OrthographicCamera orthographic = cast(OrthographicCamera, camera)
+            width = width / orthographic:GetZoom()
+            height = height / orthographic:GetZoom()
+        end
+
+        grid:SetGridSize(width, height)
+
+        UpdateGridPosition()
+    end
+
+    /*
+        GetCursor returns the EditorCursor this layer is using.
+
+        Attribute: Returns The EditorCursor this layer has
+    */
+    action GetCursor returns EditorCursor
+        return cursor
+    end
+
+
+    /*
+        ShowEditorComponents toggles the editor components which consists
+        of the camera preview, the grid, and the cursor. When toggled off
+        they will all be hidden. When toggled on the preview and grid will
+        be visible in the editor.
+    */
+    action ShowEditorComponents(boolean shouldShow)
+        if shouldShow
+            preview:Show()
+            grid:Show()
+            UpdateGridPosition()
+        else
+            preview:Hide()
+            grid:Hide()
+            cursor:Hide()
+        end
+    end
+
+    /*
+        This action adds an item to layer so that it gets drawn to the screen. This action
+        also adds the item to an input group so that certain keys and events will trigger when
+        the user interacts with the Scene Editor.
+    */
+    action Add(Item2D item)
+        parent:Layer2D:Add(item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+
+    /*
+        This action adds an item to layer so that it gets drawn to the screen. This action
+        also adds the item to an input group so that certain keys and events will trigger when
+        the user interacts with the Scene Editor.
+    */
+    action Add(integer index, Item2D item)
+        parent:Layer2D:Add(index, item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+
+    /*
+        This action adds an item to layer so that it gets drawn to the screen. This action
+        also adds the item to an input group so that certain keys and events will trigger when
+        the user interacts with the Scene Editor.
+    */
+    action AddToFront(Item2D item)
+        parent:Layer2D:AddToFront(item)
+        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
+            item:SetInputGroup(constants:SCENE_ITEM_INPUT_GROUP)
+        end
+    end
+end

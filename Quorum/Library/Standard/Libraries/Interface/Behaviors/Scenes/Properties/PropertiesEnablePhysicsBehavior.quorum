@@ -1,0 +1,60 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.ToggleButton
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
+
+/*
+    This behavior is used for Item2D and Item3D properties dialogs to enable physics for 
+    the item through a checkbox. This behavior is used for the checkbox to set the current 
+    state of the physics enabled flag for the item based on the state of the checkbox. 
+*/
+class PropertiesEnablePhysicsBehavior is Behavior
+
+    Item2DPropertiesDialog dialog2D = undefined
+    Item3DPropertiesDialog dialog3D = undefined
+
+    action SetDialog2D(Item2DPropertiesDialog properties)
+        dialog2D = properties
+    end
+
+    action GetDialog2D returns Item2DPropertiesDialog
+        return dialog2D
+    end
+
+    action SetDialog3D(Item3DPropertiesDialog properties)
+        dialog3D = properties
+    end
+
+    action GetDialog3D returns Item3DPropertiesDialog
+        return dialog3D
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog2D not= undefined
+            Item item = event:GetItem()
+            if item is ToggleButton
+                ToggleButton button = cast(ToggleButton, item)
+                dialog2D:SetPhysicsEnabled(button:GetToggleState())
+            end
+        elseif dialog3D not= undefined
+            Item item = event:GetItem()
+            if item is ToggleButton
+                ToggleButton button = cast(ToggleButton, item)
+                dialog3D:SetPhysicsEnabled(button:GetToggleState())
+            end
+        end
+    end
+
+    action Dispose
+        if dialog2D not= undefined
+            dialog2D:SetPhysicsEnabled(false)
+        elseif dialog3D not= undefined
+            dialog3D:SetPhysicsEnabled(false)
+        end
+    end
+
+end

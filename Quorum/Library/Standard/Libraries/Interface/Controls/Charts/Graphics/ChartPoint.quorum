@@ -16,6 +16,7 @@ class ChartPoint is ChartDrawable
     number valueX = 0
     number valueY = 0
     text name = ""
+    text letterCode = ""
     Series series = undefined
     
     ChartDrawable parentRegion = undefined
@@ -31,6 +32,7 @@ class ChartPoint is ChartDrawable
 
     action SetName(text name)
         me:name = name
+        parent:ChartItem:SetName(name)
     end
 
     action GetPercentX returns number
@@ -135,6 +137,19 @@ class ChartPoint is ChartDrawable
         end
 
         return parent:Control:GetBorderThickness()
+    end
+
+    action SetLetterCode(text letterCode)
+        me:letterCode = letterCode
+    end
+
+    action GetLetterCode returns text
+        return me:letterCode
+    end
+    
+    action CalculateLetterCode(integer iteration)
+        text convert = "A"
+        me:letterCode = convert:GetUnicodeValue((iteration mod 26) + 65)
     end
 
 end

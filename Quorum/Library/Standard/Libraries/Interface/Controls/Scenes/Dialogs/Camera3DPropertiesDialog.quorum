@@ -1,0 +1,358 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Controls.Dialog
+use Libraries.Interface.Controls.TextField
+use Libraries.Containers.Array
+use Libraries.Interface.Views.LabelBoxView
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+/*
+    The Camera3DPropertiesDialog class is a dialog that appears when selecting 
+    a CameraItem3D. Like other properties dialogs this dialog has several fields 
+    and buttons to adjust its properties.
+*/
+class Camera3DPropertiesDialog is PropertiesDialog
+
+    // Controls used on the dialog itself
+    TextField distanceField = undefined
+    TextField yawField = undefined
+    TextField pitchField = undefined
+    TextField zoomField = undefined
+    TextField fovField = undefined
+
+    /*
+        Creates and adds all the controls this dialog needs
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Camera Properties")
+
+        Label basicPropertiesLabel
+        basicPropertiesLabel:SetSize(18)
+        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetLeftPadding(20)
+        panel:Add(basicPropertiesLabel)
+
+
+        Label positionLabel
+        
+        TextField distanceField
+        me:distanceField = distanceField
+
+        FlowLayout positionLayout
+        Control positionContainer
+        positionContainer:SetLayout(positionLayout)
+        positionContainer:SetPercentageWidth(1.0)
+        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        positionContainer:SetLeftPadding(20)
+        positionContainer:SetTopPadding(10)
+        positionContainer:SetRightPadding(30)
+        positionContainer:SetBottomPadding(10)
+
+        positionLabel:SetText("Distance")
+        positionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
+        positionLabel:SetPercentageWidth(0.3)
+        positionContainer:Add(positionLabel)
+        
+        FlowLayout positionFieldLayout
+        Control positionFieldContainer
+        positionFieldContainer:SetLayout(positionFieldLayout)
+
+        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
+        positionFieldContainer:SetName("Distance Field")
+        distanceField:SetName("Distance")
+        distanceField:SetText("")
+        distanceField:SetFocusable(true)
+        distanceField:AddTextChangeListener(me)
+        distanceField:SetRightPadding(8)
+        distanceField:SetPercentageWidth(1.0)
+        distanceField:SetPixelWidth(-8)
+        positionFieldContainer:Add(distanceField)
+
+        focusArray:Add(distanceField)
+
+        positionContainer:Add(positionFieldContainer)
+        panel:Add(positionContainer)
+
+
+        Label directionLabel
+        
+        TextField yawField
+        me:yawField = yawField
+
+        TextField pitchField
+        me:pitchField = pitchField
+
+
+        FlowLayout directionLayout
+        Control directionContainer
+        directionContainer:SetLayout(directionLayout)
+        directionContainer:SetPercentageWidth(1.0)
+        directionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
+        directionContainer:SetLeftPadding(20)
+        directionContainer:SetTopPadding(10)
+        directionContainer:SetRightPadding(30)
+        directionContainer:SetBottomPadding(10)
+
+        directionLabel:SetText("Direction")
+        directionLabel:SetHorizontalLayoutMode(directionLabel:parent:Control:STANDARD)
+        directionLabel:SetPercentageWidth(0.3)
+        directionContainer:Add(directionLabel)
+        
+        FlowLayout directionFieldLayout
+        Control directionFieldContainer
+        directionFieldContainer:SetLayout(directionFieldLayout)
+
+        directionFieldContainer:SetHorizontalLayoutMode(directionFieldContainer:FILL)
+        directionFieldContainer:SetName("Direction Fields")
+        yawField:SetName("Yaw")
+        yawField:SetText("")
+        yawField:SetFocusable(true)
+        yawField:AddTextChangeListener(me)
+        yawField:SetRightPadding(8)
+        yawField:SetPercentageWidth(0.5)
+        yawField:SetPixelWidth(-8)
+        directionFieldContainer:Add(yawField)
+
+        pitchField:SetName("Pitch")
+        pitchField:SetText("")
+        pitchField:SetFocusable(true)
+        pitchField:AddTextChangeListener(me)
+        pitchField:SetRightPadding(8)
+        pitchField:SetPercentageWidth(0.5)
+        pitchField:SetPixelWidth(-8)
+        directionFieldContainer:Add(pitchField)
+
+        focusArray:Add(yawField)
+        focusArray:Add(pitchField)
+
+        directionContainer:Add(directionFieldContainer)
+        panel:Add(directionContainer)
+
+
+        FlowLayout zoomLayout
+        Control zoomContainer
+        zoomContainer:SetLayout(zoomLayout)
+        zoomContainer:SetPercentageWidth(1.0)
+        zoomContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
+        zoomContainer:SetLeftPadding(20)
+        zoomContainer:SetTopPadding(10)
+        zoomContainer:SetRightPadding(30)
+        zoomContainer:SetBottomPadding(10)
+
+        Label zoomLabel
+        zoomLabel:SetText("Zoom")
+        zoomLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
+        zoomLabel:SetPercentageWidth(0.3)
+        zoomContainer:Add(zoomLabel)
+        
+        FlowLayout zoomFieldLayout
+        Control zoomFieldContainer
+        zoomFieldContainer:SetLayout(zoomFieldLayout)
+
+        TextField zoomField
+        me:zoomField = zoomField
+
+        zoomFieldContainer:SetHorizontalLayoutMode(zoomFieldContainer:FILL)
+        zoomFieldContainer:SetName("Zoom Field")
+        zoomField:SetName("Zoom")
+        zoomField:SetText("")
+        zoomField:SetFocusable(true)
+        zoomField:AddTextChangeListener(me)
+        zoomField:SetRightPadding(8)
+        zoomField:SetPercentageWidth(1.0)
+        zoomField:SetPixelWidth(-8)
+        zoomFieldContainer:Add(zoomField)
+
+        focusArray:Add(zoomField)
+
+        zoomContainer:Add(zoomFieldContainer)
+        panel:Add(zoomContainer)
+
+
+        FlowLayout fovLayout
+        Control fovContainer
+        fovContainer:SetLayout(fovLayout)
+        fovContainer:SetPercentageWidth(1.0)
+        fovContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
+        fovContainer:SetLeftPadding(20)
+        fovContainer:SetTopPadding(10)
+        fovContainer:SetRightPadding(30)
+        fovContainer:SetBottomPadding(10)
+
+        Label fovLabel
+        fovLabel:SetText("Field of View")
+        fovLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
+        fovLabel:SetPercentageWidth(0.5)
+        fovContainer:Add(fovLabel)
+        
+        FlowLayout fovFieldLayout
+        Control fovFieldContainer
+        fovFieldContainer:SetLayout(fovFieldLayout)
+
+        TextField fovField
+        me:fovField = fovField
+
+        fovFieldContainer:SetHorizontalLayoutMode(fovFieldContainer:FILL)
+        fovFieldContainer:SetName("Field of View")
+        fovField:SetName("Field of View")
+        fovField:SetText("")
+        fovField:SetFocusable(true)
+        fovField:AddTextChangeListener(me)
+        fovField:SetRightPadding(8)
+        fovField:SetPercentageWidth(1.0)
+        fovField:SetPixelWidth(-8)
+        fovFieldContainer:Add(fovField)
+
+        focusArray:Add(fovField)
+
+        fovContainer:Add(fovFieldContainer)
+        panel:Add(fovContainer)
+    end
+
+    /*
+        This action Shows or Hides the dialog based on what gains selection. Only if a CameraItem3D is selected
+        will this dialog show. If there is no selection or the selected item is not a CameraItem3D then the dialog
+        will hide or stay hidden.
+    */
+    action SelectionChanged(SelectionEvent event)
+        // TO-DO: Consider change to Layer in VisualEditorSelection
+        if event:GetSelection() is SceneEditorSelection
+            SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+            if selection:IsItemSelected() = false
+                if IsShowing()
+                    Hide()
+                end
+            else
+                if selection:GetSelectedItem() is CameraItem3D
+                    SetFields(cast(CameraItem3D, selection:GetSelectedItem()))
+                    if not IsShowing()
+                        Show()
+                    end
+                else
+                    if IsShowing()
+                        Hide()
+                    end
+                end
+            end
+        end
+    end
+
+    /*
+        This action takes an EditorItem and sets the fields in the dialog based on its
+        properties. If the item is not a CameraItem3D then the item is ignored.
+    */
+    action SetFields(EditorItem item)
+        if item is CameraItem3D = false
+            return now
+        end
+
+        SetFields(cast(CameraItem3D, item))
+    end
+
+    /*
+        This action takes a CameraItem3D and sets the fields in the dialog based on its
+        properties.
+    */
+    action SetFields(CameraItem3D cameraItem)
+        EditorCamera3D camera = cameraItem:GetEditorCamera()
+        distanceField:SetText("" + camera:GetDistance())
+        yawField:SetText("" + cameraItem:GetYaw())
+        pitchField:SetText("" + cameraItem:GetPitch())
+        zoomField:SetText("" + camera:GetZoom())
+        fovField:SetText("" + camera:GetFieldOfView())
+    end
+
+    /*
+        Updates the properties of the selected item as text is changed in any text field in the dialog.
+        If the text is updated to any invalid values the text is ignored. 
+    */
+    action TextChanged(TextChangeEvent event)
+        CameraItem3D currentItem = cast(CameraItem3D, GetSceneEditor():GetSelectedItem())
+        EditorCamera3D camera = currentItem:GetEditorCamera()
+        Control control = event:GetControl()
+
+        if currentItem = undefined
+            return now
+        end
+
+        if control:Equals(distanceField)
+            check
+                number value = distanceField:GetText():ParseNumber()
+                if value not= currentItem:GetDistance()
+                    currentItem:SetDistance(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(yawField)
+            check
+                number value = yawField:GetText():ParseNumber()
+                if value not= currentItem:GetYaw()
+                    currentItem:SetYaw(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(pitchField)
+            check
+                number value = pitchField:GetText():ParseNumber()
+                if value not= currentItem:GetPitch()
+                    currentItem:SetPitch(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(zoomField)
+            check
+                number value = zoomField:GetText():ParseNumber()
+                if value <= 0
+                    return now
+                end
+
+                if value not= camera:GetZoom()
+                    camera:SetZoom(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        elseif control:Equals(fovField)
+            check
+                number value = fovField:GetText():ParseNumber()
+                if value <= 0
+                    return now
+                end
+                
+                if value not= camera:GetFieldOfView()
+                    camera:SetFieldOfView(value)
+                end
+            detect e is Error
+                // Do nothing.
+            end
+        end
+    end
+
+    /*
+    Moves the focus to one of the fields in the properties dialog. By default
+    this is the name field (the first field in the panel), but it could also be
+    changed to a different field, possibly context sensitive.
+    */
+    action FocusField
+        distanceField:Focus()
+        distanceField:Select(0, distanceField:GetSize(), true)
+    end
+
+end

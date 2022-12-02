@@ -1,0 +1,578 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Interface.Behaviors.Scenes.Palette.PaletteCreatePreviewBehavior
+use Libraries.System.File
+use Libraries.Game.Layer2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Game.Graphics.Texture
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.Custom3DPrimitiveBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprintComparison
+use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Assets.AssetPack
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    The ScenePalette class is a standalone control intended to interact with the SceneEditor class. ScenePalette 
+    is a tree whose TreeItems represents objects that can be added into a scene. This class loads assets and 
+    primitives and interacting with the tree creates previews into the SceneEditor and lets the user add items into 
+    the scene. This class also supports drag and drop for items into the scene. There are default assets that are 
+    loaded but several thumbnails need to be added so there is an icon for those defaults. 
+
+    Attribute: Example
+
+ScenePalette scenePalette
+
+//Load thumbnails for the defaults
+scenePalette:SetDefaultCubeThumbnail("cubeThumbnail.png")
+scenePalette:SetDefaultSphereThumbnail("sphereThumbnail.png")
+scenePalette:SetDefaultCylinderThumbnail("cylinderThumbnail.png")
+scenePalette:SetDefaultPointLightThumbnail("lightThumbnail.png")
+scenePalette:SetDefaultAudio3DThumbnail("audioThumbnail.png")
+scenePalette:SetDefaultCustomModelThumbnail("modelCustom.png")
+scenePalette:SetDefaultCustomCubeThumbnail("cubeCustom.png")
+scenePalette:SetDefaultCustomSphereThumbnail("sphereCustom.png")
+scenePalette:SetDefaultCustomCylinderThumbnail("cylinderCustom.png")
+scenePalette:SetPointLightTexture("lightTexture.png")
+scenePalette:SetAudio3DTexture("audioTexture.png")
+scenePalette:LoadDefaultAssets()
+*/
+class ScenePalette is Tree
+    ItemBlueprintComparison itemComparison
+    SceneEditor controller = undefined
+
+    // A single Item indicating that no scene is loaded.
+    TreeItem defaultItem = undefined
+
+    // A (stateless) behavior shared by all palette items to create new previews in the scene.
+    PaletteCreatePreviewBehavior paletteActivationBehavior
+
+    Array<AssetPack> loadedAssetPacks
+
+    // Resources used to handle the visual component of dragging-and-dropping palette items.
+    GameStateManager manager
+    Layer2D draggedItemLayer = undefined
+    boolean dragLayerInUse = false
+    Drawable draggedItem = undefined
+//    Logger logger
+
+    boolean enabledScenes3D = true
+
+    text cubeThumbnailLocation = ""
+    text sphereThumbnailLocation = ""
+    text cylinderThumbnailLocation = ""
+    text pointLightThumbnailLocation = ""
+    text audio3DThumbnailLocation = ""
+    text customModelThumbnailLocation = ""
+    text customCubeThumbnailLocation = ""
+    text customSphereThumbnailLocation = ""
+    text customCylinderThumbnailLocation = ""
+
+    Texture pointLightTexture = undefined
+    Texture audio3DTexture = undefined
+
+    on create
+        SetName("Scene Palette")
+        SetSceneEditor(undefined)
+    end
+
+    /*
+        Sets the SceneEditor this palette will interact with
+    */
+    action SetSceneEditor(SceneEditor sceneController)
+        controller = sceneController
+
+        Empty()
+        if controller = undefined
+            if defaultItem = undefined
+                TreeItem item
+                item:SetName("No scene selected")
+                defaultItem = item
+            end
+
+            Add(defaultItem)
+        else
+            integer counter = 0
+            repeat while counter < loadedAssetPacks:GetSize()
+                AddAssetsToTree(loadedAssetPacks:Get(counter))
+                counter = counter + 1
+            end
+        end
+    end
+
+    /*
+        Returns the SceneEditor this palette interacts with
+    */
+    action GetSceneEditor returns SceneEditor
+        return controller
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the cube item
+    */
+    action SetDefaultCubeThumbnail(text file)
+        me:cubeThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the sphere item
+    */
+    action SetDefaultSphereThumbnail(text file)
+        me:sphereThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the cylinder item
+    */
+    action SetDefaultCylinderThumbnail(text file)
+        me:cylinderThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the point light item
+    */
+    action SetDefaultPointLightThumbnail(text file)
+        me:pointLightThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the audio item
+    */
+    action SetDefaultAudio3DThumbnail(text file)
+        me:audio3DThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the custom model item
+    */
+    action SetDefaultCustomModelThumbnail(text file)
+        me:customModelThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the custom cube item
+    */
+    action SetDefaultCustomCubeThumbnail(text file)
+        me:customCubeThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the custom sphere item
+    */
+    action SetDefaultCustomSphereThumbnail(text file)
+        me:customSphereThumbnailLocation = file
+    end
+
+    /*
+        Sets the icon for the ScenePaletteItem for the custom cylinder item
+    */
+    action SetDefaultCustomCylinderThumbnail(text file)
+        me:customCylinderThumbnailLocation = file
+    end
+
+    /*
+        Sets the texture to use on the editor model for point lights
+    */
+    action SetPointLightTexture(text file)
+        Texture texture
+        pointLightTexture = texture
+        pointLightTexture:LoadModelTexture(file)
+    end
+
+    /*
+        Sets the texture to use on the editor model for point lights
+    */
+    action SetPointLightTexture(Texture texture)
+        pointLightTexture = texture
+    end
+
+    /*
+        Sets the texture to use on the editor model for Audio3D items
+    */
+    action SetAudio3DTexture(text file)
+        Texture texture
+        audio3DTexture = texture
+        audio3DTexture:LoadModelTexture(file)
+    end
+
+    /*
+        Sets the texture to use on the editor model for Audio3D items
+    */
+    action SetAudio3DTexture(Texture texture)
+        audio3DTexture = texture
+    end
+
+    /*
+        If a thumbnail is not provided for the default assets a default icon is made for it.
+    */
+    private action LoadDefaultIcon returns Drawable
+        Drawable defaultIcon
+        Color color
+        defaultIcon:LoadFilledRectangle(100,100,color:Pink())
+        return defaultIcon
+    end
+
+    /*
+        Loads all the default items for the palette that can be added into a scene. This action will 
+        use any thumbnails added by the user and generated a default icon for any that are missing. 
+        If the project contains a Tileset folder than items in that folder will be loaded here too.
+    */
+    action LoadDefaultAssets
+        if enabledScenes3D
+            AssetPack primitives3D
+            primitives3D:SetName("Basic 3D")
+
+            SceneProperties properties
+
+            ModelBlueprint cube
+            cube:SetName("Cube")
+            cube:SetDescription("A cube that is 1 unit wide, tall, and deep.")
+            cube:SetDimensions(1, 1, 1)
+            cube:SetScale(1, 1, 1)
+            cube:SetRotation(0, 0, 0)
+            cube:SetModelType(properties:BOX)
+            if cubeThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(cubeThumbnailLocation)
+                cube:SetPaletteIcon(thumbnail)
+            else
+                cube:SetPaletteIcon(LoadDefaultIcon())
+            end
+            primitives3D:Add(cube)
+
+            ModelBlueprint sphere
+            sphere:SetName("Sphere")
+            sphere:SetDescription("A sphere that is 1 unit wide, tall, and deep.")
+            sphere:SetDimensions(1, 1, 1)
+            sphere:SetScale(1, 1, 1)
+            sphere:SetRotation(0, 0, 0)
+            sphere:SetModelType(properties:SPHERE)
+            if sphereThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(sphereThumbnailLocation)
+                sphere:SetPaletteIcon(thumbnail)
+            else
+                sphere:SetPaletteIcon(LoadDefaultIcon())
+            end
+            primitives3D:Add(sphere)
+
+            ModelBlueprint cylinder
+            cylinder:SetName("Cylinder")
+            cylinder:SetDescription("A cylinder that is 1 unit wide, tall, and deep.")
+            cylinder:SetDimensions(1, 1, 1)
+            cylinder:SetScale(1, 1, 1)
+            cylinder:SetRotation(0, 0, 0)
+            cylinder:SetModelType(properties:CYLINDER)
+            if cylinderThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(cylinderThumbnailLocation)
+                cylinder:SetPaletteIcon(thumbnail)
+            else
+                cylinder:SetPaletteIcon(LoadDefaultIcon())
+            end
+            primitives3D:Add(cylinder)
+
+            PointLightBlueprint pointLight
+            pointLight:SetName("Point Light")
+            pointLight:SetDescription("A light at a point that shines in a sphere all around it.")
+            if pointLightThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(pointLightThumbnailLocation)
+                pointLight:SetPaletteIcon(thumbnail)
+            else
+                pointLight:SetPaletteIcon(LoadDefaultIcon())
+            end
+
+            if pointLightTexture not= undefined
+                pointLight:SetModelTexture(pointLightTexture)
+            else
+                pointLight:SetModelTexture(LoadDefaultIcon():GetTexture())
+            end
+            primitives3D:Add(pointLight)
+
+            Audio3DBlueprint audio
+            audio:SetName("Audio3D")
+            audio:SetDescription("An audio source in 3D space")
+            if audio3DThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(audio3DThumbnailLocation)
+                audio:SetPaletteIcon(thumbnail)
+            else
+                audio:SetPaletteIcon(LoadDefaultIcon())
+            end
+            if audio3DTexture not= undefined
+                audio:SetModelTexture(audio3DTexture)
+            else
+                audio:SetModelTexture(LoadDefaultIcon():GetTexture())
+            end
+            primitives3D:Add(audio)
+
+            LoadAssetPack(primitives3D)
+
+
+            AssetPack custom3D
+            custom3D:SetName("Custom 3D")
+
+            CustomModelBlueprint customModel
+            customModel:SetName("Custom Model")
+            customModel:SetDescription("Load a custom model from an OBJ file")
+            customModel:SetScale(1, 1, 1)
+            customModel:SetRotation(0, 0, 0)
+            customModel:SetModelType(properties:CUSTOM)
+            if customModelThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(customModelThumbnailLocation)
+                customModel:SetPaletteIcon(thumbnail)
+            else
+                customModel:SetPaletteIcon(LoadDefaultIcon())
+            end
+            custom3D:Add(customModel)
+
+            Custom3DPrimitiveBlueprint customCube
+            customCube:SetName("Custom Cube")
+            customCube:SetDescription("A cube that is 1 unit wide, tall, and deep.")
+            customCube:SetDimensions(1, 1, 1)
+            customCube:SetScale(1, 1, 1)
+            customCube:SetRotation(0, 0, 0)
+            customCube:SetModelType(properties:BOX)
+            if customCubeThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(customCubeThumbnailLocation)
+                customCube:SetPaletteIcon(thumbnail)
+            else
+                customCube:SetPaletteIcon(LoadDefaultIcon())
+            end
+            custom3D:Add(customCube)
+
+            Custom3DPrimitiveBlueprint customSphere
+            customSphere:SetName("Custom Sphere")
+            customSphere:SetDescription("A sphere that is 1 unit wide, tall, and deep.")
+            customSphere:SetDimensions(1, 1, 1)
+            customSphere:SetScale(1, 1, 1)
+            customSphere:SetRotation(0, 0, 0)
+            customSphere:SetModelType(properties:SPHERE)
+            if customSphereThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(customSphereThumbnailLocation)
+                customSphere:SetPaletteIcon(thumbnail)
+            else
+                customSphere:SetPaletteIcon(LoadDefaultIcon())
+            end
+            custom3D:Add(customSphere)
+
+            Custom3DPrimitiveBlueprint customCylinder
+            customCylinder:SetName("Custom Cylinder")
+            customCylinder:SetDescription("A cylinder that is 1 unit wide, tall, and deep.")
+            customCylinder:SetDimensions(1, 1, 1)
+            customCylinder:SetScale(1, 1, 1)
+            customCylinder:SetRotation(0, 0, 0)
+            customCylinder:SetModelType(properties:CYLINDER)
+            if customCylinderThumbnailLocation not= ""
+                Drawable thumbnail
+                thumbnail:Load(customCylinderThumbnailLocation)
+                customCylinder:SetPaletteIcon(thumbnail)
+            else
+                customCylinder:SetPaletteIcon(LoadDefaultIcon())
+            end
+            custom3D:Add(customCylinder)
+
+            LoadAssetPack(custom3D)
+
+
+            //now load any assets from the tilesets folder
+            File tilesetFolder
+            tilesetFolder:SetPath("Resources/Tilesets3D")
+            Array<File> files = tilesetFolder:GetDirectoryListing()
+            i = 0
+            repeat while files not= undefined and i < files:GetSize()
+                File file = files:Get(i)
+                text ext = file:GetFileExtension()
+                if ext = "json"
+                    //if loading a user tileset fails, just don't load it.
+                    check
+                        AssetPack tileset
+                        tileset:SetTileset3DFolder(tilesetFolder)
+                        tileset:LoadTileset3D(file)
+                        LoadAssetPack(tileset)
+                    detect e
+                        text message = e:GetStackTraceMessage()
+//                        logger:Log(message)
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        AssetPack primitives2D
+        primitives2D:SetName("Primitives 2D")
+
+        Color color
+
+        Drawable rectangle
+        rectangle:SetName("Rectangle")
+        rectangle:LoadFilledRectangle(32, 32, color:White())
+        primitives2D:Add(rectangle)
+
+        Drawable circle
+        circle:SetName("Circle")
+        circle:LoadFilledCircle(15, color:White())
+        primitives2D:Add(circle)
+
+        LoadAssetPack(primitives2D)
+
+        //now load any assets from the tilesets folder
+        File tilesetFolder
+        tilesetFolder:SetPath("Resources/Tilesets")
+        Array<File> files = tilesetFolder:GetDirectoryListing()
+        i = 0
+        repeat while files not= undefined and i < files:GetSize()
+            File file = files:Get(i)
+            text ext = file:GetFileExtension()
+            if ext = "json"
+                //if loading a user tileset fails, just don't load it.
+                check
+                    AssetPack tileset
+                    tileset:LoadTileset(file)
+                    LoadAssetPack(tileset)
+                detect e
+                    text message = e:GetStackTraceMessage()
+//                    logger:Log(message)
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Adds assets to the palette from an asset pack object. Used internally to load defaults.
+    */
+    action LoadAssetPack(AssetPack pack)
+        loadedAssetPacks:Add(pack)
+        if controller not= undefined
+            AddAssetsToTree(pack)
+        end
+    end
+
+    /*
+        Used internally. Takes a list of blueprints and a TreeItem (in this case the parent of the blueprints)
+        and then makes TreeItems for each blueprint and adds them to the passed TreeItem.
+    */
+    private action AddItemsToTreeItem(TreeItem treeItem, Array<ItemBlueprint> array)
+        integer counter = 0
+        repeat while counter < array:GetSize()
+            ItemBlueprint itemBlueprint = array:Get(counter)   
+
+            ScenePaletteItem item
+            item:SetItemBlueprint(itemBlueprint)
+            item:SetName(itemBlueprint:GetName())
+            item:SetBehavior(paletteActivationBehavior)
+            
+            treeItem:Add(cast(TreeItem, item))
+            counter = counter + 1
+        end
+    end
+
+    /*
+        Used internally. Takes an AssetPack object and adds the blueprints in the 
+        AssetPack into the ScenePalette.
+    */
+    private action AddAssetsToTree(AssetPack pack)
+        TreeItem root
+        root:SetName(pack:GetName())
+
+        //first get all the categories and sort them
+        Iterator<text> categoryIterator = pack:GetCategoryKeyIterator()
+        Array<text> categoryKeys
+
+        repeat while categoryIterator:HasNext()
+            categoryKeys:Add(categoryIterator:Next())
+        end
+
+        categoryKeys:Sort()
+
+        //now make new tree values and fill up the categories
+        i = 0
+        repeat while i < categoryKeys:GetSize()
+            text value = categoryKeys:Get(i)
+            //handle the default pack differently, at the end
+            if value not= pack:DEFAULT
+                TreeItem cat //cat up a tree? The joke is solid. Judge if you want.
+                cat:SetName(value)
+    
+                Array<ItemBlueprint> items = pack:GetCategory(value)
+                items:Sort(itemComparison)
+                AddItemsToTreeItem(cat, items)
+                root:Add(cat) //add a cat to the tree
+            end
+
+            i = i + 1
+        end
+
+        //now add in all the default items.
+        //there may not be any items in the default set, so ignore this if there isn't.
+        Array<ItemBlueprint> items = pack:GetCategory(pack:DEFAULT)
+        if items not= undefined
+            items:Sort(itemComparison)
+            AddItemsToTreeItem(root, items)
+        end
+
+        Add(root)
+    end
+
+    /*
+        This action is used when dragging an item from the palette into an editor. When an item
+        is dragged a new layer is created so the item can be visible anywhere in the game and above
+        other controls in the application. Setting the dragged item to be undefined also removes
+        items in the layer so the layer does not persist and obstruct other controls after dragging
+        is complete. 
+    */
+    action SetDraggedItem(Item item)
+        // TO-DO: Handle 3D as well
+
+        if draggedItemLayer = undefined
+            Layer2D layer
+            layer:SetName("Palette Drag Layer2D")
+            draggedItemLayer = layer
+        end
+
+        if draggedItem not= undefined
+            draggedItemLayer:Remove(draggedItem)
+        end
+
+        if item = undefined
+            if dragLayerInUse
+                manager:GetGame():RemoveLayer(draggedItemLayer)
+            end
+
+            dragLayerInUse = false
+        else
+            draggedItemLayer:Add(cast(Item2D, item))
+
+            if dragLayerInUse = false
+                manager:GetGame():AddLayer(draggedItemLayer)
+            end
+
+            dragLayerInUse = true
+        end
+
+        draggedItem = cast(Drawable, item)
+    end
+
+    /*
+        Returns the item being dragged. 
+    */
+    action GetDraggedItem returns Item
+        return draggedItem
+    end
+
+end

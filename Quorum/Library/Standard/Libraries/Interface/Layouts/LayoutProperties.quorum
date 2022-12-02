@@ -644,6 +644,60 @@ class LayoutProperties
         return options not= undefined and (options:GetNumberProperty(property):IsNotANumber() = false)
     end
 
+    action HasColorProperty(text property) returns boolean
+        return GetColorProperty(property) not= undefined
+    end
+
+    action HasNumberProperty(text property) returns boolean
+        return GetNumberProperty(property):IsNotANumber() = false
+    end
+
+    action SetColorProperty(text property, ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetColorProperty(property, value)
+        needsRendering = true
+    end
+
+    action GetColorProperty(text property) returns ColorGroup
+        if options not= undefined and options:GetColorProperty(property) not= undefined
+            return options:GetColorProperty(property)
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetColorProperty(property) not= undefined
+            return controlPalette:GetColorProperty(property)
+        end
+
+        return default:GetColorProperty(property)
+    end
+
+    action SetNumberProperty(text property, number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetNumberProperty(property, value)
+        needsRendering = true
+    end
+
+    action GetNumberProperty(text property) returns number
+        if options not= undefined and options:GetNumberProperty(property):IsNotANumber() = false
+            return options:GetNumberProperty(property)
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetNumberProperty(property):IsNotANumber() = false
+            return controlPalette:GetNumberProperty(property)
+        end
+
+        return default:GetNumberProperty(property)
+    end
+
     action GetInterfaceOptionsKey returns text
         return optionsKey
     end

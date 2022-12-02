@@ -1,9 +1,121 @@
 package Libraries.Compute.Statistics.Tests
 
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+use Libraries.Compute.Statistics.DataFrameCalculation
+use Libraries.Compute.Statistics.Reporting.StatisticalTestResult
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
-class StatisticalTest
+class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
     StatisticsFormatting formatting
+
+    number significanceLevel = 0.05
+    boolean removeUndefined = false
+    boolean useFactor = false
+    text factorText = ""
+
+    action Calculate(DataFrame frame) 
+        /* 
+            With most of these tests we want to make sure there are no undefined values.
+            Since there are several ways to call this action, let's empty and reload 
+            the selected columns here to ensure we remove all of the undesired rows.
+
+            This is necessary since the mean, variance and other values of each 
+            column are calculated independently and these values impact the results of this test.
+
+            Some tests may need to keep all undefined values, for those this action will be overridden
+            in those specific tests.
+        */
+        if removeUndefined
+            frame:EmptySelectedColumns()
+            i = 0
+            repeat while i < GetColumnSize()
+                frame:AddSelectedColumn(GetColumn(i))
+                i = i + 1
+            end
+            DataFrame cleanFrame = frame:RemoveUndefinedRowsFromSelectedColumns()   
+
+            RunTest(cleanFrame)
+        else
+            RunTest(frame)
+        end
+    end
+
+    /*
+        This action takes a DataFrame and a DataFrameColumn (filter) and separates that frame 
+        into smaller DataFrames. One DataFrame for each unique item in the selected filter.
+    */
+    private action CalculateBy(DataFrame frame, integer filterIndex) 
+        DataFrameColumn filter = frame:GetColumn(filterIndex):Copy(true,true)
+        integer i = 0
+        repeat while i < filter:GetSize()
+            text header = filter:GetHeader()
+            text dq = header:GetDoubleQuote()
+            DataFrame newFrame     
+
+            if filter:IsNumberColumn() or filter:IsIntegerColumn()
+                newFrame = frame:Copy(header+"="+filter:GetAsNumber(i))
+            elseif filter:IsDateTimeColumn()
+                alert("Dataframe factor by datetime doesn't seem to work right now.")
+                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
+            elseif filter:IsBooleanColumn()
+                newFrame = frame:Copy(header+"="+filter:GetAsBoolean(i))
+            else
+                newFrame = frame:Copy(header+"="+dq+filter:GetAsText(i)+dq)
+            end
+
+            RunTest(newFrame)
+            i = i + 1
+        end
+    end
+
+    /*
+        This action makes a new frame from a column based on a factor 
+        and runs a test on the new frame.
+    */
+    private action CalculateWithFactor(DataFrame frame)
+        if GetFactorSize() > 1
+            alert("Only one factor allowed for now.")
+        end
+        if GetColumnSize() > 1
+            alert("A factor can only be used on one column for now.")
+        end
+
+        // A list of unique items of the factor
+        DataFrameColumn uniqueFactors = frame:GetColumn(GetFactor(0)):Copy(true,true)
+
+        // Create a new frame based on that list
+        DataFrame factorFrame
+        integer i = 0
+        repeat while i < uniqueFactors:GetSize()
+            NumberColumn column
+            column:SetHeader(uniqueFactors:GetAsText(i))
+            factorFrame:AddColumn(column)
+            i = i + 1
+        end
+
+        // Fill in new frame
+        DataFrameColumn factor = frame:GetColumn(GetFactor(0))
+        DataFrameColumn column = frame:GetColumn(GetColumn(0))
+        i = 0
+        repeat while i < column:GetSize()
+            if not factor:IsUndefined(i) and not column:IsUndefined(i)
+                factorFrame:GetColumn(factor:GetAsText(i)):Add(column:GetAsText(i))
+            end
+            i = i + 1
+        end
+        factorFrame:SelectAllColumns()
+        EmptyFactors()
+        EmptyColumns()
+        factorFrame:GetSelection():CopyTo(cast(ColumnInput, me))
+
+        useFactor = true
+        factorText = column:GetHeader() + " by " + factor:GetHeader()
+        RunTest(factorFrame)  
+    end
 
     action GetStatisticalFormatting returns StatisticsFormatting
         return formatting
@@ -12,4 +124,33 @@ class StatisticalTest
     action SetStatisticalFormatting(StatisticsFormatting formatting)
         me:formatting = formatting
     end
+
+    action GetSignificanceLevel returns number
+        return significanceLevel
+    end
+
+    /*
+        Sets the significance level of the test (default is 0.05).
+
+        Attribute: Parameter significanceLevel the significance level between 0 and 1.
+    */
+    action SetSignificanceLevel(number significanceLevel)
+        if significanceLevel >= 0 and significanceLevel <= 1
+            me:significanceLevel = significanceLevel
+        end
+    end
+
+    private action RemoveUndefined(boolean removeUndefined)
+        me:removeUndefined = removeUndefined
+    end
+
+    action UseFactor returns boolean
+        return useFactor
+    end
+
+    action GetFactorText returns text
+        return factorText
+    end
+
+    private blueprint action RunTest(DataFrame frame) 
 end

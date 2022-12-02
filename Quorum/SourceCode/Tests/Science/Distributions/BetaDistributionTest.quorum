@@ -1,0 +1,25 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.Distributions.Beta
+
+/*
+    This class tests Beta Distributions for correct values.
+*/
+class BetaDistributionTest is Test
+
+    on create
+        SetName("Calculate Beta Distribution test")
+    end
+
+    action Run
+        Beta beta
+        Check(beta:RegularizedBeta(0.167,0.0000001,0.5), 0.9999996913219652)
+        Check(beta:RegularizedBeta(0.567,1,0.5), 0.34197264494551594)
+        Check(beta:RegularizedBeta(0.167,1,0.5), 0.0873116632716292)
+        Check(beta:RegularizedBeta(0.850,911,0.5), 2.4146993006442975e-66)
+    end
+
+    private action CustomCheck(number value, number expectation)
+        Check(value, expectation)
+    end
+end

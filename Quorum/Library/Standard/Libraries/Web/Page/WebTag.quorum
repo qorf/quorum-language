@@ -184,4 +184,22 @@ class WebTag is GlobalAttributeAccepter
         output result
     */
     blueprint action Generate returns text
+
+    /*
+        This action generates text for a particular web page. It is a helper action for Generate()
+
+        Attribute: Returns This returns text in hypertext markup language (HTML)
+            representing the tag.
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+
+        WebPage page
+        text result = page:ToText()
+        //output out the web page
+        output result
+    */
+    action ToText returns text
+        return Generate()
+    end
 end

@@ -1,0 +1,146 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Scenes.SceneProperties
+use Libraries.Interface.Item3D
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector3
+use Libraries.Game.BoundingBox
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Matrix4
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    SelectionHighlight3D represents the SelectionHighlight of a 3D item. The selection
+    will appear as a cube over the item. This class also contains actions to change
+    properties specific to 3D items.
+*/
+class SelectionHighlight3D is EditorItem3D, SelectionHighlight
+    
+    EditorModel item = undefined
+
+    on create
+        SetInputGroup("SelectionHighlight3D")
+    end
+
+    action GetAccessibleParent returns Item
+        return parent:EditorItem:GetAccessibleParent()
+    end
+
+    /*
+        Loads a box that is big enough to contain the entire selected item.
+    */
+    action Load(EditorModel item, SceneEditor controller)
+        Color color = undefined
+        SceneConstants constants = GetConstants()
+
+        if IsFocused()
+            color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
+        else
+            color = constants:SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+        end
+
+        number padding = constants:SELECTION_HIGHLIGHT_PADDING_3D
+
+        SceneProperties properties
+
+        SetScale(item:GetScaleX(), item:GetScaleY(), item:GetScaleZ())
+
+        boolean loadedShape = false
+        if item is Model
+            Model model = cast(Model, item)
+            integer type = model:GetModelType()
+            if type = properties:BOX
+                LoadBox(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                loadedShape = true
+            elseif type = properties:SPHERE
+                LoadSphere(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                loadedShape = true
+            elseif type = properties:CYLINDER
+                LoadCylinder(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                loadedShape = true
+            elseif type = properties:PLANE
+                LoadBox(item:GetWidth() + padding, padding, item:GetDepth() + padding, color)
+                loadedShape = true
+            end
+        end
+
+        if loadedShape = false
+            LoadBox(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+        end
+
+        SetRotationTransform(item:GetRotationTransform())
+
+        SetPosition(item:GetGlobalPosition())
+
+        me:item = item
+        SetSceneEditor(controller)
+    end
+
+    /*
+        Returns the item that is being selected
+    */
+    action GetItem returns Item
+        return item
+    end
+
+    /*
+        This action changes the color of the highlight cube. When selection is gained the highlight
+        is much brighter.
+    */
+    action GainedSelection
+        parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR)
+    end
+
+    /*
+        This action changes the color of the highlight cube. When selection is lost the highlight
+        is much dimmer.
+    */
+    action LostSelection
+        parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR)
+    end
+
+    // Overriding the Move calls below also overrides the SetX/Y/Z/Position calls, which use Move in their implementation.
+
+    /*
+        Moves the 3D item 
+    */
+    action MoveX(number x)
+        parent:Model:MoveX(x)
+        if item not= undefined
+            item:MoveX(x)
+        end
+    end
+
+    action MoveY(number y)
+        parent:Model:MoveY(y)
+        if item not= undefined
+            item:MoveY(y)
+        end
+    end
+
+    action MoveZ(number z)
+        parent:Model:MoveZ(z)
+        if item not= undefined
+            item:MoveZ(z)
+        end
+    end
+
+    action Move(number x, number y, number z)
+        parent:Model:Move(x, y, z)
+        if item not= undefined
+            item:Move(x, y, z)
+        end
+    end
+
+    action Move(Vector3 vector)
+        parent:Model:Move(vector)
+        if item not= undefined
+            item:Move(vector)
+        end
+    end
+end
