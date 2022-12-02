@@ -70,6 +70,7 @@ use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
 use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Statistics.Tests.CompareDistributions
 use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
+use Libraries.Compute.Statistics.Charts.ScreePlotCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -1347,6 +1348,42 @@ class DataFrame
             DataFrameColumn column = GetColumn(i)
             DataFrameColumn copy = column:Copy(rowStart, rowEnd)
             newFrame:columns:Add(copy)
+            i = i + 1
+        end
+
+        return newFrame
+    end
+
+    /*
+        Returns a copy of the data frame, except that it only copies certain columns
+
+        Attribute: Returns A copy of the data frame with only selected columns
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+
+        //return a copy with a max of the first five rows
+        DataFrame copy = frame:CopySelectedColumns()
+    */
+    action CopySelectedColumns() returns DataFrame
+        DataFrame newFrame
+       
+        i = 0
+        repeat while i < selection:GetColumnSize()
+            newFrame:AddColumn(GetColumn(selection:GetColumn(i)))
+            i = i + 1
+        end 
+
+        i = 0
+        repeat while i < selection:GetFactorSize()
+            newFrame:AddColumn(GetColumn(selection:GetFactor(i)))
             i = i + 1
         end
 
@@ -3268,6 +3305,33 @@ class DataFrame
     */
     action LineChart returns LineChart
         LineChartCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(LineChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a ScreePlot from the correlation matrix of the selected columns in the DataFrame.
+        No factors are allowed for this chart type and it provides only a line chart. Copying the ScreePlot
+        Creator's implementation allows the creation of alternative chart types for the same chart, but this 
+        is not supported by default.
+
+        Attribute: Returns a LineChart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.LineChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SelectAllColumns()
+        LineChart chart = frame:ScreePlot()
+        chart:SetTitle("My Scree Plot")
+        chart:Display()
+    */
+    action ScreePlot returns LineChart
+        ScreePlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 

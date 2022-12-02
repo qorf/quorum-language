@@ -5,6 +5,9 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Statistics.Calculations.Summarize
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
     This class represents data that comes back from a CorrelateGroups
@@ -85,7 +88,7 @@ class CorrelateGroupsResult is StatisticalTestResult
                 summary = summary + lf + "Factor: " + factor
             end
            
-            summary = summary + lf + "Columns: " + variable1 + " and " + variable2
+            summary = summary + lf + "Groups: " + variable1 + " and " + variable2
     
             summary = summary + lf + "Statistic (t): " + math:Round(GetTestStatistic(), digits)
     
@@ -190,5 +193,61 @@ class CorrelateGroupsResult is StatisticalTestResult
             return summary
         end
         return ""
+    end
+
+    action GetSummaryDataFrame returns DataFrame
+        integer digits = GetFormat():GetSignificantDigits()
+
+        TextColumn name
+        TextColumn c1
+        TextColumn c2
+        NumberColumn r
+        NumberColumn t
+        NumberColumn df
+        NumberColumn p
+        NumberColumn ef  
+        TextColumn apa
+
+        name:SetHeader(GetFormalTestName()) 
+        t:SetHeader("Statistic (T)")
+        c1:SetHeader("Group1")
+        c2:SetHeader("Group2")
+        df:SetHeader("Degrees Of Freedom (DF)")
+        p:SetHeader("Probability (P)")
+        apa:SetHeader("APA report")   
+        r:SetHeader("Correlation (R)")
+
+        if IsSignificant()
+            name:Add("Failed")
+        else
+            name:Add("Passed")
+        end
+        t:Add(math:Round(GetTestStatistic(), digits))
+        df:Add(math:Round(GetDegreesOfFreedom(), digits))
+        p:Add(math:Round(GetProbabilityValue(), digits))
+        apa:Add(GetFormalNumericalResult())
+        r:Add(GetCorrelation())
+        if GetGroups():GetSize() = 2
+            c1:Add(GetGroups():Get(0):GetHeader())
+            c2:Add(GetGroups():Get(1):GetHeader())
+        end
+        if GetEffectSizeName() not= "" 
+            ef:SetHeader("Effect Size (" + GetEffectSizeName() + ")")
+            ef:Add(math:Round(GetEffectSize(), digits))
+        end
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(c1)
+        table:AddColumn(c2)
+        table:AddColumn(t)
+        table:AddColumn(df)
+        table:AddColumn(p)
+        table:AddColumn(r)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
     end
 end

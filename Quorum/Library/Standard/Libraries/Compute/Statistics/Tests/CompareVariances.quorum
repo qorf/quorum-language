@@ -301,23 +301,15 @@ class CompareVariances is StatisticalTest
             // Collect only the selected data into a frame
             DataFrame newFrame
             newFrame:SetColumns(groups)
-            newFrame:AddSelectedColumnRange(0, newFrame:GetSize()-1)
+            newFrame:SelectAllColumns()
     
             // Get covariance matrix from frame
             // By default the sample covariance will be calculated.
-            CovarianceMatrixTransform cov
-            newFrame:GetSelection():CopyTo(cast(ColumnInput, cov))
-            DataFrame eaterframe = cov:Transform(newFrame)
-            Matrix covarianceMatrix = cov:GetMatrix()
+            Matrix sampleCovarMatrix = newFrame:CovarianceMatrix()
     
-            // If a sample covariance matrix is calculated, it must first be estimated 
-            // to a population matrix for the later calculations, acheieved by double centering it.
-            Matrix populationCovarMatrix
-            if cov:UseSample()
-                populationCovarMatrix = covarianceMatrix:DoubleCenter()
-            else
-                populationCovarMatrix = covarianceMatrix
-            end
+            // Since a sample covariance matrix was calculated, it must first be estimated 
+            // to a population matrix for the later calculations, achieved by double centering it.
+            Matrix populationCovarMatrix = sampleCovarMatrix:DoubleCenter()        
     
             // Get eigenvalues of population covariance matrix
             EigenDecomposition eig
@@ -331,23 +323,23 @@ class CompareVariances is StatisticalTest
             i = 0
             repeat while i < evals:GetSize()
                 eval = evals:Get(i)
-                if math:Round(eval, 12) not= 0 // Anything that's not basically zero
+                if eval >= 0 // Eigen values cannot be negative
                     productOfEvals = productOfEvals * eval
                     sumOfEvals = sumOfEvals + eval
                     sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
                 end
                 i = i + 1 
             end
-    
-            // The equations can be found here: 
+
+            // The equations can be found here:
             // https://pingouin-stats.org/generated/pingouin.sphericity.html#r5b1fac2e46ff-1
             // https://pingouin-stats.org/generated/pingouin.epsilon.html
     
             // Number of measurements
-            number k = GetColumnSize() 
+            number k = newFrame:GetColumns():GetSize() 
     
             // Number of subjects
-            number n = frame:GetColumn(0):GetSize()
+            number n = newFrame:GetColumn(0):GetSize()
     
             // Mauchly's W test statistic
             number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
@@ -572,6 +564,28 @@ class CompareVariances is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+
+    /*
+        Attribute: Returns a DataFrame of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareVariances compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+        
+        DataFrame result = compare:GetSummaryDataFrame()
+        result:Save("myresult.csv")
+    */
+    action GetSummaryDataFrame returns DataFrame
+        return GetResult():GetSummaryDataFrame()
     end
 
     /*

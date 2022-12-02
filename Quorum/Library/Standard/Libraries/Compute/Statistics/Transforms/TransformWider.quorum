@@ -1,0 +1,187 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameSelection
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+
+/*
+    The TransformWider class handles transforming a wide DataFrame into
+    a wide DataFrame. This means the factor selected in the long DataFrame
+    will produce new columns based on the selected columns.
+    Any unselected columns will be condensed as much as possible 
+    to match the new shape while maintaining data integrity.
+
+    For more information: 
+        pivot_wider: https://tidyr.tidyverse.org/reference/pivot_wider.html
+        unstack: https://www.datasciencemadesimple.com/stack-and-unstack-function-in-r/
+
+    Attribute: Author Alex Hoffman, Hannah Williams 
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.TransformWider
+
+    // Load the data
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedFactor(0)
+    frame:SetSelectedColumnRange(1,3)
+
+    // Transform the data frame to a wider format
+    TransformWider wider
+    DataFrame wide = frame:Transform(wider)
+*/
+class TransformWider is DataFrameTransform
+
+    action Transform(DataFrame frame) returns DataFrame
+        DataFrameSelection selection = frame:GetSelection()
+        integer numberOfColumnsSelected = selection:GetColumnSize()
+        integer numberOfFactorsSelected = selection:GetFactorSize()
+
+        if numberOfFactorsSelected < 1 or numberOfColumnsSelected < 1
+            alert("To make a DataFrame wider, we must have one factor and at least one column selected.")
+        elseif numberOfFactorsSelected > 1
+            alert("To make a DataFrame wider, we currently support only one selected factor.")
+        end
+
+        // Get all of the selected indices and sort them (since they could've been added in any order)
+        // This is important before the removal to ensure we remove the correct ones
+        Array <integer> selectedIndices
+        i = 0
+        repeat while i < numberOfColumnsSelected
+            selectedIndices:Add(selection:GetColumn(i))
+            if selection:GetColumn(i) = selection:GetFactor(0)
+                alert("Cannot use the same index for both a selected factor and a selected column.")
+            end
+            i = i + 1
+        end  
+        selectedIndices:Add(selection:GetFactor(0))
+        selectedIndices:Sort()
+
+        // Remove the selected columns/factors from a copy starting from the end
+        DataFrame unselectedCopy = frame:Copy()
+        i = numberOfColumnsSelected + numberOfFactorsSelected - 1
+        repeat while i >= 0
+            unselectedCopy:RemoveColumnAt(selectedIndices:Get(i))
+            i = i - 1
+        end  
+
+        // Create a list of unique items of the factor
+        DataFrameColumn factor = frame:GetColumn(selection:GetFactor(0))
+        DataFrameColumn uniqueFactors = factor:Copy(true,true)
+
+        // We need to check uniqueness of all unselected column entries at each unique factor
+        HashTable <text, integer> uniqueRows 
+        HashTable <text, integer> uniqueRowsWithoutFactor
+        i = 0
+        repeat while i < factor:GetSize() and unselectedCopy:GetSize() > 0
+            text rowText = factor:GetAsText(i)
+            text rowTextWithoutFactor = ""
+            j = 0
+            repeat while j < unselectedCopy:GetSize()
+                DataFrameColumn column = unselectedCopy:GetColumn(j)
+                if i < column:GetSize()
+                    rowText = rowText + column:GetAsText(i)
+                    rowTextWithoutFactor = rowTextWithoutFactor + column:GetAsText(i)
+                end
+                j = j + 1
+            end
+            if uniqueRows:HasKey(rowText)
+                text clashingIndices = "Row index "+uniqueRows:GetValue(rowText)+" clashes with row index "+i
+                alert("To make a DataFrame wider, the unselected columns must have unique row entries for each factor. "+clashingIndices)
+            else
+                uniqueRows:Add(rowText, i)
+                if not uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor)
+                    uniqueRowsWithoutFactor:Add(rowTextWithoutFactor, i)
+                end
+            end
+            i = i + 1
+        end
+
+        // Enter unique rows from unselected data
+        Array<integer> rowIndicesToKeep = uniqueRowsWithoutFactor:CopyToValueArray()
+        rowIndicesToKeep:Sort()
+        DataFrame newFrame 
+        i = 0
+        repeat while i < unselectedCopy:GetSize()
+            DataFrameColumn column = unselectedCopy:GetColumn(i)
+            TextColumn newColumn
+            newColumn:SetHeader(column:GetHeader())
+            j = 0
+            repeat while j < rowIndicesToKeep:GetSize()
+                integer index = rowIndicesToKeep:Get(j)
+                if index < column:GetSize()
+                    newColumn:Add(column:GetAsText(index))
+                end
+                j = j + 1
+            end
+            newFrame:AddColumn(newColumn)
+            i = i + 1
+        end         
+
+
+        // Add the widened data to the new frame
+        if frame:GetSize() > 2
+            // If there are more than 2 columns in the frame, attach the factor names to the selected columns
+            i = 0
+            repeat while i < numberOfColumnsSelected
+                DataFrameColumn column = frame:GetColumn(selection:GetColumn(i))
+                j = 0
+                repeat while j < uniqueFactors:GetSize()
+                    TextColumn newColumn
+                    newColumn:SetHeader(uniqueFactors:GetAsText(j)+"_"+column:GetHeader())
+                    if newFrame:GetSize() > 0
+                        newColumn:SetSize(newFrame:GetColumn(0):GetSize())
+                    else
+                        newColumn:SetSize(1)
+                    end
+                    newFrame:AddColumn(newColumn)
+                    j = j + 1
+                end
+                j = 0
+                repeat while j < column:GetSize()
+                    // Find row index
+                    text rowTextWithoutFactor = ""
+                    k = 0
+                    repeat while k < unselectedCopy:GetSize()
+                        if j < unselectedCopy:GetColumn(k):GetSize()
+                            rowTextWithoutFactor = rowTextWithoutFactor + unselectedCopy:GetColumn(k):GetAsText(j)
+                        end
+                        k = k + 1
+                    end
+                    // Find column and place value
+                    if j < factor:GetSize()
+                        if uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor)
+                            integer rowIndex = uniqueRowsWithoutFactor:GetValue(rowTextWithoutFactor)
+                            newFrame:GetColumn(factor:GetAsText(j)+"_"+column:GetHeader()):SetAsText(rowIndex, column:GetAsText(j))
+                        end
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end       
+        else
+            // Otherwise just make a column for each factor name
+            i = 0
+            repeat while i < uniqueFactors:GetSize()
+                TextColumn column
+                column:SetHeader(uniqueFactors:GetAsText(i))
+                newFrame:AddColumn(column)
+                i = i + 1
+            end
+            DataFrameColumn column = frame:GetColumn(selection:GetColumn(0))
+            i = 0
+            repeat while i < column:GetSize()
+                if i < factor:GetSize()
+                    newFrame:GetColumn(factor:GetAsText(i)):Add(column:GetAsText(i))
+                end
+                i = i + 1
+            end
+        end
+        return newFrame
+    end
+end
