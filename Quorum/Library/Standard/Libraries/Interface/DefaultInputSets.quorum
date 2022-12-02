@@ -1991,10 +1991,10 @@ shared class DefaultInputSets
         FlowchartNavigateDownBehavior flowchartDown
         FlowchartNavigateUpBehavior flowchartUp
 
-        flowchartTable:Add(leftSet, flowchartLeft)
-        flowchartTable:Add(rightSet, flowchartRight)
-        flowchartTable:Add(downSet, flowchartDown)
-        flowchartTable:Add(upSet, flowchartUp)
+        flowchartTable:Add(GetLeftArrowKey(), flowchartLeft)
+        flowchartTable:Add(GetRightArrowKey(), flowchartRight)
+        flowchartTable:Add(GetDownArrowKey(), flowchartDown)
+        flowchartTable:Add(GetUpArrowKey(), flowchartUp)
 
         gameInput:AddInputTable(flowchartTable)
     end
