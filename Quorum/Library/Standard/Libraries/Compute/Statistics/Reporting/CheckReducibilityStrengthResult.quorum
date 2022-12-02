@@ -1,6 +1,7 @@
 package Libraries.Compute.Statistics.Reporting
 
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrame
 
 /*
     This class represents data that comes back from a kmo test 
@@ -11,6 +12,7 @@ use Libraries.Compute.Math
 class CheckReducibilityStrengthResult is StatisticalTestResult
     Math math
     integer numberOfVariables = 0
+    DataFrame individualScores
 
     action GetNumberOfVariables returns integer
         return numberOfVariables
@@ -18,6 +20,14 @@ class CheckReducibilityStrengthResult is StatisticalTestResult
 
     action SetNumberOfVariables(integer numberOfVariables)
         me:numberOfVariables = numberOfVariables
+    end
+
+    action GetIndividualScores returns DataFrame
+        return individualScores
+    end
+
+    action SetIndividualScores(DataFrame individualScores)
+        me:individualScores = individualScores
     end
 
     action GetNullHypothesis returns text

@@ -19,7 +19,7 @@ class TukeyProcedureTest is Test
         DataFrame frame = framer:GetDefaultDataFrame()
 
         CompareGroupsPairwise compare
-        compare:UseTukeyCorrection()
+        compare:UseLiberalCorrection(true)
         compare:AddColumn(0)
         compare:AddColumn(1)
         compare:AddColumn(2)

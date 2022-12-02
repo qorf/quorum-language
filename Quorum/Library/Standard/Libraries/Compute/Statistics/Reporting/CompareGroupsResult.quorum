@@ -191,11 +191,24 @@ class CompareGroupsResult is StatisticalTestResult, ColumnInput
         return ""
     end
 
+    /* This action summarizes the result and puts it in a frame. */
+    action GetSummaryDataFrame returns DataFrame
+        return undefined
+    end
+
     /*
         This action summarizes the result and places it into formal academic language, in APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
     action GetFormalSummary returns text
+        return ""
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalNumericalResult returns text
         return ""
     end
 

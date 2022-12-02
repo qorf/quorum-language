@@ -19,7 +19,7 @@ class GamesHowellProcedureTest is Test
         DataFrame frame = framer:GetDefaultDataFrame()
 
         CompareGroupsPairwise compare
-        compare:UseTukeyCorrection()
+        compare:UseLiberalCorrection(true)
         compare:AssumeEqualVariances(false)
         compare:AddColumn(0)
         compare:AddColumn(1)
