@@ -11,9 +11,7 @@ use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
 use Libraries.Compute.Matrix
 use Libraries.Compute.Statistics.Tests.CompareGroups
 use Libraries.Compute.Statistics.Inputs.ColumnInput
-use Libraries.Compute.Statistics.Tests.CompareGroupToMean
 use Libraries.Compute.Statistics.Tests.CorrelateGroups
-use Libraries.Compute.Statistics.Tests.CorrelateRanks
 use Libraries.Compute.Statistics.Tests.CompareVariances
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Compute.Statistics.Inputs.FactorInput
@@ -47,6 +45,7 @@ use Libraries.Interface.Controls.Charts.ViolinPlot
 use Libraries.Compute.Statistics.Transforms.CrossTab
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Compute.Statistics.Charts.ScatterPlotCreator
+use Libraries.Compute.Statistics.Charts.CheckNormalityChartCreator
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Transforms.DataTuple
 use Libraries.Compute.Statistics.Columns.IntegerColumn
@@ -65,8 +64,13 @@ use Libraries.Compute.Statistics.Transforms.ColumnSplitter
 use Libraries.Compute.Statistics.Transforms.DelimiterColumnSplitter
 use Libraries.Containers.Support.Pair
 use Libraries.Compute.Statistics.Transforms.SplitRowsTransform
+use Libraries.Compute.Statistics.Tests.CompareCounts
 use Libraries.System.Properties
 use Libraries.Compute.Statistics.Loaders.WebDataFrameLoader
+use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+use Libraries.Compute.Statistics.Tests.CompareDistributions
+use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
+use Libraries.Compute.Statistics.Charts.ScreePlotCreator
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -1351,6 +1355,42 @@ class DataFrame
     end
 
     /*
+        Returns a copy of the data frame, except that it only copies certain columns
+
+        Attribute: Returns A copy of the data frame with only selected columns
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+
+        //return a copy with a max of the first five rows
+        DataFrame copy = frame:CopySelectedColumns()
+    */
+    action CopySelectedColumns() returns DataFrame
+        DataFrame newFrame
+       
+        i = 0
+        repeat while i < selection:GetColumnSize()
+            newFrame:AddColumn(GetColumn(selection:GetColumn(i)))
+            i = i + 1
+        end 
+
+        i = 0
+        repeat while i < selection:GetFactorSize()
+            newFrame:AddColumn(GetColumn(selection:GetFactor(i)))
+            i = i + 1
+        end
+
+        return newFrame
+    end
+
+    /*
         This action returns a copy of the data frame, which deep copies every column.
 
         Attribute: Returns A copy of the data frame with constrained columns and rows
@@ -2216,15 +2256,55 @@ class DataFrame
     end
 
     /*
-        This action uses the selection to conduct a comparison between two or more columns. 
-        The comparison is traditionally called a 1-way ANOVA. The CompareGroups object 
-        returned gives information back in several formats, including text formatted in the 
-        American Psychological Association (APA) style.
+        This action uses the selection to conduct a count comparison between one or more columns. 
+        The CompareCounts object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   Chi-Squared Goodness Of Fit vs uniform expected counts
+            2   Chi-Squared Test Of Independence
+            3+  Pairwise Chi-Squared Test Of Independence
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareCounts counts = CompareSelectedCounts()
+        output counts:GetSummary()
+    */
+    action CompareSelectedCounts returns CompareCounts
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareCounts counts
+        selection:CopyTo(cast(ColumnInput, counts))
+        selection:CopyTo(cast(FactorInput, counts))
+        counts:Calculate(me)
+        return counts
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between two or more independent columns. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   One-Sample T-Test vs zero-mean
+            2   Two-Sample T-Test
+            3+  One-Way Anova
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
     
         DataFrame frame
         frame:Load("Data.csv")
@@ -2237,148 +2317,364 @@ class DataFrame
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() < 2
-            alert("Must compare 2 or more columns")
-        end
-
-        CompareGroups groups
-        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
-        selection:CopyTo(cast(ColumnInput, groups))
-        groups:Calculate(me)
-        return groups
+        CompareGroups compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
     end
 
     /*
-        This action uses the selection to conduct a comparison between a column and a mean.
-        The comparison is traditionally called a one sample t-test. The CompareGroupToMean object
-        returned gives information back in several formats, including text formatted in the
-        American Psychological Association (APA) style.
+        This action uses the selection to conduct a comparison between two or more related columns. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        
+        This action runs a test based on how many columns are selected:
+            1   One-Sample T-Test vs zero-mean
+            2   Paired T-Test vs zero-mean
+            3+  One-Way Repeated Measures Anova
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-    
-        DataFrame frame
-        frame:Load("Data.csv")
-        frame:AddSelectedColumn(0)
-        CompareGroupToMean result = CompareSelectedColumnToMean(0)
-        output result:GetFormalSummary()
-    */
-    action CompareSelectedColumnToMean(number mean) returns CompareGroupToMean
-        if IsInvalidSelection()
-            alert("Invalid Selection")
-        end
-
-        if selection:GetColumnSize() not= 1
-            alert("Must compare the mean to 1 column")
-        end
-
-        CompareGroupToMean groups
-        groups:SetGroup(selection:GetColumn(0))
-        groups:SetMean(mean)
-        groups:Calculate(me)
-        return groups
-    end
-
-    /*
-        This action uses the selection to conduct a correlation between two or more columns. 
-        The comparison is traditionally called a Pearson Correlation. The CompareGroups object 
-        returned gives information back in several formats, including text formatted in the 
-        American Psychological Association (APA) style.
-
-        Attribute: Returns an object representing the comparison
-    
-        Attribute: Example
-        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateGroups groups = CorrelateSelectedColumns()
+        CompareGroups groups = CompareSelectedColumns()
         output groups:GetFormalSummary()
+    */
+    action CompareSelectedRelatedColumns returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroups compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:RepeatedMeasures(true)
+        compare:Paired(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between one or two columns and a mean. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   One-Sample T-Test vs given-mean
+            2   Paired T-Test vs given-mean
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareGroups result = CompareSelectedColumnsToMean(0)
+        output result:GetFormalSummary()
+    */
+    action CompareSelectedColumnToMean(number mean) returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() > 2
+            alert("No more than 2 columns can be paired to compare to a mean.")
+        end
+
+        CompareGroups compare
+        selection:CopyTo(cast(ColumnInput, compare))
+        selection:CopyTo(cast(FactorInput, compare))
+        compare:SetMean(mean)
+        compare:Paired(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between two or more ranked columns. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        
+        This action runs a test based on how many columns are selected:
+            1   One-Sample Wilcoxon Signed-Ranks Test vs zero-median
+            2   Mann-Whiteney U-Test (Wilcoxon Rank-Sum Test)
+            3+  Kruskal-Wallis H Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareGroups compare = CompareSelectedRankedGroups()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedRankedGroups returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroups compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Ranked(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between two or more ranked related columns. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        
+        This action runs a test based on how many columns are selected:
+            1   One-Sample Wilcoxon Signed-Ranks Test vs zero-median
+            2   Wilcoxon Signed-Ranks Test vs zero-median
+            3+  Friedman Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareGroups compare = CompareSelectedRelatedRankedGroups()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedRelatedRankedGroups returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroups compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:RepeatedMeasures(true)
+        compare:Paired(true)
+        compare:Ranked(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between a ranked column and a median. 
+        The CompareGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   One-Sample Wilcoxon Signed-Ranks Test vs given-median
+            2   Wilcoxon Signed-Ranks Test vs given-median
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareGroups compare = CompareSelectedRanksToMedian(0)
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedRankedGroupToMedian(number median) returns CompareGroups
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        if selection:GetColumnSize() > 2
+            alert("No more than 2 columns can be paired to compare to a median.")
+        end
+
+        CompareGroups compare
+        selection:CopyTo(cast(ColumnInput, compare))
+        selection:CopyTo(cast(FactorInput, compare))
+        compare:Ranked(true)
+        compare:SetMedian(median)
+        compare:Paired(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a correlation between two or more independent columns. 
+        The CorrelateGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2   Pearson Correlation
+            3+  Pairwise Pearson Correlation
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CorrelateGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CorrelateGroups correlate = CorrelateSelectedColumns()
+        output correlate:GetFormalSummary()
     */
     action CorrelateSelectedColumns returns CorrelateGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() < 2
-            alert("Must compare 2 or more columns")
-        end
-
-        CorrelateGroups groups
-        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
-        selection:CopyTo(cast(ColumnInput, groups))
-        groups:Calculate(me)
-        return groups
+        CorrelateGroups correlate
+        selection:CopyTo(cast(ColumnInput, correlate))
+        selection:CopyTo(cast(FactorInput, correlate))
+        correlate:Calculate(me)
+        return correlate
     end
 
     /*
-        This action uses the selection to conduct a correlation between the ranks of values
-        between two or more columns. 
-        The comparison is traditionally called a Spearman Correlation. The CompareGroups object 
-        returned gives information back in several formats, including text formatted in the 
-        American Psychological Association (APA) style.
+        This action uses the selection to conduct a correlation between two or more independent ranked columns. 
+        The CorrelateGroups object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
 
-        Attribute: Returns an object representing the comparison
+        This action runs a test based on how many columns are selected:
+            2   Spearman Correlation
+            3+  Pairwise Spearman Correlation
+
+        Attribute: Returns an object representing the correlation
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CorrelateGroups
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateRanks groups = CorrelateSelectedRanks()
-        output groups:GetFormalSummary()
+        CorrelateGroups correlate = CorrelateSelectedRankedColumns()
+        output correlate:GetFormalSummary()
     */
-    action CorrelateSelectedRanks returns CorrelateRanks
+    action CorrelateSelectedRankedColumns returns CorrelateGroups
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() < 2
-            alert("Must compare 2 or more columns")
-        end
-
-        CorrelateRanks groups
-        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
-        selection:CopyTo(cast(ColumnInput, groups))
-        groups:Calculate(me)
-        return groups
+        CorrelateGroups correlate
+        selection:CopyTo(cast(FactorInput, correlate))
+        selection:CopyTo(cast(ColumnInput, correlate))
+        correlate:Ranked(true)
+        correlate:Calculate(me)
+        return correlate
     end
 
     /*
-        This action uses the selection to conduct a comparison variances in columns. 
-        The comparison is traditionally called a Levene's Test. The CompareGroups object 
-        returned gives information back in several formats, including text formatted in the 
-        American Psychological Association (APA) style.
+        This action uses the selection to conduct a variance comparison between two or more independent columns. 
+        The CompareVariances object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Levene's Test
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareVariances groups = frame:CompareSelectedVariances()
-        output groups:GetFormalSummary()
+        CompareVariances compare = frame:CompareSelectedVariances()
+        output compare:GetFormalSummary()
     */
     action CompareSelectedVariances returns CompareVariances
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() < 2
-            alert("Must compare 2 or more columns")
+        CompareVariances compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a variance comparison between two or more related columns. 
+        The CompareVariances object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Mauchly's Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareVariances compare = frame:CompareSelectedVariances()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedRelatedVariances returns CompareVariances
+        if IsInvalidSelection()
+            alert("Invalid Selection")
         end
 
-        CompareVariances groups
-        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
-        selection:CopyTo(cast(ColumnInput, groups))
-        groups:Calculate(me)
-        return groups
+        CompareVariances compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:RepeatedMeasures(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+
+    /*
+        This action uses the selection to conduct a comparison between a column distribution and
+        a normal distribution. 
+        The CompareDistributions object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1  Shapiro-Wilk Normality Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareDistributions compare = frame:CompareSelectedDistributionsToNormal()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedDistributionsToNormal returns CompareDistributions
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareDistributions compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
     end
 
     /*
@@ -3014,6 +3310,33 @@ class DataFrame
 
         return cast(LineChart, CreateChart(creator))
     end
+
+    /*
+        This action creates a ScreePlot from the correlation matrix of the selected columns in the DataFrame.
+        No factors are allowed for this chart type and it provides only a line chart. Copying the ScreePlot
+        Creator's implementation allows the creation of alternative chart types for the same chart, but this 
+        is not supported by default.
+
+        Attribute: Returns a LineChart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.LineChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:SelectAllColumns()
+        LineChart chart = frame:ScreePlot()
+        chart:SetTitle("My Scree Plot")
+        chart:Display()
+    */
+    action ScreePlot returns LineChart
+        ScreePlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(LineChart, CreateChart(creator))
+    end
     
     /*
         This action creates a ViolinPlot from the current column selection in the DataFrame.
@@ -3092,6 +3415,36 @@ class DataFrame
     */
     action ScatterPlot returns ScatterPlot
         ScatterPlotCreator creator
+        selection:CopyTo(cast(ColumnInput, creator))
+        selection:CopyTo(cast(FactorInput, creator))
+
+        return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates what is often called a QQ plot, or quartile quartile plot, 
+        in the academic literature. The broad idea is that it maps the values in a column 
+        to the theoretical ranking values in a normal distribution. If the chart is largely 
+        linear up and to the right, then the data appears to be reasonably, although informally, 
+        normally distributed. This action is a helper that can only conduct this calculation on 
+        one column for a normal distribution, although the broad idea could be extended further 
+        if needed.
+
+        Attribute: Returns a ScatterPlot that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ScatterPlot
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        ScatterPlot chart = frame:NormalityCheckChart()
+        chart:SetTitle("My Normality Check Chart")
+        chart:Display()
+    */
+    action NormalityCheckChart returns ScatterPlot
+        CheckNormalityChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
@@ -3269,6 +3622,72 @@ class DataFrame
         CrossTab tab
         selection:CopyTo(cast(ColumnInput, tab))
         return Transform(tab)
+    end
+
+    /*
+        The CovarianceMatrixTransform class takes a DataFrame and its selection to decide how to transform it. 
+        Specifically, CovarianceMatrixTransform takes the every pair of two columns in the selection and 
+        computes the covariance placing it into a matrix. The diagonal of that matrix will contain the variance
+        for each column.
+        
+        Attribute: Author Hannah Williams
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+      
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        frame:AddSelectedColumn(3)
+        
+        Matrix covMatrix = frame:CovarianceMatrix()
+        output covMatrix:ToText()
+    */
+    action CovarianceMatrix returns Matrix
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CovarianceMatrixTransform cov
+        selection:CopyTo(cast(ColumnInput, cov))
+        DataFrame frame = Transform(cov)
+        return cov:GetMatrix()
+    end
+
+    /*
+        The CorrelationMatrixTransform class takes a DataFrame and its selection to decide how to transform it. 
+        Specifically, CorrelationMatrixTransform takes the every pair of two columns in the selection and 
+        computes the pearson correlation placing it into a matrix. The diagonal of that matrix will contain 1.0
+        for each column.
+        
+        Attribute: Author Hannah Williams
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+      
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        frame:AddSelectedColumn(3)
+        
+        Matrix corMatrix = frame:CorrelationMatrix()
+        output corMatrix:ToText()
+    */
+    action CorrelationMatrix returns Matrix
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CorrelationMatrixTransform cor
+        selection:CopyTo(cast(ColumnInput, cor))
+        DataFrame frame = Transform(cor)
+        return cor:GetMatrix()
     end
 
     /*

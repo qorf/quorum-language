@@ -19,6 +19,8 @@ use Libraries.System.File
 use Libraries.Game.InputTable
 use Libraries.Game.Game
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Interface.Views.DrawableView
 
 class Control is Item2D
 
@@ -159,6 +161,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:ClickedMouse()
         end
+
+        RequestVerticesUpdate()
     end
 
     action ReleasedMouse
@@ -167,6 +171,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:ReleasedMouse()
         end
+
+        RequestVerticesUpdate()
     end
 
     action BeginMouseOver
@@ -175,6 +181,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:BeginMouseOver()
         end
+
+        RequestVerticesUpdate()
     end
 
     action EndMouseOver
@@ -183,6 +191,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:EndMouseOver()
         end
+
+        RequestVerticesUpdate()
     end
 
     action GainedSelection
@@ -191,6 +201,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:GainedSelection()
         end
+
+        RequestVerticesUpdate()
     end
 
     action LostSelection
@@ -199,6 +211,8 @@ class Control is Item2D
             ControlView content = cast(ControlView, GetView2D())
             content:LostSelection()
         end
+
+        RequestVerticesUpdate()
     end
 
     /*
@@ -1015,6 +1029,22 @@ class Control is Item2D
     */
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.
+    end
+
+    action SetColorProperty(text property, ColorGroup value)
+        defaultProperties:SetColorProperty(property, value)
+    end
+
+    action GetColorProperty(text property) returns ColorGroup
+        return defaultProperties:GetColorProperty(property)
+    end
+
+    action SetNumberProperty(text property, number value)
+        defaultProperties:SetNumberProperty(property, value)
+    end
+
+    action GetNumberProperty(text property) returns number
+        return defaultProperties:GetNumberProperty(property)
     end
 
     action HasColorPropertyOverride(text property) returns boolean

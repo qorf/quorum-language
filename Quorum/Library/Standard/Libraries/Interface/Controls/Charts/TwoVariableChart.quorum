@@ -233,7 +233,6 @@ class TwoVariableChart is Chart
                     ResidualSquare square
                     square:SetPoint(point)
                     squares:Add(square)
-                    chartArea:Add(square)
                 end
 
                 chartArea:Add(point)
@@ -249,6 +248,46 @@ class TwoVariableChart is Chart
                     chartArea:Add(pointLabel)
                 end
                 i = i + 1
+            end
+            
+            /*
+            Add all of the squares to the chart area after finishing with the points.
+            Because the squares render in a different manner than the points, we want them
+            all together so they'll be batch rendered. This is subtle but actually makes a big
+            difference performance-wise.
+            */
+            if squares not= undefined
+                i = 0
+                if IsSeparated()
+                    repeat while i < squares:GetSize()
+                        ResidualSquare square = squares:Get(i)
+                        ChartPoint point = square:GetPoint()
+                        ChartAreaPanel chartArea = undefined
+
+                        integer j = 0
+                        repeat while j < GetNumberOfChartAreas()
+                            if IsSeparatedBySeries()
+                                if point:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
+                                    chartArea = GetSubChartAreas():Get(j)
+                                    j = GetNumberOfChartAreas()
+                                end
+                            else
+                                chartArea = GetChartArea()
+                                j = GetNumberOfChartAreas()
+                            end
+                            j = j + 1
+                        end
+
+                        chartArea:Add(squares:Get(i))
+                        i = i + 1
+                    end
+                else
+                    ChartAreaPanel chartArea = GetChartArea()
+                    repeat while i < squares:GetSize()
+                        chartArea:Add(squares:Get(i))
+                        i = i + 1
+                    end
+                end
             end
         end
     end

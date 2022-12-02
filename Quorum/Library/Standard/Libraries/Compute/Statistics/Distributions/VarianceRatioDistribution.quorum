@@ -4,11 +4,11 @@ use Libraries.Compute.Math
 use Libraries.Compute.Statistics.Distributions.NumberDistribution
 
 /*
-    This class, ported from Apache Commons, is an implementation of the T-Distribution.
-    More information can be found here: https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    This class, ported from Apache Commons, is an implementation of the F-Distribution.
+    More information can be found here: http://en.wikipedia.org/wiki/F-distribution
 */
 class VarianceRatioDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number degreesOfFreedom = 0.0
     number numeratorDegreesOfFreedom = 0.0
     number denominatorDegreesOfFreedom = 0.0
@@ -20,7 +20,7 @@ class VarianceRatioDistribution is NumberDistribution
 
     action Setup(number numerator, number denominator)
         if numerator <= 0 or denominator <= 0
-            alert("Cannot compute a F-distribution with a degree of freedom value of " + degreesOfFreedom)
+            alert("Cannot compute a F-distribution with degree of freedom value of (" + numerator + ", " + denominator + ")")
         end
         numeratorDegreesOfFreedom = numerator
         denominatorDegreesOfFreedom = denominator

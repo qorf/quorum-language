@@ -16,16 +16,17 @@ class ControlFragmentShader is Shader
 #else
     #define LOWP 
 #endif
+
 in LOWP vec4 v_color;
+in LOWP vec4 v_borderColor;
 in vec2 v_texCoords;
+in vec4 v_rounding;
+in vec4 v_borderThickness;
+in float v_aspectRatio;
+in float v_antiAlias;
+
 uniform sampler2D u_texture;
-uniform vec4 u_rounding;
-uniform vec4 u_enabledBorders;
-uniform vec4 u_borderColor;
-uniform float u_borderThickness;
-uniform float u_aspectRatio;
-uniform float u_antiAliasDistance;
-uniform bool u_renderBorders;
+
 layout (location = 0) out vec4 outputColor;
 
 // Calculate how far a point is from the outer shell of a rounded rectangle.
@@ -48,32 +49,39 @@ float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding
 
 void main()
 {
-    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
-    point.x *= u_aspectRatio;
-    vec2 dimensions = vec2(u_aspectRatio, 1.0);
+    vec4 rounding = v_rounding;
+    vec4 borderThickness = v_borderThickness;
+    float aspectRatio = v_aspectRatio;
+    float antiAliasDistance = v_antiAlias;
 
-    float distance = signedDistanceFunction(point, dimensions, u_rounding);
+    vec4 borderColor = v_borderColor;
+    bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0.0;
+
+    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
+    point.x *= aspectRatio;
+    vec2 dimensions = vec2(aspectRatio, 1.0);
+
+    float distance = signedDistanceFunction(point, dimensions, rounding);
     vec4 resultColor;
 
-    if (u_renderBorders)
+    if (renderBorders)
     {
         // The enabled borders vector stores values for the sides in the following order:
         // x: right
         // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
         // z: left
         // w: bottom (y-negative)
-        vec4 borderDepths = vec4(u_enabledBorders.x * u_borderThickness, u_enabledBorders.y * u_borderThickness, u_enabledBorders.z * u_borderThickness, u_enabledBorders.w * u_borderThickness);
-        vec2 fillPoint = point - vec2(borderDepths.x - borderDepths.z, borderDepths.y - borderDepths.w);
-        vec2 fillDimensions = vec2(dimensions.x - borderDepths.x - borderDepths.z, dimensions.y - borderDepths.y - borderDepths.w);
-        float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, u_rounding);
+        vec2 fillPoint = point - vec2(borderThickness.x - borderThickness.z, borderThickness.y - borderThickness.w);
+        vec2 fillDimensions = vec2(dimensions.x - borderThickness.x - borderThickness.z, dimensions.y - borderThickness.y - borderThickness.w);
+        float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, rounding);
     
-        resultColor = mix(u_borderColor * texture(u_texture, v_texCoords), vec4(u_borderColor.rgb, 0.0), smoothstep(0.0, u_antiAliasDistance, distance));
-        resultColor = mix(v_color * texture(u_texture, v_texCoords), resultColor, smoothstep(0.0, u_antiAliasDistance, fillDistance));
+        resultColor = mix(borderColor * texture(u_texture, v_texCoords), vec4(borderColor.rgb, 0.0), smoothstep(0.0, antiAliasDistance, distance));
+        resultColor = mix(v_color * texture(u_texture, v_texCoords), resultColor, smoothstep(0.0, antiAliasDistance, fillDistance));
     }
     else
     {
         resultColor = v_color * texture(u_texture, v_texCoords);
-        resultColor = mix(resultColor, vec4(resultColor.rgb, 0.0), smoothstep(0.0, u_antiAliasDistance, distance));
+        resultColor = mix(resultColor, vec4(resultColor.rgb, 0.0), smoothstep(0.0, antiAliasDistance, distance));
     }
 
     outputColor = resultColor;

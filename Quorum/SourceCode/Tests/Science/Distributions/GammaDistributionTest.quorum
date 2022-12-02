@@ -14,6 +14,7 @@ class GammaDistributionTest is Test
     action Run
         Gamma gamma
         Check(gamma:RegularizedGammaP(1,2), 0.8646647167633873)
+        Check(gamma:RegularizedGammaP(138/2.0, 138/2.0), 0.5160102494311518)
         Check(gamma:RegularizedGammaQ(1,2), 0.1353352832366127)
     end
 

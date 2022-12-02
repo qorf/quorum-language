@@ -15,6 +15,8 @@ use Libraries.Compute.MatrixTransform.Transpose
 use Libraries.Containers.Table
 use Libraries.Containers.Array
 use Libraries.Compute.Math
+use Libraries.Compute.MatrixTransform.Inverse
+use Libraries.Compute.MatrixTransform.EigenDecomposition
 
 /*
 This class is a two dimensional matrix of number variables.
@@ -1384,6 +1386,298 @@ class Matrix
     end
 
     /*
+    This method returns the inverse matrix of a square matrix. 
+
+    Attribute Returns A new inverse matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            matrix = matrix:Inverse()
+            output matrix:ToText()
+        end
+    end
+    */
+    action Inverse returns Matrix
+        if not IsSquare()
+            alert("Inverse only valid for square matrices.")
+        end
+        Inverse inverse
+        return inverse:Transform(me)
+    end
+
+    /*
+        This method returns the determinant of a square matrix. 
+        The determinant is the product of the eigenvalues.
+    
+        Attribute Returns determinant of the matrix 
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Matrix
+    
+        class Main 
+            action Main
+                Matrix matrix
+                matrix:Fill(4, 4, 0.0)
+                output matrix:GetDeterminant()
+            end
+        end
+    */
+    action GetDeterminant returns number
+        if not IsSquare()
+            alert("Determinant is only valid for square matrices.")
+        end
+        EigenDecomposition eig
+        eig:Calculate(me)
+        Array<number> evals = eig:GetEigenvalues()
+        number determinant = 1
+        i = 0
+        repeat while i < evals:GetSize()
+            determinant = determinant * evals:Get(i)
+            i = i + 1
+        end
+        return determinant
+    end
+
+    /*
+        This method returns the trace of a square matrix.
+        The trace is the sum of the main diagonal. 
+    
+        Attribute Returns trace of the matrix 
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Matrix
+    
+        class Main 
+            action Main
+                Matrix matrix
+                matrix:Fill(4, 4, 0.0)
+                output matrix:GetTrace()
+            end
+        end
+    */
+    action GetTrace returns number
+        if not IsSquare()
+            alert("Trace is only valid for square matrices.")
+        end
+        number trace = 0
+        i = 0
+        repeat while i < GetRows()
+            trace = trace + Get(i,i)
+            i = i + 1
+        end
+        return trace
+    end
+
+
+    /*
+    This method returns true if the matrix rows and columns are equal in size
+    therefore it is square.
+
+    Attribute Returns a boolean.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            output matrix:IsSquare()
+        end
+    end
+    */
+    action IsSquare returns boolean
+        if GetRows() = GetColumns()
+            return true
+        else
+            return false
+        end
+    end
+
+    /*
+    This method returns true if the matrix has zeros is all positions 
+    except at the diagonal.
+
+    Attribute Returns a boolean.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            output matrix:IsDiagonal()
+        end
+    end
+    */
+    action IsDiagonal returns boolean
+        if not IsSquare()
+            return false
+        else
+            integer i = 0
+            repeat while i < GetRows()
+                integer j = 0
+                repeat while j < GetColumns()
+                    if i not= j
+                        number mij = Get(i,j)
+                        number mji = Get(j,i)
+                        
+                        if mij not= 0 or mji not= 0
+                            return false
+                        end  
+                    end  
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+        return true
+    end
+
+    /*
+    This method returns true if the tranpose of this matrix is equal to itself
+    therefore it is symmetric. 
+
+    Attribute Returns a boolean.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 0.0)
+            output matrix:IsSymmetric()
+        end
+    end
+    */
+    action IsSymmetric returns boolean
+        if not IsSquare()
+            return false
+        else
+            integer i = 0
+            repeat while i < GetRows()
+                integer j = 0
+                repeat while j < GetColumns()
+                    if i not= j
+                        number mij = Get(i,j)
+                        number mji = Get(j,i)
+                        
+                        if mij not= mji
+                            return false
+                        end  
+                    end  
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+        return true
+    end
+
+    /*
+    This method rounds the values this matrix to the given decimalPlace
+    and returns a new matrix. 
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7.8887)
+            Matrix newMatrix = matrix:Round(2)
+        end
+    end
+    */
+    action Round(integer decimalPlace) returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer i = 0
+        repeat while i < GetRows()
+            integer j = 0
+            repeat while j < GetColumns()
+                newMatrix:Set(i,j, math:Round(Get(i,j), decimalPlace))                    
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return newMatrix
+    end
+
+    /*
+    This action double centers the matrix and returns a new matrix.
+    This is useful in cases like estimating a population covariance matrix
+    using a sample covariance matrix. 
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:DoubleCenter()
+        end
+    end
+    */
+    action DoubleCenter() returns Matrix
+        if not IsSquare()
+            alert("Double center works on square matrices.")
+        end
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer rowCount = GetRows()
+        integer colCount = GetColumns()
+
+        Array<number> rowMeans 
+        i = 0
+        repeat while i < rowCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            rowMeans:Add(mean)
+            i = i + 1  
+        end
+        // Subtract Row Means
+        Matrix rowMeansMatrix
+        rowMeansMatrix:FillByRow(rowCount, rowMeans)
+        newMatrix = newMatrix:SubtractElements(rowMeansMatrix)
+
+        Array<number> colMeans 
+        i = 0
+        repeat while i < colCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            colMeans:Add(mean)
+            i = i + 1  
+        end
+        // Subtract Column Means
+        Matrix colMeansMatrix
+        colMeansMatrix:FillByColumn(colCount, colMeans)
+        newMatrix = newMatrix:SubtractElements(colMeansMatrix)
+
+        // Add Grand Mean
+        newMatrix = newMatrix:Add(newMatrix:GetMean())
+        return newMatrix
+    end
+
+    /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
 
     Attribute Parameter offsetRow The row offset for the first element in the new matrix.
@@ -1633,6 +1927,41 @@ class Matrix
             col = 0
             repeat while col < GetColumns()
                 result = result + Get(row, col)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
+
+    /*
+    This method returns the sum of all the elements squared in a Matrix
+
+    Attribute Returns The sum of all the elements squared in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetSumOfSquares()
+        end
+    end
+    */
+    action GetSumOfSquares returns number
+        result = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                result = result + Get(row, col) * Get(row, col)
                 col = col + 1
             end
             row = row + 1

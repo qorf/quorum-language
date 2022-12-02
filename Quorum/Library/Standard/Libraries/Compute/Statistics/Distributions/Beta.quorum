@@ -9,7 +9,7 @@ use Libraries.Compute.Statistics.Calculations.RegularizedBetaContinuedFraction
     More information can be found here: https://en.wikipedia.org/wiki/Beta_distribution
 */
 class Beta 
-    constant number DEFAULT_EPSILON = 0.00000000000001
+    constant number DEFAULT_EPSILON = 1.0e-14
     constant number HALF_LOG_TWO_PI = 0.9189385332046727
     Math math
     Gamma gamma
@@ -38,20 +38,20 @@ class Beta
      on create
         Math math
         DELTA:Add(0.0833333333333333333333333333333)
-        DELTA:Add(-0.0000277777777777777777777777752282)
-        DELTA:Add(0.0000000793650793650793650791732130419)
-        DELTA:Add(-0.000000000595238095238095232389839236182)
-        DELTA:Add(0.00000000000841750841750832853294451671990)
-        DELTA:Add(-0.000000000000191752691751854612334149171243)
-        DELTA:Add(0.00000000000000641025640510325475730918472625)
-        DELTA:Add(-0.000000000000000295506514125338232839867823991)
-        DELTA:Add(0.0000000000000000179643716359402238723287696452)
-        DELTA:Add(-0.00000000000000000139228964661627791231203060395)
-        DELTA:Add(0.000000000000000000133802855014020915603275339093)
-        DELTA:Add(-0.0000000000000000000154246009867966094273710216533)
-        DELTA:Add(0.00000000000000000000197701992980957427278370133333)
-        DELTA:Add(-0.000000000000000000000234065664793997056856992426667)
-        DELTA:Add(0.0000000000000000000000171348014966398575409015466667)
+        DELTA:Add(-0.277777777777777777777777752282e-4)
+        DELTA:Add(0.793650793650793650791732130419e-7)
+        DELTA:Add(-0.595238095238095232389839236182e-9)
+        DELTA:Add(0.841750841750832853294451671990e-11)
+        DELTA:Add(-0.191752691751854612334149171243e-12)
+        DELTA:Add(0.641025640510325475730918472625e-14)
+        DELTA:Add(-0.295506514125338232839867823991e-15)
+        DELTA:Add(0.179643716359402238723287696452e-16)
+        DELTA:Add(-0.139228964661627791231203060395e-17)
+        DELTA:Add(0.133802855014020915603275339093e-18)
+        DELTA:Add(-0.154246009867966094273710216533e-19)
+        DELTA:Add(0.197701992980957427278370133333e-20)
+        DELTA:Add(-0.234065664793997056856992426667e-21)
+        DELTA:Add(0.171348014966398575409015466667e-22)
      end
 
     
@@ -66,7 +66,6 @@ class Beta
     end
 
     action RegularizedBeta(number x, number a, number b, integer maxIterations) returns number
-        integer value = 0
         return RegularizedBeta(x, a, b, DEFAULT_EPSILON, maxIterations)
     end
 
@@ -275,6 +274,18 @@ class Beta
         if  x:IsNotANumber() or a:IsNotANumber() or b:IsNotANumber()
             or x < 0 or x > 1 or a <= 0 or b <= 0
             ret = a:GetNotANumberValue()
+        elseif x = 0
+            ret = 0.0
+        elseif x = 1
+            ret = 1.0
+        elseif b = 1
+            ret = math:RaiseToPower(x, a)
+        elseif a = 1
+            if x >= 0.5
+                ret = 1.0 - math:RaiseToPower(1 - x, b)
+            else
+                ret = -(math:RaiseNaturalNumberToPower(b * math:NaturalLogarithm(-x + 1)) - 1.0)
+            end
         elseif x > (a + 1) / (2 + b + a) and
                1 - x <= (b + 1) / (2 + b + a)
             ret = 1 - RegularizedBeta(1 - x, b, a, epsilon, maxIterations)

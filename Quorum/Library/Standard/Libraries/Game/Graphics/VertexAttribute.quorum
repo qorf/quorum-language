@@ -15,6 +15,16 @@ class VertexAttribute
     public constant integer TANGENT = 128
     public constant integer BINORMAL = 256
 
+    public constant text POSITION_ALIAS = "a_position"
+    public constant text COLOR_ALIAS = "a_color"
+    public constant text NORMAL_ALIAS = "a_normal"
+    public constant text TEXTURE_COORDINATES_ALIAS = "a_texCoord"
+    public constant text BONE_WEIGHT_ALIAS = "a_boneWeight"
+    public constant text TANGENT_ALIAS = "a_tangent"
+    public constant text BINORMAL_ALIAS = "a_binormal"
+
+    OpenGLConstants constants
+
     /* An integer formed from the bits of the above constants, representing its usage. */
     public integer usage = 0
 
@@ -56,19 +66,17 @@ class VertexAttribute
     */
     action SetAttribute(integer usage, integer componentCount, text alias, integer index)
         if usage = COLOR_PACKED
-            // 5121 is the integer value of GL_UNSIGNED_BYTE.
-            SetAttribute(usage, componentCount, 5121, true, alias, index)
+            SetAttribute(usage, componentCount, constants:GL_UNSIGNED_BYTE, true, alias, index)
         else
-            // 5126 is the integer value of GL_FLOAT.
-            SetAttribute(usage, componentCount, 5126, false, alias, index)
+            SetAttribute(usage, componentCount, constants:GL_FLOAT, false, alias, index)
         end
     end
 
-    private action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias)
+    action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias)
         SetAttribute(usage, componentCount, type, normalized, alias, 0)
     end
 
-    private action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias, integer index)
+    action SetAttribute(integer usage, integer componentCount, integer type, boolean normalized, text alias, integer index)
         me:usage = usage
         me:componentCount = componentCount
         me:type = type
@@ -84,7 +92,7 @@ class VertexAttribute
     */
     action Position returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(POSITION, 3, "a_position")
+        temp:SetAttribute(POSITION, 3, POSITION_ALIAS)
         return temp
     end
 
@@ -94,7 +102,7 @@ class VertexAttribute
     */
     action TextureCoordinates(integer unit) returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(TEXTURE_COORDINATES, 2, "a_texCoord" + unit, unit)
+        temp:SetAttribute(TEXTURE_COORDINATES, 2, TEXTURE_COORDINATES_ALIAS + unit, unit)
         return temp
     end
 
@@ -104,7 +112,7 @@ class VertexAttribute
     */
     action Normal returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(NORMAL, 3, "a_normal")
+        temp:SetAttribute(NORMAL, 3, NORMAL_ALIAS)
         return temp
     end
 
@@ -114,8 +122,7 @@ class VertexAttribute
     */
     action ColorPacked returns VertexAttribute
         VertexAttribute temp
-        // 5121 is the integer value of GL_UNSIGNED_BYTE.
-        temp:SetAttribute(COLOR_PACKED, 4, 5121, true, "a_color")
+        temp:SetAttribute(COLOR_PACKED, 4, constants:GL_UNSIGNED_BYTE, true, COLOR_ALIAS)
         return temp
     end
 
@@ -125,8 +132,7 @@ class VertexAttribute
     */
     action ColorUnpacked returns VertexAttribute
         VertexAttribute temp
-        // 5126 is the integer value of GL_FLOAT.
-        temp:SetAttribute(COLOR_UNPACKED, 4, 5126, false, "a_color")
+        temp:SetAttribute(COLOR_UNPACKED, 4, constants:GL_FLOAT, false, COLOR_ALIAS)
         return temp
     end
 
@@ -136,7 +142,7 @@ class VertexAttribute
     */
     action Tangent returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(TANGENT, 3, "a_tangent")
+        temp:SetAttribute(TANGENT, 3, TANGENT_ALIAS)
         return temp
     end
 
@@ -146,7 +152,7 @@ class VertexAttribute
     */
     action Binormal returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(BINORMAL, 3, "a_binormal")
+        temp:SetAttribute(BINORMAL, 3, BINORMAL_ALIAS)
         return temp
     end
 
@@ -156,7 +162,80 @@ class VertexAttribute
     */
     action BoneWeight(integer unit) returns VertexAttribute
         VertexAttribute temp
-        temp:SetAttribute(BONE_WEIGHT, 2, "a_boneWeight" + unit, unit)
+        temp:SetAttribute(BONE_WEIGHT, 2, BONE_WEIGHT_ALIAS + unit, unit)
+        return temp
+    end
+
+    /*
+    This helper action produces a new VertexAttribute that describes a custom
+    32-bit integer vertex attribute.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomIntegerAttribute(text alias) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, 1, constants:GL_INT, false, alias)
+        return temp
+    end
+
+    /*
+    This helper action produces a new VertexAttribute that describes a custom
+    32-bit floating point vertex attribute.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomNumberAttribute(text alias) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, 1, constants:GL_FLOAT, false, alias)
+        return temp
+    end
+
+    /*
+    This helper action produces a new VertexAttribute that describes a custom
+    vector of 32-bit floating point values as a vertex attribute. The vector size
+    should be between 2 to 4.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomVectorAttribute(text alias, integer vectorSize) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, vectorSize, constants:GL_FLOAT, false, alias)
+        return temp
+    end
+
+    /*
+    This helper action produces a new VertexAttribute that describes a custom
+    color vertex attribute. In a shader, this vertex will be a vector4 containing
+    RGBA values between 0 and 1. To set a color value in an input Number32BitArray,
+    use the Color's "EncodeColorAsNumber" action to turn the color into a valid
+    number in the array.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomColorAttribute(text alias) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, 4, constants:GL_UNSIGNED_BYTE, true, alias)
+        return temp
+    end
+
+    /*
+    This helper action produces a new VertexAttribute that describes a "packed"
+    Vector4 vertex attribute. This vertex value can be described as a single
+    number produced by the NumberUtilities' "PackNormalizedVector4" action.
+    In a shader, this represents a Vector4 whose values are all between 0 and 1.
+    This is functionally the same as an attribute produced by the
+    CustomColorAttribute action.
+
+    Custom attributes will have a usage value of "-1" until they're added into
+    a VertexAttributes object. Once added, they are assigned a unique usage value.
+    */
+    action CustomNormalizedVector4Attribute(text alias) returns VertexAttribute
+        VertexAttribute temp
+        temp:SetAttribute(-1, 4, constants:GL_UNSIGNED_BYTE, true, alias)
         return temp
     end
 

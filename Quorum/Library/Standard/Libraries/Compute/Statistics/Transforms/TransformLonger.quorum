@@ -1,0 +1,143 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrameSelection
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Containers.Array
+
+/*
+    The TransformLonger class handles transforming a wide DataFrame into
+    a long DataFrame. This means the column headers in the wide DataFrame
+    will become their own column and the values across all the 
+    columns will be transformed into a single column.
+    Any unselected columns will be stretched to match new shape while 
+    maintaining data integrity.
+
+    For more information: 
+        pivot_longer: https://tidyr.tidyverse.org/reference/pivot_longer.html
+        stack: https://www.datasciencemadesimple.com/stack-and-unstack-function-in-r/
+
+    Attribute: Author Alex Hoffman, Hannah Williams 
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.TransformLonger
+
+    // Load the data
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:SetSelectedColumnRange(1,10)
+
+    // Transform the data frame to a longer format
+    TransformLonger longer
+    longer:SetNamesHeader("income")
+    longer:SetValuesHeader("count")
+    DataFrame long = frame:Transform(longer)
+*/
+class TransformLonger is DataFrameTransform
+    text namesHeader = ""
+    text valuesHeader = ""
+
+    action Transform(DataFrame frame) returns DataFrame
+        DataFrameSelection selection = frame:GetSelection()
+        integer numberOfColumnsSelected = selection:GetColumnSize()
+
+        // If only one column is selected the frame actually widens, opposite affect but will allow.
+        // If two columns are selected it stays the same width but gets longer
+        if numberOfColumnsSelected < 1
+            alert("To make a DataFrame longer, we must have one or more columns selected.")
+        end
+       
+        // Get all of the selected indices and sort them (since they could've been added in any order)
+        // This is important before the removal to ensure we remove the correct ones
+        Array <integer> selectedIndices
+        i = 0
+        repeat while i < numberOfColumnsSelected
+            selectedIndices:Add(selection:GetColumn(i))
+            i = i + 1
+        end  
+        selectedIndices:Sort()
+
+        // Remove the selected columns from a copy starting from the end
+        DataFrame unselectedCopy = frame:Copy()
+        i = numberOfColumnsSelected - 1
+        repeat while i >= 0
+            unselectedCopy:RemoveColumnAt(selectedIndices:Get(i))
+            i = i - 1
+        end  
+          
+        // Stack the unselected columns first as many times as numberOfColumnsSelected - 1
+        DataFrame newFrame
+        i = 0
+        repeat while i < unselectedCopy:GetColumns():GetSize()
+            DataFrameColumn column = unselectedCopy:GetColumn(i)
+            integer columnSize = column:GetSize()
+            j = 0
+            repeat while j < numberOfColumnsSelected - 1
+                k = 0
+                repeat while k < columnSize
+                    if not column:IsUndefined(k)
+                        column:Add(column:GetAsText(k))
+                    else
+                        column:Add(undefined)
+                    end
+                    k = k + 1
+                end
+                j = j + 1
+            end 
+            newFrame:AddColumn(column)        
+            i = i + 1
+        end 
+
+        // Add new columns built from the selected columns
+        TextColumn names
+        if namesHeader = ""
+            names:SetHeader("Names")
+        else
+            names:SetHeader(namesHeader)
+        end
+        TextColumn values
+        if valuesHeader = ""
+            values:SetHeader("Values")
+        else
+            values:SetHeader(valuesHeader)
+        end
+        i = 0
+        repeat while i < numberOfColumnsSelected
+            DataFrameColumn column = frame:GetColumn(selection:GetColumn(i))
+            j = 0
+            repeat while j < column:GetSize()
+                names:Add(column:GetHeader())
+                if not column:IsUndefined(j)
+                    values:Add(column:GetAsText(j))
+                else
+                    values:Add(undefined)
+                end
+                j = j + 1
+            end       
+            i = i + 1
+        end
+        newFrame:AddColumn(names)      
+        newFrame:AddColumn(values)   
+        return newFrame
+    end
+
+    action SetNamesHeader(text namesHeader)
+        me:namesHeader = namesHeader
+    end
+
+    action GetNamesHeader returns text
+        return namesHeader
+    end
+
+    action SetValuesHeader(text valuesHeader)
+        me:valuesHeader = valuesHeader
+    end
+
+    action GetValuesHeader returns text
+        return valuesHeader
+    end
+
+end
