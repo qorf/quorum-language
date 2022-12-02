@@ -3,6 +3,9 @@ package Libraries.Compute.Statistics.Reporting
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
 
 /*
     This class represents data that comes back from CompareDistributionToNormal
@@ -110,5 +113,46 @@ class CompareDistributionsResult is StatisticalTestResult
             summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
         end
         return summary
+    end
+
+    action GetSummaryDataFrame returns DataFrame
+        integer digits = GetFormat():GetSignificantDigits()
+  
+        TextColumn name
+        NumberColumn w
+        NumberColumn p
+        NumberColumn ef 
+        TextColumn apa
+
+        name:SetHeader(GetFormalTestName()) 
+        if IsSignificant()
+            name:Add("Failed")
+        else
+            name:Add("Passed")
+        end
+
+        w:SetHeader("Statistic (W)")
+        w:Add(math:Round(GetTestStatistic(), digits))
+
+        p:SetHeader("Probability (P)")
+        p:Add(math:Round(GetProbabilityValue(), digits))
+
+        ef:SetHeader("Effect Size (" + GetEffectSizeName() + ")")
+        if GetEffectSizeName() not= "" 
+            ef:Add(math:Round(GetEffectSize(), digits))
+        end
+
+        apa:SetHeader("APA report")   
+        apa:Add(GetFormalNumericalResult())
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(w)
+        table:AddColumn(p)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
     end
 end

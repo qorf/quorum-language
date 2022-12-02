@@ -1355,6 +1355,42 @@ class DataFrame
     end
 
     /*
+        Returns a copy of the data frame, except that it only copies certain columns
+
+        Attribute: Returns A copy of the data frame with only selected columns
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+
+        //Load a comma separated file
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+
+        //return a copy with a max of the first five rows
+        DataFrame copy = frame:CopySelectedColumns()
+    */
+    action CopySelectedColumns() returns DataFrame
+        DataFrame newFrame
+       
+        i = 0
+        repeat while i < selection:GetColumnSize()
+            newFrame:AddColumn(GetColumn(selection:GetColumn(i)))
+            i = i + 1
+        end 
+
+        i = 0
+        repeat while i < selection:GetFactorSize()
+            newFrame:AddColumn(GetColumn(selection:GetFactor(i)))
+            i = i + 1
+        end
+
+        return newFrame
+    end
+
+    /*
         This action returns a copy of the data frame, which deep copies every column.
 
         Attribute: Returns A copy of the data frame with constrained columns and rows
