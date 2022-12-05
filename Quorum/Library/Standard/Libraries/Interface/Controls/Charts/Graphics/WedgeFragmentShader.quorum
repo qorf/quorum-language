@@ -19,12 +19,12 @@ class WedgeFragmentShader is Shader
 #endif
 in LOWP vec4 v_color;
 in vec2 v_texCoords;
+in float v_innerRadius;
+in float v_outerRadius;
+in float v_minAngle;
+in float v_maxAngle;
 uniform sampler2D u_texture;
 uniform vec2 u_originPoint;
-uniform float u_minAngle;
-uniform float u_maxAngle;
-uniform float u_outerRadius;
-uniform float u_innerRadius;
 layout (location = 0) out vec4 outputColor;
 
 float PI = 3.1415926538;
@@ -40,7 +40,7 @@ void main()
         angle = PI + (PI + angle);
     angle = angle / (2.0 * PI);
 
-    if (angle < u_minAngle || angle > u_maxAngle || length < u_innerRadius || length > u_outerRadius)
+    if (angle < v_minAngle || angle > v_maxAngle || length < v_innerRadius || length > v_outerRadius)
         outputColor = vec4(0.0);
     else
         outputColor = v_color * texture(u_texture, v_texCoords);

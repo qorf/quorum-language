@@ -1,0 +1,44 @@
+package Libraries.Game.Graphics.Shaders
+
+class WedgeVertexShader is Shader
+
+    constant text SHADER_NAME = "Wedge Vertex Shader"
+
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        SetName(SHADER_NAME)
+
+        DefaultAttributeNames attributes
+        SetCode(GetOpenGLVersion() +
+"
+" +
+"in vec4 " + attributes:POSITION + ";
+in vec4 " + attributes:COLOR + ";
+in vec2 " + attributes:TEXTURE_COORDINATES + "0;
+in float a_innerRadius;
+in float a_outerRadius;
+in float a_minAngle;
+in float a_maxAngle;
+uniform mat4 u_projTrans;
+out vec4 v_color;
+out vec2 v_texCoords;
+out float v_innerRadius;
+out float v_outerRadius;
+out float v_minAngle;
+out float v_maxAngle;
+
+void main()
+{
+    v_color = " + attributes:COLOR + ";
+    v_color.a = v_color.a * (255.0/254.0);
+    v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    v_innerRadius = a_innerRadius;
+    v_outerRadius = a_outerRadius;
+    v_minAngle = a_minAngle;
+    v_maxAngle = a_maxAngle;
+    gl_Position =  u_projTrans * " + attributes:POSITION + ";
+}"
+)
+    end
+
+end
