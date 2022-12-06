@@ -1284,6 +1284,7 @@ class QuorumParser
 
         if next:category = constants:ID
             context:name = next:value
+            SetLocationToToken(context:variableLocation, next)
             next = tokenIterator:Next()
         else //this is an error
             SendDefaultError("Expected a name. " + moreInformationIdentifier, codes:PARSER_PARENT_ASSIGNMENT_BAD_ID)
@@ -1561,11 +1562,15 @@ class QuorumParser
             calls:Add(call)
 
             if not IsValid() //this is not an error. You can end after an action call, depending on context
+                ActionCallContext last = calls:Get(calls:GetSize() - 1)
+                context:SetLastToken(last:GetLastToken())
+                SetLocation(context)
                 return context
             end
             next = tokenIterator:GetCurrent()
         end
-        context:SetLastToken(next)
+        ActionCallContext last = calls:Get(calls:GetSize() - 1)
+        context:SetLastToken(last:GetLastToken())
         SetLocation(context)
         return context
     end
@@ -1772,7 +1777,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
 
         if next:category = constants:END
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
             SetLocation(context)
         else //otherwise this is an error
             SendDefaultError("Expected end at the end of a repeat. " + CalculateMatchedBracesMessage(), codes:PARSER_REPEAT_STATEMENT_BAD_END)
@@ -1842,7 +1848,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
 
         if next:category = constants:END
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
             SetLocation(context)
         else
             SendDefaultError("Expected end at the end of a check. " + CalculateMatchedBracesMessage(), codes:PARSER_CHECK_STATEMENT_BAD_END)
