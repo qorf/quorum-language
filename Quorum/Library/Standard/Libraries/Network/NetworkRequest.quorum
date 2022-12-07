@@ -964,10 +964,10 @@ class NetworkRequest
         Iterator<text> it = data:GetKeyIterator()
         repeat while it:HasNext()
             key = it:Next()
-            result = result + key + "=" + data:GetValue(key) + "&"
+            result = result + ApplyCharacterFormatting(key) + "=" + ApplyCharacterFormatting(data:GetValue(key)) + "&"
         end
         result = result:GetSubtext(0, result:GetSize() - 1)
-        return ApplyCharacterFormatting(result)
+        return result
     end
 
     /*
@@ -992,10 +992,10 @@ class NetworkRequest
             JavaScriptObjectNotation obj
             obj = it:Next()
             text key = obj:GetKey()
-            result = result + key + "=" + obj:GetValue() + "&"
+            result = result + ApplyCharacterFormatting(key) + "=" + ApplyCharacterFormatting(obj:GetValue()) + "&"
         end
         result = result:GetSubtext(0, result:GetSize() - 1)
-        return ApplyCharacterFormatting(result)
+        return result
     end
 
     /*
@@ -1023,127 +1023,7 @@ class NetworkRequest
     end
     */
     action ApplyCharacterFormatting(text value) returns text
-        text t = ""
-        text dq = t:GetDoubleQuote()
-        text cr = t:GetCarriageReturn()
-        text lf = t:GetLineFeed()
-        text tab = t:GetTab()
-
-        // characters not in this list are dropped
-        HashTable<text, text> conversionTable
-
-        // these characters are substituted
-        conversionTable:Add(dq,"%22")
-        conversionTable:Add(cr,"%0D")
-        conversionTable:Add(lf,"%0A")
-        conversionTable:Add(tab,"%09")
-        conversionTable:Add(" ", "+")
-        conversionTable:Add("!","%21")
-        conversionTable:Add("#","%23")
-        conversionTable:Add("$","%24")
-        conversionTable:Add("%","%25")
-        conversionTable:Add("'","%27")
-        conversionTable:Add("(","%28")
-        conversionTable:Add(")","%29")
-        conversionTable:Add("+","%2B")
-        conversionTable:Add(",","%2C")
-        conversionTable:Add("/","%2F")
-        conversionTable:Add(":","%3A")
-        conversionTable:Add(";","%3B")
-        conversionTable:Add("<","%3C")
-        conversionTable:Add(">","%3E")
-        conversionTable:Add("?","%3F")
-        conversionTable:Add("@","%40")
-        conversionTable:Add("[","%5B")
-        conversionTable:Add("\","%5C")
-        conversionTable:Add("]","%5D")
-        conversionTable:Add("^","%5E")
-        conversionTable:Add("`","%60")
-        conversionTable:Add("{","%7B")
-        conversionTable:Add("|","%7C")
-        conversionTable:Add("}","%7D")
-        conversionTable:Add("~","%7E")
-        conversionTable:Add("`","%60")
-
-        // these characters are legal
-        conversionTable:Add("*","*")
-        conversionTable:Add("&","&")
-        conversionTable:Add("-","-")
-        conversionTable:Add(".",".")
-        conversionTable:Add("0","0")
-        conversionTable:Add("1","1")
-        conversionTable:Add("2","2")
-        conversionTable:Add("3","3")
-        conversionTable:Add("4","4")
-        conversionTable:Add("5","5")
-        conversionTable:Add("6","6")
-        conversionTable:Add("7","7")
-        conversionTable:Add("8","8")
-        conversionTable:Add("9","9")
-        conversionTable:Add("=","=")
-        conversionTable:Add("A","A")
-        conversionTable:Add("B","B")
-        conversionTable:Add("C","C")
-        conversionTable:Add("D","D")
-        conversionTable:Add("E","E")
-        conversionTable:Add("F","F")
-        conversionTable:Add("G","G")
-        conversionTable:Add("H","H")
-        conversionTable:Add("I","I")
-        conversionTable:Add("J","J")
-        conversionTable:Add("K","K")
-        conversionTable:Add("L","L")
-        conversionTable:Add("M","M")
-        conversionTable:Add("N","N")
-        conversionTable:Add("O","O")
-        conversionTable:Add("P","P")
-        conversionTable:Add("Q","Q")
-        conversionTable:Add("R","R")
-        conversionTable:Add("S","S")
-        conversionTable:Add("T","T")
-        conversionTable:Add("U","U")
-        conversionTable:Add("V","V")
-        conversionTable:Add("W","W")
-        conversionTable:Add("X","X")
-        conversionTable:Add("Y","Y")
-        conversionTable:Add("Z","Z")
-        conversionTable:Add("_","_")
-        conversionTable:Add("a","a")
-        conversionTable:Add("b","b")
-        conversionTable:Add("c","c")
-        conversionTable:Add("d","d")
-        conversionTable:Add("e","e")
-        conversionTable:Add("f","f")
-        conversionTable:Add("g","g")
-        conversionTable:Add("h","h")
-        conversionTable:Add("i","i")
-        conversionTable:Add("j","j")
-        conversionTable:Add("k","k")
-        conversionTable:Add("l","l")
-        conversionTable:Add("m","m")
-        conversionTable:Add("n","n")
-        conversionTable:Add("o","o")
-        conversionTable:Add("p","p")
-        conversionTable:Add("q","q")
-        conversionTable:Add("r","r")
-        conversionTable:Add("s","s")
-        conversionTable:Add("t","t")
-        conversionTable:Add("u","u")
-        conversionTable:Add("v","v")
-        conversionTable:Add("w","w")
-        conversionTable:Add("x","x")
-        conversionTable:Add("y","y")
-        conversionTable:Add("z","z")
-
-        integer counter = 0
-        text result = ""
-        repeat value:GetSize() times
-            text character = value:GetCharacter(counter)
-            if conversionTable:HasKey(character)
-                result = result + conversionTable:GetValue(character)
-            end
-            counter = counter + 1
-        end
-        return result
+        NetworkExchange exchange
+        return exchange:URLEncodeValue(value)
     end
 end
