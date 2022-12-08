@@ -30,6 +30,8 @@ class Database
     DatabaseStrategy strategy = undefined
     DatabaseMetaData meta = undefined
     boolean connected = false
+    text error = undefined
+
     on create
         //by default create a my sql database, but allow the user
         //to override it if they wish.
@@ -64,10 +66,18 @@ class Database
             strategy:Connect(connection)
             connected = true
         detect e
+            error = e:GetStackTraceMessage()
             connected = false
         end
     end
 
+    /*
+        If the connection has an error, this action returns the stack trace for 
+        the problem. 
+    */
+    action GetConnectionError returns text
+        return error
+    end
 /*
     Returns whether or not this database object is currently connected to a database
 
