@@ -1759,6 +1759,7 @@ class QuorumParser
         if next:category = constants:TIMES
             //we don't need to check this one, just advance it, because block will manage it.
             next = tokenIterator:Next()
+            context:timesToken = next
             context:isTimes = true
         end
 
@@ -1998,6 +1999,14 @@ class QuorumParser
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
             next = tokenIterator:Next()
+
+            //since there is at least one elseif, we need to store the tokens, in order
+            if context:elseIfTokens = undefined
+                Array<Token> newTokens
+                context:elseIfTokens = newTokens
+            end
+
+            context:elseIfTokens:Add(next)
             ParseContext expression = Expression()
             if expression = undefined //no expression, so kill it, because you have to
                 SendDefaultError("The elseif was missing its expression. " 
