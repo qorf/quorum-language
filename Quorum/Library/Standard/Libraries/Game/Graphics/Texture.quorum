@@ -231,6 +231,11 @@ class Texture is Disposable
                 drawable:SetSize(width, height)
             end
 
+            // Ensure the drawable has properly loaded its color.
+            if drawable:GetColorGroup() not= undefined
+                drawable:SetColor(drawable:GetColorGroup())
+            end
+
             drawable:OnTextureLoad(event)
         end
     end
