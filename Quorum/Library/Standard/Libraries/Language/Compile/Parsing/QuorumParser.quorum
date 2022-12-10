@@ -1998,8 +1998,6 @@ class QuorumParser
         
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
-            next = tokenIterator:Next()
-
             //since there is at least one elseif, we need to store the tokens, in order
             if context:elseIfTokens = undefined
                 Array<Token> newTokens
@@ -2007,6 +2005,15 @@ class QuorumParser
             end
 
             context:elseIfTokens:Add(next)
+            next = tokenIterator:Next()
+
+//            //since there is at least one elseif, we need to store the tokens, in order
+//            if context:elseIfTokens = undefined
+//                Array<Token> newTokens
+//                context:elseIfTokens = newTokens
+//            end
+//
+//            context:elseIfTokens:Add(next)
             ParseContext expression = Expression()
             if expression = undefined //no expression, so kill it, because you have to
                 SendDefaultError("The elseif was missing its expression. " 
