@@ -2089,10 +2089,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     action GainedFocus(FocusEvent event)
         ShowCaret()
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
         HideCaret()
+        parent:Control:LostFocus(event)
     end
 
     /*

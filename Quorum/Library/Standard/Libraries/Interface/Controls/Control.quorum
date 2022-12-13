@@ -21,6 +21,7 @@ use Libraries.Game.Game
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Events.FocusEvent
 
 class Control is Item2D
 
@@ -212,6 +213,28 @@ class Control is Item2D
             content:LostSelection()
         end
 
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item received the focus.
+    */
+    action GainedFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:GainedFocus()
+        end
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+    action LostFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:LostFocus()
+        end
         RequestVerticesUpdate()
     end
 

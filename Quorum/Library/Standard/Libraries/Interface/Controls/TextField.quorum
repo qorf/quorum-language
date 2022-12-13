@@ -774,10 +774,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action GainedFocus(FocusEvent event)
         ShowCaret()
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
         HideCaret()
+        parent:Control:LostFocus(event)
     end
 
     action Update(number seconds)

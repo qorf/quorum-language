@@ -80,6 +80,8 @@ class CheckboxView is ToggleView, ControlShaderView
         else
             center:Hide()
         end
+
+        RequestVerticesUpdate()
     end
 
     action GetToggleState returns boolean
