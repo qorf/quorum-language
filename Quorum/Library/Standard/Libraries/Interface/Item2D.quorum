@@ -39,6 +39,7 @@ use Libraries.Game.Layer
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Views.DrawableView
 
 /*
     The Item2D class represents any object that has a position in 2D space.
@@ -216,43 +217,11 @@ class Item2D is Item
     Vector2 workVector2A
     Vector2 workVector2B
 
-    // These constants represent certain aspects of each vertex. For example,
-    // X1 and Y2 represent the x value of the first vertex and the y value of
-    // the second vertex, respectively.
-//    constant integer X1 = 0
-//    constant integer Y1 = 1
-//    constant integer Z1 = 2
-//    constant integer C1 = 3
-//    constant integer U1 = 4
-//    constant integer V1 = 5
-//    constant integer X2 = 6
-//    constant integer Y2 = 7
-//    constant integer Z2 = 8
-//    constant integer C2 = 9
-//    constant integer U2 = 10
-//    constant integer V2 = 11
-//    constant integer X3 = 12
-//    constant integer Y3 = 13
-//    constant integer Z3 = 14
-//    constant integer C3 = 15
-//    constant integer U3 = 16
-//    constant integer V3 = 17
-//    constant integer X4 = 18
-//    constant integer Y4 = 19
-//    constant integer Z4 = 20
-//    constant integer C4 = 21
-//    constant integer U4 = 22
-//    constant integer V4 = 23
-//
-//    constant integer VERTEX_SIZE = 6
-//    constant integer DRAWABLE_SIZE = 4 * VERTEX_SIZE
-
     PhysicsPosition2D synchronizeNodesTempPosition = undefined
 
     GameStateManager manager
 
     on create
-//        vertices:SetSize(DRAWABLE_SIZE)
         scale:Set(1, 1)
     end
 
@@ -2707,13 +2676,28 @@ class Item2D is Item
     directly.
     */
     action SetClipCoordinates(Painter2D painter)
-        boolean applyClipping = GetClipCoordinates(workVector2A, workVector2B)
+        DrawableShape shape = GetDrawableShape()
+        if shape not= undefined
+            // The shape caches clipping info during update, so if it needs it, do it before getting results from it.
+            if shape:NeedsUpdate()
+                shape:UpdateVertices()
+            end
 
-        if applyClipping
-            painter:SetClipping(true)
-            painter:SetClipCoordinates(workVector2A:GetX(), workVector2B:GetX(), workVector2A:GetY(), workVector2B:GetY())
+            if shape:HasClipping()
+                painter:SetClipping(true)
+                painter:SetClipCoordinates(shape:GetClippingX1(), shape:GetClippingY1(), shape:GetClippingX2(), shape:GetClippingY2())
+            else
+                painter:SetClipping(false)
+            end
         else
-            painter:SetClipping(false)
+            boolean applyClipping = GetClipCoordinates(workVector2A, workVector2B)
+
+            if applyClipping
+                painter:SetClipping(true)
+                painter:SetClipCoordinates(workVector2A:GetX(), workVector2B:GetX(), workVector2A:GetY(), workVector2B:GetY())
+            else
+                painter:SetClipping(false)
+            end
         end
     end
 
@@ -4747,7 +4731,24 @@ class Item2D is Item
     Attribute: Parameter clip True to enable pixel clipping, false to disable.
     */
     action SetClipping(boolean clip)
+        if clip = clipPixels
+            return now
+        end
+
         clipPixels = clip
+        
+    end
+
+    // Recursive action to make the entire children hierarchy set a dirty flag to regenerate their vertex values and recalculate clipping coordinates.
+    private action RequestHierarchyUpdate(Item2D item)
+        item:RequestVerticesUpdate()
+
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            RequestHierarchyUpdate(children:Get(i))
+            i = i + 1
+        end
     end
 
     /*
@@ -4878,12 +4879,36 @@ class Item2D is Item
     end
 
     /*
+    This action returns the DrawableShape attached to this Item, if it has one.
+    For a default Item2D, this action will return undefined, but Drawables will
+    have an associated shape if they've been loaded.
 
+    Attributes: Returns The DrawableShape attached to this Item, or undefined if there isn't one.
     */
     action GetDrawableShape returns DrawableShape
-        // TO-DO: Add comment for this action.
-        // The base Item2D can never have a DrawableShape,
-        // but classes that inherit from it (especially Drawable) can.
         return undefined
+    end
+
+    /*
+    This action informs the engine that this Item needs to recalculate its vertex values
+    before they can be used (most commonly, to be drawn to the screen). 
+
+    Most users will never need to call this directly. If you are using a custom 
+    ShaderProgram with this Item, you can use this action to indicate that the shader 
+    mapping should reset the vertex values for this Item before its drawn again.
+    */
+    action RequestVerticesUpdate
+        DrawableShape shape = GetDrawableShape()
+        if shape not= undefined
+            shape:RequestUpdate()
+        end
+
+        if GetView2D() is DrawableView
+            DrawableView view = cast(DrawableView, GetView2D())
+            DrawableShape viewShape = view:GetDrawableShape()
+            if viewShape not= undefined
+                viewShape:RequestUpdate()
+            end
+        end
     end
 end

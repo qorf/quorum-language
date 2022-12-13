@@ -1,0 +1,29 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CheckReducibility
+use Libraries.Compute.Statistics.Reporting.CheckReducibilityResult
+
+/*
+    This class tests a bartlett's sphericity test
+*/
+class CheckReducibilityTest is Test
+
+    on create
+        SetName("Calculate CheckReducibility")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
+
+        CheckReducibility test
+        test:Calculate(frame)
+        
+        CheckReducibilityResult result = test:GetResult()
+        Check(result:GetTestStatistic(), 12.184779233997709)
+        Check(result:GetProbabilityValue(), 0.006776259157954767)
+    end
+end

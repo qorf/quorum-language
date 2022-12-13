@@ -1,0 +1,106 @@
+package Libraries.Interface.Behaviors.Scenes.Palette
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Controls.Scenes.ScenePalette
+use Libraries.Interface.Controls.Scenes.ScenePaletteItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This behavior is used in the Scene Editor to finish a drag and drop event. 
+    When the user finishes dragging an item from the palette then the coordinates 
+    in the editor are mapped to the scene and a new item is placed in the scene 
+    that is built from the blueprint of the original palette item. 
+*/
+class PaletteItemDropBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+
+        SceneEditor controller = undefined
+        Item destination = dragEvent:GetDestination()
+        if destination is SceneEditor
+            controller = cast(SceneEditor, destination)
+        elseif destination not= undefined
+            EditorLayer layer = undefined
+            if destination is Item2D
+                Item2D item = cast(Item2D, destination)
+                if item:GetLayer() is EditorLayer
+                    layer = cast(EditorLayer2D, item:GetLayer())
+                end
+            elseif destination is Item3D
+                // TO-DO
+            end
+
+            if layer not= undefined
+                controller = layer:GetSceneEditor()
+            end
+        end
+
+        if controller = undefined
+            return now
+        end
+
+        Item2D item = undefined
+        if dragEvent:GetSource() is Item2D
+            item = cast(Item2D, dragEvent:GetSource())
+            repeat until item = undefined or item is ScenePaletteItem
+                item = item:GetParent()
+            end
+        end
+
+        if item = undefined
+            return now
+        end
+
+        ScenePaletteItem paletteItem = cast(ScenePaletteItem, item)
+        ScenePalette palette = paletteItem:GetPalette()
+        ItemBlueprint schematic = paletteItem:GetItemBlueprint()
+        if schematic is DrawableBlueprint
+            EditorLayer layer = controller:GetSelectedLayer()
+            if layer is EditorLayer2D = false
+                Array<EditorLayer> array = controller:GetSceneLayers()
+                integer i = array:GetSize()
+                boolean found = false
+                repeat while i > 0 and found = false
+                    i = i - 1
+                    if array:Get(i) is EditorLayer2D
+                        layer = array:Get(i)
+                        found = true
+                    end
+                end
+
+                if not found
+                    palette:SetDraggedItem(undefined)
+                    return now
+                end
+            end
+
+            Drawable drawable = cast(Drawable, palette:GetDraggedItem())
+
+            Vector3 worldCoordinates = layer:GetCamera():ScreenToWorldCoordinates(dragEvent:GetX() - layer:GetViewportX(), dragEvent:GetY() - layer:GetViewportY())
+            number x = layer:GetPreviousGridCoordinate(worldCoordinates:GetX())
+            number y = layer:GetPreviousGridCoordinate(worldCoordinates:GetY())
+            drawable:SetPosition(x, y)
+
+            palette:SetDraggedItem(undefined)
+
+            controller:Add(layer, drawable)
+            controller:IncrementNameCount(schematic:GetName())
+        else
+            // TO-DO
+        end
+    end
+
+end

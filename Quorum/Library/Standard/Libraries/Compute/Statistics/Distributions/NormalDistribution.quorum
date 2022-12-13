@@ -17,7 +17,7 @@ use Libraries.Compute.Math
     output distribution:CumulativeDistribution(-5)
 */
 class NormalDistribution is NumberDistribution
-    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 0.000000001
+    constant number DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1.0e-9
     number solverAbsoluteAccuracy = DEFAULT_INVERSE_ABSOLUTE_ACCURACY
     number mean = 0
     number standardDeviation = 1.0
@@ -36,6 +36,11 @@ class NormalDistribution is NumberDistribution
 
     action GetVariance returns number
         return standardDeviation * standardDeviation
+    end
+
+    action Setup(number mean, number standardDeviation)
+        me:mean = mean
+        me:standardDeviation = standardDeviation      
     end
 
     /*
@@ -90,11 +95,9 @@ class NormalDistribution is NumberDistribution
         end
 
         Math math
-        number ret = mean + standardDeviation * math:squareRoot2
-
         ErrorAction act
-        number otherX = 2 * p - 1
-        return ret * act:InverseError(otherX)
+        number qnorm = math:squareRoot2 * act:InverseError(2 * p - 1)
+        return mean + standardDeviation * qnorm
     end
 
     action IsSupportConnected returns boolean

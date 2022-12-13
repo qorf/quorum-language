@@ -1,0 +1,64 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Compute.Statistics.Tests.CompareCounts
+use Libraries.Compute.Statistics.Reporting.CompareCountsResult
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+
+/*
+    This class tests pearson chi-squared goodness of fit.
+*/
+class CompareCountsGoodnessOfFitTest is Test
+
+    on create
+        SetName("Compare Counts Goodness of Fit test - Pearson Chi-Squared")
+    end
+
+    action Run
+        DataFrame frame
+        TextColumn column
+        column:SetHeader("answer")
+        i = 0
+        repeat while i < 150
+            column:Add("no")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 50
+            column:Add("neither")
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 100
+            column:Add("yes")
+            i = i + 1
+        end
+        frame:AddColumn(column)
+
+        // Equal distribution test
+        CompareCounts compare
+        compare:AddColumn(0)
+        compare:GoodnessOfFit(frame)
+        CompareCountsResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 50.0)
+        Check(result:GetDegreesOfFreedom(), 2.0)
+        Check(result:GetProbabilityValue(), 1.3887890837338546e-11)  
+
+        // Expected percent test
+        NumberColumn percents
+        percents:Add(0.5)
+        percents:Add(0.25)
+        percents:Add(0.25)
+
+        CompareCounts compare2
+        compare2:AddColumn(0)
+        compare2:GoodnessOfFitAgainstExpectedPercents(frame, percents)
+        CompareCountsResult result2 = compare2:GetResult()
+        Check(result2:GetTestStatistic(), 150.00000000000003)
+        Check(result2:GetDegreesOfFreedom(), 2.0)
+        Check(result2:GetProbabilityValue(), 0.0)
+    end
+end

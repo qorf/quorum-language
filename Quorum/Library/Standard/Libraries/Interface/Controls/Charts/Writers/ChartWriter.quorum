@@ -55,9 +55,12 @@ class ChartWriter
     Array<Array<Label>> subXLabels
     Array<Rectangle> groupPanels
     Group chartInformation
+    ScalableVectorGraphics canvas
 
-    
-    
+    //File paths for script/style
+    text scriptFilepath = ""
+    text styleFilepath = ""
+
     /*
         This action writes out the Chart by grabbing necessary information from the chart and it will then return
         all of the necessary text needed to write out an SVG file that will contain the chart.
@@ -142,10 +145,17 @@ class ChartWriter
     */
     action WriteOutChart(Chart chart) returns text
         ScalableVectorGraphics chartCanvas
+        canvas = chartCanvas
         //chartCanvas:SetSize(svgWidth,svgHeight)
+        svgWidth = cast(integer,chart:GetWidth())
+        svgHeight = cast(integer,chart:GetHeight())
         chartCanvas:SetViewBox(0,0,svgWidth,svgHeight)
         chartCanvas:SetStyleClass("quorum-chart")
-        chartCanvas:SetTabIndex(-1)
+        if HasAccessibility()
+            chartCanvas:SetTabIndex(-1)
+        else
+            chartCanvas:SetTabIndex(0)
+        end
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
 
         //Generate SVG elements for each piece of the chart
@@ -217,10 +227,15 @@ class ChartWriter
         axisLengthY = cast(integer, svgHeight*chart:GetChartAreaHeightPercent())
         axisPointY = cast(integer, svgHeight*(1 - chart:GetHorizontalPanelHeightPercent()))
         ScalableVectorGraphics chartCanvas
+        canvas = chartCanvas
         //chartCanvas:SetSize(svgWidth,svgHeight)
         chartCanvas:SetViewBox(0,0,svgWidth,svgHeight)
         chartCanvas:SetStyleClass("quorum-chart")
-        chartCanvas:SetTabIndex(-1)
+        if HasAccessibility()
+            chartCanvas:SetTabIndex(-1)
+        else
+            chartCanvas:SetTabIndex(0)
+        end
         chartCanvas:SetID("svg_" + chartCanvas:GetHashCode() + "_" + UniversalUniqueIdentifier())
 
         //Generate SVG elements for each piece of the chart
@@ -280,19 +295,25 @@ class ChartWriter
         page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
 
         // add necessary scripts
-        Random random
-        
-        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        if scriptFilepath not= ""
+            page:AddScript(scriptFilepath)
+        else
+            page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        end
 
         // add necessary styles
-        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        if styleFilepath not= ""
+            page:AddStylesheet(styleFilepath)
+        else
+            page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        end
 
         page:SetWebPageTitle("Quorum Charts: " + chart:GetTitle())
 
         Division responsiveWrapper
         responsiveWrapper:AddText(WriteOutChart(chart))
         if chart:GetWidth() > 200
-            responsiveWrapper:SetStyle("min-width: 200px; max-width: " + chart:GetWidth() + "px")
+            responsiveWrapper:SetStyle("min-width: 200px; max-width: " + svgWidth + "px")
         end
         page:Add(responsiveWrapper)
 
@@ -494,6 +515,22 @@ class ChartWriter
         return groupPanels
     end
 
+    action SetScriptFilepath(text scriptFilepath)
+        me:scriptFilepath = scriptFilepath
+    end
+
+    action GetScriptFilepath returns text
+        return me:scriptFilepath
+    end
+
+    action SetStyleFilepath(text styleFilepath)
+        me:styleFilepath = styleFilepath
+    end
+
+    action GetStyleFilepath returns text
+        return me:styleFilepath
+    end
+
     /*
         This action adds a white background to the canvas
     */
@@ -506,10 +543,10 @@ class ChartWriter
         background:SetPosition(0, 0, "%")
         background:SetID(canvas:GetID() + "_" + background:GetHashCode())
         background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
-        background:SetTabIndex(0)
         if HasAccessibility()
+            background:SetTabIndex(0)
             background:SetRole("application")
-            background:SetAriaLabel(chart:GetTitle() + ", " + chart:GenerateSummary())
+            background:SetAriaLabel(chart:GetName() + ", " + chart:GetDescription())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
@@ -528,7 +565,7 @@ class ChartWriter
         chartArea:SetStyleClass("quorum-chart-element")
         chartArea:SetTabIndex(-1)
         if HasAccessibility()
-            chartArea:SetAriaHidden("true")
+            chartArea:SetAriaHidden("false")
         end
         canvas:Add(chartArea)
 
@@ -549,8 +586,8 @@ class ChartWriter
                 svgSubChartArea:SetStyleClass("quorum-chart-element")
                 svgSubChartArea:SetTabIndex(-1)
                 if HasAccessibility()
-                    svgSubChartArea:SetAriaLabel(currentSubChartArea:GetDescription())
-                    svgSubChartArea:SetAriaHidden("true")
+                    svgSubChartArea:SetAriaLabel(currentSubChartArea:GetName() + currentSubChartArea:GetDescription())
+                    svgSubChartArea:SetAriaHidden("false")
                 end
                 me:subChartAreas:Add(svgSubChartArea)
                 canvas:Add(svgSubChartArea)
@@ -1596,16 +1633,15 @@ class ChartWriter
         svgWrapper:SetTabIndex("-1")
         svgWrapper:SetStyle("user-select: none;")
         divRegion:AddNestedTag(svgWrapper)
+        AddOrderingList(canvas, chart)
         svgWrapper:AddText(canvas:ToText())
-
-        AddOrderingList(divRegion, canvas, chart)
 
         return divRegion
     end
 
-    action AddOrderingList(Division division, ScalableVectorGraphics canvas, Chart chart)
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         Script script
-        division:Add(script)
+        canvas:Add(script)
     end
 
     action AddRegressionLines(ScalableVectorGraphics canvas, Chart chart)

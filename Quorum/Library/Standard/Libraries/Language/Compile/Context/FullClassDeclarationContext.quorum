@@ -11,8 +11,8 @@ class FullClassDeclarationContext is ParseContext
     public QualifiedName name = undefined
     public Location classNameLocation
 
-    GenericDeclarationContext generic = undefined
-    InheritStatementsContext inherit = undefined
+    public GenericDeclarationContext generic = undefined
+    public InheritStatementsContext inherit = undefined
     Array<ClassStatementsContext> statements = undefined
     /*
         In the Antlr parser, there is a bug related to documentation where it only fires

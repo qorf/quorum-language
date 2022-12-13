@@ -1,0 +1,541 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Calculations.SumOfSquares
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Distributions.NormalDistribution
+use Libraries.Compute.Statistics.Reporting.CompareDistributionsResult
+use Libraries.Compute.Matrix
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Columns.TextColumn
+
+/*
+    This class implements two tests: 
+        CompareDistributionToNormal is a Shapiro-Wilk Test
+        Check if a sample is distributed normally
+        For more information: https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test
+    
+        ________________ is a Kolmogorov-Smirnov Test
+        Check a sample's distribution against a known distribution
+        For more information: https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+
+    It was partially adapted from a similar model in Apache Commons, and FORTAN but was expanded 
+    upon to simplify the library and add a variety of helper actions and calculations that were missing.
+    More information about this class can be found on then documentation pages KolmogorovSmirnovTest:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+    FORTRAN: http://lib.stat.cmu.edu/apstat/R94
+
+    Attribute: Author Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CompareDistributions
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+
+    CompareDistributions compare
+    compare:AddColumn(0)
+    frame:Calculate(compare)
+    output frame:GetFormalSummary()
+*/
+class CompareDistributions is StatisticalTest
+    /* The distribution used to calculate the p-value in normality tests.*/
+    NormalDistribution zdistribution
+
+    Array<CompareDistributionsResult> results
+
+    Math math
+
+    action Calculate(DataFrame frame) 
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+
+        if GetFactorSize() = 0
+            parent:StatisticalTest:Calculate(frame)
+        else
+            parent:StatisticalTest:CalculateWithFactor(frame)
+        end
+    end
+
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 1
+            alert("Must include at least one column.")
+        end
+        
+        CompareDistributionToNormal(frame)    
+    end
+
+    /* 
+        Shapiro-Wilk Test tests for normality on each sample
+
+        Null hypothesis: The sample MAY be normally distributed
+        Alternative hypothesis: The sample is not normally distributed.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("data.csv")
+    
+        CompareDistributions compare 
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:Calculate(frame)
+
+        output compare:GetFormalSummary()
+    */
+    action CompareDistributionToNormal(DataFrame frame) 
+        if GetColumnSize() = 0 or GetFactorSize() > 0
+            me:Calculate(frame) 
+        else
+            if GetColumnSize() < 1
+                alert("CompareDistributionToNormal must have at least 1 group.")
+            end
+
+            integer i = 0
+            repeat while i < GetColumnSize()
+                // Get sorted column
+                DataFrameColumn column = frame:GetColumn(GetColumn(i)):Copy(true, false)
+    
+                if column = undefined
+                    alert("Column is undefined.")
+                end
+        
+                if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+                end
+
+                integer size = column:GetSize()
+        
+                if size < 3
+                    alert("Columns must have 3 or more entries. Not enough data for test to be calculated.")
+                end
+
+                if size > 5000
+                    alert("Cannot calculate this test with a sample size of over 5000.")
+                end
+
+                // See: https://www.automateexcel.com/stats/shapiro-wilk-royston-test/
+                // See: https://www.ine.pt/revstat/pdf/rs160105.pdf
+                // See FORTRAN: http://lib.stat.cmu.edu/apstat/R94 
+
+                // Calculate m -> the expected value order statistics from a normal distribution
+                // Calculate m sum of squares here as well
+                Matrix m
+                m:Fill(size,1,0)
+                number mSumOfSquares = 0
+                integer j = 0
+                repeat while j < size
+                    number value = zdistribution:InverseCumulativeDistribution(((j+1) - 0.375) / (size + 0.25))
+                    m:Set(j, 0, value)   
+                    mSumOfSquares = mSumOfSquares + value * value            
+                    j = j + 1
+                end                
+
+                // Normalize m into weights -> the coefficients 
+                Matrix a
+                a:Fill(size,1,0)
+                number rootMSumOfSquares = math:SquareRoot(mSumOfSquares)
+                j = 0
+                repeat while j < m:GetRows()
+                    a:Set(j, 0, m:Get(j,0) / rootMSumOfSquares)
+                    j = j + 1
+                end 
+
+                // Correct the coefficients appropriately
+                number phi = 1
+                integer startIndex = 0
+                integer stopIndex = -1
+                if size = 3
+                    // Replace first weight
+                    a:Set(0, 0, math:SquareRoot(0.5))
+
+                    // Replace third (last) weight
+                    a:Set(2, 0, -math:SquareRoot(0.5))
+
+                else//if size = 4 or size = 5
+                    Array<number> polynomialCoefficients //C1 in FORTRAN
+                    polynomialCoefficients:Add(-2.706056)
+                    polynomialCoefficients:Add(4.434685)
+                    polynomialCoefficients:Add(-2.071190)
+                    polynomialCoefficients:Add(-0.147981)
+                    polynomialCoefficients:Add(0.221157)
+                    polynomialCoefficients:Add(a:Get(size-1,0))
+
+                    number y = PolynomialEvaluation(polynomialCoefficients, 1 / math:SquareRoot(size))
+        
+                    // Replace first coefficient element
+                    a:Set(0, 0, -y)
+
+                    // Replace last coefficient element
+                    a:Set(size-1, 0, y)
+
+                    // Calculate phi
+                    mn = m:Get(size-1,0)
+                    an = a:Get(size-1, 0)
+                    phi = (mSumOfSquares - (2 * mn * mn)) / (1 - (2 * an * an))   
+
+                    // Replace from second index to index N-1
+                    startIndex = 1
+                    stopIndex = size-2  
+
+                    if size >= 6
+                        Array<number> polynomialCoefficients2 //C2 in FORTRAN
+                        polynomialCoefficients2:Add(-3.582633)
+                        polynomialCoefficients2:Add(5.682633)
+                        polynomialCoefficients2:Add(-1.752461)
+                        polynomialCoefficients2:Add(-0.293762)
+                        polynomialCoefficients2:Add(0.042981)
+                        polynomialCoefficients2:Add(a:Get(size-2,0))
+    
+                        y = PolynomialEvaluation(polynomialCoefficients2, 1 / math:SquareRoot(size))
+    
+                        // Replace second coefficient element
+                        a:Set(1, 0, -y)
+    
+                        // Replace second to last coefficient element
+                        a:Set(size-2, 0, y)
+                        
+                        mn = m:Get(size-1,0)
+                        mn_1 = m:Get(size-2,0)
+                        an = a:Get(size-1, 0)
+                        an_1 = a:Get(size-2, 0)
+                        phi = (mSumOfSquares - (2 * mn * mn) - (2 * mn_1 * mn_1)) / (1 - (2 * an * an) - (2 * an_1 * an_1))
+    
+                        // Replace from third index to index N-2 
+                        startIndex = 2
+                        stopIndex = size-3
+                    end
+                end
+
+                // Replace coefficients between start and stop indices with m(n) / sqrt(phi) 
+                j = startIndex
+                repeat while j <= stopIndex
+                    a:Set(j, 0, m:Get(j, 0) / math:SquareRoot(phi))
+                    j = j + 1
+                end              
+        
+                // Calculate statistic numerator
+                number sumOfCoefficientProducts = 0
+                j = 0
+                repeat while j < size
+                    number value = column:GetAsNumber(j) * a:Get(j,0)
+                    sumOfCoefficientProducts = sumOfCoefficientProducts + value               
+                    j = j + 1
+                end
+                number squaredSumOfCoefficientProducts = sumOfCoefficientProducts * sumOfCoefficientProducts
+
+                // Calculate statistic denominator
+                Mean mean
+                column:Calculate(mean)
+                number columnMean = mean:GetMean()
+                number sumOfSquares = 0
+                j = 0
+                repeat while j < column:GetSize()
+                    number value = column:GetAsNumber(j) - columnMean
+                    sumOfSquares = sumOfSquares + value * value        
+                    j = j + 1
+                end
+            
+                // Calculate the W statistic
+                number w = squaredSumOfCoefficientProducts / sumOfSquares     
+
+                // Calculate the probability
+                // Approximations are based on Royston's alg found in FORTRAN code: http://lib.stat.cmu.edu/apstat/R94
+                number p = 0
+                if size = 3 // Exact p-value for N = 3
+                    p = (6 / math:pi) * (math:InverseSine(math:SquareRoot(w)) - 1.047198) //STQR in FORTRAN
+                else
+                    // Convert to z-score
+                    integer n = size
+                    number y = math:NaturalLogarithm(1 - w)
+                    number ln = math:NaturalLogarithm(n)
+                    number mu = 0
+                    number sd = 0
+                    if n < 12 // Approximation for 4 <= N <= 11 
+                        number gamma = 0.459 * n - 2.273 //G in FORTRAN
+                        if y > gamma
+                            p = 1.0e-19
+                        end
+                        number n2 = n * n
+                        number n3 = n2 * n
+                        y = -math:NaturalLogarithm(gamma - y) 
+                        mu = 0.544 - (0.39978 * n) + (0.025054 * n2) - (0.0006714 * n3) //C3 in FORTRAN
+                        number power = 1.3822 - (0.77857 * n) + (0.062767 * n2) - (0.0020322 * n3) //C4 in FORTRAN
+                        sd = math:RaiseNaturalNumberToPower(power) 
+                    else // Approximation for N >= 12     
+                        number ln2 = ln * ln
+                        number ln3 = ln2 * ln
+                        mu = -1.5861 - (0.31082 * ln) - (0.083751 * ln2) + (0.0038915 * ln3) //C5 in FORTRAN
+                        number power =  -0.4803 - (0.082676 * ln) + (0.0030302 * ln2) //C6 in FORTRAN
+                        sd = math:RaiseNaturalNumberToPower(power) 
+                    end
+                    number z = (y - mu) / sd 
+    
+                    // Calculate right-tailed probability value from normal distribution
+                    p = 1.0 - zdistribution:CumulativeDistribution(z)
+                end
+                Array<DataFrameColumn> sample
+                sample:Add(column)
+
+                // Save result
+                CompareDistributionsResult result
+                result:SetSignificanceLevel(GetSignificanceLevel())
+                result:SetFormat(GetStatisticalFormatting())
+                result:SetCriticalValue(w)
+                result:SetTestStatistic(w)
+                result:SetProbabilityValue(p)
+                result:SetFormalTestName("Shapiro-Wilk Normality Test")
+                result:SetFactor(GetFactorText())
+                result:SetGroups(sample)
+                results:Add(result)
+                i = i + 1
+            end
+        end
+    end
+
+    private action PolynomialEvaluation(Array<number> polynomialCoefficients, number x) returns number
+        number eval = 0
+        integer power = polynomialCoefficients:GetSize() - 1
+        integer i = 0
+        repeat while i < polynomialCoefficients:GetSize()
+            eval = eval + polynomialCoefficients:Get(i) * math:RaiseToPower(x, power)
+            power = power - 1
+            i = i + 1
+        end
+        return eval
+    end
+
+    /*
+        This returns the probability if only one result exists.
+
+        Attribute: Returns the P-Value. 
+    */
+    action GetProbabilityValue returns number
+        return GetResult():GetProbabilityValue()
+    end
+
+    /*
+        This returns the degrees of freedom if only one result exists.
+
+        Attribute: Returns the Degrees of Freedom. 
+    */
+    action GetDegreesOfFreedom returns number
+        return GetResult():GetDegreesOfFreedom()
+    end
+
+    /*
+        This returns the test statistic if only one result exists.
+
+        Attribute: Returns the test statistic. 
+    */
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
+    end
+
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the CompareDistributionsResult object
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+
+        CompareVariances compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:Calculate(frame)
+        
+        CompareDistributions result = compare:GetResult()
+    */
+    action GetResult returns CompareDistributionsResult
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
+        else
+            alert("There is more than one test result, use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        Attribute: Returns an array of CompareDistributionsResult objects
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareDistributions compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        frame:Calculate(compare)
+
+        Array<CompareDistributionsResult> results = compare:GetResults()
+    */
+    action GetResults returns Array<CompareDistributionsResult>
+        return results
+    end
+
+    /*
+        Attribute: Returns a list of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareDistributions compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+
+        output compare:GetSummary()
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CompareDistributionsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+
+    /*
+        Attribute: Returns a DataFrame of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareDistributions compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+        
+        DataFrame result = compare:GetSummaryDataFrame()
+        result:Save("myresult.csv")
+    */
+    action GetSummaryDataFrame returns DataFrame
+        if GetResults():GetSize() = 1
+            return GetResult():GetSummaryDataFrame()
+        end
+
+        return GetMultipleTestSummaryDataFrame()
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in 
+        APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        Attribute: Returns a condensed formal result of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareDistributions
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareDistributions compare
+        compare:Add(0)
+        compare:Add(1)
+        frame:Calculate(compare)
+
+        output compare:GetFormalSummary()
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        CompareDistributionsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+
+    private action GetMultipleTestSummaryDataFrame returns DataFrame
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+  
+        TextColumn name
+        NumberColumn w
+        NumberColumn p
+        NumberColumn ef 
+        TextColumn apa
+        i = 0
+        CompareDistributionsResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+            if i = 0
+                name:SetHeader(result:GetFormalTestName()) 
+                w:SetHeader("Statistic (W)")
+                p:SetHeader("Probability (P)")
+                ef:SetHeader("Effect Size (" + result:GetEffectSizeName() + ")")
+                apa:SetHeader("APA report") 
+            end
+            if result:IsSignificant()
+                name:Add("Failed")
+            else
+                name:Add("Passed")
+            end
+            w:Add(math:Round(result:GetTestStatistic(), digits))
+            p:Add(math:Round(result:GetProbabilityValue(), digits))
+            if result:GetEffectSizeName() not= "" 
+                ef:Add(math:Round(result:GetEffectSize(), digits))
+            end
+            apa:Add(result:GetFormalNumericalResult())
+            i = i + 1
+        end
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(w)
+        table:AddColumn(p)
+        if ef:GetSize() > 0
+            table:AddColumn(ef)
+        end
+        table:AddColumn(apa)
+        return table
+    end
+end

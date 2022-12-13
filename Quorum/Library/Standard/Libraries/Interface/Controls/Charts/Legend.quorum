@@ -80,19 +80,19 @@ class Legend is ChartItem
         //SetRightItem(chartArea)
         text description = ""
         if titleText not= ""
-            description = description + "shows " + titleText + " and "
+            description = description + " shows " + titleText + " and "
         end 
         if seriesList not= undefined
             if seriesList:GetSize() = 1
-                description = description + "has a value of " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
+                description = description + " has a value of " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
             else
-                description = description + "has values "
+                description = description + " has values "
                 integer i = 0
                 repeat while i < seriesList:GetSize()-1
                     description = description + seriesList:Get(i):GetName() + ", "
                     i = i + 1
                 end
-                description = description + "and " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
+                description = description + " and " + seriesList:Get(seriesList:GetSize()-1):GetName() + "."
             end
         end
         me:SetDescription(description)
@@ -126,12 +126,18 @@ class Legend is ChartItem
 
                     seriesList:Get(0):GetRegressionLine():SetName(seriesList:Get(0):GetName()+" regression line.")
                     seriesList:Get(0):GetRegressionLine():SetDescription(seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText())
-                    description = description + ", regression line " + seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText()  + ", "
+                    description = description + ", the trendline " 
+                    if seriesList:Get(0):GetRegressionLine():GetSlope() > 0
+                        description = description + "is positive, "
+                    else
+                        description = description + "is negative, "
+                    end
+                    description = description + seriesList:Get(0):GetRegressionLine():GetEquationLabel():GetText()  + ", "
 
                     // R-squared
                     ChartItem r2 = seriesList:Get(0):GetRegressionLine():GetRSquaredLabel()
                     r2:SetContainer(chart)
-                    description = description + " r squared " + seriesList:Get(0):GetRegressionLine():GetRSquaredLabel():GetText()
+                    description = description + " r squared =" + seriesList:Get(0):GetRegressionLine():CalculateRSquared()
                 end
             end
             description = description + ", 1 of " + seriesList:GetSize() + " series."
@@ -151,12 +157,18 @@ class Legend is ChartItem
                         equation:SetContainer(chart)
                         seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line")
                         seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
-                        description = description + ", regression line " + seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText()  + ", "
+                        description = description + ", the trendline " 
+                        if seriesList:Get(i):GetRegressionLine():GetSlope() > 0
+                            description = description + "is positive, "
+                        else
+                            description = description + "is negative, "
+                        end
+                        description = description + seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText()  + ", "
     
                         // R-squared
                         ChartItem r2 = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
                         r2:SetContainer(chart)
-                        description = description + " r squared " + seriesList:Get(i):GetRegressionLine():GetRSquaredLabel():GetText()
+                        description = description + " r squared =" + seriesList:Get(i):GetRegressionLine():CalculateRSquared()
                     end
                 end
                 description = description + ", " + (i+1) + " of " + seriesList:GetSize() + " series."

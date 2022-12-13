@@ -1,0 +1,168 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Calculations.Covariance
+use Libraries.Compute.Matrix
+
+/*
+    CovarianceMatrixTransform calculates the covariance for every selected column against 
+    the other selected columns in a DataFrame and returns a DataFrame of the covariances.
+    The default covariance calculated in this case is the sample covariance.
+    Use UsePopulation(true) to get the population covariance.
+    For more information: https://en.wikipedia.org/wiki/Covariance_matrix
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    
+    CovarianceMatrixTransform cov
+    cov:AddColumn(0)
+    cov:AddColumn(1)
+    cov:AddColumn(2)
+    cov:AddColumn(3)
+    DataFrame dataframeMatrix = frame:Transform(cov)
+    dataframeMatrix:Save("Covariances.csv")
+*/
+class CovarianceMatrixTransform is DataFrameTransform, ColumnInput
+    Matrix covarianceMatrix = undefined
+    boolean biasCorrected = true
+    boolean population = false
+    boolean sample = true
+
+    action Transform(DataFrame frame) returns DataFrame 
+        if GetColumnSize() < 1
+            alert("At least one column must be selected to conduct a Covariance Matrix Transform.")
+        end
+
+        DataFrame newFrame
+        TextColumn rows
+        newFrame:AddColumn(rows)
+
+        integer i = 0
+        repeat while i < GetColumnSize()
+            DataFrameColumn column1 = frame:GetColumn(GetColumn(i))
+            if not column1:IsNumberColumn() and not column1:IsIntegerColumn()
+                alert("Columns must be numerical. " + column1:GetHeader() + " is not a numerical column.")
+            end
+            rows:Add(column1:GetHeader())
+
+            NumberColumn col
+            col:SetHeader(column1:GetHeader())
+            newFrame:AddColumn(col)
+
+            integer j = 0
+            repeat while j < GetColumnSize()
+                repeat while j < i
+                    col:Add(newFrame:GetColumn(j+1):GetAsNumber(i))
+                    j = j + 1
+                end
+                DataFrameColumn column2 = frame:GetColumn(GetColumn(j))
+                if not column2:IsNumberColumn() and not column2:IsIntegerColumn()
+                    alert("Columns must be numerical. " + column2:GetHeader() + " is not a numerical column.")
+                end
+
+                Covariance cov
+                cov:UsePopulation(population)
+                cov:BiasCorrected(biasCorrected)
+                cov:Calculate(column1, column2)
+
+                col:Add(cov:GetCovariance())
+                j = j + 1
+            end
+            i = i + 1
+        end
+        
+        covarianceMatrix = ConvertToMatrix(newFrame)
+        return newFrame
+    end
+
+    /*
+        This action returns the actual numerical matrix of this transform
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        
+        CovarianceMatrixTransform transform
+        transform:AddColumn(0)
+        transform:AddColumn(1)
+        DataFrame dataframeMatrix = frame:Transform(transform)    
+        Matrix actualMatrix = transform:GetMatrix()
+    */
+    action GetMatrix returns Matrix
+        return covarianceMatrix
+    end
+
+    private action ConvertToMatrix(DataFrame frame) returns Matrix
+        Matrix matrix
+
+        if frame not= undefined
+            DataFrame copy = frame:Copy()
+            // Remove first column (which is the row headers)
+            copy:RemoveColumnAt(0)
+            matrix = copy:ConvertToMatrix()
+        end
+        
+        return matrix
+    end
+
+    /*
+        Returns the biasCorrected
+    */
+    action BiasCorrected returns boolean
+        return biasCorrected
+    end
+
+    /*
+        Sets the bias corrected boolean. True if correction is applied.
+    */
+    action BiasCorrected(boolean biasCorrected)
+        me:biasCorrected = biasCorrected
+    end
+
+    /*
+        Returns the population boolean
+    */
+    action UsePopulation returns boolean
+        return population
+    end
+
+    /*
+        Sets the population boolean. True if population covariance is applied.
+    */
+    action UsePopulation(boolean population)
+        me:population = population
+        me:sample = not population
+    end
+
+    /*
+        Returns the sample boolean
+    */
+    action UseSample returns boolean
+        return sample
+    end
+
+    /*
+        Sets the sample boolean. True if sample covariance is applied.
+    */
+    action UseSample(boolean sample)
+        me:sample = sample
+        me:population = not sample
+    end
+
+end

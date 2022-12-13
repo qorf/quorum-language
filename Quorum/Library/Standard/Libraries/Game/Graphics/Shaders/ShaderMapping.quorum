@@ -3,8 +3,20 @@ package Libraries.Game.Graphics.Shaders
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DrawableShape
 
 class ShaderMapping
+
+    blueprint action Begin(ShaderProgram program, Camera camera)
+
+    blueprint action End(ShaderProgram program)
+
+    action GetVertexSize returns integer
+        // The default vertex size for a 2D shader.
+        // TO-DO: Figure out what this needs to be for 3D (that problem gets more complicated due to optional components)
+        return 6
+    end
 
     action MapInputs(ShaderProgram program, Renderable renderable)
         alert("Error while trying to render a renderable with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 3D renderables.")
@@ -14,8 +26,60 @@ class ShaderMapping
         alert("Error while trying to render the drawable " + drawable:GetName() + " with the shader program " + program:GetName() + ": the chosen shader mapping doesn't support 2D drawables.")
     end
 
-    blueprint action Begin(ShaderProgram program, Camera camera)
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        // This action does nothing by default, but can overridden.
+    end
 
-    blueprint action End(ShaderProgram program)
+    action SupportsBatching returns boolean
+        return GetBatchingMesh() not= undefined
+    end
 
+    /*
+    Returns the Mesh used by this ShaderMapping to support batching.
+    By default, this returns undefined, but it can be overridden to
+    provide a custom Mesh.
+
+    If this action returns undefined, no batching will be performed
+    using this ShaderMapping.
+    */
+    action GetBatchingMesh returns Mesh
+        return undefined
+    end
+    
+    /*
+    This action is called just before the first item in a Batch is passed to the MapInputs call.
+    */
+    action BeginBatch(ShaderProgram program)
+        // By default, do nothing. This can be overridden.
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        // By default, do nothing. This can be overridden.
+    end
+
+    /*
+    This action determines if the provided Drawable can be included in the current batch.
+    If this returns false, then the current batch must be rendered before this Drawable can
+    be added.
+
+    This action should only be called if the mapping supports batching. By default, a mapping
+    that doesn't support batching will return false from this action.
+    */
+    action CanIncludeInBatch(ShaderProgram program, Drawable drawable) returns boolean
+        return false
+    end
+
+    /*
+    This action returns true if the ShaderMapping currently has a batch awaiting rendering,
+    or false if there are no Drawables awaiting rendering in a batch.
+
+    This action should only be called if the mapping supports batching. By default, a mapping
+    that doesn't support batching will return false from this action.
+    */
+    action IsBatching returns boolean
+        return false
+    end
 end

@@ -1098,7 +1098,7 @@ class Item
     focus, and there will be no focused element.
     */
     action SetFocusable(boolean focus)
-        if not focus and IsFocused()
+        if not focus and manager:GetGame() not= undefined and IsFocused()
             manager:GetGame():SetFocus(undefined)
         end
         focusable = focus

@@ -1,0 +1,170 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+
+
+/*
+    ModelSelectionHighlight is a SelectionHighlight for Models. The highlight is a cube and it is the same
+    hightlight made by SelectionHighlight3D. This class is different in that it adds more actions to 
+    SelectionHightlight3D that modify properties specifc to EditorModels such as Color and Rotation.
+*/
+class ModelSelectionHighlight is SelectionHighlight3D
+
+    /*
+        This action retuns the item being selected as an EditorModel
+    */
+    action GetEditorModel returns EditorModel
+        return cast(EditorModel, GetItem())
+    end
+
+    /*
+        Returns the color of the EditorModel
+    */
+    action GetColor returns Color
+        EditorModel item = GetEditorModel()
+        if item not= undefined
+            return item:GetColor()
+        else
+            return undefined
+        end
+    end
+
+    /*
+        Sets the color of the model
+    */
+    action SetColor(Color color)
+        EditorModel item = GetEditorModel()
+        if item not= undefined
+            item:SetColor(color)
+        end
+    end
+
+    /*
+        Scale adjusts the dimensions of the model on each axis. This action
+        scales the model on all 3 axis based on each value in the Vector3.
+        The highlight is adjusted accordingly to contain the model.
+    */
+    action Scale(Vector3 vector)
+        EditorModel item = GetEditorModel()
+        parent:Model:Scale(vector)
+        if item not= undefined
+            item:Scale(vector)
+        end
+    end
+
+    /*
+        Scale adjusts the dimensions of the model on each axis. This action
+        scales the model on all 3 axis based on each value passed in.
+        The highlight is adjusted accordingly to contain the model.
+
+        Attribute: Parameter x Amount of to scale on the x axis
+        Attribute: Parameter y Amount of to scale on the y axis
+        Attribute: Parameter z Amount of to scale on the z axis
+    */
+    action Scale(number x, number y, number z)
+        EditorModel item = GetEditorModel()
+        parent:Model:Scale(x, y, z)
+        if item not= undefined
+            item:Scale(x, y, z)
+        end
+    end
+
+    /*
+        SetScaleX adjust the dimensions of the model on the x axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
+    action SetScaleX(number scale)
+        EditorModel item = GetEditorModel()
+        parent:EditorItem3D:SetScaleX(scale)
+        if item not= undefined
+            item:SetScaleX(scale)
+        end
+    end
+
+    /*
+        SetScaleY adjust the dimensions of the model on the y axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
+    action SetScaleY(number scale)
+        EditorModel item = GetEditorModel()
+        parent:EditorItem3D:SetScaleY(scale)
+        if item not= undefined
+            item:SetScaleY(scale)
+        end
+    end
+
+    /*
+        SetScaleZ adjust the dimensions of the model on the z axis.
+        The highlight is adjusted accordingly to contain the model.
+    */
+    action SetScaleZ(number scale)
+        EditorModel item = GetEditorModel()
+        parent:EditorItem3D:SetScaleZ(scale)
+        if item not= undefined
+            item:SetScaleZ(scale)
+        end
+    end
+
+    /*
+        SetRotation sets how far the model is angled on each axis. This action
+        uses 3 angles for yaw, pitch, and roll to rotate the model. All angles 
+        are expected to degrees. The highlight is adjusted accordingly to 
+        contain the model.
+    */
+    action SetRotation(number newYaw, number newPitch, number newRoll)
+        EditorModel item = GetEditorModel()
+        number yaw = parent:EditorModel:yaw
+        number pitch = parent:EditorModel:pitch
+        number roll = parent:EditorModel:roll
+
+        if item not= undefined
+            if roll not= 0
+                item:Rotate(0, 0, 1, -roll)
+            end
+            if pitch not= 0
+                item:Rotate(1, 0, 0, -pitch)
+            end
+            if yaw not= 0
+                item:Rotate(0, 1, 0, -yaw)
+            end
+    
+            if newYaw not= 0
+                item:Rotate(0, 1, 0, newYaw)
+            end
+            if newPitch not= 0
+                item:Rotate(1, 0, 0, newPitch)
+            end
+            if newRoll not= 0
+                item:Rotate(0, 0, 1, newRoll)
+            end
+
+            SceneConstants constants
+            JavaScriptObjectNotation json = undefined
+            if item:HasProperty(constants:EULER_ANGLES)
+                json = item:GetProperty(constants:EULER_ANGLES)
+            else
+                JavaScriptObjectNotation newJson
+                json = newJson
+                json:SetArray()
+                json:Add(0.0)
+                json:Add(0.0)
+                json:Add(0.0)
+                item:SetProperty(constants:EULER_ANGLES, json)
+            end
+    
+            JavaScriptObjectNotation temp = json:Get(0)
+            temp:SetNumber(newYaw)
+            temp = json:Get(1)
+            temp:SetNumber(newPitch)
+            temp = json:Get(2)
+            temp:SetNumber(newRoll)
+        end
+
+        parent:EditorItem3D:SetRotation(newYaw, newPitch, newRoll)
+    end
+
+end

@@ -1,0 +1,38 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Containers.Support.Comparison
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+/*
+    The ItemBlueprintComparison class is used to compare two ItemBlueprint objects and 
+    determine if they are equal or if one if considered larger. ItemBlueprints are compared 
+    based on their names so it is similar to comparing to text objects. This Comparison is 
+    mainly used to sort blueprints.
+*/
+class ItemBlueprintComparison is Comparison
+
+    /*
+        This action provides a way to compare two objects. The returned values from 
+        its sole action is an integer with the value of -1 (the left item is smaller), 
+        0 (the items are equal) or 1 (the left item is larger).It can be used to 
+        override the standard comparison in Object for various applications (e.g., sorting). 
+        For the ItemBlueprint class this action is used for when an Item Blueprint is 
+        compared to another ItemBlueprint. When two ItemBlueprints are compared they are 
+        compared using their names. If any of their names are undefined then they are 
+        assumed to be equal. 
+    */
+    action Compare(Object a, Object b) returns integer
+        if not (a is ItemBlueprint and b is ItemBlueprint)
+            return a:Compare(b)
+        end
+
+        ItemBlueprint ia = cast(ItemBlueprint, a)
+        ItemBlueprint ib = cast(ItemBlueprint, b)
+        text nameA = ia:GetName()
+        text nameB = ib:GetName()
+        if nameA = undefined or nameB = undefined
+            return 0 //if they don't exist, ignore it and claim they are equal.
+        end
+        return nameA:Compare(nameB)
+    end
+end

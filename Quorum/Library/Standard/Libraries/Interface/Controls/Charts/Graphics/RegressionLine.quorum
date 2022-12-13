@@ -26,7 +26,7 @@ class RegressionLine is ChartDrawable, LinePath
     private Array<text> independentVariables    // This would be used when we have multi-variate regression
     private boolean nameAfterSeries = false
 
-    number slope = 1
+    number slope = 0.0
     number constantValue = 0
 
     boolean movable = false
@@ -458,6 +458,14 @@ class RegressionLine is ChartDrawable, LinePath
         vector:Set(GetPoint(0))
         TranslateFromMappedSpace(vector)
         return vector
+    end
+
+    action GetSlope returns number
+        return slope
+    end
+
+    action CalculateRSquared returns number
+        return (math:Round(regression:GetEffectSize(),4))
     end
 
     action GetPixelEndPosition returns Vector2

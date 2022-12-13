@@ -24,6 +24,12 @@ class TextBoxSelection is Selection
     Pair<integer> lineIndices
     boolean caretAtEnd = true
     boolean textChanged = false
+    
+    // Values for "locking" the selection between two indices.
+    // If the start is less than 0, the start value will be unlocked.
+    // If the end is unlocked, it will be the maximum integer value.
+    integer lockStart = -1
+    integer lockEnd = lockStart:GetMaximumValue()
 
     /* A default constructor for the object. */
     on create
@@ -51,6 +57,20 @@ class TextBoxSelection is Selection
         Attribute: Parameter caretAtEnd Whether the caret is at the end of the text value.
     */
     action Set(integer startIndex, integer endIndex, boolean caretAtEnd, boolean textChanged)
+        if startIndex < lockStart
+            startIndex = lockStart
+        end
+        if endIndex < lockStart
+            endIndex = lockStart
+        end
+
+        if startIndex > lockEnd
+            startIndex = lockEnd
+        end
+        if endIndex > lockEnd
+            endIndex = lockEnd
+        end
+
         TextBox textBox = GetTextBox()
         if textBox not= undefined
             MultipleLineText multi = textBox:GetMultipleLineText()
@@ -177,5 +197,47 @@ class TextBoxSelection is Selection
         lines:Set(0, 0)
         indices:Set(0, 0)
         lineIndices:Set(0, 0)
+
+        lockStart = 0
+        lockEnd = 0
+    end
+
+    /*
+    This action returns true if the selection is locked between two indices, or false
+    if the selection is unlocked.
+    */
+    action IsLocked returns boolean
+        return lockStart >= 0 or lockEnd < lockEnd:GetMaximumValue()
+    end
+
+    /*
+    This action locks the selection between the two indices. The selection cannot select an index less than
+    the locked start index or greater than the locked end index.
+    */
+    action LockSelection(integer startIndex, integer endIndex)
+        lockStart = startIndex
+        lockEnd = endIndex
+    end
+
+    /*
+    This action unlocks the selection, allowing any indices to be selected within the range of the TextBox.
+    */
+    action UnlockSelection
+        lockStart = -1
+        lockEnd = lockEnd:GetMaximumValue()
+    end
+
+    /*
+    This action returns the beginning of the lock region. If the selection isn't locked, this will return -1.
+    */
+    action GetLockStart returns integer
+        return lockStart
+    end
+
+    /*
+    This action returns the end of the lock region. If the selection isn't locked, this will return the maximum positive integer value.
+    */
+    action GetLockEnd returns integer
+        return lockEnd
     end
 end

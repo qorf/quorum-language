@@ -90,22 +90,26 @@ public class QueryResult {
         quorum.Libraries.System.DateTime_ date =  new quorum.Libraries.System.DateTime();
         quorum.Libraries.System.DateTime temp = (quorum.Libraries.System.DateTime) date;
         DateTime dt = temp.plugin_;
-
-        ZonedDateTime zdt = ZonedDateTime.of((results.getTimestamp(column)).toLocalDateTime(), ZoneId.systemDefault());
-        dt.zDateTime = zdt;
-        dt.now = false;
-        return date;
+        if (results.getTimestamp(column) != null) {
+            ZonedDateTime zdt = ZonedDateTime.of((results.getTimestamp(column)).toLocalDateTime(), ZoneId.systemDefault());
+            dt.zDateTime = zdt;
+            dt.now = false;
+            return date;
+        }
+        return null;
     }
 
     public quorum.Libraries.System.DateTime_ GetDateTime(int column) throws SQLException {
         quorum.Libraries.System.DateTime_ date =  new quorum.Libraries.System.DateTime();
         quorum.Libraries.System.DateTime temp = (quorum.Libraries.System.DateTime) date;
         DateTime dt = temp.plugin_;
-
-        ZonedDateTime zdt = ZonedDateTime.of((results.getTimestamp(column + 1)).toLocalDateTime(), ZoneId.systemDefault());
-        dt.zDateTime = zdt;
-        dt.now = false;
-        return date;
+        if (results.getTimestamp(column+1) != null) {
+            ZonedDateTime zdt = ZonedDateTime.of((results.getTimestamp(column + 1)).toLocalDateTime(), ZoneId.systemDefault());
+            dt.zDateTime = zdt;
+            dt.now = false;
+            return date;
+        }
+        return null;
     }
     
     public QueryMetaData_ GetQueryMetaData() throws SQLException {

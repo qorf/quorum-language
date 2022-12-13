@@ -1,0 +1,36 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+
+/*
+    This class tests a mauchly's sphericity test
+*/
+class CompareDependentVariancesTest is Test
+
+    on create
+        SetName("Calculate CompareDependentVariances")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+
+        CompareVariances compare
+        compare:RepeatedMeasures(true)
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        compare:AddColumn(3)
+        frame:Calculate(compare)
+        
+        CompareVariancesResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 0.00930567715078534)
+        Check(result:GetDegreesOfFreedom(), 5.0)
+        Check(result:GetProbabilityValue(), 0.003785502714980238)
+        Check(result:GetGreenhouseGeisserCorrection(), 0.4723101080615547)
+        Check(result:GetHuynhFeldtCorrection(), 0.6048428241098917)
+    end
+end

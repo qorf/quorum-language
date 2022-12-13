@@ -20,9 +20,9 @@ class PieSliceComparison is Comparison
             end
         else
             if slice1:GetValue() > slice2:GetValue()
-                return parent:Comparison:LARGER
-            elseif slice1:GetValue() < slice2:GetValue()
                 return parent:Comparison:SMALLER
+            elseif slice1:GetValue() < slice2:GetValue()
+                return parent:Comparison:LARGER
             else
                 return parent:Comparison:EQUAL
             end

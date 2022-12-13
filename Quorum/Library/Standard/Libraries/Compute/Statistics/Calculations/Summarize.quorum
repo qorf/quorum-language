@@ -27,6 +27,7 @@ use Libraries.Compute.Statistics.Calculations.Variance
 class Summarize is DataFrameColumnCalculation
     integer size = 0
     number mean = 0
+    number median = 0
     number variance = 0
     number minimum = 0
     number maximum = 0
@@ -39,10 +40,14 @@ class Summarize is DataFrameColumnCalculation
 
     action Calculate(DataFrameColumn column) 
         Mean meanCalculation
+        Median medianCalculation
         Variance varianceCalculation
 
         column:Calculate(meanCalculation)
         mean = meanCalculation:GetMean()
+
+        column:Calculate(medianCalculation)
+        median = medianCalculation:GetMedian()
 
         varianceCalculation:SetMean(mean)
         column:Calculate(varianceCalculation)
@@ -81,11 +86,16 @@ class Summarize is DataFrameColumnCalculation
     action Empty
         size = 0
         mean = 0
+        median = 0
         variance = 0
     end
 
     action GetMean returns number
         return mean
+    end
+
+    action GetMedian returns number
+        return median
     end
 
     action GetVariance returns number

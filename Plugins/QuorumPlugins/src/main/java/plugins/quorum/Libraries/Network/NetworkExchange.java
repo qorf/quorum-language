@@ -17,10 +17,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +65,13 @@ public class NetworkExchange {
     }
     public String GenerateSessionKey() {
         byte[] bytes = new byte[32];
+        SecureRandom rand = new SecureRandom();
+        rand.nextBytes(bytes);
+        return bytesToHex(bytes);
+    }
+
+    public String GenerateResetKey() {
+        byte[] bytes = new byte[25];
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(bytes);
         return bytesToHex(bytes);
@@ -132,6 +144,49 @@ public class NetworkExchange {
         BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hash);
         return result.verified;
     }
+
+    public String HashString(String algorithm, String value) {
+        try {
+            // getInstance() method is called with algorithm SHA-1
+            MessageDigest md = MessageDigest.getInstance(algorithm);
+
+            // digest() method is called
+            // to calculate message digest of the input string
+            // returned as array of byte
+            byte[] messageDigest = md.digest(value.getBytes());
+
+            // Convert byte array into signum representation
+            BigInteger no = new BigInteger(1, messageDigest);
+
+            // Convert message digest into hex value
+            String hashtext = no.toString(16);
+
+            // Add preceding 0s to make it 32 bit
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+
+            // return the HashText
+            return hashtext;
+        }
+
+        // For specifying wrong message digest algorithms
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public String URLEncodeValue(String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getCause());
+        }
+    }
+
+    public String Base64EncodeValue(String value) {
+        return Base64.getEncoder().encodeToString(value.getBytes());
+    }
+
     public HashTable_ GetHeaders() {
         HashTable table = new HashTable();
 

@@ -8,8 +8,9 @@ plugins {
 group 'plugins.quorum'
 version '10.0'
 
-project.ext.lwjglVersion = "3.2.3"
+project.ext.lwjglVersion = "3.3.1"
 project.ext.lwjglMac = "natives-macos"
+project.ext.lwjglMacArm = "natives-macos-arm64"
 project.ext.lwjglWindows = "natives-windows"
 project.ext.lwjglWindows32 = "natives-windows-x86"
 
@@ -87,6 +88,15 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglMac"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglMac"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglMac"
+
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglMacArm"
 
     //lwjglWindows64
     runtimeOnly "org.lwjgl:lwjgl::$lwjglWindows"

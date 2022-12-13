@@ -622,4 +622,17 @@ shared class Math
     action Remainder(number a, number b) returns number
         return (a - b * Floor(a/b))
     end
+
+    /*
+    This action calculates the factorial of n.
+    */
+    action Factorial(integer n) returns integer
+        integer result = 1
+        i = 1
+        repeat while i <= n
+            result = result * i
+            i = i + 1
+        end
+        return result
+    end    
 end
