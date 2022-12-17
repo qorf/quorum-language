@@ -1137,6 +1137,10 @@ shared class DefaultInputSets
         doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
         doubleClick:SetEventCount(2)
 
+        InputSet tripleClick
+        tripleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        tripleClick:SetEventCount(3)
+
         InputSet homeSet
         homeSet:SetKeyboardInput(keys:HOME)
 
@@ -1165,6 +1169,10 @@ shared class DefaultInputSets
 
         TextFieldSelectToEndBehavior textFieldSelectToEndBehavior
         textFieldTable:Add(shiftEndSet, textFieldSelectToEndBehavior)
+
+
+        TextFieldSelectAllBehavior textFieldSelectAllBehavior
+        textFieldTable:Add(tripleClick, textFieldSelectAllBehavior)
 
         TextFieldSavePreviousCaretPositionBehavior textFieldSavePreviousCaretPositionBehavior
         textFieldTable:Add(AddShiftModifier(GetLeftArrowKey()), textFieldSavePreviousCaretPositionBehavior)
@@ -1202,7 +1210,6 @@ shared class DefaultInputSets
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
             textFieldControlA:AddModifier(textFieldControlA:META)
-            TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
 
             InputSet textFieldAltRight
@@ -1253,7 +1260,6 @@ shared class DefaultInputSets
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
             textFieldControlA:AddModifier(textFieldControlA:CONTROL)
-            TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
 
 
