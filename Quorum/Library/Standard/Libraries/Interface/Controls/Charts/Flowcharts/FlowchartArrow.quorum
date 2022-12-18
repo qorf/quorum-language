@@ -259,16 +259,103 @@ class FlowchartArrow is Control
             // Make the line originate from the midpoint of the origin's grid coordinates, offset by half of our calculated direction.
             lines:Add(destination:GetGridX() + (destination:GetGridWidth() - destinationDirection:GetX() - arrowHeadOffset:GetX()) / 2.0,
                     destination:GetGridY() + (destination:GetGridHeight() - destinationDirection:GetY() - arrowHeadOffset:GetY()) / 2.0)
+
+            // Position the arrowhead at the end of the line.
+            arrowHead:SetPercentageX(lines:GetPointX(lines:GetPointCount() - 1) / lines:GetMappedRight())
+            arrowHead:SetPercentageY(lines:GetPointY(lines:GetPointCount() - 1) / lines:GetMappedTop())
         else
-            alert("NYI")
+
+            // Calculating the arrows for non-grid flowcharts is similar, but without a grid we have to calculate directly from pixel values instead.
+
+            /*
+            Calculate where the line starts.
+            While the waypoints are pretty easy (just run through the points),
+            for the arrow we need to determine where the arrow starts outside of the origin cell. To do that
+            we need to figure out which direction it's going and push it outside of the bounds of the origin node.
+            */
+            Vector2 originStart
+            originStart:Set(origin:GetX() + origin:GetWidth() / 2.0, origin:GetY() + origin:GetHeight() / 2.0)
+            Vector2 originDirection
+            if waypoints:IsEmpty()
+                originDirection:Set(destination:GetX() + destination:GetWidth() / 2.0, destination:GetY() + destination:GetHeight() / 2.0)
+            else
+                originDirection:Set(waypoints:Get(0):GetX(), waypoints:Get(0):GetY())
+            end
+
+            originDirection:Subtract(originStart)
+            originDirection:Normalize()
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            number max = math:AbsoluteValue(originDirection:GetX())
+            if math:AbsoluteValue(originDirection:GetY()) > max
+                max = math:AbsoluteValue(originDirection:GetY())
+            end
+            originDirection:Scale(1.0 / max, 1.0 / max)
+            originDirection:Scale(origin:GetWidth(), origin:GetHeight())
+
+            // Make the line originate from the midpoint of the origin, offset by half of our calculated direction.
+            lines:Add(origin:GetX() + (origin:GetWidth() + originDirection:GetX()) / 2.0, origin:GetY() + (origin:GetHeight() + originDirection:GetY()) / 2.0)
+
+            // Add the waypoints. For these, we can just pass through the midpoints directly.
+            integer counter = 0
+            repeat while counter < waypoints:GetSize()
+                Vector2 point = waypoints:Get(counter)
+                lines:Add(point:GetX(), point:GetY())
+                counter = counter + 1
+            end
+
+            /*
+            Finally, add the endpoint.
+            The approach here mirrors how we calculated the start point.
+            */
+            Vector2 destinationDirection
+            destinationDirection:Set(destination:GetX() + destination:GetWidth() / 2.0, destination:GetY() + destination:GetHeight() / 2.0)
+            Vector2 destinationPrior
+            if waypoints:IsEmpty()
+                destinationPrior:Set(origin:GetX() + origin:GetWidth() / 2.0, origin:GetY() + origin:GetHeight() / 2.0)
+            else
+                destinationPrior:Set(waypoints:GetFromEnd():GetX(), waypoints:GetFromEnd():GetY())
+            end
+
+            destinationDirection:Subtract(destinationPrior)
+            destinationDirection:Normalize()
+
+            // As an extra complication, for the end, we need to offset the distance the arrowhead will occupy.
+            Vector2 arrowHeadOffset
+            arrowHeadOffset:Set(destinationDirection)
+            // TO-DO: Review this to ensure it's the correct size.
+            arrowHeadOffset:Scale(arrowHeadThickness, arrowHeadThickness)
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            max = math:AbsoluteValue(destinationDirection:GetX())
+            if math:AbsoluteValue(destinationDirection:GetY()) > max
+                max = math:AbsoluteValue(destinationDirection:GetY())
+            end
+            destinationDirection:Scale(1.0 / max, 1.0 / max)
+            destinationDirection:Scale(destination:GetWidth(), destination:GetHeight())
+
+            // Make the line originate from the midpoint of the origin, offset by half of our calculated direction.
+            lines:Add(destination:GetX() + (destination:GetWidth() - destinationDirection:GetX() - arrowHeadOffset:GetX()) / 2.0,
+                    destination:GetY() + (destination:GetHeight() - destinationDirection:GetY() - arrowHeadOffset:GetY()) / 2.0)
+
+            // Position the arrowhead at the end of the line.
+            arrowHead:SetPixelX(lines:GetPointX(lines:GetPointCount() - 1))
+            arrowHead:SetPixelY(lines:GetPointY(lines:GetPointCount() - 1))
         end
 
-        // Position the arrowhead on the end of the line.
+        // Set the arrowhead's dimensions.
         arrowHead:SetPixelWidth(arrowHeadThickness)
         arrowHead:SetPixelHeight(arrowHeadThickness)
-        
-        arrowHead:SetPercentageX(lines:GetPointX(lines:GetPointCount() - 1) / lines:GetMappedRight())
-        arrowHead:SetPercentageY(lines:GetPointY(lines:GetPointCount() - 1) / lines:GetMappedTop())
 
         Vector2 priorPoint
         priorPoint:Set(lines:GetPoint(lines:GetPointCount() - 2))

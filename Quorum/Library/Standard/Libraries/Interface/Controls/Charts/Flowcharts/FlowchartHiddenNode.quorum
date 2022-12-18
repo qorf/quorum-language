@@ -4,8 +4,9 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.Color
 
-class FlowchartTextNode is FlowchartNode
+class FlowchartHiddenNode is FlowchartNode
 
     Label label
 
@@ -14,30 +15,36 @@ class FlowchartTextNode is FlowchartNode
         SetGridWidth(1)
         SetGridHeight(1)
 
-        ManualLayout layout
-        SetLayout(layout)
-
-        label:SetPercentageX(0.5)
-        label:SetPercentageY(0.5)
-        label:SetPercentageOriginX(0.5)
-        label:SetPercentageOriginY(0.5)
-        Add(label)
-
         SetPercentageX(0.5)
         SetPercentageY(0.5)
         SetPercentageOriginX(0.5)
         SetPercentageOriginY(0.5)
         SetPercentageWidth(0.9)
         SetPercentageHeight(0.9)
+
+        Color transparency
+        transparency:SetColor(0, 0, 0, 0)
+        SetBackgroundColor(transparency)
+        SetBorderColor(transparency)
+        SetSelectionColor(transparency)
+    end
+
+    action AddChildNode(FlowchartNode node) returns FlowchartArrow
+        FlowchartArrow arrow = parent:FlowchartNode:AddChildNode(node)
+
+        // If both nodes are hidden, make the arrow transparent except when selected.
+        if node is FlowchartHiddenNode
+            Color transparency
+            transparency:SetColor(0, 0, 0, 0)
+            arrow:SetBackgroundColor(transparency)
+            arrow:SetIconColor(transparency)
+        end
+
+        return arrow
     end
 
     action ConvertToScalableVectorGraphics returns text
         return ""
-    end
-
-    action SetName(text name)
-        label:SetText(name)
-        parent:Control:SetName(name)
     end
 
     action LoadGraphics(LayoutProperties properties)

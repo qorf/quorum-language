@@ -7,6 +7,11 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Selections.FlowchartSelection
 use Libraries.Containers.Array
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Views.DrawableView
+use Libraries.Game.Graphics.Drawable
 
 class Flowchart is Control
 
@@ -35,14 +40,65 @@ class Flowchart is Control
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+
+        SetLayout(CreateDefaultLayout())
+    end
+
+    private action CreateDefaultLayout returns Layout
+        ManualLayout layout
+        return layout
     end
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
-            ControlShaderView view
-            view:Initialize()
-            SetView2D(view)
+            TextureRegion icon = GetIcon()
+            if icon = undefined
+                ControlShaderView view
+                view:Initialize()
+                SetView2D(view)
+            else
+                DrawableView view
+                view:Load(icon)
+                SetView2D(view)
+            end
         end
+    end
+
+    action SetBackground(Drawable background)
+        if background = undefined
+            SetIcon(undefined)
+        else
+            SetIcon(background)
+
+            LayoutProperties properties = GetCurrentLayoutProperties()
+            if properties = undefined
+                properties = GetDefaultLayoutProperties()
+            end
+
+            if properties:IsSettingWidth() = false and properties:IsSettingHeight() = false
+                SetPixelWidth(background:GetWidth())
+                SetPixelHeight(background:GetHeight())
+            end
+        end
+
+        SetView2D(undefined)
+        if GetCurrentLayoutProperties() not= undefined
+            GetCurrentLayoutProperties():SetRenderingFlag(true)
+        else
+            GetDefaultLayoutProperties():SetRenderingFlag(true)
+        end
+    end
+
+    action SetBackground(text filePath)
+        Drawable drawable
+        drawable:Load(filePath)
+        SetBackground(drawable)
+    end
+
+    action SetBackground(File file)
+        Drawable drawable
+        drawable:Load(file)
+        SetBackground(drawable)
     end
 
     /* 

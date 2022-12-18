@@ -1,16 +1,17 @@
 package Libraries.Interface.Controls.Charts.Flowcharts
 
 use Libraries.Interface.Layouts.GridLayout
+use Libraries.Interface.Layouts.Layout
 
 class GridFlowchart is Flowchart
 
     boolean autoGridSize = true
 
-    on create
+    private action CreateDefaultLayout returns Layout
         GridLayout layout
         layout:SetDefaultGridWidth(5)
         layout:SetDefaultGridHeight(5)
-        SetLayout(layout)
+        return layout
     end
 
     action Add(Item2D item)
