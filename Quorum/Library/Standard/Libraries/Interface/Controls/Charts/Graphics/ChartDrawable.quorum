@@ -35,8 +35,12 @@ class ChartDrawable is ChartItem, Drawable
 
     on create
         // Color the item as gray in case it never gets added to a series.
-        Color color
-        SetColor(color:LightGray())
+        Color color //LightGray
+        color:SetRed(0.75)
+        color:SetGreen(0.75)
+        color:SetBlue(0.75)
+        color:SetAlpha(1)
+        SetColor(color)
     end
 
     action GetSelectionArrow returns Drawable
