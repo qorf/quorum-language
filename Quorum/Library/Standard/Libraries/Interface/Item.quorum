@@ -22,6 +22,7 @@ use Libraries.Containers.HashTable
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.Events.GestureListener
+use Libraries.Containers.Support.EmptyIterator
 
 /*
     The Item class represents any object that has a position (such as x and y
@@ -73,13 +74,13 @@ class Item
     boolean visible = true
     boolean focusable = false
 
-    Array<MouseListener> mouseListeners
-    Array<MouseMovementListener> mouseMoveListeners
-    Array<MouseWheelListener> mouseWheelListeners
-    Array<TouchListener> touchListeners
-    Array<GestureListener> gestureListeners
-    Array<FocusListener> focusListeners
-    Array<Behavior> behaviors
+    Array<MouseListener> mouseListeners = undefined
+    Array<MouseMovementListener> mouseMoveListeners = undefined
+    Array<MouseWheelListener> mouseWheelListeners = undefined
+    Array<TouchListener> touchListeners = undefined
+    Array<GestureListener> gestureListeners = undefined
+    Array<FocusListener> focusListeners = undefined
+    Array<Behavior> behaviors = undefined
 
     Item nextFocus = undefined
     Item previousFocus = undefined
@@ -453,6 +454,11 @@ class Item
         myItem:AddMouseListener(listener)
     */
     action AddMouseListener(MouseListener listener)
+        if mouseListeners = undefined
+            Array<MouseListener> array
+            mouseListeners = array
+        end
+
         mouseListeners:Add(listener)
     end
 
@@ -469,7 +475,15 @@ class Item
         myItem:RemoveMouseListener(listener)
     */
     action RemoveMouseListener(MouseListener listener)
+        if mouseListeners = undefined
+            return now
+        end
+
         mouseListeners:Remove(listener)
+
+        if mouseListeners:IsEmpty()
+            mouseListeners = undefined
+        end
     end
 
     /*
@@ -479,6 +493,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered MouseListeners.
     */
     action GetMouseListeners returns Iterator<MouseListener>
+        if mouseListeners = undefined
+            EmptyIterator<MouseListener> empty
+            return empty
+        end
+
         return mouseListeners:GetIterator()
     end
 
@@ -494,6 +513,11 @@ class Item
         myItem:AddMouseMovementListener(listener)
     */
     action AddMouseMovementListener(MouseMovementListener listener)
+        if mouseMoveListeners = undefined
+            Array<MouseMovementListener> array
+            mouseMoveListeners = array
+        end
+
         mouseMoveListeners:Add(listener)
     end
 
@@ -510,7 +534,15 @@ class Item
         myItem:RemoveMouseMovementListener(listener)
     */
     action RemoveMouseMovementListener(MouseMovementListener listener)
+        if mouseMoveListeners = undefined
+            return now
+        end
+
         mouseMoveListeners:Remove(listener)
+
+        if mouseMoveListeners:IsEmpty()
+            mouseMoveListeners = undefined
+        end
     end
 
     /*
@@ -520,6 +552,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered MouseMovementListeners.
     */
     action GetMouseMovementListeners returns Iterator<MouseMovementListener>
+        if mouseMoveListeners = undefined
+            EmptyIterator<MouseMovementListener> empty
+            return empty
+        end
+
         return mouseMoveListeners:GetIterator()
     end
 
@@ -536,6 +573,11 @@ class Item
         myItem:AddMouseWheelListener(listener)
     */
     action AddMouseWheelListener(MouseWheelListener listener)
+        if mouseWheelListeners = undefined
+            Array<MouseWheelListener> array
+            mouseWheelListeners = array
+        end
+
         mouseWheelListeners:Add(listener)
     end
 
@@ -552,7 +594,15 @@ class Item
         myItem:RemoveMouseWheelListener(listener)
     */
     action RemoveMouseWheelListener(MouseWheelListener listener)
+        if mouseWheelListeners = undefined
+            return now
+        end
+
         mouseWheelListeners:Remove(listener)
+
+        if mouseWheelListeners:IsEmpty()
+            mouseWheelListeners = undefined
+        end
     end
 
     /*
@@ -562,6 +612,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered MouseWheelListeners.
     */
     action GetMouseWheelListeners returns Iterator<MouseWheelListener>
+        if mouseWheelListeners = undefined
+            EmptyIterator<MouseWheelListener> empty
+            return empty
+        end
+
         return mouseWheelListeners:GetIterator()
     end
 
@@ -578,6 +633,11 @@ class Item
         myItem:AddTouchListener(listener)
     */
     action AddTouchListener(TouchListener listener)
+        if touchListeners = undefined
+            Array<TouchListener> array
+            touchListeners = array
+        end
+
         touchListeners:Add(listener)
     end
 
@@ -595,7 +655,15 @@ class Item
         myItem:RemoveTouchListener(listener)
     */
     action RemoveTouchListener(TouchListener listener)
+        if touchListeners = undefined
+            return now
+        end
+
         touchListeners:Remove(listener)
+
+        if touchListeners:IsEmpty()
+            touchListeners = undefined
+        end
     end
 
     /*
@@ -605,6 +673,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered TouchListeners.
     */
     action GetTouchListeners returns Iterator<TouchListener>
+        if touchListeners = undefined
+            EmptyIterator<TouchListener> empty
+            return empty
+        end
+
         return touchListeners:GetIterator()
     end
 
@@ -621,6 +694,11 @@ class Item
         myItem:AddGestureListener(listener)
     */
     action AddGestureListener(GestureListener listener)
+        if gestureListeners = undefined
+            Array<GestureListener> array
+            gestureListeners = array
+        end
+
         gestureListeners:Add(listener)
     end
 
@@ -638,7 +716,15 @@ class Item
         myItem:RemoveGestureListener(listener)
     */
     action RemoveGestureListener(GestureListener listener)
+        if gestureListeners = undefined
+            return now
+        end
+
         gestureListeners:Remove(listener)
+
+        if gestureListeners:IsEmpty()
+            gestureListeners = undefined
+        end
     end
 
     /*
@@ -648,6 +734,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered GestureListeners.
     */
     action GetGestureListeners returns Iterator<GestureListener>
+        if gestureListeners = undefined
+            EmptyIterator<GestureListener> empty
+            return empty
+        end
+
         return gestureListeners:GetIterator()
     end
 
@@ -665,6 +756,11 @@ class Item
         myItem:AddFocusListener(listener)
     */
     action AddFocusListener(FocusListener listener)
+        if focusListeners = undefined
+            Array<FocusListener> array
+            focusListeners = array
+        end
+
         focusListeners:Add(listener)
     end
 
@@ -682,7 +778,15 @@ class Item
         myItem:RemoveFocusListener(listener)
     */
     action RemoveFocusListener(FocusListener listener)
+        if focusListeners = undefined
+            return now
+        end
+
         focusListeners:Remove(listener)
+
+        if focusListeners:IsEmpty()
+            focusListeners = undefined
+        end
     end
 
     /*
@@ -692,6 +796,11 @@ class Item
     Attribute: Returns An iterator containing all of the registered FocusListeners.
     */
     action GetFocusListeners returns Iterator<FocusListener>
+        if focusListeners = undefined
+            EmptyIterator<FocusListener> empty
+            return empty
+        end
+
         return focusListeners:GetIterator()
     end
 
