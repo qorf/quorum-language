@@ -875,6 +875,10 @@ class Item
     end
 
     private action UpdateBehaviors(number seconds)
+        if behaviors = undefined
+            return now
+        end
+
         integer counter = 0
         repeat while counter < behaviors:GetSize()
             Behavior behavior = behaviors:Get(counter)
@@ -1238,6 +1242,11 @@ class Item
     This action adds a new Behavior to this Item.
     */
     action AddBehavior(Behavior behavior)
+        if behaviors = undefined
+            Array<Behavior> array
+            behaviors = array
+        end
+
         behaviors:Add(behavior)
 
         if behavior:IsRunningOnUpdate() = false
@@ -1254,7 +1263,9 @@ class Item
     them.
     */
     action CancelBehaviors
-        behaviors:Empty()
+        if behaviors not= undefined
+            behaviors:Empty()
+        end
     end
 
 
