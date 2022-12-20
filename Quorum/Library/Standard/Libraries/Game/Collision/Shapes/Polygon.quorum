@@ -1,3 +1,5 @@
+package Libraries.Game.Collision.Shapes
+
 use Libraries.Compute.Vector2
 use Libraries.Containers.Array
 use Libraries.Compute.Math
@@ -5,8 +7,7 @@ use Libraries.Game.Collision.Shapes.CollisionShape2D
 use Libraries.Game.Collision.PhysicsPosition2D
 use Libraries.Game.Collision.BoundingBox2D
 use Libraries.Game.Physics.Mass2D
-
-package Libraries.Game.Collision.Shapes
+use Libraries.Containers.Integer32BitArray
 
 /*
 This class extends the CollisionShape2D by rewritting specific actions that
@@ -16,7 +17,7 @@ To display the polygon with the properties that you've set, you have to use
 "Libraries.Game.Graphics.Drawable".
 */
 class Polygon is CollisionShape2D
-    public constant integer MAXIMUM_POLYGON_VERTICES = 8
+    public constant integer MAXIMUM_POLYGON_VERTICES = 4
     Vector2 centroid  //centroid of the polygon relative to the polygon's local coordinate's origin
     Array<Vector2> vertices   //stores the vertices points
     Array<Vector2> normals    //stores the vectors that points normal to each edges of the polygon
@@ -141,7 +142,7 @@ class Polygon is CollisionShape2D
             i = i + 1
         end
 
-        Array<integer> hull
+        Integer32BitArray hull
         hull:SetSize(MAXIMUM_POLYGON_VERTICES)
         integer m = 0
         integer ih = i0
@@ -464,7 +465,7 @@ class Polygon is CollisionShape2D
         repeat while i < count
             Vector2 p1 = pRef
             Vector2 p2 = vectors:Get(i)
-            Vector2 p3
+            Vector2 p3 = undefined
             if i + 1 < count
                 p3 = vectors:Get(i + 1)
             else
