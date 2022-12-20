@@ -23,6 +23,9 @@ class BatchingShaderMapping2D is ShaderMapping
 
     Array<integer> vertexLocations = undefined
 
+    integer projectionTransformID = -1
+    integer textureID = -1
+
     on create
         InitializeMesh(mesh)
     end
@@ -47,9 +50,15 @@ class BatchingShaderMapping2D is ShaderMapping
         graphics:SetDepthFunction(constants:GL_LEQUAL)
         graphics:DisableProperty(constants:GL_CULL_FACE)
 
+        // Grab and cache the input IDs if we don't already have them.
+        if projectionTransformID < 0
+            projectionTransformID = program:GetShaderInputLocation("u_projTrans")
+            textureID = program:GetShaderInputLocation("u_texture")
+        end
+
         // TO-DO: Replace hard-coded values with references to constants
-        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
-        program:SetShaderInput("u_texture", 0)
+        program:SetShaderInputMatrix(projectionTransformID, camera:GetCombinedMatrix())
+        program:SetShaderInput(textureID, 0)
     end
 
     action End(ShaderProgram program)
