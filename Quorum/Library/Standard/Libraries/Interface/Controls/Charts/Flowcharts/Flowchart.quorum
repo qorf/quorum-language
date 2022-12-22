@@ -12,8 +12,10 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.DrawableView
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Charts.FlowChartWriter
+use Libraries.Interface.Controls.Charts.Chart
 
-class Flowchart is Control
+class Flowchart is Chart
 
     ColorGroup nodeBackgroundColor = undefined
     ColorGroup nodeSelectionColor = undefined
@@ -121,8 +123,8 @@ class Flowchart is Control
     */
     action Save(File file)
         if file:GetFileExtension() = "svg"
-            text value = ConvertToScalableVectorGraphics()
-            file:Write(value)
+            FlowChartWriter writer
+            writer:WriteOutChart(me,file)
         end
     end
 
@@ -185,6 +187,9 @@ class Flowchart is Control
         me:arrowHeadThickness = arrowHeadThickness
     end
 
+    action Share(File file)
+    end
+
     action GetStartNode returns FlowchartNode
         // If a start node has been set, begin there. Otherwise, get the first node added.
         if startNode not= undefined
@@ -227,6 +232,13 @@ class Flowchart is Control
             arrow:GainedSelection()
             arrow:Focus()
         end
+    end
+
+    private action GenerateSummary returns text
+        return "This has not been implemented yet"
+    end
+
+    private action GenerateInfoTree()
     end
 
     action Select(FlowchartNode node)
