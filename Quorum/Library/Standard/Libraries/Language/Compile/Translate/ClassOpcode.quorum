@@ -1009,7 +1009,7 @@ class ClassOpcode is QuorumOpcode
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
 
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR// and not p:IsObject() //don't write errors or Object
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR and not p:IsObject() //don't write errors or Object
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 text converted = p:ConvertStaticKeyToBytecodePath()
                 text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
@@ -1049,7 +1049,7 @@ class ClassOpcode is QuorumOpcode
             repeat while parents:HasNext()
                 Class p = parents:Next()
 
-               // if not p:IsObject() //don't write Object
+                if not p:IsObject() //don't write Object
                     text parentKey = p:GetStaticKey()
                     Iterator<Variable> fieldIterator = p:GetVariables()
     
@@ -1106,7 +1106,7 @@ class ClassOpcode is QuorumOpcode
                         parentWriter:VisitMaxSize(0,0)
                         parentWriter:VisitEnd()
                     end
-               // end
+                end
             end
         end
     end
@@ -1280,7 +1280,7 @@ class ClassOpcode is QuorumOpcode
             Class mom = parents:Next()
             text parentKey = mom:GetStaticKey()
 
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR// and not mom:IsObject()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR and not mom:IsObject()
                 text parentName = mom:ConvertStaticKeyToParentFieldName()
                 text converted = mom:ConvertStaticKeyToBytecodePathTypeName()
                 JavaBytecodeFieldWriter momField = classWriter:VisitField(opcodes:GetPublic(),
@@ -1545,7 +1545,7 @@ class ClassOpcode is QuorumOpcode
             repeat while parents:HasNext()
                 Class p = parents:Next()
                 text parentKey = p:GetStaticKey()
-                if p:HasConstructor()// and not p:IsObject() //ignore object
+                if p:HasConstructor() and not p:IsObject() //ignore object
                     //load the Me pointer
                     methodWriter:VisitVariable(opcodes:GetObjectLoad(), ME)
                     //load the parent
@@ -1601,7 +1601,7 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR// and not p:IsObject()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR and not p:IsObject()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 text converted = p:ConvertStaticKeyToBytecodePath()
                 text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
@@ -1623,7 +1623,7 @@ class ClassOpcode is QuorumOpcode
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR// and not p:IsObject()
+            if parentKey not= QUORUM_LIBRARY_LANGUAGE_ERRORS_ERROR and not p:IsObject()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 text convertedParentName = p:ConvertStaticKeyToBytecodePath()
                 text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
@@ -1632,7 +1632,7 @@ class ClassOpcode is QuorumOpcode
                 repeat while grandParents:HasNext()
                     //In Quorum-11, object is ignored.
                     Class grandParent = grandParents:Next()
-                    if true//not grandParent:IsObject()
+                    if not grandParent:IsObject()
                         text grandParentKey = grandParent:GetStaticKey()
                         text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
                         text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
