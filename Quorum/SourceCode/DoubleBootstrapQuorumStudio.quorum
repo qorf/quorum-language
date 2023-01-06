@@ -9,7 +9,7 @@ class DoubleBootstrapQuorumStudio
 
     File main = undefined
     action Main
-        output "Compiling Quorum Studio with compiled compiler."
+        output "Double Bootstrapping Quorum Studio"
         Compiler compiler
 
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
@@ -18,51 +18,53 @@ class DoubleBootstrapQuorumStudio
         File outputLocation
         outputLocation:SetPath("Library/Studio")
 
-        output "Scanning"
+        output "Scanning Standard Library"
         Library library
         library:outputJavaScript = true
         library:SetCachingLibraryOpcodes(true)
         library:SetLocation(standardLibraryFolder)
-        //library:SetOutputFolder(outputLocation)
         CompilerErrorManager errors = library:Scan()
-        output "Gathering Quorum Studio Files."
 
         File studio
         studio = studio:GetParentDirectory():GetParentDirectory()
         studio:SetPath("quorum-studio")
 
-
+        output "Gathering Source"
         File studioSource
         studioSource:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/SourceCode")
-        output studioSource:GetAbsolutePath()
         Array<File> files = studioSource:GetDirectoryListing()
         files = Deflate(files)
         files:Add(0, main)
-//        i = 0
-//        repeat while i < files:GetSize()
-//            File file = files:Get(i)
-//            output file:GetFileName()
-//            i = i + 1
-//        end
 
         File theOutput
-        theOutput:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run2")
-        if theOutput:Exists()
-            theOutput:Delete(true)
-            theOutput:CreateDirectories()
+        theOutput:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio")
+        File build
+        File run
+        build:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Build")
+        run:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run")
+        if build:Exists()
+            build:Delete(true)
+            build:CreateDirectories()
         else
-            theOutput:CreateDirectories()
+            build:CreateDirectories()
         end
+
+        if run:Exists()
+            run:Delete(true)
+            run:CreateDirectories()
+        else
+            run:CreateDirectories()
+        end
+
+        output "Gathering Dependencies"
         compiler:SetOutputFolder(theOutput)
         compiler:SetName("QuorumStudio")
         ManageJars(compiler, studio)
         ManagePlugins(compiler, studio)
 
-        //compiler:AddJar
+        output "Compiling"
         //now we've gathered all of the files, so compile Quorum Studio
         CompilerRequest request
-        
-        
         request:files = files
         request:library = library
         
@@ -76,6 +78,7 @@ class DoubleBootstrapQuorumStudio
             output manager:GetCompilerErrorsAsText()
             return now
         end
+        output "Finished"
     end
 
     action ManagePlugins(Compiler compiler, File studio)
@@ -98,25 +101,25 @@ class DoubleBootstrapQuorumStudio
     */
     action ManageJars(Compiler compiler, File studio)
         File debugger
-        debugger:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/OmniscientDebugger.jar")
+        debugger:SetAbsolutePath(studio:GetParentDirectory():GetAbsolutePath() + "/quorum-debugger/dist/OmniscientDebugger.jar")
 
         File tools
-        tools:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/libraries/tools.jar")
+        tools:SetAbsolutePath(studio:GetParentDirectory():GetAbsolutePath() + "/quorum-debugger/libraries/tools.jar")
 
         File git
-        git:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/org.eclipse.jgit-5.6.1.202002131546-r.jar")
+        git:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/External/Git/org.eclipse.jgit-5.6.1.202002131546-r.jar")
 
         File slf
-        slf:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/slf4j-api-1.7.30.jar")
+        slf:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/External/Git/slf4j-api-1.7.30.jar")
 
         File slfs
-        slfs:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/slf4j-simple-1.7.30.jar")
+        slfs:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/External/Git/slf4j-simple-1.7.30.jar")
         
         File bouncy
-        bouncy:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/Bouncy.jar")
+        bouncy:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/External/Git/Bouncy.jar")
 
         File jsch
-        jsch:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/Run/libraries/jsch-0.1.52.jar")
+        jsch:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/External/jsch-0.1.52.jar")
 
         compiler:AddJar(debugger)
         compiler:AddJar(tools)
