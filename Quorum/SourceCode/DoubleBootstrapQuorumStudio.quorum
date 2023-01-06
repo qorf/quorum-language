@@ -29,7 +29,6 @@ class DoubleBootstrapQuorumStudio
         studio = studio:GetParentDirectory():GetParentDirectory()
         studio:SetPath("quorum-studio")
 
-        output "Gathering Source"
         File studioSource
         studioSource:SetAbsolutePath(studio:GetAbsolutePath() + "/QuorumStudio/SourceCode")
         Array<File> files = studioSource:GetDirectoryListing()
@@ -56,7 +55,6 @@ class DoubleBootstrapQuorumStudio
             run:CreateDirectories()
         end
 
-        output "Gathering Dependencies"
         compiler:SetOutputFolder(theOutput)
         compiler:SetName("QuorumStudio")
         ManageJars(compiler, studio)
@@ -78,7 +76,6 @@ class DoubleBootstrapQuorumStudio
             output manager:GetCompilerErrorsAsText()
             return now
         end
-        output "Finished"
     end
 
     action ManagePlugins(Compiler compiler, File studio)
