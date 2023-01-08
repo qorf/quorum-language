@@ -11,6 +11,12 @@ use Libraries.System.Properties
 use Libraries.System.ProcessListener
 use Libraries.System.ProcessEvent
 
+/*
+    This file is partially duplicative of the test suite and acts as 
+    a way to run JavaScript versions of Quorum programs directly from Node.js
+    It is not intended to be used in production and is for debugging purposes only.
+    By default, it compiles itself.
+*/
 class Run is ProcessListener
     boolean javascript = true
     constant text NODE_MAC = "/usr/local/bin/node"
@@ -39,7 +45,7 @@ class Run is ProcessListener
     end
 
     action Main
-        output "Single Run of Compiler"
+        output "Run Quorum Program as JavaScript"
         
 
         File standardLibraryFolder = compiler:GetStandardLibraryFolder()
@@ -53,10 +59,11 @@ class Run is ProcessListener
         CompilerErrorManager errors = library:Scan()
 
         //By Default run yourself
+        //Change this to a program that is meaningful for the testing situation.
         File main
-        //main:SetPath("SourceCode/Run.quorum")
-        //main:SetAbsolutePath("/Users/stefik/Quorum Studio/ObjectTest/SourceCode/Main.quorum")
-        main:SetPath("Library/Tests/Expressions/Pass/AddBooleanText.quorum")
+        main:SetPath("SourceCode/Run.quorum")
+        
+
         Array<File> files
         files:Add(main)
 
@@ -80,13 +87,14 @@ class Run is ProcessListener
         CompilerErrorManager manager = result:compilerErrorManager
        
         if manager:IsCompilationErrorFree()
+            output "Running"
             output ""
-            output ""
-            //output result:convertedJavaScript
+            output result:convertedJavaScript
 
             CompilerTestResult test = RunJavaScript(result:convertedJavaScript)
             output "Run without Error: " + test:ranWithoutError
             output javascriptErrorOutput
+            
         else
             output manager:GetCompilerErrorsAsText()
             return now
@@ -104,7 +112,7 @@ class Run is ProcessListener
         File outFile
         outFile:SetWorkingDirectory(root:GetAbsolutePath())
         outFile:SetPath("Run/Result.js")
-
+        output outFile:GetAbsolutePath()
         text resultText = javascriptStandardLibraryText + "
 " + script 
 + "
@@ -128,6 +136,7 @@ console.log(OuTpUt_$tRiNg_);
 
         Array<text> flags
         flags:Add("Result.js")
+        
 
         process:SetParameters(flags)
         process:AddListener(me)
