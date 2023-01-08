@@ -1735,9 +1735,12 @@ class ClassOpcode is QuorumOpcode
         //initialize all of the parent objects as nulls
         repeat while parents:HasNext()
             Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
+            //In Quorum-11, we ignore the parent object
+            if not p:IsObject()
+                text parentKey = p:GetStaticKey()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 convertedSource = convertedSource + "this." + parentName + " = null;" + EOL
+            end
         end
         
         if clazz:IsObject()
@@ -1752,36 +1755,53 @@ class ClassOpcode is QuorumOpcode
         repeat while it:HasNext()
             Action act = it:Next()
             Class parentOfMethod = act:GetParentClass()
-                convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
-                    + " = function("
+            convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
+                + " = function("
 
-                Iterator<Variable> params = act:GetParameterIterator()
-                repeat while params:HasNext()
-                    Variable param = params:Next()
-                    convertedSource = convertedSource + param:GetJavaScriptName()
-                    if params:HasNext()
-                        convertedSource = convertedSource + ", "
-                    end
+            Iterator<Variable> params = act:GetParameterIterator()
+            repeat while params:HasNext()
+                Variable param = params:Next()
+                convertedSource = convertedSource + param:GetJavaScriptName()
+                if params:HasNext()
+                    convertedSource = convertedSource + ", "
                 end
+            end
 
+            if not parentOfMethod:IsObject()
                 convertedSource = convertedSource + ") {" + EOL
                     + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
-                    
-
-                text paramListText = act:ConvertActionToJavaScriptName() + "("
-                params = act:GetParameterIterator()
-                repeat while params:HasNext()
-                    Variable param = params:Next()
-                    paramListText = paramListText + param:GetJavaScriptName()
-                    if params:HasNext()
-                        paramListText = paramListText + ", "
-                    end
+            else 
+                //call one of the global functions
+                convertedSource = convertedSource  + ") {" + EOL
+                if act:GetName() = "Equals"
+                    convertedSource = convertedSource  + "return global_Object_Equals(this.prototype, "
+                elseif act:GetName() = "GetHashCode"
+                    convertedSource = convertedSource  + "return global_Object_GetHashCode("
+                elseif act:GetName() = "Compare"
+                    convertedSource = convertedSource  + "return global_Object_Compare(this.prototype, "
                 end
+            end
 
-                paramListText = paramListText + ");"
-                convertedSource = convertedSource + paramListText
-                    + EOL 
-                    + "}" + EOL
+            text paramListText = ""
+
+            //if this is a parent object call, wrap in the this.prototype
+            if not parentOfMethod:IsObject()
+                paramListText = act:ConvertActionToJavaScriptName() + "("
+            end
+
+            params = act:GetParameterIterator()
+            repeat while params:HasNext()
+                Variable param = params:Next()
+                paramListText = paramListText + param:GetJavaScriptName()
+                if params:HasNext()
+                    paramListText = paramListText + ", "
+                end
+            end
+
+            paramListText = paramListText + ");"
+            convertedSource = convertedSource + paramListText
+                + EOL 
+                + "}" + EOL
         end
 
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
@@ -1815,23 +1835,25 @@ class ClassOpcode is QuorumOpcode
             Iterator<Class> parentClasses = clazz:GetParentClasses()
             repeat while parentClasses:HasNext()
                 Class p = parentClasses:Next()
-                text parentKey = p:GetStaticKey()
-                Iterator<Variable> parentFieldIterator = p:GetVariables()
-                repeat while parentFieldIterator:HasNext()
-                    Variable variable = parentFieldIterator:Next()
-                    Type type = variable:GetType()
-                    text getter = p:ConvertToActionNameFromField(variable, true)
-                    text setter = p:ConvertToActionNameFromField(variable, false)
-
-                    //the getter
-                    convertedSource = convertedSource + "this." + getter + " = function() {" + EOL
-                    convertedSource = convertedSource + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
-                    convertedSource = convertedSource + "};" + EOL
-
-                    //the setter
-                    convertedSource = convertedSource + "this." + setter + " = function(value) {" + EOL
-                    convertedSource = convertedSource + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
-                    convertedSource = convertedSource + "};" + EOL
+                if not p:IsObject() //Not for objects in Quorum-11
+                    text parentKey = p:GetStaticKey()
+                    Iterator<Variable> parentFieldIterator = p:GetVariables()
+                    repeat while parentFieldIterator:HasNext()
+                        Variable variable = parentFieldIterator:Next()
+                        Type type = variable:GetType()
+                        text getter = p:ConvertToActionNameFromField(variable, true)
+                        text setter = p:ConvertToActionNameFromField(variable, false)
+    
+                        //the getter
+                        convertedSource = convertedSource + "this." + getter + " = function() {" + EOL
+                        convertedSource = convertedSource + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
+                        convertedSource = convertedSource + "};" + EOL
+    
+                        //the setter
+                        convertedSource = convertedSource + "this." + setter + " = function(value) {" + EOL
+                        convertedSource = convertedSource + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
+                        convertedSource = convertedSource + "};" + EOL
+                    end
                 end
             end
         end
@@ -1841,10 +1863,12 @@ class ClassOpcode is QuorumOpcode
         parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            text parentName = p:ConvertStaticKeyToParentFieldName()
-            convertedSource = convertedSource + "   this." + parentName + " = new " 
-                + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
+            if not p:IsObject()
+                text parentKey = p:GetStaticKey()
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                convertedSource = convertedSource + "   this." + parentName + " = new " 
+                    + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL
+            end
         end
 
         //now that all parents have been instantiated, get 
@@ -1852,23 +1876,27 @@ class ClassOpcode is QuorumOpcode
         parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
+            if not p:IsObject() //Not in Quorum-11
+                text parentKey = p:GetStaticKey()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
                 text convertedParentName = p:ConvertStaticKeyToBytecodePath()
                 text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
-
+    
                 Iterator<Class> grandParents = p:GetParentClasses()
                 repeat while grandParents:HasNext()
                     Class grandParent = grandParents:Next()
-                    text grandParentKey = grandParent:GetStaticKey()
-                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
-                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
-                    
-                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
-                        " = this." +  grandParentName + ";" + EOL
-                    convertedSource = convertedSource + "   this." + parentName 
-                        + ".prototype = this;"  + EOL
+                    if not grandParent:IsObject() //ignore this in Quorum-11
+                        text grandParentKey = grandParent:GetStaticKey()
+                        text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                        text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                        
+                        convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
+                            " = this." +  grandParentName + ";" + EOL
+                        convertedSource = convertedSource + "   this." + parentName 
+                            + ".prototype = this;"  + EOL
+                    end
                 end
+            end
         end
 
         convertedSource = convertedSource + "}" + EOL
@@ -1901,11 +1929,13 @@ class ClassOpcode is QuorumOpcode
         parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            text parentName = p:ConvertStaticKeyToParentFieldName()
-
-            if p:HasConstructor()
-                convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
+            if not p:IsObject()
+                text parentKey = p:GetStaticKey()
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+    
+                if p:HasConstructor()
+                    convertedSource = convertedSource + "this." + parentName + ".constructor_();" + EOL
+                end
             end
         end
         convertedSource = convertedSource + "}" + EOL
@@ -1925,10 +1955,12 @@ class ClassOpcode is QuorumOpcode
             convertedSource = convertedSource + "this.value = optional == null ? " + quote + quote + ": optional;"
         end
 
-        if clazz:IsObject()
+        //All objects need a global hash now, not just the parent. This makes the file larger,
+        //but should save on memory.
+        //if clazz:IsObject()
             convertedSource = convertedSource + "this.myHash = globalStaticHash;" + EOL
             convertedSource = convertedSource + "globalStaticHash = globalStaticHash + 1;" + EOL
-        end
+        //end
 
         convertedSource = convertedSource + EOL + "};" + EOL
         if clazz:IsProgramStartingClass()

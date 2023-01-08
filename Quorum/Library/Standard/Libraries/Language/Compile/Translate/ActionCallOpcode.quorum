@@ -454,6 +454,7 @@ class ActionCallOpcode is QuorumOpcode
             
             if isParentCall
                 if variableToMakeParentCallOn not= undefined
+                    //in Quorum-11, this is not true for objects
                     if not variableToMakeParentCallOn:IsField()
                         result = result + "this." + variableToMakeParentCallOn:GetJavaScriptName()
                     else
@@ -463,10 +464,12 @@ class ActionCallOpcode is QuorumOpcode
 
                 if parentToCallOn not= undefined
                     text value = parentToCallOn:ConvertStaticKeyToParentFieldName()
-                    if variableToMakeParentCallOn not= undefined
-                        result = result + "." + value
-                    else
-                        result = result + "this." + value
+                    if not parentToCallOn:IsObject()
+                        if variableToMakeParentCallOn not= undefined
+                            result = result + "." + value
+                        else
+                            result = result + "this." + value
+                        end
                     end
                 end
             end
@@ -495,8 +498,18 @@ class ActionCallOpcode is QuorumOpcode
                 end
             else 
                 if isParentCall
-                    text t = "." + act:ConvertActionToJavaScriptName()
-                    result = result + t + "("
+                    if not parentToCallOn:IsObject()
+                        text t = "." + act:ConvertActionToJavaScriptName()
+                        result = result + t + "("
+                    else
+                        if act:GetName() = "Equals"
+                            result = result + "global_Object_Equals(this.prototype, "
+                        elseif act:GetName() = "GetHashCode"
+                            result = result + "global_Object_GetHashCode("
+                        elseif act:GetName() = "Compare"
+                            result = result + "global_Object_Compare(this.prototype, "
+                        end
+                    end
                 else
                     text t = "this.prototype." + act:ConvertActionToJavaScriptName()
                     result = result + t + "("

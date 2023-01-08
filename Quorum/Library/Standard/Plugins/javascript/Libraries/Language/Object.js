@@ -18,6 +18,28 @@ function global_Empty_Shared_Classes() {
     globalSharedClasses.clear();
 }
 
+function global_Object_Equals(object, object2) {
+    var myHash = object.GetHashCode();
+    var otherHash = object2.GetHashCode();
+    return (myHash == otherHash);
+}
+
+function global_Object_GetHashCode(object) {
+    return object.myHash;
+}
+
+function global_Object_Compare(object, object2) {
+    var myHash = object.GetHashCode();
+    var oHash = object2.GetHashCode();
+    if ((myHash < oHash)) {
+        return -1;
+    } else if( (myHash == oHash)) {
+        return 0;
+    } else { 
+        return 1;
+    }
+}
+
 function global_cast_text_to_boolean(value) {
 	if(value == "true") {
     		return true;
