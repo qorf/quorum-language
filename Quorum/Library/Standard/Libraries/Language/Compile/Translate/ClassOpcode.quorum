@@ -1885,13 +1885,16 @@ class ClassOpcode is QuorumOpcode
                 Iterator<Class> grandParents = p:GetParentClasses()
                 repeat while grandParents:HasNext()
                     Class grandParent = grandParents:Next()
-                    if not grandParent:IsObject() //ignore this in Quorum-11
-                        text grandParentKey = grandParent:GetStaticKey()
-                        text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
-                        text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
-                        
-                        convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
-                            " = this." +  grandParentName + ";" + EOL
+                    text grandParentKey = grandParent:GetStaticKey()
+                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                    
+                    if not p:IsObject() and not grandParent:IsObject()
+                    convertedSource = convertedSource + "   this." + parentName + "." + grandParentName + 
+                        " = this." +  grandParentName + ";" + EOL
+                    end
+
+                    if not p:IsObject() 
                         convertedSource = convertedSource + "   this." + parentName 
                             + ".prototype = this;"  + EOL
                     end
