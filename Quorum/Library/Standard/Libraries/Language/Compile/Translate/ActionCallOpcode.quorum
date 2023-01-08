@@ -505,7 +505,7 @@ class ActionCallOpcode is QuorumOpcode
                         if act:GetName() = "Equals"
                             result = result + "global_Object_Equals(this.prototype, "
                         elseif act:GetName() = "GetHashCode"
-                            result = result + "global_Object_GetHashCode("
+                            result = result + "global_Object_GetHashCode(this.prototype, "
                         elseif act:GetName() = "Compare"
                             result = result + "global_Object_Compare(this.prototype, "
                         end

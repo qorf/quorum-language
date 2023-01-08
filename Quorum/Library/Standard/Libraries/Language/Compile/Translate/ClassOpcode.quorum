@@ -1776,7 +1776,7 @@ class ClassOpcode is QuorumOpcode
                 if act:GetName() = "Equals"
                     convertedSource = convertedSource  + "return global_Object_Equals(this.prototype, "
                 elseif act:GetName() = "GetHashCode"
-                    convertedSource = convertedSource  + "return global_Object_GetHashCode("
+                    convertedSource = convertedSource  + "return global_Object_GetHashCode(this.prototype, "
                 elseif act:GetName() = "Compare"
                     convertedSource = convertedSource  + "return global_Object_Compare(this.prototype, "
                 end
