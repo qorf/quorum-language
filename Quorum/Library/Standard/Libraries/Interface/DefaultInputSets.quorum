@@ -1134,11 +1134,11 @@ shared class DefaultInputSets
         textFieldTable:Add(GetTextInputSet(), fieldInsertBehavior)
 
         InputSet doubleClick
-        doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        doubleClick:SetMouseInput(mouse:LEFT)
         doubleClick:SetEventCount(2)
 
         InputSet tripleClick
-        tripleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        tripleClick:SetMouseInput(mouse:LEFT)
         tripleClick:SetEventCount(3)
 
         InputSet homeSet
@@ -1154,6 +1154,9 @@ shared class DefaultInputSets
         InputSet shiftEndSet
         shiftEndSet:SetKeyboardInput(keys:END)
         shiftEndSet = AddShiftModifier(shiftEndSet)
+
+        Behavior emptyBehavior
+        textFieldTable:Add(GetLeftClick(), emptyBehavior)
 
         TextFieldDoubleClickSelectWordBehavior textFieldDoubleClickSelectWordBehavior
         textFieldTable:Add(doubleClick, textFieldDoubleClickSelectWordBehavior) 

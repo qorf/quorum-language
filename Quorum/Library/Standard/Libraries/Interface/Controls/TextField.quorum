@@ -271,6 +271,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                 highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                 highlight:SetColor(selectionColor)
                 highlight:SetX(x)
+                highlight:SetAcceptsMouseInput(false)
                 background:Add(highlight)
             end
 
