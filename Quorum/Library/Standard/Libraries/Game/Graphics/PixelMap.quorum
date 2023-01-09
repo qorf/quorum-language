@@ -8,6 +8,8 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Drawable
 use Libraries.System.File
 use Libraries.Compute.Matrix
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
 
 /*
     The PixelMap class represents an image as a collection of individual pixels.
@@ -362,4 +364,18 @@ class PixelMap is Disposable
     */
     system action SetPixel(integer x, integer y, integer code)
 
+    /*
+    This action takes a screenshot of the Game window at the given coordinates and stores it in
+    this PixelMap.
+    */
+    system action Screenshot(integer x, integer y, integer width, integer height)
+
+    /*
+    This action takes a screenshot of the Game window and loads it into this PixelMap.
+    */
+    action Screenshot
+        GameStateManager manager
+        Game game = manager:GetGame()
+        Screenshot(0, 0, game:GetScreenWidth(), game:GetScreenHeight())
+    end
 end
