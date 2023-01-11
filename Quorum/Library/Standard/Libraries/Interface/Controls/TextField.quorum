@@ -785,21 +785,18 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         text lineText = textValue
         integer size = lineText:GetSize()
 
-        position = position - leftCharacterPadding
+        position = position - leftCharacterPadding - horizontalOffset
 
-        number x1 = horizontalOffset
-        number x2 = horizontalOffset
+        number x1 = 0
+        number x2 = 0
         integer counter = 0
         number distance1 = position
         repeat while counter < size
             Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
             x2 = x1 + glyph:horizontalAdvance
-            number distance2 = math:AbsoluteValue(position - x2)
-            if distance1 < distance2
+            if x2 > position
                 return counter
             end
-            
-            distance1 = distance2
             x1 = x2
             counter = counter + 1
         end
