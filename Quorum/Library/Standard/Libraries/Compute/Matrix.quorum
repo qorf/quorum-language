@@ -1435,7 +1435,7 @@ class Matrix
         end
         EigenDecomposition eig
         eig:Calculate(me)
-        Array<number> evals = eig:GetEigenvalues()
+        Vector evals = eig:GetEigenvalues()
         number determinant = 1
         i = 0
         repeat while i < evals:GetSize()
