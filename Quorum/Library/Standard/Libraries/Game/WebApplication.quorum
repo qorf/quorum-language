@@ -5,6 +5,7 @@ use Libraries.Game.Game
 use Libraries.Game.WebConfiguration
 use Libraries.Interface.Accessibility.WebAccessibility
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.PixelMap
 
 class WebApplication is Application
     
@@ -78,5 +79,64 @@ class WebApplication is Application
     end
     */
     system action Log(text message)
+
+    /*
+    This action saves the provided PixelMap as a PNG which is downloaded into the user's Downloads folder.
+    The file will be saved using the given name (which should not include the file extension).
+
+    Attribute: Parameter image The image to be saved as a PNG.
+    Attribute: Parameter fileName The name of the newly saved file.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Interface.Events.ScreenshotListener
+    use Libraries.Interface.Events.ScreenshotEvent
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Application
+    use Libraries.Game.WebApplication
+    
+    class Main is Game, ScreenshotListener
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // Register this class to receive screenshot events.
+            AddScreenshotListener(me)
+    
+            // Add a pattern to the screen. The actual pattern drawn here isn't important, it's just something to appear in our screenshot.
+            integer i = 0
+            Color color
+            repeat while i < 10
+                Drawable drawable
+                drawable:LoadFilledCircle(50, color:CustomColor(1.0 - i / 10.0, 0.5, 1 / 1.0, 1.0))
+                drawable:SetPosition(100 * (i mod 2), 100 * (i / 2))
+                Add(drawable)
+                i = i + 1
+            end
+    
+            // Tell the Game to screenshot the next frame of animation that's drawn.
+            Screenshot()
+        end
+    
+        // This gets called once the screenshot is taken.
+        action OnScreenshot(ScreenshotEvent event)
+            PixelMap screenshot = event:GetScreenshot()
+    
+            // Get the Application, make sure we're on the web, then save our screenshot to the Downloads folder.
+            GameStateManager manager
+            Application app = manager:GetApplication()
+            if app is WebApplication
+                WebApplication webApp = cast(WebApplication, app)
+                webApp:SaveImageToDownloads(screenshot, "MyScreenshot")
+            end
+        end
+    end
+    */
+    system action SaveImageToDownloads(PixelMap image, text fileName)
 
 end

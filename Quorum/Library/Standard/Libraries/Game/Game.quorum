@@ -4498,6 +4498,56 @@ class Game
     have been registered in the Game. This action takes a screenshot of the entire window. You can use the
     other Screenshot definitions to capture only part of the window, or to provide a direct callback to
     handle the screenshot before the registered listeners.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Interface.Events.ScreenshotListener
+    use Libraries.Interface.Events.ScreenshotEvent
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Application
+    use Libraries.Game.WebApplication
+    
+    class Main is Game, ScreenshotListener
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // Register this class to receive screenshot events.
+            AddScreenshotListener(me)
+    
+            // Add a pattern to the screen. The actual pattern drawn here isn't important, it's just something to appear in our screenshot.
+            integer i = 0
+            Color color
+            repeat while i < 10
+                Drawable drawable
+                drawable:LoadFilledCircle(50, color:CustomColor(1.0 - i / 10.0, 0.5, 1 / 1.0, 1.0))
+                drawable:SetPosition(100 * (i mod 2), 100 * (i / 2))
+                Add(drawable)
+                i = i + 1
+            end
+    
+            // Tell the Game to screenshot the next frame of animation that's drawn.
+            Screenshot()
+        end
+    
+        // This gets called once the screenshot is taken.
+        action OnScreenshot(ScreenshotEvent event)
+            PixelMap screenshot = event:GetScreenshot()
+    
+            // Get the Application, make sure we're on the web, then save our screenshot to the Downloads folder.
+            GameStateManager manager
+            Application app = manager:GetApplication()
+            if app is WebApplication
+                WebApplication webApp = cast(WebApplication, app)
+                webApp:SaveImageToDownloads(screenshot, "MyScreenshot")
+            end
+        end
+    end
     */
     action Screenshot
         Screenshot(0, 0, 0, 0, undefined)
@@ -4509,6 +4559,57 @@ class Game
     have been registered in the Game. This action takes a screenshot of the window within the given
     coordinates. You can use the other Screenshot definitions to automatically capture the whole window, 
     or to provide a direct callback to handle the screenshot before the registered listeners.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Interface.Events.ScreenshotListener
+    use Libraries.Interface.Events.ScreenshotEvent
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Application
+    use Libraries.Game.WebApplication
+    
+    class Main is Game, ScreenshotListener
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // Register this class to receive screenshot events.
+            AddScreenshotListener(me)
+    
+            // Add a pattern to the screen. The actual pattern drawn here isn't important, it's just something to appear in our screenshot.
+            integer i = 0
+            Color color
+            repeat while i < 10
+                Drawable drawable
+                drawable:LoadFilledCircle(50, color:CustomColor(1.0 - i / 10.0, 0.5, 1 / 1.0, 1.0))
+                drawable:SetPosition(100 * (i mod 2), 100 * (i / 2))
+                Add(drawable)
+                i = i + 1
+            end
+    
+            // Tell the Game to screenshot the next frame of animation that's drawn.
+            // With these parameters, we'll get just a section of the pattern we've drawn.
+            Screenshot(50, 50, 150, 300)
+        end
+    
+        // This gets called once the screenshot is taken.
+        action OnScreenshot(ScreenshotEvent event)
+            PixelMap screenshot = event:GetScreenshot()
+    
+            // Get the Application, make sure we're on the web, then save our screenshot to the Downloads folder.
+            GameStateManager manager
+            Application app = manager:GetApplication()
+            if app is WebApplication
+                WebApplication webApp = cast(WebApplication, app)
+                webApp:SaveImageToDownloads(screenshot, "MyScreenshot")
+            end
+        end
+    end
     */
     action Screenshot(integer x, integer y, integer width, integer height)
         Screenshot(x, y, width, height, undefined)
@@ -4520,6 +4621,55 @@ class Game
     have been registered in the Game. This action takes a screenshot of the entire window, then it informs
     the provided "callback" listener. After the callback has received the event, other ScreenshotListeners
     that have been added to the Game will also be notified.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Interface.Events.ScreenshotListener
+    use Libraries.Interface.Events.ScreenshotEvent
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Application
+    use Libraries.Game.WebApplication
+    
+    class Main is Game, ScreenshotListener
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // Add a pattern to the screen. The actual pattern drawn here isn't important, it's just something to appear in our screenshot.
+            integer i = 0
+            Color color
+            repeat while i < 10
+                Drawable drawable
+                drawable:LoadFilledCircle(50, color:CustomColor(1.0 - i / 10.0, 0.5, 1 / 1.0, 1.0))
+                drawable:SetPosition(100 * (i mod 2), 100 * (i / 2))
+                Add(drawable)
+                i = i + 1
+            end
+    
+            // Tell the Game to screenshot the next frame of animation that's drawn.
+            // Instead of registering this class as a listener, we can pass it directly here as a parameter.
+            // The listener will be called back when the screenshot is taken.
+            Screenshot(me)
+        end
+    
+        // This gets called once the screenshot is taken.
+        action OnScreenshot(ScreenshotEvent event)
+            PixelMap screenshot = event:GetScreenshot()
+    
+            // Get the Application, make sure we're on the web, then save our screenshot to the Downloads folder.
+            GameStateManager manager
+            Application app = manager:GetApplication()
+            if app is WebApplication
+                WebApplication webApp = cast(WebApplication, app)
+                webApp:SaveImageToDownloads(screenshot, "MyScreenshot")
+            end
+        end
+    end
     */
     action Screenshot(ScreenshotListener callback)
         Screenshot(0, 0, 0, 0, callback)
@@ -4531,6 +4681,56 @@ class Game
     have been registered in the Game. This action takes a screenshot of the specified area of the window, 
     then it informs the provided "callback" listener. After the callback has received the event, other 
     ScreenshotListeners that have been added to the Game will also be notified.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.PixelMap
+    use Libraries.Interface.Events.ScreenshotListener
+    use Libraries.Interface.Events.ScreenshotEvent
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Application
+    use Libraries.Game.WebApplication
+    
+    class Main is Game, ScreenshotListener
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            // Add a pattern to the screen. The actual pattern drawn here isn't important, it's just something to appear in our screenshot.
+            integer i = 0
+            Color color
+            repeat while i < 10
+                Drawable drawable
+                drawable:LoadFilledCircle(50, color:CustomColor(1.0 - i / 10.0, 0.5, 1 / 1.0, 1.0))
+                drawable:SetPosition(100 * (i mod 2), 100 * (i / 2))
+                Add(drawable)
+                i = i + 1
+            end
+    
+            // Tell the Game to screenshot the next frame of animation that's drawn.
+            // With these parameters, we'll get just a section of the pattern we've drawn.
+            // Instead of registering this class as a listener, we can pass it directly here as a parameter.
+            // The listener will be called back when the screenshot is taken.
+            Screenshot(50, 50, 150, 300, me)
+        end
+    
+        // This gets called once the screenshot is taken.
+        action OnScreenshot(ScreenshotEvent event)
+            PixelMap screenshot = event:GetScreenshot()
+    
+            // Get the Application, make sure we're on the web, then save our screenshot to the Downloads folder.
+            GameStateManager manager
+            Application app = manager:GetApplication()
+            if app is WebApplication
+                WebApplication webApp = cast(WebApplication, app)
+                webApp:SaveImageToDownloads(screenshot, "MyScreenshot")
+            end
+        end
+    end
     */
     action Screenshot(integer x, integer y, integer width, integer height, ScreenshotListener callback)
         // Set the dimensions of the screenshot. If the values are 0, it'll default to a shot of the whole screen when processed.

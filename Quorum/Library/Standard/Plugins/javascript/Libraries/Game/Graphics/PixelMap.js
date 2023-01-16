@@ -1200,8 +1200,6 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
 	    // We multiply by 4 because we need 4 bytes per pixel, since we'll be using RGBA8888 format.
 	    var readPixels = new Uint8Array(width * height * 4);
         graphics.glReadPixels(x, y, width, height, graphics.gl.RGBA, graphics.gl.UNSIGNED_BYTE, readPixels);
-        for (var i = 0; i < readPixels.length; i++)
-            console.log(i + ": " + readPixels[i]);
 
         // The result of read pixels is inverted, so we have to flip it vertically.
         var result = new Uint8Array(width * height * 4);
@@ -1211,7 +1209,6 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         for (var j = 0; j < height; j++)
             for (var i = 0; i < expandedWidth; i++)
             {
-                //console.log("Set " + (j * expandedWidth + i) + " to " + readPixels[(height - 1 - j) * expandedWidth + i]);
                 result[j * expandedWidth + i] = readPixels[(height - 1 - j) * expandedWidth + i];
             }
 
@@ -1220,5 +1217,30 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
 
         this.LoadFromByteBuffer(result, width, height, format);
+	};
+
+	this.SaveToDownloads = function(fileName)
+	{
+        // We need a temporary canvas to output the pixels onto.
+        // The canvas can convert the pixels to PNG.
+        var tempCanvas = document.createElement("canvas");
+        var context = tempCanvas.getContext("2d");
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+
+        console.log("w = " + tempCanvas.width + ", h = " + tempCanvas.height);
+
+        // Put the pixels into a Uint8ClampedArray, then construct image data we can insert into the canvas.
+        var clampedPixels = new Uint8ClampedArray(pixels.buffer);
+        var imageData = new ImageData(clampedPixels, width, height);
+        context.putImageData(imageData, 0, 0);
+
+        // Create a dummy link to our image, "click" it, then get rid of the link.
+        var link = document.createElement('a');
+        link.href = tempCanvas.toDataURL();
+        link.download = fileName + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 	};
 }
