@@ -140,6 +140,10 @@ use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.DefaultInputSets
 use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
+use Libraries.Interface.Events.ScreenshotListener
+use Libraries.Containers.Support.SortableContainer
+use Libraries.Interface.Events.ScreenshotEvent
+use Libraries.Game.Graphics.PixelMap
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -206,6 +210,18 @@ class Game
 
     // Used to save to and load from scene files.
     SceneManager sceneManager = undefined
+
+    /*
+    A list of screenshots that need to be taken after rendering the next frame
+    of animation. The screenshot events contain the coordinate information for
+    where the screenshot should be taken from the screen. The listeners are
+    optional and may be undefined. If they're not, they act as callbacks specific
+    to their related ScreenshotEvent.
+
+    Entries are removed after processing, so this array will be empty at the
+    beginning of each frame.
+    */
+    Array<SortableContainer<ScreenshotEvent, ScreenshotListener>> pendingScreenshots
 
     on create
         LightModeOptions options
@@ -696,6 +712,32 @@ class Game
     end
 
     /*
+    Processes any screenshots that have been requested. This should be called after drawing occurs,
+    but before clearing the screen. Called from ContinueGame.
+    */
+    private action ProcessScreenshots
+        repeat until pendingScreenshots:IsEmpty()
+            SortableContainer<ScreenshotEvent, ScreenshotListener> current = pendingScreenshots:RemoveFromFront()
+            ScreenshotEvent event = current:GetSorter()
+            ScreenshotListener callback = current:GetValue()
+
+            if event:GetWidth() = 0 and event:GetHeight() = 0
+                event:SetDimensions(0, 0, GetScreenWidth(), GetScreenHeight())
+            end
+
+            PixelMap pixelMap
+            pixelMap:Screenshot(event:GetX(), event:GetY(), event:GetWidth(), event:GetHeight())
+            event:SetScreenshot(pixelMap)
+
+            if callback not= undefined
+                callback:OnScreenshot(event)
+            end
+
+            gameInput:NotifyScreenshotListeners(event)
+        end
+    end
+
+    /*
     Clears out the old pixel data. Called from ContinueGame.
     */
     private action ClearScreen
@@ -740,6 +782,9 @@ class Game
 
         ClearScreen()
         DrawAll()
+
+        // Process pending screenshots, if there are any (which most of the time, there won't be).
+        ProcessScreenshots()
     end
 
     /*
@@ -3824,6 +3869,27 @@ class Game
     end
 
     /*
+    This action adds a ScreenshotListener to the Game. When a screenshot
+    is taken using the Game's Screenshot action, the listener will be 
+    informed via a ScreenshotEvent.
+
+    Attribute: Parameter listener The ScreenshotListener to add to the Game.
+    */
+    action AddScreenshotListener(ScreenshotListener listener)
+        gameInput:AddScreenshotListener(listener)
+    end
+
+    /*
+    This action removes a ScreenshotListener from the Game. It will no longer 
+    receive ScreenshotEvents.
+
+    Attribute: Parameter listener The ScreenshotListener to remove from the Game.
+    */
+    action RemoveScreenshotListener(ScreenshotListener listener)
+        gameInput:RemoveScreenshotListener(listener)
+    end
+
+    /*
 
     */
     action AddTabChangeListener(TabChangeListener listener)
@@ -4424,5 +4490,58 @@ class Game
     */
     action GetInterfaceOptions returns InterfaceOptions
         return interfaceOptions
+    end
+
+    /*
+    This action instructs the Game to take a screenshot after the next frame of animation has been drawn.
+    When the screenshot is taken, it will be stored in a PixelMap and sent to all ScreenshotListeners that
+    have been registered in the Game. This action takes a screenshot of the entire window. You can use the
+    other Screenshot definitions to capture only part of the window, or to provide a direct callback to
+    handle the screenshot before the registered listeners.
+    */
+    action Screenshot
+        Screenshot(0, 0, 0, 0, undefined)
+    end
+
+    /*
+    This action instructs the Game to take a screenshot after the next frame of animation has been drawn.
+    When the screenshot is taken, it will be stored in a PixelMap and sent to all ScreenshotListeners that
+    have been registered in the Game. This action takes a screenshot of the window within the given
+    coordinates. You can use the other Screenshot definitions to automatically capture the whole window, 
+    or to provide a direct callback to handle the screenshot before the registered listeners.
+    */
+    action Screenshot(integer x, integer y, integer width, integer height)
+        Screenshot(x, y, width, height, undefined)
+    end
+
+    /*
+    This action instructs the Game to take a screenshot after the next frame of animation has been drawn.
+    When the screenshot is taken, it will be stored in a PixelMap and sent to all ScreenshotListeners that
+    have been registered in the Game. This action takes a screenshot of the entire window, then it informs
+    the provided "callback" listener. After the callback has received the event, other ScreenshotListeners
+    that have been added to the Game will also be notified.
+    */
+    action Screenshot(ScreenshotListener callback)
+        Screenshot(0, 0, 0, 0, callback)
+    end
+
+    /*
+    This action instructs the Game to take a screenshot after the next frame of animation has been drawn.
+    When the screenshot is taken, it will be stored in a PixelMap and sent to all ScreenshotListeners that
+    have been registered in the Game. This action takes a screenshot of the specified area of the window, 
+    then it informs the provided "callback" listener. After the callback has received the event, other 
+    ScreenshotListeners that have been added to the Game will also be notified.
+    */
+    action Screenshot(integer x, integer y, integer width, integer height, ScreenshotListener callback)
+        // Set the dimensions of the screenshot. If the values are 0, it'll default to a shot of the whole screen when processed.
+        ScreenshotEvent event
+        event:SetDimensions(x, y, width, height)
+
+        // Pending screenshots need to be stored in a container in case there's a callback listener attached.
+        // It's fine if this is undefined, in that case it'll just go through the listeners attached to the input.
+        SortableContainer<ScreenshotEvent, ScreenshotListener> container
+        container:Set(event, callback)
+
+        pendingScreenshots:Add(container)
     end
 end

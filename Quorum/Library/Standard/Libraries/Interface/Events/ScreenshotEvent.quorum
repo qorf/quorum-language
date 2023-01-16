@@ -1,0 +1,45 @@
+package Libraries.Interface.Events
+
+use Libraries.Game.Graphics.PixelMap
+
+class ScreenshotEvent
+
+    PixelMap screenshot = undefined
+    integer x = 0
+    integer y = 0
+    integer width = 0
+    integer height = 0
+
+
+    action GetScreenshot returns PixelMap
+        return screenshot
+    end
+
+    action SetScreenshot(PixelMap screenshot)
+        me:screenshot = screenshot
+    end
+
+    action GetX returns integer
+        return x
+    end
+
+    action GetY returns integer
+        return y
+    end
+
+    action GetWidth returns integer
+        return width
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action SetDimensions(integer x, integer y, integer width, integer height)
+        me:x = x
+        me:y = y
+        me:width = width
+        me:height = height
+    end
+
+end
