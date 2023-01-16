@@ -250,7 +250,7 @@ class StandardInput is GameInput
                                 if table:HasKey(set) or table:HasKey(anySet)
                                     if recentInput not= undefined
                                         recentInput:timer = 0
-                                        if seeker not= recentInput:item
+                                        if seeker not= recentInput:item and not ItemsAreRelated(recentInput:item, seeker)
                                             recentInput:item = seeker
                                             recentInput:count = 1
                                             mouseEvent:clickCount = 1
@@ -686,7 +686,7 @@ class StandardInput is GameInput
 
         RecentInputTimer timer
         timer:inputValue = button
-        timer:count = 0
+        timer:count = 1
         recentClicks:Add(timer)
 
         return timer
