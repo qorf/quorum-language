@@ -102,7 +102,7 @@ use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
 class Regression is DataFrameCalculation, ColumnInput, FactorInput
     integer dependentVariable = -1
     boolean hasIntercept = true
-    OrthonormalTriangularDecomposition decomp
+    OrthonormalTriangularDecomposition decomp = undefined
     Vector beta = undefined
     Vector predicted = undefined
     Vector residuals = undefined
@@ -123,6 +123,11 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
 
         if GetColumnSize() not= 1
             return now
+        end
+
+        if decomp = undefined
+            OrthonormalTriangularDecomposition decomp2
+            decomp = decomp2
         end
 
         //currently we only support one factor
@@ -178,6 +183,9 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
 
         fValue = CalculateCriticalValue(predictorMatrix, r2)
         probabilityValue = CalculateProbabilityValue(predictorMatrix, fValue)
+
+        //the user cannot access the decomp matrix, so ditch it to free up memory
+        decomp = undefined
     end
 
     /*

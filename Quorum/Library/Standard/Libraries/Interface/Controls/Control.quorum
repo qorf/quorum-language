@@ -21,6 +21,9 @@ use Libraries.Game.Game
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Containers.Iterator
+use Libraries.Containers.Support.EmptyIterator
 
 class Control is Item2D
 
@@ -73,14 +76,14 @@ class Control is Item2D
     */
     public integer MAINTAIN_ASPECT_RATIO = 4
 
-    Array<ControlActivationListener> listeners
+    Array<ControlActivationListener> listeners = undefined
 
     /*
     LayoutProperties describe how this Item are laid out by Layouts. If the
     Item has multiple LayoutProperties objects, the most appropriate one will
     be chosen based on the container's size.
     */
-    Array<LayoutProperties> layoutProperties
+    Array<LayoutProperties> layoutProperties = undefined
     
     /*
     The default LayoutProperties, used by many controls to set their base visual
@@ -108,10 +111,12 @@ class Control is Item2D
 
     PopupMenu contextMenu = undefined
 
-    // SelectionListeners which are registered with this Control. They'll be
-    // informed of selection changes in this Control, if the Control has an
-    // associated selection.
-    Array<SelectionListener> selectionListeners
+    /*
+    SelectionListeners which are registered with this Control. They'll be
+    informed of selection changes in this Control, if the Control has an
+    associated selection.
+    */
+    Array<SelectionListener> selectionListeners = undefined
 
     // Booleans used to indicate if this Control has been interacted with in a way that needs special rendering by the Control shader.
     boolean renderMouseOver = false
@@ -212,6 +217,28 @@ class Control is Item2D
             content:LostSelection()
         end
 
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item received the focus.
+    */
+    action GainedFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:GainedFocus()
+        end
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+    action LostFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:LostFocus()
+        end
         RequestVerticesUpdate()
     end
 
@@ -332,18 +359,33 @@ class Control is Item2D
     end
 
     action AddControlActivationListener(ControlActivationListener listener)
+        if listeners = undefined
+            Array<ControlActivationListener> array
+            listeners = array
+        end
+
         listeners:Add(listener)
     end
 
     action RemoveControlActivationListener(ControlActivationListener listener)
+        if listeners = undefined
+            return now
+        end
+
         listeners:Remove(listener)
+
+        if listeners:IsEmpty()
+            listeners = undefined
+        end
     end
 
     action NotifyControlActivationListeners(ControlActivationEvent event)
-        integer counter = 0
-        repeat while counter < listeners:GetSize()
-            listeners:Get(counter):ControlActivated(event)
-            counter = counter + 1
+        if listeners not= undefined
+            integer counter = 0
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ControlActivated(event)
+                counter = counter + 1
+            end
         end
 
         GameStateManager manager
@@ -359,16 +401,34 @@ class Control is Item2D
     end
 
     action AddLayoutProperties(LayoutProperties properties)
+        if layoutProperties = undefined
+            Array<LayoutProperties> array
+            layoutProperties = array
+        end
+
         layoutProperties:Add(properties)
         layoutProperties:Sort()
     end
 
     action RemoveLayoutProperties(LayoutProperties properties)
+        if layoutProperties = undefined
+            return now
+        end
+
         layoutProperties:Remove(properties)
+
+        if layoutProperties:IsEmpty()
+            layoutProperties = undefined
+        end
     end
 
-    action GetLayoutProperties returns Array<LayoutProperties>
-        return layoutProperties
+    action GetLayoutProperties returns Iterator<LayoutProperties>
+        if layoutProperties not= undefined
+            return layoutProperties:GetIterator()
+        else
+            EmptyIterator<LayoutProperties> empty
+            return empty
+        end
     end
 
     /*
@@ -383,19 +443,22 @@ class Control is Item2D
     */
     action GetLayoutProperties(number containerWidth, number containerHeight) returns LayoutProperties
         LayoutProperties properties = undefined
-        Array<LayoutProperties> array = GetLayoutProperties()
-        integer counter = array:GetSize()
+        Array<LayoutProperties> array = layoutProperties
 
-        /*
-        Layouts are sorted by minimum width, or minimum height if minimum
-        widths are equal. When we find an invalid layout, it's assumed that
-        all following layouts will also be invalid.
-        */
-        repeat while counter > 0
-            counter = counter - 1
-            LayoutProperties temp = array:Get(counter)
-            if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
-                properties = temp
+        if array not= undefined
+            integer counter = array:GetSize()
+    
+            /*
+            Layouts are sorted by minimum width, or minimum height if minimum
+            widths are equal. When we find an invalid layout, it's assumed that
+            all following layouts will also be invalid.
+            */
+            repeat while counter > 0
+                counter = counter - 1
+                LayoutProperties temp = array:Get(counter)
+                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                    properties = temp
+                end
             end
         end
 
@@ -982,6 +1045,11 @@ class Control is Item2D
 
     */
     action AddSelectionListener(SelectionListener listener)
+        if selectionListeners = undefined
+            Array<SelectionListener> array
+            selectionListeners = array
+        end
+
         selectionListeners:Add(listener)
     end
 
@@ -989,21 +1057,40 @@ class Control is Item2D
 
     */
     action RemoveSelectionListener(SelectionListener listener) returns boolean
-        return selectionListeners:Remove(listener)
+        if selectionListeners = undefined
+            return false
+        end
+
+        boolean result = selectionListeners:Remove(listener)
+
+        if selectionListeners:IsEmpty()
+            selectionListeners = undefined
+        end
+
+        return result
     end
 
     /*
 
     */
     action EmptySelectionListeners
+        if selectionListeners = undefined
+            return now
+        end
+
         selectionListeners:Empty()
     end
 
     /*
 
     */
-    action GetSelectionListeners returns Array<SelectionListener>
-        return selectionListeners
+    action GetSelectionListeners returns Iterator<SelectionListener>
+        if selectionListeners not= undefined
+            return selectionListeners:GetIterator()
+        else
+            EmptyIterator<SelectionListener> empty
+            return empty
+        end
     end
 
     /*
@@ -1013,6 +1100,10 @@ class Control is Item2D
     Attribute: Parameter event The SelectionEvent to send to all SelectionListeners registered with the Control.
     */
     action NotifySelectionListeners(SelectionEvent event)
+        if selectionListeners = undefined
+            return now
+        end
+
         integer counter = 0
         repeat while counter < selectionListeners:GetSize()
             selectionListeners:Get(counter):SelectionChanged(event)
@@ -1024,8 +1115,6 @@ class Control is Item2D
     This action selects an item in the Control using first letter navigation,
     if the Control supports it. If the Control doesn't support first letter
     navigation, this will do nothing.
-
-    
     */
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.

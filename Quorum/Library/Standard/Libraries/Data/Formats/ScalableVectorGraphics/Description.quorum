@@ -21,7 +21,7 @@ class Description is ScalableVectorGraphicsObject
     action ToText returns text
         result = ""
         newLine = result:GetLineFeed()
-        result = "<" + objectName + ">" + GetDescription() + GetCloseTag(objectName, IsContainer())
+        result = "<" + objectName + ">" + ConvertReservedCharacters(GetDescription()) + GetCloseTag(objectName, IsContainer())
         return result
     end
 

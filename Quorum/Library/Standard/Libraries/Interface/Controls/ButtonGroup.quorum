@@ -118,6 +118,7 @@ class ButtonGroup is Control
         else
             buttons:Get(selection:GetIndex()):SetToggleState(true)
         end
+        parent:Control:GainedFocus(event)
     end
 
     action DeselectAll()

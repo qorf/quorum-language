@@ -271,6 +271,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                 highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                 highlight:SetColor(selectionColor)
                 highlight:SetX(x)
+                highlight:SetAcceptsMouseInput(false)
                 background:Add(highlight)
             end
 
@@ -392,6 +393,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         SetCaretToIndex(index)
         caretX = PositionCaret()
 
+        FitCharacterOnScreen(caretCharacter)
+        ResetCaretBlinkTimer()
+
         EmptySelectionEvent(false)
     end
 
@@ -461,17 +465,48 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             return now
         end
 
+        number singleCharacterAdvance = GetFont():GetGlyph("W"):horizontalAdvance
         number x = 0
+        number totalX = 0
         integer characterCounter = 0
+        integer finalCharacter = GetSize()
 
-        repeat character times
+        // calculate the entire advance of the string to prevent offsetting too far 
+        repeat GetSize() times
             Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
-            x = x + glyph:horizontalAdvance
-            characterCounter = characterCounter + 1
+            totalX = totalX + glyph:horizontalAdvance
+            if characterCounter < character
+                x = x + glyph:horizontalAdvance
+                characterCounter = characterCounter + 1
+            end
         end
 
-        if (x + horizontalOffset < 0 or x + horizontalOffset > GetWidth())
-            horizontalOffset = -x
+        // move half a width over to fit show text before and after character
+        if (x + horizontalOffset < 0)
+            horizontalOffset = -(x - GetWidth()/2)
+        elseif x + horizontalOffset + singleCharacterAdvance*2 > GetWidth()
+            horizontalOffset = -x + GetWidth()/2
+        end
+
+        // if on the final character show nothing to the right
+        if characterCounter = finalCharacter
+            horizontalOffset = -x + GetWidth() - singleCharacterAdvance * 1.5
+        end
+
+        // clamp the offset to not go too far left or right
+
+        // do not offset if the offset would leave empty space on the left
+        if x < GetWidth() - singleCharacterAdvance * 2
+            horizontalOffset = 0
+            return now
+        end
+
+        // prevent empty space on the left
+        if horizontalOffset > 0
+            horizontalOffset = 0
+        // prevent empty space on the right 
+        elseif horizontalOffset < -totalX
+            horizontalOffset = -x + GetWidth() - singleCharacterAdvance * 1.5
         end
     end
 
@@ -774,10 +809,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action GainedFocus(FocusEvent event)
         ShowCaret()
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
         HideCaret()
+        parent:Control:LostFocus(event)
     end
 
     action Update(number seconds)

@@ -62,7 +62,13 @@ class ScatterPlotLayout is TwoVariableChartLayout
                 ControlLabel pointLabel = point:GetAnnotation()
                 if pointLabel not= undefined
                     integer annotX = cast(integer, x+pointRadius-(pointLabel:GetWidth()/2))
-                    integer annotY = cast(integer, y+point:GetHeight())
+                    integer annotY = 0
+                    if chart:HasNameAnnotations()
+                        integer labelDecent = pointLabel:GetFont():GetMaximumDescent()
+                        annotY = cast(integer, y+point:GetHeight() - labelDecent)
+                    else
+                        annotY = cast(integer, y+point:GetHeight())
+                    end
                     pointLabel:SetPosition(annotX, annotY)
                 end
             end
