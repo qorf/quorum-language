@@ -2852,6 +2852,16 @@ class QuorumParser
                     //subrules are responsible for providing their own error messages
                     //However, we don't need to trigger an error here because it will be handled
                     //by the case below
+                    if statementError = undefined
+                        Token token = tokenIterator:GetCurrent()
+                        if token not= undefined
+                            SendDefaultError("A statement was expected, but " + token:value
+                                + " does not start a valid statement.", codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT)
+                        else
+                            SendDefaultError("A statement was expected, but no valid token existed.", codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT)
+                        end
+                    end
+
                     return undefined
                 end
             end
