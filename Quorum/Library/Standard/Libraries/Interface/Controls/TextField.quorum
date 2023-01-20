@@ -62,6 +62,10 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     boolean caretActive = false
 
+    boolean doubleClicking = false
+    integer doubleClickStartIndex = 0
+    integer doubleClickEndIndex = 0
+
     number caretIdleTime = 1.0
     number caretBlinkTime = 0.35
     number caretMoveDelay = 0.35
@@ -682,15 +686,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         boolean shouldDeleteSelection = (not selection:IsEmpty())
 
         if (shouldDeleteSelection)
+            originalIndex = selection:GetStartIndex()
             deletedText = textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex())
+            DeleteSelection(false)
         end
 
         text preText = ""
         text postText = ""
-
-        if not selection:IsCaretAtEnd()
-            caretCharacter = caretCharacter + (selection:GetEndIndex() - selection:GetStartIndex())
-        end
 
         if caretCharacter > 0
             preText = textValue:GetSubtext(0, caretCharacter)
@@ -711,13 +713,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
-        if shouldDeleteSelection
-            DeleteSelection(false)
-            SetCaretPosition(caretCharacter + value:GetSize())
-        else
-            EmptySelectionEvent(true)
-        end
-
         NotifyTextChangeListeners(changeEvent)
     end
 
@@ -728,15 +723,20 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     end
 
     action ClickedMouse(MouseEvent event)
-        if event:GetSource() not= undefined and event:GetSource() is Item2D
+        if event:GetSource() not= undefined and event:GetSource() is Item2D and event:clickCount = 1
             // Assume main text area was clicked.
             draggingInText = true
+            doubleClicking = false
             MousePositionCaret(event, false)
         end
     end
 
     action ReleasedMouse(MouseEvent event)
         draggingInText = false
+        ShowCaret()
+        if event:clickCount >= 2
+            doubleClicking = false
+        end
     end
 
     private action MousePositionCaret(MouseEvent event, boolean dragging)
@@ -744,8 +744,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         integer index = caretCharacter
 
         PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
-        
-        if dragging
+        if dragging and not doubleClicking
             if index = caretCharacter
                 return now
             end
@@ -765,10 +764,27 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                     Select(GetCaretPosition(), selection:GetEndIndex(), false)
                 end
             end
+        elseif dragging and doubleClicking
+            integer originalIndex = GetCaretPosition()
+            HideCaret()
+            if originalIndex < doubleClickStartIndex
+                Select(GetTokenStartIndex(), doubleClickEndIndex)
+            elseif originalIndex > doubleClickEndIndex
+                Select(doubleClickStartIndex, GetTokenEndIndex())
+            else
+                Select(doubleClickStartIndex, doubleClickEndIndex)
+            end
+            SetCaretToIndex(selection:GetEndIndex())
         else
             EmptySelectionEvent(false)
         end
         ResetCaretBlinkTimer()
+    end
+
+    action SetDoubleClickIndices(integer startIndex, integer endIndex)
+        doubleClicking = true
+        doubleClickStartIndex = startIndex
+        doubleClickEndIndex = endIndex
     end
 
     private action PositionCaretFromCoordinates(number x, number y)
@@ -785,21 +801,18 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         text lineText = textValue
         integer size = lineText:GetSize()
 
-        position = position - leftCharacterPadding
+        position = position - leftCharacterPadding - horizontalOffset
 
-        number x1 = horizontalOffset
-        number x2 = horizontalOffset
+        number x1 = 0
+        number x2 = 0
         integer counter = 0
         number distance1 = position
         repeat while counter < size
             Glyph glyph = font:GetGlyph(lineText:GetCharacter(counter))
             x2 = x1 + glyph:horizontalAdvance
-            number distance2 = math:AbsoluteValue(position - x2)
-            if distance1 < distance2
+            if x2 > position
                 return counter
             end
-            
-            distance1 = distance2
             x1 = x2
             counter = counter + 1
         end
@@ -1106,6 +1119,171 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                     end
                 end
             else
+                tokenIsDone = true
+            end
+        end
+        if beginIndex + currentToken:GetSize() < textValue:GetSize()
+            return beginIndex + currentToken:GetSize()
+        else
+            return textValue:GetSize()
+        end
+    end
+
+    /*
+    This action finds the end index of the first token after the caret within
+    the TextBox. If the caret is located in the middle of a token, the index
+    returned will be for that token. If the caret is exactly at the end of
+    a token, the end index of the next token will be returned instead.
+
+    Attribute: Returns A global index pointing to the end of the first token after the caret.
+    */
+    action GetTokenEndIndex returns integer
+        return GetTokenEndIndex(GetCaretPosition())
+    end
+
+    /*
+    This action finds the end index of the first token after the given search
+    index. If the search index is located in the middle of a token, the index
+    returned will be for that token. If the search index is exactly at the
+    end of a token, the end index of the next token will be returned
+    instead.
+
+    Attribute: Parameter searchIndex The global index within the text to begin the search from.
+    Attribute: Returns A global index pointing to the end of the first token after the search index.
+    */
+    action GetTokenEndIndex(integer searchIndex) returns integer
+        boolean tokenIsDone = false
+        text currentToken = ""
+        text textValue = GetText()
+        integer currentIndex = searchIndex
+        integer beginIndex = searchIndex
+        text currentCharacter = ""
+        text nextCharacter = ""
+        if textValue:IsEmpty()
+            return 0
+        elseif searchIndex >= GetSize()
+            return GetSize()
+        end
+
+        //if the initial whitespace is a lineFeed or CarriageReturn, return the token as complete and start the next token
+        nextCharacter = textValue:GetCharacter(currentIndex)
+        if nextCharacter = nextCharacter:GetCarriageReturn()
+            currentIndex = currentIndex + 1
+            currentToken = currentToken + nextCharacter
+            if (currentIndex < textValue:GetSize())
+                nextCharacter = textValue:GetCharacter(currentIndex)
+            end
+            tokenIsDone = true  
+        end
+
+        if nextCharacter = nextCharacter:GetLineFeed()
+            currentIndex = currentIndex + 1
+            currentToken = currentToken + nextCharacter
+            tokenIsDone = true
+        end
+
+        if tokenIsDone
+            return beginIndex + currentToken:GetSize()
+        end
+
+       repeat while not(tokenIsDone)
+            if currentIndex < textValue:GetSize()
+                nextCharacter = textValue:GetCharacter(currentIndex)               
+                //signals the end of the token  
+                if (IsSpecialCharacter(nextCharacter))
+                    if (beginIndex = currentIndex)  //check for groups of special characters
+                        currentToken = nextCharacter
+                        if nextCharacter = "("
+                            if (currentIndex + 1) < textValue:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = ")"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                        end
+                        if nextCharacter = "<"
+                            if (currentIndex + 1) < textValue:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = "<"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                        end
+                        if nextCharacter = ">"
+                            if (currentIndex + 1) < textValue:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = ">"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                        end
+                        if nextCharacter = "/"
+                            if (currentIndex + 1) < textValue:GetSize()
+                                if textValue:GetCharacter(currentIndex + 1) = "/"
+                                    currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                end
+                            end
+                        end
+                    end
+                        tokenIsDone = true
+                            
+                elseif (IsWhiteSpace(nextCharacter))
+                    if  currentIndex not= beginIndex
+                        tokenIsDone = true
+                    
+                    elseif currentIndex = beginIndex  and ((currentIndex + 1) < textValue:GetSize())//skip initial whitespace
+                        currentToken = currentToken + nextCharacter
+                        currentIndex = currentIndex + 1
+                        nextCharacter = textValue:GetCharacter(currentIndex)
+                        if (IsWhiteSpace(nextCharacter))
+                            repeat while IsWhiteSpace(nextCharacter) and ((currentIndex + 1) < textValue:GetSize())
+                                currentToken = currentToken + nextCharacter
+                                currentIndex = currentIndex + 1
+                                nextCharacter = textValue:GetCharacter(currentIndex)
+                            end 
+                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                        elseif (IsSpecialCharacter(nextCharacter))
+                            currentToken = currentToken + nextCharacter
+                            if nextCharacter = "("
+                                if (currentIndex + 1) < textValue:GetSize()
+                                    if textValue:GetCharacter(currentIndex + 1) = ")"
+                                        currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                    end
+                                end
+                            end
+                            if nextCharacter = "<"
+                                if (currentIndex + 1) < textValue:GetSize()
+                                    if textValue:GetCharacter(currentIndex + 1) = "<"
+                                        currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                    end
+                                end
+                            end
+                            if nextCharacter = ">"
+                                if (currentIndex + 1) < textValue:GetSize()
+                                    if textValue:GetCharacter(currentIndex + 1) = ">"
+                                        currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                    end
+                                end
+                            end
+                            if nextCharacter = "/"
+                                if (currentIndex + 1) < textValue:GetSize()
+                                    if textValue:GetCharacter(currentIndex + 1) = "/"
+                                        currentToken = currentToken + textValue:GetCharacter(currentIndex + 1)
+                                    end
+                                end
+                            end
+                            tokenIsDone = true 
+
+                        else
+                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                        end                    
+                    else
+                        tokenIsDone = true
+                    end
+                else
+                    currentToken = currentToken + nextCharacter
+                    currentIndex = currentIndex + 1
+                end
+            else
+                beginIndex = textValue:GetSize()
+                currentToken = ""
                 tokenIsDone = true
             end
         end
