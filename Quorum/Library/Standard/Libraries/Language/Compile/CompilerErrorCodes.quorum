@@ -459,9 +459,15 @@ shared class CompilerErrorCodes
 
     public constant integer PARSER_ACTION_CALL_PERIOD = 249
     public constant integer PARSER_TOKEN_AFTER_CLASS = 250
+    public constant integer PARSER_VARIABLE_SOLO_ACTION_DO_NOTHING_FIELD_ACCESS = 251
+    public constant integer PARSER_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK = 252
+    public constant integer PARSER_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN = 253
+
+    public constant integer PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK = 254
+    public constant integer PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN = 255
 
     /* The highest value + 1 */
-    private constant integer HIGHEST = PARSER_TOKEN_AFTER_CLASS + 1
+    private constant integer HIGHEST = PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN + 1
 
     action IsValid(integer code) returns boolean
         if code < 0
