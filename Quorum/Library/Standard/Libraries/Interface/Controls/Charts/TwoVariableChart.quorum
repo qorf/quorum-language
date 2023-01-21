@@ -76,6 +76,8 @@ class TwoVariableChart is Chart
     private boolean showLetterCodeAnnotation = false
     private boolean showNameAnnotation = false
     private boolean showPointAnnotation = false
+    private boolean annotationFontSizeOverride = false
+    private integer annotationFontSize = 0
     
     private ChartPointComparison comparison
 
@@ -167,6 +169,9 @@ class TwoVariableChart is Chart
                             pointLabel:SetText(point:GetLetterCode() + nameText)
                         elseif not showPointAnnotation
                             pointLabel:SetText(point:GetName())
+                        end
+                        if annotationFontSizeOverride
+                            pointLabel:SetFontSize(annotationFontSize)
                         end
                         point:SetAnnotation(pointLabel)
                         chartArea:Add(pointLabel)
@@ -265,6 +270,9 @@ class TwoVariableChart is Chart
                         pointLabel:SetText(point:GetLetterCode() + nameText)
                     elseif not showPointAnnotation
                         pointLabel:SetText(point:GetName())
+                    end
+                    if annotationFontSizeOverride
+                        pointLabel:SetFontSize(annotationFontSize)
                     end
                     point:SetAnnotation(pointLabel)
                     chartArea:Add(pointLabel)
@@ -1340,6 +1348,9 @@ class TwoVariableChart is Chart
                 end
 
                 pointLabel:SetText(nameText)
+                if annotationFontSizeOverride
+                    pointLabel:SetFontSize(annotationFontSize)
+                end
                 firstPoint:SetAnnotation(pointLabel)
             end
             if showNameAnnotation and firstPoint:GetSeries() not= undefined
@@ -1402,6 +1413,9 @@ class TwoVariableChart is Chart
                     end
     
                     pointLabel:SetText(nameText)
+                    if annotationFontSizeOverride
+                        pointLabel:SetFontSize(annotationFontSize)
+                    end
                     point:SetAnnotation(pointLabel)
                 end
                 if showNameAnnotation and point:GetSeries() not= undefined
@@ -1634,5 +1648,10 @@ class TwoVariableChart is Chart
     action ShowPointAnnotations(boolean show)
         showPointAnnotation = show
         ShowAnnotations(show)
+    end
+
+    action SetAnnotationFontSize (integer size)
+        annotationFontSizeOverride = true
+        annotationFontSize = size
     end
 end

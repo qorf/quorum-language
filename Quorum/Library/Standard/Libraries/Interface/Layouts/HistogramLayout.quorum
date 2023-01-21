@@ -24,6 +24,8 @@ class HistogramLayout is SharedBarChartLayout
     boolean separateBySeries = false
     boolean separateByColumn = false
     boolean separateByFactor = false
+    integer barAnnotionPadding = 3
+    constant number HISTOGRAM_TICK_PADDING_PERCENT = 0.2
 
     /*
         This action will calculate the size and placement of the elements (bars) within the chart 
@@ -103,7 +105,7 @@ class HistogramLayout is SharedBarChartLayout
             integer groupWidth = 0               // width of entire group
             integer groupHeight = 0              // height of entire group
 
-            betweenGroupPadding = cast(integer, chart:GetHorizontalPanel():GetTickWidth())
+            betweenGroupPadding = cast(integer, chart:GetHorizontalPanel():GetTickWidth() * HISTOGRAM_TICK_PADDING_PERCENT)
             scaleDivWidth = (width - axisOffset) / numberOfGroups
             
             // Remaining non-white space to be evenly divided amongst all bars
@@ -177,11 +179,11 @@ class HistogramLayout is SharedBarChartLayout
                             ControlLabel barLabel = currentBar:GetAnnotation()
                             if barLabel not= undefined
                                 if horizontal
-                                    integer annotY = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetHeight()/2.0))
-                                    barLabel:SetPosition(currentYPosition + barHeight, annotY)
+                                    integer annotY = cast(integer, currentXPosition + betweenGroupPadding+ (barWidth/2.0 - barLabel:GetHeight()/2.0))
+                                    barLabel:SetPosition(currentYPosition + barHeight + barAnnotionPadding, annotY)
                                 else
-                                    integer annotX = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetWidth()/2.0))
-                                    barLabel:SetPosition(annotX, currentYPosition + barHeight)
+                                    integer annotX = cast(integer, currentXPosition + betweenGroupPadding + (barWidth/2.0 - barLabel:GetWidth()/2.0))
+                                    barLabel:SetPosition(annotX, currentYPosition + barHeight  + barAnnotionPadding)
                                 end
                             end
                         end
@@ -201,7 +203,7 @@ class HistogramLayout is SharedBarChartLayout
                         end
                         integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth() + tickHeight)
                         if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
-                            x1 = x1 + cast(integer, currentBar:GetAnnotation():GetWidth())
+                            x1 = x1 + cast(integer, currentBar:GetAnnotation():GetWidth()) + barAnnotionPadding
                         end
                         integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight()/2)
                         integer x2 = x1 + arrowSize
@@ -228,7 +230,7 @@ class HistogramLayout is SharedBarChartLayout
                         integer x1 = cast(integer, currentBar:GetX() + currentBar:GetWidth()/2)
                         integer y1 = cast(integer, currentBar:GetY() + currentBar:GetHeight() + tickWidth)
                         if chart:ShowAnnotations() and currentBar:GetAnnotation() not= undefined
-                            y1 = y1 + cast(integer, currentBar:GetAnnotation():GetHeight())
+                            y1 = y1 + cast(integer, currentBar:GetAnnotation():GetHeight()) + barAnnotionPadding
                         end
                         integer x2 = x1 + arrowSize
                         integer y2 = y1 + arrowSize

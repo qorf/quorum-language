@@ -58,6 +58,7 @@ class BoxPlotLayout is ChartLayout
     boolean horizontal = false // Default is vertical for box plots
     boolean separateBySeries = false
     boolean separateByFactor = false
+    integer labelPadding = 4
     /*
         This action determines the layout of the chart area
     */
@@ -180,8 +181,22 @@ class BoxPlotLayout is ChartLayout
 
                             //Minimum
                             percent = (minimum - rangeMin)/range // used for 1-2
+                            integer xPosition = startw+size
+                            integer yPosition = cast(integer, percent*height)-halfline
                             item:Get(1):LoadFilledRectangle(center+line, line, darkColor)
-                            item:Get(1):SetPosition(startw+size,cast(integer, percent*height)-halfline)
+                            item:Get(1):SetPosition(xPosition, yPosition)
+
+                            //annotation of minimum
+                            if plot:ShowAnnotation() or chart:ShowAnnotations()
+                                ControlLabel minLabel = item:Get(1):GetAnnotation()
+                                if minLabel not= undefined
+                                    if horizontal
+                                        minLabel:SetPosition(yPosition - cast(integer,(minLabel:GetWidth()/2)), xPosition - (minLabel:GetHeight() +labelPadding))
+                                    else
+                                        minLabel:SetPosition(xPosition - (minLabel:GetWidth() + labelPadding), yPosition - cast(integer,(minLabel:GetHeight()/2)))
+                                    end
+                                end
+                            end
                 
                             //Lower Whisker
                             item:Get(2):LoadFilledRectangle(line, cast(integer,(lowerQuartile-minimum)/dataScale), darkColor)
@@ -201,18 +216,59 @@ class BoxPlotLayout is ChartLayout
                             item:Get(5):SetPosition(startw+size, cast(integer, percent*height), -1)
                 
                             //Q1
+                            yPosition = cast(integer, percent*height)-halfline
+                            xPosition = startw+size
+
+                            //annotation of Q1
+                            if plot:ShowAnnotation() or chart:ShowAnnotations()
+                                ControlLabel Q1Label = item:Get(6):GetAnnotation()
+                                if Q1Label not= undefined
+                                    if horizontal
+                                        Q1Label:SetPosition(yPosition - cast(integer,(Q1Label:GetWidth()/2)), xPosition - (Q1Label:GetHeight() + labelPadding))
+                                    else
+                                        Q1Label:SetPosition(xPosition - (Q1Label:GetWidth() + labelPadding), yPosition - cast(integer,(Q1Label:GetHeight()/2)))
+                                    end
+                                end
+                            end
                             item:Get(6):LoadFilledRectangle(center+line, line, darkColor)
-                            item:Get(6):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                            
+                            item:Get(6):SetPosition(startw+size, yPosition, -1)     
                 
                             //Median
                             percent = (median - rangeMin)/range // used for 7
+                            yPosition = cast(integer, percent*height)-halfline
                             item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
-                            item:Get(7):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                            item:Get(7):SetPosition(startw+size, yPosition , -1)
+
+                            //annotation of median
+                            if plot:ShowAnnotation() or chart:ShowAnnotations()
+                                ControlLabel medianLabel = item:Get(7):GetAnnotation()
+                                if medianLabel not= undefined
+                                    if horizontal
+                                        medianLabel:SetPosition(yPosition - cast(integer,(medianLabel:GetWidth()/2)), xPosition - (medianLabel:GetHeight() + labelPadding))
+                                    else
+                                        medianLabel:SetPosition(xPosition - (medianLabel:GetWidth() + labelPadding), yPosition - cast(integer,(medianLabel:GetHeight()/2)))
+                                    end
+                                end
+                            end
                 
                             //Q3
                             percent = (upperQuartile - rangeMin)/range // used for 8-9
+                            yPosition = cast(integer, percent*height)-halfline
                             item:Get(8):LoadFilledRectangle(center+line, line, darkColor)
-                            item:Get(8):SetPosition(startw+size, cast(integer, percent*height)-halfline, -1)
+                            item:Get(8):SetPosition(startw+size, yPosition, -1)
+
+                            //annotation of Q3
+                            if plot:ShowAnnotation() or chart:ShowAnnotations()
+                                ControlLabel Q3Label = item:Get(8):GetAnnotation()
+                                if Q3Label not= undefined
+                                    if horizontal
+                                        Q3Label:SetPosition(yPosition - cast(integer,(Q3Label:GetWidth()/2)), xPosition - (Q3Label:GetHeight() + labelPadding))
+                                    else
+                                        Q3Label:SetPosition(xPosition - (Q3Label:GetWidth() + labelPadding), yPosition - cast(integer,(Q3Label:GetHeight()/2)))
+                                    end
+                                end
+                            end
                 
                             //Upper Whisker
                             item:Get(9):LoadFilledRectangle(line, cast(integer,(maximum-upperQuartile)/dataScale), darkColor)
@@ -220,8 +276,20 @@ class BoxPlotLayout is ChartLayout
                 
                             //Max
                             percent = (maximum - rangeMin)/range // used for 10
+                            yPosition = cast(integer, percent*height)-halfline
                             item:Get(10):LoadFilledRectangle(center+line, line, darkColor)
-                            item:Get(10):SetPosition(startw+size, cast(integer, percent*height)-halfline)
+                            item:Get(10):SetPosition(startw+size, yPosition)
+
+                            if plot:ShowAnnotation() or chart:ShowAnnotations()
+                                ControlLabel maxLabel = item:Get(10):GetAnnotation()
+                                if maxLabel not= undefined
+                                    if horizontal
+                                        maxLabel:SetPosition(yPosition - cast(integer,(maxLabel:GetWidth()/2)), xPosition - (maxLabel:GetHeight() + labelPadding))
+                                    else
+                                        maxLabel:SetPosition(xPosition - (maxLabel:GetWidth() + labelPadding), yPosition - cast(integer,(maxLabel:GetHeight()/2)))
+                                    end
+                                end
+                            end
 
                             integer plotAreaHeight = cast(integer, item:Get(10):GetY()+item:Get(10):GetHeight())
                             if separateByFactor and chart:HasGroups()
