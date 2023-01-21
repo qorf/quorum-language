@@ -44,6 +44,9 @@ class SharedBarChartParent is Chart
     private number maxBarValue = 0
     private number minBarValue = 0
 
+    private boolean annotationFontSizeOverride = false
+    private integer annotationFontSize = 0
+
     Array<BarGroup> barGroups
     boolean isStacked = false
 
@@ -181,6 +184,9 @@ class SharedBarChartParent is Chart
                 if temp:ShowAnnotation() or ShowAnnotations() and not GetStackedFlag() //not sure how we will show annotations for stacked bars
                     ChartLabel barLabel
                     barLabel:SetText(valueText)
+                    if annotationFontSizeOverride
+                            barLabel:SetFontSize(annotationFontSize)
+                    end
                     temp:SetAnnotation(barLabel)
                     chartArea:Add(barLabel)
                 end
@@ -943,6 +949,11 @@ class SharedBarChartParent is Chart
 
     action GetChartItemsText returns text
         return chartItemsText
+    end
+
+    action SetAnnotationFontSize (integer size)
+        annotationFontSizeOverride = true
+        annotationFontSize = size
     end
 
 end
