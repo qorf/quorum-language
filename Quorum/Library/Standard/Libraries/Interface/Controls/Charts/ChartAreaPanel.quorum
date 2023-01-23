@@ -8,6 +8,7 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.Font
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 
 /*
     This class represents the chart area sub panels within splitbyfactor charts.
@@ -30,6 +31,13 @@ class ChartAreaPanel is ChartItem
     ColorGroup borderColor = undefined
     ColorGroup selectionColor = undefined
     ColorGroup selectionBorderColor = undefined
+
+    /*
+    A movable regression line unique to this chart area.
+    Undefined by default, but will be set if the chart has
+    "ShowMovableRegressionLine" set to true during creation.
+    */
+    RegressionLine movableRegressionLine = undefined
 
     on create
         ManualLayout manualLayout
@@ -156,4 +164,13 @@ class ChartAreaPanel is ChartItem
         end
         return cast(Chart, parentItem)
     end
+
+    action GetMovableRegressionLine returns RegressionLine
+        return movableRegressionLine
+    end
+
+    action SetMovableRegressionLine(RegressionLine movableRegressionLine)
+        me:movableRegressionLine = movableRegressionLine
+    end
+
 end

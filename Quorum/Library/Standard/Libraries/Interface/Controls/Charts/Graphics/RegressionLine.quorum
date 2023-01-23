@@ -814,4 +814,16 @@ class RegressionLine is ChartDrawable, LinePath
     action GetYIntercept returns number
         return constantValue
     end
+
+    /*
+    This action directly sets the slope and intercept of the line.
+    This should primarily be used for initialization, as it doesn't
+    check against limiting factors like a locked y-intercept. 
+    */
+    action SetSlopeAndIntercept(number slope, number intercept)
+        me:slope = slope
+        constantValue = intercept
+
+        RefreshPoints()
+    end
 end

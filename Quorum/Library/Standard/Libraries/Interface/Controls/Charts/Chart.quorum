@@ -173,9 +173,9 @@ class Chart is ChartItem
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
     number pointBorderThickness = 1
-    // Used to indicate that a chart's regression lines should be movable.
+    // Used to indicate that a chart should include a movable regression line.
     // Must be set before displaying the chart.
-    boolean movableRegressionLines = false
+    boolean showMovableRegressionLine = false
 
     // Values used to lock the initial y-intercept value of regression lines.
     boolean lockRegressionIntercepts = false
@@ -1258,7 +1258,7 @@ class Chart is ChartItem
     chart:SetSubtitle("Two Columns - One Factor")
     chart:ShowLinearRegression(true)
     chart:ShowSquaresOfResiduals(true)
-    chart:SetMovableRegressionLines(true)
+    chart:ShowMovableRegressionLine(true)
     chart:SetResidualSquareThickness(2)
     chart:LockRegressionYIntercept(0)
     chart:Display(1200, 1200)
@@ -1298,23 +1298,22 @@ class Chart is ChartItem
     chart:SetSubtitle("Two Columns - One Factor")
     chart:ShowLinearRegression(true)
     chart:ShowSquaresOfResiduals(true)
-    chart:SetMovableRegressionLines(true)
+    chart:ShowMovableRegressionLine(true)
     chart:SetResidualSquareThickness(2)
     chart:LockRegressionYIntercept(0)
     chart:Display(1200, 1200)
     */
-    action SetMovableRegressionLines(boolean movable)
-        movableRegressionLines = movable
+    action ShowMovableRegressionLine(boolean movable)
+        showMovableRegressionLine = movable
     end
 
     /*
-    This action returns true if the regression lines in this chart are movable, or false
-    if the lines are non-interactive.
+    This action returns true if this chart includes a movable regression line, or false otherwise.
 
-    Attribute: Returns True if regression lines are movable, or false otherwise.
+    Attribute: Returns True if this chart has a movable regression line, or false otherwise.
     */
-    action HasMovableRegressionLines returns boolean
-        return movableRegressionLines
+    action HasMovableRegressionLine returns boolean
+        return showMovableRegressionLine
     end
 
     /*
@@ -1336,7 +1335,7 @@ class Chart is ChartItem
     chart:SetSubtitle("Two Columns - One Factor")
     chart:ShowLinearRegression(true)
     chart:ShowSquaresOfResiduals(true)
-    chart:SetMovableRegressionLines(true)
+    chart:ShowMovableRegressionLine(true)
     chart:SetResidualSquareThickness(2)
     chart:LockRegressionYIntercept(0)
     chart:Display(1200, 1200)
@@ -1368,7 +1367,6 @@ class Chart is ChartItem
         repeat while i < GetSeriesList():GetSize()
             RegressionLine line = GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
-                line:SetMovable(movableRegressionLines)
                 line:SetColor(GetSeriesList():Get(i):GetColor())
                 if IsSeparatedBySeries()
                     integer k = 0
@@ -1410,6 +1408,42 @@ class Chart is ChartItem
 
             i = i + 1
         end
+
+        if HasMovableRegressionLine()
+            if IsSeparatedBySeries()
+                i = 0
+                repeat while i < GetNumberOfChartAreas()
+                    RegressionLine line = CreateMovableRegressionLine()
+                    ChartAreaPanel area = GetSubChartAreas():Get(i)
+                    area:SetMovableRegressionLine(line)
+                    area:Add(line)
+                    i = i + 1
+                end
+            else
+                RegressionLine line = CreateMovableRegressionLine()
+                ChartAreaPanel area = GetChartArea()
+                area:SetMovableRegressionLine(line)
+                area:Add(line)
+            end
+        end
+    end
+
+    private action CreateMovableRegressionLine returns RegressionLine
+        RegressionLine line
+        line:SetMovable(true)
+
+        if lockRegressionIntercepts = true
+            line:SetSlopeAndIntercept(1, regressionInterceptLock)
+        else
+            line:SetSlopeAndIntercept(1, 0)
+        end
+        
+        // TO-DO: Remove this. Temporary debugging value
+        Color color
+        line:SetBackgroundColor(color:Orange())
+        line:SetBorderColor(color:Black())
+
+        return line
     end
 
     /*
