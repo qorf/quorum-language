@@ -1,0 +1,724 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Calculations.SumOfSquares
+use Libraries.Compute.Vector
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+use Libraries.Compute.MatrixTransform.EigenDecomposition
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.Transforms.UncorrelatedComponentRotation
+use Libraries.Compute.Statistics.Transforms.CorrelatedComponentRotation
+use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+
+/*
+    This class implements principal component analysis:
+    
+    Attribute: Author Andreas Stefik, Hannah Williams
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+
+    DataFrame frame
+    frame:Load("Data/Data.csv")
+    frame:SelectAllColumns()
+
+    PrincipalComponentAnalysis pca
+    pca:Calculate(frame)
+    
+    output pca:GetFactorLoadings()
+*/
+class PrincipalComponentAnalysis is StatisticalTest
+    Math math
+    integer factors = 0                 // Defaults to all selected columns
+    Array<PrincipalComponentAnalysisResult> results
+    boolean correlatedRotation = false      // use oblimin - quartimin
+    boolean uncorrelatedRotation = false    // use varimax
+    boolean normalize = true                // apply kaiser normalization
+    integer maxIterations = 0             // used to reach convergence in rotations
+    number epsilon = 0                // used to reach convergence in rotations
+    private boolean useDefaultNormalize = true
+    private boolean useDefaultMaxIterations = true
+    private boolean useDefaultEpsilon = true           
+
+    action Calculate(DataFrame frame, integer numberOfFactorsToExtract) 
+        me:factors = numberOfFactorsToExtract
+        Calculate(frame) 
+    end
+
+    action Calculate(DataFrame frame) 
+        // If nothing is selected attempt to grab frame's selection.
+        if GetColumnSize() = 0 
+            if frame:GetSelection() not= undefined
+                frame:GetSelection():CopyTo(cast(ColumnInput, me))
+            end
+        end
+        if GetFactorSize() = 0 
+            if frame:GetSelection() not= undefined 
+                frame:GetSelection():CopyTo(cast(FactorInput, me))
+            end
+        end
+        if GetFactorSize() not= 0
+            // No 'factors' should be selected for PCA, only column selections.
+            alert("Select only columns for Principal Component Analysis")
+        end
+
+        if factors < 1 or factors > frame:GetSize()
+            me:factors = GetColumnSize()
+        end
+
+        parent:StatisticalTest:RemoveUndefined(true)
+        parent:StatisticalTest:Calculate(frame)
+    end
+
+    private action RunTest(DataFrame frame)
+        if GetColumnSize() < 2
+            alert("Must include at least two columns.")
+        end
+        
+        i = 0
+        repeat while i < GetColumnSize()
+            frame:AddSelectedColumn(GetColumn(i))
+            i = i + 1
+        end
+        PrincipalComponents(frame)
+    end
+
+    private action PrincipalComponents(DataFrame frame)
+        Math math
+        Matrix matrix = frame:CorrelationMatrix()
+        Matrix current = matrix
+        Matrix previous = undefined
+
+        DataFrame framedResults
+
+        integer size = matrix:GetColumns()
+        Vector communality //h2
+        communality:SetSize(size)
+
+        EigenDecomposition decomp
+        decomp:Symmetric(true)
+        decomp:Calculate(current)
+        
+        Vector eigenvalues = decomp:GetEigenvalues()
+        Array<Vector> eigenvectors = decomp:GetEigenvectors()
+
+        i = 0
+        repeat while i < factors
+            number eval = math:SquareRoot(eigenvalues:Get(i))
+            Vector evect = eigenvectors:Get(i):Copy()
+            evect:Multiply(eval)
+            Matrix residuals
+            residuals:Fill(matrix:GetRows(), matrix:GetColumns(), 0.0)
+            CalculateResidualMatrix(residuals, evect) 
+            
+            // We have the factor loadings, so toss them in a data frame
+            NumberColumn column
+            column:SetHeader("PC" + (i+1))
+            column:SetSize(evect:GetSize())
+
+            // Manage everything into a dataframe and additionally track communality/unique variance
+            j = 0
+            repeat while j < evect:GetSize()
+                communality:Set(j, communality:Get(j) + (evect:Get(j) * evect:Get(j)))
+                column:SetAsNumber(j, evect:Get(j))
+                j = j + 1
+            end
+            framedResults:AddColumn(column)
+
+            previous = current
+            current = previous:SubtractElements(residuals)
+
+            i = i + 1
+        end
+        
+        // Convert the residual matrix to a data frame
+        Matrix residualMatrix = current
+        DataFrame residuals 
+        i = 0
+        repeat while i < residualMatrix:GetColumns()
+            NumberColumn column
+            j = 0 
+            repeat while j < residualMatrix:GetRows()
+                column:Add(residualMatrix:Get(j,i))
+                j = j + 1
+            end
+            residuals:AddColumn(column)
+            i = i + 1
+        end
+
+        // Update signs prior to any rotations
+        UpdateSigns(framedResults)
+
+
+        // Save the results
+        PrincipalComponentAnalysisResult result
+        Vector ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+        if correlatedRotation
+            CorrelatedComponentRotation rotate
+            if not useDefaultEpsilon
+                rotate:SetEpsilon(epsilon)
+            end
+            if not useDefaultNormalize
+                rotate:Normalize(normalize)
+            end
+            if not useDefaultMaxIterations
+                rotate:SetMaximumIterations(maxIterations)
+            end
+            framedResults = rotate:Rotate(framedResults)            
+            DataFrame structure = rotate:GetStructure()
+            ssLoadings = CalculateSumOfSquaredLoadings(structure)
+
+            UpdateSigns(framedResults) // Update signs again after rotation 
+            result:SetObliqueRotation(true)
+            result:SetComponentRotation(rotate)
+        else
+            if uncorrelatedRotation
+                UncorrelatedComponentRotation rotate
+                if not useDefaultEpsilon
+                    rotate:SetEpsilon(epsilon)
+                end
+                if not useDefaultNormalize
+                    rotate:Normalize(normalize)
+                end
+                if not useDefaultMaxIterations
+                    rotate:SetMaximumIterations(maxIterations)
+                end
+                framedResults = rotate:Rotate(framedResults)
+                ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+   
+                UpdateSigns(framedResults) // Update signs again after rotation  
+                result:SetOrthogonalRotation(true)
+                result:SetComponentRotation(rotate)       
+            else
+                ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+            end
+        end
+        Vector proportionVariance = CalculateProportionOfVariance(ssLoadings, size)
+        Vector proportionExplained = CalculateProportionOfVarianceExplained(proportionVariance)
+        Vector uniqueness = CalculateUniqueness(communality)
+        Vector complexity = CalculateItemComplexity(framedResults, factors)
+        number meanComplexity = CalculateMeanItemComplexity(complexity)
+        number rmsr = CalculateStandardizedRootMeanSquareOfResiduals(residualMatrix) 
+       
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetFactorLoadings(framedResults)
+        result:SetCommunality(communality)
+        result:SetUniqueness(uniqueness)
+        result:SetEigenvalues(eigenvalues)  
+        result:SetEigenvectors(eigenvectors)      
+        result:SetProportionVariance(proportionVariance)
+        result:SetProportionExplained(proportionExplained)
+        result:SetItemComplexity(complexity)
+        result:SetMeanItemComplexity(meanComplexity)
+        result:SetRootMeanSquareOfResiduals(rmsr)
+        result:SetResiduals(residuals)
+        result:SetScreePlot(ScreePlot(eigenvalues))
+        result:SetResidualHistogram(ResidualHistogram(residualMatrix))
+        result:SetFormalTestName("Principal Component Analysis based on the correlation matrix")  
+        results:Add(result)
+    end
+
+    /* 
+        This does not seem to be necessary for calculations or change the meaning of the results.
+        Though, R does do something similar for what seems to be aesthetic reasons, so for now we will keep it.
+    */
+    private action UpdateSigns(DataFrame frame)
+        i = 0
+        repeat while i < factors
+            DataFrameColumn column = frame:GetColumn(i)
+            
+            Summarize summary
+            column:Calculate(summary)
+            number sum = summary:GetSum()
+
+            if sum <= 0
+                j = 0
+                repeat while j < column:GetSize()
+                    column:SetAsNumber(j, column:GetAsNumber(j) * -1.0)
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /* 
+        Sum Of Squared Loadings:
+            For orthogonal (uncorrelated) rotation or no rotation
+                The ssLoadings are calculated by the sum of squares per each factor in the (rotated/unrotated) loadings matrix
+                When no rotation occurs, these values will equal the eigenvalues of the extracted factors from the original data frame.
+            For oblique (correlated) rotation
+                The ssLoadings are calculated by the sum of squares per each factor in the structure matrix
+                Since it is not orthogonal, technically it should not be used to compute the proportional variance, etc. 
+                Thus these values will not properly reflect the variance contribution for any single factor.           
+    */
+    private action CalculateSumOfSquaredLoadings(DataFrame loadings) returns Vector
+        Vector result
+        result:SetSize(loadings:GetSize())
+        integer colIndex = 0
+        repeat while colIndex < loadings:GetSize()
+            SumOfSquares ss
+            loadings:GetColumn(colIndex):Calculate(ss)
+
+            result:Set(colIndex, ss:GetResult())
+            colIndex = colIndex + 1
+        end
+        return result
+    end
+
+    /*
+        Proportion Of Variance:
+            Measure of how much variance each principal component has out of all variables
+            This calculates the proportion of variance related to the total variance across the entire 
+            set of principal components.
+    */
+    private action CalculateProportionOfVariance(Vector ssLoadings, integer fullSize) returns Vector
+        integer size = ssLoadings:GetSize()
+        Vector result
+        result:SetSize(size)
+        i = 0
+        repeat while i < size
+            result:Set(i, ssLoadings:Get(i) / fullSize)
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        Proportion Of Variance Explained:
+            This calculates the proportion of variance related to the sum of only the extracted 
+            principal components in the model. It's thus a proportion of variance in the model, 
+            but not related to the total variance across the entire set of principal components, if 
+            one were to include them all.
+    */
+    private action CalculateProportionOfVarianceExplained(Vector proportionVariance) returns Vector
+        integer factors = proportionVariance:GetSize()
+        Vector vector
+        vector:SetSize(factors)
+        number sum = 0
+        i = 0
+        repeat while i < factors
+            number explained = proportionVariance:Get(i)
+            sum = sum + explained
+            vector:Set(i, explained)
+            i = i + 1
+        end
+        vector:Multiply(1.0 / sum)
+        return vector
+    end
+
+    /* 
+        Uniqueness:
+            This action calculates uniqueness, which is simply the result of 1.0 - communality
+    */
+    private action CalculateUniqueness(Vector communality) returns Vector
+        integer size = communality:GetSize()
+        Vector result
+        result:SetSize(size)
+        i = 0
+        repeat while i < size
+            result:Set(i, 1.0 - communality:Get(i))
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        Item Complexity:
+            This action calculates, for a particular item, the number of factors this item loads upon. The 
+            technical name of this calculation is the Hoffman Index of Complexity and in the Psych package in R,
+            they call this "com." The equation for this index is (Sum(Loading^2))^2 / Sum(Loading^4) , there the loading
+            comes from the calculated factor loading for each principal component, up to the number of factors
+            being calculated in the set. As such, this action needs the values for the principal components and the number
+            of components for which to do the calculation.
+    */
+    private action CalculateItemComplexity(DataFrame frame, integer factors) returns Vector
+        DataFrameColumn firstColumn = frame:GetColumn(0) //get the first one to determine the number of rows
+        integer maxRows = firstColumn:GetSize()
+        Vector results
+        results:SetSize(maxRows)
+
+        integer rowIndex = 0
+        repeat while rowIndex < maxRows
+            number numerator = 0
+            number denominator = 0
+
+            integer columnIndex = 0
+            repeat while columnIndex < factors
+                DataFrameColumn column = frame:GetColumn(columnIndex)
+                number value = column:GetAsNumber(rowIndex)
+                value = value * value //to the second
+    
+                numerator = numerator + value
+                value = value * value //now to the 4th
+                denominator = denominator + value
+                columnIndex = columnIndex + 1
+            end
+    
+            numerator = numerator * numerator //square the sum
+            number hoffman = numerator / denominator
+            results:Set(rowIndex, hoffman)            
+            rowIndex = rowIndex + 1
+        end
+        return results
+    end
+
+    /*
+        Mean Item Complexity:
+            This calculates the avergae Hoffman Index of Complexity from the set of Hoffman complexities.
+    */
+    private action CalculateMeanItemComplexity(Vector hoffman) returns number
+        i = 0
+        number average = 0
+        repeat while i < hoffman:GetSize()
+            number value = hoffman:Get(i)
+            value = value / hoffman:GetSize()
+            average = average + value
+            i = i + 1
+        end
+        return average
+    end
+
+    /* 
+        Root Mean Square Of Residuals:
+            PCA based on the correlation matrix (Standardized by default)    
+                The residual matrix is already standardized. This action will simply make the diagonal 
+                in the residual matrix 0s and compute the standardized root mean square of that matrix.
+    
+            PCA based on the covariance matrix (Not standardized by default)     
+                *** The root mean square or residuals will be calculated an alternate way once we 
+                add covariance pca options.
+    */
+    private action CalculateStandardizedRootMeanSquareOfResiduals(Matrix residualMatrix) returns number
+        Matrix r = residualMatrix:Copy()
+        i = 0
+        repeat while i < r:GetRows()
+            r:Set(i,i, 0.0)
+            i = i + 1
+        end
+        Matrix r2 = r:MultiplyElements(r)
+        number N = cast(number, (r2:GetRows()-1) * r2:GetColumns()) // skip diagonal elements
+        return (math:SquareRoot(r2:GetTotal() / N))
+    end
+
+
+    /* 
+        Residual Matrix:
+            This calculates a matrix to be subtracted from the original correlation matrix for each extracted component.
+            The broad idea is to "factor out" the each chosen principle component, leaving the variance for the rest
+            Once all of these extractions are removed, the remaining matrix is the residual matrix for the PCA.
+    */
+    private action CalculateResidualMatrix(Matrix residuals, Vector vector)
+        i = 0
+        repeat while i < vector:GetSize()
+            inner = 1
+            repeat while inner < vector:GetSize()
+                number value = vector:Get(i) * vector:Get(inner)
+                residuals:Set(i, inner, value)
+                residuals:Set(inner, i, value)
+                
+                inner = inner + 1
+            end
+            i = i + 1
+        end
+
+        // Set the diagonal to the square of the eigenvalues
+        i = 0
+        repeat while i < vector:GetSize()
+            residuals:Set(i, i, vector:Get(i) * vector:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        Scree Plot:
+            This makes a chart object of the eigenvalues (aka a scree plot) that can be displayed if requested.
+            Used to determine the inflection point and ultimately how many factors should be extracted.
+    */
+    private action ScreePlot(Vector eigenvalues) returns Chart
+        DataFrame result
+        NumberColumn values
+        values:SetHeader("Eigenvalue")
+        NumberColumn eigen
+        eigen:SetHeader("Size")
+
+        result:AddColumn(values)
+        result:AddColumn(eigen)
+
+        i = 0
+        repeat while i < eigenvalues:GetSize()
+            number value = eigenvalues:Get(i)
+            values:Add(i + 1)
+            eigen:Add(value)
+
+            i = i + 1
+        end
+
+        result:SetSelectedFactors("Eigenvalue")
+        result:SetSelectedColumns("Size")
+        Chart chart = result:LineChart()
+        chart:SetXAxisMinimum(1)
+        chart:SetTitle("PCA Scree Plot")
+        chart:SetXAxisTitle("eigenvalue index")
+        chart:SetYAxisTitle("eigenvalue")
+        return chart
+    end
+
+    /*
+        Residual Histogram:
+            This makes a chart object of the upper triangle of residuals that can be displayed if requested.
+            Used to determine the outliers and whether the model is a good fit.
+    */
+    private action ResidualHistogram(Matrix residuals) returns Chart
+        NumberColumn values
+        values:SetHeader("Residuals")
+
+        DataFrame result
+        result:AddColumn(values)
+        number min = 0
+        number max = 0
+
+        i = 0
+        repeat while i < residuals:GetRows()
+            j = i + 1
+            repeat while j < residuals:GetColumns()
+                number value = residuals:Get(i, j)
+                if i = 0
+                    min = value
+                    max = value
+                end
+                if value < min
+                    min = value
+                end
+                if value > max
+                    max = value
+                end
+                values:Add(value)
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        result:SetSelectedColumns("Residuals")
+        Chart chart = result:Histogram()
+        chart:SetTitle("Histogram of residuals")
+        chart:ShowLegend(false)
+        chart:SetXAxisTitle("residuals")
+        chart:SetYAxisTitle("frequency")
+        return chart
+    end
+
+    action UseCorrelatedRotation()
+        correlatedRotation = true
+        uncorrelatedRotation = false
+    end
+
+    action UseUncorrelatedRotation()
+        uncorrelatedRotation = true
+        correlatedRotation = false
+    end
+
+    action Normalize(boolean normalize)
+        useDefaultNormalize = false
+        me:normalize = normalize
+    end
+
+    action SetEpsilon(number epsilon)
+        useDefaultEpsilon = false
+        me:epsilon = epsilon
+    end
+
+    action SetMaximumIterations(integer maxIterations)
+        if maxIterations < 0
+            alert("Cannot use less than 0 iterations.")
+        end
+        useDefaultMaxIterations = false
+        me:maxIterations = maxIterations
+    end
+
+    /* This returns the factor loadings if only one result exists. */
+    action GetFactorLoadings returns DataFrame
+        return GetResult():GetFactorLoadings()
+    end
+
+    /* This returns the residuals if only one result exists. */
+    action GetResiduals returns DataFrame
+        return GetResult():GetResiduals()
+    end
+
+    /* This returns the scree plot if only one result exists. */
+    action GetScreePlot returns Chart
+        return GetResult():GetScreePlot()
+    end
+
+    /* This returns the residual histogram if only one result exists. */
+    action GetResidualHistogram returns Chart
+        return GetResult():GetResidualHistogram()
+    end
+
+    /* This returns the eigenvalues if only one result exists. */
+    action GetEigenvalues returns Vector
+        return GetResult():GetEigenvalues()
+    end
+
+    /* This returns the communality if only one result exists. */
+    action GetCommunality returns Vector
+        return GetResult():GetCommunality()
+    end
+
+    /* This returns the uniqueness if only one result exists. */
+    action GetUniqueness returns Vector
+        return GetResult():GetUniqueness()
+    end
+
+    /* This returns the item complexity if only one result exists. */
+    action GetItemComplexity returns Vector
+        return GetResult():GetItemComplexity()
+    end
+
+    /* This returns the mean item complexity if only one result exists. */
+    action GetMeanItemComplexity returns number
+        return GetResult():GetMeanItemComplexity()
+    end
+
+    /* This returns the ss loadings if only one result exists. */
+    action GetSumOfSquaredLoadings returns Vector
+        return GetResult():GetSumOfSquaredLoadings()
+    end
+
+    /* This returns the proportion var if only one result exists. */
+    action GetProportionVariance returns Vector
+        return GetResult():GetProportionVariance()
+    end
+
+    /* This returns the proportion explained if only one result exists. */
+    action GetProportionExplained returns Vector
+        return GetResult():GetProportionExplained()
+    end
+
+    /* This returns the root mean square of residuals if only one result exists. */
+    action GetRootMeanSquareOfResiduals returns number
+        return GetResult():GetRootMeanSquareOfResiduals()
+    end
+
+    /*
+        This returns a result if only one exists.
+
+        Attribute: Returns the PrincipalComponentAnalysisResult object
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+        use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame)
+        
+        PrincipalComponentAnalysisResult result = pca:GetResult()
+    */
+    action GetResult returns PrincipalComponentAnalysisResult
+        if results:GetSize() = 0
+            alert("There are no results calculated")
+        elseif results:GetSize() = 1
+            return results:Get(0)
+        else
+            alert("There is more than one test result, use GetResults() for an array of all results")
+        end
+    end
+
+    /*
+        Attribute: Returns an array of PrincipalComponentAnalysisResult objects
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+        use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame)
+        
+        Array<PrincipalComponentAnalysisResult> results = pca:GetResults()
+    */
+    action GetResults returns Array<PrincipalComponentAnalysisResult>
+        return results
+    end
+
+    /*
+        Attribute: Returns a list of the important statistics of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame)
+        output pca:GetSummary()
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        PrincipalComponentAnalysisResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+
+    /*
+        This action summarizes the results and places them into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+
+        Attribute: Returns a condensed formal result of the test
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame)
+        output pca:GetFormalSummary()
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        i = 0
+        PrincipalComponentAnalysisResult result 
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+
+            summary = summary + lf
+            summary = summary + result:GetFormalSummary()
+            summary = summary + lf
+            i = i + 1
+        end
+        return summary
+    end
+end

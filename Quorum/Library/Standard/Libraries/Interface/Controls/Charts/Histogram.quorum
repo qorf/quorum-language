@@ -146,7 +146,7 @@ class Histogram is SharedBarChartParent
 
         // Take range and divide it amongst bins and round up to get the default bin width
         if binCountOverride //Bin count override supercedes bin width override
-            if max < 2.5 and max > -2.5
+            if range <= 2.5 
                 decimalScale = true
                 binWidth = math:Round(range / cast(number, binCount),3)
                 if GetHorizontalFlag()
@@ -170,7 +170,7 @@ class Histogram is SharedBarChartParent
             end
         else
             if binWidthOverride
-                if max < 2.5 and max > -2.5
+                if range <= 2.5 
                     decimalScale = true
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                     if GetHorizontalFlag()
@@ -200,9 +200,18 @@ class Histogram is SharedBarChartParent
             else
                 //Default binwidth and bincount (don't count undefined column values)
                 binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
-                if max < 2.5 and max > -2.5
+                if range <= 2.5 
                     decimalScale = true
                     binWidth = math:Round(range / cast(number, binCount),1)
+                    d = 2
+                    repeat while binWidth = 0 and d < 100
+                        binWidth = math:Round(range / cast(number, binCount),d)
+                        d = d + 1
+                    end
+                    if binWidth = 0
+                        alert("These numbers are too small to include in a histogram")
+                    end
+
                     if GetHorizontalFlag()
                         GetVerticalPanel():SetTickDigits(3)
                     else

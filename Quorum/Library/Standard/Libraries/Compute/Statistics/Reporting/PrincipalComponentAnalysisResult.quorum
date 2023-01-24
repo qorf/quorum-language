@@ -1,0 +1,376 @@
+package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Transforms.ComponentRotation
+use Libraries.Compute.Math
+use Libraries.Compute.Vector
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Matrix
+
+/*
+    This class represents data that comes back from a principal component analysis 
+    in a PrincipalComponentAnalysis statistical test.
+
+    Attribute: Author Hannah Williams
+*/
+class PrincipalComponentAnalysisResult
+    Math math
+    StatisticsFormatting format
+    Chart screePlot = undefined
+    Chart residualHistogram = undefined
+    ComponentRotation rotation = undefined
+    DataFrame factorLoadings = undefined
+    DataFrame structure = undefined
+    DataFrame residuals = undefined
+    Vector sumOfSquaredLoadings = undefined
+    Vector proportionVariance = undefined
+    Vector proportionExplained = undefined
+    Vector communality = undefined
+    Vector uniqueness = undefined
+    Vector complexity = undefined
+    Vector eigenvalues = undefined
+    Array<Vector> eigenvectors = undefined
+    number meanComplexity = 0
+    number rootMeanSquareOfResiduals = 0
+    boolean obliqueRotation = false
+    boolean orthogonalRotation = false
+    text formalTestName = ""
+
+    /*
+        Returns the name of the test in formal mathematical language.
+
+        Attribute: Returns the name of the test in mathematical language.
+    */
+    action GetFormalTestName returns text
+        return formalTestName
+    end
+
+    /*
+        Sets the name of the test in formal mathematical language.
+
+        Attribute: Parameter formalTestName the name of the test in mathematical language.
+    */
+    action SetFormalTestName(text formalTestName)
+        me:formalTestName = formalTestName
+    end
+
+    /*
+        This action summarizes the result and lists it informally.
+    */
+    action GetSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        
+        if GetFactorLoadings() not= undefined
+            integer factorsExtracted = GetFactorLoadings():GetSize()
+            summary = summary + "A "+ GetFormalTestName() + " was conducted on " + factorsExtracted + " extracted components."
+
+            if GetComponentRotation() not= undefined
+                summary = summary + "This analysis used an " + GetRotation() + " rotation."
+                if Converged()
+                    summary = summary + "Convergence was reached in " + GetIterations() + " iterations."
+                else
+                    summary = summary + "Convergence was not reached in " + GetMaximumIterations() + " iterations."
+                end
+            end
+        end
+
+        return summary
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+
+        if GetFactorLoadings() not= undefined
+            integer factorsExtracted = GetFactorLoadings():GetSize()
+            summary = summary + "A "+ GetFormalTestName() + " was conducted on " + factorsExtracted + " extracted components."
+
+            if GetComponentRotation() not= undefined
+                summary = summary + "This analysis used an " + GetRotation() + " rotation."
+                if Converged()
+                    summary = summary + "Convergence was reached in " + GetIterations() + " iterations."
+                else
+                    summary = summary + "Convergence was not reached in " + GetMaximumIterations() + " iterations."
+                end
+            end
+        end
+
+        return summary
+    end
+
+    /* Returns the statistical format for the output in the summary or formal summary. */
+    action GetFormat returns StatisticsFormatting
+        return format
+    end
+
+    /* Stores the statistical format for the output in the summary or formal summary. */
+    action SetFormat(StatisticsFormatting format)
+        me:format = format
+    end
+
+    /* Returns the scree plot chart that plots all eigenvalues. */
+    action GetScreePlot returns Chart
+        return screePlot
+    end
+
+    /* Stores the scree plot chart that plots all eigenvalues. */
+    action SetScreePlot(Chart screePlot)
+        me:screePlot = screePlot
+    end
+
+    /* Returns the histogram chart that shows the upper triangle of the residuals. */
+    action GetResidualHistogram returns Chart
+        return residualHistogram
+    end
+
+    /* Stores the histogram chart that show the upper triangle of the residuals. */
+    action SetResidualHistogram(Chart residualHistogram)
+        me:residualHistogram = residualHistogram
+    end
+
+    /* Returns a vector of eigenvalues from the pca on all variables. */
+    action GetEigenvalues returns Vector
+        return eigenvalues
+    end
+
+    /* Stores a vector of eigenvalues from the pca on all variables. */
+    action SetEigenvalues(Vector eigenvalues)
+        me:eigenvalues = eigenvalues
+    end
+
+    /* Returns an array of eigenvectors from the pca on all variables. */
+    action GetEigenvectors returns Array
+        return eigenvectors
+    end
+
+    /* Stores an array of eigenvectors from the pca on all variables. */
+    action SetEigenvectors(Array <Vector> eigenvectors)
+        me:eigenvectors = eigenvectors
+    end
+
+    /* Returns the component factor loadings dataframe from the pca. */
+    /* Returns the rotated component factor loadings dataframe from the rotation, if a rotation occurred. */
+    action GetFactorLoadings returns DataFrame
+        return factorLoadings
+    end
+
+    /* Stores the component factor loadings dataframe from the pca. */
+    /* Stores the rotated component factor loadings dataframe from the rotation, if a rotation occurred. */
+    action SetFactorLoadings(DataFrame factorLoadings)
+        me:factorLoadings = factorLoadings
+    end
+
+    /* Returns the residuals from the factor loadings. */
+    action GetResiduals returns DataFrame
+        return residuals
+    end
+
+    /* Stores the residuals from the factor loadings. */
+    action SetResiduals(DataFrame residuals)
+        me:residuals = residuals
+    end
+
+    /* Returns a vector of the component communalities. */
+    /* For more information: https://www.statisticshowto.com/communality */
+    action GetCommunality returns Vector
+        return communality
+    end
+
+    /* Stores a vector of the component communalities. */
+    /* For more information: https://www.statisticshowto.com/communality */
+    action SetCommunality(Vector communality)
+        me:communality = communality
+    end
+
+    /* Returns a vector of the component uniqueness. */
+    action GetUniqueness returns Vector
+        return uniqueness
+    end
+
+    /* Stores a vector of the component uniqueness. */
+    action SetUniqueness(Vector uniqueness)
+        me:uniqueness = uniqueness
+    end
+
+    /* Returns a vector of the hoffman complexities. */
+    /* For more information: https://files.eric.ed.gov/fulltext/ED074155.pdf */
+    action GetItemComplexity returns Vector
+        return complexity
+    end
+
+    /* Stores a vector of the hoffman complexities. */
+    /* For more information: https://files.eric.ed.gov/fulltext/ED074155.pdf */
+    action SetItemComplexity(Vector complexity)
+        me:complexity = complexity
+    end
+
+    /* Returns the mean value of all the hoffman complexities. */
+    action GetMeanItemComplexity returns number
+        return meanComplexity
+    end
+
+    /* Stores the mean value of all the hoffman complexities. */
+    action SetMeanItemComplexity(number meanComplexity)
+        me:meanComplexity = meanComplexity
+    end
+
+    /* Returns a vector of the component ss loadings. */
+    /* When no rotation occurs, these are simply the eigenvalues */
+    /* When an orthogonal rotation occurs, these are computed from the rotated component loadings */
+    /* When an oblique rotation occurs, these are computed from the structure loadings produced by the rotation */
+    action GetSumOfSquaredLoadings returns Vector
+        return sumOfSquaredLoadings
+    end
+
+    /* Stores a vector of the component ss loadings. */
+    /* When no rotation occurs, these are simply the eigenvalues */
+    /* When an orthogonal rotation occurs, these are computed from the rotated component loadings */
+    /* When an oblique rotation occurs, these are computed from the structure loadings produced by the rotation */
+    action SetSumOfSquaredLoadings(Vector sumOfSquaredLoadings)
+        me:sumOfSquaredLoadings = sumOfSquaredLoadings
+    end
+
+    /* Returns a vector of the proportion variances. */
+    action GetProportionVariance returns Vector
+        return proportionVariance
+    end
+
+    /* Stores a vector of the proportion variances. */
+    action SetProportionVariance(Vector proportionVariance)
+        me:proportionVariance = proportionVariance
+    end
+
+    /* Returns a vector of the proportion explained. */
+    action GetProportionExplained returns Vector
+        return proportionExplained
+    end
+
+    /* Stores a vector of the proportion explained. */
+    action SetProportionExplained(Vector proportionExplained)
+        me:proportionExplained = proportionExplained
+    end
+
+    /* Returns the root mean square of the residual matrix (rmsr). */
+    /* If a correlation matrix was used for PCA, this is the standardized rmsr */
+    /* If a covariance matrix was used for PCA, this is the non-standardized rmsr */
+    action GetRootMeanSquareOfResiduals returns number
+        return rootMeanSquareOfResiduals
+    end
+
+    /* Stores the root mean square of the residual matrix (rmsr). */
+    /* If a correlation matrix was used for PCA, this is the standardized rmsr */
+    /* If a covariance matrix was used for PCA, this is the non-standardized rmsr */
+    action SetRootMeanSquareOfResiduals(number rootMeanSquareOfResiduals)
+        me:rootMeanSquareOfResiduals = rootMeanSquareOfResiduals
+    end
+
+    /* Stores what type of rotation was used, if a rotation occurred. */
+    action SetObliqueRotation(boolean obliqueRotation)
+        me:obliqueRotation = obliqueRotation
+    end
+
+    /* Stores what type of rotation was used, if a rotation occurred. */
+    action SetOrthogonalRotation(boolean orthogonalRotation)
+        me:orthogonalRotation = orthogonalRotation
+    end
+
+    /* Returns the rotation object, if a rotation occurred. */
+    action GetComponentRotation returns ComponentRotation
+        return rotation
+    end
+
+    /* Stores the rotation object, if a rotation occurred. */
+    action SetComponentRotation(ComponentRotation rotation)
+        me:rotation = rotation
+    end
+
+    /* Returns the type of component rotation that took place if any. */
+    action GetRotation returns text
+        if obliqueRotation
+            return "oblique quartimin"
+        elseif orthogonalRotation
+            return "orthogonal varimax"
+        else
+            return "none"
+        end
+    end
+
+    /* Returns the structure dataframe from the rotation calculations, if a rotation occurred. */
+    /* This can be calculated by the dot product between loadings and the correlation matrix (phi) from the rotation */
+    action GetStructureLoadings returns DataFrame
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetStructure()
+        else
+            return undefined
+        end
+    end
+
+    /* Returns the rotation matrix from the rotation calculations, if a rotation occurred. */
+    action GetRotationMatrix returns Matrix
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetRotationMatrix()
+        else
+            return undefined
+        end
+    end
+
+    /* Returns the correlation matrix (known sometimes as phi) from the rotation calculations, if a rotation occurred. */
+    action GetCorrelationMatrix returns Matrix
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetCorrelationMatrix()
+        else
+            return undefined
+        end
+    end
+
+    /* Returns the flag of whether convergence was reached within the max iterations in rotation, if a rotation occurred. */
+    action Converged returns boolean
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():Converged()
+        else
+            return false
+        end
+    end
+
+    /* Returns the flag of whether Kaiser normalization was applied to the rotation, if a rotation occurred. */
+    action Normalize returns boolean
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():Normalize()
+        else
+            return false
+        end
+    end
+
+    /* Returns the epsilon value used in rotation, if a rotation occurred. */
+    action GetEpsilon returns number
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetEpsilon()
+        else
+            return 0
+        end
+    end
+
+    /* Returns the number of iterations that actually occurred during a rotation, if a rotation occurred. */
+    action GetIterations returns integer
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetIterations()
+        else
+            return 0
+        end
+    end
+
+    /* Returns the maximum number of iterations that can occur during a rotation, if a rotation occurs. */
+    action GetMaximumIterations returns integer
+        if GetComponentRotation() not= undefined 
+            return GetComponentRotation():GetMaximumIterations()
+        else
+            return 0
+        end
+    end
+end
