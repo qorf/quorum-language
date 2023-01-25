@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Statistics.Transforms.UncorrelatedComponentRotation
 use Libraries.Compute.Statistics.Transforms.CorrelatedComponentRotation
 use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
 
 /*
     This class implements principal component analysis:
@@ -40,8 +41,8 @@ class PrincipalComponentAnalysis is StatisticalTest
     boolean correlatedRotation = false      // use oblimin - quartimin
     boolean uncorrelatedRotation = false    // use varimax
     boolean normalize = true                // apply kaiser normalization
-    integer maxIterations = 0             // used to reach convergence in rotations
-    number epsilon = 0                // used to reach convergence in rotations
+    integer maxIterations = 0               // used to reach convergence in rotations
+    number epsilon = 0                      // used to reach convergence in rotations
     private boolean useDefaultNormalize = true
     private boolean useDefaultMaxIterations = true
     private boolean useDefaultEpsilon = true           
@@ -97,6 +98,7 @@ class PrincipalComponentAnalysis is StatisticalTest
 
         DataFrame framedResults
 
+        integer observations = frame:GetColumn(0):GetSize()
         integer size = matrix:GetColumns()
         Vector communality //h2
         communality:SetSize(size)
@@ -205,9 +207,15 @@ class PrincipalComponentAnalysis is StatisticalTest
         Vector complexity = CalculateItemComplexity(framedResults, factors)
         number meanComplexity = CalculateMeanItemComplexity(complexity)
         number rmsr = CalculateStandardizedRootMeanSquareOfResiduals(residualMatrix) 
+        number fit = CalculateFit(residualMatrix, matrix)
+        number modelDegreesOfFreedom = size * (size-1) / 2.0 - size * factors + factors * (factors-1) / 2.0
+        number nullDegreesOfFreedom = size * ((size-1) / 2.0) 
+        number empircalX2 = CalculateEmpircalChiSquaredStatistic(residualMatrix, observations)
+        number p = CalculateProbability(modelDegreesOfFreedom, empircalX2)
        
         result:SetFormat(GetStatisticalFormatting())
         result:SetFactorLoadings(framedResults)
+        result:SetSumOfSquaredLoadings(ssLoadings)
         result:SetCommunality(communality)
         result:SetUniqueness(uniqueness)
         result:SetEigenvalues(eigenvalues)  
@@ -217,9 +225,11 @@ class PrincipalComponentAnalysis is StatisticalTest
         result:SetItemComplexity(complexity)
         result:SetMeanItemComplexity(meanComplexity)
         result:SetRootMeanSquareOfResiduals(rmsr)
+        result:SetModelFit(fit)
         result:SetResiduals(residuals)
-        result:SetScreePlot(ScreePlot(eigenvalues))
-        result:SetResidualHistogram(ResidualHistogram(residualMatrix))
+        result:SetDegreesOfFreedom(modelDegreesOfFreedom)
+        result:SetTestStatistic(empircalX2)
+        result:SetProbabilityValue(p)
         result:SetFormalTestName("Principal Component Analysis based on the correlation matrix")  
         results:Add(result)
     end
@@ -395,8 +405,8 @@ class PrincipalComponentAnalysis is StatisticalTest
                 *** The root mean square or residuals will be calculated an alternate way once we 
                 add covariance pca options.
     */
-    private action CalculateStandardizedRootMeanSquareOfResiduals(Matrix residualMatrix) returns number
-        Matrix r = residualMatrix:Copy()
+    private action CalculateStandardizedRootMeanSquareOfResiduals(Matrix residuals) returns number
+        Matrix r = residuals:Copy()
         i = 0
         repeat while i < r:GetRows()
             r:Set(i,i, 0.0)
@@ -436,104 +446,81 @@ class PrincipalComponentAnalysis is StatisticalTest
         end
     end
 
-    /*
-        Scree Plot:
-            This makes a chart object of the eigenvalues (aka a scree plot) that can be displayed if requested.
-            Used to determine the inflection point and ultimately how many factors should be extracted.
+    /* 
+        Model Fit:
+            This value is computed with the following equation:
+            sumofsquares(upper triangle of residuals) / sumofsquares(upper triangle of original correlations) - 1.0
+            For more information: https://www.discoveringstatistics.com/books/discovering-statistics-using-r/
     */
-    private action ScreePlot(Vector eigenvalues) returns Chart
-        DataFrame result
-        NumberColumn values
-        values:SetHeader("Eigenvalue")
-        NumberColumn eigen
-        eigen:SetHeader("Size")
+    private action CalculateFit(Matrix residuals, Matrix correlations) returns number
+        Matrix res = residuals:GetUpperTriangularSubMatrix()
+        Matrix cor = correlations:GetUpperTriangularSubMatrix()
 
-        result:AddColumn(values)
-        result:AddColumn(eigen)
+        res = res:MultiplyElements(res)
+        cor = cor:MultiplyElements(cor)
 
-        i = 0
-        repeat while i < eigenvalues:GetSize()
-            number value = eigenvalues:Get(i)
-            values:Add(i + 1)
-            eigen:Add(value)
-
-            i = i + 1
-        end
-
-        result:SetSelectedFactors("Eigenvalue")
-        result:SetSelectedColumns("Size")
-        Chart chart = result:LineChart()
-        chart:SetXAxisMinimum(1)
-        chart:SetTitle("PCA Scree Plot")
-        chart:SetXAxisTitle("eigenvalue index")
-        chart:SetYAxisTitle("eigenvalue")
-        return chart
+        return math:AbsoluteValue(res:GetTotal() / cor:GetTotal() - 1.0)
     end
 
-    /*
-        Residual Histogram:
-            This makes a chart object of the upper triangle of residuals that can be displayed if requested.
-            Used to determine the outliers and whether the model is a good fit.
+    /* 
+        Empirical Chi-Squared Statistic:
+            PCA based on the correlation matrix (Standardized by default)    
+                The residual matrix is already standardized. This action will simply make the diagonal 
+                in the residual matrix 0s and compute the sum of squares of that matrix, then multiply 
+                it to the number of observations.
     */
-    private action ResidualHistogram(Matrix residuals) returns Chart
-        NumberColumn values
-        values:SetHeader("Residuals")
-
-        DataFrame result
-        result:AddColumn(values)
-        number min = 0
-        number max = 0
-
+    private action CalculateEmpircalChiSquaredStatistic(Matrix residuals, integer observations) returns number
+        Matrix r = residuals:Copy()
         i = 0
-        repeat while i < residuals:GetRows()
-            j = i + 1
-            repeat while j < residuals:GetColumns()
-                number value = residuals:Get(i, j)
-                if i = 0
-                    min = value
-                    max = value
-                end
-                if value < min
-                    min = value
-                end
-                if value > max
-                    max = value
-                end
-                values:Add(value)
-                j = j + 1
-            end
+        repeat while i < r:GetRows()
+            r:Set(i,i, 0.0)
             i = i + 1
         end
+        Matrix r2 = r:MultiplyElements(r)
 
-        result:SetSelectedColumns("Residuals")
-        Chart chart = result:Histogram()
-        chart:SetTitle("Histogram of residuals")
-        chart:ShowLegend(false)
-        chart:SetXAxisTitle("residuals")
-        chart:SetYAxisTitle("frequency")
-        return chart
+        return r2:GetTotal() * observations
     end
 
+    /* 
+        Probability:
+            Use a chi-squared distribution (ClassificationDistribution) to compute p based on the 
+            model's degrees of freedom and the empirical chi-squared statistic.
+    */
+    private action CalculateProbability(number degreesOfFreedom, number x2) returns number
+        ClassificationDistribution x2Distribution
+        x2Distribution:Setup(math:AbsoluteValue(degreesOfFreedom))
+        if degreesOfFreedom < 0
+            return degreesOfFreedom:GetNotANumberValue()
+        else
+            return 1.0 - x2Distribution:CumulativeDistribution(x2)
+        end
+    end
+
+    /* Will apply an oblique rotation (namely direct quartimin) to the component loadings */
     action UseCorrelatedRotation()
         correlatedRotation = true
         uncorrelatedRotation = false
     end
 
+    /* Will apply an orthogonal rotation (namely varimax) to the component loadings */
     action UseUncorrelatedRotation()
         uncorrelatedRotation = true
         correlatedRotation = false
     end
 
+    /* Will apply kaiser normalization before rotation */
     action Normalize(boolean normalize)
         useDefaultNormalize = false
         me:normalize = normalize
     end
 
+    /* Will control convergence point during rotation */
     action SetEpsilon(number epsilon)
         useDefaultEpsilon = false
         me:epsilon = epsilon
     end
 
+    /* Will control rotation or gradient iterations during rotation */
     action SetMaximumIterations(integer maxIterations)
         if maxIterations < 0
             alert("Cannot use less than 0 iterations.")
@@ -605,6 +592,26 @@ class PrincipalComponentAnalysis is StatisticalTest
     /* This returns the root mean square of residuals if only one result exists. */
     action GetRootMeanSquareOfResiduals returns number
         return GetResult():GetRootMeanSquareOfResiduals()
+    end
+
+    /* This returns the fit of the model if only one result exists. */
+    action GetModelFit returns number
+        return GetResult():GetModelFit()
+    end
+
+    /* This returns the test statistic of the model if only one result exists. */
+    action GetTestStatistic returns number
+        return GetResult():GetTestStatistic()
+    end
+
+    /* This returns the probability if only one result exists. */
+    action GetProbabilityValue returns number
+        return GetResult():GetProbabilityValue()
+    end
+
+    /* This returns the model degrees of freedom if only one result exists. */
+    action GetDegreesOfFreedom returns number
+        return GetResult():GetDegreesOfFreedom()
     end
 
     /*

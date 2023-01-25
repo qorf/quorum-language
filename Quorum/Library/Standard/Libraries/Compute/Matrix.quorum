@@ -1360,6 +1360,38 @@ class Matrix
     end
 
     /*
+    This method returns a matrix conisting of only the upper triangular portion of this matrix.
+    It does not include the diagonal values. It will have zeros in all diagonal and lower indices.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 1.0)
+            matrix = matrix:GetUpperTriangularSubMatrix()
+            output matrix:ToText()
+        end
+    end
+    */
+    action GetUpperTriangularSubMatrix() returns Matrix
+        Matrix newMatrix
+        newMatrix:Fill(GetRows(), GetColumns(), 0)
+        integer i = 0
+        repeat while i < GetRows()
+            integer j = i + 1
+            repeat while j < GetColumns()
+                newMatrix:Set(i,j, Get(i,j))       
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return newMatrix
+    end
+
+    /*
     This method returns the identity matrix for a square matrix. An identity matrix with ones along the main diagonal from top left to bottom right and zeroes everywhere else.
 
     Attribute Returns A new identity matrix.
