@@ -24,7 +24,7 @@ class PrincipalComponentAnalysisResult
     DataFrame factorLoadings = undefined
     DataFrame structure = undefined
     DataFrame residuals = undefined
-    Vector sumOfSquaredLoadings = undefined
+    Vector varianceAccountedFor = undefined
     Vector proportionVariance = undefined
     Vector proportionExplained = undefined
     Vector communality = undefined
@@ -253,20 +253,20 @@ class PrincipalComponentAnalysisResult
         me:meanComplexity = meanComplexity
     end
 
-    /* Returns a vector of the component ss loadings. */
-    /* When no rotation occurs, these are simply the eigenvalues */
-    /* When an orthogonal rotation occurs, these are computed from the rotated component loadings */
-    /* When an oblique rotation occurs, these are computed from the structure loadings produced by the rotation */
-    action GetSumOfSquaredLoadings returns Vector
-        return sumOfSquaredLoadings
+    /* Returns a vector of the component VAF (sometimes ss loadings). */
+    /* When no rotation occurs, these are simply the eigenvalues or the sum of squares of the component loadings */
+    /* When an orthogonal rotation occurs, these are sum of squares computed from the rotated component loadings */
+    /* When an oblique rotation occurs, these are the diagonal values from S'C where S is the structure matrix, and C is the rotated component loadings */
+    action GetVarianceAccountedFor returns Vector
+        return varianceAccountedFor
     end
 
     /* Stores a vector of the component ss loadings. */
-    /* When no rotation occurs, these are simply the eigenvalues */
-    /* When an orthogonal rotation occurs, these are computed from the rotated component loadings */
-    /* When an oblique rotation occurs, these are computed from the structure loadings produced by the rotation */
-    action SetSumOfSquaredLoadings(Vector sumOfSquaredLoadings)
-        me:sumOfSquaredLoadings = sumOfSquaredLoadings
+    /* When no rotation occurs, these are simply the eigenvalues or the sum of squares of the component loadings */
+    /* When an orthogonal rotation occurs, these are sum of squares computed from the rotated component loadings */
+    /* When an oblique rotation occurs, these are the diagonal values from S'C where S is the structure matrix, and C is the rotated component loadings */
+    action SetVarianceAccountedFor(Vector varianceAccountedFor)
+        me:varianceAccountedFor = varianceAccountedFor
     end
 
     /* Returns a vector of the proportion variances. */

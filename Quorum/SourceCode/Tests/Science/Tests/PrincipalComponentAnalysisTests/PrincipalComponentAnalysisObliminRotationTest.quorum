@@ -44,14 +44,15 @@ class PrincipalComponentAnalysisObliminRotationTest is Test
 
         PrincipalComponentAnalysis test
         test:UseCorrelatedRotation()
-        test:Calculate(frame, 1)
+        test:Calculate(frame, 2)
         
         PrincipalComponentAnalysisResult result = test:GetResult()
-        Check(result:GetSumOfSquaredLoadings():Get(0), 3.5661357520011756)
-        Check(result:GetRootMeanSquareOfResiduals(), 0.12382730778771417)
-        Check(result:GetTestStatistic(), 14.167878790252848)
-        Check(result:GetDegreesOfFreedom(), 14.0)
-        Check(result:GetProbabilityValue(), 0.4372803143950226)
-        Check(result:GetModelFit(), 0.9238182581322162)
+        Check(result:GetVarianceAccountedFor():Get(0), 3.5397407740036666)
+        Check(result:GetVarianceAccountedFor():Get(1), 1.2294610651594187)
+        Check(result:GetRootMeanSquareOfResiduals(), 0.09781678711624917)
+        Check(result:GetTestStatistic(), 8.840946429772941)
+        Check(result:GetDegreesOfFreedom(), 8.0)
+        Check(result:GetProbabilityValue(), 0.3558908155267472)
+        Check(result:GetModelFit(), 0.952461571082664)
     end
 end

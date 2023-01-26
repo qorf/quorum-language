@@ -17,7 +17,40 @@ use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
 use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
 
 /*
-    This class implements principal component analysis:
+    This class implements a Principal Component Analysis:
+        Reduces the dimensionality of a model in an attempt to maximize variances 
+        while maintaining the same explanatory outcome.
+        By default this analysis will extract all the factors (i.e. the selected columns) included.
+        
+        ROTATION:
+            There are two rotations available to use:
+                UncorrelatedComponentRotation is an orthogonal varimax rotation.
+                    To use: UseUncorrelatedRotation()
+    
+                CorrelatedComponentRotation is an olique direct quartimin (oblimin gamma = 0) rotation,
+                sometimes referred to as a transformation rather than a rotation.
+                    To use: UseCorrelatedRotation() 
+
+            When using a rotation the user can adjust three items to customize it:
+                Normalize() signifies whether or not a Kaiser normalization takes place on the loadings 
+                    prior to the rotation, the loadings will be un-normalized afterwards.
+    
+                SetEpsilon() siginfies the threshold of convergence through compared to the difference of 
+                    the criterion for each iteration in the rotation algorithm.
+
+                SetMaximumIterations() signifies the stopping point even if convergence is not reached 
+                    during a rotation.
+
+    This class used R's principal() documentation as a reference in some of the calculations:
+        https://www.rdocumentation.org/packages/psych/versions/2.2.9/topics/principal
+
+    For more information: 
+        https://en.wikipedia.org/wiki/Principal_component_analysis
+        https://en.wikipedia.org/wiki/Factor_analysis
+        https://en.wikipedia.org/wiki/Varimax_rotation
+        https://dictionary.apa.org/oblique-rotation
+        https://en.wikipedia.org/wiki/Rotation_matrix
+        https://en.wikipedia.org/wiki/Transformation_matrix
     
     Attribute: Author Andreas Stefik, Hannah Williams
     Attribute: Example
@@ -47,11 +80,46 @@ class PrincipalComponentAnalysis is StatisticalTest
     private boolean useDefaultMaxIterations = true
     private boolean useDefaultEpsilon = true           
 
+
+    /*
+        To extract a specific number of factors, include a second parameter.
+        
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame, 5)
+        
+        output pca:GetFactorLoadings()
+    */
     action Calculate(DataFrame frame, integer numberOfFactorsToExtract) 
         me:factors = numberOfFactorsToExtract
         Calculate(frame) 
     end
 
+    /*
+        To extract all of the columns that are selected.
+        
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+        frame:SelectAllColumns()
+    
+        PrincipalComponentAnalysis pca
+        pca:Calculate(frame)
+        
+        output pca:GetFactorLoadings()
+    */
     action Calculate(DataFrame frame) 
         // If nothing is selected attempt to grab frame's selection.
         if GetColumnSize() = 0 
@@ -160,7 +228,7 @@ class PrincipalComponentAnalysis is StatisticalTest
 
         // Save the results
         PrincipalComponentAnalysisResult result
-        Vector ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+        Vector varianceAccountedFor
         if correlatedRotation
             CorrelatedComponentRotation rotate
             if not useDefaultEpsilon
@@ -172,9 +240,21 @@ class PrincipalComponentAnalysis is StatisticalTest
             if not useDefaultMaxIterations
                 rotate:SetMaximumIterations(maxIterations)
             end
-            framedResults = rotate:Rotate(framedResults)            
-            DataFrame structure = rotate:GetStructure()
-            ssLoadings = CalculateSumOfSquaredLoadings(structure)
+            framedResults = rotate:Rotate(framedResults)   
+
+            // The ss loadings for oblique rotations are the diag of the 
+            // dot product of structure transposed and the loadings (pattern)  
+            // This is the total variance in all variables for each factor.        
+            Matrix structureT = rotate:GetStructure():ConvertToMatrix():Transpose()
+            Matrix pattern = framedResults:ConvertToMatrix()
+            Matrix sTp = structureT:Multiply(pattern)
+            
+            varianceAccountedFor:SetSize(sTp:GetRows())
+            i = 0
+            repeat while i < sTp:GetRows()
+                varianceAccountedFor:Set(i, sTp:Get(i,i))
+                i = i + 1
+            end
 
             UpdateSigns(framedResults) // Update signs again after rotation 
             result:SetObliqueRotation(true)
@@ -192,16 +272,16 @@ class PrincipalComponentAnalysis is StatisticalTest
                     rotate:SetMaximumIterations(maxIterations)
                 end
                 framedResults = rotate:Rotate(framedResults)
-                ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+                varianceAccountedFor = CalculateSumOfSquaredLoadings(framedResults)
    
                 UpdateSigns(framedResults) // Update signs again after rotation  
                 result:SetOrthogonalRotation(true)
                 result:SetComponentRotation(rotate)       
             else
-                ssLoadings = CalculateSumOfSquaredLoadings(framedResults)
+                varianceAccountedFor = CalculateSumOfSquaredLoadings(framedResults)
             end
         end
-        Vector proportionVariance = CalculateProportionOfVariance(ssLoadings, size)
+        Vector proportionVariance = CalculateProportionOfVariance(varianceAccountedFor, size)
         Vector proportionExplained = CalculateProportionOfVarianceExplained(proportionVariance)
         Vector uniqueness = CalculateUniqueness(communality)
         Vector complexity = CalculateItemComplexity(framedResults, factors)
@@ -215,7 +295,7 @@ class PrincipalComponentAnalysis is StatisticalTest
        
         result:SetFormat(GetStatisticalFormatting())
         result:SetFactorLoadings(framedResults)
-        result:SetSumOfSquaredLoadings(ssLoadings)
+        result:SetVarianceAccountedFor(varianceAccountedFor)
         result:SetCommunality(communality)
         result:SetUniqueness(uniqueness)
         result:SetEigenvalues(eigenvalues)  
@@ -259,14 +339,22 @@ class PrincipalComponentAnalysis is StatisticalTest
     end
 
     /* 
-        Sum Of Squared Loadings:
-            For orthogonal (uncorrelated) rotation or no rotation
-                The ssLoadings are calculated by the sum of squares per each factor in the (rotated/unrotated) loadings matrix
-                When no rotation occurs, these values will equal the eigenvalues of the extracted factors from the original data frame.
-            For oblique (correlated) rotation
-                The ssLoadings are calculated by the sum of squares per each factor in the structure matrix
-                Since it is not orthogonal, technically it should not be used to compute the proportional variance, etc. 
-                Thus these values will not properly reflect the variance contribution for any single factor.           
+        Variance Accounted For is sometimes the sum of squared loadings:
+            This is the overall variance explained across all variables for each single factor.
+            For no rotation
+                The VAF (Sum of Squared Loadings) are calculated by the sum of squares per each factor in the component loadings matrix
+                These values will equal the eigenvalues of the extracted factors from the original data frame.
+                
+            For orthogonal (uncorrelated) rotation
+                The VAF (Sum of Squared Loadings) are calculated by the sum of squares per each factor in the rotated component loadings matrix
+
+            For oblique (correlated) rotation **this action is not used**
+                The VAF is calculated by the diagonal values from the result of a dot product between the
+                transposed structure matrix and the rotated component loadings matrix (referred to as the pattern matrix).
+                VAF = diag(S'C)
+                Since it is not orthogonal, the sum of squares is not used to get variance accounted for (VAF) 
+                Thus the correct values are collected differently to reflect the variance contribution for any single factor.
+                See R's documentation: https://www.rdocumentation.org/packages/psych/versions/2.2.9/topics/fa   
     */
     private action CalculateSumOfSquaredLoadings(DataFrame loadings) returns Vector
         Vector result
@@ -574,9 +662,9 @@ class PrincipalComponentAnalysis is StatisticalTest
         return GetResult():GetMeanItemComplexity()
     end
 
-    /* This returns the ss loadings if only one result exists. */
-    action GetSumOfSquaredLoadings returns Vector
-        return GetResult():GetSumOfSquaredLoadings()
+    /* This returns the VAF if only one result exists. */
+    action GetVarianceAccountedFor returns Vector
+        return GetResult():GetVarianceAccountedFor()
     end
 
     /* This returns the proportion var if only one result exists. */

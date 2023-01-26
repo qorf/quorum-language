@@ -47,8 +47,8 @@ class PrincipalComponentAnalysisVarimaxRotationTest is Test
         test:Calculate(frame, 2)
         
         PrincipalComponentAnalysisResult result = test:GetResult()
-        Check(result:GetSumOfSquaredLoadings():Get(0), 3.378615477726321)
-        Check(result:GetSumOfSquaredLoadings():Get(1), 1.3905863614367653)
+        Check(result:GetVarianceAccountedFor():Get(0), 3.378615477726321)
+        Check(result:GetVarianceAccountedFor():Get(1), 1.3905863614367653)
         Check(result:GetRootMeanSquareOfResiduals(), 0.09781678711624917)
         Check(result:GetTestStatistic(), 8.840946429772941)
         Check(result:GetDegreesOfFreedom(), 8.0)
