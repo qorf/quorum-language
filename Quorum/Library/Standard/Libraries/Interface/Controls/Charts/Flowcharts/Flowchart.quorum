@@ -12,7 +12,6 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.DrawableView
 use Libraries.Game.Graphics.Drawable
-use Libraries.Interface.Controls.Charts.FlowChartWriter
 use Libraries.Interface.Controls.Charts.Chart
 
 class Flowchart is Chart
@@ -123,8 +122,8 @@ class Flowchart is Chart
     */
     action Save(File file)
         if file:GetFileExtension() = "svg"
-            FlowChartWriter writer
-            writer:WriteOutChart(me,file)
+            text value = ConvertToScalableVectorGraphics()
+            file:Write(value)
         end
     end
 

@@ -8,8 +8,6 @@ use Libraries.Game.Graphics.Color
 
 class FlowchartHiddenNode is FlowchartNode
 
-    Label label
-
     on create
         SetName("Text Node")
         SetGridWidth(1)
@@ -53,24 +51,6 @@ class FlowchartHiddenNode is FlowchartNode
             view:Initialize()
             SetView2D(view)
         end
-
-        Flowchart chart = GetFlowchart()
-        if chart not= undefined
-            if label:GetFontSize() not= chart:GetFontSize()
-                label:SetFontSize(chart:GetFontSize())
-            end
-
-            if HasColorPropertyOverride("fontColor")
-                label:SetFontColor(GetFontColor())
-            else
-                label:SetFontColor(GetFontColor())
-            end
-        end
-    end
-
-    action Resize
-        label:SetMaximumWidth(GetWidth())
-        parent:Control:Resize()
     end
 
 end
