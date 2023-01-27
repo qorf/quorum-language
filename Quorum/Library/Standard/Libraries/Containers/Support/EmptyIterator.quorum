@@ -1,0 +1,57 @@
+package Libraries.Containers.Support
+
+use Libraries.Containers.Iterator
+
+/*
+
+The EmptyIterator is a shared structure that can be used to pass back an empty structure.
+It is a memory saving structure and contains no state.
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.Containers.List
+use Libraries.Containers.Blueprints.EmptyIterator
+
+class Main
+    action main
+        EmptyIterator<integer> iterator
+        output iterator:HasNext() //always false
+    end
+end
+*/
+shared class EmptyIterator<Type> is Iterator<Type>
+    /*
+        This action always returns undefined
+        
+        Attribute: Returns undefined
+    */
+    action GetCurrent returns Type
+        return undefined
+    end
+
+    /*
+        This action always returns false.
+        
+        Attribute: Returns This always returns false
+    */
+    action HasNext returns boolean
+        return false
+    end
+
+    /*
+        This action returns undefined.
+
+        Attribute: Returns This always returns undefined.
+    */
+    action Next returns Type
+        return undefined
+    end
+
+    /*
+        This action does nothing in this implementation.
+    */
+    action Rewind
+    end
+end

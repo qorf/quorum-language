@@ -103,10 +103,10 @@ class ScalableVectorGraphicsObject
             result = result + " aria-activedescendant="+dq+ariaActiveDescendant+dq
         end
         if ariaLabel not= ""
-            result = result + " aria-label="+dq+ariaLabel+dq
+            result = result + " aria-label="+dq+ConvertReservedCharacters(ariaLabel)+dq
         end
         if ariaDescription not= ""
-            result = result + " aria-description="+dq+ariaDescription+dq
+            result = result + " aria-description="+dq+ConvertReservedCharacters(ariaDescription)+dq
         end
         if ariaRoleDescription not= ""
             result = result + " aria-roledescription="+dq+ariaRoleDescription+dq
@@ -125,6 +125,47 @@ class ScalableVectorGraphicsObject
         end
         if onBlur not= ""
             result = result + " onblur="+dq+onBlur+dq
+        end
+        return result
+    end
+
+    /* 
+        This action returns a new string that automatically converts any characters that are reserved in the HTML 
+        specification before placing them into the vector graphic. This prevents the graphic from not compiling in
+        circumstances where a DataFrame created a graphic that used a reserved character.
+
+        Attribute: Parameter value the text to be converted
+        Attribute: Returns A new text value with converted reserved characters.
+    */
+    action ConvertReservedCharacters(text value) returns text
+        if value = undefined
+            return undefined
+        end
+
+        if value = ""
+            return value
+        end
+
+        text result = ""
+        text doubleQuote = "" + result:GetDoubleQuote()
+        //otherwise go character by character and replace special characters in the SVG spec
+        i = 0
+        repeat while i < value:GetSize()
+            text char = value:GetCharacter(i)
+            if char = "&"
+                result = result + "&amp;"
+            elseif char = doubleQuote
+                result = result + "&quot;"
+            elseif char = "'"
+                result = result + "&apos;"
+            elseif char = "<"
+                result = result + "&lt;"
+            elseif char = ">"
+                result = result + "&gt;"
+            else
+                result = result + char
+            end
+            i = i + 1
         end
         return result
     end

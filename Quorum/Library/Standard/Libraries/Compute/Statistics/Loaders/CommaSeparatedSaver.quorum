@@ -71,13 +71,19 @@ class CommaSeparatedSaver is DataFrameSaver
         text data = ""
         
         text lf = header:GetLineFeed()
+        text dq = header:GetDoubleQuote()
         integer row = 0
 
         //get all the headers
         i = 0
         repeat while i < size
             DataFrameColumn column = frame:GetColumn(i)
-            header = header + column:GetHeader()
+            text headerText = column:GetHeader()
+            if headerText:Contains(",")
+                header = header + dq + column:GetHeader() + dq
+            else
+                header = header + column:GetHeader()
+            end
 
             if i = size - 1
                 header = header + lf
@@ -98,7 +104,6 @@ class CommaSeparatedSaver is DataFrameSaver
         end
         repeat while continue
             text currentRow = ""
-            text dq = currentRow:GetDoubleQuote()
             i = 0
             boolean hadRow = false
             repeat while i < frame:GetSize()

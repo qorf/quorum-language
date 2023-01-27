@@ -357,24 +357,47 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         i = 0
         repeat while i < groupKeyArray:GetSize()
             BarGroup group
-            group:SetName(groupKeyArray:Get(i))
+            text key = groupKeyArray:Get(i)
+            group:SetName(key)
             integer j = 0
             repeat while j < seriesNames:GetSize()
                 text barKey = groupKeyArray:Get(i) + " " + seriesNames:Get(j)
-                group:AddBar(barFactor:GetValue(barKey))
+                //if the bar is undefined, it cannot go in.
+                Bar bar = barFactor:GetValue(barKey)
+                if bar not= undefined
+                    group:AddBar(bar)
+                end
                 j = j + 1
             end
-            groupFactor:Set(groupKeyArray:Get(i), group)
+
+            Array<Bar> bars = group:GetBars()
+            if bars not= undefined and not bars:IsEmpty()
+                groupFactor:Set(key, group)
+            else 
+                groupFactor:RemoveAllKeys(key) //there's no key, something was wrong like blank entries
+            end
+            
             i = i + 1
         end
 
-        // Add the groups
+        // Add the groups, if there's no group for the name, remove it afterward
+        Array<text> removedNames
         i = 0
         repeat while i < groupNames:GetSize()
             BarGroup group = groupFactor:GetValue(groupNames:Get(i))
-            chart:AddBarGroup(group)
+            if group not= undefined
+                chart:AddBarGroup(group)
+            else
+                removedNames:Add(groupNames:Get(i))
+            end
             i = i + 1
-        end   
+        end  
+
+        i = 0
+        repeat while i < removedNames:GetSize()
+            groupNames:RemoveAll(removedNames:Get(i))
+            i = i + 1
+        end  
 
         // Add the series
         Array <Series> seriesList

@@ -274,6 +274,17 @@ class ActionCallOpcode is QuorumOpcode
                 end
             end
 
+            Action act = actionResolution:resolvedAction
+            Class clazz = actionResolution:classToMakeCallOn
+            //This is a special case where we are calling from a parent Object, 
+            //which in Quorum-11 means we need to route it to a static function
+            //in order to do that, we need to add a parameter for the main class
+            //of this so the static function knows which class is being referenced
+            //So effectively we need "me" twice on the stack.
+            if act not= undefined and clazz not= undefined and isParentCall and clazz:IsObject()
+                methodWriter:VisitVariable(opcodes:GetObjectLoad(), 0)
+            end
+
             //push on parameters, if necessary
             integer numParams = parameters:GetSize()
             i = 0
@@ -283,8 +294,6 @@ class ActionCallOpcode is QuorumOpcode
                 i = i + 1
             end
 
-            Action act = actionResolution:resolvedAction
-            Class clazz = actionResolution:classToMakeCallOn
             if isParentCall
                 clazz = parentToCallOn
             end
@@ -298,9 +307,29 @@ class ActionCallOpcode is QuorumOpcode
                         path, primitiveName, signature, false)
                 else
                     if not clazz:IsError()
-                        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-                            clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
-                            act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+                        //in the case that we are explicitly calling a parent object's action, 
+                        //we need the original action
+                        if isParentCall and clazz:IsObject()
+                            classReference = callingClass:ConvertStaticKeyToBytecodeInterfacePath()
+                            text sharedPlugin = "plugins/quorum/Libraries/Language/SharedClass"
+                            text quorumObjectInterface = clazz:ConvertStaticKeyToBytecodePathTypeNameInterface()
+                            if act:GetName() = "Equals"
+                                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), sharedPlugin, 
+                                "ObjectEquals", "("+quorumObjectInterface+quorumObjectInterface+")Z", false)
+                            elseif act:GetName() = "GetHashCode"
+                                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), sharedPlugin, 
+                                "ObjectGetHashCode", "("+quorumObjectInterface+")I", false)
+                            elseif act:GetName() = "Compare"
+                                methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), sharedPlugin, 
+                                "ObjectCompare", "("+quorumObjectInterface+quorumObjectInterface+")I", false)
+                            end
+                            
+                        else
+                            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                                clazz:ConvertStaticKeyToBytecodeInterfacePath(), act:GetName(), 
+                                act:ConvertActionToBytecodeParameterInterfaceSignature(), true)
+                        end
+                        
                     else
                         methodWriter:VisitMethodInvoke(opcodes:GetInvokeVirtual(), 
                             clazz:ConvertStaticKeyToBytecodePath(), act:GetName(), 
@@ -410,8 +439,11 @@ class ActionCallOpcode is QuorumOpcode
         text name = parentToCallOn:ConvertStaticKeyToParentActionName()
         text description = "()" + parentToCallOn:ConvertStaticKeyToBytecodePathTypeName()
 
-        methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
-            owner, name, description, true)
+        //If the parent we are calling is object, this is not necessary
+        if not parentToCallOn:IsObject()
+            methodWriter:VisitMethodInvoke(opcodes:GetInvokeInterface(), 
+                owner, name, description, true)
+        end
     end
 
     action WriteJavaScript returns text 
@@ -422,6 +454,7 @@ class ActionCallOpcode is QuorumOpcode
             
             if isParentCall
                 if variableToMakeParentCallOn not= undefined
+                    //in Quorum-11, this is not true for objects
                     if not variableToMakeParentCallOn:IsField()
                         result = result + "this." + variableToMakeParentCallOn:GetJavaScriptName()
                     else
@@ -431,10 +464,12 @@ class ActionCallOpcode is QuorumOpcode
 
                 if parentToCallOn not= undefined
                     text value = parentToCallOn:ConvertStaticKeyToParentFieldName()
-                    if variableToMakeParentCallOn not= undefined
-                        result = result + "." + value
-                    else
-                        result = result + "this." + value
+                    if not parentToCallOn:IsObject()
+                        if variableToMakeParentCallOn not= undefined
+                            result = result + "." + value
+                        else
+                            result = result + "this." + value
+                        end
                     end
                 end
             end
@@ -463,8 +498,18 @@ class ActionCallOpcode is QuorumOpcode
                 end
             else 
                 if isParentCall
-                    text t = "." + act:ConvertActionToJavaScriptName()
-                    result = result + t + "("
+                    if not parentToCallOn:IsObject()
+                        text t = "." + act:ConvertActionToJavaScriptName()
+                        result = result + t + "("
+                    else
+                        if act:GetName() = "Equals"
+                            result = result + "global_Object_Equals(this.prototype, "
+                        elseif act:GetName() = "GetHashCode"
+                            result = result + "global_Object_GetHashCode(this.prototype, "
+                        elseif act:GetName() = "Compare"
+                            result = result + "global_Object_Compare(this.prototype, "
+                        end
+                    end
                 else
                     text t = "this.prototype." + act:ConvertActionToJavaScriptName()
                     result = result + t + "("

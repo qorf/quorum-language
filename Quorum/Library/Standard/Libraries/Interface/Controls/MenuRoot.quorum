@@ -189,11 +189,13 @@ class MenuRoot is Control
 
     action GainedFocus(FocusEvent event)
         previousFocus = event:GetLastFocus()
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
         Deselect()
         Close()
+        parent:Control:LostFocus(event)
     end
 
     /*

@@ -1,0 +1,302 @@
+package Libraries.Compute.Statistics.Columns
+
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.DataFrameColumnCalculation
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Symbol.Type
+
+/*
+    VectorColumn is a DataFrameColumn that contains number primitives inside of a vector. 
+    No values can be undefined in this context and this column should be used if higher performance
+    is necessary for a particular application. SetSize must be called on this column before
+    loading into it, which means you need to know the size ahead of time.
+
+    Attribute: Author Andreas Stefik
+*/
+class VectorColumn is DataFrameColumn
+    /* This is the new system, which is rows. */
+    Vector rows
+    integer index = -1
+
+    action Add(text value)
+        index = index + 1 //first increment the index
+        if index > rows:GetSize()
+            alert("Row being added to VectorColumn is greater than the Vector size of: " + rows:GetSize())
+        end
+        if value = undefined or value:IsEmpty()
+            rows:Set(index, 0)
+            return now
+        end
+
+        check 
+            number num = cast(number, value)
+            rows:Set(index, num)
+        detect e
+            rows:Set(index, 0)//even if a wrong value, just mark as 0, because undefined not allowed
+        end
+    end
+
+    action AddAsResult(Result value)
+        index = index + 1
+        if not IsResultCheckable(value) 
+            rows:Set(index, 0)
+            return now 
+        end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Set(index, value:numberValue)
+        elseif type:IsInteger()
+            rows:Set(index, value:integerValue)
+        else
+            rows:Set(index, 0)
+        end
+    end
+
+    action SetAsResult(integer index, Result value)
+        if not IsResultCheckable(value) 
+            rows:Set(index, 0)
+            return now 
+        end
+
+        Type type = value:type
+        if type:IsNumber()
+            rows:Set(index, value:numberValue)
+        elseif type:IsInteger()
+            rows:Set(index, value:integerValue)
+        else
+            rows:Set(index, 0)
+        end
+    end
+
+    /*
+        VectorColumn has no undefined values, this call does nothing in this case.
+
+        Attribute: Parameter value the value to be converted.        
+    */
+    action ReplaceUndefined(text value)
+    end
+    
+    action Add(number value)
+        index = index + 1
+        rows:Set(index, value)
+    end
+
+    /*
+        Because this column is a vector, this action copies the vector.
+        As such, this is a deep copy.
+    */
+    action ConvertToVector returns Vector
+        return rows:Copy()
+    end
+
+    action CanConvertToVector returns boolean
+        return true
+    end
+
+    action IsUndefined(integer row) returns boolean
+        return false //never undefined
+    end
+
+    /*
+        This action continues to auto-box, so it should not be used in high-performance
+        situations.
+    */
+    action Get(integer row) returns Number
+        Number value
+        number result = rows:Get(row)
+        value:SetValue(result)
+        return value
+    end
+
+    
+
+    action GetAsText(integer index) returns text
+        number value = rows:Get(index)
+        return "" + value
+    end
+
+    action SendValueTo(integer index, DataFrameColumnCalculation calculation)
+        number num = rows:Get(index)
+        calculation:Add(num)
+    end
+
+    action GetAsInteger(integer index) returns integer
+        return cast(integer, rows:Get(index))
+    end
+
+    /*
+        This is the action that should be used for performance.
+    */
+    action GetAsNumber(integer index) returns number
+        number num = rows:Get(index)
+        return num
+    end
+
+    action IsNumberColumn returns boolean
+        return true
+    end
+
+    action SetAsNumber(integer index, number value)
+        rows:Set(index, value)
+    end
+
+    action SetAsNumber(integer index, Number value)
+        if value = undefined
+            rows:Set(index,0)
+        else
+            rows:Set(index,value:GetValue())
+        end
+    end
+
+    action SetAsInteger(integer index, integer value)
+        rows:Set(index, value)
+    end
+
+    action SetSize(integer size)
+        rows:SetSize(size)
+    end
+
+    action GetSize returns integer
+        return rows:GetSize()
+    end
+
+    action Swap(integer left, integer right)
+        number temp = rows:Get(left)
+        rows:Set(left, rows:Get(right))
+        rows:Set(right, temp)
+    end
+
+    action Move(integer left, integer right)
+        rows:Set(right, rows:Get(left))
+    end
+
+    action Copy(integer rowStart, integer rowEnd) returns DataFrameColumn
+        VectorColumn column
+        column:SetSize(rowEnd - rowStart)
+        column:SetHeader(GetHeader())
+
+        i = rowStart
+        repeat while i < rowEnd
+            number value = rows:Get(i)
+            column:rows:Set(i, value)
+            i = i + 1
+        end
+
+        return column
+    end
+
+    action Copy returns DataFrameColumn
+        return Copy(0, rows:GetSize())
+    end
+
+    action Copy(integer rowStart, integer rowEnd, boolean sort, boolean unique) returns DataFrameColumn
+        VectorColumn column
+        column:SetHeader(GetHeader())
+
+        Vector newRows
+        i = rowStart
+        repeat while i < rowEnd
+            number value = rows:Get(i)
+            newRows:Set(i, value)
+            i = i + 1
+        end
+
+        //if it's unique or sortable, now do that
+        if unique
+            newRows = GetUnique(newRows)
+        end
+
+        if sort
+            //it feels like this should be supported, but it 
+            //gets a little tricky for performance, because 
+            //the default Comparison would need to auto-box on each sort
+            //it's possible a sub-class or a modification to include primitives
+            //would be needed. For now the decision was not to support custom
+            //sorting on this class.
+            if GetSortComparison() not= undefined
+                newRows:Sort(GetSortComparison())
+            else
+                newRows:Sort() //small optimization here because it won't call actions per compare
+            end
+        end
+        column:rows = newRows
+
+        return column
+    end
+
+    action Copy(boolean sort, boolean unique) returns DataFrameColumn
+        return Copy(0, rows:GetSize(), sort, unique)
+    end
+
+    action CopyToRow(DataFrameColumn column, integer to, integer from)
+        me:SetAsNumber(to,column:GetAsNumber(from))
+    end
+
+    private action CalculateValueCount(Vector values) returns HashTable<number,integer>
+        HashTable<number, integer> hash
+        i = 0
+        repeat while i < values:GetSize()
+            if hash:HasKey(values:Get(i))
+                hash:Add(values:Get(i), hash:GetValue(values:Get(i)) + 1)
+            else
+                hash:Add(values:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    private action GetUnique(Vector array) returns Vector
+        Vector set
+        HashTable<number,integer> hash = CalculateValueCount(array)
+        Iterator<number> iterator = hash:GetKeyIterator()
+        set:SetSize(hash:GetSize())
+        i = 0
+        repeat while iterator:HasNext()
+            set:Set(i, iterator:Next())
+            i = i + 1
+        end
+        return set
+    end
+
+    action CalculateValueCount() returns HashTable<number,integer>
+        HashTable<number, integer> hash
+        i = 0
+        repeat while i < rows:GetSize()
+            if hash:HasKey(rows:Get(i))
+                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+            else
+                hash:Add(rows:Get(i), 1)
+            end
+            i = i + 1
+        end
+        return hash
+    end
+
+    action GetUnique() returns Array<Number>
+        Array<Number> set
+        HashTable<number,integer> hash = CalculateValueCount()
+        Iterator<number> iterator = hash:GetKeyIterator()
+        repeat while iterator:HasNext()
+            set:Add(iterator:Next())
+        end
+        return set
+    end
+
+    action ToText returns text
+        text result = ""
+        text lf = result:GetLineFeed()
+        i = 0
+        repeat while i < GetSize()
+            number num = rows:Get(i)
+            result = result + num + lf
+            i = i + 1
+        end
+        return result
+    end
+end
