@@ -52,6 +52,7 @@ public class GLSurfaceView20 extends GLSurfaceView
     public int width;
     public int height;
     public boolean aspectRatio = false;
+    public boolean canProceed = true;
 
     private final GestureDetector gestureDetector;
     private final ScaleGestureDetector scaleDetector;
@@ -83,6 +84,7 @@ public class GLSurfaceView20 extends GLSurfaceView
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
+        canProceed = false;
         quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
         input.plugin_.AddEvent(event);
 
@@ -91,7 +93,7 @@ public class GLSurfaceView20 extends GLSurfaceView
 
         if (event.getAction() == MotionEvent.ACTION_UP)
             input.plugin_.TestLongPressEnd(event);
-
+        canProceed = true;
         return true;
     }
 
@@ -118,6 +120,9 @@ public class GLSurfaceView20 extends GLSurfaceView
     @Override
     public boolean dispatchHoverEvent(MotionEvent event)
     {
+        final int action = event.getAction();
+        if (action == MotionEvent.ACTION_HOVER_ENTER || action == MotionEvent.ACTION_HOVER_EXIT || !canProceed)
+            return true;
         boolean handled = false;
         Rect min = null;
         Item_ minItem = null;
@@ -188,7 +193,6 @@ public class GLSurfaceView20 extends GLSurfaceView
 
         if (min != null)
         {
-            final int action = event.getAction();
             switch (action) {
                 case MotionEvent.ACTION_HOVER_ENTER: {
                     AndroidAccessibility.lastHoveredChild = minItem;
