@@ -43,6 +43,7 @@ use Libraries.Language.Compile.Context.VariableFunctionCallContext
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Parsing.UnifiedSourceListener
+use Libraries.Language.Compile.Context.ParenthesisContext
 
 /*
     This is a helper class for managing expressions inside of DataFrames. Generally,
@@ -476,6 +477,9 @@ class DataFrameExpressionListener is UnifiedSourceListener
         compare:SetRightOpcode(right)
         opcodeStack:Push(compare)
     end
+
+    action EnterParenthesisExpression(ParenthesisContext context) end
+    action ExitParenthesisExpression(ParenthesisContext context) end
 
     action GetOpcodeStack returns Stack<QuorumOpcode>
         return opcodeStack

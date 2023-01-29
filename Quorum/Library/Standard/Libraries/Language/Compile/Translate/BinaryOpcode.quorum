@@ -198,13 +198,11 @@ class BinaryOpcode is QuorumOpcode
             type:SetToBoolean()
         elseif current = op:LESS_EQUALS
             if left:type:IsNumber() //types have been converted
-                result:booleanValue = left:numberValue = right:numberValue
+                result:booleanValue = left:numberValue <= right:numberValue
             elseif left:type:IsInteger()
-                result:booleanValue = left:integerValue = right:integerValue
-            elseif left:type:IsBoolean()
-                result:booleanValue = left:booleanValue = right:booleanValue
+                result:booleanValue = left:integerValue <= right:integerValue
             elseif left:type:IsText()
-                result:booleanValue = left:textValue = right:textValue
+                result:booleanValue = left:textValue <= right:textValue
             end
             type:SetToBoolean()
         elseif current = op:LESS
