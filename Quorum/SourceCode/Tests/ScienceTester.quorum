@@ -47,6 +47,9 @@ use Science.Tests.CompareDependentVariancesTest
 use Science.Tests.CompareDistributionToNormalTest
 use Science.Tests.Correlate2GroupsTest
 use Science.Tests.Correlate2RankedGroupsTest
+use Science.Tests.PrincipalComponentAnalysisNoRotationTest
+use Science.Tests.PrincipalComponentAnalysisVarimaxRotationTest
+use Science.Tests.PrincipalComponentAnalysisObliminRotationTest
 
 class ScienceTester
     Tester tester = undefined
@@ -61,6 +64,7 @@ class ScienceTester
         TestCompareVariances()
         TestCompareDistributions()
         TestCorrelateGroups()
+        TestPrincipalComponentAnalysis()
 
         TestCompareCountsGoodnessOfFit()
         TestCompareCountsTestOfIndependence()
@@ -145,6 +149,17 @@ class ScienceTester
 
         Correlate2RankedGroupsTest test2
         tester:Run(test2)
+    end
+
+    action TestPrincipalComponentAnalysis
+        PrincipalComponentAnalysisNoRotationTest test1
+        tester:Run(test1)
+
+        PrincipalComponentAnalysisVarimaxRotationTest test2
+        tester:Run(test2)
+
+        PrincipalComponentAnalysisObliminRotationTest test3
+        tester:Run(test3)
     end
 
     action TestFilters
