@@ -30,11 +30,11 @@ class ChartDrawable is ChartItem, Drawable
 
     //annotation handling for drawables display default is top
     ChartLabel annotation = undefined
-    private boolean showAnnotation = false
-    private boolean displayOnLeft = false
-    private boolean displayOnRight = false
-    private boolean displayOnTop = true
-    private boolean displayOnBottom = false
+    boolean showAnnotation = false
+    boolean displayOnLeft = false
+    boolean displayOnRight = false
+    boolean displayOnTop = true
+    boolean displayOnBottom = false
 
     Array <Drawable> selectionBracket //may or may not be used
     Drawable selectionArrow //may or may not be used
@@ -177,10 +177,10 @@ class ChartDrawable is ChartItem, Drawable
         Set the location of the annotation to the top of the chart drawable.
     **/
     action SetAnnotationLocationToTop()
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = true
-            displayOnBottom = false
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = true
+        displayOnBottom = false
     end
 
     action IsAnnotationLocationTop() returns boolean
@@ -191,10 +191,10 @@ class ChartDrawable is ChartItem, Drawable
         Set the location of the annotation to the bottom of the chart drawable.
     **/
     action SetAnnotationLocationToBottom()
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = true
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = true
     end
 
     action IsAnnotationLocationBottom() returns boolean
@@ -205,10 +205,10 @@ class ChartDrawable is ChartItem, Drawable
         Set the location of the annotation to the left of the chart drawable.
     **/
     action SetAnnotationLocationToLeft()
-            displayOnLeft = true
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = false
+        displayOnLeft = true
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = false
     end
 
     action IsAnnotationLocationLeft() returns boolean
@@ -219,10 +219,10 @@ class ChartDrawable is ChartItem, Drawable
         Set the location of the annotation to the right of the chart drawable.
     **/
     action SetAnnotationLocationToRight()
-            displayOnLeft = false
-            displayOnRight = true
-            displayOnTop = false
-            displayOnBottom = false
+        displayOnLeft = false
+        displayOnRight = true
+        displayOnTop = false
+        displayOnBottom = false
     end
     
     action IsAnnotationLocationRight() returns boolean
