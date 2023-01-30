@@ -54,6 +54,8 @@ public class GLSurfaceView20 extends GLSurfaceView
     public boolean aspectRatio = false;
     public boolean canProceed = true;
 
+    public final int scaleUpFactor = 10;
+    public final int smallElementThreshold = 10;
     private final GestureDetector gestureDetector;
     private final ScaleGestureDetector scaleDetector;
     
@@ -147,7 +149,6 @@ public class GLSurfaceView20 extends GLSurfaceView
 
                 if (itemY == Double.NaN)
                     itemY = 0;
-
                 left = (int)itemX;
                 top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
                 right = (int) (itemX + ((Item2D_) item).GetWidth());
@@ -166,23 +167,47 @@ public class GLSurfaceView20 extends GLSurfaceView
                 bottom = AndroidApplication.screenHeight - (int) (rectangle.GetY());
             }
 
-            if (Math.abs(left - right) <= 20 && left != 0 && right != 0)
+            if (Math.abs(left - right) <= smallElementThreshold && left != 0 && right != 0)
             {
-                left -= 20;
-                if (left < 0)
-                    left = 0;
-                right += 20;
-                if (right > AndroidApplication.screenWidth)
-                    right = AndroidApplication.screenWidth;
+                if (left > right)
+                {
+                    right -= scaleUpFactor;
+                    if (right < 0)
+                        right = 0;
+                    left += scaleUpFactor;
+                    if (left > AndroidApplication.screenWidth)
+                        left = AndroidApplication.screenWidth;
+                }
+                else
+                {
+                    left -= scaleUpFactor;
+                    if (left < 0)
+                        left = 0;
+                    right += scaleUpFactor;
+                    if (right > AndroidApplication.screenWidth)
+                        right = AndroidApplication.screenWidth;
+                }
             }
-            if (Math.abs(bottom - top) <= 20 && bottom != 0 && top != 0)
+            if (Math.abs(bottom - top) <= smallElementThreshold && bottom != 0 && top != 0)
             {
-                top -= 20;
-                if (top < 0)
-                    top = 0;
-                bottom += 20;
-                if (bottom > AndroidApplication.screenHeight)
-                    bottom = AndroidApplication.screenHeight;
+                if (top > bottom)
+                {
+                    bottom -= scaleUpFactor;
+                    if (bottom < 0)
+                        bottom = 0;
+                    top += scaleUpFactor;
+                    if (top > AndroidApplication.screenHeight)
+                        top = AndroidApplication.screenHeight;
+                }
+                else
+                {
+                    top -= scaleUpFactor;
+                    if (top < 0)
+                        top = 0;
+                    bottom += scaleUpFactor;
+                    if (bottom > AndroidApplication.screenHeight)
+                        bottom = AndroidApplication.screenHeight;
+                }
             }
             childBounds = new Rect(left, top, right, bottom);
 
