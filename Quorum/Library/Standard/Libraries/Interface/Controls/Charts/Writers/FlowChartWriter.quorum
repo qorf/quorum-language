@@ -1,0 +1,47 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.System.File
+use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphics
+use Libraries.Data.Formats.ScalableVectorGraphics.Line
+use Libraries.Containers.Array
+use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
+use Libraries.Data.Formats.ScalableVectorGraphics.Label
+use Libraries.System.FileWriter
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Graphics.Color
+use Libraries.Web.Page.Script
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Icon
+use Libraries.Data.Formats.ScalableVectorGraphics.Circle
+use Libraries.Data.Formats.ScalableVectorGraphics.Group
+use Libraries.Web.Page.Division
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
+use Libraries.Interface.Controls.Charts.Flowcharts.GridFlowchart
+use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartTextNode
+use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartArrow
+
+class FlowchartWriter is ChartWriter
+
+    action WriteOutChart(GridFlowchart chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(chart, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(GridFlowchart chart, File file, integer svgWidth, integer svgHeight)
+        WriteOutChart(chart, file, svgWidth, svgHeight)
+    end
+
+    /*
+        This action adds a white background to the canvas
+    */
+    action AddChartArea(ScalableVectorGraphics canvas, GridFlowchart chart)
+        //parent:ChartWriter:AddChartArea(canvas,chart)
+        
+        GridFlowchart flowChart
+        flowChart = cast(GridFlowchart, chart)
+    end
+end

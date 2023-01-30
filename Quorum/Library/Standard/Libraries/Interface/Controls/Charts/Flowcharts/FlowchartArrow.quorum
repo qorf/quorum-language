@@ -415,6 +415,10 @@ class FlowchartArrow is Control
         RecalculateArrow()
     end
 
+    action GetLines returns LinePath
+        return lines
+    end
+
     /*
     This action updates the name/description of the arrow to have the full accessibility information
     it needs, depending on whether the arrow is an input or output (as determined by the
