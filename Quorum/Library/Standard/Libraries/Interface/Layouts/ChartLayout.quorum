@@ -27,6 +27,7 @@ use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
+use Libraries.Interface.Controls.Charts.ChartOptions
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -952,6 +953,74 @@ class ChartLayout is Layout
                     end
                 end
                 i = i + 1
+            end
+        end
+
+        if chart:HasMovableRegressionLine()
+            integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+            integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
+            number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
+            number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
+            number xMin = chart:GetXAxisMinimum()
+            number xMax = chart:GetXAxisMaximum()
+            number yMin = chart:GetYAxisMinimum()
+            number yMax = chart:GetYAxisMaximum()
+            Math math
+            number percentX = 0
+            number percentY = 0
+            integer x1 = 0
+            integer y1 = 0
+            integer x2 = 0
+            integer y2 = 0
+
+            if chart:IsSeparatedBySeries()
+                alert("TODO")
+            else
+                RegressionLine line = chart:GetChartArea():GetMovableRegressionLine()
+                number pointThickness = line:GetPointThickness()
+    
+                // Calculate and add padding so the edges of points aren't cut off.
+                number horizontalPaddingFactor = pointThickness / width
+                number horizontalPixelPadding = pointThickness
+                number horizontalMapPadding = (xMax - xMin) * horizontalPaddingFactor
+
+                number verticalPaddingFactor = pointThickness / height
+                number verticalPixelPadding = pointThickness
+                number verticalMapPadding = (yMax - yMin) * verticalPaddingFactor
+
+                if line not= undefined
+                    line:SetSize(width + 2 * horizontalPixelPadding, height + 2 * verticalPixelPadding)
+                    line:SetPosition(xAxisPaddingOffset - horizontalPixelPadding, yAxisPaddingOffset - verticalPixelPadding)
+                    line:MapToRegion(xMin - horizontalMapPadding, xMax + horizontalMapPadding, yMin - verticalMapPadding, yMax + verticalMapPadding)
+                    line:SetHorizontalOrientation(chart:GetHorizontalFlag())
+                    line:SetHorizontalMapPadding(horizontalMapPadding)
+                    line:SetVerticalMapPadding(verticalMapPadding)
+                    
+                    Array<RegressionLinePointMarker> pointMarkers = line:GetPointMarkers()
+                    integer j = 0
+                    repeat while j < pointMarkers:GetSize()
+                        RegressionLinePointMarker marker = pointMarkers:Get(j)
+                        marker:SetContainer(chart)
+                        marker:LoadGraphics(marker:GetDefaultLayoutProperties())
+                        j = j + 1
+                    end
+
+                    if chart:GetRegressionLineColor() not= undefined
+                        line:SetBackgroundColor(chart:GetRegressionLineColor())
+                        line:SetIconColor(line:GetBackgroundColor())
+                        line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
+                    else
+                        // Fetch the next color from the palette in the Options
+                        ChartOptions options
+                        Color color = options:GetColorFromPalette(chart:GetSeriesList():GetSize())
+
+                        line:SetBackgroundColor(color)
+                        line:SetIconColor(color)
+                    end
+
+                    line:RefreshPoints()
+                    line:SetZ(-2)
+                end
             end
         end
     end    

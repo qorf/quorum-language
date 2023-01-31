@@ -332,6 +332,10 @@ class Chart is ChartItem
             Add(verticalPanel)
         end
 
+        if HasMovableRegressionLine()
+            LoadMovableRegressionLines()
+        end
+
         legend:ApplySeriesColor()
         legend:LoadLegend(me, properties)
         if IsShowingLegend()
@@ -1409,22 +1413,43 @@ class Chart is ChartItem
             i = i + 1
         end
 
+        /*
+        While the movable lines have previously been created so they're available during legend loading,
+        they still need to be fully added to the chart areas after the other regression lines (to ensure
+        correct render and navigation ordering).
+        */
         if HasMovableRegressionLine()
             if IsSeparatedBySeries()
                 i = 0
                 repeat while i < GetNumberOfChartAreas()
-                    RegressionLine line = CreateMovableRegressionLine()
                     ChartAreaPanel area = GetSubChartAreas():Get(i)
-                    area:SetMovableRegressionLine(line)
+                    RegressionLine line = area:GetMovableRegressionLine()
                     area:Add(line)
                     i = i + 1
                 end
             else
-                RegressionLine line = CreateMovableRegressionLine()
                 ChartAreaPanel area = GetChartArea()
-                area:SetMovableRegressionLine(line)
+                RegressionLine line = area:GetMovableRegressionLine()
                 area:Add(line)
             end
+        end
+    end
+
+    private action LoadMovableRegressionLines
+        if IsSeparatedBySeries()
+            i = 0
+            repeat while i < GetNumberOfChartAreas()
+                RegressionLine line = CreateMovableRegressionLine()
+                ChartAreaPanel area = GetSubChartAreas():Get(i)
+                area:SetMovableRegressionLine(line)
+                area:Add(line)
+                i = i + 1
+            end
+        else
+            RegressionLine line = CreateMovableRegressionLine()
+            ChartAreaPanel area = GetChartArea()
+            area:SetMovableRegressionLine(line)
+            area:Add(line)
         end
     end
 
@@ -1437,11 +1462,6 @@ class Chart is ChartItem
         else
             line:SetSlopeAndIntercept(1, 0)
         end
-        
-        // TO-DO: Remove this. Temporary debugging value
-        Color color
-        line:SetBackgroundColor(color:Orange())
-        line:SetBorderColor(color:Black())
 
         return line
     end

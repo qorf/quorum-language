@@ -250,6 +250,42 @@ class Legend is ChartItem
             end
             i = i + 1
         end
+
+        if chart:HasMovableRegressionLine()
+            if chart:IsSeparatedBySeries()
+                output "WARNING: LoadLegend for series NYI"
+            else
+                // Fetch the next color from the palette in the Options
+                ChartOptions options
+                Color color = options:GetColorFromPalette(seriesList:GetSize())
+    
+                Icon seriesIcon
+                seriesIcon:SetColor(color)
+                Add(seriesIcon)
+    
+                ChartLabel newLabel
+                newLabel:SetText("TO-DO A")
+                newLabel:SetName(newLabel:GetText())
+                
+                RegressionLine regLine = chart:GetChartArea():GetMovableRegressionLine()
+                output "regLine defined is " + (regLine not= undefined)
+                regLine:SetVariableNames(chart:GetYAxisTitle(), chart:GetXAxisTitle(), chart:GetHorizontalFlag(), chart:OrientationChanged())
+    
+                ChartLabel regressionLabel = regLine:GetLabel()
+                regressionLabel:SetFocusable(true)
+                regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
+                Add(regressionLabel)
+    
+                ChartLabel r2Label = regLine:GetRSquaredLabel()
+                r2Label:SetFocusable(true)
+                r2Label:SetAccessibilityCode(parent:Item:ITEM)
+                Add(r2Label)
+    
+                Icon regressionIcon = regLine:GetRegressionIcon()
+                regressionIcon:SetColor(color)
+                Add(regressionIcon)
+            end
+        end
     end
 
     action ApplySeriesColor()

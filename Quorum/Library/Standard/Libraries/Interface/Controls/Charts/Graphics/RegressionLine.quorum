@@ -361,18 +361,24 @@ class RegressionLine is ChartDrawable, LinePath
 
     // Gives dependentVariable = (m*independentVariable) + b 
     action GenerateEquation()
-        Math math
-
-        if independentVariables:GetSize() > 0
-            equationText = dependentVariable + " = " + math:Round(slope,2) + "*" + independentVariables:Get(0)
-
-            if math:Round(constantValue, 2) < 0
-                equationText = equationText + math:Round(constantValue, 2)
-            else
-                equationText = equationText + " + " + math:Round(constantValue, 2)
+        if IsMovable()
+            output "WARNING: GenerateEquation for Movable lines was called, but it isn't finished yet. TODO"
+            equationText = "TO-DO (E)"
+            rsquaredText = "TO-DO (R)"
+        else
+            Math math
+    
+            if independentVariables:GetSize() > 0
+                equationText = dependentVariable + " = " + math:Round(slope,2) + "*" + independentVariables:Get(0)
+    
+                if math:Round(constantValue, 2) < 0
+                    equationText = equationText + math:Round(constantValue, 2)
+                else
+                    equationText = equationText + " + " + math:Round(constantValue, 2)
+                end
             end
+            rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
         end
-        rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
 
         equation:SetText(equationText)
         equation:SetName(equationText)
@@ -668,14 +674,18 @@ class RegressionLine is ChartDrawable, LinePath
 
         if GetParentChart() is TwoVariableChart
             TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
-            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
-            
-            integer i = 0
-            repeat while i < points:GetSize()
-                ChartPoint point = points:Get(i)
-                number residual = point:GetValueY() - CalculateDependentValue(point:GetValueX())
-                result = result + residual * residual
-                i = i + 1
+            if series not= undefined
+                Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+                
+                integer i = 0
+                repeat while i < points:GetSize()
+                    ChartPoint point = points:Get(i)
+                    number residual = point:GetValueY() - CalculateDependentValue(point:GetValueX())
+                    result = result + residual * residual
+                    i = i + 1
+                end
+            else
+                output "WARNING: Used CalculateResidualSumOfSquares with no series, but this isn't finished yet: TODO"
             end
         end
 
@@ -788,8 +798,12 @@ class RegressionLine is ChartDrawable, LinePath
     private action UpdatePointDescriptions
         if GetParentChart() is TwoVariableChart
             TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
-            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
-            chart:UpdatePointDescriptions(points)
+            if series not= undefined
+                Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+                chart:UpdatePointDescriptions(points)
+            else
+                output "WARNING: Used UpdatePointDescriptions with no series, but this isn't finished yet: TODO"
+            end
         end
     end
 
