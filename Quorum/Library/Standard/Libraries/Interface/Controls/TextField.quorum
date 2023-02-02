@@ -925,18 +925,20 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action GainedFocus(FocusEvent event)
         ShowCaret()
-        SetBorderColor(GetFocusBorderColor())
+        background:SetBorderColor(GetFocusBorderColor())
         SetBorderThickness(GetBorderThickness())
-        output GetBorderThickness()
         RequestLayout()
         parent:Control:GainedFocus(event)
+        background:RequestVerticesUpdate()
     end
 
     action LostFocus(FocusEvent event)
         HideCaret()
-        SetBorderColor(GetBorderColor())
+        background:SetBorderColor(GetBorderColor())
         SetBorderThickness(GetBorderThickness())
+        RequestLayout()
         parent:Control:LostFocus(event)
+        background:RequestVerticesUpdate()
     end
 
     action Update(number seconds)

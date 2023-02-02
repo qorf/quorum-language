@@ -101,7 +101,8 @@ class Checkbox is ToggleButton
     action GainedFocus(FocusEvent event)
         //if we have the focus and we are toggled
         if GetToggleState()
-            buttonIcon:SetBorderColor(GetFocusColor())
+            CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
+            content:SetCheckColor(GetFocusColor())
         else
             buttonIcon:SetBorderColor(GetFocusBorderColor())
         end
@@ -115,7 +116,8 @@ class Checkbox is ToggleButton
     action LostFocus(FocusEvent event)
         //if we have the focus and we are toggled
         if GetToggleState()
-            buttonIcon:SetBorderColor(GetFocusBorderColor())
+            CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
+            content:SetCheckColor(GetBackgroundColor())
         else
             buttonIcon:SetBorderColor(GetSelectionBorderColor())
         end
