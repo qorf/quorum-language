@@ -41,6 +41,7 @@ public class AndroidAccessibility {
             event.getText().add(item.GetName() + " " + item.GetDescription());
             AndroidApplication.accessibilityManager.interrupt();
             AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
+            //Log.e("Accessibility", "sendAccessibilityEventForVirtualView: " + item.GetName() + " " + item.GetDescription());
         }
     }
 
@@ -93,6 +94,7 @@ public class AndroidAccessibility {
         Item_ temp = AndroidApplication.quorumItems.get(id);
         if(temp == null)
             return;
+        //Log.e("Quorum", "FocusChanged: " + temp.GetDescription() + temp.GetName());
         sendAccessibilityEventForVirtualView(temp, AccessibilityEvent.TYPE_ANNOUNCEMENT);
     }
 

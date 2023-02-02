@@ -32,6 +32,7 @@ import android.view.inputmethod.InputConnection;
 import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.Shapes.Rectangle_;
+import quorum.Libraries.Interface.Controls.Charts.Graphics.PieBox;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
@@ -123,7 +124,7 @@ public class GLSurfaceView20 extends GLSurfaceView
     public boolean dispatchHoverEvent(MotionEvent event)
     {
         final int action = event.getAction();
-        if (action == MotionEvent.ACTION_HOVER_ENTER || action == MotionEvent.ACTION_HOVER_EXIT || !canProceed)
+        if (action == MotionEvent.ACTION_HOVER_ENTER || action == MotionEvent.ACTION_HOVER_EXIT || !canProceed || event == null)
             return true;
         boolean handled = false;
         Rect min = null;
@@ -230,9 +231,24 @@ public class GLSurfaceView20 extends GLSurfaceView
                 }
             }
         }
-        Log.e("Quorum", "dispatchHoverEvent: " + min.left + " " + min.top + " " + min.right + " " + min.bottom);
+        //Log.e("Coordinates", "dispatchHoverEvent: " + min.left + " " + min.top + " " + min.right + " " + min.bottom);
         if (min != null)
         {
+            if(PieBox.class == minItem.getClass())
+            {
+                if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && event.getPointerCount() == 1) {
+                    switch (action) {
+                        case MotionEvent.ACTION_HOVER_ENTER:
+                        case MotionEvent.ACTION_HOVER_MOVE: {
+                            event.setAction(MotionEvent.ACTION_DOWN);
+                        } break;
+                        case MotionEvent.ACTION_HOVER_EXIT: {
+                            event.setAction(MotionEvent.ACTION_UP);
+                        } break;
+                    }
+                    return onTouchEvent(event);
+                }
+            }
             switch (action) {
                 case MotionEvent.ACTION_HOVER_ENTER: {
                     AndroidAccessibility.lastHoveredChild = minItem;
@@ -545,7 +561,7 @@ public class GLSurfaceView20 extends GLSurfaceView
                 else 
                 {
                     Log.w(TAG, String.format("  %s: failed\n", name));
-                    while (egl.eglGetError() != EGL10.EGL_SUCCESS)            ;
+                    while (egl.eglGetError() != EGL10.EGL_SUCCESS);
                 }
             }
         }
