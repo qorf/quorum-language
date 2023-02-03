@@ -27,9 +27,7 @@ class WedgeShaderMapping is DefaultShaderMapping2D
     VertexAttribute outerRadiusAttribute = undefined
     VertexAttribute minAngleAttribute = undefined
     VertexAttribute maxAngleAttribute = undefined
-
-    number originX = 0
-    number originY = 0
+    VertexAttribute originPointAttribute = undefined
 
     /*
     This action is called when the mapping is created. It must be used to set
@@ -43,10 +41,12 @@ class WedgeShaderMapping is DefaultShaderMapping2D
         outerRadiusAttribute = dummy:CustomNumberAttribute("a_outerRadius")
         minAngleAttribute = dummy:CustomNumberAttribute("a_minAngle")
         maxAngleAttribute = dummy:CustomNumberAttribute("a_maxAngle")
+        originPointAttribute = dummy:CustomVectorAttribute("a_originPoint", 2)
         extraAttributes:Add(innerRadiusAttribute)
         extraAttributes:Add(outerRadiusAttribute)
         extraAttributes:Add(minAngleAttribute)
         extraAttributes:Add(maxAngleAttribute)
+        extraAttributes:Add(originPointAttribute)
         attributes:SetAttributes(extraAttributes)
         
         /*
@@ -88,6 +88,9 @@ class WedgeShaderMapping is DefaultShaderMapping2D
             shape:SetDataForAllVertices(innerRadiusAttribute:offset / 4, wedge:GetInnerRadius())
             shape:SetDataForAllVertices(minAngleAttribute:offset / 4, wedge:GetStartPercentage())
             shape:SetDataForAllVertices(maxAngleAttribute:offset / 4, wedge:GetEndPercentage())
+            
+            number originX = 0
+            number originY = 0
 
             if wedge:GetParent() = undefined
                 originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
@@ -97,6 +100,9 @@ class WedgeShaderMapping is DefaultShaderMapping2D
                 originX = item:GetGlobalX() + item:GetWidth() / 2
                 originY = item:GetGlobalY() + item:GetHeight() / 2
             end
+
+            shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
+            shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
         end
     end
 
@@ -108,8 +114,6 @@ class WedgeShaderMapping is DefaultShaderMapping2D
     This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
     */
     action RenderBatch(ShaderProgram program, Camera camera)
-        program:SetShaderInput("u_originPoint", originX, originY)
-
         parent:BatchingShaderMapping2D:RenderBatch(program, camera)
     end
 

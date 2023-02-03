@@ -65,7 +65,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     boolean doubleClicking = false
     integer doubleClickStartIndex = 0
     integer doubleClickEndIndex = 0
+    integer dragStartIndex = 0
 
+    // if true any adjustments to text and the caret will always try to fit the the caret or characters into the view
+    // if false the text field will not offset the text to fit better into the view
+    boolean moveView = true
+
+    // Values for caret movement and blink
     number caretIdleTime = 1.0
     number caretBlinkTime = 0.35
     number caretMoveDelay = 0.35
@@ -136,11 +142,14 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         SetLayout(layout)
 
         LayoutProperties backgroundLayout = background:GetDefaultLayoutProperties()
+        backgroundLayout:SetInterfaceOptionsKey("TextField")
         backgroundLayout:SetPercentageWidth(1)
         backgroundLayout:SetPercentageHeight(1)
+        
 
-
+        Color color
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
+        defaultProperties:SetInterfaceOptionsKey("TextField")
         defaultProperties:SetFont(font)
         defaultProperties:SetFontSize(font:GetSize())
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
@@ -313,6 +322,14 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         caret:SetColor(GetIconColor())
     end
 
+    action SetAutomaticViewMovement(boolean auto)
+        me:moveView = auto
+    end
+
+    action GetAutomaticViewMovement returns boolean
+        return me:moveView
+    end
+
     /*
     Positions the caret on the screen using the caretLine and caretCharacter
     values. Also calculates the new x position of the caret, which is returned.
@@ -394,10 +411,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     end
 
     action SetCaretPosition(integer index)
+        ShowCaret()
         SetCaretToIndex(index)
         caretX = PositionCaret()
 
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         ResetCaretBlinkTimer()
 
         EmptySelectionEvent(false)
@@ -417,9 +437,15 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
             return now
         else
-            caretCharacter = caretCharacter - 1
+            if (not selecting) and (not selection:IsEmpty())
+                caretCharacter = selection:GetStartIndex()
+            else
+                caretCharacter = caretCharacter - 1
+            end
         end
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
@@ -447,9 +473,15 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
             return now
         else
-            caretCharacter = caretCharacter + 1
+            if (not selecting) and (not selection:IsEmpty())
+                caretCharacter = selection:GetEndIndex()
+            else
+                caretCharacter = caretCharacter + 1
+            end
         end
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
 
@@ -458,6 +490,16 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         else
             EmptySelectionEvent(false)
         end
+    end
+
+    /*
+        Fits a character horizontally in the TextField then redraws and repositions the caret correctly. 
+    */
+    action FitViewToCharacter(integer index)
+        FitCharacterOnScreen(index)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ResetCaretBlinkTimer()
     end
 
     /*
@@ -561,8 +603,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         textValue = preText + postText
         caretCharacter = caretCharacter - toDelete
-
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
@@ -635,7 +678,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         textValue = preText + postText  
 
-        FitCharacterOnScreen(caretCharacter)
+        if moveView
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         PositionCaret()
         ResetCaretBlinkTimer()
@@ -666,8 +711,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         textValue = preText + postText
-
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         PositionCaret()
         ResetCaretBlinkTimer()
@@ -705,7 +751,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         caretCharacter = caretCharacter + value:GetSize()
 
-        FitCharacterOnScreen(caretCharacter)
+        if moveView
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
@@ -724,16 +772,17 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action ClickedMouse(MouseEvent event)
         if event:GetSource() not= undefined and event:GetSource() is Item2D and event:clickCount = 1
+            ShowCaret()
             // Assume main text area was clicked.
             draggingInText = true
             doubleClicking = false
             MousePositionCaret(event, false)
+            dragStartIndex = GetCaretPosition()
         end
     end
 
     action ReleasedMouse(MouseEvent event)
         draggingInText = false
-        ShowCaret()
         if event:clickCount >= 2
             doubleClicking = false
         end
@@ -743,35 +792,89 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         integer index = caretCharacter
 
+        number mouseX = event:GetX() - GetGlobalX()
+        boolean leftEdgeOfBox = false
+        boolean rightEdgeOfBox = false
+
+        Glyph glyph = font:GetGlyph("W")
+        number advance = glyph:horizontalAdvance * 2
+        if mouseX < advance 
+            leftEdgeOfBox = true
+        elseif mouseX > GetWidth() - advance
+            rightEdgeOfBox = true
+        end
+
+        if dragging and moveView
+            if leftEdgeOfBox
+                horizontalOffset = horizontalOffset + advance
+                if horizontalOffset >= 0
+                    horizontalOffset = 0
+                end
+            elseif rightEdgeOfBox
+                horizontalOffset = horizontalOffset - advance
+            end
+        end
+
         PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+
+        if dragging and moveView
+            FitCharacterOnScreen(caretCharacter)
+        end
         if dragging and not doubleClicking
+            // for textfields it seems to be standard to hide the caret when dragging
+            HideCaret()
             if index = caretCharacter
                 return now
             end
 
-            boolean atEnd = selection:IsCaretAtEnd()
-
-            if atEnd
-                if caretCharacter < selection:GetStartIndex()
-                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
-                else
-                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
-                end
-            else
-                if GetCaretPosition() > selection:GetEndIndex()
-                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
-                else
-                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
-                end
+            originalIndex = GetCaretPosition()
+            if originalIndex < dragStartIndex
+                Select(originalIndex, dragStartIndex, false)
+            elseif originalIndex > dragStartIndex
+                Select(dragStartIndex, originalIndex, true)
             end
+
+//            boolean atEnd = selection:IsCaretAtEnd()
+//
+//            if atEnd
+//                if caretCharacter < selection:GetStartIndex()
+//                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
+//                else
+//                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
+//                end
+//            else
+//                if GetCaretPosition() > selection:GetEndIndex()
+//                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
+//                else
+//                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
+//                end
+//            end
         elseif dragging and doubleClicking
             integer originalIndex = GetCaretPosition()
+            // for textfields it seems to be standard to hide the caret when dragging
             HideCaret()
             if originalIndex < doubleClickStartIndex
-                Select(GetTokenStartIndex(), doubleClickEndIndex)
+                integer tokenStart = GetTokenStartIndex()
+                integer tokenEnd = GetTokenEndIndex(tokenStart)
+                if GetCaretPosition() >= tokenEnd
+                    SetCaretPosition(tokenEnd)
+                    Select(tokenEnd, doubleClickEndIndex)
+                elseif GetCaretPosition() < tokenEnd
+                    SetCaretPosition(tokenStart)
+                    Select(tokenStart, doubleClickEndIndex)
+                end
             elseif originalIndex > doubleClickEndIndex
-                Select(doubleClickStartIndex, GetTokenEndIndex())
+                integer tokenEnd = GetTokenEndIndex()
+                integer tokenStart = GetNextTokenStartIndex()
+                if tokenStart <= tokenEnd
+                    SetCaretPosition(tokenStart)
+                    Select(doubleClickStartIndex, tokenStart)
+                elseif tokenStart > tokenEnd
+                    SetCaretPosition(tokenEnd)
+                    Select(doubleClickStartIndex, tokenEnd)
+                end
             else
+                SetCaretPosition(doubleClickEndIndex)
                 Select(doubleClickStartIndex, doubleClickEndIndex)
             end
             SetCaretToIndex(selection:GetEndIndex())
@@ -822,12 +925,20 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     action GainedFocus(FocusEvent event)
         ShowCaret()
+        background:SetBorderColor(GetFocusBorderColor())
+        SetBorderThickness(GetBorderThickness())
+        RequestLayout()
         parent:Control:GainedFocus(event)
+        background:RequestVerticesUpdate()
     end
 
     action LostFocus(FocusEvent event)
         HideCaret()
+        background:SetBorderColor(GetBorderColor())
+        SetBorderThickness(GetBorderThickness())
+        RequestLayout()
         parent:Control:LostFocus(event)
+        background:RequestVerticesUpdate()
     end
 
     action Update(number seconds)
@@ -894,7 +1005,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         textValue = ""
         caretCharacter = 0
 
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()
@@ -910,7 +1023,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         textValue = value
         caretCharacter = 0
 
-        FitCharacterOnScreen(caretCharacter)
+        if (moveView)
+            FitCharacterOnScreen(caretCharacter)
+        end
         GetLineDrawables()
         caretX = PositionCaret()
         ResetCaretBlinkTimer()

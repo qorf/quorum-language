@@ -23,16 +23,16 @@ in float v_innerRadius;
 in float v_outerRadius;
 in float v_minAngle;
 in float v_maxAngle;
+in vec2 v_originPoint;
 uniform sampler2D u_texture;
-uniform vec2 u_originPoint;
 layout (location = 0) out vec4 outputColor;
 
 float PI = 3.1415926538;
 
 void main()
 {
-    float x = gl_FragCoord.x - u_originPoint.x;
-    float y = gl_FragCoord.y - u_originPoint.y;
+    float x = gl_FragCoord.x - v_originPoint.x;
+    float y = gl_FragCoord.y - v_originPoint.y;
     vec2 point = vec2(x, y);
     float length = length(point);
     float angle = atan(x, y);

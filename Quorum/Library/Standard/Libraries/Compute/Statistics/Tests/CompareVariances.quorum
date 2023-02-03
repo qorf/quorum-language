@@ -319,7 +319,7 @@ class CompareVariances is StatisticalTest
             number productOfEvals = 1
             number sumOfEvals = 0
             number sumOfSquaredEvals = 0
-            Array<number> evals = eig:GetEigenvalues()
+            Vector evals = eig:GetEigenvalues()
             i = 0
             repeat while i < evals:GetSize()
                 eval = evals:Get(i)
