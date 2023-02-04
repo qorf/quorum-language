@@ -135,11 +135,6 @@ public class GLSurfaceView20 extends GLSurfaceView
             Item_ item = set.getValue();
             Rect childBounds;
 
-            int left = 0;
-            int top = 0;
-            int right = 0;
-            int bottom = 0;
-
             if (item instanceof Item2D_)
             {
                 double itemX = ((Item2D_)item).GetScreenX();
@@ -150,67 +145,34 @@ public class GLSurfaceView20 extends GLSurfaceView
 
                 if (itemY == Double.NaN)
                     itemY = 0;
-                left = (int)itemX;
-                top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
-                right = (int) (itemX + ((Item2D_) item).GetWidth());
-                bottom = AndroidApplication.screenHeight - (int)(itemY);
+                int left = (int)itemX;
+                int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
+                int right = (int) (itemX + ((Item2D_) item).GetWidth());
+                int bottom = AndroidApplication.screenHeight - (int)(itemY);
+                childBounds = new Rect(left, top, right, bottom);
             }
-            else if (item instanceof Item3D_) {
+            else if (item instanceof Item3D_)
+            {
                 // This is only a place holder, to place a small box roughly at the
                 // center of a 3D object in the screen. To calculate this correctly,
                 // check how we calculate mouse input detection for 3D objects.
 
                 Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
 
-                left = (int) rectangle.GetX();
-                top = AndroidApplication.screenHeight - (int) (rectangle.GetY() + rectangle.GetHeight());
-                right = (int) (rectangle.GetX() + rectangle.GetWidth());
-                bottom = AndroidApplication.screenHeight - (int) (rectangle.GetY());
+                int left = (int)rectangle.GetX();
+                int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
+                int right = (int) (rectangle.GetX() + rectangle.GetWidth());
+                int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
+                childBounds = new Rect(left, top, right, bottom);
             }
-
-            if (Math.abs(left - right) <= smallElementThreshold && left != 0 && right != 0)
+            else
             {
-                if (left > right)
-                {
-                    right -= scaleUpFactor;
-                    if (right < 0)
-                        right = 0;
-                    left += scaleUpFactor;
-                    if (left > AndroidApplication.screenWidth)
-                        left = AndroidApplication.screenWidth;
-                }
-                else
-                {
-                    left -= scaleUpFactor;
-                    if (left < 0)
-                        left = 0;
-                    right += scaleUpFactor;
-                    if (right > AndroidApplication.screenWidth)
-                        right = AndroidApplication.screenWidth;
-                }
+                int left = 0;
+                int top = 0;
+                int right = 0;
+                int bottom = 0;
+                childBounds = new Rect(left, top, right, bottom);
             }
-            if (Math.abs(bottom - top) <= smallElementThreshold && bottom != 0 && top != 0)
-            {
-                if (top > bottom)
-                {
-                    bottom -= scaleUpFactor;
-                    if (bottom < 0)
-                        bottom = 0;
-                    top += scaleUpFactor;
-                    if (top > AndroidApplication.screenHeight)
-                        top = AndroidApplication.screenHeight;
-                }
-                else
-                {
-                    top -= scaleUpFactor;
-                    if (top < 0)
-                        top = 0;
-                    bottom += scaleUpFactor;
-                    if (bottom > AndroidApplication.screenHeight)
-                        bottom = AndroidApplication.screenHeight;
-                }
-            }
-            childBounds = new Rect(left, top, right, bottom);
 
             final int childCoordsX = (int) event.getX() + getScrollX();
             final int childCoordsY = (int) event.getY() + getScrollY();
