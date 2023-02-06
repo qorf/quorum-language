@@ -1423,13 +1423,13 @@ class Chart is ChartItem
                 i = 0
                 repeat while i < GetNumberOfChartAreas()
                     ChartAreaPanel area = GetSubChartAreas():Get(i)
-                    RegressionLine line = area:GetMovableRegressionLine()
+                    RegressionLine line = area:GetMovableRegressionSeries():GetRegressionLine()
                     area:Add(line)
                     i = i + 1
                 end
             else
                 ChartAreaPanel area = GetChartArea()
-                RegressionLine line = area:GetMovableRegressionLine()
+                RegressionLine line = area:GetMovableRegressionSeries():GetRegressionLine()
                 area:Add(line)
             end
         end
@@ -1439,21 +1439,23 @@ class Chart is ChartItem
         if IsSeparatedBySeries()
             i = 0
             repeat while i < GetNumberOfChartAreas()
-                RegressionLine line = CreateMovableRegressionLine()
                 ChartAreaPanel area = GetSubChartAreas():Get(i)
-                area:SetMovableRegressionLine(line)
-                area:Add(line)
+                Series series = CreateMovableRegressionSeries(area)
+                area:SetMovableRegressionSeries(series)
                 i = i + 1
             end
         else
-            RegressionLine line = CreateMovableRegressionLine()
             ChartAreaPanel area = GetChartArea()
-            area:SetMovableRegressionLine(line)
-            area:Add(line)
+            Series series = CreateMovableRegressionSeries(area)
+            area:SetMovableRegressionSeries(series)
         end
     end
 
-    private action CreateMovableRegressionLine returns RegressionLine
+    private action CreateMovableRegressionSeries(ChartAreaPanel panel) returns Series
+        // Fetch the next color from the palette in the Options
+        ChartOptions options
+        Color color = options:GetColorFromPalette(GetSeriesList():GetSize())
+
         RegressionLine line
         line:SetMovable(true)
 
@@ -1463,7 +1465,13 @@ class Chart is ChartItem
             line:SetSlopeAndIntercept(1, 0)
         end
 
-        return line
+        Series series
+        series:SetColor(color)
+        series:SetChartArea(panel)
+        series:SetName("Movable Line")
+        series:SetRegressionLine(line)
+
+        return series
     end
 
     /*
@@ -2076,6 +2084,7 @@ class Chart is ChartItem
     end
 
     action AdjustForLegend()
+        legend:SetContainer(me)
         if IsShowingLegend()
             legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
             integer minimumSpace = 0

@@ -695,6 +695,22 @@ class ChartLayout is Layout
     end
 
     action LayoutLegend(Chart chart, Legend legendContainer)
+        // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
+        Array<Series> movableSeries
+        if chart:HasMovableRegressionLine()
+            Array<ChartAreaPanel> subAreas
+            if subAreas = undefined or subAreas:IsEmpty()
+                movableSeries:Add(chart:GetChartArea():GetMovableRegressionSeries())
+            else
+                integer counter = 0
+                repeat while counter < subAreas:GetSize()
+                    movableSeries:Add(subAreas:Get(counter):GetMovableRegressionSeries())
+                    counter = counter + 1
+                end
+            end
+        end
+       
+
         if legendContainer:DisplayOnLeft() or legendContainer:DisplayOnRight()
             integer iconSize = legendContainer:GetLabelFontSize()
             integer padding = iconSize/2
@@ -723,19 +739,26 @@ class ChartLayout is Layout
             integer labelY = 0
             Array<Series> seriesList = legendContainer:GetSeriesList()
             if not seriesList:IsEmpty()
-                ChartLabel currentLabel
-                Icon currentIcon
-                Icon entryBox
+                ChartLabel currentLabel = undefined
+                Icon currentIcon = undefined
+                Icon entryBox = undefined
                 Color transparent
                 transparent:SetColor(0, 0, 0, 0)
     
                 integer i = 0
-                repeat while i < seriesList:GetSize()
-                    currentLabel = seriesList:Get(i):GetLabel()
+                repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
+                    Series series = undefined
+                    if i < seriesList:GetSize()
+                        series = seriesList:Get(i)
+                    else
+                        series = movableSeries:Get(i - seriesList:GetSize())
+                    end
+
+                    currentLabel = series:GetLabel()
                     if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                         currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                     end
-                    currentIcon = seriesList:Get(i):GetEntryIcon()
+                    currentIcon = series:GetEntryIcon()
                     currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
     
                     iconX = padding
@@ -748,9 +771,9 @@ class ChartLayout is Layout
                     integer numberOfLabels = 1
                     
                     if legendContainer:IsShowingRegression()
-                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                        if series:GetRegressionLine() not= undefined
                             //Regression equation
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel = series:GetRegressionLine():GetEquationLabel()
                             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                             end
@@ -758,12 +781,15 @@ class ChartLayout is Layout
                             labelY = iconY
                             currentLabel:SetPosition(labelX, labelY)
 
-                            currentIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
-                            currentIcon:LoadFilledRectangle(iconSize, cast(integer, seriesList:Get(i):GetRegressionLine():GetLineDensity()), currentIcon:GetColor())
+                            output "Current (EQ): " + currentLabel:GetX() + ", " + currentLabel:GetY() + " (" + currentLabel:GetGlobalX() + ", " + currentLabel:GetGlobalY() + ") -- " + currentLabel:GetWidth() + "x" + currentLabel:GetHeight() + " -- def = " 
++ (currentLabel:GetParent() is Legend)
+
+                            currentIcon = series:GetRegressionLine():GetRegressionIcon()
+                            currentIcon:LoadFilledRectangle(iconSize, cast(integer, series:GetRegressionLine():GetLineDensity()), currentIcon:GetColor())
                             currentIcon:SetPosition(iconX , iconY+padding)
 
                             //R^2 value
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
                             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                             end
@@ -771,10 +797,13 @@ class ChartLayout is Layout
                             labelY = iconY
                             currentLabel:SetPosition(labelX, labelY)
                             numberOfLabels = 3
+
+                            output "Current (R2): " + currentLabel:GetX() + ", " + currentLabel:GetY() + " (" + currentLabel:GetGlobalX() + ", " + currentLabel:GetGlobalY() + ") -- " + currentLabel:GetWidth() + "x" + currentLabel:GetHeight() + " -- def = " 
++ (currentLabel:GetParent() is Legend)
                         end
                     end
 
-                    entryBox = seriesList:Get(i):GetEntryBox()
+                    entryBox = series:GetEntryBox()
                     LayoutProperties properties = entryBox:GetDefaultLayoutProperties()
                     entryBox:LoadRectangle(cast(integer, legendContainer:GetWidth()-1),numberOfLabels*iconSize+(numberOfLabels-1)*(padding/2)+padding,transparent)
                     entryBox:SetPosition(1, iconY-(padding/2))
@@ -822,12 +851,19 @@ class ChartLayout is Layout
                 transparent:SetColor(0, 0, 0, 0)
     
                 integer i = 0
-                repeat while i < seriesList:GetSize()
-                    currentLabel = seriesList:Get(i):GetLabel()
+                repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
+                    Series series = undefined
+                    if i < seriesList:GetSize()
+                        series = seriesList:Get(i)
+                    else
+                        series = movableSeries:Get(i - seriesList:GetSize())
+                    end
+
+                    currentLabel = series:GetLabel()
                     if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                         currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                     end
-                    currentIcon = seriesList:Get(i):GetEntryIcon()
+                    currentIcon = series:GetEntryIcon()
                     currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
     
                     iconY = originPointY - iconSize
@@ -839,9 +875,9 @@ class ChartLayout is Layout
                     number widestLabel = currentLabel:GetWidth()
       
                     if legendContainer:IsShowingRegression()
-                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                        if series:GetRegressionLine() not= undefined
                             //Regression equation
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel = series:GetRegressionLine():GetEquationLabel()
                             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                             end
@@ -852,12 +888,12 @@ class ChartLayout is Layout
                                 widestLabel = currentLabel:GetWidth()
                             end
 
-                            currentIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
-                            currentIcon:LoadFilledRectangle(iconSize, cast(integer, seriesList:Get(i):GetRegressionLine():GetLineDensity()), currentIcon:GetColor())
+                            currentIcon = series:GetRegressionLine():GetRegressionIcon()
+                            currentIcon:LoadFilledRectangle(iconSize, cast(integer, series:GetRegressionLine():GetLineDensity()), currentIcon:GetColor())
                             currentIcon:SetPosition(iconX , iconY+padding)
 
                             //R^2 value
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
                             if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                                 currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                             end
@@ -870,7 +906,7 @@ class ChartLayout is Layout
                         end
                     end
 
-                    entryBox = seriesList:Get(i):GetEntryBox()
+                    entryBox = series:GetEntryBox()
                     LayoutProperties properties = entryBox:GetDefaultLayoutProperties()
                     entryBox:LoadRectangle(cast(integer, iconSize + widestLabel + padding*2),cast(integer, legendContainer:GetHeight()),transparent)
                     entryBox:SetPosition(iconX - (padding/2), 0)
@@ -947,7 +983,7 @@ class ChartLayout is Layout
                                 line:SetIconColor(line:GetColor())
                             end
     
-                            line:RefreshPoints()        
+                            line:RefreshPoints()
                             line:SetZ(-2)
                         end
                     end
@@ -976,7 +1012,7 @@ class ChartLayout is Layout
             if chart:IsSeparatedBySeries()
                 alert("TODO")
             else
-                RegressionLine line = chart:GetChartArea():GetMovableRegressionLine()
+                RegressionLine line = chart:GetChartArea():GetMovableRegressionSeries():GetRegressionLine()
                 number pointThickness = line:GetPointThickness()
     
                 // Calculate and add padding so the edges of points aren't cut off.

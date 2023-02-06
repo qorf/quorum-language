@@ -255,35 +255,50 @@ class Legend is ChartItem
             if chart:IsSeparatedBySeries()
                 output "WARNING: LoadLegend for series NYI"
             else
-                // Fetch the next color from the palette in the Options
-                ChartOptions options
-                Color color = options:GetColorFromPalette(seriesList:GetSize())
-    
+                
+                // ...
+                ChartAreaPanel panel = chart:GetChartArea()
+                Series series = panel:GetMovableRegressionSeries()
+
                 Icon seriesIcon
-                seriesIcon:SetColor(color)
+                series:SetEntryIcon(seriesIcon)
+                if  series:GetColor() not= undefined
+                    seriesIcon:SetColor(series:GetColor())
+                end
                 Add(seriesIcon)
     
                 ChartLabel newLabel
-                newLabel:SetText("TO-DO A")
-                newLabel:SetName(newLabel:GetText())
-                
-                RegressionLine regLine = chart:GetChartArea():GetMovableRegressionLine()
-                output "regLine defined is " + (regLine not= undefined)
-                regLine:SetVariableNames(chart:GetYAxisTitle(), chart:GetXAxisTitle(), chart:GetHorizontalFlag(), chart:OrientationChanged())
+                newLabel:SetText(series:GetName())
+                newLabel:SetName(series:GetName())
+                series:SetLabel(newLabel)
+                series:SetFocusable(true)
+                series:SetAccessibilityCode(parent:Item:ITEM)
+               
+                Add(newLabel)
+                Add(series)
     
-                ChartLabel regressionLabel = regLine:GetLabel()
-                regressionLabel:SetFocusable(true)
-                regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
-                Add(regressionLabel)
+                if showRegression
+                    if series:GetRegressionLine() not= undefined
+                        RegressionLine regLine = series:GetRegressionLine()
+                        regLine:SetVariableNames(chart:GetYAxisTitle(), chart:GetXAxisTitle(), chart:GetHorizontalFlag(), chart:OrientationChanged())
     
-                ChartLabel r2Label = regLine:GetRSquaredLabel()
-                r2Label:SetFocusable(true)
-                r2Label:SetAccessibilityCode(parent:Item:ITEM)
-                Add(r2Label)
+                        ChartLabel regressionLabel = series:GetRegressionLine():GetLabel()
+                        regressionLabel:SetFocusable(true)
+                        regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
+                        Add(regressionLabel)
     
-                Icon regressionIcon = regLine:GetRegressionIcon()
-                regressionIcon:SetColor(color)
-                Add(regressionIcon)
+                        ChartLabel r2Label = series:GetRegressionLine():GetRSquaredLabel()
+                        r2Label:SetFocusable(true)
+                        r2Label:SetAccessibilityCode(parent:Item:ITEM)
+                        Add(r2Label)
+        
+                        Icon regressionIcon = regLine:GetRegressionIcon()
+                        if series:GetColor() not= undefined
+                            regressionIcon:SetColor(series:GetColor())
+                            Add(regressionIcon)
+                        end
+                    end
+                end
             end
         end
     end
@@ -460,7 +475,27 @@ class Legend is ChartItem
     end
 
     action CalculateMinimumSpace()
-        ChartLabel currentLabel
+        // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
+        Array<Series> movableSeries
+        Chart chart = GetContainer()
+        if chart not= undefined and chart:HasMovableRegressionLine()
+            Array<ChartAreaPanel> subAreas
+            if subAreas = undefined or subAreas:IsEmpty()
+                if chart:GetChartArea():GetMovableRegressionSeries() not= undefined
+                    movableSeries:Add(chart:GetChartArea():GetMovableRegressionSeries())
+                end
+            else
+                integer counter = 0
+                repeat while counter < subAreas:GetSize()
+                    if subAreas:Get(counter):GetMovableRegressionSeries() not= undefined
+                        movableSeries:Add(subAreas:Get(counter):GetMovableRegressionSeries())
+                    end
+                    counter = counter + 1
+                end
+            end
+        end
+
+        ChartLabel currentLabel = undefined
         number labelWidth = 0
         number labelHeight = 0
         if GetTitleLabel() not= undefined
@@ -469,10 +504,17 @@ class Legend is ChartItem
             minimumHeight = GetTitleLabel():GetHeight()
         end
         integer i = 0
-        repeat while i < seriesList:GetSize()
-            if seriesList:Get(i):GetLabel() not= undefined
+        repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
+            Series series = undefined
+            if i < seriesList:GetSize()
+                series = seriesList:Get(i)
+            else
+                series = movableSeries:Get(i - seriesList:GetSize())
+            end
+
+            if series:GetLabel() not= undefined
                 if displayOnLeft or displayOnRight
-                    currentLabel = seriesList:Get(i):GetLabel()
+                    currentLabel = series:GetLabel()
                     currentLabel:SetFontSize(labelFontSize)
                     labelWidth = currentLabel:GetWidth()
                     labelHeight = currentLabel:GetHeight()
@@ -482,9 +524,9 @@ class Legend is ChartItem
 
                     integer extraLabelCount = 0
                     if showRegression
-                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                        if series:GetRegressionLine() not= undefined
                             //Regression equation
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel = series:GetRegressionLine():GetEquationLabel()
                             currentLabel:SetFontSize(labelFontSize)
                             labelWidth = currentLabel:GetWidth()
                             labelHeight = currentLabel:GetHeight()
@@ -493,7 +535,7 @@ class Legend is ChartItem
                             end
 
                             //R^2 value
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
                             currentLabel:SetFontSize(labelFontSize)
                             labelWidth = currentLabel:GetWidth()
                             labelHeight = currentLabel:GetHeight()
@@ -508,16 +550,16 @@ class Legend is ChartItem
                     minimumHeight = minimumHeight + (0.25*labelHeight)*(extraLabelCount) //enough padding between related labels
                     minimumHeight = minimumHeight + (0.5*labelHeight) // enough padding between series (unrelated labels)
                 else
-                    currentLabel = seriesList:Get(i):GetLabel()
+                    currentLabel = series:GetLabel()
                     currentLabel:SetFontSize(labelFontSize)
                     labelWidth = currentLabel:GetWidth()
                     labelHeight = currentLabel:GetHeight()
                     number widthOfSeries = labelWidth+(2*labelHeight)
                     integer extraLabelCount = 0
                     if showRegression
-                        if seriesList:Get(i):GetRegressionLine() not= undefined
+                        if series:GetRegressionLine() not= undefined
                             //Regression equation
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetEquationLabel()
+                            currentLabel = series:GetRegressionLine():GetEquationLabel()
                             currentLabel:SetFontSize(labelFontSize)
                             labelWidth = currentLabel:GetWidth()
                             labelHeight = currentLabel:GetHeight()
@@ -526,7 +568,7 @@ class Legend is ChartItem
                             end
 
                             //R^2 value
-                            currentLabel = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
+                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
                             currentLabel:SetFontSize(labelFontSize)
                             labelWidth = currentLabel:GetWidth()
                             labelHeight = currentLabel:GetHeight()
@@ -679,7 +721,7 @@ class Legend is ChartItem
             return borderColor
         end
 
-        Chart chart = GetParentChart()
+        Chart chart = GetContainer()
         if chart not= undefined
             return chart:GetBorderColor()
         end
@@ -695,7 +737,7 @@ class Legend is ChartItem
             return backgroundColor
         end
 
-        Chart chart = GetParentChart()
+        Chart chart = GetContainer()
         if chart not= undefined
             return chart:GetIconColor()
         end
@@ -712,7 +754,7 @@ class Legend is ChartItem
             return selectionBorderColor
         end
 
-        Chart chart = GetParentChart()
+        Chart chart = GetContainer()
         if chart not= undefined
             return chart:GetSelectionBorderColor()
         end
@@ -728,7 +770,7 @@ class Legend is ChartItem
             return selectionColor
         end
 
-        Chart chart = GetParentChart()
+        Chart chart = GetContainer()
         if chart not= undefined
             return chart:GetForegroundSelectionColor()
         end
@@ -741,11 +783,11 @@ class Legend is ChartItem
     end
 
     // Try to get the chart this is attached to via the parent hierarchy.
-    private action GetParentChart returns Chart
-        Item2D parentItem = GetParent()
-        repeat until parentItem is Chart or parentItem = undefined
-            parentItem = parentItem:GetParent()
-        end
-        return cast(Chart, parentItem)
-    end
+//    private action Gturns Chart
+//        Item2D parentItem = GetParent()
+//        repeat until parentItem is Chart or parentItem = undefined
+//            parentItem = parentItem:GetParent()
+//        end
+//        return cast(Chart, parentItem)
+//    end
 end

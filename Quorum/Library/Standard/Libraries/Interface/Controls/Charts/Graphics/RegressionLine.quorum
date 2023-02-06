@@ -361,23 +361,23 @@ class RegressionLine is ChartDrawable, LinePath
 
     // Gives dependentVariable = (m*independentVariable) + b 
     action GenerateEquation()
-        if IsMovable()
-            output "WARNING: GenerateEquation for Movable lines was called, but it isn't finished yet. TODO"
-            equationText = "TO-DO (E)"
-            rsquaredText = "TO-DO (R)"
-        else
-            Math math
-    
-            if independentVariables:GetSize() > 0
-                equationText = dependentVariable + " = " + math:Round(slope,2) + "*" + independentVariables:Get(0)
-    
-                if math:Round(constantValue, 2) < 0
-                    equationText = equationText + math:Round(constantValue, 2)
-                else
-                    equationText = equationText + " + " + math:Round(constantValue, 2)
-                end
+        Math math
+
+        if independentVariables:GetSize() > 0
+            equationText = dependentVariable + " = " + math:Round(slope,2) + "*" + independentVariables:Get(0)
+
+            if math:Round(constantValue, 2) < 0
+                equationText = equationText + math:Round(constantValue, 2)
+            else
+                equationText = equationText + " + " + math:Round(constantValue, 2)
             end
+        end
+
+        if regression not= undefined
             rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
+        else
+            rsquaredText = "R^2 = ~~~"
+            output "Equation: " + equationText
         end
 
         equation:SetText(equationText)

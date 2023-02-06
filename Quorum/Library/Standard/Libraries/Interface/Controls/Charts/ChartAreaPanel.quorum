@@ -33,11 +33,11 @@ class ChartAreaPanel is ChartItem
     ColorGroup selectionBorderColor = undefined
 
     /*
-    A movable regression line unique to this chart area.
-    Undefined by default, but will be set if the chart has
-    "ShowMovableRegressionLine" set to true during creation.
+    A series containing the movable regression line unique to this chart area.
+    Undefined by default, but will be set if the chart has "ShowMovableRegressionLine" 
+    set to true during creation.
     */
-    RegressionLine movableRegressionLine = undefined
+    Series movableRegressionSeries = undefined
 
     on create
         ManualLayout manualLayout
@@ -165,12 +165,20 @@ class ChartAreaPanel is ChartItem
         return cast(Chart, parentItem)
     end
 
-    action GetMovableRegressionLine returns RegressionLine
-        return movableRegressionLine
+    /*
+    Returns a series containing a movable regression line unique to this area panel.
+    The series is representative of all elements in this panel. This is undefined by
+    default, and is only defined if "ShowMovableRegressionLine" was set to true in
+    the Chart before creation.
+
+    Attribute: Returns A series containing the movable regression line, if they are enabled for this chart.
+    */
+    action GetMovableRegressionSeries returns Series
+        return movableRegressionSeries
     end
 
-    action SetMovableRegressionLine(RegressionLine movableRegressionLine)
-        me:movableRegressionLine = movableRegressionLine
+    action SetMovableRegressionSeries(Series movableRegressionSeries)
+        me:movableRegressionSeries = movableRegressionSeries
     end
 
 end
