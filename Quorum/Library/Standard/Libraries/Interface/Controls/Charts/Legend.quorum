@@ -75,6 +75,21 @@ class Legend is ChartItem
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         SetDisplayName(GetName())
         
+        // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
+        Array<Series> movableSeries
+        if chart:HasMovableRegressionLine()
+            Array<ChartAreaPanel> subAreas
+            if subAreas = undefined or subAreas:IsEmpty()
+                movableSeries:Add(chart:GetChartArea():GetMovableRegressionSeries())
+            else
+                integer counter = 0
+                repeat while counter < subAreas:GetSize()
+                    movableSeries:Add(subAreas:Get(counter):GetMovableRegressionSeries())
+                    counter = counter + 1
+                end
+            end
+        end
+
         SetNextFocus(chartArea)
         SetPreviousFocus(summary)
         //SetRightItem(chartArea)
@@ -138,41 +153,66 @@ class Legend is ChartItem
                     ChartItem r2 = seriesList:Get(0):GetRegressionLine():GetRSquaredLabel()
                     r2:SetContainer(chart)
                     description = description + " r squared =" + seriesList:Get(0):GetRegressionLine():CalculateRSquared()
+
+                    if chart is ScatterPlot
+                        ScatterPlot plot = cast(ScatterPlot, chart)
+                        if plot:IsShowingSquaresOfResiduals()
+                            description = description + ", " + seriesList:Get(0):GetRegressionLine():GetSumOfSquaresLabel():GetText()
+                        end
+                    end
                 end
             end
-            description = description + ", 1 of " + seriesList:GetSize() + " series."
+            description = description + ", 1 of " + (seriesList:GetSize() + movableSeries:GetSize()) + " series."
             seriesList:Get(0):SetDescription(description)
 
             integer i = 1
             ChartItem previous = firstEntry
-            repeat while i < seriesList:GetSize()
-                description = seriesList:Get(i):GetSize() + " points"
-                ChartItem entry = seriesList:Get(i)
+            repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
+                Series series = undefined
+                boolean includeRSquared = true
+                if i < seriesList:GetSize()
+                    series = seriesList:Get(i)
+                else
+                    series = movableSeries:Get(i - seriesList:GetSize())
+                    includeRSquared = false
+                end
+
+                description = series:GetSize() + " points"
+                ChartItem entry = series
                 entry:SetContainer(chart)
-                seriesList:Get(i):SetName(seriesList:Get(i):GetName())
+                series:SetName(series:GetName())
                 if showRegression
-                    if seriesList:Get(i):GetRegressionLine() not= undefined
+                    if series:GetRegressionLine() not= undefined
                         // Regression equation
-                        ChartItem equation = seriesList:Get(i):GetRegressionLine()
+                        ChartItem equation = series:GetRegressionLine()
                         equation:SetContainer(chart)
-                        seriesList:Get(i):GetRegressionLine():SetName(seriesList:Get(i):GetName()+" regression line")
-                        seriesList:Get(i):GetRegressionLine():SetDescription(seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText())
+                        series:GetRegressionLine():SetName(series:GetName() + " regression line")
+                        series:GetRegressionLine():SetDescription(series:GetRegressionLine():GetEquationLabel():GetText())
                         description = description + ", the trendline " 
-                        if seriesList:Get(i):GetRegressionLine():GetSlope() > 0
+                        if series:GetRegressionLine():GetSlope() > 0
                             description = description + "is positive, "
                         else
                             description = description + "is negative, "
                         end
-                        description = description + seriesList:Get(i):GetRegressionLine():GetEquationLabel():GetText()  + ", "
+                        description = description + series:GetRegressionLine():GetEquationLabel():GetText()  + ", "
     
-                        // R-squared
-                        ChartItem r2 = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
-                        r2:SetContainer(chart)
-                        description = description + " r squared =" + seriesList:Get(i):GetRegressionLine():CalculateRSquared()
+                        if includeRSquared
+                            // R-squared
+                            ChartItem r2 = series:GetRegressionLine():GetRSquaredLabel()
+                            r2:SetContainer(chart)
+                            description = description + " r squared =" + series:GetRegressionLine():CalculateRSquared()
+                        end
+
+                        if chart is ScatterPlot
+                            ScatterPlot plot = cast(ScatterPlot, chart)
+                            if plot:IsShowingSquaresOfResiduals()
+                                description = description + ", " + series:GetRegressionLine():GetSumOfSquaresLabel():GetText()
+                            end
+                        end
                     end
                 end
-                description = description + ", " + (i+1) + " of " + seriesList:GetSize() + " series."
-                seriesList:Get(i):SetDescription(description)
+                description = description + ", " + (i+1) + " of " + (seriesList:GetSize() + movableSeries:GetSize()) + " series."
+                series:SetDescription(description)
                 previous = entry
                 i = i + 1
             end
@@ -246,6 +286,17 @@ class Legend is ChartItem
                         regressionIcon:SetColor(seriesList:Get(i):GetColor())
                         Add(regressionIcon)
                     end
+
+                    if chart is ScatterPlot
+                        ScatterPlot plot = cast(ScatterPlot, chart)
+
+                        if plot:IsShowingSquaresOfResiduals()
+                            ChartLabel sumOfSquaresLabel = seriesList:Get(i):GetRegressionLine():GetSumOfSquaresLabel()
+                            sumOfSquaresLabel:SetFocusable(true)
+                            sumOfSquaresLabel:SetAccessibilityCode(parent:Item:ITEM)
+                            Add(sumOfSquaresLabel)
+                        end
+                    end
                 end
             end
             i = i + 1
@@ -291,6 +342,17 @@ class Legend is ChartItem
                         r2Label:SetFocusable(true)
                         r2Label:SetAccessibilityCode(parent:Item:ITEM)
                         Add(r2Label)
+
+                        if chart is ScatterPlot
+                            ScatterPlot plot = cast(ScatterPlot, chart)
+
+                            if plot:IsShowingSquaresOfResiduals()
+                                ChartLabel sumOfSquaresLabel = series:GetRegressionLine():GetSumOfSquaresLabel()
+                                sumOfSquaresLabel:SetFocusable(true)
+                                sumOfSquaresLabel:SetAccessibilityCode(parent:Item:ITEM)
+                                Add(sumOfSquaresLabel)
+                            end
+                        end
         
                         Icon regressionIcon = regLine:GetRegressionIcon()
                         if series:GetColor() not= undefined
@@ -506,10 +568,12 @@ class Legend is ChartItem
         integer i = 0
         repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
             Series series = undefined
+            boolean includeRSquared = true
             if i < seriesList:GetSize()
                 series = seriesList:Get(i)
             else
                 series = movableSeries:Get(i - seriesList:GetSize())
+                includeRSquared = false
             end
 
             if series:GetLabel() not= undefined
@@ -534,16 +598,33 @@ class Legend is ChartItem
                                 minimumWidth = labelWidth+(2.5*labelHeight)
                             end
 
-                            //R^2 value
-                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
-                            currentLabel:SetFontSize(labelFontSize)
-                            labelWidth = currentLabel:GetWidth()
-                            labelHeight = currentLabel:GetHeight()
-                            if labelWidth+(2.5*labelHeight) > minimumWidth
-                                minimumWidth = labelWidth+(2.5*labelHeight)
+                            //R^2 value -- only included if this isn't a movable line
+                            if includeRSquared
+                                currentLabel = series:GetRegressionLine():GetRSquaredLabel()
+                                currentLabel:SetFontSize(labelFontSize)
+                                labelWidth = currentLabel:GetWidth()
+                                labelHeight = currentLabel:GetHeight()
+                                if labelWidth+(2.5*labelHeight) > minimumWidth
+                                    minimumWidth = labelWidth+(2.5*labelHeight)
+                                end
+    
+                                extraLabelCount = 2
                             end
 
-                            extraLabelCount = 2
+                            if chart is ScatterPlot
+                                ScatterPlot plot = cast(ScatterPlot, chart)
+    
+                                if plot:IsShowingSquaresOfResiduals()
+                                    currentLabel = series:GetRegressionLine():GetSumOfSquaresLabel()
+                                    currentLabel:SetFontSize(labelFontSize)
+                                    labelWidth = currentLabel:GetWidth()
+                                    labelHeight = currentLabel:GetHeight()
+                                    if labelWidth+(2.5*labelHeight) > minimumWidth
+                                        minimumWidth = labelWidth+(2.5*labelHeight)
+                                    end
+                                end
+                                extraLabelCount = extraLabelCount + 1
+                            end
                         end
                     end
                     minimumHeight = minimumHeight + labelHeight*(extraLabelCount+1) //enough height for the labels
@@ -567,16 +648,33 @@ class Legend is ChartItem
                                 widthOfSeries = labelWidth+(2.5*labelHeight)
                             end
 
-                            //R^2 value
-                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
-                            currentLabel:SetFontSize(labelFontSize)
-                            labelWidth = currentLabel:GetWidth()
-                            labelHeight = currentLabel:GetHeight()
-                            if labelWidth+(2.5*labelHeight) > widthOfSeries
-                                widthOfSeries = labelWidth+(2.5*labelHeight)
+                            //R^2 value -- only included if this isn't a movable line
+                            if includeRSquared
+                                currentLabel = series:GetRegressionLine():GetRSquaredLabel()
+                                currentLabel:SetFontSize(labelFontSize)
+                                labelWidth = currentLabel:GetWidth()
+                                labelHeight = currentLabel:GetHeight()
+                                if labelWidth+(2.5*labelHeight) > widthOfSeries
+                                    widthOfSeries = labelWidth+(2.5*labelHeight)
+                                end
+    
+                                extraLabelCount = 2
                             end
 
-                            extraLabelCount = 2
+                            if chart is ScatterPlot
+                                ScatterPlot plot = cast(ScatterPlot, chart)
+    
+                                if plot:IsShowingSquaresOfResiduals()
+                                    currentLabel = series:GetRegressionLine():GetSumOfSquaresLabel()
+                                    currentLabel:SetFontSize(labelFontSize)
+                                    labelWidth = currentLabel:GetWidth()
+                                    labelHeight = currentLabel:GetHeight()
+                                    if labelWidth+(2.5*labelHeight) > minimumWidth
+                                        minimumWidth = labelWidth+(2.5*labelHeight)
+                                    end
+                                end
+                                extraLabelCount = extraLabelCount + 1
+                            end
                         end
                     end
 

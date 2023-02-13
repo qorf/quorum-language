@@ -37,7 +37,7 @@ class ChartAreaPanel is ChartItem
     Undefined by default, but will be set if the chart has "ShowMovableRegressionLine" 
     set to true during creation.
     */
-    Series movableRegressionSeries = undefined
+    MovableRegressionSeries movableRegressionSeries = undefined
 
     on create
         ManualLayout manualLayout
@@ -173,11 +173,11 @@ class ChartAreaPanel is ChartItem
 
     Attribute: Returns A series containing the movable regression line, if they are enabled for this chart.
     */
-    action GetMovableRegressionSeries returns Series
+    action GetMovableRegressionSeries returns MovableRegressionSeries
         return movableRegressionSeries
     end
 
-    action SetMovableRegressionSeries(Series movableRegressionSeries)
+    action SetMovableRegressionSeries(MovableRegressionSeries movableRegressionSeries)
         me:movableRegressionSeries = movableRegressionSeries
     end
 

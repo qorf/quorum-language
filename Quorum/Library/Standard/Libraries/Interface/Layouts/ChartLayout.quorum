@@ -28,6 +28,7 @@ use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.ScatterPlot
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -748,10 +749,12 @@ class ChartLayout is Layout
                 integer i = 0
                 repeat while i < (seriesList:GetSize() + movableSeries:GetSize())
                     Series series = undefined
+                    boolean includeRSquared = true
                     if i < seriesList:GetSize()
                         series = seriesList:Get(i)
                     else
                         series = movableSeries:Get(i - seriesList:GetSize())
+                        includeRSquared = false
                     end
 
                     currentLabel = series:GetLabel()
@@ -781,25 +784,39 @@ class ChartLayout is Layout
                             labelY = iconY
                             currentLabel:SetPosition(labelX, labelY)
 
-                            output "Current (EQ): " + currentLabel:GetX() + ", " + currentLabel:GetY() + " (" + currentLabel:GetGlobalX() + ", " + currentLabel:GetGlobalY() + ") -- " + currentLabel:GetWidth() + "x" + currentLabel:GetHeight() + " -- def = " 
-+ (currentLabel:GetParent() is Legend)
-
                             currentIcon = series:GetRegressionLine():GetRegressionIcon()
                             currentIcon:LoadFilledRectangle(iconSize, cast(integer, series:GetRegressionLine():GetLineDensity()), currentIcon:GetColor())
                             currentIcon:SetPosition(iconX , iconY+padding)
+                            numberOfLabels = numberOfLabels + 1
 
                             //R^2 value
-                            currentLabel = series:GetRegressionLine():GetRSquaredLabel()
-                            if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
-                                currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                            if includeRSquared
+                                currentLabel = series:GetRegressionLine():GetRSquaredLabel()
+                                if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                                    currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                                end
+                                iconY = iconY - iconSize - (padding/2)
+                                labelY = iconY
+                                currentLabel:SetPosition(labelX, labelY)
+                                numberOfLabels = numberOfLabels + 1
                             end
-                            iconY = iconY - iconSize - (padding/2)
-                            labelY = iconY
-                            currentLabel:SetPosition(labelX, labelY)
-                            numberOfLabels = 3
 
-                            output "Current (R2): " + currentLabel:GetX() + ", " + currentLabel:GetY() + " (" + currentLabel:GetGlobalX() + ", " + currentLabel:GetGlobalY() + ") -- " + currentLabel:GetWidth() + "x" + currentLabel:GetHeight() + " -- def = " 
-+ (currentLabel:GetParent() is Legend)
+                            if chart is ScatterPlot
+                                ScatterPlot plot = cast(ScatterPlot, chart)
+
+                                if plot:IsShowingSquaresOfResiduals()
+                                    // Display the sum of squares value
+                                    currentLabel = series:GetRegressionLine():GetSumOfSquaresLabel()
+                                    if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                                        currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                                    end
+                                    iconY = iconY - iconSize - (padding/2)
+                                    labelY = iconY
+                                    currentLabel:SetPosition(labelX, labelY)
+                                    numberOfLabels = numberOfLabels + 1
+                                end
+                            end
+
                         end
                     end
 
@@ -902,6 +919,24 @@ class ChartLayout is Layout
                             currentLabel:SetPosition(labelX, labelY)
                             if currentLabel:GetWidth() > widestLabel
                                 widestLabel = currentLabel:GetWidth()
+                            end
+
+                            if chart is ScatterPlot
+                                ScatterPlot plot = cast(ScatterPlot, chart)
+
+                                if plot:IsShowingSquaresOfResiduals()
+                                    // Display the sum of squares value
+                                    currentLabel = series:GetRegressionLine():GetSumOfSquaresLabel()
+                                    if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
+                                        currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
+                                    end
+                                    iconY = iconY - iconSize - (padding/2)
+                                    labelY = iconY
+                                    currentLabel:SetPosition(labelX, labelY)
+                                    if currentLabel:GetWidth() > widestLabel
+                                        widestLabel = currentLabel:GetWidth()
+                                    end
+                                end
                             end
                         end
                     end

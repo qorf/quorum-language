@@ -1,0 +1,21 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+
+class MovableRegressionSeries is Series
+
+    /*
+    This action adds items from the given series to the items of this MovableRegressionSeries.
+    Unlike the standard Add call for a Series, this does not change the individual ChartItems'
+    associated series.
+    */
+    action AddSeriesItems(Series series)
+        Array<ChartDrawable> items = parent:Series:items
+        integer i = 0
+        repeat while i < series:GetSize()
+            items:Add(series:GetItemAt(i))
+            i = i + 1
+        end    
+    end
+
+end

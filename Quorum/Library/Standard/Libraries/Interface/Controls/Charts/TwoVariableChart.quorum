@@ -815,6 +815,8 @@ class TwoVariableChart is Chart
                         i = i + 1
                     end
                 end
+
+                // TO-DO: Handle movable regression lines for this case.
             else
                 if GetSeriesList():GetSize() > 0
                     ChartItem firstSeries = GetSeriesList():Get(0)
@@ -848,6 +850,47 @@ class TwoVariableChart is Chart
                         nextSeriesPoints:Sort(comparison)
                         AddPoints(summary, series, nextSeriesPoints)
                         i = i + 1
+                    end
+
+                    // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
+                    Array<Series> movableSeries
+                    if HasMovableRegressionLine()
+                        Array<ChartAreaPanel> subAreas
+                        if subAreas = undefined or subAreas:IsEmpty()
+                            movableSeries:Add(GetChartArea():GetMovableRegressionSeries())
+                        else
+                            integer counter = 0
+                            repeat while counter < subAreas:GetSize()
+                                movableSeries:Add(subAreas:Get(counter):GetMovableRegressionSeries())
+                                counter = counter + 1
+                            end
+                        end
+                    end
+
+                    if movableSeries:IsEmpty() = false
+                        Series firstMovableSeries = movableSeries:Get(0)
+                        firstMovableSeries:SetContainer(me)
+                        firstMovableSeries:SetPreviousFocus(summary)
+                        firstMovableSeries:SetEscapeItem(chartArea)
+                        firstMovableSeries:SetDisplayName(firstMovableSeries:GetName())
+                        firstMovableSeries:SetLeftItem(previousSeries)
+                        previousSeries:SetRightItem(firstMovableSeries)
+                        AddGroupPanelInstructions(firstMovableSeries, firstMovableSeries:GetDescription())
+    
+                        i = 1
+                        previousSeries = firstMovableSeries
+                        repeat while i < movableSeries:GetSize()
+                            Series nextSeries = movableSeries:Get(i)
+                            nextSeries:SetContainer(me)
+                            nextSeries:SetPreviousFocus(summary)
+                            nextSeries:SetEscapeItem(chartArea)
+                            previousSeries:SetRightItem(nextSeries)
+                            nextSeries:SetLeftItem(previousSeries)
+                            previousSeries = nextSeries
+                            nextSeries:SetDisplayName(nextSeries:GetName())
+                            
+                            i = i + 1
+                        end
                     end
                 end
             end

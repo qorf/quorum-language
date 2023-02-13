@@ -1440,24 +1440,36 @@ class Chart is ChartItem
             i = 0
             repeat while i < GetNumberOfChartAreas()
                 ChartAreaPanel area = GetSubChartAreas():Get(i)
-                Series series = CreateMovableRegressionSeries(area)
+                MovableRegressionSeries series = CreateMovableRegressionSeries(area)
                 area:SetMovableRegressionSeries(series)
                 i = i + 1
             end
         else
             ChartAreaPanel area = GetChartArea()
-            Series series = CreateMovableRegressionSeries(area)
+            MovableRegressionSeries series = CreateMovableRegressionSeries(area)
             area:SetMovableRegressionSeries(series)
         end
     end
 
-    private action CreateMovableRegressionSeries(ChartAreaPanel panel) returns Series
+    private action CreateMovableRegressionSeries(ChartAreaPanel panel) returns MovableRegressionSeries
         // Fetch the next color from the palette in the Options
         ChartOptions options
         Color color = options:GetColorFromPalette(GetSeriesList():GetSize())
 
         RegressionLine line
         line:SetMovable(true)
+        
+        if regLineDensity > 0
+            line:SetLineDensity(regLineDensity)
+        else
+            regLineDensity = cast(integer, panel:GetWidth() * 0.0025)
+            if regLineDensity < 2
+                regLineDensity = 2
+            end
+            line:SetLineDensity(regLineDensity)
+        end
+
+        line:SetPointThickness(regLineDensity * 4)
 
         if lockRegressionIntercepts = true
             line:SetSlopeAndIntercept(1, regressionInterceptLock)
@@ -1465,11 +1477,20 @@ class Chart is ChartItem
             line:SetSlopeAndIntercept(1, 0)
         end
 
-        Series series
+        MovableRegressionSeries series
         series:SetColor(color)
         series:SetChartArea(panel)
         series:SetName("Movable Line")
         series:SetRegressionLine(line)
+
+        line:SetSeries(series)
+
+        Array<Series> realSeries = GetSeriesList()
+        integer i = 0
+        repeat while i < realSeries:GetSize()
+            series:AddSeriesItems(realSeries:Get(i))
+            i = i + 1
+        end
 
         return series
     end

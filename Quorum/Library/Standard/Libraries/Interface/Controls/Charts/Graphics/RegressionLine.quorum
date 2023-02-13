@@ -20,6 +20,7 @@ class RegressionLine is ChartDrawable, LinePath
     private Icon icon 
     private ChartLabel equation
     private ChartLabel rsquared
+    private ChartLabel sumOfSquaresLabel
     private text equationText = ""
     private text rsquaredText = ""
     private text dependentVariable = ""
@@ -259,16 +260,20 @@ class RegressionLine is ChartDrawable, LinePath
         return icon
     end
 
-    action GetLabel() returns ChartLabel
+    action GetLabel returns ChartLabel
         return equation
     end
 
-    action GetEquationLabel() returns ChartLabel
+    action GetEquationLabel returns ChartLabel
         return equation
     end
 
-    action GetRSquaredLabel() returns ChartLabel
+    action GetRSquaredLabel returns ChartLabel
         return rsquared
+    end
+
+    action GetSumOfSquaresLabel returns ChartLabel
+        return sumOfSquaresLabel
     end
 
     action GetSeries returns Series
@@ -376,8 +381,8 @@ class RegressionLine is ChartDrawable, LinePath
         if regression not= undefined
             rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
         else
-            rsquaredText = "R^2 = ~~~"
-            output "Equation: " + equationText
+            // TO-DO: This case shouldn't occur naturally, but there should still be better edge-case handling here anyway
+            rsquaredText = "R^2 = ?"
         end
 
         equation:SetText(equationText)
@@ -676,7 +681,6 @@ class RegressionLine is ChartDrawable, LinePath
             TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
             if series not= undefined
                 Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
-                
                 integer i = 0
                 repeat while i < points:GetSize()
                     ChartPoint point = points:Get(i)
@@ -685,9 +689,11 @@ class RegressionLine is ChartDrawable, LinePath
                     i = i + 1
                 end
             else
-                output "WARNING: Used CalculateResidualSumOfSquares with no series, but this isn't finished yet: TODO"
+                output "WARNING: Couldn't use CalculateResidualSumOfSquares for the regression line because it doesn't belong to a series."
             end
         end
+
+        sumOfSquaresLabel:SetText("Sum of Squares = " + math:Round(result, 2))
 
         return result
     end
