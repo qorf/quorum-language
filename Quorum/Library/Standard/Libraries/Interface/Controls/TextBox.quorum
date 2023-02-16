@@ -196,6 +196,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
     boolean initialized = false
 
+    /*
+    Determines if the TextBox places its Drawables along the baseline or not. If
+    this value is false, then each Drawable will be adjusted upward by the 
+    maximum descent of the Font.
+    */
+    boolean positionOnBaseLine = true
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
@@ -332,6 +339,30 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     private action GetSelectionTexture returns Texture
         SharedTextureManager manager
         return manager:GetUnitTexture()
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action IsPositioningOnBaseLine returns boolean
+        return positionOnBaseLine
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action SetPositionOnBaseLine(boolean position)
+        positionOnBaseLine = position
     end
 
     /*
@@ -481,6 +512,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         firstLine = totalLines - (totalLines * verticalViewPercentage)
         integer firstLineInteger = cast(integer, firstLine)
         number halfPadding = GetTotalLineHeightPadding() / 2
+
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
         
         background:Empty()
         background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
@@ -513,7 +549,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Text Drawables
         */
 
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight
+        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight - maxDescent
         startLineY = yPosition - lineHeight
 
         integer counter = firstLineInteger
@@ -728,10 +764,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         ColorGroup fontColor = GetFontColor()
 
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
+
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2
+        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2 - maxDescent
 
         number xPosition = 0
 
