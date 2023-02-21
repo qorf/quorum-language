@@ -337,11 +337,6 @@ class Legend is ChartItem
                         regressionLabel:SetFocusable(true)
                         regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
                         Add(regressionLabel)
-    
-                        ChartLabel r2Label = series:GetRegressionLine():GetRSquaredLabel()
-                        r2Label:SetFocusable(true)
-                        r2Label:SetAccessibilityCode(parent:Item:ITEM)
-                        Add(r2Label)
 
                         if chart is ScatterPlot
                             ScatterPlot plot = cast(ScatterPlot, chart)

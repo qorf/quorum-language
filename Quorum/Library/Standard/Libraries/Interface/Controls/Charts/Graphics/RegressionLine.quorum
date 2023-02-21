@@ -269,6 +269,14 @@ class RegressionLine is ChartDrawable, LinePath
     end
 
     action GetRSquaredLabel returns ChartLabel
+        check
+            if rsquared:GetText():Contains("= ?")
+                alert("Label was " + rsquared:GetText() + ", GetParent defined = " + (GetParent() not= undefined))
+            end
+        detect e
+            e:OutputStackTrace()
+        end
+
         return rsquared
     end
 

@@ -9,6 +9,8 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.MovableRegressionSeries
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -42,8 +44,14 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
         ScatterPlot scatterPlot = cast(ScatterPlot, chart)
         Array<ResidualSquare> squares = undefined
+        boolean hasMovableResidualSquares = false
+
         if chart:IsShowingLinearRegression() and scatterPlot:IsShowingSquaresOfResiduals()
             squares = scatterPlot:GetResidualSquares()
+
+            if chart:HasMovableRegressionLine()
+                hasMovableResidualSquares = true
+            end
         end
 
         i = 0
@@ -116,6 +124,96 @@ class ScatterPlotLayout is TwoVariableChartLayout
             end
 
             i = i + 1
+        end
+
+        if hasMovableResidualSquares
+            if chart:IsSeparated()
+                integer j = 0
+                repeat while j < chart:GetNumberOfChartAreas()
+                    ChartAreaPanel subArea = chart:GetSubChartAreas():Get(j)
+                    MovableRegressionSeries series = subArea:GetMovableRegressionSeries()
+                    Array<ResidualSquare> movableSquares = series:GetResidualSquares()
+                    RegressionLine line = series:GetRegressionLine()
+
+                    i = 0
+                    repeat while i < movableSquares:GetSize()
+                        ResidualSquare square = movableSquares:Get(i)
+                        ChartPoint point = square:GetPoint()
+    
+                        boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
+        
+                        number residual = square:GetResidual()
+                        number percentHeight = residual / (yMax - yMin)
+                        if percentHeight < 0
+                            percentHeight = -percentHeight
+                        end
+        
+                        number realHeight = percentHeight * height
+                        square:SetSize(realHeight, realHeight)
+        
+                        number pointX = point:GetX() + point:GetWidth() / 2.0
+                        number pointY = point:GetY() + point:GetHeight() / 2.0
+        
+                        if positiveSlope
+                            if residual < 0
+                                square:SetPosition(pointX, pointY)
+                            else
+                                square:SetPosition(pointX - realHeight, pointY - realHeight)
+                            end
+                        else
+                            if residual < 0
+                                square:SetPosition(pointX - realHeight, pointY)
+                            else
+                                square:SetPosition(pointX, pointY - realHeight)
+                            end
+                        end
+    
+                        i = i + 1
+                    end
+
+                    j = j + 1
+                end
+            else
+                MovableRegressionSeries series = chart:GetChartArea():GetMovableRegressionSeries()
+                Array<ResidualSquare> movableSquares = series:GetResidualSquares()
+                RegressionLine line = series:GetRegressionLine()
+
+                i = 0
+                repeat while i < movableSquares:GetSize()
+                    ResidualSquare square = movableSquares:Get(i)
+                    ChartPoint point = square:GetPoint()
+
+                    boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
+    
+                    number residual = square:GetResidual()
+                    number percentHeight = residual / (yMax - yMin)
+                    if percentHeight < 0
+                        percentHeight = -percentHeight
+                    end
+    
+                    number realHeight = percentHeight * height
+                    square:SetSize(realHeight, realHeight)
+    
+                    number pointX = point:GetX() + point:GetWidth() / 2.0
+                    number pointY = point:GetY() + point:GetHeight() / 2.0
+    
+                    if positiveSlope
+                        if residual < 0
+                            square:SetPosition(pointX, pointY)
+                        else
+                            square:SetPosition(pointX - realHeight, pointY - realHeight)
+                        end
+                    else
+                        if residual < 0
+                            square:SetPosition(pointX - realHeight, pointY)
+                        else
+                            square:SetPosition(pointX, pointY - realHeight)
+                        end
+                    end
+
+                    i = i + 1
+                end
+            end
         end
 
         if chart:IsShowingLinearRegression()

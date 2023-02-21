@@ -1,8 +1,11 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 
 class MovableRegressionSeries is Series
+
+    Array<ResidualSquare> residualSquares
 
     /*
     This action adds items from the given series to the items of this MovableRegressionSeries.
@@ -16,6 +19,10 @@ class MovableRegressionSeries is Series
             items:Add(series:GetItemAt(i))
             i = i + 1
         end    
+    end
+
+    action GetResidualSquares returns Array<ResidualSquare>
+        return residualSquares
     end
 
 end
