@@ -12,6 +12,7 @@ class Lexer
     Array<Token> tokens
 
     action Add(Token token)
+        token:tokenIndex = tokens:GetSize()
         tokens:Add(token)
     end
 

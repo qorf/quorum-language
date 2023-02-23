@@ -87,6 +87,7 @@ class TextFieldDoubleClickSelectWordBehavior is Behavior
 
         textField:SetCaretPosition(endIndex)
         textField:Select(beginIndex, endIndex, true)
+        textField:SetDoubleClickIndices(beginIndex, endIndex)
     end
 
     private action IsWhiteSpace(text value) returns boolean

@@ -17,9 +17,12 @@ class TextFieldSelectAllBehavior is Behavior
         TextFieldSelection selection = field:GetSelection()
 
         integer endIndex = field:GetSize()
-
+        // temporarily turn off the view movement to keep the view in the same spot
+        moveView = field:GetAutomaticViewMovement()
+        field:SetAutomaticViewMovement(false)
         field:SetCaretPosition(endIndex)
         field:Select(0, endIndex, true)
+        field:SetAutomaticViewMovement(moveView)
     end
 
     action IsFinished returns boolean

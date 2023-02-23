@@ -27,8 +27,15 @@ class ChartDrawable is ChartItem, Drawable
     Series series = undefined
     GroupPanel group = undefined
     Color customColor = undefined
+
+    //annotation handling for drawables display default is top
     ChartLabel annotation = undefined
     boolean showAnnotation = false
+    boolean displayOnLeft = false
+    boolean displayOnRight = false
+    boolean displayOnTop = true
+    boolean displayOnBottom = false
+
     Array <Drawable> selectionBracket //may or may not be used
     Drawable selectionArrow //may or may not be used
     Array<number> vertices
@@ -164,5 +171,61 @@ class ChartDrawable is ChartItem, Drawable
             GetSelectionBracket():Get(2):Hide()
         end
         parent:ChartItem:LostSelection()
+    end
+
+    /**
+        Set the location of the annotation to the top of the chart drawable.
+    **/
+    action SetAnnotationLocationToTop()
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = true
+        displayOnBottom = false
+    end
+
+    action IsAnnotationLocationTop() returns boolean
+        return displayOnTop
+    end
+
+    /**
+        Set the location of the annotation to the bottom of the chart drawable.
+    **/
+    action SetAnnotationLocationToBottom()
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = true
+    end
+
+    action IsAnnotationLocationBottom() returns boolean
+        return displayOnBottom
+    end
+
+    /**
+        Set the location of the annotation to the left of the chart drawable.
+    **/
+    action SetAnnotationLocationToLeft()
+        displayOnLeft = true
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = false
+    end
+
+    action IsAnnotationLocationLeft() returns boolean
+        return displayOnLeft
+    end
+
+    /**
+        Set the location of the annotation to the right of the chart drawable.
+    **/
+    action SetAnnotationLocationToRight()
+        displayOnLeft = false
+        displayOnRight = true
+        displayOnTop = false
+        displayOnBottom = false
+    end
+    
+    action IsAnnotationLocationRight() returns boolean
+        return displayOnRight
     end
 end

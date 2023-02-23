@@ -12,6 +12,14 @@ class TextFieldBackground is Control
         return GetParentTextField():GetBorderColor()
     end
 
+    action GetFocusBorderColor returns ColorGroup
+        if HasColorPropertyOverride("focusBorderColor")
+            return parent:Control:GetFocusBorderColor()
+        end
+
+        return GetParentTextField():GetFocusBorderColor()
+    end
+
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()

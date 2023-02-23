@@ -141,4 +141,71 @@ shared class QuorumLexerConstants
     public constant integer NEWLINE = 67
     public constant integer WS = 68
     public constant integer COMMENTS = 69
+
+    action IsWhiteSpace(Token token) returns boolean
+        integer category = token:category
+        if  category = WS
+            return true
+        end
+
+        return false
+    end
+
+    action IsKeyword(Token token) returns boolean
+        integer category = token:category
+        if  category = OUTPUT
+            or category = ON
+            or category = CREATE
+            or category = ELSE_IF
+            or category = ME
+            or category = UNTIL
+            or category = PUBLIC
+            or category = PRIVATE
+            or category = ALERT
+            or category = DETECT
+            or category = ALWAYS
+            or category = CHECK
+            or category = PARENT
+            or category = BLUEPRINT
+            or category = DETECT
+
+            or category = NATIVE
+            or category = INHERITS
+            or category = CAST
+            or category = INPUT
+            or category = SAY
+
+            or category = NOW
+            or category = WHILE
+            or category = PACKAGE_NAME
+            or category = TIMES
+            or category = REPEAT
+
+            or category = ELSE
+            or category = RETURNS
+            or category = RETURN
+            or category = AND
+            or category = OR
+
+            or category = NULL
+            or category = STATIC
+            or category = ACTION
+            or category = INTEGER_KEYWORD
+            or category = NUMBER_KEYWORD
+
+            or category = TEXT
+            or category = BOOLEAN_KEYWORD
+            or category = USE
+            or category = NOT
+            or category = NOT_EQUALS
+
+            or category = MODULO
+            or category = IF
+            or category = END
+            or category = CLASS
+            return true
+        end
+
+        return false
+    end
 end

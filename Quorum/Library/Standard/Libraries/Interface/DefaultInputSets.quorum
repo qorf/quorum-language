@@ -1059,6 +1059,7 @@ shared class DefaultInputSets
         TextFieldCaretStartMoveBehavior textFieldShiftLeftBehavior
         textFieldShiftLeftBehavior:SetSelecting(true)
         textFieldShiftLeftBehavior:SetDirection(textFieldShiftLeftBehavior:LEFT)
+        
         textFieldTable:Add(AddShiftModifier(GetLeftArrowKey()), textFieldShiftLeftBehavior)
 
         TextFieldCaretToStartBehavior textFieldUpBehavior
@@ -1176,10 +1177,6 @@ shared class DefaultInputSets
 
         TextFieldSelectAllBehavior textFieldSelectAllBehavior
         textFieldTable:Add(tripleClick, textFieldSelectAllBehavior)
-
-        TextFieldSavePreviousCaretPositionBehavior textFieldSavePreviousCaretPositionBehavior
-        textFieldTable:Add(AddShiftModifier(GetLeftArrowKey()), textFieldSavePreviousCaretPositionBehavior)
-        textFieldTable:Add(AddShiftModifier(GetRightArrowKey()), textFieldSavePreviousCaretPositionBehavior)
 
         InputSet shiftMouseClick
         shiftMouseClick:SetMouseInput(mouse:CLICKED_MOUSE)
