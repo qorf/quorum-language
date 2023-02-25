@@ -14,6 +14,7 @@ import plugins.quorum.Libraries.Game.AndroidApplication;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
 /**
  *
@@ -43,7 +44,7 @@ public class PixelMap {
     // here because that class is being consolidated with Pixmap for our needs.
     private boolean disposed = false;
     
-    long basePointer;
+    long basePointer = -1;
     int format;
     ByteBuffer pixelPointer;
     long[] nativeData = new long[4];
@@ -160,7 +161,10 @@ public class PixelMap {
         if (disposed == true)
             throw new GameRuntimeError("I can't dispose this PixelMap because it was already disposed!");
         disposed = true;
-        Free(basePointer);
+
+        if (basePointer != -1)
+            Free(basePointer);
+
         pixelPointer = null;
     }    
     
@@ -370,7 +374,7 @@ public class PixelMap {
         return env->NewStringUTF(gdx2d_get_failure_reason());
     */
     
-    public void LoadFromFontBitmap(ByteBuffer pixels, int width, int height, int format)
+    public void LoadFromByteBuffer(ByteBuffer pixels, int width, int height, int format)
     {      
         pixelPointer = pixels;
         this.width = width;
@@ -381,6 +385,25 @@ public class PixelMap {
         quorum.Libraries.Game.Graphics.Format_ newFormat = new quorum.Libraries.Game.Graphics.Format();
         newFormat.SetValue(format);
         thisMap.format = newFormat;
+    }
+
+    public void Screenshot(int x, int y, int width, int height)
+    {
+        // We screenshot using RGBA format, so we need to multiply by 4 to store all 4 components.
+        ByteBuffer buffer = BufferUtils.newByteBuffer(width * height * 4);
+
+        GameStateManager.nativeGraphics.glReadPixels(x, y, width, height, GraphicsManager.GL_RGBA, GraphicsManager.GL_UNSIGNED_BYTE, buffer);
+
+        // The result of read pixels is inverted, so we have to flip it vertically.
+        ByteBuffer result = BufferUtils.newByteBuffer(width * height * 4);
+
+        // We'll be iterating by row, so we have to iterate over all 4 bytes of each pixel in the row
+        int expandedWidth = width * 4;
+        for (int j = 0; j < height; j++)
+            for (int i = 0; i < expandedWidth; i++)
+                result.put(j * expandedWidth + i, buffer.get((height - 1 - j) * expandedWidth + i));
+
+        LoadFromByteBuffer(result, width, height, FORMAT_RGBA8888);
     }
     
 }
