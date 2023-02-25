@@ -1,0 +1,139 @@
+package Libraries.Interface
+
+use Libraries.Game.Game
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.DesktopConfiguration
+use Libraries.Game.WebConfiguration
+use Libraries.Game.Layer2D
+use Libraries.Game.Layer3D
+use Libraries.Interface.Controls.Button
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.LightModeOptions
+use Libraries.Interface.Options.DarkModeOptions
+use Libraries.Interface.Options.InterfaceOptions
+
+/*
+    Form is a helper class that allows us to create forms for a user interface without 
+    the full complexity of the game class. 
+
+    Attribute: Example
+
+    use Libraries.Interface.Form
+    use Libraries.Interface.Page
+    use Libraries.Interface.Controls.Button
+    
+    //this application contains a button that does nothing
+    Form app
+    app:AddButton("Button")
+    app:Display()
+*/
+class Form is Game, PageInterface
+    
+    HashTable<text, Page> pages
+    Page currentPage = undefined
+    Page mainPage = undefined
+    constant text DEFAULT_PAGE_NAME = "Main"
+    InterfaceOptions options = undefined
+
+    on create
+        DesktopConfiguration desktop = GetDesktopConfiguration()
+        desktop:targetFramesPerSecond = 10
+        WebConfiguration web = GetWebConfiguration()
+        web:framesPerSecondLimit = 10
+
+        
+        Page page
+        page:SetName(DEFAULT_PAGE_NAME)
+        pages:Add(DEFAULT_PAGE_NAME, page)
+        currentPage = page
+        mainPage = page
+        LightModeOptions options
+        me:options = options
+    end
+
+    action SetToLightMode
+        GameStateManager manager
+        LightModeOptions light
+        me:options = light
+        manager:SetInterfaceOptions(options)
+    end
+
+    action SetToDarkMode
+        GameStateManager manager
+        DarkModeOptions dark
+        me:options = dark
+        manager:SetInterfaceOptions(options)
+    end
+
+    action AddPage(text name) returns Page
+        Page page
+        page:SetName(name)
+        currentPage = page
+        pages:Add(name, page)
+        return page
+    end
+
+    action RemovePage(text name) returns Page
+        return pages:RemoveKey(name)
+    end
+
+    action SetPage(text name)
+        currentPage:Dispose()
+        Remove(currentPage)
+
+        Page page = pages:GetValue(name)
+        page:Load()
+        Add(page)
+    end
+
+    action AddButton(text name) returns Button
+        return currentPage:AddButton(name)
+    end
+
+    action RemoveButton(text name) returns Button
+        return currentPage:RemoveButton(name)
+    end
+
+    action CreateGame
+        ManualLayout layout
+        SetLayout(layout)
+
+        GameStateManager manager
+        
+
+        Layer2D layer = GetCurrentLayer2D()
+        layer:EnablePhysics(false)
+
+        Layer3D layer3D = GetCurrentLayer3D()
+        layer3D:EnablePhysics(false)
+
+        currentPage = mainPage
+        mainPage:Load()
+        Add(mainPage)
+        manager:SetInterfaceOptions(options)
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display
+        SetScreenSize(375,500)
+        StartGame()
+    end
+
+    /*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display(integer width, integer height)
+        SetScreenSize(width,height)
+        StartGame()
+    end
+
+    action GetMainPage returns Page
+        return mainPage
+    end
+end
