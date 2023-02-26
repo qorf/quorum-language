@@ -112,7 +112,24 @@ public class FreeTypeStrategy
         LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
     */
     private native ByteBuffer LoadBitmap(long[] data, char glyph, long handle);
-    
+
+    /* The data parameter will contain the following information after a call to LoadBitmap:
+        [0] : The distance from the cursor to the left side of the bitmap.
+        [1] : The distance from the cursor to the top side of the bitmap.
+        [2] : The number of rows in a bitmap.
+        [3] : The number of pixels in each row of the bitmap.
+        [4] : The distance to advance the cursor's X coordinate.
+        [5] : The distance to advance the cursor's Y coordinate.
+
+        LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
+
+        This function gets a glyph in the format of signed distance fields. The "pixels"
+        in the returned buffer indicate the distance to the edge of the glyph, and are
+        positive if the pixel is outside the bounds of the glyph and negative if the
+        pixel is inside the glyph.
+    */
+    private native ByteBuffer LoadSDFBitmap(long[] data, char glyph, long handle);
+
     public quorum.Libraries.Game.Graphics.Glyph_ GetGlyphNative(String character)
     {        
         char target = character.charAt(0);
@@ -158,6 +175,139 @@ public class FreeTypeStrategy
             glyph.texture = null;
         }
         
+        glyph.horizontalAdvance = (int)(bitmapData[4] >> 6);
+        glyph.verticalAdvance = (int)(bitmapData[5] >> 6);
+        glyph.lengthToGlyph = (int)bitmapData[0];
+        glyph.heightFromBaseLine = (int)(bitmapData[1]);
+
+        return glyph;
+    }
+
+    public quorum.Libraries.Game.Graphics.Glyph_ GetBorderedGlyphNative(String character)
+    {
+        char target = character.charAt(0);
+        quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
+
+        ByteBuffer rawBitmap = LoadSDFBitmap(bitmapData, target, faceHandle);
+
+        // Since the space is just open space, there's no need to load it in a drawable.
+        if (target != ' ')
+        {
+            int size = rawBitmap.capacity();
+            ByteBuffer bitmap = BufferUtils.newByteBuffer(size * 4);
+
+            String result = "";
+            System.out.println("1.");
+            for (int i = 0; i < (int)bitmapData[2]; i++)
+            {
+                String line = "";
+                for (int j = 0; j < (int)bitmapData[3]; j++)
+                {
+                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
+                    String stringify;
+                    if (datapoint <= -100)
+                        stringify = "" + datapoint;
+                    else if (datapoint <= -10)
+                        stringify = " " + datapoint;
+                    else if (datapoint < 0)
+                        stringify = "  " + datapoint;
+                    else if (datapoint < 10)
+                        stringify = "   " + datapoint;
+                    else if (datapoint < 100)
+                        stringify = "  " + datapoint;
+                    else
+                        stringify = " " + datapoint;
+
+                    line = line + stringify + " ";
+                }
+
+                result = result + line + "\n";
+            }
+            System.out.println(result);
+
+//            System.out.println("\n2.");
+//            for (int i = 0; i < (int)bitmapData[3]; i++)
+//            {
+//                String line = "";
+//                for (int j = 0; j < (int)bitmapData[2]; j++)
+//                {
+//                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
+//                    String stringify;
+//                    if (datapoint <= -100)
+//                        stringify = "" + datapoint;
+//                    else if (datapoint <= -10)
+//                        stringify = " " + datapoint;
+//                    else if (datapoint < 0)
+//                        stringify = "  " + datapoint;
+//                    else if (datapoint < 10)
+//                        stringify = "   " + datapoint;
+//                    else if (datapoint < 100)
+//                        stringify = "  " + datapoint;
+//                    else
+//                        stringify = " " + datapoint;
+//
+//                    line = line + stringify + " ";
+//                }
+//
+//                result = result + line + "\n";
+//            }
+//            System.out.println(result);
+
+            result = "";
+            System.out.println("3.");
+            for (int i = 0; i < (int)bitmapData[2]; i++)
+            {
+                String line = "";
+                for (int j = 0; j < (int)bitmapData[3]; j++)
+                {
+                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
+                    String stringify;
+                    if (datapoint < 0)
+                        stringify = "-";
+                    else if (datapoint > 0)
+                        stringify = "+";
+                    else
+                        stringify = "0";
+
+                    line = line + stringify + " ";
+                }
+
+                result = result + line + "\n";
+            }
+            System.out.println(result);
+
+            for (int i = 0; i < size; i++)
+            {
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put(rawBitmap.get(i));
+            }
+
+            bitmap.flip();
+
+            quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
+            plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
+
+            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
+
+            quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
+            texData.InitializeFileTextureData(null, pixmap, null, false);
+            texData.SetDisposalState(false);
+
+            quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
+            texture.LoadFromTextureData(texData);
+
+            quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
+            region.LoadTextureRegion(texture);
+
+            glyph.texture = region;
+        }
+        else
+        {
+            glyph.texture = null;
+        }
+
         glyph.horizontalAdvance = (int)(bitmapData[4] >> 6);
         glyph.verticalAdvance = (int)(bitmapData[5] >> 6);
         glyph.lengthToGlyph = (int)bitmapData[0];

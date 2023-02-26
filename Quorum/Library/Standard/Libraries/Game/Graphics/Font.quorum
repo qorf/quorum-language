@@ -467,6 +467,40 @@ class Font
     end
 
     /*
+    This action will return a Glyph object for this font's representation of the
+    given character. This glyph will include a special texture that can be used to
+    draw borders around the character when rendered with a special Shader.
+
+    Attribute: Parameter character The character to create a glyph of.
+
+    Attribute: Returns Returns a glyph representation of the character.
+    
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Glyph
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                Glyph a = font:GetBorderedGlyph("a")
+            end
+        end
+    */
+    action GetBorderedGlyph(text character) returns Glyph
+        FontManager manager = gameStateManager:GetFontManager()
+        Glyph glyph = manager:GetBorderedGlyph(me, character)
+        glyph:color = color
+        return glyph
+    end
+
+    /*
     This action will check if the font has been loaded yet. If the font has
     been loaded, this will return true. Otherwise, it will return false.
 

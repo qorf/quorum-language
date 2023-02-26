@@ -342,6 +342,35 @@ class FontStrategy
     blueprint action GetGlyph(text character) returns Glyph
 
     /*
+    This action will return a Glyph object for this font's representation of the
+    given character. This glyph will contain a special texture that can be used to
+    draw borders around the character with use of a special shader.
+
+    Attribute: Parameter character The character to create a glyph of.
+
+    Attribute: Returns Returns a glyph representation of the character.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Graphics.Glyph
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                Glyph a = font:GetBorderedGlyph("a")
+            end
+        end
+    */
+    blueprint action GetBorderedGlyph(text character) returns Glyph
+
+    /*
     This action will return the kerning value of two consecutive characters.
 
     Attribute: Parameter currentCharacter The first character in the pair.

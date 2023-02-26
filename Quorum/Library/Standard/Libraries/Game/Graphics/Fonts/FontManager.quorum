@@ -65,6 +65,11 @@ class FontManager
         return strategy:GetGlyph(character)
     end
 
+    action GetBorderedGlyph(Font font, text character) returns Glyph
+        FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
+        return strategy:GetBorderedGlyph(character)
+    end
+
     action GetLineHeight(Font font) returns integer
         if font:IsLoaded()
             return GetFontStrategy(font:GetIdentifier()):GetLineHeight()

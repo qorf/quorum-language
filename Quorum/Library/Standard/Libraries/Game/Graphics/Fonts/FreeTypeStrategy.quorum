@@ -548,7 +548,13 @@ class FreeTypeStrategy is FontStrategy
         end
     end
 
+    action GetBorderedGlyph(text character) returns Glyph
+        return GetBorderedGlyphNative(character)
+    end
+
     private system action GetGlyphNative(text character) returns Glyph
+
+    private system action GetBorderedGlyphNative(text character) returns Glyph
 
     private action IsImageSheetAvailable returns boolean
         if loadedImageSheet = false
