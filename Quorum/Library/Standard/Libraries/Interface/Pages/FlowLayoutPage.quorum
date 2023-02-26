@@ -2,24 +2,17 @@ package Libraries.Interface.Pages
 
 use Libraries.Interface.Page
 use Libraries.Interface.Controls.Button
+use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 
 class FlowLayoutPage is Page
     number itemsPerMaxHeight = 5
-    Array<Control> controls
+    
     on create
         FlowLayout layout
         SetLayout(layout)
-    end
-
-    action Load
-        Iterator<Control> iterator = controls:GetIterator()
-        repeat while iterator:HasNext()
-            Control control = iterator:Next()
-            Add(control)
-        end
     end
 
     action AddButton(text name) returns Button
@@ -30,22 +23,24 @@ class FlowLayoutPage is Page
         button:SetPercentageWidth(1.0)
         button:SetPercentageHeight(1.0 / itemsPerMaxHeight)
 
-        controls:Add(button)
+        Add(button)
         return button
     end
 
     action RemoveButton(text name) returns Button
-        Control button = FindControl(name)
+        Item2D button = FindControl(name)
         if button not= undefined and button is Button
+            Remove(button)
             return cast(Button, button)
         end
         alert("The item " + name + " is not a button. Are you looking for the right item?")
     end
 
-    private action FindControl(text name) returns Control
+    private action FindControl(text name) returns Item2D
+        Array<Item2D> children = GetChildren()
         i = 0
-        repeat while i < controls:GetSize()
-            Control control = controls:Get(i)
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name
                 return control
             end

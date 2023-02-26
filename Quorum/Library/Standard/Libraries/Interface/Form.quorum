@@ -84,11 +84,9 @@ class Form is Game
     end
 
     action SetPage(text name)
-        currentPage:Dispose()
         Remove(currentPage)
 
         Page page = pages:GetValue(name)
-        page:Load()
         Add(page)
     end
 
@@ -106,7 +104,6 @@ class Form is Game
         layer3D:EnablePhysics(false)
 
         currentPage = mainPage
-        mainPage:Load()
         Add(mainPage)
         manager:SetInterfaceOptions(options)
     end

@@ -13,14 +13,6 @@ class ManualLayoutPage is Page
         SetLayout(layout)
     end
 
-    action Load
-        Iterator<Control> iterator = controls:GetValueIterator()
-        repeat while iterator:HasNext()
-            Control button = iterator:Next()
-            Add(button)
-        end
-    end
-
     action AddButton(text name) returns Button
         Button button
         button:SetName(name)
@@ -30,12 +22,14 @@ class ManualLayoutPage is Page
         button:SetPercentageHeight(0.2)
 
         controls:Add(name, button)
+        Add(button)
         return button
     end
 
     action RemoveButton(text name) returns Button
         Control button = controls:RemoveKey(name)
-        if button is Button
+        if button not= undefined and button is Button
+            Remove(button)
             return cast(Button, button)
         end
         alert("The item " + name + " is not a button. Are you looking for the right item?")
@@ -52,6 +46,7 @@ class ManualLayoutPage is Page
         button:SetPercentageHeight(0.2)
         
         controls:Add(name, button)
+        Add(button)
         return button
     end
 
@@ -66,6 +61,7 @@ class ManualLayoutPage is Page
         button:SetPercentageHeight(height)
 
         controls:Add(name, button)
+        Add(button)
         return button
     end
 end
