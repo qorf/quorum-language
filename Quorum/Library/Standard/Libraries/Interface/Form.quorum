@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Button
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Pages.FlowLayoutPage
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Options.DarkModeOptions
 use Libraries.Interface.Options.InterfaceOptions
@@ -29,8 +30,7 @@ use Libraries.Interface.Options.InterfaceOptions
     app:AddButton("Button")
     app:Display()
 */
-class Form is Game, PageInterface
-    
+class Form is Game
     HashTable<text, Page> pages
     Page currentPage = undefined
     Page mainPage = undefined
@@ -42,9 +42,8 @@ class Form is Game, PageInterface
         desktop:targetFramesPerSecond = 10
         WebConfiguration web = GetWebConfiguration()
         web:framesPerSecondLimit = 10
-
         
-        Page page
+        FlowLayoutPage page
         page:SetName(DEFAULT_PAGE_NAME)
         pages:Add(DEFAULT_PAGE_NAME, page)
         currentPage = page
@@ -68,11 +67,16 @@ class Form is Game, PageInterface
     end
 
     action AddPage(text name) returns Page
-        Page page
+        FlowLayoutPage page
         page:SetName(name)
         currentPage = page
         pages:Add(name, page)
         return page
+    end
+
+    action AddPage(Page page)
+        currentPage = page
+        pages:Add(page:GetName(), page)
     end
 
     action RemovePage(text name) returns Page
@@ -86,14 +90,6 @@ class Form is Game, PageInterface
         Page page = pages:GetValue(name)
         page:Load()
         Add(page)
-    end
-
-    action AddButton(text name) returns Button
-        return currentPage:AddButton(name)
-    end
-
-    action RemoveButton(text name) returns Button
-        return currentPage:RemoveButton(name)
     end
 
     action CreateGame
@@ -120,7 +116,7 @@ class Form is Game, PageInterface
         a complex game setup.
     */
     action Display
-        SetScreenSize(375,500)
+        SetScreenSize(750,1000)
         StartGame()
     end
 

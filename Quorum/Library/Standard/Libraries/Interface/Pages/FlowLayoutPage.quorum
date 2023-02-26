@@ -1,0 +1,67 @@
+package Libraries.Interface.Pages
+
+use Libraries.Interface.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+
+class FlowLayoutPage is Page
+    number itemsPerMaxHeight = 5
+    Array<Control> controls
+    on create
+        FlowLayout layout
+        SetLayout(layout)
+    end
+
+    action Load
+        Iterator<Control> iterator = controls:GetIterator()
+        repeat while iterator:HasNext()
+            Control control = iterator:Next()
+            Add(control)
+        end
+    end
+
+    action AddButton(text name) returns Button
+        Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetPercentageWidth(1.0)
+        button:SetPercentageHeight(1.0 / itemsPerMaxHeight)
+
+        controls:Add(button)
+        return button
+    end
+
+    action RemoveButton(text name) returns Button
+        Control button = FindControl(name)
+        if button not= undefined and button is Button
+            return cast(Button, button)
+        end
+        alert("The item " + name + " is not a button. Are you looking for the right item?")
+    end
+
+    private action FindControl(text name) returns Control
+        i = 0
+        repeat while i < controls:GetSize()
+            Control control = controls:Get(i)
+            if control not= undefined and control:GetName() = name
+                return control
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+
+    action GetItemsPerMaxHeight returns number
+        return itemsPerMaxHeight
+    end
+
+    action SetItemsPerMaxHeight(number items)
+        if items < 1
+            items = 1
+        end
+        me:itemsPerMaxHeight = items
+    end
+end

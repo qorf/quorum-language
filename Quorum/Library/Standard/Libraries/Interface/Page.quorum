@@ -1,34 +1,17 @@
 package Libraries.Interface
 use Libraries.Interface.Controls.Control
-use Libraries.Containers.HashTable
+
 use Libraries.Interface.Controls.Button
-use Libraries.Containers.Iterator
-use Libraries.Game.GameStateManager
 
-class Page is Control, PageInterface
-    HashTable<text, Button> buttons
-    action Load
-        Iterator<Button> buttonIterator = buttons:GetValueIterator()
-        repeat while buttonIterator:HasNext()
-            Button button = buttonIterator:Next()
-            Add(button)
-        end
+class Page is Control
+
+    on create
+        SetPercentageWidth(1.0)
+        SetPercentageHeight(1.0)
     end
 
-    action Dispose
-        EmptyAll()
-    end
+    blueprint action Load
 
-    action AddButton(text name) returns Button
-        Button button
-        button:SetName(name)
-
-        buttons:Add(name, button)
-        return button
-    end
-
-    action RemoveButton(text name) returns Button
-        Button button = buttons:RemoveKey(name)
-        return button
-    end
+    blueprint action AddButton(text name) returns Button
+    blueprint action RemoveButton(text name) returns Button
 end
