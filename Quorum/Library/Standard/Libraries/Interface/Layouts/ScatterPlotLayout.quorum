@@ -132,44 +132,7 @@ class ScatterPlotLayout is TwoVariableChartLayout
                 repeat while j < chart:GetNumberOfChartAreas()
                     ChartAreaPanel subArea = chart:GetSubChartAreas():Get(j)
                     MovableRegressionSeries series = subArea:GetMovableRegressionSeries()
-                    Array<ResidualSquare> movableSquares = series:GetResidualSquares()
-                    RegressionLine line = series:GetRegressionLine()
-
-                    i = 0
-                    repeat while i < movableSquares:GetSize()
-                        ResidualSquare square = movableSquares:Get(i)
-                        ChartPoint point = square:GetPoint()
-    
-                        boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
-        
-                        number residual = square:GetResidual()
-                        number percentHeight = residual / (yMax - yMin)
-                        if percentHeight < 0
-                            percentHeight = -percentHeight
-                        end
-        
-                        number realHeight = percentHeight * height
-                        square:SetSize(realHeight, realHeight)
-        
-                        number pointX = point:GetX() + point:GetWidth() / 2.0
-                        number pointY = point:GetY() + point:GetHeight() / 2.0
-        
-                        if positiveSlope
-                            if residual < 0
-                                square:SetPosition(pointX, pointY)
-                            else
-                                square:SetPosition(pointX - realHeight, pointY - realHeight)
-                            end
-                        else
-                            if residual < 0
-                                square:SetPosition(pointX - realHeight, pointY)
-                            else
-                                square:SetPosition(pointX, pointY - realHeight)
-                            end
-                        end
-    
-                        i = i + 1
-                    end
+                    series:RefreshResidualSquares()
 
                     j = j + 1
                 end
@@ -177,42 +140,7 @@ class ScatterPlotLayout is TwoVariableChartLayout
                 MovableRegressionSeries series = chart:GetChartArea():GetMovableRegressionSeries()
                 Array<ResidualSquare> movableSquares = series:GetResidualSquares()
                 RegressionLine line = series:GetRegressionLine()
-
-                i = 0
-                repeat while i < movableSquares:GetSize()
-                    ResidualSquare square = movableSquares:Get(i)
-                    ChartPoint point = square:GetPoint()
-
-                    boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
-    
-                    number residual = square:GetResidual()
-                    number percentHeight = residual / (yMax - yMin)
-                    if percentHeight < 0
-                        percentHeight = -percentHeight
-                    end
-    
-                    number realHeight = percentHeight * height
-                    square:SetSize(realHeight, realHeight)
-    
-                    number pointX = point:GetX() + point:GetWidth() / 2.0
-                    number pointY = point:GetY() + point:GetHeight() / 2.0
-    
-                    if positiveSlope
-                        if residual < 0
-                            square:SetPosition(pointX, pointY)
-                        else
-                            square:SetPosition(pointX - realHeight, pointY - realHeight)
-                        end
-                    else
-                        if residual < 0
-                            square:SetPosition(pointX - realHeight, pointY)
-                        else
-                            square:SetPosition(pointX, pointY - realHeight)
-                        end
-                    end
-
-                    i = i + 1
-                end
+                series:RefreshResidualSquares()
             end
         end
 

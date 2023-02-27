@@ -653,7 +653,7 @@ class RegressionLine is ChartDrawable, LinePath
         constantValue = GetMidpointY() - slope * GetMidpointX()
 
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     private action UpdateMarkerDescriptions
@@ -733,6 +733,9 @@ class RegressionLine is ChartDrawable, LinePath
         Remove(startMarker)
         Add(extraMarker)
         
+        extraMarker:SetContainer(GetContainer())
+        extraMarker:LoadGraphics(extraMarker:GetDefaultLayoutProperties())
+
         RegressionLinePointMarker result = extraMarker
 
         pointMarkers:Set(startMarker:GetPointIndex(), extraMarker)
@@ -746,7 +749,7 @@ class RegressionLine is ChartDrawable, LinePath
         if chart:GetSelection():GetChartItem():Equals(startMarker)
             chart:Select(result)
         end
-        chart:RequestLayout()
+        UpdateMarkerPositions()
 
         return result
     end
@@ -773,7 +776,7 @@ class RegressionLine is ChartDrawable, LinePath
         // b = y - mx
         constantValue = point:GetY() - slope * point:GetX()
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     /*
@@ -806,7 +809,7 @@ class RegressionLine is ChartDrawable, LinePath
         constantValue = point1:GetY() - slope * point1:GetX()
 
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     private action UpdatePointDescriptions
@@ -853,5 +856,12 @@ class RegressionLine is ChartDrawable, LinePath
         constantValue = intercept
 
         RefreshPoints()
+    end
+
+    private action RefreshResidualSquares
+        if series is MovableRegressionSeries
+            MovableRegressionSeries movable = cast(MovableRegressionSeries, series)
+            movable:RefreshResidualSquares()
+        end
     end
 end
