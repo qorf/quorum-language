@@ -529,6 +529,7 @@ class Histogram is SharedBarChartParent
     
     action SetFrequencyAsPercent(boolean frequencyIsPercent)
         me:frequencyIsPercent = frequencyIsPercent
+        MakeBins()
     end
 
     action GetColumns() returns Array<DataFrameColumn>
