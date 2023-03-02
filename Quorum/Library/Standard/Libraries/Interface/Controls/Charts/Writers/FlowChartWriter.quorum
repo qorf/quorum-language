@@ -176,7 +176,8 @@ class FlowchartWriter is ChartWriter
                     nodeFocus = nodeFocus + "gainFocus('" + nodeBox:GetID() + "'); "
                     nodeBlur = nodeBlur + "loseFocus('" + nodeBox:GetID() + "'); "
                 end
-                
+                canvas:Add(nodeBox)                
+
                 Label nodeLabel
                 nodeLabel:SetText(nodeName)
                 if currentNode is FlowchartHiddenNode
@@ -187,10 +188,9 @@ class FlowchartWriter is ChartWriter
                 nodeLabel:SetTextAnchor("middle")
                 nodeLabel:SetPosition(currentNode:GetGlobalX()+(currentNode:GetWidth()/2),cast(number,nodeBox:GetPositionY()) + (currentNode:GetHeight()/2))
                 nodeLabel:SetFontSize(chart:GetFontSize() + "px")  
-                nodeLabel:SetTextLength(cast(number,nodeBox:GetWidth()))
                 nodeLabel:SetFontFamily("Arial")  
                 nodeLabel:SetTabIndex(-1)
-    
+                
                 if HasAccessibility()
                     if nodeFocus not= ""
                         flowNodeSVG:SetOnFocus(nodeFocus)
@@ -199,6 +199,7 @@ class FlowchartWriter is ChartWriter
                         flowNodeSVG:SetOnBlur(nodeBlur)
                     end
                 end
+                canvas:Add(nodeLabel)
 
                 Array<FlowchartArrow> arrows = currentNode:GetOutArrows()
 
@@ -290,12 +291,8 @@ class FlowchartWriter is ChartWriter
                                 canvas:Add(segment)
                                 point = point2
                             end
-
-                            Vector2 priorPoint
-                            priorPoint:Set(linePath:GetPoint(linePath:GetPointCount() - 2 ))
-                            priorPoint:Subtract(linePath:GetPoint(linePath:GetPointCount() - 1))
+                        end
                             number thickness = chart:GetArrowHeadThickness() / 1.5
-
                             Polygon arrow
                             Vector2 point1
                             Vector2 point2
@@ -325,9 +322,9 @@ class FlowchartWriter is ChartWriter
                                 point3:Add(x2,y2)
                             end
 
-                           arrow:AddPoint(point1:GetX(),point1:GetY())
-                           arrow:AddPoint(point2:GetX(),point2:GetY())
-                           arrow:AddPoint(point3:GetX(),point3:GetY())
+                            arrow:AddPoint(point1:GetX(),point1:GetY())
+                            arrow:AddPoint(point2:GetX(),point2:GetY())
+                            arrow:AddPoint(point3:GetX(),point3:GetY())
                             arrow:SetFill(cast(Color, flowchartArrow:GetBackgroundColor()))
                             arrow:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
                             arrow:SetID(flowNodeSVG:GetID() + "_arrow" + k)
@@ -338,7 +335,6 @@ class FlowchartWriter is ChartWriter
                                 arrowBlur = arrowBlur + "loseFocus('" + arrow:GetID() + "'); "
                                 arrow:SetAriaHidden("true")
                             end
-                            canvas:Add(arrow)
                             if HasAccessibility()
                                 if arrowFocus not= ""
                                     flowArrowSVG:SetOnFocus(arrowFocus)
@@ -347,12 +343,11 @@ class FlowchartWriter is ChartWriter
                                     flowArrowSVG:SetOnBlur(arrowBlur)
                                 end
                             end
+                            canvas:Add(arrow)
                         end
-                    end
                     k = k + 1
                 end
-                    canvas:Add(nodeBox)
-                    canvas:Add(nodeLabel)
+
                     // Create the navigation Tree for the Current Node and its' Arrows
                     if currentNode:GetInArrows():GetSize() not= 0
                         Array<FlowchartArrow> parentArrows = currentNode:GetInArrows()
