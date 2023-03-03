@@ -14,34 +14,411 @@ use Libraries.Web.Page.Script
 use Libraries.Web.Page.UnorderedList
 use Libraries.Web.Page.ListItem
 use Libraries.Interface.Item
-use Libraries.Interface.Controls.Icon
-use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.Data.Formats.ScalableVectorGraphics.Group
 use Libraries.Web.Page.Division
-use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
-use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
 use Libraries.Interface.Controls.Charts.Flowcharts.GridFlowchart
 use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartTextNode
 use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartArrow
+use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartNode
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item2D
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.LinePath
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
+use Libraries.Game.Graphics.Texture
+use Libraries.Data.Formats.ScalableVectorGraphics.Image
 
 class FlowchartWriter is ChartWriter
 
-    action WriteOutChart(GridFlowchart chart, integer svgWidth, integer svgHeight) returns text
-        return WriteOutChart(chart, svgWidth, svgHeight)
+    action WriteOutChart(Flowchart chart, integer svgWidth, integer svgHeight) returns text
+        return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
     end
 
-    action WriteOutChart(GridFlowchart chart, File file, integer svgWidth, integer svgHeight)
+    action WriteOutChart(Flowchart chart, File file, integer svgWidth, integer svgHeight)
         WriteOutChart(chart, file, svgWidth, svgHeight)
+    end
+
+    action WriteOutChart(Flowchart chart, File file)
+        WriteOutChart(cast(Chart,chart), file)
     end
 
     /*
         This action adds a white background to the canvas
     */
-    action AddChartArea(ScalableVectorGraphics canvas, GridFlowchart chart)
-        //parent:ChartWriter:AddChartArea(canvas,chart)
+    action AddChartArea(ScalableVectorGraphics canvas,Flowchart chart)
+        parent:ChartWriter:AddChartArea(canvas,chart)
         
-        GridFlowchart flowChart
-        flowChart = cast(GridFlowchart, chart)
+        Flowchart flowChart = cast(Flowchart, chart)
+
+        if HasAccessibility()
+            GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription() + " Use the arrow keys to navigate through the Flowchart" )
+        end
     end
+
+    private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
+        Flowchart flowchart = cast(Flowchart, chart)
+        AddNodesAndArrows(canvas, flowchart)
+    end
+
+    private action AddChildNodesAndArrows(ScalableVectorGraphics canvas, Flowchart chart, integer nodeValue)
+        
+        if nodeValue < chart:GetChildren():GetSize()
+            
+        end
+
+    end
+
+    private action AddNodesAndArrows(ScalableVectorGraphics canvas, Flowchart chart)
+        Color transparent
+        transparent:SetColor(0,0,0,0)
+        canvas:SetFill(transparent) 
+
+        Drawable drawable = cast(Drawable, chart:GetIcon())
+        if drawable is Drawable
+            Image image
+            Texture texture = drawable:GetTexture()
+            image:SetHref(texture:GetSource())
+            canvas:Add(image)
+        end
+
+        Group chartContent
+        chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
+        chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+        chartContent:SetTabIndex(0)
+        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContent:SetRole("application")
+        chartContent:SetIsOneLine(true)
+        canvas:Add(chartContent)
+
+        Rectangle chartContentBoundingBox
+        chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+        chartContentBoundingBox:SetStyleClass("quorum-chart-region quorum-chart-area")
+        chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
+        chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
+        chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetStroke(transparent)
+        chartContentBoundingBox:SetTabIndex(-1)
+        if HasAccessibility()
+            chartContentBoundingBox:SetAriaHidden("true")
+            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the FlowChart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
+            chartContent:SetAriaHidden("false")
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
+        end
+        chartContent:Add(chartContentBoundingBox)
+        
+        Array<Item2D> nodes = chart:GetChildren()
+        Array<Group> nodeGraphics
+        Array<Group> arrowGraphics        
+
+        integer i = 0
+        repeat while i < nodes:GetSize()
+            FlowchartNode currentNode = undefined
+            
+            if nodes:Get(i) is FlowchartNode
+                currentNode = cast(FlowchartNode, nodes:Get(i))
+            end
+            if currentNode not= undefined
+
+                Math math
+                // TODO Add more special characters
+                text nodeName = currentNode:GetName()
+                if (nodeName:Contains("&"))
+                    nodeName = nodeName:Replace("&", "&#38;")
+                end
+
+                text nodeFocus = ""
+                text nodeBlur = ""
+
+                Group flowNodeSVG
+                flowNodeSVG:SetID(canvas:GetID() + "_" + currentNode:GetHashCode())
+                flowNodeSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
+                flowNodeSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                flowNodeSVG:SetAriaDescribedBy(nodeName)
+                flowNodeSVG:SetTabIndex(-1)
+                if HasAccessibility()
+                    flowNodeSVG:SetRole("application")
+                    flowNodeSVG:SetAriaLabel(nodeName + " " +currentNode:GetDescription())
+                    flowNodeSVG:SetAriaHidden("false")
+                end
+                nodeGraphics:Add(flowNodeSVG)
+
+                if currentNode:GetInArrows():GetSize() = 0
+                    chartContent:Add(flowNodeSVG)
+                end
+
+                Rectangle nodeBox
+                nodeBox:SetWidth(currentNode:GetWidth())
+                nodeBox:SetHeight(currentNode:GetHeight())
+                if chart is GridFlowchart
+                    nodeBox:SetPosition(currentNode:GetGlobalX(),(math:AbsoluteValue((TranslatePositionY(currentNode)) - (currentNode:GetHeight()/1.5))))
+                else
+                    if chart:GetWidth() > chart:GetHeight()
+                        nodeBox:SetPosition(currentNode:GetGlobalX(),chart:GetHeight() - currentNode:GetGlobalY() - currentNode:GetHeight())
+                    else
+                        nodeBox:SetPosition(currentNode:GetGlobalX(),chart:GetHeight() - currentNode:GetGlobalY())
+                    end
+                end
+                nodeBox:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                nodeBox:SetStroke(cast(Color,currentNode:GetBorderColor()))
+                nodeBox:SetVerticalCornerRadius(15)
+                nodeBox:SetHorizontalCornerRadius(15)
+                nodeBox:SetStrokeWidth(chart:GetNodeCornerRounding())
+                nodeBox:SetStyleClass("quorum-chart-element")
+                nodeBox:SetID(flowNodeSVG:GetID() + "_node")
+                nodeBox:SetTabIndex(-1)
+                if HasAccessibility()
+                    nodeBox:SetAriaHidden("true")
+                    nodeFocus = nodeFocus + "gainFocus('" + nodeBox:GetID() + "'); "
+                    nodeBlur = nodeBlur + "loseFocus('" + nodeBox:GetID() + "'); "
+                end
+                canvas:Add(nodeBox)                
+
+                Label nodeLabel
+                nodeLabel:SetText(nodeName)
+                if currentNode is FlowchartHiddenNode
+                    nodeLabel:SetFill(transparent)
+                else
+                    nodeLabel:SetFill(cast(Color, currentNode:GetFontColor()))
+                end
+                nodeLabel:SetTextAnchor("middle")
+                nodeLabel:SetPosition(currentNode:GetGlobalX()+(currentNode:GetWidth()/2),cast(number,nodeBox:GetPositionY()) + (currentNode:GetHeight()/2))
+                nodeLabel:SetFontSize(chart:GetFontSize() + "px")  
+                nodeLabel:SetFontFamily("Arial")  
+                nodeLabel:SetTabIndex(-1)
+                
+                if HasAccessibility()
+                    if nodeFocus not= ""
+                        flowNodeSVG:SetOnFocus(nodeFocus)
+                    end
+                    if nodeBlur not= ""
+                        flowNodeSVG:SetOnBlur(nodeBlur)
+                    end
+                end
+                canvas:Add(nodeLabel)
+
+                Array<FlowchartArrow> arrows = currentNode:GetOutArrows()
+
+                integer k = 0
+                repeat while k <= arrows:GetSize() - 1
+                    if arrows:Get(k) is FlowchartArrow
+                        
+                        text arrowFocus = ""
+                        text arrowBlur = ""
+
+                        FlowchartArrow flowchartArrow = arrows:Get(k)
+                        LinePath linePath = flowchartArrow:GetLines()
+                        flowchartArrow:GetLines()
+                        
+                        integer position = arrows:GetFirstLocation(flowchartArrow) + 1
+                        integer size = arrows:GetSize()
+                        flowchartArrow:SetName(currentNode:GetName() + ", arrow " + position + " of " + size)
+                        text arrowName = flowchartArrow:GetName()
+                        text destination = flowchartArrow:GetDestination():GetName()
+                        if (arrowName:Contains("&") or destination:Contains("&"))
+                            arrowName = arrowName:Replace("&", "&#38;")
+                            destination = destination:Replace("&", "&#38;")
+                        end
+                        
+                        Group flowArrowSVG
+                        flowArrowSVG:SetID(canvas:GetID() + "_" + flowchartArrow:GetHashCode())
+                        flowArrowSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
+                        flowArrowSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                        flowArrowSVG:SetAriaRoleDescription(destination)
+                        flowArrowSVG:SetAriaDescribedBy(nodeName)
+                        flowArrowSVG:SetTabIndex(-1)
+                        if HasAccessibility()
+                            flowArrowSVG:SetRole("application")  
+                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to move to the " + destination + " node")
+                            flowArrowSVG:SetAriaHidden("false")
+                        end
+                        arrowGraphics:Add(flowArrowSVG)   
+                        
+                        if currentNode:GetInArrows():GetSize() = 0
+                            chartContent:Add(flowArrowSVG)  
+                        end
+
+                        number x1 = 0
+                        number y1 = 0
+                        number x2 = 0
+                        number y2 = 0 
+
+                        Iterator<Vector2> waypoints = linePath:GetPointIterator()
+                        integer j = 0
+                        if waypoints:HasNext()
+                            Vector2 point = waypoints:Next()
+                            repeat while waypoints:HasNext()
+                                j = j + 1
+                                Vector2 point2 = waypoints:Next()
+                                Line segment
+                                
+                                if chart is GridFlowchart
+                                    x1 = ((chart:GetWidth()/chart:GetContainerGridWidth()+chart:GetPercentageWidth())*point:GetX())+currentNode:GetWidth()/(chart:GetContainerGridWidth()*(chart:GetPercentageWidth()*chart:GetContainerGridWidth()))
+                                    y1 = chart:GetHeight()-(point:GetY()/chart:GetContainerGridHeight())*chart:GetHeight()+(cast(number,nodeBox:GetHeight())*1.75/(chart:GetContainerGridHeight()))
+                                    x2 = ((chart:GetWidth()/chart:GetContainerGridWidth()+chart:GetPercentageWidth())*point2:GetX())+currentNode:GetWidth()/(chart:GetContainerGridWidth()*(chart:GetPercentageWidth()*chart:GetContainerGridWidth()))
+                                    y2 = chart:GetHeight()-((point2:GetY()/chart:GetContainerGridHeight())*chart:GetHeight())+(cast(number,nodeBox:GetHeight())*1.75/(chart:GetContainerGridHeight()))
+                                else
+                                    if chart:GetWidth() > chart:GetHeight()
+                                        x1 = point:GetX()
+                                        y1 = chart:GetHeight() - point:GetY()
+                                        x2 = point2:GetX()
+                                        y2 = chart:GetHeight() - point2:GetY()
+                                    else
+                                        x1 = point:GetX()
+                                        y1 = cast(integer,chart:GetHeight() - point:GetY() + currentNode:GetHeight()) 
+                                        x2 = point2:GetX()
+                                        y2 = cast(integer,chart:GetHeight() - point2:GetY() + currentNode:GetHeight()) 
+                                    end
+                                end
+
+                                segment:SetFirstPoint(x1,y1)
+                                segment:SetSecondPoint(x2,y2)
+                                segment:SetFill(cast(Color,flowchartArrow:GetBackgroundColor()))
+                                segment:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
+                                segment:SetStrokeWidth(chart:GetArrowLineThickness())
+                                segment:SetStyleClass("quorum-chart-linesegment")
+                                segment:SetID(flowArrowSVG:GetID() + "_segment" + k+j)
+                                segment:SetTabIndex(-1)
+                                if HasAccessibility()
+                                    arrowFocus = arrowFocus + "gainFocus('" + segment:GetID() + "'); "
+                                    arrowBlur = arrowBlur + "loseFocus('" + segment:GetID() + "'); "
+                                    segment:SetAriaHidden("true")
+                                end
+                                canvas:Add(segment)
+                                point = point2
+                            end
+                        end
+                            number thickness = chart:GetArrowHeadThickness() / 1.5
+                            Polygon arrow
+                            Vector2 point1
+                            Vector2 point2
+                            Vector2 point3
+
+                            point1:Set(thickness,0)
+                            point2:Set(0,thickness)
+                            point3:Set(0,-thickness)
+
+                            number angle = math:RadiansToDegrees(math:InverseTangent( ((chart:GetHeight()-y1)-(chart:GetHeight()-y2))/(x1-x2)))
+                            if x2-x1 > 0
+
+                                point1:Rotate(360-angle)
+                                point2:Rotate(360-angle)
+                                point3:Rotate(360-angle)
+
+                                point1:Add(x2,y2)
+                                point2:Add(x2,y2)
+                                point3:Add(x2,y2)
+                            else
+                                point1:Rotate(180-angle)
+                                point2:Rotate(180-angle)
+                                point3:Rotate(180-angle)
+
+                                point1:Add(x2,y2)
+                                point2:Add(x2,y2)
+                                point3:Add(x2,y2)
+                            end
+
+                            arrow:AddPoint(point1:GetX(),point1:GetY())
+                            arrow:AddPoint(point2:GetX(),point2:GetY())
+                            arrow:AddPoint(point3:GetX(),point3:GetY())
+                            arrow:SetFill(cast(Color, flowchartArrow:GetBackgroundColor()))
+                            arrow:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
+                            arrow:SetID(flowNodeSVG:GetID() + "_arrow" + k)
+                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetTabIndex(-1)
+                            if HasAccessibility()
+                                arrowFocus = arrowFocus + "gainFocus('" + arrow:GetID() + "'); "
+                                arrowBlur = arrowBlur + "loseFocus('" + arrow:GetID() + "'); "
+                                arrow:SetAriaHidden("true")
+                            end
+                            if HasAccessibility()
+                                if arrowFocus not= ""
+                                    flowArrowSVG:SetOnFocus(arrowFocus)
+                                end
+                                if arrowBlur not= ""
+                                    flowArrowSVG:SetOnBlur(arrowBlur)
+                                end
+                            end
+                            canvas:Add(arrow)
+                        end
+                    k = k + 1
+                end
+
+                    // Create the navigation Tree for the Current Node and its' Arrows
+                    if currentNode:GetInArrows():GetSize() not= 0
+                        Array<FlowchartArrow> parentArrows = currentNode:GetInArrows()
+                        integer j = 0
+                        repeat while j < parentArrows:GetSize()
+                            FlowchartNode parentNode = parentArrows:Get(j):GetOrigin()
+                            integer m = 0
+                            repeat while m < arrowGraphics:GetSize()
+                                if arrowGraphics:Get(m):GetAriaRoleDescription() = parentArrows:Get(j):GetDestination():GetName()
+                                    arrowGraphics:Get(m):Add(flowNodeSVG)
+                                    integer l = 0
+                                    repeat while l < arrowGraphics:GetSize()
+                                        if arrowGraphics:Get(l):GetAriaDescribedBy() = nodeName
+                                            arrowGraphics:Get(m):Add(arrowGraphics:Get(l))
+                                        end
+                                        l = l + 1
+                                    end
+                                end
+                                m = m + 1
+                            end
+                            j = j + 1
+                        end
+                    end
+                end
+            i = i + 1
+        end
+
+    end
+
+
+    action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
+        Flowchart flowchart = cast(Flowchart, chart)
+        Script script
+
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+        text tab = scriptText:GetTab()
+        text dq = scriptText:GetDoubleQuote()
+        
+        scriptText = newLine + "if (typeof quorum_chart_value_order == 'undefined' || quorum_chart_value_order == null)" + newLine
+        scriptText = scriptText  + tab + "var quorum_chart_value_order = {};" + newLine + newLine
+        scriptText = scriptText + "quorum_chart_value_order." + canvas:GetID() + " = {" + newLine
+        Array<Item2D> nodes = flowchart:GetChildren()
+        integer i = 0
+        repeat while i < nodes:GetSize() - 1
+           if nodes:Get(i) is FlowchartNode
+                FlowchartNode currentNode = cast(FlowchartNode, nodes:Get(i))
+
+                text nodeName = currentNode:GetName()
+                if (nodeName:Contains("&"))
+                    nodeName = nodeName:Replace("&", "&#38;")
+                end
+
+                scriptText = scriptText + tab + canvas:GetID() + "_" + nodes:Get(i):GetHashCode() + ": " + nodeName + newLine
+                
+                integer k = 0
+                Array<FlowchartArrow> arrows = currentNode:GetOutArrows()
+                repeat while k < arrows:GetSize()
+                    text arrowName = arrows:Get(k):GetName() + ", " + arrows:Get(k):GetDescription()
+                    if (arrowName:Contains("&"))
+                        arrowName = arrowName:Replace("&", "&#38;")
+                    end
+                    scriptText = scriptText + tab + canvas:GetID() + "_" + arrows:Get(k):GetHashCode() + ": " + arrowName + ", " + newLine
+                    k = k + 1
+                end
+            end
+            i = i + 1
+        end
+        scriptText = scriptText + "};" + newLine
+        script:AddText(scriptText)
+        canvas:Add(script)
+    end
+
 end
