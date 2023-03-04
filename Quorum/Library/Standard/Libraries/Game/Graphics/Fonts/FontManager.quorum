@@ -41,6 +41,12 @@ class FontManager
     // A delimiting character used to separate portions of a Font's identifier.
     public constant text FONT_DELIMITER = "$"
 
+    // A tag used to indicate that this font supports borders around glyphs.
+    public constant text BORDERED_TAG = "BORDERED"
+
+    // A tag used to indicate that this font doesn't support borders around glyphs. The default case.
+    public constant text BORDERLESS_TAG = "BORDERLESS"
+
     // Each font uniquely produces a string key to the table.
     HashTable<text, FontStrategy> fontTable
 
@@ -62,12 +68,11 @@ class FontManager
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
-        return strategy:GetGlyph(character)
-    end
-
-    action GetBorderedGlyph(Font font, text character) returns Glyph
-        FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
-        return strategy:GetBorderedGlyph(character)
+        if font:IsBordered()
+            return strategy:GetBorderedGlyph(character)
+        else
+            return strategy:GetGlyph(character)
+        end
     end
 
     action GetLineHeight(Font font) returns integer

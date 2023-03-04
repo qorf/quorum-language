@@ -48,7 +48,7 @@ class Label is Control
     GameStateManager manager
 
     // Used to store Drawables for re-use, limiting the number of total object instantiations made.
-    Array<Drawable> drawablePool
+    Array<GlyphDrawable> drawablePool
 
     /*
     Determines if the label places its Drawables along the baseline or not. If
@@ -57,12 +57,20 @@ class Label is Control
     */
     boolean positionOnBaseLine = true
 
+    number outlineThickness = 0
+
+    ColorGroup outlineColor = undefined
+
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
         SetName("Label")
         SetInterfaceOptionsKey("Label")
+
+        Color black
+        black:SetColor(0, 0, 0, 1)
+        outlineColor = black
     end
 
 
@@ -766,9 +774,15 @@ class Label is Control
                         glyph = glyphs:Get(glyphIndex)
                         drawable = undefined
                         if glyph:texture not= undefined
-                            Drawable newDrawable = GetDrawable()
+                            GlyphDrawable newDrawable = GetDrawable()
                             newDrawable:SetName("Glyph")
-                            newDrawable:Load(glyph:texture)
+
+                            if outlineThickness > 0
+                                newDrawable:LoadBorderedGlyph(glyph, outlineThickness, outlineColor)
+                            else
+                                newDrawable:LoadGlyph(glyph)
+                            end
+
                             newDrawable:SetColor(fontColor)
                             drawable = newDrawable
                         end
@@ -824,13 +838,13 @@ class Label is Control
 
     end
 
-    private action GetDrawable returns Drawable
+    private action GetDrawable returns GlyphDrawable
         if drawablePool:IsEmpty() = false
-            Drawable drawable = drawablePool:RemoveFromEnd()
+            GlyphDrawable drawable = drawablePool:RemoveFromEnd()
             drawable:Show()
             return drawable
         else
-            Drawable drawable
+            GlyphDrawable drawable
             return drawable
         end
     end
@@ -840,8 +854,8 @@ class Label is Control
 
         repeat while children:IsEmpty() = false
             Item2D item = children:RemoveFromFront()
-            if item is Drawable
-                drawablePool:Add(cast(Drawable, item))
+            if item is GlyphDrawable
+                drawablePool:Add(cast(GlyphDrawable, item))
             end
         end
     end
@@ -1077,4 +1091,29 @@ class Label is Control
         end
         return description
     end
+
+    action GetOutlineThickness returns number
+        return outlineThickness
+    end
+
+    action SetOutlineThickness(number outlineThickness)
+        if me:outlineThickness = outlineThickness
+            return now
+        end
+
+        textChanged = true
+        GetFont():SetBordered(outlineThickness > 0)
+
+        me:outlineThickness = outlineThickness
+    end
+
+    action GetOutlineColor returns ColorGroup
+        return outlineColor
+    end
+
+    action SetOutlineColor(ColorGroup color)
+        outlineColor = color
+        textChanged = true
+    end
+
 end

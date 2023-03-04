@@ -1,0 +1,110 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DefaultVertexAttributes2D
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.GlyphDrawable
+
+class BorderedFontShaderMapping is BatchingShaderMapping2D
+
+    ShaderProgram program = undefined
+
+    constant integer BATCH_SIZE = 200
+
+    VertexAttribute borderColorAttribute = undefined
+    VertexAttribute borderThicknessAttribute = undefined
+    
+
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private action InitializeMesh(Mesh mesh)
+        DefaultVertexAttributes2D attributes
+        Array<VertexAttribute> extraAttributes
+        VertexAttribute dummy
+        borderColorAttribute = dummy:CustomColorAttribute("a_borderColor")
+        borderThicknessAttribute = dummy:CustomNumberAttribute("a_borderThickness")
+
+        extraAttributes:Add(borderColorAttribute)
+        attributes:SetAttributes(extraAttributes)
+        
+        /*
+        We need a mesh with enough 32-bit float values for the vertices, and the correct number of indices.
+        The "vertexSize" value is calculated as bytes, not floats, so we divide by 4 to get the correct number.
+        We multiply by 4 because we'll be rendering quads (4 points per Drawable).
+
+        For the indices, we need 2 triangles (3 points each) to render a quad, so we multiply by 6 to store the values in the array.
+        */
+        mesh:Load(false, (attributes:parent:VertexAttributes:vertexSize / 4) * 4 * BATCH_SIZE, 6 * BATCH_SIZE, attributes)
+
+        integer length = 6 * BATCH_SIZE
+        Integer32BitArray indices
+        indices:SetSize(length)
+
+        integer indexCounter = 0
+        integer vertexCounter = 0
+
+        // Setup the indices to make pairs of triangles to render quads of vertices.
+        repeat while indexCounter < length
+            indices:Set(indexCounter, vertexCounter)
+            indices:Set(indexCounter + 1, vertexCounter + 1)
+            indices:Set(indexCounter + 2, vertexCounter + 2)
+            indices:Set(indexCounter + 3, vertexCounter + 2)
+            indices:Set(indexCounter + 4, vertexCounter + 3)
+            indices:Set(indexCounter + 5, vertexCounter)
+
+            indexCounter = indexCounter + 6
+            vertexCounter = vertexCounter + 4
+        end
+
+        mesh:SetIndices(indices)
+    end
+
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        number borderThickness = 2
+        ColorGroup borderColor = undefined
+
+        if drawable is GlyphDrawable
+            GlyphDrawable glyph = cast(GlyphDrawable, drawable)
+            borderColor = glyph:GetOutlineColor()
+            borderThickness = glyph:GetOutlineThickness()
+        end
+        
+        if borderColor is Color
+            Color border = cast(Color, borderColor)
+            shape:SetDataForAllVertices(borderColorAttribute:offset / 4, border:EncodeColorAsNumber())
+        elseif borderColor not= undefined
+            Color bottomRight = borderColor:GetBottomRight()
+            Color bottomLeft = borderColor:GetBottomLeft()
+            Color topRight = borderColor:GetTopRight()
+            Color topLeft = borderColor:GetTopLeft()
+            shape:SetVertexData(borderColorAttribute:offset / 4, bottomRight:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+        else
+            Color color
+            color:SetColor(0, 0, 0, 1)
+            shape:SetDataForAllVertices(borderColorAttribute:offset / 4, color:EncodeColorAsNumber())
+        end
+
+//        shape:SetDataForAllVertices(borderThicknessAttribute:offset / 4, borderThickness)
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        parent:BatchingShaderMapping2D:RenderBatch(program, camera)
+    end
+
+end

@@ -46,6 +46,8 @@ class Font
     integer fontSize = 14
     number angle = 0
 
+    boolean bordered = false
+
     Color color
 
     text subFont = ""
@@ -402,6 +404,58 @@ class Font
     end
 
     /*
+    This action will either enable or disable borders for this font. By default, fonts do not support borders.
+
+    Attribute: Parameter bordered True to enable borders, or false to disable them.
+    
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:SetBordered(true)
+            end
+        end
+    */
+    action SetBordered(boolean bordered)
+        needToRecalculateID = true
+        me:bordered = bordered
+    end
+
+    /*
+    This action will return true if this font currently supports borders, or false if it does not.
+    The default value is false.
+
+    Attribute: Returns Returns whether or not borders are enabled on this font.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                output "By default, font borders enabled = " + font:IsBordered()
+            end
+        end
+    */
+    action IsBordered returns boolean
+        return bordered
+    end
+
+    /*
     This action will release the resources used by a loaded font. The Font 
     object will no longer be usable until another font is loaded.
 
@@ -428,6 +482,7 @@ class Font
         isSystemFont = true
         fontSize = 14
         angle = 0
+        bordered = false
         subFont = ""
         style = ""
         color = color:Black()
@@ -462,40 +517,6 @@ class Font
     action GetGlyph(text character) returns Glyph
         FontManager manager = gameStateManager:GetFontManager()
         Glyph glyph = manager:GetGlyph(me, character)
-        glyph:color = color
-        return glyph
-    end
-
-    /*
-    This action will return a Glyph object for this font's representation of the
-    given character. This glyph will include a special texture that can be used to
-    draw borders around the character when rendered with a special Shader.
-
-    Attribute: Parameter character The character to create a glyph of.
-
-    Attribute: Returns Returns a glyph representation of the character.
-    
-    Attribute: Example
-
-        use Libraries.Game.Graphics.Font
-        use Libraries.Game.Graphics.Glyph
-        use Libraries.Game.Game
-
-        class Main is Game
-            action Main
-                StartGame()
-            end
-
-            action CreateGame
-                Font font
-                font:LoadFont("Arial")
-                Glyph a = font:GetBorderedGlyph("a")
-            end
-        end
-    */
-    action GetBorderedGlyph(text character) returns Glyph
-        FontManager manager = gameStateManager:GetFontManager()
-        Glyph glyph = manager:GetBorderedGlyph(me, character)
         glyph:color = color
         return glyph
     end
@@ -687,8 +708,13 @@ class Font
             systemText = manager:FILE_PREFIX
         end
 
+        text borderText = manager:BORDERLESS_TAG
+        if bordered
+            borderText = manager:BORDERED_TAG
+        end
+
         text delimiter = manager:FONT_DELIMITER
 
-        fontIdentifier = systemText + delimiter + fontName + delimiter + fontSize + delimiter + angle
+        fontIdentifier = systemText + delimiter + fontName + delimiter + fontSize + delimiter + angle + delimiter + borderText
     end
 end

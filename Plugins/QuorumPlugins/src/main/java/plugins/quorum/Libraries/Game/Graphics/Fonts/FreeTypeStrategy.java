@@ -196,86 +196,6 @@ public class FreeTypeStrategy
             int size = rawBitmap.capacity();
             ByteBuffer bitmap = BufferUtils.newByteBuffer(size * 4);
 
-            String result = "";
-            System.out.println("1.");
-            for (int i = 0; i < (int)bitmapData[2]; i++)
-            {
-                String line = "";
-                for (int j = 0; j < (int)bitmapData[3]; j++)
-                {
-                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-                    String stringify;
-                    if (datapoint <= -100)
-                        stringify = "" + datapoint;
-                    else if (datapoint <= -10)
-                        stringify = " " + datapoint;
-                    else if (datapoint < 0)
-                        stringify = "  " + datapoint;
-                    else if (datapoint < 10)
-                        stringify = "   " + datapoint;
-                    else if (datapoint < 100)
-                        stringify = "  " + datapoint;
-                    else
-                        stringify = " " + datapoint;
-
-                    line = line + stringify + " ";
-                }
-
-                result = result + line + "\n";
-            }
-            System.out.println(result);
-
-//            System.out.println("\n2.");
-//            for (int i = 0; i < (int)bitmapData[3]; i++)
-//            {
-//                String line = "";
-//                for (int j = 0; j < (int)bitmapData[2]; j++)
-//                {
-//                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-//                    String stringify;
-//                    if (datapoint <= -100)
-//                        stringify = "" + datapoint;
-//                    else if (datapoint <= -10)
-//                        stringify = " " + datapoint;
-//                    else if (datapoint < 0)
-//                        stringify = "  " + datapoint;
-//                    else if (datapoint < 10)
-//                        stringify = "   " + datapoint;
-//                    else if (datapoint < 100)
-//                        stringify = "  " + datapoint;
-//                    else
-//                        stringify = " " + datapoint;
-//
-//                    line = line + stringify + " ";
-//                }
-//
-//                result = result + line + "\n";
-//            }
-//            System.out.println(result);
-
-            result = "";
-            System.out.println("3.");
-            for (int i = 0; i < (int)bitmapData[2]; i++)
-            {
-                String line = "";
-                for (int j = 0; j < (int)bitmapData[3]; j++)
-                {
-                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-                    String stringify;
-                    if (datapoint < 0)
-                        stringify = "-";
-                    else if (datapoint > 0)
-                        stringify = "+";
-                    else
-                        stringify = "0";
-
-                    line = line + stringify + " ";
-                }
-
-                result = result + line + "\n";
-            }
-            System.out.println(result);
-
             for (int i = 0; i < size; i++)
             {
                 bitmap.put((byte)255);
@@ -599,7 +519,15 @@ public class FreeTypeStrategy
     }
     
     private native void DisposeC(long handle);
-    
+
+    /*
+    Get the error code for the last Freetype error that was recorded. Used for debugging.
+    DOUBLE CHECK THE NATIVE IMPLEMENTATION FOR WHERE ERRORS ARE RECORDED!
+    The initial implementation was sloppy about recording errors, so legitimate errors might
+    not be stored. Using this naively might give you the wrong idea!
+    */
+    private native int GetLastError();
+
     public void SetColorNative(Color_ c)
     {
         color = c;
