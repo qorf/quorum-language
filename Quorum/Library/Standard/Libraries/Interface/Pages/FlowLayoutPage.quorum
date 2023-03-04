@@ -6,6 +6,9 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.TextBox
+use Libraries.Game.Graphics.Label
 
 class FlowLayoutPage is Page
     number itemsPerMaxHeight = 5
@@ -25,6 +28,35 @@ class FlowLayoutPage is Page
 
         Add(button)
         return button
+    end
+
+    action AddImageButton(text name, text image) returns Button
+        Button button = AddButton(name)
+        Drawable drawable
+        drawable:Load(image)
+        button:SetIcon(drawable)
+        button:SetFont(undefined)
+        return button
+    end
+
+    action AddTextBox returns TextBox
+        TextBox textBox
+        textBox:SetName("Textbox")
+        textBox:SetPercentageWidth(1.0)
+        textBox:SetPercentageHeight(1.0 / itemsPerMaxHeight)
+        return textBox
+    end
+
+    action AddLabel(text name, text value) returns Label
+        Label label
+        //labelCount = labelCount + 1
+        label:SetName(name)
+        label:SetText(value)
+        label:SetFocusable(true)
+        label:SetAccessibilityCode(label:parent:Item:CUSTOM)
+        label:SetPercentageWidth(1.0)
+        label:SetPercentageHeight(1.0 / itemsPerMaxHeight)
+        return label
     end
 
     action RemoveButton(text name) returns Button
