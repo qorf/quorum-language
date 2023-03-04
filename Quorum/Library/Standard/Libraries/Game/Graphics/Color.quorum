@@ -1526,4 +1526,182 @@ class Color is ColorGroup
     action GetBottomRight returns Color
         return me
     end
+
+    /*
+    This action sets the color using a hexadecimal string. The hexadecimal string must be 6 or 8 hex characters long,
+    and can optionally be preceded by a pound symbol ("#"). From left to right, the color will use each set of 2 hex
+    characters to set the red, green, blue, and alpha components, in that order. If there are only 6 characters, the
+    alpha will be set to 1.0 (fully opaque).
+
+    Attribute: Parameter hexValue 6 or 8 hexadecimal characters, which can optionally have a "#" at the front
+    Attribute: Example
+    
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action CreateGame
+            // This hex value represents full red, no green, and full blue.
+            text hexValue1 = "FF00FF"
+    
+            // This hex value represents no red, full green, and some blue. The alpha value is set to roughly half-transparency.
+            // Note that the text isn't case sensitive, so lowercase "f" and uppercase "F" are the same thing.
+            text hexValue2 = "#00ff4588"
+    
+            // Loading our hex values into a pair of colors.
+            Color color1
+            color1:SetHexColor(hexValue1)
+            Color color2
+            color2:SetHexColor(hexValue2)
+    
+            // Loading drawables using our new colors, as an example of what the loaded colors look like.
+            Drawable box1
+            box1:LoadFilledRectangle(100, 100, color1)
+            Add(box1)
+        
+            Drawable box2
+            box2:LoadFilledRectangle(100, 100, color2)
+            box2:SetPosition(50, 50)
+            Add(box2)
+        end
+    
+        action Main
+            StartGame()
+        end
+    
+    end
+    */
+    action SetHexColor(text hexValue)
+        integer index = 0
+        // Skip the pound symbol (or "octothorpe" if you're feeling really fancy), if it's present.
+        if hexValue:GetCharacter(0) = "#"
+            index = index + 1
+        end
+
+        /*
+        If there's 6 hex characters, set the RGB components, and assume the alpha is 1.0 (fully opaque).
+        If there's 8 hex characters, set all of the RGBA components.
+        If there's any other amount of characters, it's an error.
+        */
+        if (hexValue:GetSize() - index) = 6
+            SetColor(HexToNumber(hexValue:GetSubtext(index, index + 2)), HexToNumber(hexValue:GetSubtext(index + 2, index + 4)), HexToNumber(hexValue:GetSubtext(index + 4, index + 6)), 1.0)
+        elseif (hexValue:GetSize() - index) = 8
+            SetColor(HexToNumber(hexValue:GetSubtext(index, index + 2)), HexToNumber(hexValue:GetSubtext(index + 2, index + 4)), HexToNumber(hexValue:GetSubtext(index + 4, index + 6)), HexToNumber(hexValue:GetSubtext(index + 6, index + 8)))
+        else
+            alert("I couldn't set the color from the hex value '" + hexValue + "' because it's the wrong length. There must be exactly 6 or 8 hex characters.")
+        end
+    end
+
+    // Converts hex characters into a decimal integer.
+    private action HexToInteger(text hex) returns integer
+        integer i = 0
+        integer result = 0
+
+        text sample = "09AFaf"
+
+        repeat until i >= hex:GetSize()
+            result = ops:ShiftLeft(result, 4)
+
+            integer value = 0
+            integer unicode = hex:GetUnicodeInteger(i)
+            if unicode >= sample:GetUnicodeInteger(0) and unicode <= sample:GetUnicodeInteger(1)
+                value = unicode - sample:GetUnicodeInteger(0)
+            elseif unicode >= sample:GetUnicodeInteger(2) and unicode <= sample:GetUnicodeInteger(3)
+                value = 10 + (unicode - sample:GetUnicodeInteger(2))
+            elseif unicode >= sample:GetUnicodeInteger(4) and unicode <= sample:GetUnicodeInteger(5)
+                value = 10 + (unicode - sample:GetUnicodeInteger(4))
+            else
+                alert("I could not convert the text '" + hex + "' because '" + hex:GetCharacter(i) + "' isn't a valid hexadecimal character.")
+            end
+
+            result = ops:Or(result, value)
+            i = i + 1
+        end
+
+        return result
+    end
+
+    // Converts exactly two hex characters into a number between 0 and 1.
+    private action HexToNumber(text hex) returns number
+        return HexToInteger(hex) / 255.0
+    end
+
+    /*
+    This action returns a 6-character hexadecimal string representing this color.
+    The color is made of red, green, and blue components, each of which is represented
+    by two hex characters (in that order). This does not include any information on the
+    alpha component.
+
+    This is useful for formats that do not uniformly support alpha values for hex color codes,
+    such as SVGs. If you need a hex string that does include alpha information, use
+    "GetHexColorWithAlpha()" instead.
+
+    Attribute: Returns A 6-character hex string representing the RGB components of this color.
+    Attribute: Example
+    use Libraries.Game.Graphics.Color
+
+    Color color
+    Color red = color:Red()
+    
+    // This will output "FF0000", representing full red and no green or blue
+    output red:GetHexColorWithoutAlpha()
+    */
+    action GetHexColorWithoutAlpha returns text
+        integer red = cast(integer, me:red * 255)
+        integer green = cast(integer, me:green * 255)
+        integer blue = cast(integer, me:blue * 255)
+
+        return IntegerToHex(red) + IntegerToHex(green) + IntegerToHex(blue)
+    end
+
+    /*
+    This action returns a 8-character hexadecimal string representing this color.
+    The color is made of red, green, blue, and alpha components, each of which is represented
+    by two hex characters (in that order). 
+
+    Some formats  do not uniformly support alpha values for hex color codes, such as SVGs. 
+    If you need a hex string that does not include alpha information, use "GetHexColorWithoutAlpha()" instead.
+
+    Attribute: Returns A 8-character hex string representing the RGBA components of this color.
+    Attribute: Example
+    use Libraries.Game.Graphics.Color
+    
+    Color color
+    color:SetColor(0.0, 1.0, 1.0, 0.70)
+    
+    // This will output "00FFFFB2", representing no red, full green and blue, and 70% opacity
+    output color:GetHexColorWithAlpha()
+    */
+    action GetHexColorWithAlpha returns text
+        integer red = cast(integer, me:red * 255)
+        integer green = cast(integer, me:green * 255)
+        integer blue = cast(integer, me:blue * 255)
+        integer alpha = cast(integer, me:alpha * 255)
+
+        return IntegerToHex(red) + IntegerToHex(green) + IntegerToHex(blue) + IntegerToHex(alpha)
+    end
+
+    // Converts an integer between 0 and 255 into exactly two hex characters.
+    private action IntegerToHex(integer value) returns text
+        text result = ""
+        text sample = "A"
+        integer digit = value / 16
+        if digit >= 10
+            result = result + result:GetUnicodeValue(sample:GetUnicodeInteger(0) + (digit - 10))
+        else
+            result = result + digit
+        end
+
+        digit = value mod 16
+        if digit >= 10
+            result = result + result:GetUnicodeValue(sample:GetUnicodeInteger(0) + (digit - 10))
+        else
+            result = result + digit
+        end
+
+        return result
+    end
+
 end

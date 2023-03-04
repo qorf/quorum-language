@@ -74,6 +74,10 @@ class TwoVariableChart is Chart
     private integer maxChunks = 16
 
     private boolean showLetterCodeAnnotation = false
+    private boolean showFactorAnnotation = false
+    private boolean showPointAnnotation = false
+    private boolean annotationFontSizeOverride = false
+    private integer annotationFontSize = 0
     
     private ChartPointComparison comparison
 
@@ -151,10 +155,23 @@ class TwoVariableChart is Chart
 
                     if point:ShowAnnotation() or ShowAnnotations()
                         ChartLabel pointLabel
-                        if showLetterCodeAnnotation
-                            pointLabel:SetText(point:GetLetterCode())
-                        else
+                        text nameText = ""
+                        if showPointAnnotation
+                            nameText = point:GetName()
+                            if showFactorAnnotation or showLetterCodeAnnotation
+                                nameText = ", " + nameText 
+                            end
+                            pointLabel:SetText(nameText)
+                        end
+                        if showFactorAnnotation and point:GetSeries() not= undefined
+                            pointLabel:SetText(point:GetSeries():GetName() + nameText)
+                        elseif showLetterCodeAnnotation
+                            pointLabel:SetText(point:GetLetterCode() + nameText)
+                        elseif not showPointAnnotation
                             pointLabel:SetText(point:GetName())
+                        end
+                        if annotationFontSizeOverride
+                            pointLabel:SetFontSize(annotationFontSize)
                         end
                         point:SetAnnotation(pointLabel)
                         chartArea:Add(pointLabel)
@@ -238,11 +255,24 @@ class TwoVariableChart is Chart
                 chartArea:Add(point)
                 chartArea:Add(point:GetSelectionArrow())
                 if point:ShowAnnotation() or ShowAnnotations()
-                    ChartLabel pointLabel
-                    if showLetterCodeAnnotation
-                        pointLabel:SetText(point:GetLetterCode())
-                    else
+                    ChartLabel pointLabel   
+                    text nameText = ""
+                    if showPointAnnotation
+                        nameText = point:GetName()
+                        if showFactorAnnotation or showLetterCodeAnnotation
+                            nameText = ", " + nameText 
+                        end
+                        pointLabel:SetText(nameText)
+                    end
+                    if showFactorAnnotation and point:GetSeries() not= undefined
+                        pointLabel:SetText(point:GetSeries():GetName() + nameText)
+                    elseif showLetterCodeAnnotation
+                        pointLabel:SetText(point:GetLetterCode() + nameText)
+                    elseif not showPointAnnotation
                         pointLabel:SetText(point:GetName())
+                    end
+                    if annotationFontSizeOverride
+                        pointLabel:SetFontSize(annotationFontSize)
                     end
                     point:SetAnnotation(pointLabel)
                     chartArea:Add(pointLabel)
@@ -1299,13 +1329,33 @@ class TwoVariableChart is Chart
             firstPointItem:SetContainer(me)
             firstPointItem:SetPreviousFocus(summary)
             firstPoint:CalculateLetterCode(0)
-            if (firstPoint:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
-                ChartLabel pointLabel = firstPoint:GetAnnotation()
-                pointLabel:SetText(firstPoint:GetLetterCode())
+            if firstPoint:ShowAnnotation() or ShowAnnotations()
+                ChartLabel pointLabel = firstPoint:GetAnnotation() 
+                text nameText = ""
+                if showPointAnnotation
+                    nameText = firstPoint:GetName()
+                    if showFactorAnnotation or showLetterCodeAnnotation
+                        nameText = ", " + nameText 
+                    end
+                    pointLabel:SetText(nameText)
+                end
+                if showFactorAnnotation and (firstPoint:GetSeries() not= undefined)
+                    nameText = firstPoint:GetSeries():GetName() + nameText
+                elseif showLetterCodeAnnotation
+                    nameText = firstPoint:GetLetterCode() + nameText
+                elseif not showPointAnnotation
+                    nameText = firstPoint:GetName()
+                end
+
+                pointLabel:SetText(nameText)
+                if annotationFontSizeOverride
+                    pointLabel:SetFontSize(annotationFontSize)
+                end
                 firstPoint:SetAnnotation(pointLabel)
             end
-
-            if showLetterCodeAnnotation
+            if showFactorAnnotation and firstPoint:GetSeries() not= undefined
+                firstPoint:SetName(firstPoint:GetSeries():GetName() + ", " + firstPoint:GetName())
+            elseif showLetterCodeAnnotation 
                 firstPoint:SetName(firstPoint:GetLetterCode() + ", " + firstPoint:GetName())
             end
         
@@ -1344,14 +1394,33 @@ class TwoVariableChart is Chart
                 pointItem:SetContainer(me)
                 pointItem:SetPreviousFocus(summary)
                 point:CalculateLetterCode(i)
-                if (point:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
-                    ChartLabel pointLabel = point:GetAnnotation()
-                    pointLabel:SetText(point:GetLetterCode())
+                if point:ShowAnnotation() or ShowAnnotations()
+                    ChartLabel pointLabel = point:GetAnnotation() 
+                    text nameText = ""
+                    if showPointAnnotation
+                        nameText = point:GetName()
+                        if showFactorAnnotation or showLetterCodeAnnotation
+                            nameText = ", " + nameText 
+                        end
+                        pointLabel:SetText(nameText)
+                    end
+                    if showFactorAnnotation and (point:GetSeries() not= undefined)
+                        nameText = point:GetSeries():GetName() + nameText
+                    elseif showLetterCodeAnnotation
+                        nameText = point:GetLetterCode() + nameText
+                    elseif not showPointAnnotation
+                        nameText = point:GetName()
+                    end
+    
+                    pointLabel:SetText(nameText)
+                    if annotationFontSizeOverride
+                        pointLabel:SetFontSize(annotationFontSize)
+                    end
                     point:SetAnnotation(pointLabel)
                 end
-                
-                lineSegmentChange = ""
-                if showLetterCodeAnnotation
+                if showFactorAnnotation and point:GetSeries() not= undefined
+                    point:SetName(point:GetSeries():GetName() + ", " + point:GetName())
+                elseif showLetterCodeAnnotation 
                     point:SetName(point:GetLetterCode() + ", " + point:GetName())
                 end
         
@@ -1484,6 +1553,8 @@ class TwoVariableChart is Chart
         if showLetterCodeAnnotation
             point2:CalculateLetterCode(iteration)
             description = description + point2:GetLetterCode()
+        elseif showFactorAnnotation and (point2:GetSeries() not= undefined)
+            description = description + point2:GetSeries():GetName()
         else
             description = description + " point " + iteration
         end
@@ -1563,5 +1634,24 @@ class TwoVariableChart is Chart
     action ShowLetterCodeAnnotations(boolean show)
         showLetterCodeAnnotation = show
         ShowAnnotations(show)
+    end
+
+    action ShowFactorAnnotations(boolean show)
+        showFactorAnnotation = show
+        ShowAnnotations(show)
+    end
+    
+    action HasFactorAnnotations() returns boolean
+        return showFactorAnnotation
+    end
+    
+    action ShowPointAnnotations(boolean show)
+        showPointAnnotation = show
+        ShowAnnotations(show)
+    end
+
+    action SetAnnotationFontSize (integer size)
+        annotationFontSizeOverride = true
+        annotationFontSize = size
     end
 end

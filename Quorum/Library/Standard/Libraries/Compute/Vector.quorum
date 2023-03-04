@@ -366,6 +366,39 @@ class Vector
         MergeSort(me, temp, 0, me:GetSize() - 1)
     end
 
+    /*
+        This action sorts the values of the array using a merge sort algorithm.
+        It is guaranteed to execute in O(n log n).
+
+        Attribute: Example
+        use Libraries.Containers.Array
+        SomeCustomComparison custom
+        Vector myArray
+        myArray:Add(33)
+        myArray:Add(13)
+        myArray:Add(43)
+        myArray:Sort(custom)
+    */
+    action Sort(Comparison comparison)
+        integer size = GetSize()
+        if size = 0 or size = 1
+            return now //it is already sorted
+        end
+        Vector temp
+        temp:SetSize(me:GetSize())
+        MergeSort(me, temp, 0, me:GetSize() - 1, comparison)
+    end
+
+    private action MergeSort(Vector original, Vector temp,
+        integer left, integer right, Comparison comparison)
+
+        if left < right 
+           center = (left + right) / 2
+           MergeSort(original, temp, left, center, comparison)
+           MergeSort(original, temp, center + 1, right, comparison)
+           Merge(original, temp, left, center + 1, right, comparison)
+        end
+    end
 
     private action MergeSort(Vector original, Vector temp,
         integer left, integer right)
@@ -391,6 +424,48 @@ class Vector
             number r = original:Get(centerTemp)
             integer result = l:Compare(r)
             if  result = -1 or result = 0
+                temp:Set(position, original:Get(leftTemp))
+                leftTemp = leftTemp + 1
+            else 
+                temp:Set(position, original:Get(centerTemp))
+                centerTemp = centerTemp + 1
+            end
+            position = position + 1
+        end
+
+        repeat while leftTemp <= leftEnd
+            temp:Set(position, original:Get(leftTemp))
+            leftTemp = leftTemp + 1
+            position = position + 1
+        end
+
+        repeat while centerTemp <= right
+            temp:Set(position, original:Get(centerTemp))
+            centerTemp = centerTemp + 1
+            position = position + 1
+        end
+
+        size = right - left + 1
+        i = left
+        repeat size times
+            original:Set(i, temp:Get(i))
+            i = i + 1
+        end
+    end
+
+    private action Merge(Vector original, Vector temp,
+        integer left, integer center, integer right, Comparison comparison)
+        leftEnd = center - 1
+        leftTemp = left
+        rightTemp = right
+        centerTemp = center
+        position = left
+
+        repeat while leftTemp <= leftEnd and centerTemp <= right 
+            number l = original:Get(leftTemp)
+            number r = original:Get(centerTemp)
+            integer value = comparison:Compare(l, r)
+            if  value = comparison:SMALLER or value = comparison:EQUAL
                 temp:Set(position, original:Get(leftTemp))
                 leftTemp = leftTemp + 1
             else 

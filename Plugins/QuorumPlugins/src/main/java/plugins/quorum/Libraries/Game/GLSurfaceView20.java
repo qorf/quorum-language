@@ -20,6 +20,7 @@ import javax.microedition.khronos.egl.EGLDisplay;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.util.Log;
@@ -28,8 +29,16 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
+import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
 import quorum.Libraries.Game.AndroidConfiguration;
-import quorum.Libraries.Game.AndroidInput_;
+import quorum.Libraries.Game.Shapes.Rectangle_;
+import quorum.Libraries.Interface.Item2D_;
+import quorum.Libraries.Interface.Item3D_;
+import quorum.Libraries.Interface.Item_;
+
+import java.util.Map;
+
+import static plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility.onHoverVirtualView;
 
 /**
  *
@@ -85,7 +94,144 @@ public class GLSurfaceView20 extends GLSurfaceView
 
         return true;
     }
-    
+
+    @Override
+    public boolean onHoverEvent(MotionEvent event) {
+        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && event.getPointerCount() == 1) {
+            final int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_HOVER_ENTER: {
+                    event.setAction(MotionEvent.ACTION_DOWN);
+                } break;
+                case MotionEvent.ACTION_HOVER_MOVE: {
+                    event.setAction(MotionEvent.ACTION_MOVE);
+                } break;
+                case MotionEvent.ACTION_HOVER_EXIT: {
+                    event.setAction(MotionEvent.ACTION_UP);
+                } break;
+            }
+            return onTouchEvent(event);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean dispatchHoverEvent(MotionEvent event)
+    {
+        boolean handled = false;
+        Rect min = null;
+        Item_ minItem = null;
+
+        for (Map.Entry<Integer, Item_> set : AndroidApplication.quorumItems.entrySet())
+        {
+            Item_ item = set.getValue();
+            Rect childBounds;
+            if (item instanceof Item2D_)
+            {
+                double itemX = ((Item2D_)item).GetScreenX();
+                double itemY = (((Item2D_) item).GetScreenY());
+
+                if (itemX == Double.NaN)
+                    itemX = 0;
+
+                if (itemY == Double.NaN)
+                    itemY = 0;
+
+                int left = (int)itemX;
+                int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
+                int right = (int) (itemX + ((Item2D_) item).GetWidth());
+                int bottom = AndroidApplication.screenHeight - (int)(itemY);
+                childBounds = new Rect(left, top, right, bottom);
+            }
+            else if (item instanceof Item3D_)
+            {
+                // This is only a place holder, to place a small box roughly at the
+                // center of a 3D object in the screen. To calculate this correctly,
+                // check how we calculate mouse input detection for 3D objects.
+
+                Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+
+                int left = (int)rectangle.GetX();
+                int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
+                int right = (int) (rectangle.GetX() + rectangle.GetWidth());
+                int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
+                childBounds = new Rect(left, top, right, bottom);
+            }
+            else
+            {
+                int left = 0;
+                int top = 0;
+                int right = 0;
+                int bottom = 0;
+                childBounds = new Rect(left, top, right, bottom);
+            }
+
+            final int childCoordsX = (int) event.getX() + getScrollX();
+            final int childCoordsY = (int) event.getY() + getScrollY();
+            if (!childBounds.contains(childCoordsX, childCoordsY)) {
+                continue;
+            }
+            else
+            {
+                if (min == null)
+                {
+                    min = childBounds;
+                    minItem = item;
+                }
+                else if ((min.height() * min.width()) > (childBounds.height() * childBounds.width()))
+                {
+                    min = childBounds;
+                    minItem = item;
+                }
+            }
+        }
+
+        if (min != null)
+        {
+            final int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_HOVER_ENTER: {
+                    AndroidAccessibility.lastHoveredChild = minItem;
+                    handled |= onHoverVirtualView(minItem, event);
+                    event.setAction(action);
+                } break;
+                case MotionEvent.ACTION_HOVER_MOVE: {
+                    if (minItem == AndroidAccessibility.lastHoveredChild) {
+                        handled |= onHoverVirtualView(minItem, event);
+                        event.setAction(action);
+                    } else {
+                        MotionEvent eventNoHistory = event.getHistorySize() > 0
+                                ? MotionEvent.obtainNoHistory(event) : event;
+                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_EXIT);
+                        onHoverVirtualView(AndroidAccessibility.lastHoveredChild, eventNoHistory);
+                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_ENTER);
+                        onHoverVirtualView(minItem, eventNoHistory);
+                        AndroidAccessibility.lastHoveredChild = minItem;
+                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_MOVE);
+                        handled |= onHoverVirtualView(minItem, eventNoHistory);
+                        if (eventNoHistory != event) {
+                            eventNoHistory.recycle();
+                        } else {
+                            event.setAction(action);
+                        }
+                    }
+                } break;
+                case MotionEvent.ACTION_HOVER_EXIT: {
+                    AndroidAccessibility.lastHoveredChild = null;
+                    handled |= onHoverVirtualView(minItem, event);
+                    event.setAction(action);
+                } break;
+            }
+        }
+
+        if (!handled && event.getAction() != MotionEvent.ACTION_UP) {
+            handled |= onHoverEvent(event);
+        }
+        return handled;
+
+    }
+
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
     {

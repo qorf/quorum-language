@@ -31,6 +31,7 @@ class BarChartLayout is SharedBarChartLayout
 
     number betweenGroupPadding = 0 
     number betweenBarPadding = 0
+    integer barAnnotionPadding = 3
         
     boolean stacked = false
     boolean horizontal = false // Default is vertical for bar charts
@@ -209,16 +210,16 @@ class BarChartLayout is SharedBarChartLayout
                                 if horizontal
                                     integer annotY = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetHeight()/2.0))
                                     if currentBar:GetValue() < 0
-                                        barLabel:SetPosition(currentYPosition - barLabel:GetWidth(), annotY)
+                                        barLabel:SetPosition(currentYPosition - barLabel:GetWidth() - barAnnotionPadding, annotY)
                                     else
-                                        barLabel:SetPosition(currentYPosition + barHeight, annotY)
+                                        barLabel:SetPosition(currentYPosition + barHeight + barAnnotionPadding, annotY)
                                     end
                                 else
                                     integer annotX = cast(integer, currentXPosition + (barWidth/2.0 - barLabel:GetWidth()/2.0))
                                     if currentBar:GetValue() < 0
-                                        barLabel:SetPosition(annotX, currentYPosition - barLabel:GetHeight())
+                                        barLabel:SetPosition(annotX, currentYPosition - barLabel:GetHeight() - barAnnotionPadding)
                                     else
-                                        barLabel:SetPosition(annotX, currentYPosition + barHeight)
+                                        barLabel:SetPosition(annotX, currentYPosition + barHeight + barAnnotionPadding)
                                     end
                                 end
                             end
@@ -247,13 +248,13 @@ class BarChartLayout is SharedBarChartLayout
                     groupHeight = cast(integer, ((currentGroup:GetMaxBarValue()-rangeMin)/(rangeMax-rangeMin)) * height)
                     if horizontal
                         if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
-                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetWidth())
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetWidth()) + barAnnotionPadding
                         end
                         currentGroup:LoadRectangle(groupHeight, cast(integer, groupWidth), transparent)
                         currentGroup:SetPosition(groupY, groupX)
                     else
                         if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
-                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetHeight())
+                            groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetHeight()) + barAnnotionPadding
                         end
                         currentGroup:LoadRectangle(cast(integer, groupWidth), groupHeight, transparent)
                         currentGroup:SetPosition(groupX, groupY)

@@ -12,6 +12,7 @@ use Libraries.Data.Database.EditTable
 use Libraries.Data.Database.CreateView
 use Libraries.Data.Database.QueryResult
 use Libraries.Data.Database.DatabaseMetaData
+use Libraries.Network.NetworkExchange
 
 /*
     This class implements a DatabaseStrategy and is the default strategy the Database class uses.
@@ -21,11 +22,12 @@ use Libraries.Data.Database.DatabaseMetaData
 class DefaultDatabaseStrategy is DatabaseStrategy
 
     action Connect(Connection connection)
+        NetworkExchange exchange 
         text connect = "jdbc:mysql://"
-        connect = connect + connection:GetLocation() + "/" 
+        connect = connect + connection:GetLocation() + ":" + connection:GetPort() + "/" 
             + connection:GetDatabase() + "?user="
-            + connection:GetUsername() + "&password="
-            + connection:GetPassword()
+            + exchange:URLEncodeValue(connection:GetUsername()) + "&password="
+            + exchange:URLEncodeValue(connection:GetPassword())
 
         ConnectNative(connect)
     end

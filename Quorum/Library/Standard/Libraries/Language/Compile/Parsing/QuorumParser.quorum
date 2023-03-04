@@ -1026,18 +1026,27 @@ class QuorumParser
         //blocks can be empty and that's ok.
         BlockContext context        
         Array<ParseContext> statements = undefined
-        if IsStatement()
+        boolean isStatement = IsStatement()
+        if isStatement
             Array<ParseContext> statements2
             statements = statements2
             context:statements = statements
         end
 
-        repeat while IsStatement()
+        repeat while isStatement
             StatementContext parse = Statement()
             if parse not= undefined and parse:statement not= undefined
                 statements:Add(parse)
             else //we hit a compiler error
                 return undefined
+            end
+
+            //check if we have another statement. If not, check if there's an error
+            //if there is an error, ignore it, but if there isn't, throw a default
+            isStatement = IsStatement()
+            if not isStatement and statementError not= undefined //do we do the non-statement case here? I don't think we do, but am not sure.
+                compilerErrorManager:Add(statementError)
+                statementError = undefined
             end
         end
         //if there are statements in the block, bookmark them
@@ -1583,6 +1592,7 @@ class QuorumParser
             SendDefaultError(textEndedError + " while calling an action on a parent. " + moreInformationActionCall, codes:PARSER_VARIABLE_SOLO_ACTION_CALL_ENDED_START)
             return undefined
         end
+        boolean allFields = true
         Token next = tokenIterator:GetCurrent()
         VariableFunctionCallContext context
         context:SetFirstToken(next)
@@ -1620,6 +1630,9 @@ class QuorumParser
             Array<ActionCallContext> calls
             ActionCallContext call = ActionCall()
             if call not= undefined
+                if call:isActionCall
+                    allFields = false
+                end
                 calls:Add(call)
                 context:SetLastToken(call:GetLastToken())
             else
@@ -1642,6 +1655,9 @@ class QuorumParser
                 next = tokenIterator:Next()
                 call = ActionCall()
                 if call not= undefined
+                    if call:isActionCall
+                        allFields = false
+                    end
                     calls:Add(call)
                 end
                 if not IsValid() return undefined end
@@ -1655,6 +1671,13 @@ class QuorumParser
                 context:SetLastToken(last:GetLastToken())
                 context:calls = calls
             end
+        end
+
+        //if this is a solo call, but it is all fields, this is an error. The problem is not that the code will do something wrong
+        //Technically, in this case the engine would just throw it away. The problem is that this can lead to edge cases where the user 
+        //likely did not intend this behavior and we can detect this edge case and prevent it from being done accidentally.
+        if allFields //wrong code here, but 
+            SendDefaultError("This field access would do nothing if the program was run. Did you mean to use it in an assignment or expression?", codes:PARSER_VARIABLE_SOLO_ACTION_DO_NOTHING_FIELD_ACCESS)
         end
 
         SetLocation(context)
@@ -1684,8 +1707,8 @@ class QuorumParser
 
         if next not= undefined and next:category = constants:NOW
             context:isReturnNow = true
-            next = tokenIterator:Next()
             context:SetLastToken(next)
+            next = tokenIterator:Next()
             SetLocation(context)
             return context
         end
@@ -1759,6 +1782,7 @@ class QuorumParser
         if next:category = constants:TIMES
             //we don't need to check this one, just advance it, because block will manage it.
             next = tokenIterator:Next()
+            context:timesToken = next
             context:isTimes = true
         end
 
@@ -1997,7 +2021,22 @@ class QuorumParser
         
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
+            //since there is at least one elseif, we need to store the tokens, in order
+            if context:elseIfTokens = undefined
+                Array<Token> newTokens
+                context:elseIfTokens = newTokens
+            end
+
+            context:elseIfTokens:Add(next)
             next = tokenIterator:Next()
+
+//            //since there is at least one elseif, we need to store the tokens, in order
+//            if context:elseIfTokens = undefined
+//                Array<Token> newTokens
+//                context:elseIfTokens = newTokens
+//            end
+//
+//            context:elseIfTokens:Add(next)
             ParseContext expression = Expression()
             if expression = undefined //no expression, so kill it, because you have to
                 SendDefaultError("The elseif was missing its expression. " 
@@ -2706,13 +2745,9 @@ class QuorumParser
             next = tokens:Next()
             if next:category not= constants:ID
                 return false
-            else
-                statementError = CreateCompilerError("Expected identifier. " + qualifiedNameExample)
-                statementError:SetCode(codes:PARSER_PROCESS_QUALIFIED_NAME_BAD_PERIOD_ID)
             end
             if not tokens:HasNext() return true end
             next = tokens:Next()
-            
         end
         return true
     end
@@ -2843,6 +2878,16 @@ class QuorumParser
                     //subrules are responsible for providing their own error messages
                     //However, we don't need to trigger an error here because it will be handled
                     //by the case below
+                    if statementError = undefined
+                        Token token = tokenIterator:GetCurrent()
+                        if token not= undefined
+                            SendDefaultError("A statement was expected, but " + token:value
+                                + " is not a valid start.", codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK)
+                        else
+                            SendDefaultError("A statement was expected but broke for unclear reasons.", codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN)
+                        end
+                    end
+
                     return undefined
                 end
             end

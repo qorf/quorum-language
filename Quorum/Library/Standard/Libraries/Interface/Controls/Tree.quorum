@@ -302,6 +302,7 @@ class Tree is Control, FirstLetterNavigator
                 selection:GetTreeItem():GainedSelection()
             end
         end
+        parent:Control:GainedFocus(event)
     end
 
     /*
@@ -311,6 +312,7 @@ class Tree is Control, FirstLetterNavigator
         if not selection:IsEmpty()
             selection:GetTreeItem():UnfocusedSelection()
         end
+        parent:Control:LostFocus(event)
     end
 
     action AddTreeChangeListener(TreeChangeListener listener)

@@ -23,6 +23,10 @@ class TextFieldDoubleClickSelectWordBehavior is Behavior
         integer beginIndex = caretPosition
         boolean selectionIsSpecialCharacter = false
 
+        if caretPosition >= textField:GetSize() - 1
+            return now
+        end
+
         /* find the index of the beginning of the selection determined by whitespace, begininning of the textField, or a special character, 
         if the selection is a special character, then set the flag to determine the number of special characters to 
         include in the selection */
@@ -83,6 +87,7 @@ class TextFieldDoubleClickSelectWordBehavior is Behavior
 
         textField:SetCaretPosition(endIndex)
         textField:Select(beginIndex, endIndex, true)
+        textField:SetDoubleClickIndices(beginIndex, endIndex)
     end
 
     private action IsWhiteSpace(text value) returns boolean

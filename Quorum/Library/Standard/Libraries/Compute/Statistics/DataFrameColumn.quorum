@@ -377,6 +377,27 @@ class DataFrameColumn is Comparison
     end
 
     /*
+        This action converts to a text array from the column.
+
+        Attribute: Returns a version of the column as a text array.
+    */
+    action ConvertToTextArray returns Array<text>
+        Array<text> array
+        array:SetSize(GetSize())
+        i = 0
+        repeat while i < GetSize()
+            text value = GetAsText(i)
+            if value = undefined
+                array:Set(i, undefined)
+            else
+                array:Set(i, value)
+            end
+            i = i + 1
+        end
+        return array
+    end
+
+    /*
         This action swaps two values in the column. 
 
         Attribute: Parameter left the first index to swap

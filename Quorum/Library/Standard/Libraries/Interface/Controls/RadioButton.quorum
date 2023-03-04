@@ -33,6 +33,7 @@ class RadioButton is ToggleButton
         // The properties already contain a loaded Font from the Button constructor.
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
+        label:SetPositionOnBaseLine(false)
 
         LayoutProperties iconProperties = buttonIcon:GetDefaultLayoutProperties()
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
@@ -110,6 +111,7 @@ class RadioButton is ToggleButton
 
     action GainedFocus(FocusEvent event)
         SetToggleState(true)
+        parent:Control:GainedFocus(event)
     end
 
     action GetNextFocus returns Item

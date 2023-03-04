@@ -11,6 +11,7 @@ use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.LineChart
+use Libraries.Compute.Vector
 
 
 /*
@@ -53,7 +54,7 @@ class ScreePlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
         EigenDecomposition decomp
         decomp:Calculate(matrix)
 
-        Array<number> array = decomp:GetEigenvalues()
+        Vector array = decomp:GetEigenvalues()
         DataFrame result
         NumberColumn values
         values:SetHeader("Eigenvalue")

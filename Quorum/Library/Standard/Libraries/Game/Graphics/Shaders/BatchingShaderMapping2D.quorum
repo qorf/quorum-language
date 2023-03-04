@@ -9,6 +9,8 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.OpenGLConstants
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.VertexAttribute
 
 class BatchingShaderMapping2D is ShaderMapping
 
@@ -18,6 +20,11 @@ class BatchingShaderMapping2D is ShaderMapping
 
     integer vertexOffset = 0
     integer indexCount = 0
+
+    Array<integer> vertexLocations = undefined
+
+    integer projectionTransformID = -1
+    integer textureID = -1
 
     on create
         InitializeMesh(mesh)
@@ -43,9 +50,15 @@ class BatchingShaderMapping2D is ShaderMapping
         graphics:SetDepthFunction(constants:GL_LEQUAL)
         graphics:DisableProperty(constants:GL_CULL_FACE)
 
+        // Grab and cache the input IDs if we don't already have them.
+        if projectionTransformID < 0
+            projectionTransformID = program:GetShaderInputLocation("u_projTrans")
+            textureID = program:GetShaderInputLocation("u_texture")
+        end
+
         // TO-DO: Replace hard-coded values with references to constants
-        program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
-        program:SetShaderInput("u_texture", 0)
+        program:SetShaderInputMatrix(projectionTransformID, camera:GetCombinedMatrix())
+        program:SetShaderInput(textureID, 0)
     end
 
     action End(ShaderProgram program)
@@ -63,6 +76,31 @@ class BatchingShaderMapping2D is ShaderMapping
     action GetBatchingMesh returns Mesh
         return mesh
     end
+
+    /*
+    This action returns the cached vertex locations of the provided VertexAttributes within
+    the given ShaderProgram. The cached value will be calculated if it isn't available already.
+    */
+    private action GetCachedVertexLocations(ShaderProgram program, VertexAttributes attributes) returns Array<integer>
+        if vertexLocations = undefined
+            Array<integer> locations
+            vertexLocations = locations
+
+            integer i = 0
+            repeat while i < attributes:GetSize()
+                VertexAttribute attribute = attributes:GetAttribute(i)
+                integer id = program:GetVertexInputLocation(attribute:alias)
+
+                if id >= 0
+                    vertexLocations:Add(id)
+                end
+
+                i = i + 1
+            end
+        end
+
+        return vertexLocations
+    end
     
     /*
     This action is called just before the first item in a Batch is passed to the MapInputs call.
@@ -76,7 +114,12 @@ class BatchingShaderMapping2D is ShaderMapping
     This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
     */
     action RenderBatch(ShaderProgram program, Camera camera)
-        program:Draw(mesh, camera, 0, indexCount)
+        Array<integer> locations = GetCachedVertexLocations(program, mesh:GetVertexAttributes())
+        if locations not= undefined
+            program:Draw(mesh, camera, 0, indexCount, locations)
+        else
+            program:Draw(mesh, camera, 0, indexCount)
+        end
 
         vertexOffset = 0
         indexCount = 0

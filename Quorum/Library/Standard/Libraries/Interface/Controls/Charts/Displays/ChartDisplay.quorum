@@ -3,6 +3,8 @@ use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.DesktopConfiguration
 use Libraries.Game.WebConfiguration
+use Libraries.Game.Layer2D
+use Libraries.Game.Layer3D
 
 /*
     This class is used as a default display region for charts. It allows basic
@@ -33,6 +35,12 @@ class ChartDisplay is Game
     action CreateGame
         ManualLayout layout
         SetLayout(layout)
+
+        Layer2D layer = GetCurrentLayer2D()
+        layer:EnablePhysics(false)
+
+        Layer3D layer3D = GetCurrentLayer3D()
+        layer3D:EnablePhysics(false)
 
         chart:SetPercentageWidth(1)
         chart:SetPercentageHeight(1)
