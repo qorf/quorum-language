@@ -118,10 +118,9 @@ class FlowchartWriter is ChartWriter
 
                 Math math
                 text nodeName = currentNode:GetName()
-                // Have the Aria-Labels use Hexcode for & to make it compatible with SVGs
                 text nodeNameAria = currentNode:GetName()
-                if (nodeNameAria:Contains("&"))
-                    nodeNameAria = nodeNameAria:Replace("&", "&#38;")
+                if nodeName:Contains("&")
+                    nodeNameAria = nodeName:Replace("&","&amp;")
                 end
                 text nodeFocus = ""
                 text nodeBlur = ""
@@ -130,11 +129,11 @@ class FlowchartWriter is ChartWriter
                 flowNodeSVG:SetID(canvas:GetID() + "_" + currentNode:GetHashCode())
                 flowNodeSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                 flowNodeSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
-                flowNodeSVG:SetAriaDescribedBy(nodeName)
+                flowNodeSVG:SetAriaDescribedBy(nodeNameAria)
                 flowNodeSVG:SetTabIndex(-1)
                 if HasAccessibility()
                     flowNodeSVG:SetRole("application")
-                    flowNodeSVG:SetAriaLabel(nodeNameAria + " " +currentNode:GetDescription())
+                    flowNodeSVG:SetAriaLabel(nodeName + " " +currentNode:GetDescription())
                     flowNodeSVG:SetAriaHidden("false")
                 end
                 nodeGraphics:Add(flowNodeSVG)
@@ -211,16 +210,16 @@ class FlowchartWriter is ChartWriter
                         flowchartArrow:SetName(currentNode:GetName() + ", arrow " + position + " of " + size)
                         text arrowName = flowchartArrow:GetName()
                         text destination = flowchartArrow:GetDestination():GetName()
-                        if (arrowName:Contains("&") or destination:Contains("&"))
-                            arrowName = arrowName:Replace("&", "&#38;")
-                            destination = destination:Replace("&", "&#38;")
+                        text ariaDestination = flowchartArrow:GetDestination():GetName()
+                        if (destination:Contains("&"))
+                            ariaDestination = destination:Replace("&", "&amp;")
                         end
                         
                         Group flowArrowSVG
                         flowArrowSVG:SetID(canvas:GetID() + "_" + flowchartArrow:GetHashCode())
                         flowArrowSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                         flowArrowSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
-                        flowArrowSVG:SetAriaRoleDescription(destination)
+                        flowArrowSVG:SetAriaRoleDescription(ariaDestination)
                         flowArrowSVG:SetAriaDescribedBy(nodeNameAria)
                         flowArrowSVG:SetTabIndex(-1)
                         if HasAccessibility()
@@ -348,7 +347,11 @@ class FlowchartWriter is ChartWriter
                             FlowchartNode parentNode = parentArrows:Get(j):GetOrigin()
                             integer m = 0
                             repeat while m < arrowGraphics:GetSize()
-                                if arrowGraphics:Get(m):GetAriaRoleDescription() = parentArrows:Get(j):GetDestination():GetName()
+                                text parentDestination = parentArrows:Get(j):GetDestination():GetName()
+                                if parentDestination:Contains("&")
+                                    parentDestination = parentDestination:Replace("&","&amp;")
+                                end
+                                if arrowGraphics:Get(m):GetAriaRoleDescription() = parentDestination
                                     arrowGraphics:Get(m):Add(flowNodeSVG)
                                     integer l = 0
                                     repeat while l < arrowGraphics:GetSize()
@@ -398,7 +401,7 @@ class FlowchartWriter is ChartWriter
                 integer k = 0
                 Array<FlowchartArrow> arrows = currentNode:GetOutArrows()
                 repeat while k < arrows:GetSize()
-                    text arrowName = arrows:Get(k):GetName() + ", " + arrows:Get(k):GetDescription()
+                    arrowName = arrows:Get(k):GetName() + ", " + arrows:Get(k):GetDescription()
                     if (arrowName:Contains("&"))
                         arrowName = arrowName:Replace("&", "&#38;")
                     end
