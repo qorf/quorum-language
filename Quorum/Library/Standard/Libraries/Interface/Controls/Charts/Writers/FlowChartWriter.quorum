@@ -64,14 +64,6 @@ class FlowchartWriter is ChartWriter
         AddNodesAndArrows(canvas, flowchart)
     end
 
-    private action AddChildNodesAndArrows(ScalableVectorGraphics canvas, Flowchart chart, integer nodeValue)
-        
-        if nodeValue < chart:GetChildren():GetSize()
-            
-        end
-
-    end
-
     private action AddNodesAndArrows(ScalableVectorGraphics canvas, Flowchart chart)
         Color transparent
         transparent:SetColor(0,0,0,0)
@@ -125,12 +117,12 @@ class FlowchartWriter is ChartWriter
             if currentNode not= undefined
 
                 Math math
-                // TODO Add more special characters
                 text nodeName = currentNode:GetName()
-                if (nodeName:Contains("&"))
-                    nodeName = nodeName:Replace("&", "&#38;")
+                // Have the Aria-Labels use Hexcode for & to make it compatible with SVGs
+                text nodeNameAria = currentNode:GetName()
+                if (nodeNameAria:Contains("&"))
+                    nodeNameAria = nodeNameAria:Replace("&", "&#38;")
                 end
-
                 text nodeFocus = ""
                 text nodeBlur = ""
 
@@ -142,7 +134,7 @@ class FlowchartWriter is ChartWriter
                 flowNodeSVG:SetTabIndex(-1)
                 if HasAccessibility()
                     flowNodeSVG:SetRole("application")
-                    flowNodeSVG:SetAriaLabel(nodeName + " " +currentNode:GetDescription())
+                    flowNodeSVG:SetAriaLabel(nodeNameAria + " " +currentNode:GetDescription())
                     flowNodeSVG:SetAriaHidden("false")
                 end
                 nodeGraphics:Add(flowNodeSVG)
@@ -229,11 +221,11 @@ class FlowchartWriter is ChartWriter
                         flowArrowSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                         flowArrowSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
                         flowArrowSVG:SetAriaRoleDescription(destination)
-                        flowArrowSVG:SetAriaDescribedBy(nodeName)
+                        flowArrowSVG:SetAriaDescribedBy(nodeNameAria)
                         flowArrowSVG:SetTabIndex(-1)
                         if HasAccessibility()
                             flowArrowSVG:SetRole("application")  
-                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to move to the " + destination + " node")
+                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to move to the " + destination + " node " + flowchartArrow:GetDescription())
                             flowArrowSVG:SetAriaHidden("false")
                         end
                         arrowGraphics:Add(flowArrowSVG)   
@@ -360,7 +352,7 @@ class FlowchartWriter is ChartWriter
                                     arrowGraphics:Get(m):Add(flowNodeSVG)
                                     integer l = 0
                                     repeat while l < arrowGraphics:GetSize()
-                                        if arrowGraphics:Get(l):GetAriaDescribedBy() = nodeName
+                                        if arrowGraphics:Get(l):GetAriaDescribedBy() = nodeNameAria
                                             arrowGraphics:Get(m):Add(arrowGraphics:Get(l))
                                         end
                                         l = l + 1
