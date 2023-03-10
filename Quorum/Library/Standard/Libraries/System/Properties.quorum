@@ -26,6 +26,9 @@ shared class Properties
     */
     public constant text operatingSystem = "os.name"
 
+    /* This is a public property that is set to true if we are running on an ios simulator. */
+    public constant text iosSimulator = "IOS-Simulator"
+
     /* This asks the system for the operating system version. */
     public constant text version = "os.version"
 
@@ -206,8 +209,11 @@ shared class Properties
     */
     action IsIosSimulator returns boolean
         text os = GetOperatingSystemName()
-        if os:Contains("iOS Simulator")
-            return true
+        if os:Contains("iOS")
+            text sim = GetProperty(iosSimulator)
+            if sim not= undefined and sim = "true"
+                return true
+            end
         end
 
         return false
