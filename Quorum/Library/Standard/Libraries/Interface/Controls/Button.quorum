@@ -27,6 +27,7 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
+use Libraries.Interface.Layouts.ButtonLayout
 
 class Button is Control, TextureLoadListener
 
@@ -40,8 +41,8 @@ class Button is Control, TextureLoadListener
     boolean depressed = false
 
     on create
-        FlowLayout flowLayout
-        SetLayout(flowLayout)
+        ButtonLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetInterfaceOptionsKey("Button")
