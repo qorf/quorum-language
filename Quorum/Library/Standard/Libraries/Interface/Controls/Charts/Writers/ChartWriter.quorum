@@ -622,7 +622,7 @@ class ChartWriter
 
         if chart:IsShowingXAxis()
             HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
-
+            
             if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
                 horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
                 horizontalPanel:SetHeight(horizontalAxisPanel:GetHeight())
@@ -633,7 +633,7 @@ class ChartWriter
                 horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
                     horizontalPanel:SetRole("application")
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + ": " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(horizontalPanel)
@@ -744,8 +744,9 @@ class ChartWriter
                 verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                 verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
+                    
                     verticalPanel:SetRole("application")
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + ": " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(verticalPanel)
