@@ -546,7 +546,7 @@ class ChartWriter
         if HasAccessibility()
             background:SetTabIndex(0)
             background:SetRole("application")
-            background:SetAriaLabel(chart:GetName() + ", " + chart:GetDescription())
+            background:SetAriaLabel(chart:GetName() + ", " + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
