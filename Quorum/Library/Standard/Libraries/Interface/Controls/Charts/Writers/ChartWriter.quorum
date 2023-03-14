@@ -1610,9 +1610,9 @@ class ChartWriter
                         svgElementRLabel:SetAriaHidden("true")
                     end
                     entryGroupSVG:Add(svgElementRLabel)
+                    entryGroupSVG:SetAriaLabel(entryGroupSVG:GetAriaLabel() + ", " + svgElementRegLabel:GetText() + " " + svgElementRLabel:GetText())
                 end
             end
-
             i = i + 1
         end
     end
