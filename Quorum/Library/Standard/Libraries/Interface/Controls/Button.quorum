@@ -40,6 +40,8 @@ class Button is Control, TextureLoadListener
     // Whether this button has been depressed, e.g. by a mouse click.
     boolean depressed = false
 
+    boolean automaticFontSizing = true
+
     on create
         ButtonLayout layout
         SetLayout(layout)
@@ -384,4 +386,27 @@ class Button is Control, TextureLoadListener
         // If a texture we were listening to has loaded, refresh the visuals.
         LoadGraphics(GetDefaultLayoutProperties())
     end
+
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        SetAutomaticFontSizing(false)
+    end
+
+    /*
+    This action returns true if the Button is automatically setting the size of
+    the font of its Label, if it has one, or false if it uses a static font size.
+    By default, this is true.
+    */
+    action IsAutomaticFontSizing returns boolean
+        return automaticFontSizing
+    end
+
+    /*
+    This action sets whether or not this Button should automatically set the size
+    of the font of its Label, if it has one. This is true by default.
+    */
+    action SetAutomaticFontSizing(boolean automaticFontSizing)
+        me:automaticFontSizing = automaticFontSizing
+    end
+
 end

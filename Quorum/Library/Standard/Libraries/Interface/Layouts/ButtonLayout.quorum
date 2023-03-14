@@ -115,6 +115,54 @@ class ButtonLayout is Layout
                 container:SetHeight(totalHeight)
             end
         else
+            if button:IsAutomaticFontSizing() and setContainerWidth = false and setContainerHeight = false
+                // How much of the width or height we want to attempt to fill with the auto-sized font
+                constant number candidatePercentage = 0.9
+
+                constant integer minimumFontSize = 6
+                constant integer maximumFontSize = 100
+
+                number candidateHeight = candidatePercentage * containerHeight
+                if candidateHeight > containerHeight - label:GetTopPadding() - label:GetBottomPadding()
+                    candidateHeight = containerHeight - label:GetTopPadding() - label:GetBottomPadding()
+                end
+                if icon not= undefined and (candidateHeight > containerHeight - icon:GetTopPadding() - icon:GetBottomPadding())
+                    candidateHeight = containerHeight - icon:GetTopPadding() - icon:GetBottomPadding()
+                end
+
+                integer candidateFontSize = label:GetFontSize()
+
+                number startHeight = label:GetLineHeight()
+                number heightRatio = candidateHeight / startHeight
+
+                number candidateWidth = candidatePercentage * containerWidth
+                if candidateWidth > containerWidth - label:GetLeftPadding() - label:GetRightPadding()
+                    candidateWidth = containerWidth - label:GetLeftPadding() - label:GetRightPadding()
+                end
+
+                // Shorten the candidate width area by the predicted size of the icon
+                if icon not= undefined
+                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftPadding()
+                end
+
+                number startWidth = label:GetWidth()
+                number widthRatio = candidateWidth / startWidth
+
+                if widthRatio < heightRatio
+                    candidateFontSize = cast(integer, candidateFontSize * widthRatio)
+                else
+                    candidateFontSize = cast(integer, candidateFontSize * heightRatio)
+                end
+
+                if candidateFontSize < minimumFontSize
+                    candidateFontSize = minimumFontSize
+                elseif candidateFontSize > maximumFontSize
+                    candidateFontSize = maximumFontSize
+                end
+
+                label:SetFontSize(candidateFontSize)
+            end
+
             number iconWidth = 0
             number iconHeight = 0
             number iconLeftPadding = 0
