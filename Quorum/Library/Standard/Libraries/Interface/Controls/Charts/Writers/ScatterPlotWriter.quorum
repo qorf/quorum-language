@@ -200,8 +200,6 @@ class ScatterPlotWriter is ChartWriter
                                 pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                 pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
                             end
-                            pointSVG:Add(point)
-                            
                 
                             if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
                                 ChartLabel label = currentPoint:GetAnnotation()
@@ -218,12 +216,14 @@ class ScatterPlotWriter is ChartWriter
                                     labelSVG:SetTabIndex(-1)
                                     if HasAccessibility()
                                         labelSVG:SetAriaHidden("true")
+                                        pointSVG:SetAriaDescription(label:GetText())
                                         pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                         pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                     end
                                     canvas:Add(labelSVG)
                                 end
                             end
+                            pointSVG:Add(point)
 
                             if currentPoint:GetSelectionArrow() not= undefined
                                 Array <number> vertices = currentPoint:GetSelectionArrowVertices()
