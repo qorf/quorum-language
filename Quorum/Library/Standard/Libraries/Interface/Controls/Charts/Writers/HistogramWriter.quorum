@@ -477,6 +477,7 @@ class HistogramWriter is ChartWriter
             svgPath:SetPath(chart:GetTrendLine())
             if HasAccessibility()
                 svgPath:SetAriaHidden("true")
+                svgPath:SetTabIndex(-1)
             end
             canvas:Add(svgPath)
         end
