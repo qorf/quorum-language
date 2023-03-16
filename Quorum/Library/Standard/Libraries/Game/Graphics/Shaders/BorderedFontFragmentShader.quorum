@@ -33,9 +33,8 @@ void main()
 
     // By default Freetype provides a spread of 8 pixels around the glyph
     float spread = 8.0;
-    float borderThickness = 3.0;
 
-//    float borderThickness = v_borderThickness;
+    float borderThickness = v_borderThickness;
 
     sdf = (sdf - 0.5) * 2.0 * spread;
     outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 1, -borderThickness, sdf));

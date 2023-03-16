@@ -342,18 +342,15 @@ class FontStrategy
     blueprint action GetGlyph(text character) returns Glyph
 
     /*
-    This action will return a Glyph object for this font's representation of the
-    given character. This glyph will contain a special texture that can be used to
-    draw borders around the character with use of a special shader.
+    This action will enable or disable bordered textures for this font.
+    (In a more technical sense, this enables or disables signed-distance
+    field textures for the glyphs.) By default, this is false.
 
-    Attribute: Parameter character The character to create a glyph of.
-
-    Attribute: Returns Returns a glyph representation of the character.
+    Attribute: Parameter bordered True to enable bordered glyph textures, or false to generate glyph textures normally.
 
     Attribute: Example
 
         use Libraries.Game.Graphics.Font
-        use Libraries.Game.Graphics.Glyph
         use Libraries.Game.Game
 
         class Main is Game
@@ -363,12 +360,36 @@ class FontStrategy
 
             action CreateGame
                 Font font
-                font:LoadFont("Arial")
-                Glyph a = font:GetBorderedGlyph("a")
+                font:SetBordered(true)
             end
         end
     */
-    blueprint action GetBorderedGlyph(text character) returns Glyph
+    blueprint action SetBordered(boolean bordered)
+
+    /*
+    This action will return whether or not bordered glyph textures (or more accurately,
+    signed distance field textures) are currently enabled for this font. By default,
+    this is false.
+
+    Attribute: Returns True if this font is generating bordered texture glyphs, or false is it is generating standard textures.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                output "The default font bordering state is " + font:IsBordered()
+            end
+        end
+    */
+    blueprint action IsBordered returns boolean
 
     /*
     This action will return the kerning value of two consecutive characters.

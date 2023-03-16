@@ -131,12 +131,12 @@ public class FreeTypeStrategy
     private native ByteBuffer LoadSDFBitmap(long[] data, char glyph, long handle);
 
     public quorum.Libraries.Game.Graphics.Glyph_ GetGlyphNative(String character)
-    {        
+    {
         char target = character.charAt(0);
         quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
         
         ByteBuffer rawBitmap = LoadBitmap(bitmapData, target, faceHandle);
-            
+
         // Since the space is just open space, there's no need to load it in a drawable.
         if (target != ' ')
         {
@@ -268,7 +268,7 @@ public class FreeTypeStrategy
         public int height;
     }
     
-    public boolean LoadImageSheet(FontImageSheet_ sheet)
+    public boolean LoadImageSheet(FontImageSheet_ sheet, boolean bordered)
     {
         Texture_ texture = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__imageSheet_();
         quorum.Libraries.Containers.Array_ table = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__glyphTable_();
@@ -303,12 +303,16 @@ public class FreeTypeStrategy
 
                 LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
             */
-            ByteBuffer value = LoadBitmap(currentData, current, faceHandle);
+            ByteBuffer value;
+            if (bordered)
+                value = LoadSDFBitmap(currentData, current, faceHandle);
+            else
+                value = LoadBitmap(currentData, current, faceHandle);
             
             int currentWidth = (int)currentData[3];
             int currentHeight = (int)currentData[2];
             
-            if (currentWidth == 0 || currentHeight == 0)
+            if (currentWidth == 0 || currentHeight == 0 || value == null)
             {
                 // We use a single empty pixel to represent symbols that don't
                 // have a visual representation, e.g. space or new line.

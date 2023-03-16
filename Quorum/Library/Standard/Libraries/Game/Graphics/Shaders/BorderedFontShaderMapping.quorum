@@ -35,6 +35,7 @@ class BorderedFontShaderMapping is BatchingShaderMapping2D
         borderThicknessAttribute = dummy:CustomNumberAttribute("a_borderThickness")
 
         extraAttributes:Add(borderColorAttribute)
+        extraAttributes:Add(borderThicknessAttribute)
         attributes:SetAttributes(extraAttributes)
         
         /*
@@ -97,7 +98,7 @@ class BorderedFontShaderMapping is BatchingShaderMapping2D
             shape:SetDataForAllVertices(borderColorAttribute:offset / 4, color:EncodeColorAsNumber())
         end
 
-//        shape:SetDataForAllVertices(borderThicknessAttribute:offset / 4, borderThickness)
+        shape:SetDataForAllVertices(borderThicknessAttribute:offset / 4, borderThickness)
     end
 
     /*

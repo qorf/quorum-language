@@ -31,7 +31,8 @@ class FontManager
     Style <TBD>
     SubFont <TBD>
     Color (Not used here, set locally by Font when returning a glyph)
-*/
+    */
+
     // A prefix used to indicate a system font.
     public constant text SYSTEM_PREFIX = "SYSTEM"
 
@@ -68,11 +69,7 @@ class FontManager
 
     action GetGlyph(Font font, text character) returns Glyph
         FontStrategy strategy = GetFontStrategy(font:GetIdentifier())
-        if font:IsBordered()
-            return strategy:GetBorderedGlyph(character)
-        else
-            return strategy:GetGlyph(character)
-        end
+        return strategy:GetGlyph(character)
     end
 
     action GetLineHeight(Font font) returns integer
@@ -374,6 +371,13 @@ class FontManager
 
             strategy:SetSize(cast(integer, fontValues:Get(2)))
             strategy:SetAngle(cast(number, fontValues:Get(3)))
+
+            text borderText = fontValues:Get(4)
+            if borderText = BORDERED_TAG
+                strategy:SetBordered(true)
+            else
+                strategy:SetBordered(false)
+            end
 
             if fontValues:Get(0) = SYSTEM_PREFIX
                 strategy:LoadFont(fontValues:Get(1))
