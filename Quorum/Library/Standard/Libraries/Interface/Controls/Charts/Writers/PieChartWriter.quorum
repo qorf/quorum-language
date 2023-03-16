@@ -80,6 +80,7 @@ class PieChartWriter is ChartWriter
         pieChart = cast(PieChart, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end

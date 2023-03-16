@@ -80,6 +80,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end

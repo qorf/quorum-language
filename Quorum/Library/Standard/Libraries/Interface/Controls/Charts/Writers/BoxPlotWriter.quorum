@@ -79,6 +79,7 @@ class BoxPlotWriter is ChartWriter
         boxPlot = cast(BoxPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
