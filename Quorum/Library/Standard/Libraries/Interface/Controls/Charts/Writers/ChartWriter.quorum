@@ -545,7 +545,7 @@ class ChartWriter
         background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
         if HasAccessibility()
             background:SetTabIndex(0)
-            background:SetRole("application")
+            background:SetRole("graphics-object")
             background:SetAriaLabel(chart:GetName() + ", " + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
@@ -632,7 +632,7 @@ class ChartWriter
                 horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                 horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    horizontalPanel:SetRole("application")
+                    horizontalPanel:SetRole("graphics-object")
                     horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
@@ -744,7 +744,7 @@ class ChartWriter
                 verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                 verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    verticalPanel:SetRole("application")
+                    verticalPanel:SetRole("graphics-object")
                     verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
@@ -1450,7 +1450,7 @@ class ChartWriter
         svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
 
         if HasAccessibility()
-            svgElementLegend:SetRole("application")
+            svgElementLegend:SetRole("graphics-object")
             svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
