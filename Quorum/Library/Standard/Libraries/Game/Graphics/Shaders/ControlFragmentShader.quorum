@@ -56,6 +56,7 @@ void main()
 
     vec4 borderColor = v_borderColor;
     bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0.0;
+    bool renderAllBorders = (borderThickness.x > 0.0) && (borderThickness.y > 0.0) && (borderThickness.z > 0.0) && (borderThickness.w > 0.0);
 
     vec2 point = (v_texCoords.xy - 0.5) * 2.0;
     point.x *= aspectRatio;
@@ -64,7 +65,12 @@ void main()
     float distance = signedDistanceFunction(point, dimensions, rounding);
     vec4 resultColor;
 
-    if (renderBorders)
+    if (renderAllBorders)
+    {
+        resultColor = mix(borderColor * texture(u_texture, v_texCoords), vec4(borderColor.rgb, 0.0), smoothstep(0.0, antiAliasDistance, distance));
+        resultColor = mix(v_color * texture(u_texture, v_texCoords), resultColor, smoothstep(0.0, antiAliasDistance, distance + borderThickness.x + borderThickness.z));
+    }
+    else if (renderBorders)
     {
         // The enabled borders vector stores values for the sides in the following order:
         // x: right
