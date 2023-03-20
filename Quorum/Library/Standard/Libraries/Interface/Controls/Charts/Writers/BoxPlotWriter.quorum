@@ -117,7 +117,7 @@ class BoxPlotWriter is ChartWriter
         chartContentBoundingBox:SetTabIndex(-1)
         if HasAccessibility()
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription() + "Chart Bounding Box")
             chartContent:SetAriaHidden("false")
         end
         chartContent:Add(chartContentBoundingBox)
@@ -146,22 +146,7 @@ class BoxPlotWriter is ChartWriter
 
                     text plotGroupFocus = ""
                     text plotGroupBlur = ""
-    
-                    // Add group selection symbols here!
-                    // The group area, used for hover 
-                    Rectangle plotGroup
-                    plotGroup:SetWidth(group:GetWidth())
-                    plotGroup:SetHeight(group:GetHeight())
-                    plotGroup:SetPosition(group:GetGlobalX(), group:GetGlobalY() + group:GetHeight()) 
-                    //plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
-                    plotGroup:SetFill(transparent)
-                    plotGroup:SetStyleClass("quorum-chart-rect")
-                    plotGroup:SetTabIndex(-1)
-                    if HasAccessibility()
-                        plotGroup:SetAriaHidden("true")
-                    end
-                    plotGroupSVG:Add(plotGroup)
-    
+  
                     if group:GetSelectionBracket():GetSize() = 3
                         integer k = 0
                         repeat while k < group:GetSelectionBracket():GetSize()
@@ -239,20 +224,20 @@ class BoxPlotWriter is ChartWriter
                     text plotFocus = ""
                     text plotBlur = ""
 
-                    // Add plot selection symbols here!
-                    // The plot area, used for hover 
-                    Rectangle plotArea
-                    plotArea:SetWidth(plot:GetPlotArea():GetWidth())
-                    plotArea:SetHeight(plot:GetPlotArea():GetHeight())
-                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
-                    plotArea:SetFill(transparent)
-                    plotArea:SetStyleClass("quorum-chart-rect")
-                    plotArea:SetTabIndex(-1)
-                    if HasAccessibility()
-                        plotArea:SetAriaHidden("true")
-                    end
-                    plotSVG:Add(plotArea)
-    
+//                    // Add plot selection symbols here!
+//                    // The plot area, used for hover 
+//                    Rectangle plotArea
+//                    plotArea:SetWidth(plot:GetPlotArea():GetWidth())
+//                    plotArea:SetHeight(plot:GetPlotArea():GetHeight())
+//                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
+//                    plotArea:SetFill(transparent)
+//                    plotArea:SetStyleClass("quorum-chart-rect")
+//                    plotArea:SetTabIndex(-1)
+//                    if HasAccessibility()
+//                        plotArea:SetAriaHidden("true")
+//                    end
+//                    plotSVG:Add(plotArea)
+//    
                     if plot:GetSelectionBracket():GetSize() = 3
                         integer k = 0
                         repeat while k < plot:GetSelectionBracket():GetSize()
@@ -533,20 +518,20 @@ class BoxPlotWriter is ChartWriter
     
                         text plotFocus = ""
                         text plotBlur = ""
-
-                        // Add plot selection symbols here!
-                        // The plot area, used for hover 
-                        Rectangle plotArea
-                        plotArea:SetWidth(plot:GetPlotArea():GetWidth())
-                        plotArea:SetHeight(plot:GetPlotArea():GetHeight())
-                        plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
-                        plotArea:SetFill(transparent)
-                        plotArea:SetStyleClass("quorum-chart-rect")
-                        plotArea:SetTabIndex(-1)
-                        if HasAccessibility()
-                            plotArea:SetAriaHidden("true")
-                        end
-                        plotSVG:Add(plotArea)
+//
+//                        // Add plot selection symbols here!
+//                        // The plot area, used for hover 
+//                        Rectangle plotArea
+//                        plotArea:SetWidth(plot:GetPlotArea():GetWidth())
+//                        plotArea:SetHeight(plot:GetPlotArea():GetHeight())
+//                        plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
+//                        plotArea:SetFill(transparent)
+//                        plotArea:SetStyleClass("quorum-chart-rect")
+//                        plotArea:SetTabIndex(-1)
+//                        if HasAccessibility()
+//                            plotArea:SetAriaHidden("true")
+//                        end
+//                        plotSVG:Add(plotArea)
     
                         if plot:GetSelectionBracket():GetSize() = 3
                             integer k = 0
