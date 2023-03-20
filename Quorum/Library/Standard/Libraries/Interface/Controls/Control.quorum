@@ -817,6 +817,19 @@ class Control is Item2D
     end
 
     /*
+    This action sets how much rounding to apply to the four corners of a rectangular control. 
+    This action takes the amount of rounding to apply as a number of pixels. 
+
+    Attribute: Parameter bottomLeft The rounding value to be applied to the bottom left corner, in pixels.
+    Attribute: Parameter bottomRight The rounding value to be applied to the bottom right corner, in pixels.
+    Attribute: Parameter topLeft The rounding value to be applied to the top left corner, in pixels.
+    Attribute: Parameter topRight The rounding value to be applied to the top right corner, in pixels.
+    */
+    action SetCornerPixelRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
+        defaultProperties:SetCornerPixelRounding(bottomLeft, bottomRight, topLeft, topRight)
+    end
+
+    /*
 
     */
     action SetInterfaceScale(number scale)
@@ -1146,7 +1159,7 @@ class Control is Item2D
         return defaultProperties:HasNumberPropertyOverride(property)
     end
 
-    action SetBackgroundColor(ColorGroup value)
+        action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
 
@@ -1396,6 +1409,54 @@ class Control is Item2D
 
     action HasBottomRightRounding returns boolean
         return defaultProperties:HasBottomRightRounding()
+    end
+
+    action SetTopLeftPixelRounding(number value)
+        defaultProperties:SetTopLeftPixelRounding(value)
+    end
+
+    action GetTopLeftPixelRounding returns number
+        return defaultProperties:GetTopLeftPixelRounding()
+    end
+
+    action HasTopLeftPixelRounding returns boolean
+        return defaultProperties:HasTopLeftPixelRounding()
+    end
+
+    action SetTopRightPixelRounding(number value)
+        defaultProperties:SetTopRightPixelRounding(value)
+    end
+
+    action GetTopRightPixelRounding returns number
+        return defaultProperties:GetTopRightPixelRounding()
+    end
+
+    action HasTopRightPixelRounding returns boolean
+        return defaultProperties:HasTopRightPixelRounding()
+    end
+
+    action SetBottomLeftPixelRounding(number value)
+        defaultProperties:SetBottomLeftPixelRounding(value)
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        return defaultProperties:GetBottomLeftPixelRounding()
+    end
+
+    action HasBottomLeftPixelRounding returns boolean
+        return defaultProperties:HasBottomLeftPixelRounding()
+    end
+
+    action SetBottomRightPixelRounding(number value)
+        defaultProperties:SetBottomRightPixelRounding(value)
+    end
+
+    action GetBottomRightPixelRounding returns number
+        return defaultProperties:GetBottomRightPixelRounding()
+    end
+
+    action HasBottomRightPixelRounding returns boolean
+        return defaultProperties:HasBottomRightPixelRounding()
     end
 
     action SetShadowX(number value)

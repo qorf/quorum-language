@@ -73,7 +73,7 @@ end
 */
 class InterfaceOptions
 
-    // Key values for color properties.
+        // Key values for color properties.
     public constant text BACKGROUND_COLOR = "backgroundColor"
     public constant text FOREGROUND_COLOR = "foregroundColor"
     public constant text FOREGROUND_SELECTION_COLOR = "foregroundSelectionColor"
@@ -105,6 +105,10 @@ class InterfaceOptions
     public constant text TOP_RIGHT_ROUNDING = "topRightRounding"
     public constant text BOTTOM_LEFT_ROUNDING = "bottomLeftRounding"
     public constant text BOTTOM_RIGHT_ROUNDING = "bottomRightRounding"
+    public constant text TOP_LEFT_PIXEL_ROUNDING = "topLeftPixelRounding"
+    public constant text TOP_RIGHT_PIXEL_ROUNDING = "topRightPixelRounding"
+    public constant text BOTTOM_LEFT_PIXEL_ROUNDING = "bottomLeftPixelRounding"
+    public constant text BOTTOM_RIGHT_PIXEL_ROUNDING = "bottomRightPixelRounding"
     public constant text SHADOW_X = "shadowX"
     public constant text SHADOW_Y = "shadowY"
     public constant text SHADOW_WIDTH = "shadowWidth"
@@ -119,6 +123,9 @@ class InterfaceOptions
     public constant text DIALOG = "Dialog"
     public constant text DIALOG_BAR = "DialogBar"
     public constant text DIALOG_ACCEPT_BUTTON = "DialogAcceptButton"
+    public constant text FLOWCHART = "Flowchart"
+    public constant text FLOWCHART_ARROW = "FlowchartArrow"
+    public constant text FLOWCHART_NODE = "FlowchartNode"
     public constant text GUTTER = "Gutter"
     public constant text LABEL = "Label"
     public constant text LIST = "List"
@@ -1061,6 +1068,146 @@ class InterfaceOptions
         return GetBottomRightRounding(controlType):IsNotANumber() = false
     end
 
+    action SetTopLeftPixelRounding(number value)
+        SetNumberProperty(TOP_LEFT_PIXEL_ROUNDING, value)
+    end
+
+    action GetTopLeftPixelRounding returns number
+        return GetNumberProperty(TOP_LEFT_PIXEL_ROUNDING)
+    end
+
+    action HasTopLeftPixelRounding returns boolean
+        return GetNumberProperty(TOP_LEFT_PIXEL_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetTopLeftPixelRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetTopLeftPixelRounding(value)
+    end
+
+    action GetTopLeftPixelRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetTopLeftPixelRounding()
+        end
+    end
+
+    action HasTopLeftPixelRounding(text controlType) returns boolean
+        return GetTopLeftPixelRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetTopRightPixelRounding(number value)
+        SetNumberProperty(TOP_RIGHT_PIXEL_ROUNDING, value)
+    end
+
+    action GetTopRightPixelRounding returns number
+        return GetNumberProperty(TOP_RIGHT_PIXEL_ROUNDING)
+    end
+
+    action HasTopRightPixelRounding returns boolean
+        return GetNumberProperty(TOP_RIGHT_PIXEL_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetTopRightPixelRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetTopRightPixelRounding(value)
+    end
+
+    action GetTopRightPixelRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetTopRightPixelRounding()
+        end
+    end
+
+    action HasTopRightPixelRounding(text controlType) returns boolean
+        return GetTopRightPixelRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetBottomLeftPixelRounding(number value)
+        SetNumberProperty(BOTTOM_LEFT_PIXEL_ROUNDING, value)
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        return GetNumberProperty(BOTTOM_LEFT_PIXEL_ROUNDING)
+    end
+
+    action HasBottomLeftPixelRounding returns boolean
+        return GetNumberProperty(BOTTOM_LEFT_PIXEL_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetBottomLeftPixelRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetBottomLeftPixelRounding(value)
+    end
+
+    action GetBottomLeftPixelRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetBottomLeftPixelRounding()
+        end
+    end
+
+    action HasBottomLeftPixelRounding(text controlType) returns boolean
+        return GetBottomLeftPixelRounding(controlType):IsNotANumber() = false
+    end
+
+    action SetBottomRightPixelRounding(number value)
+        SetNumberProperty(BOTTOM_RIGHT_PIXEL_ROUNDING, value)
+    end
+
+    action GetBottomRightPixelRounding returns number
+        return GetNumberProperty(BOTTOM_RIGHT_PIXEL_ROUNDING)
+    end
+
+    action HasBottomRightPixelRounding returns boolean
+        return GetNumberProperty(BOTTOM_RIGHT_PIXEL_ROUNDING):IsNotANumber() = false
+    end
+
+    action SetBottomRightPixelRounding(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetBottomRightPixelRounding(value)
+    end
+
+    action GetBottomRightPixelRounding(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetBottomRightPixelRounding()
+        end
+    end
+
+    action HasBottomRightPixelRounding(text controlType) returns boolean
+        return GetBottomRightPixelRounding(controlType):IsNotANumber() = false
+    end
+
     action SetShadowX(number value)
         SetNumberProperty(SHADOW_X, value)
     end
@@ -1488,6 +1635,54 @@ class InterfaceOptions
         return GetBottomRightRounding(BUTTON):IsNotANumber() = false
     end
 
+    action SetButtonTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(BUTTON, value)
+    end
+
+    action GetButtonTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(BUTTON)
+    end
+
+    action HasButtonTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(BUTTON, value)
+    end
+
+    action GetButtonTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(BUTTON)
+    end
+
+    action HasButtonTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(BUTTON, value)
+    end
+
+    action GetButtonBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(BUTTON)
+    end
+
+    action HasButtonBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(BUTTON, value)
+    end
+
+    action GetButtonBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(BUTTON)
+    end
+
+    action HasButtonBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(BUTTON):IsNotANumber() = false
+    end
+
     action SetButtonShadowX(number value)
         SetShadowX(BUTTON, value)
     end
@@ -1802,6 +1997,54 @@ class InterfaceOptions
 
     action HasCellBottomRightRounding returns boolean
         return GetBottomRightRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(CELL, value)
+    end
+
+    action GetCellTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(CELL)
+    end
+
+    action HasCellTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(CELL, value)
+    end
+
+    action GetCellTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(CELL)
+    end
+
+    action HasCellTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(CELL, value)
+    end
+
+    action GetCellBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(CELL)
+    end
+
+    action HasCellBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(CELL):IsNotANumber() = false
+    end
+
+    action SetCellBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(CELL, value)
+    end
+
+    action GetCellBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(CELL)
+    end
+
+    action HasCellBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(CELL):IsNotANumber() = false
     end
 
     action SetCellShadowX(number value)
@@ -2120,6 +2363,54 @@ class InterfaceOptions
         return GetBottomRightRounding(CHART):IsNotANumber() = false
     end
 
+    action SetChartTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(CHART, value)
+    end
+
+    action GetChartTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(CHART)
+    end
+
+    action HasChartTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(CHART, value)
+    end
+
+    action GetChartTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(CHART)
+    end
+
+    action HasChartTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(CHART, value)
+    end
+
+    action GetChartBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(CHART)
+    end
+
+    action HasChartBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(CHART):IsNotANumber() = false
+    end
+
+    action SetChartBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(CHART, value)
+    end
+
+    action GetChartBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(CHART)
+    end
+
+    action HasChartBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(CHART):IsNotANumber() = false
+    end
+
     action SetChartShadowX(number value)
         SetShadowX(CHART, value)
     end
@@ -2434,6 +2725,54 @@ class InterfaceOptions
 
     action HasCheckboxBottomRightRounding returns boolean
         return GetBottomRightRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(CHECKBOX)
+    end
+
+    action HasCheckboxTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(CHECKBOX)
+    end
+
+    action HasCheckboxTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(CHECKBOX)
+    end
+
+    action HasCheckboxBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(CHECKBOX, value)
+    end
+
+    action GetCheckboxBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(CHECKBOX)
+    end
+
+    action HasCheckboxBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(CHECKBOX):IsNotANumber() = false
     end
 
     action SetCheckboxShadowX(number value)
@@ -2752,6 +3091,54 @@ class InterfaceOptions
         return GetBottomRightRounding(DIALOG):IsNotANumber() = false
     end
 
+    action SetDialogTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(DIALOG, value)
+    end
+
+    action GetDialogTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(DIALOG)
+    end
+
+    action HasDialogTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(DIALOG, value)
+    end
+
+    action GetDialogTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(DIALOG)
+    end
+
+    action HasDialogTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(DIALOG, value)
+    end
+
+    action GetDialogBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(DIALOG)
+    end
+
+    action HasDialogBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(DIALOG, value)
+    end
+
+    action GetDialogBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(DIALOG)
+    end
+
+    action HasDialogBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(DIALOG):IsNotANumber() = false
+    end
+
     action SetDialogShadowX(number value)
         SetShadowX(DIALOG, value)
     end
@@ -3066,6 +3453,54 @@ class InterfaceOptions
 
     action HasDialogBarBottomRightRounding returns boolean
         return GetBottomRightRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(DIALOG_BAR)
+    end
+
+    action HasDialogBarBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(DIALOG_BAR):IsNotANumber() = false
     end
 
     action SetDialogBarShadowX(number value)
@@ -3384,6 +3819,54 @@ class InterfaceOptions
         return GetBottomRightRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
     end
 
+    action SetDialogAcceptButtonTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
     action SetDialogAcceptButtonShadowX(number value)
         SetShadowX(DIALOG_ACCEPT_BUTTON, value)
     end
@@ -3446,6 +3929,1098 @@ class InterfaceOptions
 
     action CopyDialogAcceptButtonInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetFlowchartBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART)
+    end
+
+    action SetFlowchartForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART)
+    end
+
+    action SetFlowchartForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART)
+    end
+
+    action SetFlowchartAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART)
+    end
+
+    action SetFlowchartShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART)
+    end
+
+    action SetFlowchartBorderThickness(number value)
+        SetBorderThickness(FLOWCHART, value)
+    end
+
+    action GetFlowchartBorderThickness returns number
+        return GetBorderThickness(FLOWCHART)
+    end
+
+    action HasFlowchartBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowX(number value)
+        SetShadowX(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowX returns number
+        return GetShadowX(FLOWCHART)
+    end
+
+    action HasFlowchartShadowX returns boolean
+        return GetShadowX(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowY(number value)
+        SetShadowY(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowY returns number
+        return GetShadowY(FLOWCHART)
+    end
+
+    action HasFlowchartShadowY returns boolean
+        return GetShadowY(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowWidth(number value)
+        SetShadowWidth(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowWidth returns number
+        return GetShadowWidth(FLOWCHART)
+    end
+
+    action HasFlowchartShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowHeight(number value)
+        SetShadowHeight(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowHeight returns number
+        return GetShadowHeight(FLOWCHART)
+    end
+
+    action HasFlowchartShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART)
+    end
+
+    action HasFlowchartShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART):IsNotANumber() = false
+    end
+
+    action CopyFlowchartInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART)
+    end
+
+    action SetFlowchartArrowBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowBorderThickness(number value)
+        SetBorderThickness(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBorderThickness returns number
+        return GetBorderThickness(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowX(number value)
+        SetShadowX(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowX returns number
+        return GetShadowX(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowX returns boolean
+        return GetShadowX(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowY(number value)
+        SetShadowY(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowY returns number
+        return GetShadowY(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowY returns boolean
+        return GetShadowY(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowWidth(number value)
+        SetShadowWidth(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowWidth returns number
+        return GetShadowWidth(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowHeight(number value)
+        SetShadowHeight(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowHeight returns number
+        return GetShadowHeight(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action CopyFlowchartArrowInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartNodeBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeBorderThickness(number value)
+        SetBorderThickness(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBorderThickness returns number
+        return GetBorderThickness(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowX(number value)
+        SetShadowX(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowX returns number
+        return GetShadowX(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowX returns boolean
+        return GetShadowX(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowY(number value)
+        SetShadowY(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowY returns number
+        return GetShadowY(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowY returns boolean
+        return GetShadowY(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowWidth(number value)
+        SetShadowWidth(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowWidth returns number
+        return GetShadowWidth(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowHeight(number value)
+        SetShadowHeight(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowHeight returns number
+        return GetShadowHeight(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action CopyFlowchartNodeInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART_NODE)
     end
 
     action SetGutterBackgroundColor(ColorGroup value)
@@ -3698,6 +5273,54 @@ class InterfaceOptions
 
     action HasGutterBottomRightRounding returns boolean
         return GetBottomRightRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(GUTTER, value)
+    end
+
+    action GetGutterTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(GUTTER)
+    end
+
+    action HasGutterTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(GUTTER, value)
+    end
+
+    action GetGutterTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(GUTTER)
+    end
+
+    action HasGutterTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(GUTTER, value)
+    end
+
+    action GetGutterBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(GUTTER)
+    end
+
+    action HasGutterBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(GUTTER, value)
+    end
+
+    action GetGutterBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(GUTTER)
+    end
+
+    action HasGutterBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(GUTTER):IsNotANumber() = false
     end
 
     action SetGutterShadowX(number value)
@@ -4016,6 +5639,54 @@ class InterfaceOptions
         return GetBottomRightRounding(LABEL):IsNotANumber() = false
     end
 
+    action SetLabelTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(LABEL, value)
+    end
+
+    action GetLabelTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(LABEL)
+    end
+
+    action HasLabelTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(LABEL, value)
+    end
+
+    action GetLabelTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(LABEL)
+    end
+
+    action HasLabelTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(LABEL, value)
+    end
+
+    action GetLabelBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(LABEL)
+    end
+
+    action HasLabelBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(LABEL, value)
+    end
+
+    action GetLabelBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(LABEL)
+    end
+
+    action HasLabelBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(LABEL):IsNotANumber() = false
+    end
+
     action SetLabelShadowX(number value)
         SetShadowX(LABEL, value)
     end
@@ -4330,6 +6001,54 @@ class InterfaceOptions
 
     action HasListBottomRightRounding returns boolean
         return GetBottomRightRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(LIST, value)
+    end
+
+    action GetListTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(LIST)
+    end
+
+    action HasListTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(LIST, value)
+    end
+
+    action GetListTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(LIST)
+    end
+
+    action HasListTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(LIST, value)
+    end
+
+    action GetListBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(LIST)
+    end
+
+    action HasListBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(LIST):IsNotANumber() = false
+    end
+
+    action SetListBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(LIST, value)
+    end
+
+    action GetListBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(LIST)
+    end
+
+    action HasListBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(LIST):IsNotANumber() = false
     end
 
     action SetListShadowX(number value)
@@ -4648,6 +6367,54 @@ class InterfaceOptions
         return GetBottomRightRounding(LIST_ITEM):IsNotANumber() = false
     end
 
+    action SetListItemTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(LIST_ITEM)
+    end
+
+    action HasListItemTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(LIST_ITEM)
+    end
+
+    action HasListItemTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(LIST_ITEM)
+    end
+
+    action HasListItemBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(LIST_ITEM, value)
+    end
+
+    action GetListItemBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(LIST_ITEM)
+    end
+
+    action HasListItemBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(LIST_ITEM):IsNotANumber() = false
+    end
+
     action SetListItemShadowX(number value)
         SetShadowX(LIST_ITEM, value)
     end
@@ -4962,6 +6729,54 @@ class InterfaceOptions
 
     action HasMenuBarBottomRightRounding returns boolean
         return GetBottomRightRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(MENU_BAR)
+    end
+
+    action HasMenuBarTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(MENU_BAR)
+    end
+
+    action HasMenuBarTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(MENU_BAR)
+    end
+
+    action HasMenuBarBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(MENU_BAR, value)
+    end
+
+    action GetMenuBarBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(MENU_BAR)
+    end
+
+    action HasMenuBarBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(MENU_BAR):IsNotANumber() = false
     end
 
     action SetMenuBarShadowX(number value)
@@ -5280,6 +7095,54 @@ class InterfaceOptions
         return GetBottomRightRounding(MENU_ITEM):IsNotANumber() = false
     end
 
+    action SetMenuItemTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(MENU_ITEM, value)
+    end
+
+    action GetMenuItemBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(MENU_ITEM)
+    end
+
+    action HasMenuItemBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(MENU_ITEM):IsNotANumber() = false
+    end
+
     action SetMenuItemShadowX(number value)
         SetShadowX(MENU_ITEM, value)
     end
@@ -5594,6 +7457,54 @@ class InterfaceOptions
 
     action HasMenuPanelBottomRightRounding returns boolean
         return GetBottomRightRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(MENU_PANEL)
+    end
+
+    action HasMenuPanelBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(MENU_PANEL):IsNotANumber() = false
     end
 
     action SetMenuPanelShadowX(number value)
@@ -5912,6 +7823,54 @@ class InterfaceOptions
         return GetBottomRightRounding(PROGRESS_BAR):IsNotANumber() = false
     end
 
+    action SetProgressBarTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(PROGRESS_BAR)
+    end
+
+    action HasProgressBarBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(PROGRESS_BAR):IsNotANumber() = false
+    end
+
     action SetProgressBarShadowX(number value)
         SetShadowX(PROGRESS_BAR, value)
     end
@@ -6226,6 +8185,54 @@ class InterfaceOptions
 
     action HasRadioButtonBottomRightRounding returns boolean
         return GetBottomRightRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(RADIO_BUTTON):IsNotANumber() = false
     end
 
     action SetRadioButtonShadowX(number value)
@@ -6544,6 +8551,54 @@ class InterfaceOptions
         return GetBottomRightRounding(SCROLL_PANE):IsNotANumber() = false
     end
 
+    action SetScrollPaneTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(SCROLL_PANE)
+    end
+
+    action HasScrollPaneBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(SCROLL_PANE):IsNotANumber() = false
+    end
+
     action SetScrollPaneShadowX(number value)
         SetShadowX(SCROLL_PANE, value)
     end
@@ -6858,6 +8913,54 @@ class InterfaceOptions
 
     action HasTabBottomRightRounding returns boolean
         return GetBottomRightRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TAB, value)
+    end
+
+    action GetTabTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TAB)
+    end
+
+    action HasTabTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TAB, value)
+    end
+
+    action GetTabTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TAB)
+    end
+
+    action HasTabTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TAB, value)
+    end
+
+    action GetTabBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TAB)
+    end
+
+    action HasTabBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TAB):IsNotANumber() = false
+    end
+
+    action SetTabBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TAB, value)
+    end
+
+    action GetTabBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TAB)
+    end
+
+    action HasTabBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TAB):IsNotANumber() = false
     end
 
     action SetTabShadowX(number value)
@@ -7176,6 +9279,54 @@ class InterfaceOptions
         return GetBottomRightRounding(TAB_BAR):IsNotANumber() = false
     end
 
+    action SetTabBarTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TAB_BAR)
+    end
+
+    action HasTabBarTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TAB_BAR)
+    end
+
+    action HasTabBarTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TAB_BAR)
+    end
+
+    action HasTabBarBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TAB_BAR, value)
+    end
+
+    action GetTabBarBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TAB_BAR)
+    end
+
+    action HasTabBarBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TAB_BAR):IsNotANumber() = false
+    end
+
     action SetTabBarShadowX(number value)
         SetShadowX(TAB_BAR, value)
     end
@@ -7490,6 +9641,54 @@ class InterfaceOptions
 
     action HasTextBoxBottomRightRounding returns boolean
         return GetBottomRightRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TEXT_BOX, value)
+    end
+
+    action GetTextBoxBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TEXT_BOX)
+    end
+
+    action HasTextBoxBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TEXT_BOX):IsNotANumber() = false
     end
 
     action SetTextBoxShadowX(number value)
@@ -7808,6 +10007,54 @@ class InterfaceOptions
         return GetBottomRightRounding(TEXT_FIELD):IsNotANumber() = false
     end
 
+    action SetTextFieldTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TEXT_FIELD)
+    end
+
+    action HasTextFieldBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TEXT_FIELD):IsNotANumber() = false
+    end
+
     action SetTextFieldShadowX(number value)
         SetShadowX(TEXT_FIELD, value)
     end
@@ -8122,6 +10369,54 @@ class InterfaceOptions
 
     action HasToolBarBottomRightRounding returns boolean
         return GetBottomRightRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TOOL_BAR)
+    end
+
+    action HasToolBarTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TOOL_BAR)
+    end
+
+    action HasToolBarTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TOOL_BAR)
+    end
+
+    action HasToolBarBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TOOL_BAR, value)
+    end
+
+    action GetToolBarBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TOOL_BAR)
+    end
+
+    action HasToolBarBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TOOL_BAR):IsNotANumber() = false
     end
 
     action SetToolBarShadowX(number value)
@@ -8440,6 +10735,54 @@ class InterfaceOptions
         return GetBottomRightRounding(TREE_ITEM):IsNotANumber() = false
     end
 
+    action SetTreeItemTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TREE_ITEM, value)
+    end
+
+    action GetTreeItemBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TREE_ITEM)
+    end
+
+    action HasTreeItemBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TREE_ITEM):IsNotANumber() = false
+    end
+
     action SetTreeItemShadowX(number value)
         SetShadowX(TREE_ITEM, value)
     end
@@ -8754,6 +11097,54 @@ class InterfaceOptions
 
     action HasTreeTableCellBottomRightRounding returns boolean
         return GetBottomRightRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TREE_TABLE_CELL):IsNotANumber() = false
     end
 
     action SetTreeTableCellShadowX(number value)
