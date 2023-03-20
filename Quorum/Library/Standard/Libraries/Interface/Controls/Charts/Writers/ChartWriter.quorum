@@ -187,6 +187,7 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
+            chart:AddChartAreaInstructions(" with")
             Division accessibleChart
             accessibleChart = AddAccessibility(chartCanvas, chart)
             return accessibleChart:Generate()
