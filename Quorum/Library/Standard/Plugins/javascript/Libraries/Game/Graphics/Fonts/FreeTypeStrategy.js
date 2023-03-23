@@ -112,16 +112,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// Get data from Emscripten heap
 		let bitmapBuffer = new Uint8Array(dataHeap.buffer, dataHeap.byteOffset, num_bytes);
 
-		// Output buffer to log
-		var i;
-		var output = "";
-		for (i = 0; i < size; i++) {
-			output = output + bitmapBuffer[i].toString(10) + " ";
-		}
-
-		// Free allocated memory
-		Module._free(dataHeap.byteOffset);
-
 		if (character != ' ') {
                         var rgbaBuffer = new Uint8Array(num_bytes * 4);
                         for (var i = 0; i < rgbaBuffer.length; i += 4)
@@ -168,6 +158,8 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		glyph.Set_Libraries_Game_Graphics_Glyph__lengthToGlyph_(bitmapData[0]);
 		glyph.Set_Libraries_Game_Graphics_Glyph__heightFromBaseLine_(bitmapData[1]);
 
+        // Free allocated memory
+        Module._free(dataHeap.byteOffset);
 
 		return glyph;
 	};
@@ -185,7 +177,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// NYI
 	};
 
-	this.LoadImageSheet$quorum_Libraries_Game_Graphics_Fonts_FontImageSheet = function (imageSheet) {
+	this.LoadImageSheet$quorum_Libraries_Game_Graphics_Fonts_FontImageSheet$quorum_boolean = function (imageSheet, sdf) {
+	    // NOTE: For now, we ignore the SDF value. It isn't implemented for the web yet.
+
 		// Image Sheet Row
 		// The end of the row is the last image that appears on this row, or
 		// 256 if this is the last row.
@@ -288,9 +282,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			// Get data from Emscripten heap
 			let value = new Uint8Array(dataHeap.buffer, dataHeap.byteOffset, num_bytes);
 
-			// Free allocated memory
-			Module._free(dataHeap.byteOffset);
-
 			var currentWidth = currentData[3];
 			var currentHeight = currentData[2];
 
@@ -341,6 +332,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			}
 
 			regionData[current] = new TextureRegionData(x, totalHeight, currentWidth, currentHeight);
+
+			// Free allocated memory
+            Module._free(dataHeap.byteOffset);
 		}
 
 		totalHeight += rowHeight + padding;

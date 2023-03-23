@@ -1096,6 +1096,37 @@ class Label is Control
         return outlineThickness
     end
 
+    /*
+    This action sets the thickness of the outlines around the text, in pixels.
+    By default, this is 0. The thickness can be set to a maximum of 8 pixels,
+    though for best results the thickness should usually be no more than 7.
+
+    Attribute: Parameter outlineThickness The thickness of the text outlines, in pixels.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetOutlineThickness(2)
+            label:SetOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
     action SetOutlineThickness(number outlineThickness)
         if me:outlineThickness = outlineThickness
             return now
@@ -1111,6 +1142,36 @@ class Label is Control
         return outlineColor
     end
 
+    /*
+    This action sets the color of the outlines around the text. Note that if the outline
+    thickness isn't changed from its default value of zero, no outlines will be drawn.
+
+    Attribute: Parameter color The new color of the outlining for text.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetOutlineThickness(2)
+            label:SetOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
     action SetOutlineColor(ColorGroup color)
         outlineColor = color
         textChanged = true
