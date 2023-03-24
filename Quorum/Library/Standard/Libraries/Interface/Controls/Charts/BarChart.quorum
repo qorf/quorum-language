@@ -75,10 +75,12 @@ class BarChart is SharedBarChartParent
             bartext = GetNumberOfBars() + " bar"
         end
         if GetName() = "Bar Chart"
-            SetDescription("with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription("with " + grouptext + bartext + ".")
         else
-            SetDescription(", Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(", Bar chart with " + grouptext + bartext + ".")
         end
+        AddChartAreaInstructions(GetDescription())
+        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
     

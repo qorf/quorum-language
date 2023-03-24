@@ -180,9 +180,6 @@ class HorizontalAxisPanel is ChartItem
         xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
-        xAxis:SetNextFocus(chartArea)
-        xAxis:SetPreviousFocus(summary)
-        //xAxis:SetRightItem(chartArea)
         if chart:IsShowingYAxis()
             xAxis:SetRightItem(yAxis)
             yAxis:SetLeftItem(xAxis)

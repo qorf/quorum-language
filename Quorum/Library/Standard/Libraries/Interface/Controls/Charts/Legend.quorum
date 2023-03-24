@@ -51,10 +51,11 @@ class Legend is ChartItem
     on create
         Color transparent
         transparent:SetColor(0,0,0,0)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetBorderColor(transparent)
+        SetBorderThickness(4)
         properties = GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(transparent)
-        properties:SetBorderColor(transparent)
-        properties:SetBorderThickness(4)
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
@@ -75,9 +76,6 @@ class Legend is ChartItem
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
         SetDisplayName(GetName())
         
-        SetNextFocus(chartArea)
-        SetPreviousFocus(summary)
-        //SetRightItem(chartArea)
         text description = ""
         if titleText not= ""
             description = description + " shows " + titleText + " and "
@@ -668,13 +666,17 @@ class Legend is ChartItem
     end
 
     action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
         if selectionBorderColor not= undefined
             return selectionBorderColor
         end
 
         Chart chart = GetParentChart()
         if chart not= undefined
-            return chart:GetSelectionBorderColor()
+            return chart:GetSelectionColor()
         end
         return undefined
     end

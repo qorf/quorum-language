@@ -75,10 +75,12 @@ class LineChart is TwoVariableChart
             lineText = "line"
         end
         if GetName() = "Line Chart"
-            SetDescription(" with " + lines + " " + lineText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(" with " + lines + " " + lineText + ".")
         else
-            SetDescription(", Line Chart with " + lines + " " + lineText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(", Line Chart with " + lines + " " + lineText + ".")
         end
+        AddChartAreaInstructions(GetDescription())
+        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -142,17 +144,17 @@ class LineChart is TwoVariableChart
         
         if not IsSeparated()
             //Not Separated
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
         else
             //Separated, each Series is also separated by the Factor levels
             if IsSeparatedBySeries() and IsSeparatedByFactor()  
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or the arrow keys to navigate the chart information."
             //Separated, by the Factor levels with multiple Series per subplot
             elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
             //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or the arrow keys to navigate the chart information."
             end
         end
         me:GetChartArea():SetDescription(description)
@@ -167,10 +169,10 @@ class LineChart is TwoVariableChart
     action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
         if GetAllLines():GetSize() > 1
             description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
         else
             description = description + " To navigate the " + GetGroupText() + ","
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for the " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for the " + GetGroupText() + ", use Shift + Enter to return to the chart information."
         end
         
         groupPanel:SetDescription(description)
@@ -191,7 +193,7 @@ class LineChart is TwoVariableChart
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
             description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
         elseif not IsSeparated() and HasGroups()
-            description = description + " use Shift + Enter to return to the chart area."
+            description = description + " use Shift + Enter to return to the chart information."
         else
             description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
         end

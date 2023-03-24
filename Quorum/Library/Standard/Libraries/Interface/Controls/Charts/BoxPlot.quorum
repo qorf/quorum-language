@@ -696,10 +696,12 @@ class BoxPlot is Chart
             plottext = numberOfPlots + " plot"
         end
         if GetName() = "Box Plot"
-            SetDescription(" with " + grouptext + plottext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(" with " + grouptext + plottext + ".")
         else
-            SetDescription(", Box Plot with " + grouptext + plottext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(", Box Plot with " + grouptext + plottext + ".")
         end
+        AddChartAreaInstructions(GetDescription())
+        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -722,12 +724,13 @@ class BoxPlot is Chart
 
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
 
         chartArea:SetDisplayName("Box Plot")
-        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
+
+        summary:SetRightItem(chartArea)
+        chartArea:SetLeftItem(summary)
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
@@ -746,9 +749,8 @@ class BoxPlot is Chart
             if GetNumberOfChartAreas() > 0
                 ChartItem firstArea = GetSubChartAreas():Get(0)
                 firstArea:SetContainer(me)
-                firstArea:SetPreviousFocus(summary)
-                chartArea:SetEnterItem(firstArea)
-                firstArea:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstArea)
+                firstArea:SetEscapeItem(summary)
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                 AddPlots(summary, firstArea, CastToPlots(chartAreaItems))
@@ -760,8 +762,6 @@ class BoxPlot is Chart
                     if chartSubArea:IsShowing()
                         ChartItem nextArea = chartSubArea
                         nextArea:SetContainer(me)
-                        nextArea:SetPreviousFocus(summary)
-                        nextArea:SetEscapeItem(chartArea)
                         previousArea:SetRightItem(nextArea)
                         nextArea:SetLeftItem(previousArea)
                         previousArea = nextArea
@@ -777,10 +777,9 @@ class BoxPlot is Chart
                 if plotGroups:GetSize() > 0
                     ChartItem firstGroup = plotGroups:Get(0)
                     firstGroup:SetContainer(me)
-                    firstGroup:SetPreviousFocus(summary)
 
-                    chartArea:SetEnterItem(firstGroup)
-                    firstGroup:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstGroup)
+                    firstGroup:SetEscapeItem(summary)
                     firstGroup:SetDisplayName(plotGroups:Get(0):GetName())
                     AddPlots(summary, firstGroup, plotGroups:Get(0):GetPlots())
 
@@ -789,8 +788,7 @@ class BoxPlot is Chart
                     repeat while i < plotGroups:GetSize()
                         ChartItem group = plotGroups:Get(i)
                         group:SetContainer(me)
-                        group:SetPreviousFocus(summary)
-                        group:SetEscapeItem(chartArea)
+                        group:SetEscapeItem(summary)
                         group:SetDisplayName(plotGroups:Get(i):GetName())
                         previousGroup:SetRightItem(group)
                         group:SetLeftItem(previousGroup)
@@ -806,9 +804,8 @@ class BoxPlot is Chart
                     AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
                     firstPlot:SetDisplayName(firstPlot:GetName())
                     firstPlot:SetContainer(me)
-                    firstPlot:SetPreviousFocus(summary)
-                    firstPlot:SetEscapeItem(chartArea)
-                    chartArea:SetEnterItem(firstPlot)
+                    firstPlot:SetEscapeItem(summary)
+                    summary:SetEnterItem(firstPlot)
             
                     integer i = 1
                     ChartItem previousPlot = firstPlot
@@ -818,8 +815,7 @@ class BoxPlot is Chart
                             AddPlotItems(summary, plot, plot:GetPlotItems())
                             plot:SetDisplayName(plot:GetName())
                             plot:SetContainer(me)
-                            plot:SetPreviousFocus(summary)
-                            plot:SetEscapeItem(chartArea)
+                            plot:SetEscapeItem(summary)
                             plot:SetLeftItem(previousPlot)
                             previousPlot:SetRightItem(plot)
                             previousPlot = plot
@@ -880,7 +876,6 @@ class BoxPlot is Chart
             AddPlotItems(summary, firstPlot, firstPlot:GetPlotItems())
             firstPlot:SetDisplayName(firstPlot:GetName())
             firstPlot:SetContainer(me)
-            firstPlot:SetPreviousFocus(summary)
             firstPlot:SetEscapeItem(parentItem)
             parentItem:SetEnterItem(firstPlot)
     
@@ -891,7 +886,6 @@ class BoxPlot is Chart
                 AddPlotItems(summary, plot, plot:GetPlotItems())
                 plot:SetDisplayName(plot:GetName())
                 plot:SetContainer(me)
-                plot:SetPreviousFocus(summary)
                 plot:SetEscapeItem(parentItem)
                 plot:SetLeftItem(previousPlot)
                 previousPlot:SetRightItem(plot)
@@ -933,7 +927,6 @@ class BoxPlot is Chart
             end
             firstItem:SetDisplayName(firstItem:GetName())
             firstItem:SetContainer(me)
-            firstItem:SetPreviousFocus(summary)
             firstItem:SetEscapeItem(parentItem)
             parentItem:SetEnterItem(firstItem)
     
@@ -944,7 +937,6 @@ class BoxPlot is Chart
                 if description not= ""
                     item:SetDisplayName(item:GetName())
                     item:SetContainer(me)
-                    item:SetPreviousFocus(summary)
                     item:SetEscapeItem(parentItem)
                     item:SetLeftItem(previousItem)
                     previousItem:SetRightItem(item)
@@ -1039,7 +1031,7 @@ class BoxPlot is Chart
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
             description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
         elseif not IsSeparated() and HasGroups()
-            description = description + " use Shift + Enter to return to the chart area."
+            description = description + " use Shift + Enter to return to the chart information."
         else
             description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
         end

@@ -606,11 +606,12 @@ class TwoVariableChart is Chart
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
 
-        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
+        
+        summary:SetRightItem(chartArea)
+        chartArea:SetLeftItem(summary)
 
         text lineText = "lines"
         text pointText = "points"
@@ -652,7 +653,6 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
-                    firstArea:SetPreviousFocus(summary)
 
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts.")
                     chartArea:SetEnterItem(firstArea)
@@ -678,7 +678,6 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
-                            nextArea:SetPreviousFocus(summary)
                             nextArea:SetParent(chartArea)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
@@ -701,9 +700,8 @@ class TwoVariableChart is Chart
                 ChartLine firstChartLine = lines:Get(0)
                 ChartItem firstChartLineItem = firstChartLine
                 firstChartLineItem:SetContainer(me)
-                firstChartLineItem:SetPreviousFocus(summary)
-                chartArea:SetEnterItem(firstChartLineItem)
-                firstChartLineItem:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstChartLineItem)
+                firstChartLineItem:SetEscapeItem(summary)
 
                 AddPoints(summary, firstChartLineItem, firstChartLine:GetPoints())
                 AddGroupPanelInstructions(firstChartLine, firstChartLine:GetDescription())
@@ -715,8 +713,7 @@ class TwoVariableChart is Chart
                     ChartLine chartLine = lines:Get(i)
                     ChartItem chartLineItem = chartLine
                     chartLineItem:SetContainer(me)
-                    chartLineItem:SetPreviousFocus(summary)
-                    chartLineItem:SetEscapeItem(chartArea)
+                    chartLineItem:SetEscapeItem(summary)
                     AddPoints(summary, chartLineItem, chartLine:GetPoints())
 
                     chartLineItem:SetLeftItem(previousChartLineItem)
@@ -738,11 +735,10 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
-                    firstArea:SetPreviousFocus(summary)
 
                     AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
-                    chartArea:SetEnterItem(firstArea)
-                    firstArea:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstArea)
+                    firstArea:SetEscapeItem(summary)
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                     text description = " chart area with " + chartAreaItems:GetSize() + " points"
@@ -764,8 +760,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
-                            nextArea:SetPreviousFocus(summary)
-                            nextArea:SetEscapeItem(chartArea)
+                            nextArea:SetEscapeItem(summary)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
                             previousArea = nextArea
@@ -789,10 +784,9 @@ class TwoVariableChart is Chart
                 if GetSeriesList():GetSize() > 0
                     ChartItem firstSeries = GetSeriesList():Get(0)
                     firstSeries:SetContainer(me)
-                    firstSeries:SetPreviousFocus(summary)
 
-                    chartArea:SetEnterItem(firstSeries)
-                    firstSeries:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstSeries)
+                    firstSeries:SetEscapeItem(summary)
                     firstSeries:SetDisplayName(GetSeriesList():Get(0):GetName())
                     Array<ChartDrawable> chartAreaItems = GetSeriesList():Get(0):GetChartAreaItems()
                     chartAreaItems:Sort(comparison)
@@ -806,8 +800,7 @@ class TwoVariableChart is Chart
                         Series series = GetSeriesList():Get(i)
                         ChartItem nextSeries = series
                         nextSeries:SetContainer(me)
-                        nextSeries:SetPreviousFocus(summary)
-                        nextSeries:SetEscapeItem(chartArea)
+                        nextSeries:SetEscapeItem(summary)
                         previousSeries:SetRightItem(nextSeries)
                         nextSeries:SetLeftItem(previousSeries)
                         previousSeries = nextSeries
@@ -1297,7 +1290,6 @@ class TwoVariableChart is Chart
             ChartPoint firstPoint = sortLRPoints:Get(0)
             ChartItem firstPointItem = firstPoint
             firstPointItem:SetContainer(me)
-            firstPointItem:SetPreviousFocus(summary)
             firstPoint:CalculateLetterCode(0)
             if (firstPoint:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
                 ChartLabel pointLabel = firstPoint:GetAnnotation()
@@ -1342,7 +1334,6 @@ class TwoVariableChart is Chart
                 ChartPoint point = sortLRPoints:Get(i)
                 ChartItem pointItem = point
                 pointItem:SetContainer(me)
-                pointItem:SetPreviousFocus(summary)
                 point:CalculateLetterCode(i)
                 if (point:ShowAnnotation() or ShowAnnotations()) and showLetterCodeAnnotation
                     ChartLabel pointLabel = point:GetAnnotation()

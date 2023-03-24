@@ -178,10 +178,7 @@ class VerticalAxisPanel is ChartItem
         
         yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
-        
-        yAxis:SetNextFocus(chartArea)
-        yAxis:SetPreviousFocus(summary)
-        //yAxis:SetRightItem(chartArea)  
+       
 
         if chart:IsShowingXAxis()
             xAxis:SetRightItem(yAxis)

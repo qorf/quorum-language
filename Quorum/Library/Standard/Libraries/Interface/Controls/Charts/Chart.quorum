@@ -2366,11 +2366,7 @@ class Chart is ChartItem
                 Importantly, we do not want to override the color properties like we would if we fell into the last case below.
                 */
             elseif target:Equals(me)
-                /*
-                Do whatever specialized work we want to do to show overall focus/selection on the Chart here.
-                Importantly, we do not want to override the color properties of the overall chart, like we would
-                if we fell into the last case below.
-                */
+                GetChartArea():GainedSelection()
             elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
                 // Do nothing by default. The axis panel handles its own selection event.
             elseif target is Control
@@ -2389,6 +2385,13 @@ class Chart is ChartItem
                 end
             end
         end
+    end
+
+    action LostSelection
+        if GetChartArea() not= undefined
+            GetChartArea():LostSelection()
+        end
+        parent:Control:LostSelection()
     end
 
     /*
@@ -2816,13 +2819,13 @@ class Chart is ChartItem
         if not IsSeparated()
             //Not Separated but has Groups
             if HasGroups()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
             //Not Separate and no Groups
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or Shift Tab to return to chart information."
+                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or the arrow keys to navigate the chart information."
             end
         else
-            description = description + " To navigate the chart, press Enter to move into the list of sub charts or Shift Tab to return to chart information."
+            description = description + " To navigate the chart, press Enter to move into the list of sub charts or the arrow keys to navigate the chart information."
         end
         me:GetChartArea():SetDescription(description)
     end
@@ -2835,7 +2838,7 @@ class Chart is ChartItem
     */
     action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
         description = description + " To navigate the list of sub charts, use the arrow keys to move between sub charts in list order," 
-        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that sub chart, use Shift + Enter to return to the chart area."
+        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that sub chart, use Shift + Enter to return to the chart information."
         
         subChartArea:SetDescription(description)
     end
@@ -2855,7 +2858,7 @@ class Chart is ChartItem
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
             description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
         elseif not IsSeparated() and HasGroups()
-            description = description + " use Shift + Enter to return to the chart area."
+            description = description + " use Shift + Enter to return to the chart information."
         else
             description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
         end
@@ -2871,7 +2874,7 @@ class Chart is ChartItem
     action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
 
         description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart area."
+        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
         
         groupPanel:SetDescription(description)
     end
