@@ -187,6 +187,7 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
+            chart:AddChartAreaInstructions(" with")
             Division accessibleChart
             accessibleChart = AddAccessibility(chartCanvas, chart)
             return accessibleChart:Generate()
@@ -545,8 +546,8 @@ class ChartWriter
         background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
         if HasAccessibility()
             background:SetTabIndex(0)
-            background:SetRole("application")
-            background:SetAriaLabel(chart:GetName() + ", " + chart:GetDescription())
+            background:SetRole("graphics-object")
+            background:SetAriaLabel(chart:GetName() + ", " + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
@@ -632,8 +633,8 @@ class ChartWriter
                 horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                 horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    horizontalPanel:SetRole("application")
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    horizontalPanel:SetRole("graphics-object")
+                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(horizontalPanel)
@@ -744,8 +745,8 @@ class ChartWriter
                 verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                 verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    verticalPanel:SetRole("application")
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    verticalPanel:SetRole("graphics-object")
+                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(verticalPanel)
@@ -1450,8 +1451,8 @@ class ChartWriter
         svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
 
         if HasAccessibility()
-            svgElementLegend:SetRole("application")
-            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
+            svgElementLegend:SetRole("graphics-object")
+            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
 
@@ -1610,9 +1611,9 @@ class ChartWriter
                         svgElementRLabel:SetAriaHidden("true")
                     end
                     entryGroupSVG:Add(svgElementRLabel)
+                    entryGroupSVG:SetAriaLabel(entryGroupSVG:GetAriaLabel() + ", " + svgElementRegLabel:GetText() + " " + svgElementRLabel:GetText())
                 end
             end
-
             i = i + 1
         end
     end
