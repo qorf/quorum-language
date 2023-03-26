@@ -1,0 +1,229 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Forms.FormContainerControl
+use Libraries.Interface.Forms.Grouping
+
+class FormRowLayout is Layout
+
+    // Default values for the layout. These will likely be moved elsewhere as the design matures.
+
+    // How wide each row is, as a percentage of the screen, by default. Any space not taken by the width is applied as padding (half on the left, half on the right)
+    constant number DEFAULT_ROW_PERCENTAGE_WIDTH = 0.8
+
+    // How tall each row is, as a percentage of the screen, if the row doesn't otherwise provide any height information (e.g., a size dictated by the font in a Label, for example)
+    constant number DEFAULT_ROW_PERCENTAGE_HEIGHT = 0.05
+
+    // How much vertical padding to add between rows, as a percentage of the screen height.
+    constant number DEFAULT_ROW_VERTICAL_PADDING = 0.02
+
+    // How much space should be between elements in a row by default, as a percentage of the ROW'S width.
+    constant number DEFAULT_IN_ROW_PERCENTAGE_PADDING = 0.05
+
+    action Layout(Control parentControl, Array<Item2D> items, number containerWidth, number containerHeight)
+        FormContainerControl container = cast(FormContainerControl, parentControl)
+        
+        integer titleAlignment = container:GetTitleAlignment()
+        integer contentAlignment = container:GetContentAlignment()
+
+        if contentAlignment = container:DEFAULT_ALIGN
+            contentAlignment = container:CENTER_ALIGN
+        end
+        if titleAlignment = container:DEFAULT_ALIGN
+            titleAlignment = contentAlignment
+        end
+
+        number defaultRowWidth = DEFAULT_ROW_PERCENTAGE_WIDTH * containerWidth
+        number defaultRowStartX = (containerWidth - defaultRowWidth) / 2.0
+        number defaultRowEndX = defaultRowStartX + defaultRowWidth
+        number defaultInRowPadding = defaultRowWidth * DEFAULT_IN_ROW_PERCENTAGE_PADDING
+        number defaultRowHeight = containerHeight * DEFAULT_ROW_PERCENTAGE_HEIGHT
+        number defaultRowVerticalPadding = containerHeight * DEFAULT_ROW_VERTICAL_PADDING
+
+        integer i = 0
+        number rowTopY = containerHeight - defaultRowHeight
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            boolean isTitle = (i = 0 and container:GetTitle() not= "")
+            boolean isGrouping = (item is Grouping)
+    
+            integer currentAlignment = contentAlignment
+            if isTitle
+                currentAlignment = titleAlignment
+            end
+
+            if isGrouping
+                // If the item is a group, layout its title on a row, if it has one, then place all following children on a single row.
+                Grouping group = cast(Grouping, item)
+
+                Array<Item2D> groupItems = group:GetChildren()
+                integer j = 0
+
+                number groupTitleHeightOffset = 0
+                integer numberOfRowItems = groupItems:GetSize()
+
+                number rowWidth = defaultRowWidth
+                if group:GetPixelWidth() not= 0 or group:GetPercentageWidth() not= 0
+                    width = group:GetPixelWidth() + containerWidth * group:GetPercentageWidth()
+                end
+
+                // The title gets its own row, if there is one.
+                if group:GetTitle() not= ""
+                    currentAlignment = group:GetTitleAlignment()
+
+                    if currentAlignment = container:DEFAULT_ALIGN
+                        currentAlignment = titleAlignment
+                    end
+
+                    // The title doesn't contribute to the number of elements in a row, because it's on its own row.
+                    numberOfRowItems = numberOfRowItems - 1
+
+                    Control control = cast(Control, groupItems:Get(0))
+                    if control:GetDefaultLayoutProperties():NeedsRendering()
+                        control:LoadGraphics(control:GetDefaultLayoutProperties())
+                    end
+
+                    // The label's width and height are known quantities. There's nothing to set, so just fetch them now.
+                    number width = control:GetWidth()
+                    number height = control:GetHeight()
+    
+                    number x = 0
+                    if currentAlignment = container:LEFT_ALIGN
+                        if width > rowWidth
+                            x = (rowWidth - width) / 2.0
+                        else
+                            x = 0
+                        end
+                    elseif currentAlignment = container:CENTER_ALIGN
+                        x = (rowWidth - width) / 2.0
+                    elseif currentAlignment = container:RIGHT_ALIGN
+                        if width > rowWidth
+                            x = (rowWidth - width) / 2.0
+                        else
+                            x = rowWidth - width
+                        end
+                    end
+    
+                    groupTitleHeightOffset = rowTopY
+                    number y = rowTopY - height
+    
+                    control:SetPosition(x, defaultRowHeight + defaultRowVerticalPadding)
+    
+                    rowTopY = y - defaultRowVerticalPadding
+                    groupTitleHeightOffset = groupTitleHeightOffset - rowTopY
+
+                    j = j + 1
+                end
+
+                // Now that the potential title has been handled, handle the content that shares a row.
+                number rowHeight = defaultRowHeight
+                if group:GetPixelHeight() not= 0 or group:GetPercentageHeight() not= 0
+                    height = group:GetPixelHeight() + containerHeight * group:GetPercentageHeight()
+                end
+
+                currentAlignment = group:GetContentAlignment()
+
+                if currentAlignment = container:DEFAULT_ALIGN
+                    currentAlignment = contentAlignment
+                end
+
+                number groupX = 0
+                if currentAlignment = container:LEFT_ALIGN
+                    if rowWidth > defaultRowWidth
+                        x = (containerWidth - rowWidth) / 2.0
+                    else
+                        x = defaultRowStartX
+                    end
+                elseif currentAlignment = container:CENTER_ALIGN
+                    x = (containerWidth - rowWidth) / 2.0
+                elseif currentAlignment = container:RIGHT_ALIGN
+                    if rowWidth > defaultRowWidth
+                        x = (containerWidth - rowWidth) / 2.0
+                    else
+                        x = defaultRowEndX - rowWidth
+                    end
+                end
+
+                group:SetSize(rowWidth, rowHeight + groupTitleHeightOffset)
+                group:SetPosition((containerWidth - rowWidth) / 2, rowTopY - rowHeight)
+
+                rowTopY = rowTopY - rowHeight - defaultRowVerticalPadding
+                number elementWidth = (rowWidth - defaultInRowPadding * (numberOfRowItems - 1)) / numberOfRowItems
+                number elementX = 0
+
+                repeat while j < groupItems:GetSize()
+                    if groupItems:Get(j) is Control
+                        Control control = cast(Control, groupItems:Get(j))
+                        if control:GetDefaultLayoutProperties():NeedsRendering()
+                            control:LoadGraphics(control:GetDefaultLayoutProperties())
+                        end
+
+                        control:SetSize(elementWidth, rowHeight)
+                        control:SetPosition(elementX, (rowHeight - control:GetHeight()) / 2.0)
+
+                        elementX = elementX + elementWidth + defaultInRowPadding
+                    end
+
+                    j = j + 1
+                end
+
+            elseif item is Control
+                Control control = cast(Control, item)
+                if control:GetDefaultLayoutProperties():NeedsRendering()
+                    control:LoadGraphics(control:GetDefaultLayoutProperties())
+                end
+
+                // TO-DO: Start from here. We can guess as to ideal row height by using font size, which is shared by every component type except for icons, leaving them as the sole special exception.
+                // TO-DO: Make this more responsive to the content. For now, default row width/height are used as basic values for the first pass of the prototype.
+
+                number width = defaultRowWidth
+                if control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
+                    width = control:GetPixelWidth() + containerWidth * control:GetPercentageWidth()
+                end
+
+                number height = defaultRowHeight
+                if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
+                    height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+                end
+
+                control:SetSize(width, height)
+
+                /*
+                Reassign the width and height based on the "real" width and height, which might differ from our request based on
+                the control's own ability to lay itself out during the resize. For example, Labels will entirely ignore our height
+                request, as they strictly derive their height from their text and how many lines the text requires.
+                */
+                width = control:GetWidth()
+                height = control:GetHeight()
+
+                number x = 0
+                if currentAlignment = container:LEFT_ALIGN
+                    if width > defaultRowWidth
+                        x = (containerWidth - width) / 2.0
+                    else
+                        x = defaultRowStartX
+                    end
+                elseif currentAlignment = container:CENTER_ALIGN
+                    x = (containerWidth - width) / 2.0
+                elseif currentAlignment = container:RIGHT_ALIGN
+                    if width > defaultRowWidth
+                        x = (containerWidth - width) / 2.0
+                    else
+                        x = defaultRowEndX - width
+                    end
+                end
+
+                number y = rowTopY - height
+
+                control:SetPosition(x, y)
+
+                rowTopY = y - defaultRowVerticalPadding
+            end
+
+            i = i + 1
+        end
+    end
+
+end

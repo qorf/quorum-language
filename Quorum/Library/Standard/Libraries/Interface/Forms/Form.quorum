@@ -1,4 +1,4 @@
-package Libraries.Interface
+package Libraries.Interface.Forms
 
 use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
@@ -14,6 +14,11 @@ use Libraries.Interface.Pages.FlowLayoutPage
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Options.DarkModeOptions
 use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Item2D
+use Libraries.Interface.Pages.StackedRowPage
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.TextField
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -30,7 +35,7 @@ use Libraries.Interface.Options.InterfaceOptions
     app:AddButton("Button")
     app:Display()
 */
-class Form is Game
+class Form is Game, FormContainerInterface
     HashTable<text, Page> pages
     Page currentPage = undefined
     Page mainPage = undefined
@@ -43,7 +48,7 @@ class Form is Game
         WebConfiguration web = GetWebConfiguration()
         web:framesPerSecondLimit = 10
         
-        FlowLayoutPage page
+        StackedRowPage page
         page:SetName(DEFAULT_PAGE_NAME)
         pages:Add(DEFAULT_PAGE_NAME, page)
         currentPage = page
@@ -86,6 +91,7 @@ class Form is Game
 
         Page page = pages:GetValue(name)
         Add(page)
+        currentPage = page
     end
 
     action CreateGame
@@ -126,5 +132,105 @@ class Form is Game
 
     action GetMainPage returns Page
         return mainPage
+    end
+
+    action AddGrouping(text name) returns Grouping
+        return currentPage:AddGrouping(name)
+    end
+
+    action RemoveGrouping(text name) returns Grouping
+        return currentPage:RemoveGrouping(name)
+    end
+
+    action SetTitle(text name)
+        currentPage:SetTitle(name)
+    end
+
+    action GetTitle returns text
+        return currentPage:GetTitle()
+    end
+
+    action SetTitleFontSize(integer size)
+        currentPage:SetTitleFontSize(size)
+    end
+
+    action GetTitleFontSize returns integer
+        return currentPage:GetTitleFontSize()
+    end
+
+    action SetTitleSizeSmall
+        currentPage:SetTitleSizeSmall()
+    end
+
+    action SetTitleSizeMedium
+        currentPage:SetTitleSizeMedium()
+    end
+
+    action SetTitleSizeLarge
+        currentPage:SetTitleSizeLarge()
+    end
+
+    action LeftAlignTitle
+        currentPage:LeftAlignTitle()
+    end
+
+    action RightAlignTitle
+        currentPage:RightAlignTitle()
+    end
+
+    action CenterAlignTitle
+        currentPage:CenterAlignTitle()
+    end
+
+    action LeftAlignContent
+        currentPage:LeftAlignContent()
+    end
+
+    action RightAlignContent
+        currentPage:RightAlignContent()
+    end
+
+    action CenterAlignContent
+        currentPage:CenterAlignContent()
+    end
+
+    action FindControl(text name) returns Item2D
+        return currentPage:FindControl(name)
+    end
+
+    action AddButton(text name) returns Button
+        return currentPage:AddButton(name)
+    end
+
+    action AddButton(text name, text fileName) returns Button
+        return currentPage:AddButton(name, fileName)
+    end
+
+    action RemoveButton(text name) returns Button
+        return currentPage:RemoveButton(name)
+    end
+
+    action AddLabel(text name, text value) returns Label
+        return currentPage:AddLabel(name, value)
+    end
+
+    action RemoveLabel(text name) returns Label
+        return currentPage:RemoveLabel(name)
+    end
+
+    action AddIcon(text name, text fileName) returns Icon
+        return currentPage:AddIcon(name, fileName)
+    end
+
+    action RemoveIcon(text name) returns Icon
+        return currentPage:RemoveIcon(name)
+    end
+
+    action AddTextField(text name) returns TextField
+        return currentPage:AddTextField(name)
+    end
+
+    action RemoveTextField(text name) returns TextField
+        return currentPage:RemoveTextField(name)
     end
 end

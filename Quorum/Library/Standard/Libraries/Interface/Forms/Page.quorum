@@ -1,0 +1,30 @@
+package Libraries.Interface.Forms
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+
+class Page is FormContainerControl
+
+    on create
+        SetPercentageWidth(1.0)
+        SetPercentageHeight(1.0)
+    end
+
+    action AddGrouping(text name) returns Grouping
+        Grouping grouping
+        grouping:SetName(name)
+
+        Add(grouping)
+        return grouping
+    end
+
+    action RemoveGrouping(text name) returns Grouping
+        Item2D grouping = FindControl(name)
+        if grouping not= undefined and grouping is Grouping
+            Remove(grouping)
+            return cast(Grouping, grouping)
+        end
+        alert("The item " + name + " is not a grouping. Are you looking for the right item?")
+    end
+
+end

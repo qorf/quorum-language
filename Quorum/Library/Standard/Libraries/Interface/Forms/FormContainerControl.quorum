@@ -1,0 +1,229 @@
+package Libraries.Interface.Forms
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Drawable
+
+class FormContainerControl is FormContainerInterface, Control
+
+    Label titleLabel = undefined
+
+    public constant integer SMALL_FONT_SIZE = 12
+    public constant integer MEDIUM_FONT_SIZE = 20
+    public constant integer LARGE_FONT_SIZE = 32
+    public constant integer DEFAULT_FONT_SIZE = MEDIUM_FONT_SIZE
+
+    integer titleSize = DEFAULT_FONT_SIZE
+
+    public constant integer DEFAULT_ALIGN = 0
+    public constant integer LEFT_ALIGN = 1
+    public constant integer CENTER_ALIGN = 2
+    public constant integer RIGHT_ALIGN = 3
+
+    /*
+    If the titleAlignment is set to default, it'll attempt to match the alignment
+    of the container, if there is one, or mirror the content alignment if there's not.
+
+    If the contentAlignment is set to default, it'll match the alignment of the
+    container if there is one, or otherwise it'll align to the center.
+    */
+    integer titleAlignment = DEFAULT_ALIGN
+    integer contentAlignment = DEFAULT_ALIGN
+
+    action SetTitle(text title)
+        if title = ""
+            if titleLabel not= undefined
+                Remove(titleLabel)
+            end
+            titleLabel = undefined
+        else
+            Label label
+            titleLabel = label
+
+            label:SetFontSize(titleSize)
+            label:SetName(GetName() + " Title Label")
+            label:SetText(title)
+            Add(0, label)
+        end
+    end
+
+    action GetTitle returns text
+        if titleLabel not= undefined
+            return titleLabel:GetText()
+        else
+            return ""
+        end
+    end
+
+    action SetTitleFontSize(integer size)
+        titleSize = size
+        if titleLabel not= undefined
+            titleLabel:SetFontSize(size)
+        end
+    end
+
+    action GetTitleFontSize returns integer
+        return titleSize
+    end
+
+    action SetTitleSizeSmall
+        SetTitleFontSize(SMALL_FONT_SIZE)
+    end
+
+    action SetTitleSizeMedium
+        SetTitleFontSize(MEDIUM_FONT_SIZE)
+    end
+
+    action SetTitleSizeLarge
+        SetTitleFontSize(LARGE_FONT_SIZE)
+    end
+
+    action LeftAlignTitle
+        titleAlignment = LEFT_ALIGN
+        RequestLayout()
+    end
+
+    action RightAlignTitle
+        titleAlignment = RIGHT_ALIGN
+        RequestLayout()
+    end
+
+    action CenterAlignTitle
+        titleAlignment = CENTER_ALIGN
+        RequestLayout()
+    end
+
+    action LeftAlignContent
+        contentAlignment = LEFT_ALIGN
+        RequestLayout()
+    end
+
+    action RightAlignContent
+        contentAlignment = RIGHT_ALIGN
+        RequestLayout()
+    end
+
+    action CenterAlignContent
+        contentAlignment = CENTER_ALIGN
+        RequestLayout()
+    end
+
+    action AddButton(text name) returns Button
+        Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        Add(button)
+        return button
+    end
+
+    action AddButton(text name, text fileName) returns Button
+        Button button = AddButton(name)
+        Drawable drawable
+        drawable:Load(fileName)
+        button:SetIcon(drawable)
+        button:SetFont(undefined)
+        return button
+    end
+
+    action RemoveButton(text name) returns Button
+        Item2D button = FindControl(name)
+        if button not= undefined and button is Button
+            Remove(button)
+            return cast(Button, button)
+        end
+        alert("The item " + name + " is not a button. Are you looking for the right item?")
+    end
+
+    action AddLabel(text name, text value) returns Label
+        Label label
+        //labelCount = labelCount + 1
+        label:SetName(name)
+        label:SetText(value)
+        label:SetFocusable(true)
+        label:SetAccessibilityCode(label:parent:Item:CUSTOM)
+        label:SetFontSize(MEDIUM_FONT_SIZE)
+
+        Add(label)
+        return label
+    end
+
+    action RemoveLabel(text name) returns Label
+        Item2D label = FindControl(name)
+        if label not= undefined and label is Label
+            Remove(label)
+            return cast(Label, label)
+        end
+        alert("The item " + name + " is not a label. Are you looking for the right item?")
+    end
+
+    action AddIcon(text name, text fileName) returns Icon
+        Icon icon
+        icon:SetName(name)
+        icon:Load(fileName)
+        icon:SetFocusable(true)
+        icon:SetAccessibilityCode(icon:parent:Item:CUSTOM)
+        Add(icon)
+        return icon
+    end
+
+    action RemoveIcon(text name) returns Icon
+        Item2D item = FindControl(name)
+        if item not= undefined and item is Icon
+            Remove(item)
+            return cast(Icon, item)
+        end
+        alert("The item " + name + " is not an Icon. Are you looking for the right item?")
+    end
+
+    action AddTextField(text name) returns TextField
+        TextField field
+        field:SetName(name)
+        Add(field)
+        return field
+    end
+
+    action RemoveTextField(text name) returns TextField
+        Item2D item = FindControl(name)
+        if item not= undefined and item is TextField
+            Remove(item)
+            return cast(TextField, item)
+        end
+        alert("The item " + name + " is not a text field. Are you looking for the right item?")
+    end
+
+    action FindControl(text name) returns Item2D
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name
+                return control
+            elseif control is FormContainerInterface
+                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+                Item2D candidate = interface:FindControl(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action GetTitleAlignment returns integer
+        return titleAlignment
+    end
+
+    action GetContentAlignment returns integer
+        return contentAlignment
+    end
+
+end
