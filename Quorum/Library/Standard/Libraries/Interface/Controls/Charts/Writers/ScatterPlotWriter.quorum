@@ -80,6 +80,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -109,7 +110,7 @@ class ScatterPlotWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")
+        chartContent:SetRole("graphics-object")
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
@@ -137,7 +138,7 @@ class ScatterPlotWriter is ChartWriter
                     seriesSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     seriesSVG:SetTabIndex(-1)
                     if HasAccessibility()
-                        seriesSVG:SetRole("application")
+                        seriesSVG:SetRole("graphics-object")
                         seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
@@ -174,7 +175,7 @@ class ScatterPlotWriter is ChartWriter
                             pointSVG:SetFill(currentPoint:GetColor())
                             pointSVG:SetTabIndex(-1)
                             if HasAccessibility()
-                                pointSVG:SetRole("application")
+                                pointSVG:SetRole("graphics-symbol")
                                 pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                 pointSVG:SetAriaHidden("false")
                             end
@@ -200,8 +201,6 @@ class ScatterPlotWriter is ChartWriter
                                 pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                 pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
                             end
-                            pointSVG:Add(point)
-                            
                 
                             if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
                                 ChartLabel label = currentPoint:GetAnnotation()
@@ -218,12 +217,14 @@ class ScatterPlotWriter is ChartWriter
                                     labelSVG:SetTabIndex(-1)
                                     if HasAccessibility()
                                         labelSVG:SetAriaHidden("true")
+                                        pointSVG:SetAriaDescription(label:GetText())
                                         pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                         pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                     end
                                     canvas:Add(labelSVG)
                                 end
                             end
+                            pointSVG:Add(point)
 
                             if currentPoint:GetSelectionArrow() not= undefined
                                 Array <number> vertices = currentPoint:GetSelectionArrowVertices()
@@ -298,7 +299,7 @@ class ScatterPlotWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-scatter-series quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")
+                        subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -306,7 +307,7 @@ class ScatterPlotWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-scatter-series quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")
+                        subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     else
@@ -341,7 +342,7 @@ class ScatterPlotWriter is ChartWriter
                         pointSVG:SetFill(currentPoint:GetColor())
                         pointSVG:SetTabIndex(-1)
                         if HasAccessibility()
-                            pointSVG:SetRole("application")
+                            pointSVG:SetRole("graphics-symbol")
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end

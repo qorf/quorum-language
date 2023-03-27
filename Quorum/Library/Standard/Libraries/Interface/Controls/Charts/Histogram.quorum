@@ -112,10 +112,11 @@ class Histogram is SharedBarChartParent
             bartext = GetNumberOfBars() + " bar."
         end
         if GetName() = "Histogram"
-            SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + grouptext + bartext + " Use the arrow keys to navigate the chart.")
         else
-            SetDescription(", Histogram with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content")
+            SetDescription(", Histogram with " + grouptext + bartext + " Use the arrow keys to navigate chart information and Tab to access the chart content")
         end
+        AddChartAreaInstructions("with " + grouptext + bartext)
         return GetDescription()
     end
 
@@ -529,6 +530,7 @@ class Histogram is SharedBarChartParent
     
     action SetFrequencyAsPercent(boolean frequencyIsPercent)
         me:frequencyIsPercent = frequencyIsPercent
+        MakeBins()
     end
 
     action GetColumns() returns Array<DataFrameColumn>

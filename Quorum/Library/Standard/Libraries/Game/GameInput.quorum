@@ -28,6 +28,8 @@ use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Events.WindowFocusListener
 use Libraries.Interface.Events.WindowFocusEvent
 use Libraries.Interface.Events.GestureListener
+use Libraries.Interface.Events.ScreenshotListener
+use Libraries.Interface.Events.ScreenshotEvent
 
 /*
 This class is the base interface for how the Game will automatically handle
@@ -49,6 +51,7 @@ class GameInput
     Array<TreeTableChangeListener> treeTableChangeListeners
     Array<ControlActivationListener> controlActivationListeners
     Array<WindowFocusListener> windowFocusListeners
+    Array<ScreenshotListener> screenshotListeners
 
     GameStateManager manager
 
@@ -526,6 +529,42 @@ class GameInput
                 windowFocusListeners:Get(counter):WindowLostFocus(event)
                 counter = counter + 1
             end
+        end
+    end
+
+    /*
+    This action will add a ScreenshotListener to the GameInput. The GameInput
+    will notify the ScreenshotListener when a screenshot is taken.
+
+    Attribute: Parameter listener The ScreenshotListener to add to the GameInput.
+    */
+    action AddScreenshotListener(ScreenshotListener listener)
+        screenshotListeners:Add(listener)
+    end
+
+    /*
+    This action will remove a ScreenshotListener from the GameInput. The
+    GameInput will no longer notify the given listener when screenshots occur.
+
+    Attribute: Parameter listener The ScreenshotListener to remove from the GameInput.
+    */
+    action RemoveScreenshotListener(ScreenshotListener listener)
+        screenshotListeners:Remove(listener)
+    end
+
+    /*
+    This action will notify all ScreenshotListeners which have been added to the
+    GameInput of the given ScreenshotEvent. This is called automatically by the
+    Game when a screenshot is taken, so most users will never need to call this
+    action directly.
+
+    Attribute: Parameter event The ScreenshotEvent to send to all ScreenshotListeners in the GameInput.
+    */
+    action NotifyScreenshotListeners(ScreenshotEvent event)
+        integer counter = 0
+        repeat while counter < screenshotListeners:GetSize()
+            screenshotListeners:Get(counter):OnScreenshot(event)
+            counter = counter + 1
         end
     end
 
