@@ -152,6 +152,33 @@ class LayoutProperties
     boolean setHeight = false
 
     /*
+    Values indicating where a Control should be located in a grid.
+    Used by layouts like the GridLayout, and ignored by other layouts
+    (such as Manual or Flow layouts).
+    */
+    integer gridX = 0
+    integer gridY = 0
+
+    /*
+    How many cells tall or wide an element is within a grid.
+    Used by layouts like the GridLayout, and ignored by other layouts
+    (such as Manual or Flow layouts).
+    */
+    integer gridWidth = 1
+    integer gridHeight = 1
+
+    /*
+    How many units wide or tall the rows/columns of the grid inside this
+    container are. Where "gridWidth" describes how many cells across this
+    Item would take up in a grid, "containerGridWidth" describes how many
+    cells are available inside the rows of this container to hold items.
+    Used by layouts like the GridLayout, and ignored by other layouts
+    (such as Manual or Flow layouts).
+    */
+    integer containerGridWidth = 5
+    integer containerGridHeight = 5
+
+    /*
     These variables hold on to the ColorPalette and its related components.
     */
     InterfaceOptions options = undefined
@@ -547,6 +574,48 @@ class LayoutProperties
         else
             return parent:Object:Compare(object)
         end
+    end
+
+    action GetGridX returns integer
+        return gridX
+    end
+
+    action SetGridX(integer gridX)
+        me:gridX = gridX
+    end
+
+    action GetGridY returns integer
+        return gridY
+    end
+
+    action SetGridY(integer gridY)
+        me:gridY = gridY
+    end
+
+    action SetGridPosition(integer gridX, integer gridY)
+        me:gridX = gridX
+        me:gridY = gridY
+    end
+
+    action GetGridWidth returns integer
+        return gridWidth
+    end
+
+    action SetGridWidth(integer gridWidth)
+        me:gridWidth = gridWidth
+    end
+
+    action GetGridHeight returns integer
+        return gridHeight
+    end
+
+    action SetGridHeight(integer gridHeight)
+        me:gridHeight = gridHeight
+    end
+
+    action SetGridSize(integer gridWidth, integer gridHeight)
+        me:gridWidth = gridWidth
+        me:gridHeight = gridHeight
     end
 
     /*
@@ -1587,6 +1656,22 @@ class LayoutProperties
         end
 
         return default:HasShadowEdgeFade()
+    end
+
+    action GetContainerGridWidth returns integer
+        return containerGridWidth
+    end
+
+    action SetContainerGridWidth(integer containerGridWidth)
+        me:containerGridWidth = containerGridWidth
+    end
+
+    action GetContainerGridHeight returns integer
+        return containerGridHeight
+    end
+
+    action SetContainerGridHeight(integer containerGridHeight)
+        me:containerGridHeight = containerGridHeight
     end
 
 end

@@ -119,6 +119,9 @@ class InterfaceOptions
     public constant text DIALOG = "Dialog"
     public constant text DIALOG_BAR = "DialogBar"
     public constant text DIALOG_ACCEPT_BUTTON = "DialogAcceptButton"
+    public constant text FLOWCHART = "Flowchart"
+    public constant text FLOWCHART_ARROW = "FlowchartArrow"
+    public constant text FLOWCHART_NODE = "FlowchartNode"
     public constant text GUTTER = "Gutter"
     public constant text LABEL = "Label"
     public constant text LIST = "List"
@@ -3446,6 +3449,954 @@ class InterfaceOptions
 
     action CopyDialogAcceptButtonInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action SetFlowchartBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART)
+    end
+
+    action SetFlowchartForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART)
+    end
+
+    action SetFlowchartForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART)
+    end
+
+    action SetFlowchartSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART)
+    end
+
+    action SetFlowchartGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART)
+    end
+
+    action SetFlowchartIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART)
+    end
+
+    action SetFlowchartAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART)
+    end
+
+    action SetFlowchartShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART)
+    end
+
+    action SetFlowchartBorderThickness(number value)
+        SetBorderThickness(FLOWCHART, value)
+    end
+
+    action GetFlowchartBorderThickness returns number
+        return GetBorderThickness(FLOWCHART)
+    end
+
+    action HasFlowchartBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART)
+    end
+
+    action HasFlowchartTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART, value)
+    end
+
+    action GetFlowchartBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART)
+    end
+
+    action HasFlowchartBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowX(number value)
+        SetShadowX(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowX returns number
+        return GetShadowX(FLOWCHART)
+    end
+
+    action HasFlowchartShadowX returns boolean
+        return GetShadowX(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowY(number value)
+        SetShadowY(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowY returns number
+        return GetShadowY(FLOWCHART)
+    end
+
+    action HasFlowchartShadowY returns boolean
+        return GetShadowY(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowWidth(number value)
+        SetShadowWidth(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowWidth returns number
+        return GetShadowWidth(FLOWCHART)
+    end
+
+    action HasFlowchartShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowHeight(number value)
+        SetShadowHeight(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowHeight returns number
+        return GetShadowHeight(FLOWCHART)
+    end
+
+    action HasFlowchartShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART, value)
+    end
+
+    action GetFlowchartShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART)
+    end
+
+    action HasFlowchartShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART):IsNotANumber() = false
+    end
+
+    action CopyFlowchartInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART)
+    end
+
+    action SetFlowchartArrowBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartArrowBorderThickness(number value)
+        SetBorderThickness(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBorderThickness returns number
+        return GetBorderThickness(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowX(number value)
+        SetShadowX(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowX returns number
+        return GetShadowX(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowX returns boolean
+        return GetShadowX(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowY(number value)
+        SetShadowY(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowY returns number
+        return GetShadowY(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowY returns boolean
+        return GetShadowY(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowWidth(number value)
+        SetShadowWidth(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowWidth returns number
+        return GetShadowWidth(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowHeight(number value)
+        SetShadowHeight(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowHeight returns number
+        return GetShadowHeight(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action CopyFlowchartArrowInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART_ARROW)
+    end
+
+    action SetFlowchartNodeBackgroundColor(ColorGroup value)
+        SetBackgroundColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBackgroundColor returns ColorGroup
+        return GetBackgroundColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeForegroundColor(ColorGroup value)
+        SetForegroundColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeForegroundColor returns ColorGroup
+        return GetForegroundColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFontColor(ColorGroup value)
+        SetFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFontColor returns ColorGroup
+        return GetFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeBorderColor(ColorGroup value)
+        SetBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBorderColor returns ColorGroup
+        return GetBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusColor(ColorGroup value)
+        SetFocusColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusColor returns ColorGroup
+        return GetFocusColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusFontColor(ColorGroup value)
+        SetFocusFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusFontColor returns ColorGroup
+        return GetFocusFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverColor(ColorGroup value)
+        SetMouseOverColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverColor returns ColorGroup
+        return GetMouseOverColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownColor(ColorGroup value)
+        SetMouseDownColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownColor returns ColorGroup
+        return GetMouseDownColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionColor(ColorGroup value)
+        SetSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionColor returns ColorGroup
+        return GetSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeGlowColor(ColorGroup value)
+        SetGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeGlowColor returns ColorGroup
+        return GetGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeIconColor(ColorGroup value)
+        SetIconColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeIconColor returns ColorGroup
+        return GetIconColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeAccentColor(ColorGroup value)
+        SetAccentColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeAccentColor returns ColorGroup
+        return GetAccentColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeShadowColor(ColorGroup value)
+        SetShadowColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowColor returns ColorGroup
+        return GetShadowColor(FLOWCHART_NODE)
+    end
+
+    action SetFlowchartNodeBorderThickness(number value)
+        SetBorderThickness(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBorderThickness returns number
+        return GetBorderThickness(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBorderThickness returns boolean
+        return GetBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopLeftRounding(number value)
+        SetTopLeftRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopLeftRounding returns number
+        return GetTopLeftRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopLeftRounding returns boolean
+        return GetTopLeftRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeTopRightRounding(number value)
+        SetTopRightRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeTopRightRounding returns number
+        return GetTopRightRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeTopRightRounding returns boolean
+        return GetTopRightRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomLeftRounding(number value)
+        SetBottomLeftRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomLeftRounding returns number
+        return GetBottomLeftRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeBottomRightRounding(number value)
+        SetBottomRightRounding(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeBottomRightRounding returns number
+        return GetBottomRightRounding(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeBottomRightRounding returns boolean
+        return GetBottomRightRounding(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowX(number value)
+        SetShadowX(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowX returns number
+        return GetShadowX(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowX returns boolean
+        return GetShadowX(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowY(number value)
+        SetShadowY(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowY returns number
+        return GetShadowY(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowY returns boolean
+        return GetShadowY(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowWidth(number value)
+        SetShadowWidth(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowWidth returns number
+        return GetShadowWidth(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowWidth returns boolean
+        return GetShadowWidth(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowHeight(number value)
+        SetShadowHeight(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowHeight returns number
+        return GetShadowHeight(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowHeight returns boolean
+        return GetShadowHeight(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeShadowEdgeFade(number value)
+        SetShadowEdgeFade(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeShadowEdgeFade returns number
+        return GetShadowEdgeFade(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action CopyFlowchartNodeInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(FLOWCHART_NODE)
     end
 
     action SetGutterBackgroundColor(ColorGroup value)
