@@ -304,7 +304,7 @@ public class FreeTypeStrategy
                 LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
             */
             ByteBuffer value;
-            if (bordered)
+            if (bordered && current != ' ')
                 value = LoadSDFBitmap(currentData, current, faceHandle);
             else
                 value = LoadBitmap(currentData, current, faceHandle);

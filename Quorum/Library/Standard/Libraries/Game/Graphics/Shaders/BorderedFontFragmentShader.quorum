@@ -37,8 +37,8 @@ void main()
     float borderThickness = v_borderThickness;
 
     sdf = (sdf - 0.5) * 2.0 * spread;
-    outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 1, -borderThickness, sdf));
-    outputColor = mix(outputColor, v_color, smoothstep(-1, 0, sdf));
+    outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 1.0, -borderThickness, sdf));
+    outputColor = mix(outputColor, v_color, smoothstep(-1.0, 0.0, sdf));
 }"
 )
     end
