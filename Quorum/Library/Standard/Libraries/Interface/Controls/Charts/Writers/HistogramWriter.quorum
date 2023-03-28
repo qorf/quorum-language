@@ -88,6 +88,7 @@ class HistogramWriter is ChartWriter
         histogram = cast(Histogram, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -116,7 +117,7 @@ class HistogramWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")  
+        chartContent:SetRole("graphics-object")  
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
@@ -148,7 +149,7 @@ class HistogramWriter is ChartWriter
                     barGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     barGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
-                        barGroupSVG:SetRole("application")  
+                        barGroupSVG:SetRole("graphics-object")  
                         barGroupSVG:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
                         barGroupSVG:SetAriaHidden("false")
                     end
@@ -235,7 +236,7 @@ class HistogramWriter is ChartWriter
                     barSVG:SetFill(currentBar:GetColor())
                     barSVG:SetTabIndex(-1)
                     if HasAccessibility()   
-                        barSVG:SetRole("application")  
+                        barSVG:SetRole("graphics-symbol")  
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         barSVG:SetAriaHidden("false")
                     end
@@ -354,7 +355,7 @@ class HistogramWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -362,7 +363,7 @@ class HistogramWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
                         chartContent:Add(subChartContent)
                     else
@@ -382,7 +383,7 @@ class HistogramWriter is ChartWriter
                         barSVG:SetFill(currentBar:GetColor())
                         barSVG:SetTabIndex(-1)
                         if HasAccessibility()
-                            barSVG:SetRole("application")  
+                            barSVG:SetRole("graphics-symbol")  
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription() + ".")
                             barSVG:SetAriaHidden("false")
                         end
@@ -477,6 +478,7 @@ class HistogramWriter is ChartWriter
             svgPath:SetPath(chart:GetTrendLine())
             if HasAccessibility()
                 svgPath:SetAriaHidden("true")
+                svgPath:SetTabIndex(-1)
             end
             canvas:Add(svgPath)
         end

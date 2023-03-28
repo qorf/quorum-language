@@ -80,6 +80,7 @@ class PieChartWriter is ChartWriter
         pieChart = cast(PieChart, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -107,7 +108,7 @@ class PieChartWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")  
+        chartContent:SetRole("graphics-object")  
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
@@ -146,7 +147,7 @@ class PieChartWriter is ChartWriter
                     sliceSVG:SetFill(pieBox:Get(i):GetColor())
                     sliceSVG:SetTabIndex(-1)
                     if HasAccessibility()   
-                        sliceSVG:SetRole("application") 
+                        sliceSVG:SetRole("graphics-symbol") 
                         sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                         sliceSVG:SetAriaHidden("false")
                     end
@@ -273,7 +274,7 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
-                            subChartContent:SetRole("application") 
+                            subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -281,7 +282,7 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
-                            subChartContent:SetRole("application") 
+                            subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         else
@@ -309,7 +310,7 @@ class PieChartWriter is ChartWriter
                         sliceSVG:SetFill(pieBox:Get(i):GetColor())
                         sliceSVG:SetTabIndex(-1)
                         if HasAccessibility()   
-                            sliceSVG:SetRole("application") 
+                            sliceSVG:SetRole("graphics-symbol") 
                             sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                             sliceSVG:SetAriaHidden("false")
                         end

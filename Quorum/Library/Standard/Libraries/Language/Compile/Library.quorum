@@ -307,6 +307,10 @@ class Library is ProcessListener
         interfaceNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         interfaceNative:SetPath("Libraries.Interface")
 
+        File mobileNative
+        mobileNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
+        mobileNative:SetPath("mobile")
+
         File nativeDeployment
         nativeDeployment:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         nativeDeployment:SetPath("Deploy")
@@ -326,6 +330,10 @@ class Library is ProcessListener
         speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
         interfaceNative:Copy(nativeFolder, true)
+        if mobileNative:Exists()
+            mobileNative:Copy(nativeFolder, true)
+        end
+
         if nativeDeployment:Exists()
             nativeDeployment:Copy(nativeFolder, true)
         end

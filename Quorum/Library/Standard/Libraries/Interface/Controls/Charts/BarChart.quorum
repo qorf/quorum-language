@@ -79,6 +79,7 @@ class BarChart is SharedBarChartParent
         else
             SetDescription(", Bar chart with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
+        AddChartAreaInstructions("with " + grouptext + bartext)
         return GetDescription()
     end
     

@@ -85,6 +85,7 @@ class ScatterPlot is TwoVariableChart
         else
             SetDescription(", Scatter plot with " + points + " " + pointText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
         end
+        AddChartAreaInstructions(" with " + points + " " + pointText)
         return GetDescription()
     end
 

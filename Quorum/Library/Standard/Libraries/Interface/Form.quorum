@@ -69,13 +69,11 @@ class Form is Game
     action AddPage(text name) returns Page
         FlowLayoutPage page
         page:SetName(name)
-        currentPage = page
         pages:Add(name, page)
         return page
     end
 
     action AddPage(Page page)
-        currentPage = page
         pages:Add(page:GetName(), page)
     end
 
