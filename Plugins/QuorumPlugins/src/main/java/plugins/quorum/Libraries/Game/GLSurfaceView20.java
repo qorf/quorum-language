@@ -149,6 +149,7 @@ public class GLSurfaceView20 extends GLSurfaceView
                 int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
                 int right = (int) (itemX + ((Item2D_) item).GetWidth());
                 int bottom = AndroidApplication.screenHeight - (int)(itemY);
+                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + " Name: " + item.GetName() + " Desc: " + item.GetDescription());
                 childBounds = new Rect(left, top, right, bottom);
             }
             else if (item instanceof Item3D_)
@@ -163,6 +164,8 @@ public class GLSurfaceView20 extends GLSurfaceView
                 int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
                 int right = (int) (rectangle.GetX() + rectangle.GetWidth());
                 int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
+                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + "Name: " + item.GetName());
+
                 childBounds = new Rect(left, top, right, bottom);
             }
             else
@@ -171,6 +174,8 @@ public class GLSurfaceView20 extends GLSurfaceView
                 int top = 0;
                 int right = 0;
                 int bottom = 0;
+                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + "Name: " + item.GetName());
+
                 childBounds = new Rect(left, top, right, bottom);
             }
 

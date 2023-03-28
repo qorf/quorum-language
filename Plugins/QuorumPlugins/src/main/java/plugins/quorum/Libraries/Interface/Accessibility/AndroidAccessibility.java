@@ -16,18 +16,16 @@ import quorum.Libraries.Interface.Item_;
  *
  * @author andreasstefik
  */
-public class AndroidAccessibility {
+public class AndroidAccessibility{
     public Object me_ = null;
-    public static Item_ lastHoveredChild;
     public static Item_ lastSpokenChild;
+    public static Item_ lastHoveredChild;
 
 
     public static void sendAccessibilityEventForVirtualView(Item_ item, int eventType) {
         if(item == null)
             return;
-        // If touch exploration, i.e. the user gets feedback while touching
-        // the screen, is enabled we fire accessibility events.
-        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && !(item.GetDescription().trim().isEmpty() || item.GetName().trim().isEmpty())) {
+        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled()) {
             if (lastSpokenChild == null)
                 lastSpokenChild = item;
             else if(lastSpokenChild == item)
@@ -38,10 +36,18 @@ public class AndroidAccessibility {
             event.setPackageName(AndroidApplication.androidActivity.getPackageName());
             event.setClassName(item.GetName());
             event.setSource(AndroidApplication.viewRoot, item.GetHashCode());
-            event.getText().add(item.GetName() + " " + item.GetDescription());
+            String text = "";
+            if (!item.GetName().trim().isEmpty()) {
+                text += item.GetName() + " ";
+            }
+            if (!item.GetDescription().trim().isEmpty()){
+                text += item.GetDescription() + " ";
+            } else {
+                text += item.GetAccessibilityType();
+            }
+            event.getText().add(text);
             AndroidApplication.accessibilityManager.interrupt();
             AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
-            //Log.e("Accessibility", "sendAccessibilityEventForVirtualView: " + item.GetName() + " " + item.GetDescription());
         }
     }
 
@@ -74,7 +80,10 @@ public class AndroidAccessibility {
 
     public void  SelectionChanged(SelectionEvent_ event) {}
 
-    public void  ButtonActivated(Button_ button) {}
+    public void ButtonActivated(Button_ button) {
+        sendAccessibilityEventForVirtualView(button, AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        android.util.Log.e("Quorum", "ButtonActivated: ");
+    }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
@@ -112,6 +121,9 @@ public class AndroidAccessibility {
         if(accessibilityNodeProvider == null) {
             return;
         }
+
+        if(item.GetAccessibilityType().equals("NOT_ACCESSIBLE"))
+            return;
 
         int id = item.GetHashCode();
 

@@ -5,11 +5,14 @@ import android.view.MotionEvent;
 import java.util.HashMap;
 
 import android.view.ScaleGestureDetector;
+import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
 import quorum.Libraries.Containers.List_;
+import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Events.GestureEvent;
 import quorum.Libraries.Interface.Events.GestureEvent_;
 import quorum.Libraries.Interface.Events.TouchEvent;
 import quorum.Libraries.Interface.Events.TouchEvent_;
+import quorum.Libraries.Interface.Item_;
 
 /**
  *
@@ -57,16 +60,24 @@ public class AndroidInput
     
     public TouchEvent_[] ConvertToQuorumEvents(MotionEvent e)
     {
+        if (e == null) {
+            return new TouchEvent_[0];
+        }
             TouchEvent_[] eventArray;
             TouchEvent event;
             int id;
             int x;
             int y;
             Coordinates coordinates;
+            Item_ temp =  AndroidAccessibility.lastSpokenChild;
             switch(e.getActionMasked())
             {
                     case (MotionEvent.ACTION_DOWN):
                     case (MotionEvent.ACTION_POINTER_DOWN):
+                        if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__BUTTON_()){
+                            ((Button_)temp).ClickedMouse();
+                            Log.e("Quorum", "ConvertToQuorumEvents: CLICKED");
+                        }
                         scaleFactor = 1.0f;
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();
@@ -103,10 +114,16 @@ public class AndroidInput
                         event.fingerID = id;
                         event.eventType = event.MOVED;
                         coordinates = map.get(id);
-                        event.movementX = event.x - coordinates.x;
-                        event.movementY = event.y - coordinates.y;
-                        coordinates.x = x;
-                        coordinates.y = y;
+
+                        if (coordinates != null) {
+                            event.movementX = event.x - coordinates.x;
+                            event.movementY = event.y - coordinates.y;
+                            coordinates.x = x;
+                            coordinates.y = y;
+                        } else {
+                            event.movementX = 0;
+                            event.movementY = 0;
+                        }
                         eventArray[i] = event;
                     }
                     break;
@@ -179,8 +196,13 @@ public class AndroidInput
 
     private void InitializeValues(MotionEvent event, GestureEvent quorumEvent)
     {
-        int x = (int)event.getRawX();
-        int y = GameStateManager.display.GetHeight() - (int)event.getRawY();
+        int x = 0;
+        int y = 0;
+        if (event != null){
+            x = (int)event.getRawX();
+            y = GameStateManager.display.GetHeight() - (int)event.getRawY();
+        }
+
 
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
