@@ -1988,6 +1988,23 @@ shared class DefaultInputSets
         gameInput:AddInputTable(paletteItemContentTable)
     end
 
+    action SetupFlowChartInput(GameInput gameInput)
+        InputTable flowchartTable
+        flowchartTable:SetIdentifier("Flowchart")
+        
+        FlowchartNavigateLeftBehavior flowchartLeft
+        FlowchartNavigateRightBehavior flowchartRight
+        FlowchartNavigateDownBehavior flowchartDown
+        FlowchartNavigateUpBehavior flowchartUp
+
+        flowchartTable:Add(GetLeftArrowKey(), flowchartLeft)
+        flowchartTable:Add(GetRightArrowKey(), flowchartRight)
+        flowchartTable:Add(GetDownArrowKey(), flowchartDown)
+        flowchartTable:Add(GetUpArrowKey(), flowchartUp)
+
+        gameInput:AddInputTable(flowchartTable)
+    end
+
     action SetupChartInput(GameInput gameInput)
         InputTable chartTable
         chartTable:SetIdentifier("Chart")

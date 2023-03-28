@@ -1,0 +1,69 @@
+package Libraries.Interface.Controls.Charts.Flowcharts
+
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+
+class FlowchartTextNode is FlowchartNode
+
+    Label label
+
+    on create
+        SetName("Text Node")
+        SetGridWidth(1)
+        SetGridHeight(1)
+
+        ManualLayout layout
+        SetLayout(layout)
+
+        label:SetPercentageX(0.5)
+        label:SetPercentageY(0.5)
+        label:SetPercentageOriginX(0.5)
+        label:SetPercentageOriginY(0.5)
+        Add(label)
+
+        SetPercentageX(0.5)
+        SetPercentageY(0.5)
+        SetPercentageOriginX(0.5)
+        SetPercentageOriginY(0.5)
+        SetPercentageWidth(0.9)
+        SetPercentageHeight(0.9)
+    end
+
+    action ConvertToScalableVectorGraphics returns text
+        return ""
+    end
+
+    action SetName(text name)
+        label:SetText(name)
+        parent:Control:SetName(name)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined
+            if label:GetFontSize() not= chart:GetFontSize()
+                label:SetFontSize(chart:GetFontSize())
+            end
+
+            if HasColorPropertyOverride("fontColor")
+                label:SetFontColor(GetFontColor())
+            else
+                label:SetFontColor(GetFontColor())
+            end
+        end
+    end
+
+    action Resize
+        label:SetMaximumWidth(GetWidth())
+        parent:Control:Resize()
+    end
+
+end
