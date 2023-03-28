@@ -79,6 +79,7 @@ class BoxPlotWriter is ChartWriter
         boxPlot = cast(BoxPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -115,11 +116,16 @@ class BoxPlotWriter is ChartWriter
             chartContent:SetTabIndex(0)
             chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
             chartContent:SetIsOneLine(true)
-            chartContent:SetRole("application")  
+            chartContent:SetRole("graphics-object") 
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
             chartContentBoundingBox:SetAriaHidden("true")
+            chartContentBoundingBox:SetTabIndex(-1)
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
             chartContentBoundingBox:SetTabIndex(-1)
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -140,7 +146,7 @@ class BoxPlotWriter is ChartWriter
                         plotGroupSVG:SetID(canvas:GetID() + "_" + group:GetHashCode())
                         plotGroupSVG:SetStyleClass("quorum-chart-plotgroup quorum-chart-category-list")
                         plotGroupSVG:SetTabIndex(-1)
-                        plotGroupSVG:SetRole("application")  
+                        plotGroupSVG:SetRole("graphics-object")  
                         plotGroupSVG:SetAriaLabel(group:GetName() + group:GetDescription())
                         plotGroupSVG:SetAriaHidden("false")
                     end
@@ -148,22 +154,7 @@ class BoxPlotWriter is ChartWriter
 
                     text plotGroupFocus = ""
                     text plotGroupBlur = ""
-    
-                    // Add group selection symbols here!
-                    // The group area, used for hover 
-                    Rectangle plotGroup
-                    plotGroup:SetWidth(group:GetWidth())
-                    plotGroup:SetHeight(group:GetHeight())
-                    plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
-                    plotGroup:SetFill(transparent)
-                    plotGroup:SetFillOpacity(transparent)
-                    if HasAccessibility()
-                        plotGroup:SetStyleClass("quorum-chart-rect")
-                        plotGroup:SetTabIndex(-1)
-                        plotGroup:SetAriaHidden("true")
-                    end
-                    plotGroupSVG:Add(plotGroup)
-    
+
                     if group:GetSelectionBracket():GetSize() = 3
                         integer k = 0
                         repeat while k < group:GetSelectionBracket():GetSize()
@@ -230,8 +221,8 @@ class BoxPlotWriter is ChartWriter
                     if HasAccessibility()  
                         plotSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
                         plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list") 
-                        plotSVG:SetTabIndex(-1)
-                        plotSVG:SetRole("application") 
+                        plotSVG:SetTabIndex(-1) 
+                        plotSVG:SetRole("graphics-object") 
                         plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                         plotSVG:SetAriaHidden("false")
                     end
@@ -244,21 +235,22 @@ class BoxPlotWriter is ChartWriter
                     text plotFocus = ""
                     text plotBlur = ""
 
-                    // Add plot selection symbols here!
-                    // The plot area, used for hover 
-                    Rectangle plotArea
-                    plotArea:SetWidth(plot:GetPlotArea():GetWidth())
-                    plotArea:SetHeight(plot:GetPlotArea():GetHeight())
-                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
-                    plotArea:SetFill(transparent)
-                    plotArea:SetFillOpacity(transparent)
-                    if HasAccessibility()
-                        plotArea:SetStyleClass("quorum-chart-rect")
-                        plotArea:SetTabIndex(-1)
-                        plotArea:SetAriaHidden("true")
-                    end
-                    plotSVG:Add(plotArea)
-    
+
+//                    // Add plot selection symbols here!
+//                    // The plot area, used for hover 
+//                    Rectangle plotArea
+//                    plotArea:SetWidth(plot:GetPlotArea():GetWidth())
+//                    plotArea:SetHeight(plot:GetPlotArea():GetHeight())
+//                    plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
+//                    plotArea:SetFill(transparent)
+//                    plotArea:SetFillOpacity(transparent)
+//                    if HasAccessibility()
+//                        plotArea:SetStyleClass("quorum-chart-rect")
+//                        plotArea:SetTabIndex(-1)
+//                        plotArea:SetAriaHidden("true")
+//                    end
+//                    plotSVG:Add(plotArea)
+//    
                     if plot:GetSelectionBracket():GetSize() = 3
                         integer k = 0
                         repeat while k < plot:GetSelectionBracket():GetSize()
@@ -344,7 +336,7 @@ class BoxPlotWriter is ChartWriter
                                 itemSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
                                 itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list") 
                                 itemSVG:SetTabIndex(-1)
-                                itemSVG:SetRole("application")  
+                                itemSVG:SetRole("graphics-symbol")  
                                 itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                 itemSVG:SetAriaHidden("false")
                             end
@@ -512,16 +504,22 @@ class BoxPlotWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                            subChartContent:SetRole("application")  
+                            subChartContent:SetRole("graphics-object")  
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                         elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                            subChartContent:SetRole("application")  
+                            subChartContent:SetRole("graphics-object")  
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         else
                             subChartContent:SetAriaHidden("true")
@@ -541,7 +539,7 @@ class BoxPlotWriter is ChartWriter
                             plotSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode())
                             plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")
                             plotSVG:SetTabIndex(-1)
-                            plotSVG:SetRole("application")  
+                            plotSVG:SetRole("graphics-object")  
                             plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription() + ".")
                             plotSVG:SetAriaHidden("false")
                         end
@@ -554,20 +552,21 @@ class BoxPlotWriter is ChartWriter
                         text plotFocus = ""
                         text plotBlur = ""
 
-                        // Add plot selection symbols here!
-                        // The plot area, used for hover 
-                        Rectangle plotArea
-                        plotArea:SetWidth(plot:GetPlotArea():GetWidth())
-                        plotArea:SetHeight(plot:GetPlotArea():GetHeight())
-                        plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
-                        plotArea:SetFill(transparent)
-                        plotArea:SetFillOpacity(transparent)
-                        if HasAccessibility()
-                            plotArea:SetStyleClass("quorum-chart-rect")
-                            plotArea:SetTabIndex(-1)
-                            plotArea:SetAriaHidden("true")
-                        end
-                        plotSVG:Add(plotArea)
+//
+//                        // Add plot selection symbols here!
+//                        // The plot area, used for hover 
+//                        Rectangle plotArea
+//                        plotArea:SetWidth(plot:GetPlotArea():GetWidth())
+//                        plotArea:SetHeight(plot:GetPlotArea():GetHeight())
+//                        plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
+//                        plotArea:SetFill(transparent)
+//                        plotArea:SetFillOpacity(transparent)
+//                        if HasAccessibility()
+//                            plotArea:SetStyleClass("quorum-chart-rect")
+//                            plotArea:SetTabIndex(-1)
+//                            plotArea:SetAriaHidden("true")
+//                        end
+//                        plotSVG:Add(plotArea)
     
                         if plot:GetSelectionBracket():GetSize() = 3
                             integer k = 0
@@ -652,8 +651,8 @@ class BoxPlotWriter is ChartWriter
                                 if HasAccessibility()  
                                     itemSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
                                     itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list") 
-                                    itemSVG:SetTabIndex(-1)
-                                    itemSVG:SetRole("application")  
+                                    itemSVG:SetTabIndex(-1) 
+                                    itemSVG:SetRole("graphics-symbol")  
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
                                 end

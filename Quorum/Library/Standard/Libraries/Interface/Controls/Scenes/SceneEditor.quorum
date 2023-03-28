@@ -1698,6 +1698,7 @@ action Update(number seconds)
             // Update the description for the controller in accessibility.
             accessibility:DescriptionChanged(me)
         end
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
@@ -1712,6 +1713,7 @@ action Update(number seconds)
         if layer not= undefined and not goingToDummy
             layer:ShowCursor(false)
         end
+        parent:Control:LostFocus(event)
     end
 
     /*

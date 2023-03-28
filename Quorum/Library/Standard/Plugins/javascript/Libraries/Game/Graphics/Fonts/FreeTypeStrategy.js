@@ -137,7 +137,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			var map = pixmap.plugin_;
 			var format = new quorum_Libraries_Game_Graphics_Format_();
 			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
-			map.LoadFromFontBitmap(rgbaBuffer, bitmapData[3], bitmapData[2], format);
+			map.LoadFromByteBuffer(rgbaBuffer, bitmapData[3], bitmapData[2], format);
 
 			// Create File texture data
 			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
@@ -417,7 +417,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		var map = pixmap.plugin_;
 		var format = new quorum_Libraries_Game_Graphics_Format_();
 		format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
-		map.LoadFromFontBitmap(destination, totalWidth, totalHeight, format);
+		map.LoadFromByteBuffer(destination, totalWidth, totalHeight, format);
 
 		// Create File texture data
 		var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();

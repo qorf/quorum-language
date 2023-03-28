@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Game.Graphics.Shaders.WedgeVertexShader
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -84,7 +85,7 @@ class Wedge is ChartDrawable
             SetShaderProgram(program)
             return program
         else
-            DefaultVertexShader2D vertex
+            WedgeVertexShader vertex
             WedgeFragmentShader fragment
             ShaderProgram program
             program:Add(vertex)

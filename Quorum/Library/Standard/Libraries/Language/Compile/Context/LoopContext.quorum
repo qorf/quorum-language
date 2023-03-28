@@ -1,10 +1,12 @@
 package Libraries.Language.Compile.Context
 use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Parsing.Token
 
 class LoopContext is ParseContext
     public boolean isWhile = false
     public boolean isTimes = false
     public boolean isUntil = false
+    public Token timesToken = undefined
 
     public ParseContext expression = undefined
     public BlockContext block = undefined

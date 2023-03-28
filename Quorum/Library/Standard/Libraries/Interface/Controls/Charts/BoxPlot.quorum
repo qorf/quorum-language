@@ -73,6 +73,10 @@ class BoxPlot is Chart
     private number maxOutlierValue = 0
     private number minOutlierValue = 0
 
+    private boolean showPlotAnnotation = false
+    private boolean annotationFontSizeOverride = false
+    private integer annotationFontSize = 0
+
     // Terminology for navigation instructions
     private text chartItemText = "plot"
     private text chartItemsText = "plots"
@@ -187,6 +191,19 @@ class BoxPlot is Chart
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
                     end
+                    if (plot:ShowAnnotation() or ShowAnnotations()) 
+                        ChartLabel minLabel
+                        if (showPlotAnnotation) 
+                            minLabel:SetText(minimumLine:GetName())
+                        else    
+                            minLabel:SetText(cast(text, minimum))  
+                        end    
+                        if annotationFontSizeOverride
+                            minLabel:SetFontSize(annotationFontSize)
+                        end
+                        minimumLine:SetAnnotation(minLabel)
+                        chartArea:Add(minLabel)
+                    end
                     plot:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
@@ -220,6 +237,19 @@ class BoxPlot is Chart
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
                     end
+                    if (plot:ShowAnnotation() or ShowAnnotations()) 
+                        ChartLabel Q1Label
+                        if (showPlotAnnotation) 
+                            Q1Label:SetText(firstQuartileLine:GetName())
+                        else    
+                            Q1Label:SetText(cast(text, firstQ))  
+                        end 
+                        if annotationFontSizeOverride
+                            Q1Label:SetFontSize(annotationFontSize)
+                        end
+                        firstQuartileLine:SetAnnotation(Q1Label)
+                        chartArea:Add(Q1Label)
+                    end
                     plot:Add(firstQuartileLine:GetSelectionArrow())
     
                     // Median Line (denser) 
@@ -231,6 +261,19 @@ class BoxPlot is Chart
                     medianLine:SetDescription(" " + median)
                     if CheckIfInteger(median)
                         medianLine:SetDescription(" " + cast(integer, median))
+                    end
+                    if (plot:ShowAnnotation() or ShowAnnotations())
+                        ChartLabel medianLabel
+                        if (showPlotAnnotation) 
+                            medianLabel:SetText(medianLine:GetName())
+                        else    
+                            medianLabel:SetText(cast(text, median))  
+                        end 
+                        if annotationFontSizeOverride
+                            medianLabel:SetFontSize(annotationFontSize)
+                        end
+                        medianLine:SetAnnotation(medianLabel)
+                        chartArea:Add(medianLabel)
                     end
                     plot:Add(medianLine:GetSelectionArrow())
     
@@ -244,6 +287,19 @@ class BoxPlot is Chart
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
                     end
+                    if (plot:ShowAnnotation() or ShowAnnotations()) 
+                        ChartLabel Q3Label
+                        if (showPlotAnnotation) 
+                            Q3Label:SetText(thirdQuartileLine:GetName())
+                        else    
+                            Q3Label:SetText(cast(text, thirdQ))  
+                        end
+                        if annotationFontSizeOverride
+                            Q3Label:SetFontSize(annotationFontSize)
+                        end
+                        thirdQuartileLine:SetAnnotation(Q3Label)
+                        chartArea:Add(Q3Label)
+                    end
                     plot:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
@@ -255,6 +311,19 @@ class BoxPlot is Chart
                     maximumLine:SetDescription(" " + maximum)
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
+                    end
+                    if (plot:ShowAnnotation() or ShowAnnotations())
+                        ChartLabel maxLabel
+                        if (showPlotAnnotation) 
+                            maxLabel:SetText(maximumLine:GetName())
+                        else    
+                            maxLabel:SetText(cast(text, maximum))  
+                        end
+                        if annotationFontSizeOverride
+                            maxLabel:SetFontSize(annotationFontSize)
+                        end
+                        maximumLine:SetAnnotation(maxLabel)
+                        chartArea:Add(maxLabel)
                     end
                     plot:Add(maximumLine:GetSelectionArrow())
                 end
@@ -290,6 +359,11 @@ class BoxPlot is Chart
                     10: MAXIMUM LINE 
                     11+: OUTLIER POINTS
                 */
+                Array<ChartDrawable> items = plot:GetPlotItems()
+                //clear out the items if they exist
+                if items not= undefined
+                    items:Empty()
+                end
                 plot:AddItem(filler)
                 plot:AddItem(minimumLine)      
                 plot:AddItem(lowerWhisker)
@@ -1014,6 +1088,16 @@ class BoxPlot is Chart
 
     action GetChartItemsText returns text
         return chartItemsText
+    end
+    
+    action ShowPlotAnnotations (boolean show)
+        showPlotAnnotation = show
+        ShowAnnotations(show)
+    end
+    
+    action SetAnnotationFontSize (integer size)
+        annotationFontSizeOverride = true
+        annotationFontSize = size
     end
 
     /*

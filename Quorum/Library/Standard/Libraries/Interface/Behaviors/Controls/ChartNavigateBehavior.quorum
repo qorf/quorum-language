@@ -1,4 +1,4 @@
-package Libraries.Interface.Behaviors.Controls
+ package Libraries.Interface.Behaviors.Controls
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
@@ -48,24 +48,21 @@ class ChartNavigateBehavior is Behavior
                 end
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
-                if gesture:GetScaleFactor() > 1 and gesture:isPinch and gesture:timingCode = gesture:FINISH
-                        direction = ENTER
-                elseif gesture:GetScaleFactor() < 1 and gesture:isPinch and gesture:timingCode = gesture:FINISH
-                        direction = SHIFT_ENTER
-                elseif gesture:eventType = gesture:DOUBLE_TAP
-                        direction = TAB
+
+                if gesture:eventType = gesture:SINGLE_TAP //Double Tap with talkback
+                        direction = TAB            
                 elseif gesture:eventType = gesture:SWIPE
-                    if gesture:GetDirection() = gesture:LEFT and gesture:maxFingerCount = 2  
+                    if gesture:GetDirection() = gesture:LEFT //2 finger Swipe Left with talkback
                         direction = X_AXIS_PREV
-                    elseif gesture:GetDirection() = gesture:RIGHT and gesture:maxFingerCount = 2  
+                    elseif gesture:GetDirection() = gesture:RIGHT //2 finger Swipe Right with talkback
                         direction = X_AXIS_NEXT
-                    elseif gesture:GetDirection() = gesture:UP and gesture:maxFingerCount = 3  
-                        direction = Y_AXIS_NEXT
-                    elseif gesture:GetDirection() = gesture:DOWN and gesture:maxFingerCount = 3
-                        direction = Y_AXIS_PREV
-                    elseif gesture:GetDirection() = gesture:UP and gesture:maxFingerCount = 4
-                        direction = SHIFT_TAB
+                    elseif gesture:GetDirection() = gesture:UP //2 finger Swipe Up with talkback
+                        direction = ENTER
+                    elseif gesture:GetDirection() = gesture:DOWN //2 finger Swipe Down with talkback
+                        direction = SHIFT_ENTER
                     end
+                elseif gesture:eventType = gesture:LONG_PRESS //Double Tap and long press with talkback
+                    direction = SHIFT_TAB
                 else 
                     return now
                 end                

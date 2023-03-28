@@ -7,6 +7,8 @@ use Libraries.Compute.Statistics.DataFrameSelection
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Math
 
 /*
     The TransformWider class handles transforming a wide DataFrame into
@@ -36,6 +38,13 @@ use Libraries.Containers.HashTable
     DataFrame wide = frame:Transform(wider)
 */
 class TransformWider is DataFrameTransform
+    boolean resolveConflicts = false
+    boolean useMeanAsConflictResolution = false
+    boolean useSumAsConflictResolution = false
+    boolean useMinAsConflictResolution = false
+    boolean useMaxAsConflictResolution = false
+    boolean useCountAsConflictResolution = false
+    boolean useAppendConflictResolution = false   // Used when the issue occurs with a non-numeric value
 
     action Transform(DataFrame frame) returns DataFrame
         DataFrameSelection selection = frame:GetSelection()
@@ -74,9 +83,11 @@ class TransformWider is DataFrameTransform
         DataFrameColumn factor = frame:GetColumn(selection:GetFactor(0))
         DataFrameColumn uniqueFactors = factor:Copy(true,true)
 
-        // We need to check uniqueness of all unselected column entries at each unique factor
+        // We need to check uniqueness of all unselected column entries at each unique factor unless theres a resolution
         HashTable <text, integer> uniqueRows 
         HashTable <text, integer> uniqueRowsWithoutFactor
+        HashTable <text, integer> indicesToKeep
+        integer newIndex = 0
         i = 0
         repeat while i < factor:GetSize() and unselectedCopy:GetSize() > 0
             text rowText = factor:GetAsText(i)
@@ -91,19 +102,24 @@ class TransformWider is DataFrameTransform
                 j = j + 1
             end
             if uniqueRows:HasKey(rowText)
-                text clashingIndices = "Row index "+uniqueRows:GetValue(rowText)+" clashes with row index "+i
-                alert("To make a DataFrame wider, the unselected columns must have unique row entries for each factor. "+clashingIndices)
+                if not resolveConflicts
+                    text clashingIndices = "Conflict at row index "+uniqueRows:GetValue(rowText)+" and row index "+i+"."
+                    text resolution = " Try using ResolveConflictsWithMean() or another conflict resolution."  
+                    alert(clashingIndices+resolution)
+                end
             else
                 uniqueRows:Add(rowText, i)
                 if not uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor)
-                    uniqueRowsWithoutFactor:Add(rowTextWithoutFactor, i)
+                    uniqueRowsWithoutFactor:Add(rowTextWithoutFactor, newIndex)
+                    newIndex = newIndex + 1
+                    indicesToKeep:Add(rowTextWithoutFactor, i)
                 end
             end
             i = i + 1
         end
 
         // Enter unique rows from unselected data
-        Array<integer> rowIndicesToKeep = uniqueRowsWithoutFactor:CopyToValueArray()
+        Array<integer> rowIndicesToKeep = indicesToKeep:CopyToValueArray()
         rowIndicesToKeep:Sort()
         DataFrame newFrame 
         i = 0
@@ -125,15 +141,21 @@ class TransformWider is DataFrameTransform
 
 
         // Add the widened data to the new frame
+        Math math
         if frame:GetSize() > 2
             // If there are more than 2 columns in the frame, attach the factor names to the selected columns
             i = 0
             repeat while i < numberOfColumnsSelected
                 DataFrameColumn column = frame:GetColumn(selection:GetColumn(i))
+                NumberColumn numberCol = column:ConvertToNumberColumn() // Used in numeric conflict resolution
                 j = 0
                 repeat while j < uniqueFactors:GetSize()
                     TextColumn newColumn
-                    newColumn:SetHeader(uniqueFactors:GetAsText(j)+"_"+column:GetHeader())
+                    if frame:GetSize() = 3
+                        newColumn:SetHeader(uniqueFactors:GetAsText(j))
+                    else
+                        newColumn:SetHeader(uniqueFactors:GetAsText(j)+"_"+column:GetHeader())
+                    end
                     if newFrame:GetSize() > 0
                         newColumn:SetSize(newFrame:GetColumn(0):GetSize())
                     else
@@ -142,6 +164,8 @@ class TransformWider is DataFrameTransform
                     newFrame:AddColumn(newColumn)
                     j = j + 1
                 end
+
+                HashTable <text, number> meanDivisor // This will store the correct divisor for any mean resolutions.
                 j = 0
                 repeat while j < column:GetSize()
                     // Find row index
@@ -149,15 +173,81 @@ class TransformWider is DataFrameTransform
                     k = 0
                     repeat while k < unselectedCopy:GetSize()
                         if j < unselectedCopy:GetColumn(k):GetSize()
-                            rowTextWithoutFactor = rowTextWithoutFactor + unselectedCopy:GetColumn(k):GetAsText(j)
+                            DataFrameColumn column2 = unselectedCopy:GetColumn(k)
+                            if not column2:IsUndefined(j)
+                                rowTextWithoutFactor = rowTextWithoutFactor + column2:GetAsText(j)
+                            end
                         end
                         k = k + 1
                     end
+                    
                     // Find column and place value
                     if j < factor:GetSize()
-                        if uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor)
+                        if uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor) and not column:IsUndefined(j) and not factor:IsUndefined(j)
+                            text colIndex = ""
+                            if frame:GetSize() = 3
+                                colIndex = factor:GetAsText(j)
+                            else
+                                colIndex = factor:GetAsText(j)+"_"+column:GetHeader()
+                            end
                             integer rowIndex = uniqueRowsWithoutFactor:GetValue(rowTextWithoutFactor)
-                            newFrame:GetColumn(factor:GetAsText(j)+"_"+column:GetHeader()):SetAsText(rowIndex, column:GetAsText(j))
+                            if resolveConflicts
+                                if rowIndex < newFrame:GetColumn(colIndex):GetSize()
+                                    // If the conflicting values are non-numeric, the conflict resolution defaults to count
+                                    if (numberCol:IsUndefined() and not useAppendConflictResolution) or useCountAsConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, 1))
+                                        else 
+                                            number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, old+1))
+                                        end 
+                                    elseif numberCol:IsUndefined() or useAppendConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, column:GetAsText(j))
+                                        else 
+                                            text old = newFrame:GetColumn(colIndex):GetAsText(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, old+"_"+column:GetAsText(j))
+                                        end
+                                    elseif useMeanAsConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, numberCol:GetAsNumber(j)))
+                                            meanDivisor:Add(rowTextWithoutFactor, 1)
+                                        else 
+                                            number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
+                                            number oldDivisor = meanDivisor:GetValue(rowTextWithoutFactor)
+                                            number newDivisor = oldDivisor + 1
+                                            number newValue = (old * oldDivisor + numberCol:GetAsNumber(j)) / newDivisor
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, newValue))
+                                            meanDivisor:Set(rowTextWithoutFactor, newDivisor)
+                                        end    
+                                    elseif useSumAsConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, numberCol:GetAsNumber(j)))
+                                        else 
+                                            number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, old+numberCol:GetAsNumber(j)))
+                                        end   
+                                    elseif useMinAsConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, numberCol:GetAsNumber(j)))
+                                        else 
+                                            number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, math:MinimumOf(old, numberCol:GetAsNumber(j))))
+                                        end 
+                                    elseif useMaxAsConflictResolution
+                                        if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, numberCol:GetAsNumber(j)))
+                                        else 
+                                            number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
+                                            newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, math:MaximumOf(old, numberCol:GetAsNumber(j))))
+                                        end                                                                                  
+                                    end
+                                end
+                            else
+                                if not column:IsUndefined(j) and not factor:IsUndefined(j)
+                                    newFrame:GetColumn(colIndex):SetAsText(rowIndex, column:GetAsText(j))
+                                end
+                            end
                         end
                     end
                     j = j + 1
@@ -177,11 +267,75 @@ class TransformWider is DataFrameTransform
             i = 0
             repeat while i < column:GetSize()
                 if i < factor:GetSize()
-                    newFrame:GetColumn(factor:GetAsText(i)):Add(column:GetAsText(i))
+                    if not column:IsUndefined(i) and not factor:IsUndefined(i)
+                        newFrame:GetColumn(factor:GetAsText(i)):Add(column:GetAsText(i))
+                    elseif not factor:IsUndefined(i)
+                        newFrame:GetColumn(factor:GetAsText(i)):Add(undefined)
+                    end
                 end
                 i = i + 1
             end
         end
         return newFrame
+    end
+
+    action ResolveConflictsWithMean()
+        resolveConflicts = true
+        useMeanAsConflictResolution = true
+        useSumAsConflictResolution = false
+        useMinAsConflictResolution = false
+        useMaxAsConflictResolution = false
+        useCountAsConflictResolution = false
+        useAppendConflictResolution = false
+    end
+
+    action ResolveConflictsWithSum()
+        resolveConflicts = true
+        useMeanAsConflictResolution = false
+        useSumAsConflictResolution = true
+        useMinAsConflictResolution = false
+        useMaxAsConflictResolution = false
+        useCountAsConflictResolution = false
+        useAppendConflictResolution = false
+    end
+
+    action ResolveConflictsWithMinimum()
+        resolveConflicts = true
+        useMeanAsConflictResolution = false
+        useSumAsConflictResolution = false
+        useMinAsConflictResolution = true
+        useMaxAsConflictResolution = false
+        useCountAsConflictResolution = false
+        useAppendConflictResolution = false
+    end
+
+    action ResolveConflictsWithMaximum()
+        resolveConflicts = true
+        useMeanAsConflictResolution = false
+        useSumAsConflictResolution = false
+        useMinAsConflictResolution = false
+        useMaxAsConflictResolution = true
+        useCountAsConflictResolution = false
+        useAppendConflictResolution = false
+    end
+
+    action ResolveConflictsWithCount()
+        resolveConflicts = true
+        useMeanAsConflictResolution = false
+        useSumAsConflictResolution = false
+        useMinAsConflictResolution = false
+        useMaxAsConflictResolution = false
+        useCountAsConflictResolution = true
+        useAppendConflictResolution = false
+    end
+
+    action ResolveConflictsWithAppend()
+        resolveConflicts = true
+        useMeanAsConflictResolution = false
+        useSumAsConflictResolution = false
+        useMinAsConflictResolution = false
+        useMaxAsConflictResolution = false
+        useCountAsConflictResolution = false
+        useAppendConflictResolution = true
     end
 end

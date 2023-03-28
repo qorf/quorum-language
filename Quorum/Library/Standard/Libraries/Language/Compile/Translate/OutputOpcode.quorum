@@ -55,9 +55,9 @@ class OutputOpcode is QuorumOpcode
         if theReturn:IsNumber()
             text illegal = "illegal_"
             result = result + illegal + " = "+ opcodeResult + ";" + EOL
-            result = result + OUTPUT_VARIABLE + " += (global_number_converter_(" + illegal + ")) + " + quote + "\n" + quote + ";" + EOL
+            result = result + "global_Output_((global_number_converter_(" + illegal + ")));" + EOL
         else 
-            result = OUTPUT_VARIABLE + " += " + opcodeResult + "+" + quote + "\n" + quote + ";" + EOL
+            result = "global_Output_(" + opcodeResult + ");" + EOL
         end
         return result
     end

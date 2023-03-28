@@ -21,6 +21,9 @@ use Libraries.Game.Game
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Interface.Views.DrawableView
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Containers.Iterator
+use Libraries.Containers.Support.EmptyIterator
 
 class Control is Item2D
 
@@ -73,14 +76,14 @@ class Control is Item2D
     */
     public integer MAINTAIN_ASPECT_RATIO = 4
 
-    Array<ControlActivationListener> listeners
+    Array<ControlActivationListener> listeners = undefined
 
     /*
     LayoutProperties describe how this Item are laid out by Layouts. If the
     Item has multiple LayoutProperties objects, the most appropriate one will
     be chosen based on the container's size.
     */
-    Array<LayoutProperties> layoutProperties
+    Array<LayoutProperties> layoutProperties = undefined
     
     /*
     The default LayoutProperties, used by many controls to set their base visual
@@ -108,10 +111,12 @@ class Control is Item2D
 
     PopupMenu contextMenu = undefined
 
-    // SelectionListeners which are registered with this Control. They'll be
-    // informed of selection changes in this Control, if the Control has an
-    // associated selection.
-    Array<SelectionListener> selectionListeners
+    /*
+    SelectionListeners which are registered with this Control. They'll be
+    informed of selection changes in this Control, if the Control has an
+    associated selection.
+    */
+    Array<SelectionListener> selectionListeners = undefined
 
     // Booleans used to indicate if this Control has been interacted with in a way that needs special rendering by the Control shader.
     boolean renderMouseOver = false
@@ -212,6 +217,28 @@ class Control is Item2D
             content:LostSelection()
         end
 
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item received the focus.
+    */
+    action GainedFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:GainedFocus()
+        end
+        RequestVerticesUpdate()
+    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+    action LostFocus(FocusEvent event)
+        if GetView2D() is ControlView
+            ControlView content = cast(ControlView, GetView2D())
+            content:LostFocus()
+        end
         RequestVerticesUpdate()
     end
 
@@ -332,18 +359,33 @@ class Control is Item2D
     end
 
     action AddControlActivationListener(ControlActivationListener listener)
+        if listeners = undefined
+            Array<ControlActivationListener> array
+            listeners = array
+        end
+
         listeners:Add(listener)
     end
 
     action RemoveControlActivationListener(ControlActivationListener listener)
+        if listeners = undefined
+            return now
+        end
+
         listeners:Remove(listener)
+
+        if listeners:IsEmpty()
+            listeners = undefined
+        end
     end
 
     action NotifyControlActivationListeners(ControlActivationEvent event)
-        integer counter = 0
-        repeat while counter < listeners:GetSize()
-            listeners:Get(counter):ControlActivated(event)
-            counter = counter + 1
+        if listeners not= undefined
+            integer counter = 0
+            repeat while counter < listeners:GetSize()
+                listeners:Get(counter):ControlActivated(event)
+                counter = counter + 1
+            end
         end
 
         GameStateManager manager
@@ -359,16 +401,34 @@ class Control is Item2D
     end
 
     action AddLayoutProperties(LayoutProperties properties)
+        if layoutProperties = undefined
+            Array<LayoutProperties> array
+            layoutProperties = array
+        end
+
         layoutProperties:Add(properties)
         layoutProperties:Sort()
     end
 
     action RemoveLayoutProperties(LayoutProperties properties)
+        if layoutProperties = undefined
+            return now
+        end
+
         layoutProperties:Remove(properties)
+
+        if layoutProperties:IsEmpty()
+            layoutProperties = undefined
+        end
     end
 
-    action GetLayoutProperties returns Array<LayoutProperties>
-        return layoutProperties
+    action GetLayoutProperties returns Iterator<LayoutProperties>
+        if layoutProperties not= undefined
+            return layoutProperties:GetIterator()
+        else
+            EmptyIterator<LayoutProperties> empty
+            return empty
+        end
     end
 
     /*
@@ -383,19 +443,22 @@ class Control is Item2D
     */
     action GetLayoutProperties(number containerWidth, number containerHeight) returns LayoutProperties
         LayoutProperties properties = undefined
-        Array<LayoutProperties> array = GetLayoutProperties()
-        integer counter = array:GetSize()
+        Array<LayoutProperties> array = layoutProperties
 
-        /*
-        Layouts are sorted by minimum width, or minimum height if minimum
-        widths are equal. When we find an invalid layout, it's assumed that
-        all following layouts will also be invalid.
-        */
-        repeat while counter > 0
-            counter = counter - 1
-            LayoutProperties temp = array:Get(counter)
-            if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
-                properties = temp
+        if array not= undefined
+            integer counter = array:GetSize()
+    
+            /*
+            Layouts are sorted by minimum width, or minimum height if minimum
+            widths are equal. When we find an invalid layout, it's assumed that
+            all following layouts will also be invalid.
+            */
+            repeat while counter > 0
+                counter = counter - 1
+                LayoutProperties temp = array:Get(counter)
+                if (temp:GetMaximumContainerWidth() >= containerWidth and temp:GetMaximumContainerHeight() >= containerHeight)
+                    properties = temp
+                end
             end
         end
 
@@ -595,6 +658,190 @@ class Control is Item2D
 
     action GetPixelHeight returns number
         return defaultProperties:GetPixelHeight()
+    end
+
+    /*
+    This action returns how many columns this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+    */
+    action GetContainerGridWidth returns integer
+        return defaultProperties:GetContainerGridWidth()
+    end
+
+    /*
+    This action sets how many columns this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+
+    If this value is 0 or less, then the GridLayout will use its default grid width
+    and ignore this value.
+    */
+    action SetContainerGridWidth(integer containerGridWidth)
+        defaultProperties:SetContainerGridWidth(containerGridWidth)
+    end
+
+    /*
+    This action returns how many rows this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+    */
+    action GetContainerGridHeight returns integer
+        return defaultProperties:GetContainerGridHeight()
+    end
+
+    /*
+    This action sets how many rows this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+
+    If this value is 0 or less, then the GridLayout will use its default grid height
+    and ignore this value.
+    */
+    action SetContainerGridHeight(integer containerGridHeight)
+        defaultProperties:SetContainerGridHeight(containerGridHeight)
+    end
+
+    /*
+    This action returns this Control's cell x-coordinate within a GridLayout. This
+    indicates which column this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action GetGridX returns integer
+        return defaultProperties:GetGridX()
+    end
+
+    /*
+    This action sets this Control's cell x-coordinate within a GridLayout. This
+    indicates which column this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action SetGridX(integer gridX)
+        defaultProperties:SetGridX(gridX)
+    end
+
+    /*
+    This action returns this Control's cell y-coordinate within a GridLayout. This
+    indicates which row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action GetGridY returns integer
+        return defaultProperties:GetGridY()
+    end
+
+    /*
+    This action sets this Control's cell y-coordinate within a GridLayout. This
+    indicates which row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action SetGridY(integer gridY)
+        defaultProperties:SetGridY(gridY)
+    end
+
+    /*
+    This action sets this Control's cell coordinates within a GridLayout. This
+    indicates which column and row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, these values are ignored.
+    */
+    action SetGridPosition(integer gridX, integer gridY)
+        defaultProperties:SetGridPosition(gridX, gridY)
+    end
+
+    /*
+    The GetGridWidth action returns how many cells in a row this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action GetGridWidth returns integer
+        return defaultProperties:GetGridWidth()
+    end
+
+    /*
+    The SetGridWidth action sets how many cells in a row this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action SetGridWidth(integer gridWidth)
+        defaultProperties:SetGridWidth(gridWidth)
+    end
+
+    /*
+    The GetGridHeight action returns how many cells in a column this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action GetGridHeight returns integer
+        return defaultProperties:GetGridHeight()
+    end
+
+    /*
+    The SetGridHeight action sets how many cells in a column this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action SetGridHeight(integer gridHeight)
+        defaultProperties:SetGridHeight(gridHeight)
+    end
+
+    /*
+    The SetGridSize action sets how many cells wide and tall this Control is within a grid.
+    By default, each of these values are 1. These values are only used for GridLayouts, and are
+    ignored by other layouts.
+    */
+    action SetGridSize(integer gridWidth, integer gridHeight)
+        defaultProperties:SetGridSize(gridWidth, gridHeight)
+    end
+
+    /*
+    This action sets the x-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action SetPercentageOriginX(number x)
+        defaultProperties:SetPercentageOriginX(x)
+    end
+
+    /*
+    This action returns the x-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action GetPercentageOriginX returns number
+        return defaultProperties:GetPercentageOriginX()
+    end
+
+    /*
+    This action sets the y-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action SetPercentageOriginY(number y)
+        defaultProperties:SetPercentageOriginY(y)
+    end
+
+    /*
+    This action returns the y-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action GetPercentageOriginY returns number
+        return defaultProperties:GetPercentageOriginY()
     end
 
     action SetLeftPadding(number padding)
@@ -808,6 +1055,8 @@ class Control is Item2D
             name = "cour"
         elseif font:IsFontAvailable("Roboto-Black")
             name = "Roboto-Black"
+        elseif font:IsFontAvailable("Roboto-Regular")
+            name = "Roboto-Regular"
         elseif font:IsFontAvailable("Arial")
             name = "Arial"
         elseif font:IsFontAvailable("Arial Unicode")
@@ -982,6 +1231,11 @@ class Control is Item2D
 
     */
     action AddSelectionListener(SelectionListener listener)
+        if selectionListeners = undefined
+            Array<SelectionListener> array
+            selectionListeners = array
+        end
+
         selectionListeners:Add(listener)
     end
 
@@ -989,21 +1243,40 @@ class Control is Item2D
 
     */
     action RemoveSelectionListener(SelectionListener listener) returns boolean
-        return selectionListeners:Remove(listener)
+        if selectionListeners = undefined
+            return false
+        end
+
+        boolean result = selectionListeners:Remove(listener)
+
+        if selectionListeners:IsEmpty()
+            selectionListeners = undefined
+        end
+
+        return result
     end
 
     /*
 
     */
     action EmptySelectionListeners
+        if selectionListeners = undefined
+            return now
+        end
+
         selectionListeners:Empty()
     end
 
     /*
 
     */
-    action GetSelectionListeners returns Array<SelectionListener>
-        return selectionListeners
+    action GetSelectionListeners returns Iterator<SelectionListener>
+        if selectionListeners not= undefined
+            return selectionListeners:GetIterator()
+        else
+            EmptyIterator<SelectionListener> empty
+            return empty
+        end
     end
 
     /*
@@ -1013,6 +1286,10 @@ class Control is Item2D
     Attribute: Parameter event The SelectionEvent to send to all SelectionListeners registered with the Control.
     */
     action NotifySelectionListeners(SelectionEvent event)
+        if selectionListeners = undefined
+            return now
+        end
+
         integer counter = 0
         repeat while counter < selectionListeners:GetSize()
             selectionListeners:Get(counter):SelectionChanged(event)
@@ -1024,8 +1301,6 @@ class Control is Item2D
     This action selects an item in the Control using first letter navigation,
     if the Control supports it. If the Control doesn't support first letter
     navigation, this will do nothing.
-
-    
     */
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.

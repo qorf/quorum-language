@@ -7,8 +7,8 @@ class ChartPointComparison is Comparison
     boolean sortByX = true
 
     action Compare(Object left, Object right) returns integer
-        ChartPoint point1
-        ChartPoint point2
+        ChartPoint point1 = undefined
+        ChartPoint point2 = undefined
         if left is ChartPoint
             point1 = cast(ChartPoint, left)
         else

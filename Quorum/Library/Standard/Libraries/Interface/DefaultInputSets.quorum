@@ -1059,6 +1059,7 @@ shared class DefaultInputSets
         TextFieldCaretStartMoveBehavior textFieldShiftLeftBehavior
         textFieldShiftLeftBehavior:SetSelecting(true)
         textFieldShiftLeftBehavior:SetDirection(textFieldShiftLeftBehavior:LEFT)
+        
         textFieldTable:Add(AddShiftModifier(GetLeftArrowKey()), textFieldShiftLeftBehavior)
 
         TextFieldCaretToStartBehavior textFieldUpBehavior
@@ -1089,8 +1090,8 @@ shared class DefaultInputSets
         releaseLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
 
         InputSet releaseShiftLeftArrow
-        releaseLeftArrow = AddShiftModifier(GetLeftArrowKey())
-        releaseLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
+        releaseShiftLeftArrow = AddShiftModifier(GetLeftArrowKey())
+        releaseShiftLeftArrow:SetInputTrigger(releaseLeftArrow:FINISH)
 
         InputSet releaseRightArrow
         releaseRightArrow = GetRightArrowKey()
@@ -1134,8 +1135,12 @@ shared class DefaultInputSets
         textFieldTable:Add(GetTextInputSet(), fieldInsertBehavior)
 
         InputSet doubleClick
-        doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        doubleClick:SetMouseInput(mouse:LEFT)
         doubleClick:SetEventCount(2)
+
+        InputSet tripleClick
+        tripleClick:SetMouseInput(mouse:LEFT)
+        tripleClick:SetEventCount(3)
 
         InputSet homeSet
         homeSet:SetKeyboardInput(keys:HOME)
@@ -1150,6 +1155,9 @@ shared class DefaultInputSets
         InputSet shiftEndSet
         shiftEndSet:SetKeyboardInput(keys:END)
         shiftEndSet = AddShiftModifier(shiftEndSet)
+
+        Behavior emptyBehavior
+        textFieldTable:Add(GetLeftClick(), emptyBehavior)
 
         TextFieldDoubleClickSelectWordBehavior textFieldDoubleClickSelectWordBehavior
         textFieldTable:Add(doubleClick, textFieldDoubleClickSelectWordBehavior) 
@@ -1166,9 +1174,9 @@ shared class DefaultInputSets
         TextFieldSelectToEndBehavior textFieldSelectToEndBehavior
         textFieldTable:Add(shiftEndSet, textFieldSelectToEndBehavior)
 
-        TextFieldSavePreviousCaretPositionBehavior textFieldSavePreviousCaretPositionBehavior
-        textFieldTable:Add(AddShiftModifier(GetLeftArrowKey()), textFieldSavePreviousCaretPositionBehavior)
-        textFieldTable:Add(AddShiftModifier(GetRightArrowKey()), textFieldSavePreviousCaretPositionBehavior)
+
+        TextFieldSelectAllBehavior textFieldSelectAllBehavior
+        textFieldTable:Add(tripleClick, textFieldSelectAllBehavior)
 
         InputSet shiftMouseClick
         shiftMouseClick:SetMouseInput(mouse:CLICKED_MOUSE)
@@ -1202,7 +1210,6 @@ shared class DefaultInputSets
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
             textFieldControlA:AddModifier(textFieldControlA:META)
-            TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
 
             InputSet textFieldAltRight
@@ -1253,7 +1260,6 @@ shared class DefaultInputSets
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
             textFieldControlA:AddModifier(textFieldControlA:CONTROL)
-            TextFieldSelectAllBehavior textFieldSelectAllBehavior
             textFieldTable:Add(textFieldControlA, textFieldSelectAllBehavior)
 
 
@@ -1980,6 +1986,23 @@ shared class DefaultInputSets
         gameInput:AddInputTable(propertiesDialogTable)
         gameInput:AddInputTable(findTable)
         gameInput:AddInputTable(paletteItemContentTable)
+    end
+
+    action SetupFlowChartInput(GameInput gameInput)
+        InputTable flowchartTable
+        flowchartTable:SetIdentifier("Flowchart")
+        
+        FlowchartNavigateLeftBehavior flowchartLeft
+        FlowchartNavigateRightBehavior flowchartRight
+        FlowchartNavigateDownBehavior flowchartDown
+        FlowchartNavigateUpBehavior flowchartUp
+
+        flowchartTable:Add(GetLeftArrowKey(), flowchartLeft)
+        flowchartTable:Add(GetRightArrowKey(), flowchartRight)
+        flowchartTable:Add(GetDownArrowKey(), flowchartDown)
+        flowchartTable:Add(GetUpArrowKey(), flowchartUp)
+
+        gameInput:AddInputTable(flowchartTable)
     end
 
     action SetupChartInput(GameInput gameInput)

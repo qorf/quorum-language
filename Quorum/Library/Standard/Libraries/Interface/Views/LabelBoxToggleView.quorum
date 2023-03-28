@@ -203,6 +203,8 @@ class LabelBoxToggleView is Item2D, ToggleView
         end
 
         toggled = open
+
+        RequestVerticesUpdate()
     end
 
     action GetToggleState returns boolean

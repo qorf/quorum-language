@@ -47,6 +47,7 @@ class TextFieldCaretStartMoveBehavior is Behavior
         advance in that direction until the key is released or a new movement
         command overrides it.
         */
+        box:ShowCaret()
         if direction = LEFT
             behavior:SetDirection(LEFT)
             box:AddBehavior(behavior)

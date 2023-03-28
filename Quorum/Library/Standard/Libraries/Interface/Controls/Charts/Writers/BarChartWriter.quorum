@@ -79,6 +79,7 @@ class BarChartWriter is ChartWriter
         barChart = cast(BarChart, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -112,15 +113,19 @@ class BarChartWriter is ChartWriter
         chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
         chartContentBoundingBox:SetStrokeOpacity(transparent)
-        chartContentBoundingBox:SetTabIndex(-1)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
             chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
             chartContent:SetIsOneLine(true)
-            chartContent:SetRole("application")
+            chartContent:SetRole("graphics-object")
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetAriaHidden("true")
+            chartContentBoundingBox:SetTabIndex(-1)
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -138,7 +143,7 @@ class BarChartWriter is ChartWriter
                         barGroupSVG:SetID(canvas:GetID() + "_" + currentBarGroup:GetHashCode())
                         barGroupSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                         barGroupSVG:SetTabIndex(-1)
-                        barGroupSVG:SetRole("application")
+                        barGroupSVG:SetRole("graphics-object")
                         barGroupSVG:SetAriaLabel(currentBarGroup:GetName() + currentBarGroup:GetDescription())
                         barGroupSVG:SetAriaHidden("false")
                     end
@@ -229,7 +234,7 @@ class BarChartWriter is ChartWriter
                         barSVG:SetID(canvas:GetID() + "_" + currentBar:GetSeries():GetHashCode() + "_" + currentBar:GetHashCode())
                         barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                         barSVG:SetTabIndex(-1)
-                        barSVG:SetRole("application")  
+                        barSVG:SetRole("graphics-symbol")  
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         barSVG:SetAriaHidden("false")
                     end
@@ -351,16 +356,22 @@ class BarChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -380,7 +391,7 @@ class BarChartWriter is ChartWriter
                             barSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentBar:GetHashCode())
                             barSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                             barSVG:SetTabIndex(-1)
-                            barSVG:SetRole("application")  
+                            barSVG:SetRole("graphics-symbol")  
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription() + ".")
                             barSVG:SetAriaHidden("false")
                         end

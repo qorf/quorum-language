@@ -44,6 +44,9 @@ class SharedBarChartParent is Chart
     private number maxBarValue = 0
     private number minBarValue = 0
 
+    private boolean annotationFontSizeOverride = false
+    private integer annotationFontSize = 0
+
     Array<BarGroup> barGroups
     boolean isStacked = false
 
@@ -181,6 +184,9 @@ class SharedBarChartParent is Chart
                 if temp:ShowAnnotation() or ShowAnnotations() and not GetStackedFlag() //not sure how we will show annotations for stacked bars
                     ChartLabel barLabel
                     barLabel:SetText(valueText)
+                    if annotationFontSizeOverride
+                            barLabel:SetFontSize(annotationFontSize)
+                    end
                     temp:SetAnnotation(barLabel)
                     chartArea:Add(barLabel)
                 end
@@ -792,51 +798,19 @@ class SharedBarChartParent is Chart
     */ 
 
     action SetXAxisMaximum(number max)
-        if GetVerticalFlag()
-            parent:Chart:SetXAxisMaximum(max)
-        else
-            if max >= maxBarValue
-                parent:Chart:SetXAxisMaximum(max)
-            else
-                output "X-axis maximum cannot be below highest bar value: " + maxBarValue
-            end
-        end
+        parent:Chart:SetXAxisMaximum(max)
     end
 
     action SetYAxisMaximum(number max)
-        if GetHorizontalFlag()
-            parent:Chart:SetYAxisMaximum(max)
-        else
-            if max >= maxBarValue
-                parent:Chart:SetYAxisMaximum(max)
-            else
-                output "Y-axis maximum cannot be below highest bar value: " + maxBarValue
-            end
-        end
+        parent:Chart:SetYAxisMaximum(max)
     end
 
     action SetXAxisMinimum(number min)
-        if GetVerticalFlag()
-            parent:Chart:SetXAxisMinimum(min)
-        else
-            if min <= minBarValue
-                parent:Chart:SetXAxisMinimum(min)
-            else
-                output "X-axis minimum cannot be above lowest bar value: " + minBarValue
-            end
-        end
+        parent:Chart:SetXAxisMinimum(min)
     end
 
     action SetYAxisMinimum(number min)
-        if GetHorizontalFlag()
-            parent:Chart:SetYAxisMinimum(min)
-        else
-            if min <= minBarValue
-                parent:Chart:SetYAxisMinimum(min)
-            else
-                output "Y-axis minimum cannot be above lowest bar value: " + minBarValue
-            end
-        end
+        parent:Chart:SetYAxisMinimum(min)
     end
 
     /*
@@ -930,6 +904,11 @@ class SharedBarChartParent is Chart
 
     action GetChartItemsText returns text
         return chartItemsText
+    end
+
+    action SetAnnotationFontSize (integer size)
+        annotationFontSizeOverride = true
+        annotationFontSize = size
     end
 
 end

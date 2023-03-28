@@ -80,6 +80,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -119,11 +120,15 @@ class ScatterPlotWriter is ChartWriter
             chartContent:SetTabIndex(0)
             chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
             chartContent:SetIsOneLine(true)
-            chartContent:SetRole("application")
+            chartContent:SetRole("graphics-object")
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
-            chartContentBoundingBox:SetTabIndex(-1)
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -139,7 +144,7 @@ class ScatterPlotWriter is ChartWriter
                     if HasAccessibility()
                         seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
                         seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
-                        seriesSVG:SetRole("application")
+                        seriesSVG:SetRole("graphics-object")
                         seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                         seriesSVG:SetTabIndex(-1)
@@ -178,7 +183,7 @@ class ScatterPlotWriter is ChartWriter
                                 pointSVG:SetID(canvas:GetID() + "_" + currentPoint:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
                                 pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                                 pointSVG:SetTabIndex(-1)
-                                pointSVG:SetRole("application")
+                                pointSVG:SetRole("graphics-symbol")
                                 pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                 pointSVG:SetAriaHidden("false")
                             end
@@ -206,8 +211,6 @@ class ScatterPlotWriter is ChartWriter
                                 pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                 pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
                             end
-                            pointSVG:Add(point)
-                            
                 
                             if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
                                 ChartLabel label = currentPoint:GetAnnotation()
@@ -225,12 +228,14 @@ class ScatterPlotWriter is ChartWriter
                                         labelSVG:SetStyleClass("quorum-chart-text")
                                         labelSVG:SetTabIndex(-1)
                                         labelSVG:SetAriaHidden("true")
+                                        pointSVG:SetAriaDescription(label:GetText())
                                         pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                         pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                     end
                                     canvas:Add(labelSVG)
                                 end
                             end
+                            pointSVG:Add(point)
 
                             if currentPoint:GetSelectionArrow() not= undefined
                                 Array <number> vertices = currentPoint:GetSelectionArrowVertices()
@@ -308,16 +313,22 @@ class ScatterPlotWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-scatter-series quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")
+                        subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-scatter-series quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")
+                        subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -352,7 +363,7 @@ class ScatterPlotWriter is ChartWriter
                             pointSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + currentPoint:GetHashCode())
                             pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                             pointSVG:SetTabIndex(-1)
-                            pointSVG:SetRole("application")
+                            pointSVG:SetRole("graphics-symbol")
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end

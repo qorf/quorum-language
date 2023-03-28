@@ -952,7 +952,12 @@ public class AndroidGraphics implements GraphicsManager
     {
         GLES20.glScissor(x, y, width, height);
     }
-  
+
+    public void glReadPixels(int x, int y, int width, int height, int format, int type, ByteBuffer buffer)
+    {
+        GLES20.glReadPixels(x, y, width, height, format, type, buffer);
+    }
+
     /*
     private IntBuffer toIntBuffer (int v[], int offset, int count) 
     {

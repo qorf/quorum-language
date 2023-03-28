@@ -698,41 +698,23 @@ class ShaderProgram
     action Draw(Drawable drawable, integer startIndex, integer totalIndices)
         drawable:SetMeshIndex(startIndex)
         drawable:SetIndicesCount(totalIndices)
-
-// TO-DO: Remove or reevaluate the commented section
-//        ShaderMapping candidate = drawable:GetShaderMapping()
-//        if candidate = undefined
-//            candidate = shaderMapping
-//        end
-//
-//        if candidate not= currentMapping
-//            if currentMapping not= undefined
-//                currentMapping:End(me)
-//            end
-//            currentMapping = candidate
-//            currentMapping:Begin(me, drawable:GetLayer():GetCamera())
-//        end
-//
-//        shaderMapping:MapInputs(me, drawable)
-
         drawable:GetMesh():Render(me, constants:GL_TRIANGLES, startIndex, totalIndices)
     end
 
     action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
-//        if currentMapping not= shaderMapping
-//            if currentMapping not= undefined
-//                currentMapping:End(me)
-//            end
-//            currentMapping = shaderMapping
-//            currentMapping:Begin(me, camera)
-//        end
-
-        GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:EnableProperty(constants:GL_BLEND)
-        graphics:SetBlendFunction(constants:GL_SRC_ALPHA, constants:GL_ONE_MINUS_SRC_ALPHA)
-
         // In this case, we aren't mapping a renderable or a drawable directly, so no input mapping occurs. Skip straight to rendering.
         mesh:Render(me, constants:GL_TRIANGLES, startIndex, totalIndices)
+    end
+
+    action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices, Array<integer> vertexLocations)
+        // Bind the Mesh using the provided vertex locations, allowing us to bypass vertex location lookups.
+        mesh:Bind(me, vertexLocations)        
+
+        // The "false" passed as the last parameter disables auto-binding, since we've already done that manually.
+        mesh:Render(me, constants:GL_TRIANGLES, startIndex, totalIndices, false)
+
+        // Unbind the mesh after using, providing the locations again to continue avoiding the lookups.
+        mesh:Unbind(me, vertexLocations)
     end
 
     action GetShaderMapping returns ShaderMapping

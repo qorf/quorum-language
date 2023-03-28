@@ -760,6 +760,8 @@ class TreeTable is Control, FirstLetterNavigator
         if cell not= undefined
             cell:TreeTableGainedFocus()
         end
+
+        parent:Control:GainedFocus(event)
     end
 
     action LostFocus(FocusEvent event)
@@ -767,6 +769,8 @@ class TreeTable is Control, FirstLetterNavigator
         if cell not= undefined
             cell:TreeTableLostFocus()
         end
+
+        parent:Control:LostFocus(event)
     end
 
     private action NotifyTreeTableChangeListeners(TreeTableChangeEvent event)

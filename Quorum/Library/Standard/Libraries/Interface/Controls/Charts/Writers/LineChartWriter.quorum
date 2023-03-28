@@ -80,6 +80,7 @@ class LineChartWriter is ChartWriter
         lineChart = cast(LineChart, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -106,6 +107,7 @@ class LineChartWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
+
         // Add chartContent to the canvas after all non-nav elements (see below)
 
         Rectangle chartContentBoundingBox
@@ -119,11 +121,15 @@ class LineChartWriter is ChartWriter
             chartContent:SetTabIndex(0)
             chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
             chartContent:SetIsOneLine(true)
-            chartContent:SetRole("application") 
+            chartContent:SetRole("graphics-object")  
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
-            chartContentBoundingBox:SetTabIndex(-1)
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -141,7 +147,7 @@ class LineChartWriter is ChartWriter
                         seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
                         seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
                         seriesSVG:SetTabIndex(-1)
-                        seriesSVG:SetRole("application")  
+                        seriesSVG:SetRole("graphics-object")  
                         seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
@@ -201,7 +207,7 @@ class LineChartWriter is ChartWriter
                             pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
                             pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                             pointSVG:SetTabIndex(-1)
-                            pointSVG:SetRole("application")  
+                            pointSVG:SetRole("graphics-symbol")  
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end
@@ -357,16 +363,22 @@ class LineChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -443,7 +455,7 @@ class LineChartWriter is ChartWriter
                                         pointSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
                                         pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                                         pointSVG:SetTabIndex(-1)
-                                        pointSVG:SetRole("application")  
+                                        pointSVG:SetRole("graphics-symbol")  
                                         pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                         pointSVG:SetAriaHidden("false")
                                     end

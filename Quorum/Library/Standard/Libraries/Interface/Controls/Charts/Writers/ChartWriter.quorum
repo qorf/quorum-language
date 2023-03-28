@@ -189,6 +189,7 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
+            chart:AddChartAreaInstructions(" with")
             Division accessibleChart
             accessibleChart = AddAccessibility(chartCanvas, chart)
             return accessibleChart:Generate()
@@ -540,6 +541,7 @@ class ChartWriter
     */
     private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
+        text chartTitle = ""
         if chart:GetBackground() not= undefined
             background:SetFill(cast(Color, chart:GetBackground():GetColor()))
             background:SetFillOpacity(cast(Color, chart:GetBackground():GetColor()))
@@ -550,8 +552,16 @@ class ChartWriter
             background:SetID(canvas:GetID() + "_" + background:GetHashCode())
             background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
             background:SetTabIndex(0)
-            background:SetRole("application")
-            background:SetAriaLabel(chart:GetName() + ", " + chart:GetDescription())
+            background:SetRole("graphics-object")
+            if chart:GetTitle() not= ""
+                chartTitle = chart:GetTitle()
+            else
+                chartTitle = chart:GetName()
+            end
+            if chart:GetSubtitle() not= "Subtitle"
+                chartTitle = chartTitle + ", " + chart:GetSubtitle()
+            end
+            background:SetAriaLabel(chartTitle + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
@@ -562,6 +572,7 @@ class ChartWriter
     */
     action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
         chartArea:SetFill(cast(Color, chart:GetChartArea():GetBackgroundColor()))
+        chartArea:SetFillOpacity(cast(Color, chart:GetChartArea():GetBackgroundColor()))
         chartArea:SetStroke(cast(Color, chart:GetChartArea():GetBorderColor()))
         chartArea:SetStrokeOpacity(cast(Color, chart:GetChartArea():GetBorderColor()))
         chartArea:SetStrokeWidth(chart:GetChartArea():GetBorderThickness())
@@ -630,7 +641,7 @@ class ChartWriter
 
         if chart:IsShowingXAxis()
             HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
-
+            
             if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
                 horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
                 horizontalPanel:SetHeight(horizontalAxisPanel:GetHeight())
@@ -641,8 +652,9 @@ class ChartWriter
                     horizontalPanel:SetTabIndex(-1)
                     horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                     horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
-                    horizontalPanel:SetRole("application")
+                    horizontalPanel:SetRole("graphics-object")
                     horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(horizontalPanel)
@@ -757,8 +769,9 @@ class ChartWriter
                     verticalPanel:SetTabIndex(-1)
                     verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                     verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
-                    verticalPanel:SetRole("application")
+                    verticalPanel:SetRole("graphics-object")
                     verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(verticalPanel)
@@ -1476,8 +1489,9 @@ class ChartWriter
             svgElementLegend:SetTabIndex(-1)
             svgElementLegend:SetID(canvas:GetID() + "_" + legend:GetHashCode())
             svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
-            //svgElementLegend:SetRole("application")
+            svgElementLegend:SetRole("graphics-object")
             svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
+            //svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
 
@@ -1641,9 +1655,9 @@ class ChartWriter
                         svgElementRLabel:SetAriaHidden("true")
                     end
                     entryGroupSVG:Add(svgElementRLabel)
+                    entryGroupSVG:SetAriaLabel(entryGroupSVG:GetAriaLabel() + ", " + svgElementRegLabel:GetText() + " " + svgElementRLabel:GetText())
                 end
             end
-
             i = i + 1
         end
     end
@@ -1690,9 +1704,6 @@ class ChartWriter
 
                 svgElementRegLine:SetStrokeOpacity(line:GetColor())
                 svgElementRegLine:SetStrokeWidth(line:GetLineThickness())
-                svgElementRegLine:SetTabIndex(-1)
-                svgElementRegLine:SetID(canvas:GetID() + "_" + chart:GetSeriesList():Get(i):GetHashCode() + "_regression")
-                svgElementRegLine:SetStyleClass("quorum-chart-linesegment")
 
                 if HasAccessibility()
                     svgElementRegLine:SetTabIndex(-1)

@@ -11,7 +11,10 @@ class RadioButtonView is ToggleView, ControlShaderView
     boolean toggled = false
 
     action SetToggleState(boolean selected)
-        toggled = selected
+        if selected not= toggled
+            toggled = selected
+            RequestVerticesUpdate()
+        end
     end
 
     action GetToggleState returns boolean
