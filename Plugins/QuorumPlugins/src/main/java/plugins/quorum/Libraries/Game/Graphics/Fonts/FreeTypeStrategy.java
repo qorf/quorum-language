@@ -131,12 +131,12 @@ public class FreeTypeStrategy
     private native ByteBuffer LoadSDFBitmap(long[] data, char glyph, long handle);
 
     public quorum.Libraries.Game.Graphics.Glyph_ GetGlyphNative(String character)
-    {        
+    {
         char target = character.charAt(0);
         quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
         
         ByteBuffer rawBitmap = LoadBitmap(bitmapData, target, faceHandle);
-            
+
         // Since the space is just open space, there's no need to load it in a drawable.
         if (target != ' ')
         {
@@ -196,86 +196,6 @@ public class FreeTypeStrategy
             int size = rawBitmap.capacity();
             ByteBuffer bitmap = BufferUtils.newByteBuffer(size * 4);
 
-            String result = "";
-            System.out.println("1.");
-            for (int i = 0; i < (int)bitmapData[2]; i++)
-            {
-                String line = "";
-                for (int j = 0; j < (int)bitmapData[3]; j++)
-                {
-                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-                    String stringify;
-                    if (datapoint <= -100)
-                        stringify = "" + datapoint;
-                    else if (datapoint <= -10)
-                        stringify = " " + datapoint;
-                    else if (datapoint < 0)
-                        stringify = "  " + datapoint;
-                    else if (datapoint < 10)
-                        stringify = "   " + datapoint;
-                    else if (datapoint < 100)
-                        stringify = "  " + datapoint;
-                    else
-                        stringify = " " + datapoint;
-
-                    line = line + stringify + " ";
-                }
-
-                result = result + line + "\n";
-            }
-            System.out.println(result);
-
-//            System.out.println("\n2.");
-//            for (int i = 0; i < (int)bitmapData[3]; i++)
-//            {
-//                String line = "";
-//                for (int j = 0; j < (int)bitmapData[2]; j++)
-//                {
-//                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-//                    String stringify;
-//                    if (datapoint <= -100)
-//                        stringify = "" + datapoint;
-//                    else if (datapoint <= -10)
-//                        stringify = " " + datapoint;
-//                    else if (datapoint < 0)
-//                        stringify = "  " + datapoint;
-//                    else if (datapoint < 10)
-//                        stringify = "   " + datapoint;
-//                    else if (datapoint < 100)
-//                        stringify = "  " + datapoint;
-//                    else
-//                        stringify = " " + datapoint;
-//
-//                    line = line + stringify + " ";
-//                }
-//
-//                result = result + line + "\n";
-//            }
-//            System.out.println(result);
-
-            result = "";
-            System.out.println("3.");
-            for (int i = 0; i < (int)bitmapData[2]; i++)
-            {
-                String line = "";
-                for (int j = 0; j < (int)bitmapData[3]; j++)
-                {
-                    int datapoint = rawBitmap.get(i * (int) bitmapData[3] + j);
-                    String stringify;
-                    if (datapoint < 0)
-                        stringify = "-";
-                    else if (datapoint > 0)
-                        stringify = "+";
-                    else
-                        stringify = "0";
-
-                    line = line + stringify + " ";
-                }
-
-                result = result + line + "\n";
-            }
-            System.out.println(result);
-
             for (int i = 0; i < size; i++)
             {
                 bitmap.put((byte)255);
@@ -289,7 +209,7 @@ public class FreeTypeStrategy
             quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
             plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
+            map.LoadFromByteBuffer(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
 
             quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
             texData.InitializeFileTextureData(null, pixmap, null, false);
@@ -348,7 +268,7 @@ public class FreeTypeStrategy
         public int height;
     }
     
-    public boolean LoadImageSheet(FontImageSheet_ sheet)
+    public boolean LoadImageSheet(FontImageSheet_ sheet, boolean bordered)
     {
         Texture_ texture = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__imageSheet_();
         quorum.Libraries.Containers.Array_ table = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__glyphTable_();
@@ -383,12 +303,16 @@ public class FreeTypeStrategy
 
                 LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
             */
-            ByteBuffer value = LoadBitmap(currentData, current, faceHandle);
+            ByteBuffer value;
+            if (bordered && current != ' ')
+                value = LoadSDFBitmap(currentData, current, faceHandle);
+            else
+                value = LoadBitmap(currentData, current, faceHandle);
             
             int currentWidth = (int)currentData[3];
             int currentHeight = (int)currentData[2];
             
-            if (currentWidth == 0 || currentHeight == 0)
+            if (currentWidth == 0 || currentHeight == 0 || value == null)
             {
                 // We use a single empty pixel to represent symbols that don't
                 // have a visual representation, e.g. space or new line.
@@ -599,7 +523,15 @@ public class FreeTypeStrategy
     }
     
     private native void DisposeC(long handle);
-    
+
+    /*
+    Get the error code for the last Freetype error that was recorded. Used for debugging.
+    DOUBLE CHECK THE NATIVE IMPLEMENTATION FOR WHERE ERRORS ARE RECORDED!
+    The initial implementation was sloppy about recording errors, so legitimate errors might
+    not be stored. Using this naively might give you the wrong idea!
+    */
+    private native int GetLastError();
+
     public void SetColorNative(Color_ c)
     {
         color = c;
