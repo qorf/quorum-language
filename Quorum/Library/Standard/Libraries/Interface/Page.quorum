@@ -1,0 +1,15 @@
+package Libraries.Interface
+use Libraries.Interface.Controls.Control
+
+use Libraries.Interface.Controls.Button
+
+class Page is Control
+
+    on create
+        SetPercentageWidth(1.0)
+        SetPercentageHeight(1.0)
+    end
+
+    blueprint action AddButton(text name) returns Button
+    blueprint action RemoveButton(text name) returns Button
+end

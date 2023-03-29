@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import android.opengl.GLES20;
 import org.lwjgl.opengl.GL20;
 import org.robovm.apple.foundation.Foundation;
 import org.robovm.apple.foundation.NSString;
@@ -748,6 +749,8 @@ public class IOSGraphics implements GraphicsManager
     public native void glVertexAttribPointer ( int indx, int size, int type, boolean normalized, int stride, Buffer ptr );
 
     public native void glVertexAttribPointer ( int indx, int size, int type, boolean normalized, int stride, int ptr );
+
+    public native void glReadPixels(int x, int y, int width, int height, int format, int type, ByteBuffer buffer);
 
     public void SetDrawingRegion(int x, int y, int width, int height)
     {

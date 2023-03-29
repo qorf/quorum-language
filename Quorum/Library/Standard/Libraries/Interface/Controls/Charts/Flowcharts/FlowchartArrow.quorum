@@ -1,0 +1,468 @@
+package Libraries.Interface.Controls.Charts.Flowcharts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.LinePath
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Containers.Array
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.TextureFilter
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.ColorGroup
+
+class FlowchartArrow is Control
+
+    LinePath lines
+    Icon arrowHead
+
+    FlowchartNode origin = undefined
+    FlowchartNode destination = undefined
+
+    Array<Vector2> waypoints
+
+    Math math
+
+    on create
+        SetName("Arrow")
+        SetInterfaceOptionsKey("FlowchartArrow")
+
+        // If we're using a GridFlowchart, set our base grid coordinates.
+        // We'll start at (0, 0), and in LoadGraphics we'll set our size to fill the grid.
+        SetGridX(0)
+        SetGridY(0)
+
+        SetPercentageWidth(1)
+        SetPercentageHeight(1)
+
+        // Use a ManualLayout to place the LinePath and the arrowhead.
+        ManualLayout layout
+        SetLayout(layout)
+
+        // Make sure the LinePath will always fill up the whole control.
+        // We'll manually handle the arrowhead's size and positioning during the Resize.
+        lines:SetPercentageX(0)
+        lines:SetPercentageY(0)
+        lines:SetPercentageWidth(1)
+        lines:SetPercentageHeight(1)
+
+        lines:SetCurving(false)
+
+        arrowHead:SetPercentageOriginX(0.5)
+        arrowHead:SetPercentageOriginY(0.5)
+
+        // Add the LinePath and arrowhead so they'll be drawn.
+        Add(lines)
+        Add(arrowHead)
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action SetNodes(FlowchartNode origin, FlowchartNode destination)
+        me:origin = origin
+        me:destination = destination
+        RecalculateArrow()
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined
+
+            // If we're using a GridFlowchart, make sure we're setup to fill the whole grid.
+            // We'll make the LinePath match the size of the FlowchartArrow so it can render anywhere on the chart.
+            if chart is GridFlowchart
+                GridFlowchart gridChart = cast(GridFlowchart, chart)
+                integer gridWidth = gridChart:GetContainerGridWidth()
+                integer gridHeight = gridChart:GetContainerGridHeight()
+                if GetGridWidth() not= gridWidth or GetGridHeight() not= gridHeight
+                    SetGridWidth(gridWidth)
+                    SetGridHeight(gridHeight)
+                    
+                    lines:MapToRegion(0, gridWidth, 0, gridHeight)
+                end
+            end
+        end
+
+        if arrowHead:IsLoaded() = false
+            // The initial size is mostly arbitrary, as this will be overwritten when the arrow's line points are calculated.
+            integer arrowThickness = 10
+            arrowHead:LoadFilledTriangle(0, 0, arrowThickness, 0, arrowThickness, arrowThickness)
+        end
+
+        if IsRenderingSelection()
+            lines:SetBackgroundColor(GetSelectionColor())
+            arrowHead:SetColor(GetSelectionColor())
+        else
+            lines:SetBackgroundColor(GetBackgroundColor())
+            arrowHead:SetColor(GetIconColor())
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowColor() not= undefined
+            return chart:GetArrowColor()
+        end
+
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action GetIconColor returns ColorGroup
+        if HasColorPropertyOverride("iconColor")
+            return parent:Control:GetIconColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowHeadColor() not= undefined
+            return chart:GetArrowHeadColor()
+        end
+
+        return parent:Control:GetIconColor()
+    end
+
+    action GetSelectionColor returns ColorGroup
+        if HasColorPropertyOverride("selectionColor")
+            return parent:Control:GetSelectionColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetArrowSelectionColor() not= undefined
+            return chart:GetArrowSelectionColor()
+        end
+
+        return parent:Control:GetSelectionColor()
+    end
+
+    action GainedSelection
+        lines:SetBackgroundColor(GetSelectionColor())
+        arrowHead:SetColor(GetSelectionColor())
+
+        parent:Control:GainedSelection()
+    end
+
+    action LostSelection
+        lines:SetBackgroundColor(GetBackgroundColor())
+        arrowHead:SetColor(GetIconColor())
+
+        parent:Control:LostSelection()
+    end
+
+    action Resize
+        // Escape immediately from a recursive Resize call.
+        if parent:Item2D:isResizing = true
+            return now
+        end
+
+        RecalculateArrow()
+
+        parent:Item2D:Resize()
+    end
+
+    private action RecalculateArrow
+        lines:Empty()
+        Flowchart chart = GetFlowchart()
+
+        if origin = undefined or destination = undefined or chart = undefined
+            return now
+        end
+
+        lines:SetLineThickness(chart:GetArrowLineThickness())
+        number arrowHeadThickness = chart:GetArrowHeadThickness()
+
+        if chart is GridFlowchart
+            GridFlowchart gridChart = cast(GridFlowchart, chart)
+            
+            /*
+            Calculate where the line starts.
+            While the waypoints are pretty easy (just run through the center of the cells at the given spots),
+            for the arrow we need to determine where the arrow starts outside of the origin cell. To do that
+            we need to figure out which direction it's going and push it outside of the bounds of the origin node.
+            */
+            Vector2 originStart
+            originStart:Set(origin:GetGridX() + origin:GetGridWidth() / 2.0, origin:GetGridY() + origin:GetGridHeight() / 2.0)
+            Vector2 originDirection
+            if waypoints:IsEmpty()
+                originDirection:Set(destination:GetGridX() + destination:GetGridWidth() / 2.0, destination:GetGridY() + destination:GetGridHeight() / 2.0)
+            else
+                originDirection:Set(waypoints:Get(0):GetX() + 0.5, waypoints:Get(0):GetY() + 0.5)
+            end
+
+            originDirection:Subtract(originStart)
+            originDirection:Normalize()
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            number max = math:AbsoluteValue(originDirection:GetX())
+            if math:AbsoluteValue(originDirection:GetY()) > max
+                max = math:AbsoluteValue(originDirection:GetY())
+            end
+            originDirection:Scale(1.0 / max, 1.0 / max)
+            originDirection:Scale(origin:GetPercentageWidth(), origin:GetPercentageHeight())
+
+            // Make the line originate from the midpoint of the origin's grid coordinates, offset by half of our calculated direction.
+            lines:Add(origin:GetGridX() + (origin:GetGridWidth() + originDirection:GetX()) / 2.0, origin:GetGridY() + (origin:GetGridHeight() + originDirection:GetY()) / 2.0)
+
+            // Add the waypoints. For these, we can just pass through the midpoints of grid coordinates.
+            integer counter = 0
+            repeat while counter < waypoints:GetSize()
+                Vector2 point = waypoints:Get(counter)
+                lines:Add(point:GetX() + 0.5, point:GetY() + 0.5)
+                counter = counter + 1
+            end
+
+            /*
+            Finally, add the endpoint.
+            The approach here mirrors how we calculated the start point.
+            */
+            Vector2 destinationDirection
+            destinationDirection:Set(destination:GetGridX() + destination:GetGridWidth() / 2.0, destination:GetGridY() + destination:GetGridHeight() / 2.0)
+            Vector2 destinationPrior
+            if waypoints:IsEmpty()
+                destinationPrior:Set(origin:GetGridX() + origin:GetGridWidth() / 2.0, origin:GetGridY() + origin:GetGridHeight() / 2.0)
+            else
+                destinationPrior:Set(waypoints:GetFromEnd():GetX() + 0.5, waypoints:GetFromEnd():GetY() + 0.5)
+            end
+
+            destinationDirection:Subtract(destinationPrior)
+            destinationDirection:Normalize()
+
+            // As an extra complication, for the end, we need to offset the distance the arrowhead will occupy.
+            Vector2 arrowHeadOffset
+            arrowHeadOffset:Set(destinationDirection)
+            // TO-DO: Review this to ensure it's the correct size.
+            arrowHeadOffset:Scale(arrowHeadThickness * (lines:GetMappedRight() / gridChart:GetWidth()), arrowHeadThickness * (lines:GetMappedTop() / gridChart:GetHeight()))
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            max = math:AbsoluteValue(destinationDirection:GetX())
+            if math:AbsoluteValue(destinationDirection:GetY()) > max
+                max = math:AbsoluteValue(destinationDirection:GetY())
+            end
+            destinationDirection:Scale(1.0 / max, 1.0 / max)
+            destinationDirection:Scale(destination:GetPercentageWidth(), destination:GetPercentageHeight())
+
+            // Make the line originate from the midpoint of the origin's grid coordinates, offset by half of our calculated direction.
+            lines:Add(destination:GetGridX() + (destination:GetGridWidth() - destinationDirection:GetX() - arrowHeadOffset:GetX()) / 2.0,
+                    destination:GetGridY() + (destination:GetGridHeight() - destinationDirection:GetY() - arrowHeadOffset:GetY()) / 2.0)
+
+            // Position the arrowhead at the end of the line.
+            arrowHead:SetPercentageX(lines:GetPointX(lines:GetPointCount() - 1) / lines:GetMappedRight())
+            arrowHead:SetPercentageY(lines:GetPointY(lines:GetPointCount() - 1) / lines:GetMappedTop())
+        else
+
+            // Calculating the arrows for non-grid flowcharts is similar, but without a grid we have to calculate directly from pixel values instead.
+
+            /*
+            Calculate where the line starts.
+            While the waypoints are pretty easy (just run through the points),
+            for the arrow we need to determine where the arrow starts outside of the origin cell. To do that
+            we need to figure out which direction it's going and push it outside of the bounds of the origin node.
+            */
+            Vector2 originStart
+            originStart:Set(origin:GetX() + origin:GetWidth() / 2.0, origin:GetY() + origin:GetHeight() / 2.0)
+            Vector2 originDirection
+            if waypoints:IsEmpty()
+                originDirection:Set(destination:GetX() + destination:GetWidth() / 2.0, destination:GetY() + destination:GetHeight() / 2.0)
+            else
+                originDirection:Set(waypoints:Get(0):GetX(), waypoints:Get(0):GetY())
+            end
+
+            originDirection:Subtract(originStart)
+            originDirection:Normalize()
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            number max = math:AbsoluteValue(originDirection:GetX())
+            if math:AbsoluteValue(originDirection:GetY()) > max
+                max = math:AbsoluteValue(originDirection:GetY())
+            end
+            originDirection:Scale(1.0 / max, 1.0 / max)
+            originDirection:Scale(origin:GetWidth(), origin:GetHeight())
+
+            // Make the line originate from the midpoint of the origin, offset by half of our calculated direction.
+            lines:Add(origin:GetX() + (origin:GetWidth() + originDirection:GetX()) / 2.0, origin:GetY() + (origin:GetHeight() + originDirection:GetY()) / 2.0)
+
+            // Add the waypoints. For these, we can just pass through the midpoints directly.
+            integer counter = 0
+            repeat while counter < waypoints:GetSize()
+                Vector2 point = waypoints:Get(counter)
+                lines:Add(point:GetX(), point:GetY())
+                counter = counter + 1
+            end
+
+            /*
+            Finally, add the endpoint.
+            The approach here mirrors how we calculated the start point.
+            */
+            Vector2 destinationDirection
+            destinationDirection:Set(destination:GetX() + destination:GetWidth() / 2.0, destination:GetY() + destination:GetHeight() / 2.0)
+            Vector2 destinationPrior
+            if waypoints:IsEmpty()
+                destinationPrior:Set(origin:GetX() + origin:GetWidth() / 2.0, origin:GetY() + origin:GetHeight() / 2.0)
+            else
+                destinationPrior:Set(waypoints:GetFromEnd():GetX(), waypoints:GetFromEnd():GetY())
+            end
+
+            destinationDirection:Subtract(destinationPrior)
+            destinationDirection:Normalize()
+
+            // As an extra complication, for the end, we need to offset the distance the arrowhead will occupy.
+            Vector2 arrowHeadOffset
+            arrowHeadOffset:Set(destinationDirection)
+            // TO-DO: Review this to ensure it's the correct size.
+            arrowHeadOffset:Scale(arrowHeadThickness, arrowHeadThickness)
+
+            /*
+            We'll scale the vector to force at least one of the X and Y values to be |1|.
+            We'll do more scaling to account for percentage size of the cell after, but this
+            gives us a direction and magnitude away from the center that's guaranteed to be
+            a full cell's distance away on either the X or Y.
+            */
+            max = math:AbsoluteValue(destinationDirection:GetX())
+            if math:AbsoluteValue(destinationDirection:GetY()) > max
+                max = math:AbsoluteValue(destinationDirection:GetY())
+            end
+            destinationDirection:Scale(1.0 / max, 1.0 / max)
+            destinationDirection:Scale(destination:GetWidth(), destination:GetHeight())
+
+            // Make the line originate from the midpoint of the origin, offset by half of our calculated direction.
+            lines:Add(destination:GetX() + (destination:GetWidth() - destinationDirection:GetX() - arrowHeadOffset:GetX()) / 2.0,
+                    destination:GetY() + (destination:GetHeight() - destinationDirection:GetY() - arrowHeadOffset:GetY()) / 2.0)
+
+            // Position the arrowhead at the end of the line.
+            arrowHead:SetPixelX(lines:GetPointX(lines:GetPointCount() - 1))
+            arrowHead:SetPixelY(lines:GetPointY(lines:GetPointCount() - 1))
+        end
+
+        // Set the arrowhead's dimensions.
+        arrowHead:SetPixelWidth(arrowHeadThickness)
+        arrowHead:SetPixelHeight(arrowHeadThickness)
+
+        Vector2 priorPoint
+        priorPoint:Set(lines:GetPoint(lines:GetPointCount() - 2))
+        priorPoint:Subtract(lines:GetPoint(lines:GetPointCount() - 1))
+
+        // The offset of 135 degrees is to compensate for the base angle of the triangle we've loaded.
+        arrowHead:SetRotation(-priorPoint:Angle() + 135)
+    end
+
+    action GetFlowchart returns Flowchart
+        Item2D result = GetParent()
+        repeat until result is Flowchart or result = undefined
+            result = result:GetParent()
+        end
+        return cast(Flowchart, result)
+    end
+
+    action GetOrigin returns FlowchartNode
+        return origin
+    end
+
+    action SetOrigin(FlowchartNode origin)
+        me:origin = origin
+        RecalculateArrow()
+    end
+
+    action GetDestination returns FlowchartNode
+        return destination
+    end
+
+    action SetDestination(FlowchartNode destination)
+        me:destination = destination
+        RecalculateArrow()
+    end
+
+    action GetWaypoints returns Array<Vector2>
+        return waypoints
+    end
+
+    action AddWaypoint(number x, number y)
+        Vector2 vector
+        vector:Set(x, y)
+        waypoints:Add(vector)
+        RecalculateArrow()
+    end
+
+    action GetWaypoint(integer index) returns Vector2
+        return waypoints:Get(index)
+    end
+
+    action RemoveWaypoint(integer index) returns Vector2
+        return waypoints:RemoveAt(index)
+    end
+
+    action EmptyWaypoints
+        waypoints:Empty()
+        RecalculateArrow()
+    end
+
+    action GetLines returns LinePath
+        return lines
+    end
+
+    /*
+    This action updates the name/description of the arrow to have the full accessibility information
+    it needs, depending on whether the arrow is an input or output (as determined by the
+    source node, e.g. the node this arrow was accessed from).
+    */
+    action SetNavigationText(FlowchartNode sourceNode)
+        if sourceNode = origin
+            Array<FlowchartArrow> outArrows = origin:GetOutArrows()
+            integer position = outArrows:GetFirstLocation(me) + 1
+            integer size = outArrows:GetSize()
+            SetName(destination:GetName() + ", output " + position + " of " + size)
+
+            text description = "Press DOWN to follow the output arrow, "
+            if size > 1
+                if position = 1
+                    description = description + "use RIGHT to move to the next output arrow, "
+                elseif position = size
+                    description = description + "use LEFT to move to the previous output arrow, "
+                else
+                    description = description + "use LEFT and RIGHT to move to the other output arrows, "
+                end
+            end
+            description = description + "or press UP to return to " + origin:GetName()
+
+            SetDescription(description)
+        elseif sourceNode = destination
+            Array<FlowchartArrow> inArrows = destination:GetInArrows()
+            integer position = inArrows:GetFirstLocation(me) + 1
+            integer size = inArrows:GetSize()
+            SetName(origin:GetName() + ", input " + position + " of " + size)
+            
+            text description = "Press UP to follow the input arrow, "
+            if size > 1
+                if position = 1
+                    description = description + "use RIGHT to move to the next input arrow, "
+                elseif position = size
+                    description = description + "use LEFT to move to the previous input arrow, "
+                else
+                    description = description + "use LEFT and RIGHT to move to the other input arrows, "
+                end
+            end
+            description = description + "or press UP to return to " + destination:GetName()
+
+            SetDescription(description)
+        end
+    end
+end

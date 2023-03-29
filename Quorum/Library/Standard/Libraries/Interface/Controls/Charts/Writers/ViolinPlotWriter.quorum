@@ -82,6 +82,7 @@ class ViolinPlotWriter is ChartWriter
         violinPlot = cast(ViolinPlot, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -108,7 +109,7 @@ class ViolinPlotWriter is ChartWriter
         chartContent:SetTabIndex(0)
         chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
         chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application") 
+        chartContent:SetRole("graphics-object") 
 
         canvas:Add(chartContent)
         Rectangle chartContentBoundingBox
@@ -140,7 +141,7 @@ class ViolinPlotWriter is ChartWriter
                     plotGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
                     plotGroupSVG:SetTabIndex(-1)
                     if HasAccessibility()
-                        plotGroupSVG:SetRole("application") 
+                        plotGroupSVG:SetRole("graphics-object") 
                         plotGroupSVG:SetAriaLabel(group:GetName() + group:GetDescription())
                         plotGroupSVG:SetAriaHidden("false")
                     end
@@ -227,7 +228,7 @@ class ViolinPlotWriter is ChartWriter
                     plotSVG:SetFill(plot:GetColor())
                     plotSVG:SetTabIndex(-1)
                     if HasAccessibility()   
-                        plotSVG:SetRole("application") 
+                        plotSVG:SetRole("graphics-object") 
                         plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                         plotSVG:SetAriaHidden("false")
                     end
@@ -357,7 +358,7 @@ class ViolinPlotWriter is ChartWriter
                             itemSVG:SetFill(currentItem:GetColor())
                             itemSVG:SetTabIndex(-1)
                             if HasAccessibility()   
-                                itemSVG:SetRole("application") 
+                                itemSVG:SetRole("graphics-symbol") 
                                 itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                 itemSVG:SetAriaHidden("false")
                             end
@@ -517,7 +518,7 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                            subChartContent:SetRole("application") 
+                            subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
@@ -525,7 +526,7 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode())
                             subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                            subChartContent:SetRole("application") 
+                            subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             chartContent:Add(subChartContent)
                         else
@@ -545,7 +546,7 @@ class ViolinPlotWriter is ChartWriter
                         plotSVG:SetFill(plot:GetColor())
                         plotSVG:SetTabIndex(-1)
                         if HasAccessibility()  
-                            plotSVG:SetRole("application")  
+                            plotSVG:SetRole("graphics-object")  
                             plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                             plotSVG:SetAriaHidden("false")
                         end
@@ -675,7 +676,7 @@ class ViolinPlotWriter is ChartWriter
                                 itemSVG:SetFill(currentItem:GetColor())
                                 itemSVG:SetTabIndex(-1)
                                 if HasAccessibility() 
-                                    itemSVG:SetRole("application")    
+                                    itemSVG:SetRole("graphics-symbol")    
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
                                 end

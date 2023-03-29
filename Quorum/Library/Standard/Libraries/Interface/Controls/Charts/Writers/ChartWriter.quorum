@@ -187,6 +187,7 @@ class ChartWriter
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
+            chart:AddChartAreaInstructions(" with")
             Division accessibleChart
             accessibleChart = AddAccessibility(chartCanvas, chart)
             return accessibleChart:Generate()
@@ -536,6 +537,7 @@ class ChartWriter
     */
     private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
+        text chartTitle = ""
         if chart:GetBackground() not= undefined
             background:SetFill(cast(Color, chart:GetBackground():GetColor()))
         end
@@ -545,8 +547,16 @@ class ChartWriter
         background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
         if HasAccessibility()
             background:SetTabIndex(0)
-            background:SetRole("application")
-            background:SetAriaLabel(chart:GetName() + ", " + chart:GetDescription())
+            background:SetRole("graphics-object")
+            if chart:GetTitle() not= ""
+                chartTitle = chart:GetTitle()
+            else
+                chartTitle = chart:GetName()
+            end
+            if chart:GetSubtitle() not= "Subtitle"
+                chartTitle = chartTitle + ", " + chart:GetSubtitle()
+            end
+            background:SetAriaLabel(chartTitle + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
@@ -622,7 +632,7 @@ class ChartWriter
 
         if chart:IsShowingXAxis()
             HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
-
+            
             if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
                 horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
                 horizontalPanel:SetHeight(horizontalAxisPanel:GetHeight())
@@ -632,8 +642,8 @@ class ChartWriter
                 horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                 horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    horizontalPanel:SetRole("application")
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    horizontalPanel:SetRole("graphics-object")
+                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(horizontalPanel)
@@ -744,8 +754,8 @@ class ChartWriter
                 verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                 verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                 if HasAccessibility()
-                    verticalPanel:SetRole("application")
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    verticalPanel:SetRole("graphics-object")
+                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
                 chartInformation:Add(verticalPanel)
@@ -1450,8 +1460,8 @@ class ChartWriter
         svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
 
         if HasAccessibility()
-            svgElementLegend:SetRole("application")
-            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
+            svgElementLegend:SetRole("graphics-object")
+            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
 
@@ -1610,9 +1620,9 @@ class ChartWriter
                         svgElementRLabel:SetAriaHidden("true")
                     end
                     entryGroupSVG:Add(svgElementRLabel)
+                    entryGroupSVG:SetAriaLabel(entryGroupSVG:GetAriaLabel() + ", " + svgElementRegLabel:GetText() + " " + svgElementRLabel:GetText())
                 end
             end
-
             i = i + 1
         end
     end

@@ -33,6 +33,16 @@ import org.robovm.apple.uikit.UIInterfaceOrientation;
  */
 public class IOSApplication
 {
+    static {
+        System.out.println("Entering Static Block");
+        String name = UIDevice.getCurrentDevice().getName();
+        System.out.println(name);
+        if(name.contains("Simulator")) {
+            System.setProperty("IOS-Simulator", "true");
+        } else {
+            System.setProperty("IOS-Simulator", "false");
+        }
+    }
     public java.lang.Object me_ = null;
 
     // Reference to the game so we can call its actions.
@@ -65,10 +75,12 @@ public class IOSApplication
     {
         quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
 
-        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+        if (UIDevice.getCurrentDevice().getName().contains("Simulator")) {
             GameStateManager.operatingSystem = "iOS Simulator";
-        else
+        }
+        else {
             GameStateManager.operatingSystem = "iOS Device";
+        }
     }
 
     public static boolean IsSimulator() {

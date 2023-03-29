@@ -156,7 +156,7 @@ public class FreeTypeStrategy
             quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
             plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-            map.LoadFromFontBitmap(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
+            map.LoadFromByteBuffer(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
 
             quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
             texData.InitializeFileTextureData(null, pixmap, null, false);
@@ -527,7 +527,7 @@ public class FreeTypeStrategy
         quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
-        map.LoadFromFontBitmap(destination, totalWidth, totalHeight, PixelMap.FORMAT_RGBA8888);
+        map.LoadFromByteBuffer(destination, totalWidth, totalHeight, PixelMap.FORMAT_RGBA8888);
 
         quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
         texData.InitializeFileTextureData(null, pixmap, null, false);

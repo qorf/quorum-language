@@ -1,0 +1,18 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+
+class FlowchartNavigateUpBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if item is Flowchart
+            Flowchart chart = cast(Flowchart, item)
+            chart:NavigateUp()
+        end
+    end
+
+end

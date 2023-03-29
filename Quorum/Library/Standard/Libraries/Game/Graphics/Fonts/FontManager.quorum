@@ -207,16 +207,16 @@ class FontManager
             else
                 return "/Library/Fonts"
             end
-        elseif os:Contains("iOS Simulator")
-            if IsMacCatalinaOrGreater() //catalina changed the default
-                return "/System/Library/Fonts/Supplemental"
+        elseif os:Contains("iOS")
+            if properties:IsIosSimulator()
+                if IsMacCatalinaOrGreater() //catalina changed the default
+                    return "/System/Library/Fonts/Supplemental"
+                else
+                    return "/Library/Fonts"
+                end
             else
-                return "/Library/Fonts"
+                return "/System/Library/Fonts/Core"
             end
-        elseif os:Contains("iOS Device")
-            File file
-            file:SetPath("media")
-            return file:GetAbsolutePath()
         elseif (os:Contains("Linux") and properties:GetProperty("java.runtime.name"):Contains("Android Runtime"))
             return "/system/fonts"
         else 
