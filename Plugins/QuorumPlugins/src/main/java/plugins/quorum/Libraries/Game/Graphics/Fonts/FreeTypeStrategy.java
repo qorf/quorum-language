@@ -112,14 +112,31 @@ public class FreeTypeStrategy
         LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
     */
     private native ByteBuffer LoadBitmap(long[] data, char glyph, long handle);
-    
+
+    /* The data parameter will contain the following information after a call to LoadBitmap:
+        [0] : The distance from the cursor to the left side of the bitmap.
+        [1] : The distance from the cursor to the top side of the bitmap.
+        [2] : The number of rows in a bitmap.
+        [3] : The number of pixels in each row of the bitmap.
+        [4] : The distance to advance the cursor's X coordinate.
+        [5] : The distance to advance the cursor's Y coordinate.
+
+        LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
+
+        This function gets a glyph in the format of signed distance fields. The "pixels"
+        in the returned buffer indicate the distance to the edge of the glyph, and are
+        positive if the pixel is outside the bounds of the glyph and negative if the
+        pixel is inside the glyph.
+    */
+    private native ByteBuffer LoadSDFBitmap(long[] data, char glyph, long handle);
+
     public quorum.Libraries.Game.Graphics.Glyph_ GetGlyphNative(String character)
-    {        
+    {
         char target = character.charAt(0);
         quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
         
         ByteBuffer rawBitmap = LoadBitmap(bitmapData, target, faceHandle);
-            
+
         // Since the space is just open space, there's no need to load it in a drawable.
         if (target != ' ')
         {
@@ -165,6 +182,59 @@ public class FreeTypeStrategy
 
         return glyph;
     }
+
+    public quorum.Libraries.Game.Graphics.Glyph_ GetBorderedGlyphNative(String character)
+    {
+        char target = character.charAt(0);
+        quorum.Libraries.Game.Graphics.Glyph glyph = new quorum.Libraries.Game.Graphics.Glyph();
+
+        ByteBuffer rawBitmap = LoadSDFBitmap(bitmapData, target, faceHandle);
+
+        // Since the space is just open space, there's no need to load it in a drawable.
+        if (target != ' ')
+        {
+            int size = rawBitmap.capacity();
+            ByteBuffer bitmap = BufferUtils.newByteBuffer(size * 4);
+
+            for (int i = 0; i < size; i++)
+            {
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put((byte)255);
+                bitmap.put(rawBitmap.get(i));
+            }
+
+            bitmap.flip();
+
+            quorum.Libraries.Game.Graphics.PixelMap pixmap = new quorum.Libraries.Game.Graphics.PixelMap();
+            plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
+
+            map.LoadFromByteBuffer(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
+
+            quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
+            texData.InitializeFileTextureData(null, pixmap, null, false);
+            texData.SetDisposalState(false);
+
+            quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
+            texture.LoadFromTextureData(texData);
+
+            quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
+            region.LoadTextureRegion(texture);
+
+            glyph.texture = region;
+        }
+        else
+        {
+            glyph.texture = null;
+        }
+
+        glyph.horizontalAdvance = (int)(bitmapData[4] >> 6);
+        glyph.verticalAdvance = (int)(bitmapData[5] >> 6);
+        glyph.lengthToGlyph = (int)bitmapData[0];
+        glyph.heightFromBaseLine = (int)(bitmapData[1]);
+
+        return glyph;
+    }
     
     private class ImageSheetRow
     {
@@ -198,7 +268,7 @@ public class FreeTypeStrategy
         public int height;
     }
     
-    public boolean LoadImageSheet(FontImageSheet_ sheet)
+    public boolean LoadImageSheet(FontImageSheet_ sheet, boolean bordered)
     {
         Texture_ texture = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__imageSheet_();
         quorum.Libraries.Containers.Array_ table = sheet.Get_Libraries_Game_Graphics_Fonts_FontImageSheet__glyphTable_();
@@ -233,12 +303,16 @@ public class FreeTypeStrategy
 
                 LoadBitmap will also return a bitmap as a ByteBuffer so it can be drawn.
             */
-            ByteBuffer value = LoadBitmap(currentData, current, faceHandle);
+            ByteBuffer value;
+            if (bordered && current != ' ')
+                value = LoadSDFBitmap(currentData, current, faceHandle);
+            else
+                value = LoadBitmap(currentData, current, faceHandle);
             
             int currentWidth = (int)currentData[3];
             int currentHeight = (int)currentData[2];
             
-            if (currentWidth == 0 || currentHeight == 0)
+            if (currentWidth == 0 || currentHeight == 0 || value == null)
             {
                 // We use a single empty pixel to represent symbols that don't
                 // have a visual representation, e.g. space or new line.
@@ -449,7 +523,15 @@ public class FreeTypeStrategy
     }
     
     private native void DisposeC(long handle);
-    
+
+    /*
+    Get the error code for the last Freetype error that was recorded. Used for debugging.
+    DOUBLE CHECK THE NATIVE IMPLEMENTATION FOR WHERE ERRORS ARE RECORDED!
+    The initial implementation was sloppy about recording errors, so legitimate errors might
+    not be stored. Using this naively might give you the wrong idea!
+    */
+    private native int GetLastError();
+
     public void SetColorNative(Color_ c)
     {
         color = c;
