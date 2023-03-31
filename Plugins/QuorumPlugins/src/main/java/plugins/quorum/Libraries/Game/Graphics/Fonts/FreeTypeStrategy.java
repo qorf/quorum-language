@@ -17,9 +17,7 @@ import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.Fonts.FontImageSheet_;
 import quorum.Libraries.Game.Graphics.Glyph;
-import quorum.Libraries.Game.Graphics.Glyph_;
 import quorum.Libraries.Game.Graphics.Texture;
-import quorum.Libraries.Game.Graphics.TextureFilter;
 import quorum.Libraries.Game.Graphics.Texture_;
 
 /**
@@ -29,7 +27,7 @@ import quorum.Libraries.Game.Graphics.Texture_;
 public class FreeTypeStrategy 
 {    
     public java.lang.Object me_ = null;
-    
+
     static long libHandle = 0;
     
     // Identifies the face used by this font.
@@ -340,10 +338,7 @@ public class FreeTypeStrategy
             
             int x = rowWidth;
             rowWidth += currentWidth + padding;
-            
-            if (rowWidth > totalWidth)
-                totalWidth = rowWidth;
-            
+
             if (rowWidth > maxSize)
             {
                 ImageSheetRow newRow = new ImageSheetRow(rowHeight, current - 1);
@@ -354,7 +349,11 @@ public class FreeTypeStrategy
                 x = padding;
                 rowHeight = padding;
             }
-            
+
+            if (rowWidth > totalWidth) {
+                totalWidth = rowWidth;
+            }
+
             if (currentHeight + padding > rowHeight)
             {
                 rowHeight = currentHeight + padding;
@@ -467,7 +466,7 @@ public class FreeTypeStrategy
         {
             TextureRegionData data = regionData[i];
             Glyph glyph = glyphs[i];
-            
+
             quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
             region.LoadTextureRegion(texture, data.x, data.y, data.width, data.height);
         
