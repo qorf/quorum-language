@@ -1039,4 +1039,62 @@ class QuorumStrategy is FontStrategy
         return 0
     end
 
+    /*
+    This action will enable or disable bordered textures for this font.
+    (In a more technical sense, this enables or disables signed-distance
+    field textures for the glyphs.) For the QuorumStrategy, setting this
+    to true will cause an error, because the QuorumStrategy doesn't support
+    bordered fonts.
+
+    Attribute: Parameter bordered True to enable bordered glyph textures, or false to generate glyph textures normally.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:SetBordered(true)
+            end
+        end
+    */
+    action SetBordered(boolean bordered)
+        if bordered
+            alert("I can't enable bordered fonts because the QuorumStrategy for fonts doesn't support them. Use the Freetype strategy to use bordered fonts.")
+        end
+    end
+
+    /*
+    This action will return whether or not bordered glyph textures (or more accurately,
+    signed distance field textures) are currently enabled for this font. This is always
+    false for the QuorumStrategy, because it doesn't support bordered fonts.
+
+    Attribute: Returns True if this font is generating bordered texture glyphs, or false is it is generating standard textures.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                output "The default font bordering state is " + font:IsBordered()
+            end
+        end
+    */
+    action IsBordered returns boolean
+        // Always return false. This strategy doesn't support bordered fonts.
+        return false
+    end
 end

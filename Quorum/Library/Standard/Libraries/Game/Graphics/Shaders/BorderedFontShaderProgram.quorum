@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+
+class BorderedFontShaderProgram is ShaderProgram
+
+    constant text PROGRAM_NAME = "Bordered Font Program"
+
+    on create
+        SetName(PROGRAM_NAME)
+
+        BorderedFontVertexShader vertex
+        BorderedFontFragmentShader fragment
+
+        Add(vertex)
+        Add(fragment)
+
+        BorderedFontShaderMapping mapping
+        SetShaderMapping(mapping)
+    end
+
+end
