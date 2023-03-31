@@ -8,6 +8,7 @@ use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.System.Properties
 
 /*
     The ScatterPlot class is Chart object that inherits from TwoVariableChart and like other
@@ -46,6 +47,7 @@ class ScatterPlot is TwoVariableChart
     number residualSquareThickness = 1.2
 
     on create
+        CheckPlatformInstructions()
         ScatterPlotLayout layout
         SetLayout(layout)
 
@@ -165,17 +167,17 @@ class ScatterPlot is TwoVariableChart
         
         if not IsSeparated()
             //Not Separated
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetGroupsText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
         else
             //Separated, each Series is also separated by the Factor levels
             if IsSeparatedBySeries() and IsSeparatedByFactor()  
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
             //Separated, by the Factor levels with multiple Series per subplot
             elseif not IsSeparatedBySeries() and IsSeparatedByFactor()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetGroupsText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
             //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetSeriesText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetSeriesText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
             end
         end
         me:GetChartArea():SetDescription(description)
@@ -190,12 +192,12 @@ class ScatterPlot is TwoVariableChart
     action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
         //Separated, by the Factor levels with multiple Series per subplot
         if not IsSeparatedBySeries() and IsSeparatedByFactor()
-            description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
+            description = description + " To navigate the list of " + GetGroupsText() + ", " + GetGeneralInstruction() + " to move between " + GetGroupsText() + " in list order," 
+            description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + GetExitInstruction() + " to return to the chart information."
         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
-            description = description + " To navigate the list of " + GetSeriesText() + ", use the arrow keys to move between " + GetSeriesText() + " in list order,"
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", use Shift + Enter to return to the chart information."
+            description = description + " To navigate the list of " + GetSeriesText() + ", " + GetGeneralInstruction() + " to move between " + GetSeriesText() + " in list order,"
+            description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetSeriesText() + ", " + GetExitInstruction() + " to return to the chart information."
         end
         subChartArea:SetDescription(description)
     end
@@ -209,11 +211,11 @@ class ScatterPlot is TwoVariableChart
     action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
 
         if GetSeriesList():GetSize() > 1
-            description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
+            description = description + " To navigate the list of " + GetGroupsText() + ", " + GetGeneralInstruction() + " to move between " + GetGroupsText() + " in list order," 
+            description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + GetExitInstruction() + " to return to the chart information."
         else
             description = description + " To navigate the " + GetGroupText() + ", " 
-            description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
+            description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + GetExitInstruction() + " to return to the chart information."
         end
         
         groupPanel:SetDescription(description)
@@ -227,21 +229,27 @@ class ScatterPlot is TwoVariableChart
     */
     action AddChartItemInstructions(Item chartItem, text description)
 
-        description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in value order on the X axis," 
-        description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order on the Y axis,"
+        description = description + " To navigate the list of " + GetChartItemsText() + ", " + GetListOrderInstruction() + " to move between " + GetChartItemsText() + " in value order on the X axis," 
+
+        Properties prop
+        if (prop:IsIos() or prop:IsAndroid())
+            description = description + "" //this command is not assigned for gestures yet
+        else
+            description = description + " " + GetValueOrderInstruction() + " to move between " + GetChartItemsText() + " by value order on the Y axis,"
+        end
 
         if IsShowingLinearRegression()
-            description = description + " use Enter to view the regression,"
+            description = description + " " + GetEnterInstruction() + " to view the regression,"
         end
 
         if not IsSeparatedBySeries() and IsSeparatedByFactor()
-            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+            description = description + " " + GetExitInstruction() + " to return to the " + GetGroupText() + " list."
         elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
-            description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
+            description = description + " " + GetExitInstruction() + " to return to the " + GetSeriesText() + " list."
         elseif not IsSeparated() and HasGroups()
-            description = description + " use Shift + Enter to return to the chart information."
+            description = description + " " + GetExitInstruction() + " to return to the chart information."
         else
-            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+            description = description + " " + GetExitInstruction() + " to return to the " + GetGroupText() + " list."
         end
         chartItem:SetDescription(description)
     end

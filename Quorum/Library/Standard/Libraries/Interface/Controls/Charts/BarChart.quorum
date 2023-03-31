@@ -32,6 +32,7 @@ use Libraries.Interface.Controls.Charts.Graphics.Bar
 */
 class BarChart is SharedBarChartParent
     on create
+        CheckPlatformInstructions()
         BarChartLayout layout
         SetLayout(layout)
 

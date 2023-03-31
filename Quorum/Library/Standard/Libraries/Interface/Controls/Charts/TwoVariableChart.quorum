@@ -640,9 +640,6 @@ class TwoVariableChart is Chart
 
         chartArea:SetContainer(me)
         
-        summary:SetRightItem(chartArea)
-        chartArea:SetLeftItem(summary)
-
         text lineText = "lines"
         text pointText = "points"
         if GetNumberOfLines() = 1
@@ -685,8 +682,8 @@ class TwoVariableChart is Chart
                     firstArea:SetContainer(me)
 
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts.")
-                    chartArea:SetEnterItem(firstArea)
-                    firstArea:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstArea)
+                    firstArea:SetEscapeItem(summary)
 
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
@@ -708,7 +705,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
-                            nextArea:SetParent(chartArea)
+                            nextArea:SetParent(summary)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
                             previousArea = nextArea

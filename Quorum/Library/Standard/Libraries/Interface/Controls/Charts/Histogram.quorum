@@ -57,6 +57,7 @@ class Histogram is SharedBarChartParent
     number dataMax = 0
     
     on create
+        CheckPlatformInstructions()
         HistogramLayout layout
         SetLayout(layout)
 

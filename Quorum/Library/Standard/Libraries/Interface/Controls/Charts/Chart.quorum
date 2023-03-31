@@ -22,9 +22,10 @@ use Libraries.System.File
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.System.DateTime
 use Libraries.Interface.Views.ControlShaderView
-use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine 
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
+use Libraries.System.Properties
 
 
 /*
@@ -169,6 +170,13 @@ class Chart is ChartItem
     private text seriesText = "series"
     private text chartItemText = "chart item"
     private text chartItemsText = "chart items"
+
+    // Keyboard Commands
+    private text generalInstruction = "use the arrow keys"
+    private text listOrderInstruction = "use the arrow keys"
+    private text valueOrderInstruction = "use Page Up or Page Down"
+    private text enterInstruction = "use Enter"
+    private text exitInstruction = "use Shift + Enter"
 
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
@@ -2819,13 +2827,13 @@ class Chart is ChartItem
         if not IsSeparated()
             //Not Separated but has Groups
             if HasGroups()
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetGroupsText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + enterInstruction + " to move into the list of " + GetGroupsText() + " or " + generalInstruction + " to navigate the chart information."
             //Not Separate and no Groups
             else
-                description = description + " To navigate the chart, press Enter to move into the list of " + GetChartItemsText() + " or the arrow keys to navigate the chart information."
+                description = description + " To navigate the chart, " + enterInstruction + " to move into the list of " + GetChartItemsText() + " or " + generalInstruction + " to navigate the chart information."
             end
         else
-            description = description + " To navigate the chart, press Enter to move into the list of sub charts or the arrow keys to navigate the chart information."
+            description = description + " To navigate the chart, " + enterInstruction + " to move into the list of sub charts or " + generalInstruction + " to navigate the chart information."
         end
         me:GetChartArea():SetDescription(description)
     end
@@ -2837,8 +2845,11 @@ class Chart is ChartItem
     Attribute: Parameter description The base portion of the description that will appear before the instructions
     */
     action AddSubChartAreaInstructions(ChartAreaPanel subChartArea, text description)
-        description = description + " To navigate the list of sub charts, use the arrow keys to move between sub charts in list order," 
-        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that sub chart, use Shift + Enter to return to the chart information."
+
+        
+        description = description + " To navigate the list of sub charts, " + generalInstruction + " to move between sub charts in list order," 
+        description = description + " " + enterInstruction + " to move into the list of " + GetChartItemsText() + " for that sub chart, " + exitInstruction + " to return to the chart information."
+        
         
         subChartArea:SetDescription(description)
     end
@@ -2851,16 +2862,23 @@ class Chart is ChartItem
     */
     action AddChartItemInstructions(Item chartItem, text description)
 
-        description = description + " To navigate the list of " + GetChartItemsText() + ", use the arrow keys to move between " + GetChartItemsText() + " in list order," 
-        description = description + " use Page Up Down to move between " + GetChartItemsText() + " by value order,"
-        if IsSeparated()
-            description = description + " use Shift + Enter to return to the sub chart list."
-        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
-            description = description + " use Shift + Enter to return to the " + GetSeriesText() + " list."
-        elseif not IsSeparated() and HasGroups()
-            description = description + " use Shift + Enter to return to the chart information."
+        description = description + " To navigate the list of " + GetChartItemsText() + ", " + listOrderInstruction + " to move between " + GetChartItemsText() + " in list order," 
+        
+        Properties prop
+        if (prop:IsIos() or prop:IsAndroid())
+            description = description + "" //this command is not assigned for gestures yet
         else
-            description = description + " use Shift + Enter to return to the " + GetGroupText() + " list."
+            description = description + " " + valueOrderInstruction + " to move between " + GetChartItemsText() + " by value order,"
+        end
+
+        if IsSeparated()
+            description = description + " " + exitInstruction + " to return to the sub chart list."
+        elseif IsSeparatedBySeries() and not IsSeparatedByFactor()
+            description = description + " " + exitInstruction + " to return to the " + GetSeriesText() + " list."
+        elseif not IsSeparated() and HasGroups()
+            description = description + " " + exitInstruction + " to return to the chart information."
+        else
+            description = description + " " + exitInstruction + " to return to the " + GetGroupText() + " list."
         end
         chartItem:SetDescription(description)
     end
@@ -2873,8 +2891,8 @@ class Chart is ChartItem
     */
     action AddGroupPanelInstructions(ChartDrawable groupPanel, text description)
 
-        description = description + " To navigate the list of " + GetGroupsText() + ", use the arrow keys to move between " + GetGroupsText() + " in list order," 
-        description = description + " use Enter to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", use Shift + Enter to return to the chart information."
+        description = description + " To navigate the list of " + GetGroupsText() + ", " + generalInstruction + " to move between " + GetGroupsText() + " in list order," 
+        description = description + " " + enterInstruction + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + exitInstruction + " to return to the chart information."
         
         groupPanel:SetDescription(description)
     end
@@ -2913,6 +2931,70 @@ class Chart is ChartItem
 
     action GetStyleFilepath returns text
         return me:styleFilepath
+    end
+
+    action GetListOrderInstruction returns text
+        return listOrderInstruction
+    end
+
+    action SetListOrderInstruction(text listOrderInstruction)
+        me:listOrderInstruction = listOrderInstruction
+    end
+
+    action GetValueOrderInstruction returns text
+        return valueOrderInstruction
+    end
+
+    action SetValueOrderInstruction(text valueOrderInstruction)
+        me:valueOrderInstruction = valueOrderInstruction
+    end
+
+    action GetEnterInstruction returns text
+        return enterInstruction
+    end
+
+    action SetEnterInstruction(text enterInstruction)
+        me:enterInstruction = enterInstruction
+    end
+
+    action GetExitInstruction returns text
+        return exitInstruction
+    end
+
+    action SetExitInstruction(text exitInstruction)
+        me:exitInstruction = exitInstruction
+    end
+
+    action GetGeneralInstruction returns text
+        return generalInstruction
+    end
+
+    action SetGeneralInstruction(text generalInstruction)
+        me:generalInstruction = generalInstruction
+    end
+
+    /*
+    This action is used to check the current platform and adjust the command instructions to use gestures rather than keys
+
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Interface.Controls.Charts.BarChart
+    
+    DataFrame frame
+    frame:Load("Data.csv")
+    frame:AddSelectedColumn(1)
+    BarChart chart = frame:BarChart()
+    chart:CheckPlatformInstructions
+    */
+    action CheckPlatformInstructions
+        Properties properties
+        if (properties:IsIos() or properties:IsAndroid())
+            generalInstruction = "swipe Left or Right"
+            listOrderInstruction = "swipe Left or Right"
+            //valueOrderInstruction = " "
+            enterInstruction = "swipe Down"
+            exitInstruction = "swipe Up"
+        end
     end
 
 end
