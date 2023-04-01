@@ -1,0 +1,361 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Compute.Math
+
+class ScrollableControl is Control
+
+    Control scrollableRegion = undefined
+    ScrollBarTrack horizontalBar
+    ScrollBarControl horizontalControl
+    ScrollBarTrack verticalBar
+    ScrollBarControl verticalControl
+
+    // Values used for mouse wheel scrolling.
+    Math math
+    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+
+    integer barThickness = 20
+
+    /*
+    Values representing how far the scroll bars have moved, where 0 is the start
+    of a track (left/top) and 1 is the end of a track (right/bottom). Note that
+    the values are calculated using the left/top edge of the scroll controls, so
+    reaching a full value of 1.0 is an unlikely edge case.
+    */
+    number scrollPercentageX = 0
+    number scrollPercentageY = 0
+
+    // How much of the overall content can be seen in the view, as a ratio of overall width/height.
+    number verticalViewRatio = 1
+    number horizontalViewRatio = 1
+
+    on create
+        scrollableRegion = GetScrollableRegion()
+
+        // Initialize the properties used to position the scroll bars.
+        verticalBar:SetVertical(true)
+        horizontalBar:SetVertical(false)
+        verticalControl:SetVertical(true)
+        horizontalControl:SetVertical(false)
+
+        LayoutProperties verticalBarProperties = verticalBar:GetDefaultLayoutProperties()
+        LayoutProperties verticalControlProperties = verticalControl:GetDefaultLayoutProperties()
+        LayoutProperties horizontalBarProperties = horizontalBar:GetDefaultLayoutProperties()
+        LayoutProperties horizontalControlProperties = horizontalControl:GetDefaultLayoutProperties()
+
+        /*
+        By default, the vertical bar has width equal to the bar thickness, has a
+        height equal to the height of its container, and has its top right 
+        corner touching the top right corner of the container.
+        */
+        verticalBarProperties:SetPercentageX(1)
+        verticalBarProperties:SetPercentageOriginX(1)
+        verticalBarProperties:SetPercentageY(1)
+        verticalBarProperties:SetPercentageOriginY(1)
+        verticalBarProperties:SetPercentageHeight(1)
+        verticalBarProperties:SetPixelWidth(barThickness)
+
+        /*
+        The horizontal bar has width equal to its container's width, height
+        equal to the bar thickness, and lies along the bottom of the text box.
+        */
+        horizontalBarProperties:SetPercentageX(0)
+        horizontalBarProperties:SetPercentageY(0)
+        horizontalBarProperties:SetPercentageWidth(1)
+        horizontalBarProperties:SetPixelHeight(barThickness)
+
+        /*
+        The vertical control begins at the top of the bar, and its width fully
+        fills the bar. Its height is not set here, instead being set during
+        Resize().
+        */
+        verticalControlProperties:SetPercentageOriginY(1)
+        verticalControlProperties:SetPercentageY(1)
+        verticalControlProperties:SetPercentageX(0)
+        verticalControlProperties:SetPercentageWidth(1)
+
+        /*
+        The horizontal control begins at the left of the bar, and its height
+        fully fills the bar. Its width is not set here, instead being set during
+        Resize().
+        */
+        horizontalControlProperties:SetPercentageX(0)
+        horizontalControlProperties:SetPercentageY(0)
+        horizontalControlProperties:SetPercentageHeight(1)
+
+        Add(scrollableRegion)
+        Add(verticalBar)
+        Add(horizontalBar)
+        verticalBar:Add(verticalControl)
+        horizontalBar:Add(horizontalControl)
+    end
+
+    /*
+    This action returns the total width of the content contained inside
+    the scrollable region of this Control. If the content's width is larger
+    than the width of the Control, then horizontal scrolling can be used.
+    */
+    blueprint action GetTotalContentWidth returns number
+
+    /*
+    This action returns the total height of the content contained inside
+    the scrollable region of this Control. If the content's height is larger
+    than the height of the Control, then vertical scrolling can be used.
+    */
+    blueprint action GetTotalContentHeight returns number
+
+    /*
+    This action returns the Control that represents the main content of the
+    scrollable control. This is most commonly a pane or a specialized renderer
+    used to display other elements inside of it.
+    */
+    blueprint action GetScrollableRegion returns Control
+    
+    /*
+    This action returns how far the scrollable region should scroll vertically for
+    a single "tick" of mouse scrolling on the y-axis. This value is returned as a
+    percentage of the total content height (represented between 0 and 1).
+    */
+    blueprint action GetScrollIncrement returns number
+
+    /*
+    This action occurs just after the scroll positions are updated and just before Resizing occurs.
+    It can be used to adjust any layout properties that need to be modified on the scrollable region
+    before processing a resize.
+    */
+    private blueprint action RefreshScrollableRegion
+
+    /*
+    This action returns how far the content has been scrolled along the x-axis.
+    In other words, it's a percentage represented between 0 and 1 indicating
+    how far the horizontal scroll bar has been moved to the right.
+
+    This percentage represents the position of the start of the scroll bar.
+    For example, a scroll percent of 0.4 indicates that the view begins 40%
+    of the way through the scrollable area. 
+    */
+    action GetScrollPercentageX returns number
+        return scrollPercentageX
+    end
+
+    /*
+    This action sets how far the view of content should be scrolled along the x-axis.
+    In other words, it's a percentage represented between 0 and 1 indicating
+    how far the horizontal scroll bar should be moved to the right.
+
+    This percentage represents the position of the start of the scroll bar.
+    For example, a scroll percent of 0.4 indicates that the view begins 40%
+    of the way through the scrollable area. 
+    */
+    action SetScrollPercentageX(number scrollPercentageX)
+        RefreshPaneView(scrollPercentageX, GetScrollPercentageY())
+    end
+
+    /*
+    This action returns how far the content has been scrolled along the y-axis.
+    In other words, it's a percentage represented between 0 and 1 indicating
+    how far the vertical scroll bar has been moved down.
+
+    This percentage represents the position of the start of the scroll bar.
+    For example, a scroll percent of 0.4 indicates that the view begins 40%
+    of the way through the scrollable area. 
+    */
+    action GetScrollPercentageY returns number
+        return scrollPercentageY
+    end
+
+    /*
+    This action sets how far the view of content should be scrolled along the y-axis.
+    In other words, it's a percentage represented between 0 and 1 indicating
+    how far the vertical scroll bar should be moved downwards.
+
+    This percentage represents the position of the start of the scroll bar.
+    For example, a scroll percent of 0.4 indicates that the view begins 40%
+    of the way through the scrollable area. 
+    */
+    action SetScrollPercentageY(number scrollPercentageY)
+        RefreshPaneView(GetScrollPercentageX(), scrollPercentageY)
+    end
+
+    /*
+    This action returns a percentage (represented between 0 and 1) indicating how
+    much of the content's width can be viewed in the scrollable region. For example,
+    if the content is 400 pixels wide and the scrollable region is 100 pixels wide,
+    the percent of viewable width returned will be 0.25.
+
+    This value cannot be set directly. It is calculated from the dimensions of the
+    content and the Control.
+    */
+    action GetScrollPercentageWidth returns number
+        return horizontalViewRatio
+    end
+
+    /*
+    This action returns a percentage (represented between 0 and 1) indicating how
+    much of the content's height can be viewed in the scrollable region. For example,
+    if the content is 400 pixels tall and the scrollable region is 100 pixels tall,
+    the percent of viewable height returned will be 0.25.
+
+    This value cannot be set directly. It is calculated from the dimensions of the
+    content and the Control.
+    */
+    action GetScrollPercentageHeight returns number
+        return verticalViewRatio
+    end
+
+    /*
+    The Resize action is used to recalculate the size and position of Controls
+    that are being controlled by a Layout. Calling Resize on an Item2D won't
+    have a direct effect on it, but if the Item's children hierarchy contains
+    any Controls, those Controls will be resized.
+    */
+    action Resize
+        number height = GetHeight()
+        number width = GetWidth()
+        number totalHeight = GetTotalContentHeight()
+        number totalWidth = GetTotalContentWidth()
+
+        verticalViewRatio = height / totalHeight
+        horizontalViewRatio = width / totalWidth
+        boolean verticalVisible = verticalViewRatio < 1.0
+        boolean horizontalVisible = horizontalViewRatio < 1.0
+        number barHeight = height
+        number barWidth = width
+
+        /*
+        If both bars are visible, we need to offset the total size of the bars so they can't overlap
+        in the bottom right corner. Otherwise, if only one is visible, they're allowed to use the whole
+        side of the spreadsheet view, so nix any previously set pixel values.
+        */
+        if verticalVisible and horizontalVisible
+            verticalBar:SetPixelHeight(-barThickness)
+            horizontalBar:SetPixelWidth(-barThickness)
+            barHeight = height - barThickness * GetInterfaceScale()
+            barWidth = width - barThickness * GetInterfaceScale()
+            verticalViewRatio = barHeight / totalHeight
+            horizontalViewRatio = barWidth / totalWidth
+        else
+            verticalBar:SetPixelHeight(0)
+            horizontalBar:SetPixelWidth(0)
+        end
+
+        if verticalViewRatio > 1.0
+            verticalViewRatio = 1.0
+        end
+
+        if horizontalViewRatio > 1.0
+            horizontalViewRatio = 1.0
+        end
+
+        if verticalVisible
+            verticalControl:SetPercentageHeight(verticalViewRatio)
+            verticalBar:Show()
+            scrollableRegion:SetPixelWidth(-barThickness)
+        else
+            verticalBar:Hide()
+            scrollableRegion:SetPixelWidth(0)
+        end
+
+        if horizontalVisible
+            horizontalControl:SetPercentageWidth(horizontalViewRatio)
+            horizontalBar:Show()
+            // Currently, ManualLayout applies interface scale to dimensions, but not to positions. Thus only the Y needs the scale applied manually.
+            scrollableRegion:SetPixelHeight(-barThickness)
+            scrollableRegion:SetPixelY(barThickness * GetInterfaceScale())
+        else
+            horizontalBar:Hide()
+            scrollableRegion:SetPixelHeight(0)
+            scrollableRegion:SetPixelY(0)
+        end
+
+        // The RefreshPaneView action will call the parent resize, so layouts will be applied then.
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY())
+    end
+
+    // Update the position of the scroll bars, then refresh the scroll region.
+    private action RefreshPaneView(number percentX, number percentY)
+        if percentX > (1.0 - horizontalViewRatio)
+            percentX = 1.0 - horizontalViewRatio
+        elseif percentX < 0.0
+            percentX = 0.0
+        end
+
+        if percentY > (1.0 - verticalViewRatio)
+            percentY = 1.0 - verticalViewRatio
+        elseif percentY < 0.0
+            percentY = 0.0
+        end
+
+        horizontalControl:SetPercentageX(percentX)
+        verticalControl:SetPercentageY(1.0 - percentY)
+
+        scrollPercentageX = percentX
+        scrollPercentageY = percentY
+
+        RefreshScrollableRegion()
+
+        parent:Control:Resize()
+    end
+
+    // This action translate a pixel value to a percentage scroll Y value. The pixel value is relative to the Spreadsheet.
+    action GetVerticalTrackPercentage(number y) returns number
+        number sharedSpaceOffset = 0
+        if horizontalBar:IsShowing()
+            sharedSpaceOffset = barThickness
+        end
+
+        return 1.0 - (y - sharedSpaceOffset) / verticalBar:GetHeight()
+    end
+
+    // This action translate a pixel value to a percentage scroll X value. The pixel value is relative to the Spreadsheet.
+    action GetHorizontalTrackPercentage(number x) returns number
+        return x / horizontalBar:GetWidth()
+    end
+
+    action ScrolledMouse(MouseEvent event)
+        number y = event:scrollAmount
+        boolean positive = true
+        if y < 0
+            positive = false
+            y = y * -1
+        end
+
+        y = y + 1
+        y = math:SquareRoot(math:Logarithm(y))
+        number lines = cast(integer, y / liner)
+        if lines <= 1
+            lines = 1
+        end
+
+        number heightChange = -GetScrollIncrement() * lines
+
+        if not positive
+            heightChange = heightChange * -1
+        end
+        
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
+    end
+
+    action IsShowingHorizontalBar returns boolean
+        return horizontalBar:IsShowing()
+    end
+
+    action IsShowingVerticalBar returns boolean
+        return verticalBar:IsShowing()
+    end
+
+    action GetBarThickness returns integer
+        return barThickness
+    end
+
+    action SetBarThickness(integer barThickness)
+        me:barThickness = barThickness
+        verticalBar:GetDefaultLayoutProperties():SetPixelWidth(barThickness)
+        horizontalBar:GetDefaultLayoutProperties():SetPixelHeight(barThickness)
+    end
+
+end
