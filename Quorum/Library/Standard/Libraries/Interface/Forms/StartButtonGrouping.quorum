@@ -1,0 +1,21 @@
+package Libraries.Interface.Forms
+
+use Libraries.Game.Graphics.Color
+
+class StartButtonGrouping is Grouping
+
+    on create
+        CenterAlignTitle()
+        CenterAlignContent()
+        SetTitleSizeLarge()
+        
+        // These colors shouldn't be hardcoded in the long run, but this works as temporary values for testing.
+        Color color
+        color:SetColor(0.92, 0.92, 0.92, 1.0)
+        SetBackgroundColor(color)
+        SetBorderColor(color:White())
+        SetBorderThickness(1)
+        SetCornerRounding(0.2, 0.2, 0.2, 0.2)
+    end
+
+end

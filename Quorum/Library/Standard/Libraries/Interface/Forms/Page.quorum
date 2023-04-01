@@ -27,4 +27,52 @@ class Page is FormContainerControl
         alert("The item " + name + " is not a grouping. Are you looking for the right item?")
     end
 
+    action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
+        StartButtonGrouping grouping
+        grouping:SetName(title)
+        grouping:SetTitle(title)
+        grouping:AddLabel(title + " Label", label)
+        grouping:AddButton(buttonName)
+
+        Add(grouping)
+        return grouping
+    end
+
+    action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
+        Item2D grouping = FindControl(name)
+        if grouping not= undefined and grouping is StartButtonGrouping
+            Remove(grouping)
+            return cast(StartButtonGrouping, grouping)
+        end
+        alert("The item " + name + " is not a start button grouping. Are you looking for the right item?")
+    end
+
+    action AddBanner(text title) returns Banner
+        Banner grouping
+        grouping:SetName(title)
+        grouping:SetTitle(title)
+
+        Add(grouping)
+        return grouping
+    end
+
+    action AddBanner(text title, text label) returns Banner
+        Banner grouping
+        grouping:SetName(title)
+        grouping:SetTitle(title)
+        grouping:AddLabel(title + " Label", label)
+
+        Add(grouping)
+        return grouping
+    end
+
+    action RemoveBanner(text name) returns Banner
+        Item2D grouping = FindControl(name)
+        if grouping not= undefined and grouping is Banner
+            Remove(grouping)
+            return cast(Banner, grouping)
+        end
+        alert("The item " + name + " is not a banner Are you looking for the right item?")
+    end
+
 end

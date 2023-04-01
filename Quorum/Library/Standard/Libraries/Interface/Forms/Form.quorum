@@ -110,6 +110,9 @@ class Form is Game, FormContainerInterface
         currentPage = mainPage
         Add(mainPage)
         manager:SetInterfaceOptions(options)
+
+        FormDelayedAssetLoader delayedLoader
+        delayedLoader:LoadAssets()
     end
 
     /*  This action creates a default Game object for displaying charts and sets this chart
@@ -140,6 +143,26 @@ class Form is Game, FormContainerInterface
 
     action RemoveGrouping(text name) returns Grouping
         return currentPage:RemoveGrouping(name)
+    end
+
+    action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
+        return currentPage:AddStartButtonGrouping(title, label, buttonName)
+    end
+
+    action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
+        return currentPage:RemoveStartButtonGrouping(name)
+    end
+
+    action AddBanner(text title) returns Banner
+        return currentPage:AddBanner(title)
+    end
+
+    action AddBanner(text title, text label) returns Banner
+        return currentPage:AddBanner(title, label)
+    end
+
+    action RemoveBanner(text name) returns Banner
+        return currentPage:RemoveBanner(name)
     end
 
     action SetTitle(text name)

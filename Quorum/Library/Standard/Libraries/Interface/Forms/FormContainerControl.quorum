@@ -13,9 +13,11 @@ class FormContainerControl is FormContainerInterface, Control
 
     Label titleLabel = undefined
 
+    public constant integer TINY_FONT_SIZE = 10
     public constant integer SMALL_FONT_SIZE = 12
     public constant integer MEDIUM_FONT_SIZE = 20
     public constant integer LARGE_FONT_SIZE = 32
+    public constant integer HUGE_FONT_SIZE = 60
     public constant integer DEFAULT_FONT_SIZE = MEDIUM_FONT_SIZE
 
     integer titleSize = DEFAULT_FONT_SIZE
@@ -34,6 +36,8 @@ class FormContainerControl is FormContainerInterface, Control
     */
     integer titleAlignment = DEFAULT_ALIGN
     integer contentAlignment = DEFAULT_ALIGN
+
+    FormDelayedAssetLoader delayedLoader
 
     action SetTitle(text title)
         if title = ""
@@ -71,6 +75,10 @@ class FormContainerControl is FormContainerInterface, Control
         return titleSize
     end
 
+    action SetTitleSizeTiny
+        SetTitleFontSize(TINY_FONT_SIZE)
+    end
+
     action SetTitleSizeSmall
         SetTitleFontSize(SMALL_FONT_SIZE)
     end
@@ -81,6 +89,10 @@ class FormContainerControl is FormContainerInterface, Control
 
     action SetTitleSizeLarge
         SetTitleFontSize(LARGE_FONT_SIZE)
+    end
+
+    action SetTitleSizeHuge
+        SetTitleFontSize(HUGE_FONT_SIZE)
     end
 
     action LeftAlignTitle
@@ -125,9 +137,22 @@ class FormContainerControl is FormContainerInterface, Control
 
     action AddButton(text name, text fileName) returns Button
         Button button = AddButton(name)
-        Drawable drawable
-        drawable:Load(fileName)
-        button:SetIcon(drawable)
+
+        if delayedLoader:IsGameAvailable()
+            Drawable drawable
+            drawable:Load(fileName)
+            button:SetIcon(drawable)
+
+            button:SetPixelWidth(0)
+            button:SetPixelHeight(0)
+            button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+            button:SetHorizontalLayoutMode(button:parent:Control:MAINTAIN_ASPECT_RATIO)
+            button:SetPercentageWidth(drawable:GetWidth() / drawable:GetHeight())
+        else
+            delayedLoader:AddRequest(button, fileName, undefined)
+        end
+
+
         button:SetFont(undefined)
         return button
     end
@@ -166,9 +191,18 @@ class FormContainerControl is FormContainerInterface, Control
     action AddIcon(text name, text fileName) returns Icon
         Icon icon
         icon:SetName(name)
-        icon:Load(fileName)
         icon:SetFocusable(true)
         icon:SetAccessibilityCode(icon:parent:Item:CUSTOM)
+
+        if delayedLoader:IsGameAvailable()
+            icon:Load(fileName)
+            icon:SetPercentageWidth(icon:GetWidth() / icon:GetHeight())
+        else
+            delayedLoader:AddRequest(icon, fileName, undefined)
+        end
+
+        icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
+
         Add(icon)
         return icon
     end
