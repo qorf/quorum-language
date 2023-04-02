@@ -48,7 +48,7 @@ class Label is Control
     GameStateManager manager
 
     // Used to store Drawables for re-use, limiting the number of total object instantiations made.
-    Array<Drawable> drawablePool
+    Array<GlyphDrawable> drawablePool
 
     /*
     Determines if the label places its Drawables along the baseline or not. If
@@ -58,6 +58,9 @@ class Label is Control
     boolean positionOnBaseLine = true
 
     integer lineCount = 0
+    number outlineThickness = 0
+
+    ColorGroup outlineColor = undefined
 
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
@@ -65,6 +68,10 @@ class Label is Control
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
         SetName("Label")
         SetInterfaceOptionsKey("Label")
+
+        Color black
+        black:SetColor(0, 0, 0, 1)
+        outlineColor = black
     end
 
 
@@ -771,9 +778,15 @@ class Label is Control
                         glyph = glyphs:Get(glyphIndex)
                         drawable = undefined
                         if glyph:texture not= undefined
-                            Drawable newDrawable = GetDrawable()
+                            GlyphDrawable newDrawable = GetDrawable()
                             newDrawable:SetName("Glyph")
-                            newDrawable:Load(glyph:texture)
+
+                            if outlineThickness > 0
+                                newDrawable:LoadBorderedGlyph(glyph, outlineThickness, outlineColor)
+                            else
+                                newDrawable:LoadGlyph(glyph)
+                            end
+
                             newDrawable:SetColor(fontColor)
                             drawable = newDrawable
                         end
@@ -831,13 +844,13 @@ class Label is Control
 
     end
 
-    private action GetDrawable returns Drawable
+    private action GetDrawable returns GlyphDrawable
         if drawablePool:IsEmpty() = false
-            Drawable drawable = drawablePool:RemoveFromEnd()
+            GlyphDrawable drawable = drawablePool:RemoveFromEnd()
             drawable:Show()
             return drawable
         else
-            Drawable drawable
+            GlyphDrawable drawable
             return drawable
         end
     end
@@ -847,8 +860,8 @@ class Label is Control
 
         repeat while children:IsEmpty() = false
             Item2D item = children:RemoveFromFront()
-            if item is Drawable
-                drawablePool:Add(cast(Drawable, item))
+            if item is GlyphDrawable
+                drawablePool:Add(cast(GlyphDrawable, item))
             end
         end
     end
@@ -1114,6 +1127,91 @@ class Label is Control
     */
     action GetLineCount returns integer
         return lineCount
+    end
+
+    action GetOutlineThickness returns number
+        return outlineThickness
+    end
+
+    /*
+    This action sets the thickness of the outlines around the text, in pixels.
+    By default, this is 0. The thickness can be set to a maximum of 8 pixels,
+    though for best results the thickness should usually be no more than 7.
+
+    Attribute: Parameter outlineThickness The thickness of the text outlines, in pixels.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetOutlineThickness(2)
+            label:SetOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
+    action SetOutlineThickness(number outlineThickness)
+        if me:outlineThickness = outlineThickness
+            return now
+        end
+
+        textChanged = true
+        GetFont():SetBordered(outlineThickness > 0)
+
+        me:outlineThickness = outlineThickness
+    end
+
+    action GetOutlineColor returns ColorGroup
+        return outlineColor
+    end
+
+    /*
+    This action sets the color of the outlines around the text. Note that if the outline
+    thickness isn't changed from its default value of zero, no outlines will be drawn.
+
+    Attribute: Parameter color The new color of the outlining for text.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetOutlineThickness(2)
+            label:SetOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
+    action SetOutlineColor(ColorGroup color)
+        outlineColor = color
+        textChanged = true
     end
 
 end

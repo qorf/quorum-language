@@ -1598,8 +1598,8 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, ColorGroup color)
-        Texture temp
-        temp:LoadFilledTriangle(x1, y1, x2, y2, x3, y3)
+        SharedTextureManager manager
+        Texture temp = manager:GetUnitTexture()
         Load(temp)
         SetColor(color)
         Vector2 vertex1

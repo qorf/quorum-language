@@ -208,11 +208,20 @@ shared class Properties
     output value
     */
     action IsIosSimulator returns boolean
-        text os = GetOperatingSystemName()
-        if os:Contains("iOS")
+        if IsIos()
             text sim = GetProperty(iosSimulator)
             if sim not= undefined and sim = "true"
                 return true
+            else //if false, do a double check and inject the property if appropriate
+                 //This isn't a perfect solution, but seems to work under most conditions. 
+                 //There isn't an automatic way to detect the simulator though from MobiVM, so far as I can tell.
+                text property = GetProperty("user.dir")
+                if property not= undefined and property:Contains("CoreSimulator")
+                    SetProperty(iosSimulator, "true")
+                    return true
+                else
+                    SetProperty(iosSimulator, "false")
+                end
             end
         end
 

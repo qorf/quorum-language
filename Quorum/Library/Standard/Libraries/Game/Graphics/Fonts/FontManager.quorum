@@ -31,7 +31,8 @@ class FontManager
     Style <TBD>
     SubFont <TBD>
     Color (Not used here, set locally by Font when returning a glyph)
-*/
+    */
+
     // A prefix used to indicate a system font.
     public constant text SYSTEM_PREFIX = "SYSTEM"
 
@@ -40,6 +41,12 @@ class FontManager
 
     // A delimiting character used to separate portions of a Font's identifier.
     public constant text FONT_DELIMITER = "$"
+
+    // A tag used to indicate that this font supports borders around glyphs.
+    public constant text BORDERED_TAG = "BORDERED"
+
+    // A tag used to indicate that this font doesn't support borders around glyphs. The default case.
+    public constant text BORDERLESS_TAG = "BORDERLESS"
 
     // Each font uniquely produces a string key to the table.
     HashTable<text, FontStrategy> fontTable
@@ -364,6 +371,13 @@ class FontManager
 
             strategy:SetSize(cast(integer, fontValues:Get(2)))
             strategy:SetAngle(cast(number, fontValues:Get(3)))
+
+            text borderText = fontValues:Get(4)
+            if borderText = BORDERED_TAG
+                strategy:SetBordered(true)
+            else
+                strategy:SetBordered(false)
+            end
 
             if fontValues:Get(0) = SYSTEM_PREFIX
                 strategy:LoadFont(fontValues:Get(1))

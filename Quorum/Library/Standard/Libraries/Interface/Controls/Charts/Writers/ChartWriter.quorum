@@ -537,6 +537,7 @@ class ChartWriter
     */
     private action AddBackground(ScalableVectorGraphics canvas, Chart chart)
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
+        text chartTitle = ""
         if chart:GetBackground() not= undefined
             background:SetFill(cast(Color, chart:GetBackground():GetColor()))
         end
@@ -547,7 +548,15 @@ class ChartWriter
         if HasAccessibility()
             background:SetTabIndex(0)
             background:SetRole("graphics-object")
-            background:SetAriaLabel(chart:GetName() + ", " + chart:GenerateSummary())
+            if chart:GetTitle() not= ""
+                chartTitle = chart:GetTitle()
+            else
+                chartTitle = chart:GetName()
+            end
+            if chart:GetSubtitle() not= "Subtitle"
+                chartTitle = chartTitle + ", " + chart:GetSubtitle()
+            end
+            background:SetAriaLabel(chartTitle + chart:GenerateSummary())
             background:SetAriaHidden("false")
         end
         chartInformation:Add(background)
@@ -623,7 +632,7 @@ class ChartWriter
 
         if chart:IsShowingXAxis()
             HorizontalAxisPanel horizontalAxisPanel = chart:GetHorizontalPanel()
-
+            
             if horizontalAxisPanel not= undefined and horizontalAxisPanel:IsShowing()
                 horizontalPanel:SetWidth(horizontalAxisPanel:GetWidth())
                 horizontalPanel:SetHeight(horizontalAxisPanel:GetHeight())

@@ -1,0 +1,51 @@
+package Libraries.Interface.Controls.Charts.Flowcharts
+
+use Libraries.Interface.Layouts.GridLayout
+use Libraries.Interface.Layouts.Layout
+
+class GridFlowchart is Flowchart
+
+    boolean autoGridSize = true
+
+    private action CreateDefaultLayout returns Layout
+        GridLayout layout
+        layout:SetDefaultGridWidth(5)
+        layout:SetDefaultGridHeight(5)
+        return layout
+    end
+
+    action Add(Item2D item)
+        if item is FlowchartNode
+            AddNode(cast(FlowchartNode, item))
+        else
+            parent:Control:Add(item)
+        end
+    end
+
+    private action AddNode(FlowchartNode node)
+        if autoGridSize
+            integer width = GetContainerGridWidth()
+            integer height = GetContainerGridHeight()
+
+            if node:GetGridX() + node:GetGridWidth() > width
+                parent:Control:SetContainerGridWidth(node:GetGridX() + node:GetGridWidth())
+            end
+
+            if node:GetGridY() + node:GetGridHeight() > height
+                parent:Control:SetContainerGridHeight(node:GetGridY() + node:GetGridHeight())
+            end
+        end
+
+        parent:Control:Add(node)
+    end
+
+    action SetContainerGridWidth(integer width)
+        autoGridSize = false
+        parent:Control:SetContainerGridWidth(width)
+    end
+
+    action SetContainerGridHeight(integer height)
+        autoGridSize = false
+        parent:Control:SetContainerGridHeight(height)
+    end
+end
