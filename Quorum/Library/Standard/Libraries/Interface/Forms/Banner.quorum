@@ -1,8 +1,11 @@
 package Libraries.Interface.Forms
 
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Label
 
 class Banner is Grouping
+
+    Label label = undefined
 
     on create
         CenterAlignTitle()
@@ -13,6 +16,21 @@ class Banner is Grouping
         Color color
         color:SetColor(172.0 / 255.0, 209.0 / 255.0, 223.0 / 255.0, 1.0)
         SetBackgroundColor(color)
+    end
+
+    action Initialize(text title)
+        Initialize(title, "")
+    end
+
+    action Initialize(text title, text label)
+        SetTitle(title)
+        if label not= ""
+            me:label = AddLabel(title + " Label", label)
+        end
+    end
+
+    action GetLabel returns Label
+        return label
     end
 
 end

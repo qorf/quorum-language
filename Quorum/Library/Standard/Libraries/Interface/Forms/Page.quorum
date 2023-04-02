@@ -30,9 +30,7 @@ class Page is FormContainerControl
     action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
         StartButtonGrouping grouping
         grouping:SetName(title)
-        grouping:SetTitle(title)
-        grouping:AddLabel(title + " Label", label)
-        grouping:AddButton(buttonName)
+        grouping:Initialize(title, label, buttonName)
 
         Add(grouping)
         return grouping
