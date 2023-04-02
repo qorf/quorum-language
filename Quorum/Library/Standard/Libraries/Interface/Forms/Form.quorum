@@ -233,6 +233,10 @@ class Form is Game, FormContainerInterface
         return currentPage:RemoveButton(name)
     end
 
+    action AddLabel(text name) returns Label
+        return currentPage:AddLabel(name)
+    end
+
     action AddLabel(text name, text value) returns Label
         return currentPage:AddLabel(name, value)
     end

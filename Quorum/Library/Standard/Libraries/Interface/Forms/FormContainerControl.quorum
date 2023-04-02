@@ -166,6 +166,10 @@ class FormContainerControl is FormContainerInterface, Control
         alert("The item " + name + " is not a button. Are you looking for the right item?")
     end
 
+    action AddLabel(text name) returns Label
+        return AddLabel(name, name)
+    end
+
     action AddLabel(text name, text value) returns Label
         Label label
         //labelCount = labelCount + 1
