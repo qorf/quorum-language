@@ -33,6 +33,13 @@ class ScrollableControl is Control
     number verticalViewRatio = 1
     number horizontalViewRatio = 1
 
+    public constant integer VISIBLE_IF_NEEDED = 1
+    public constant integer ALWAYS_VISIBLE = 2
+    public constant integer NEVER_VISIBLE = 3
+
+    integer verticalMode = VISIBLE_IF_NEEDED
+    integer horizontalMode = VISIBLE_IF_NEEDED
+
     on create
         scrollableRegion = GetScrollableRegion()
 
@@ -356,6 +363,14 @@ class ScrollableControl is Control
         me:barThickness = barThickness
         verticalBar:GetDefaultLayoutProperties():SetPixelWidth(barThickness)
         horizontalBar:GetDefaultLayoutProperties():SetPixelHeight(barThickness)
+    end
+
+    action SetVerticalBarVisibility(integer mode)
+        me:verticalMode = mode
+    end
+
+    action SetHorizontalBarVisibility(integer mode)
+        me:horizontalMode = mode
     end
 
 end

@@ -10,7 +10,6 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Glyph
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseMovementListener
-use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextChangeEvent
@@ -60,16 +59,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
     number firstLine = 0
 
     /*
-    How close to the top of the scroll area the top of the vertical view is. A
-    value of 1.0 means the top of the vertical view is at the top of the scroll
-    area, while a value of 0.0 indicates the top of the vertical view is at the
-    very bottom of the scroll area (which is only possible in the unlikely case
-    that the height of the viewing region is 0). This is used to calculate the
-    firstLine value.
-    */
-    number verticalViewPercentage = 1.0
-
-    /*
     The width of the scroll region, as calculated by the longest line of text.
     A value of -1 indicates the width needs to be recalculated.
     */
@@ -105,36 +94,9 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
     TextBoxSelection selection
 
     TextBoxRenderer background
-//    Control horizontalBar
-//    Control horizontalControl
-//    Control verticalBar
-//    Control verticalControl
-//
-//    LayoutProperties horizontalBarProperties
-//    LayoutProperties horizontalControlProperties
-//    LayoutProperties verticalBarProperties
-//    LayoutProperties verticalControlProperties
-//    
-//    number scrollDistance = 3
-//    integer barThickness = 20
-//
-//    number vertical = 1.0
-//    number horizontal = 0
-
-    public constant integer VISIBLE_IF_NEEDED = 1
-    public constant integer ALWAYS_VISIBLE = 2
-    public constant integer NEVER_VISIBLE = 3
-
-    integer verticalMode = VISIBLE_IF_NEEDED
-    integer horizontalMode = VISIBLE_IF_NEEDED
 
     integer leftCharacterPadding = 9
-    /*
-    Values used for when the control is dragged along the scroll track.
-    */
-//    boolean barIsClicked = false
-//    boolean verticalChanging = true
-//    number clickPointOffset = 0
+    
     boolean moveFocusOnTab = true
 
     /*
@@ -169,7 +131,7 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
     HashTable<text, TextStyle> styleTable
 
     Math math
-//    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+
     /* 
     The caret's previous position, which is set when the SHIFT key is pressed
     and used in creating a selection following a mouse click
@@ -209,7 +171,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         SetFocusable(true)
         AddFocusListener(me)
         SetClipping(true)
-//        AddMouseWheelListener(me)
         AddMouseMovementListener(me)
         AddTextChangeListener(textEditManager)
         textEditManager:SetTextBox(me)
@@ -217,7 +178,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
 //        SetSelectionType(parent:Selectable:RANGE_SELECTION)
 
         background:SetName("TextBox Background")
-        Add(background)
 
         textValue:DisableTextWrapping()
 
@@ -237,69 +197,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
 
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetFont(font)
-
-//        verticalBar:SetName("Vertical Scroll Track")
-//        verticalControl:SetName("Vertical Scroll Control")
-//        horizontalBar:SetName("Horizontal Scroll Track")
-//        horizontalControl:SetName("Horizontal Scroll Control")
-//
-//        ManualLayout verticalLayout
-//        ManualLayout horizontalLayout
-//        verticalBar:SetLayout(verticalLayout)
-//        horizontalBar:SetLayout(horizontalLayout)
-//
-//        /*
-//        By default, the vertical bar has width equal to the bar thickness, has a
-//        height equal to the height of its container, and has its top right 
-//        corner touching the top right corner of the container.
-//        */
-//        verticalBarProperties:SetPercentageX(1)
-//        verticalBarProperties:SetPercentageOriginX(1)
-//        verticalBarProperties:SetPercentageY(1)
-//        verticalBarProperties:SetPercentageOriginY(1)
-//        verticalBarProperties:SetPercentageHeight(1)
-//        verticalBarProperties:SetPixelWidth(barThickness)
-//
-//        verticalBar:AddLayoutProperties(verticalBarProperties)
-//
-//        /*
-//        The horizontal bar has width equal to its container's width, height
-//        equal to the bar thickness, and lies along the bottom of the text box.
-//        */
-//        horizontalBarProperties:SetPercentageX(0)
-//        horizontalBarProperties:SetPercentageY(0)
-//        horizontalBarProperties:SetPercentageWidth(1)
-//        horizontalBarProperties:SetPixelHeight(barThickness)
-//
-//        horizontalBar:AddLayoutProperties(horizontalBarProperties)
-//
-//        /*
-//        The vertical control begins at the top of the bar, and its width fully
-//        fills the bar. Its height is not set here, instead being set during
-//        Resize().
-//        */
-//        verticalControlProperties:SetPercentageOriginY(1)
-//        verticalControlProperties:SetPercentageY(1)
-//        verticalControlProperties:SetPercentageX(0)
-//        verticalControlProperties:SetPercentageWidth(1)
-//
-//        verticalControl:AddLayoutProperties(verticalControlProperties)
-//
-//        /*
-//        The horizontal control begins at the left of the bar, and its height
-//        fully fills the bar. Its width is not set here, instead being set during
-//        Resize().
-//        */
-//        horizontalControlProperties:SetPercentageX(0)
-//        horizontalControlProperties:SetPercentageY(0)
-//        horizontalControlProperties:SetPercentageHeight(1)
-//
-//        horizontalControl:AddLayoutProperties(horizontalControlProperties)
-//
-//        Add(verticalBar)
-//        Add(horizontalBar)
-//        verticalBar:Add(verticalControl)
-//        horizontalBar:Add(horizontalControl)
 
         HideCaret()
 
@@ -390,34 +287,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
             background:SetView2D(backgroundView)
         end
 
-        // If the bars haven't had views loaded, do that now.
-//        if verticalBar:GetView2D() = undefined
-//            ControlShaderView verticalBarView
-//            ControlShaderView horizontalBarView
-//            ControlShaderView verticalControlView
-//            ControlShaderView horizontalControlView
-//    
-//            verticalBarView:SetName("TextBox Vertical Bar View")
-//            horizontalBarView:SetName("TextBox Horizontal Bar View")
-//            verticalControlView:SetName("TextBox Vertical Control View")
-//            horizontalControlView:SetName("TextBox Horizontal ControlView")
-//    
-//            verticalBarView:Initialize()
-//            horizontalBarView:Initialize()
-//            verticalControlView:Initialize()
-//            horizontalControlView:Initialize()
-//    
-//            verticalBar:SetView2D(verticalBarView)
-//            horizontalBar:SetView2D(horizontalBarView)
-//            verticalControl:SetView2D(verticalControlView)
-//            horizontalControl:SetView2D(horizontalControlView)
-//        end
-//
-//        verticalBar:SetBackgroundColor(GetForegroundColor())
-//        horizontalBar:SetBackgroundColor(GetForegroundColor())
-//        verticalControl:SetBackgroundColor(GetAccentColor())
-//        horizontalControl:SetBackgroundColor(GetAccentColor())
-
         Drawable caret = background:GetCaret()
         caret:SetColor(GetIconColor())
 
@@ -425,66 +294,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
 
         GetLineDrawables()
     end
-
-    /*
-    The Resize action is used to recalculate the size and position of Controls
-    that are being controlled by a Layout. Calling Resize on an Item2D won't
-    have a direct effect on it, but if the Item's children hierarchy contains
-    any Controls, those Controls will be resized.
-    */
-//    action Resize
-//        number height = GetHeight()
-//        number width = GetWidth()
-//        number verticalRatio = height / GetScrollRegionHeight()
-//        number horizontalRatio = width / GetScrollRegionWidth()
-//        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
-//        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
-//        number barHeight = height
-//        number barWidth = width
-//
-//        if verticalVisible and horizontalVisible
-//            verticalBarProperties:SetPixelHeight(-barThickness)
-//            horizontalBarProperties:SetPixelWidth(-barThickness)
-//            barHeight = height - barThickness
-//            barWidth = width - barThickness
-//            verticalRatio = barHeight / GetScrollRegionHeight()
-//            horizontalRatio = barWidth / GetScrollRegionWidth()
-//        else
-//            verticalBarProperties:SetPixelHeight(0)
-//            horizontalBarProperties:SetPixelWidth(0)
-//        end
-//
-//        if verticalRatio > 1.0
-//            verticalRatio = 1.0
-//        end
-//
-//        if horizontalRatio > 1.0
-//            horizontalRatio = 1.0
-//        end
-//
-//        if verticalVisible
-//            verticalControlProperties:SetPercentageHeight(verticalRatio)
-//            verticalBar:Show()
-//        else
-//            verticalBar:Hide()
-//        end
-//
-//        if horizontalVisible
-//            horizontalControlProperties:SetPercentageWidth(horizontalRatio)
-//            horizontalBar:Show()
-//        else
-//            horizontalBar:Hide()
-//        end
-//
-//        // UpdatePaneView also calls the parent Resize action from Item2D, so
-//        // layouts will properly be applied.
-//        UpdatePaneView(horizontal, vertical)
-//    end
-
-//    private action ResizeLineDrawables
-//        GetLineDrawables()
-//        parent:Item2D:Resize()
-//    end
 
     /*
     Makes everything from scratch. For initialization purposes.
@@ -519,7 +328,7 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         text separator = textValue:GetLineSeparator()
         integer totalLines = lines:GetSize()
         number lineHeight = GetLineHeight()
-        firstLine = totalLines - (totalLines * verticalViewPercentage)
+        firstLine = totalLines - (totalLines * (1.0 - GetScrollPercentageY()))
         integer firstLineInteger = cast(integer, firstLine)
         number halfPadding = GetTotalLineHeightPadding() / 2
 
@@ -578,7 +387,7 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
 
             integer characterCounter = 0
             integer styleCounter = 0
-            number startX = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+            number startX = -GetScrollPercentageX() * GetTotalContentWidth() + leftCharacterPadding + gutterX
             lineBeginningX = startX
             number x = startX
 
@@ -931,7 +740,7 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         number lineOffset = GetCharacterY(textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter)
         
         number x = 0
-        number horizontalOffset = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        number horizontalOffset = -GetScrollPercentageX() * GetTotalContentWidth()
         MultipleLineText line = textValue:GetLine(caretLine)
         text lineCharacters = line:GetText()
 
@@ -966,7 +775,8 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
         number viableLines = lines:GetSize() - (paneHeight / GetLineHeight())
         number windowLines = (lines:GetSize() - viableLines) / 2.0
-        number newVertical = 1.0 - ((line - windowLines) / viableLines)
+//        number newVertical = /*1.0 - */((line - windowLines) / viableLines)
+        number newVertical = (line - windowLines) / lines:GetSize()
         RefreshPaneView(GetScrollPercentageX(), newVertical)
     end
 
@@ -1519,7 +1329,7 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         end
         
         x1 = x1 + leftCharacterPadding
-        number offset = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        number offset = -GetScrollPercentageX() * GetTotalContentWidth()
         position = position - offset
 
         if position = x1
@@ -1966,107 +1776,44 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         return textEditManager
     end
 
-//    action SetScrollDistance(number distance)
-//        scrollDistance = distance
-//    end
-//
-//    action GetScrollDistance returns number
-//        return scrollDistance
-//    end
-//
-//    action ScrolledMouse(MouseEvent event)
-//        number y = event:scrollAmount
-//        boolean positive = true
-//        if y < 0
-//            positive = false
-//            y = y * -1
-//        end
-//
-//        y = y + 1
-//        y = math:SquareRoot(math:Logarithm(y))
-//        number lines = cast(integer, y / liner)
-//        if lines <= 1
-//            lines = 1
-//        end
-//        number count = GetLineCount()
-//        number linePercentage = lines / count
-//
-//        number heightChange = linePercentage * lines
-//
-//        if not positive
-//            heightChange = heightChange * -1
-//        end
-//        y = vertical + heightChange
-//        UpdatePaneView(horizontal, y)
-//    end
-
     action DraggedMouse(MouseEvent event)
-//        if barIsClicked
-//            // Determine if we are updating the vertical or horizontal bar.
-//            if verticalChanging
-//                number y = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - clickPointOffset
-//                UpdatePaneView(horizontal, y)
-//            else
-//                number x = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - clickPointOffset
-//                UpdatePaneView(x, vertical)
-//            end
         if draggingInText
             MousePositionCaret(event, true)
         end
     end
 
     action ClickedMouse(MouseEvent event)
-        output "Clicked"
         if event:GetSource() not= undefined and event:GetSource() is Item2D
-            Item2D source = cast(Item2D, event:GetSource())
-//            if source:Equals(verticalControl)
-//                barIsClicked = true
-//                verticalChanging = true
-//                clickPointOffset = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - vertical
-//            elseif source:Equals(horizontalControl)
-//                barIsClicked = true
-//                verticalChanging = false
-//                clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
-//            elseif source:Equals(verticalBar) or source:Equals(horizontalBar)
-//                // React to click being on the bar itself.
-//            else 
-                // Assume main text area was clicked.
-                if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
-                    // See if the click should be processed by a Gutter.
-                    Array<Gutter> gutters = background:GetGutters()
+            if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
+                // See if the click should be processed by a Gutter.
+                Array<Gutter> gutters = background:GetGutters()
 
-                    number x = event:GetX()
-                    integer counter = 0
-                    repeat while counter < gutters:GetSize()
-                        Gutter gutter = gutters:Get(counter)
-                        if x >= gutter:GetGlobalX() and x <= gutter:GetGlobalX() + gutter:GetWidth()
-                            gutter:ClickedMouse(event)
-                            return now
-                        end
-                        counter = counter + 1
+                number x = event:GetX()
+                integer counter = 0
+                repeat while counter < gutters:GetSize()
+                    Gutter gutter = gutters:Get(counter)
+                    if x >= gutter:GetGlobalX() and x <= gutter:GetGlobalX() + gutter:GetWidth()
+                        gutter:ClickedMouse(event)
+                        return now
                     end
+                    counter = counter + 1
                 end
+            end
 
-                if event:mouseButton = event:LEFT
-                    draggingInText = true
-                    output "Left clicked, count = " + gameStateManager:GetInput():GetClickCount(me)
+            if event:mouseButton = event:LEFT
+                draggingInText = true
 
-                    /*
-                    If the click count is 1, there's been 1 click before this 
-                    one, and we want to let the double click behavior handle it.
-                    Otherwise, we position the mouse ourselves.
-                    */
-                    if gameStateManager:GetInput():GetClickCount(me) not= 1
-                        MousePositionCaret(event, false)
-                    end
+                /*
+                Only position the caret if this was a single click.
+                */
+                if gameStateManager:GetInput():GetClickCount(me) = 1
+                    MousePositionCaret(event, false)
                 end
-//            end
+            end
         end
     end
 
     action ReleasedMouse(MouseEvent event)
-        output "Released"
-//        barIsClicked = false
         draggingInText = false
     end
 
@@ -2120,7 +1867,13 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         integer totalLines = textValue:GetLines():GetSize()
         number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
-        number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
+
+        number barOffset = 0
+        if IsShowingHorizontalBar()
+            barOffset = GetBarThickness()
+        end
+
+        number yPosition = GetHeight() + barOffset + (firstLine - line) * lineHeight - lineHeight/4
         
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
@@ -2150,78 +1903,12 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         parent:Control:LostFocus(event)
     end
 
-    /*
-    Takes values between 0.0 and 1.0 as percentage-style positions for the
-    vertical and horizontal scroll bars and view area.
-    */
-//    action UpdatePaneView(number horizontal, number vertical)
-//        if vertical > 1.0
-//            if me:vertical = 1.0
-//                return now
-//            else
-//                vertical = 1.0
-//            end
-//        elseif vertical < 0.0
-//            if me:vertical = 0.0
-//                return now
-//            else
-//                vertical = 0.0
-//            end
-//        end
-//
-//        if horizontal > 1.0
-//            if me:horizontal = 1.0
-//                return now
-//            else
-//                horizontal = 1.0
-//            end
-//        elseif horizontal < 0.0
-//            if me:horizontal = 0.0
-//                return now
-//            else
-//                horizontal = 0.0
-//            end
-//        end
-//
-//        number sharedSpaceOffset = GetSharedSpaceOffset()
-//
-//        verticalControlProperties:SetPercentageY(vertical)
-//        verticalControlProperties:SetPixelY(((1 - vertical) * ((GetHeight() + verticalBarProperties:GetPixelHeight()) * verticalControlProperties:GetPercentageHeight())))
-//        horizontalControlProperties:SetPercentageX(horizontal)
-//        horizontalControlProperties:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetPixelWidth()) * horizontalControlProperties:GetPercentageWidth())))
-//
-//        verticalBar:Resize()
-//        horizontalBar:Resize()
-//
-//        number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
-//        number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
-//        
-//        if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
-//            verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
-//        else
-//            verticalViewPercentage = 1.0
-//        end
-//
-//        me:vertical = vertical
-//        me:horizontal = horizontal
-//
-//        ResizeLineDrawables()
-//    end
-
     private action GetSharedSpaceOffset returns number
         if IsShowingHorizontalBar() and IsShowingVerticalBar()
             return GetBarThickness()
         end
         return 0
     end
-
-//    private action GetVerticalTrackPercentage(number y) returns number
-//        return y / (GetHeight() - verticalControl:GetHeight())
-//    end
-//
-//    private action GetHorizontalTrackPercentage(number x) returns number
-//        return x / (GetWidth() - horizontalControl:GetWidth())
-//    end
 
     action GetTotalContentHeight returns number
         // This approach works so long as the font is universally styled (and
@@ -2307,14 +1994,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         number glyphWidth = font:GetGlyph("W"):horizontalAdvance
 
         return glyphWidth * line:GetWidth()
-    end
-
-    action SetVerticalBarVisibility(integer mode)
-        me:verticalMode = mode
-    end
-
-    action SetHorizontalBarVisibility(integer mode)
-        me:horizontalMode = mode
     end
 
     action Update(number seconds)

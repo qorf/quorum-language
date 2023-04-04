@@ -2127,6 +2127,17 @@ shared class DefaultInputSets
         scrollBarTable:Add(dragStartSet, barDragBehavior)
         scrollBarTable:Add(dragSet, barDragBehavior)
 
+        /*
+        Giving the scroll bars an empty behavior for mouse click will make them intercept
+        the mouse clicks even if it isn't going to do anything with them. Necessary for e.g.
+        TextBox to ensure attempts to use the scroll bars don't propagate down as clicks
+        in the text area.
+        */
+        InputSet leftClickSet
+        leftClickSet:SetMouseInput(mouse:LEFT)
+        Behavior emptyBehavior
+        scrollBarTable:Add(leftClickSet, emptyBehavior)
+
         gameInput:AddInputTable(scrollBarTable)
     end
 
