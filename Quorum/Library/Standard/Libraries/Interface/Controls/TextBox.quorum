@@ -775,7 +775,6 @@ class TextBox is ScrollableControl, MouseMovementListener, FocusListener
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
         number viableLines = lines:GetSize() - (paneHeight / GetLineHeight())
         number windowLines = (lines:GetSize() - viableLines) / 2.0
-//        number newVertical = /*1.0 - */((line - windowLines) / viableLines)
         number newVertical = (line - windowLines) / lines:GetSize()
         RefreshPaneView(GetScrollPercentageX(), newVertical)
     end
