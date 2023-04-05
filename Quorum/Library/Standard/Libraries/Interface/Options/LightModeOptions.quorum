@@ -43,11 +43,16 @@ class LightModeOptions is InterfaceOptions
         Color controlBackground = color:CustomColor(215.0 / MAX, 215.0 / MAX, 215.0 / MAX, 1)
         Color hoverBlue = color:CustomColor(179.0 / MAX, 208.0 / MAX, 221.0 / MAX, 1)
         Color darkBlue = color:CustomColor(49.0/MAX, 113.0/MAX, 159.0/MAX, 1)
+
+        Color blackFont = color:Black()
+        Color white = color:White()
+        Color darkBorder = color:CustomColor(32.0 / MAX, 32.0 / MAX, 32.0 / MAX, 1)
+
         number defaultButtonRounding = 0.5
         SetButtonBorderThickness(1)
-        SetButtonBackgroundColor(controlBackground)
-        SetButtonBorderColor(controlBackground)
-        SetButtonFontColor(darkFont)
+        SetButtonBackgroundColor(white)
+        SetButtonBorderColor(darkBorder)
+        SetButtonFontColor(blackFont)
         SetButtonTopLeftRounding(defaultButtonRounding)
         SetButtonTopRightRounding(defaultButtonRounding)
         SetButtonBottomLeftRounding(defaultButtonRounding)

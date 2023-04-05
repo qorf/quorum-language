@@ -156,8 +156,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     increase or decrease indentation. The default strategy uses spaces.
     */
     IndentationStrategy indentation
-    EditManager editManager = undefined
     TextBoxEditManager textEditManager
+    // A custom edit manager to use for this TextBox. If this is undefined, the default edit manager from the game will be used instead.
+    EditManager customEditManager = undefined
 
     /*
     TextStyle objects are used to indicate changes in the style of text at
@@ -304,9 +305,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         horizontalBar:Add(horizontalControl)
 
         HideCaret()
-
-        Game game = gameStateManager:GetGame()
-        editManager = game:GetEditManager()
     end
 
     action SetInterfaceOptionsKey(text key)
@@ -1934,11 +1932,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action GetEditManager returns EditManager
-        return editManager
+        return customEditManager
     end
 
     action SetEditManager(EditManager edits)
-        me:editManager = edits
+        customEditManager = edits
     end
 
     action SetTextBoxEditManager(TextBoxEditManager manager)
