@@ -20,6 +20,8 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.List
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.RadioButton
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -260,6 +262,14 @@ class Form is Game, FormContainerInterface
 
     action AddTextField(text name) returns TextField
         return currentPage:AddTextField(name)
+    end
+
+    action AddRadioButton(text name) returns RadioButton
+        return currentPage:AddRadioButton(name)
+    end
+
+    action AddCheckbox(text name) returns Checkbox
+        return currentPage:AddCheckbox(name)
     end
 
     action RemoveTextField(text name) returns TextField

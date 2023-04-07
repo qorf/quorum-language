@@ -9,6 +9,8 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.List
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Controls.Checkbox
 
 class FormContainerControl is FormContainerInterface, Control
 
@@ -128,6 +130,26 @@ class FormContainerControl is FormContainerInterface, Control
 
     action AddButton(text name) returns Button
         Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        Add(button)
+        return button
+    end
+
+    action AddRadioButton(text name) returns RadioButton
+        RadioButton button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        Add(button)
+        return button
+    end
+
+    action AddCheckbox(text name) returns Checkbox
+        Checkbox button
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
