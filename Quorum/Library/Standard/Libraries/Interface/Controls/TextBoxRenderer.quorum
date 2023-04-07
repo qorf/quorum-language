@@ -5,6 +5,7 @@ use Libraries.Containers.Support.SortableContainer
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Controls.TextStyles.TextHighlight
+use Libraries.Game.Graphics.ColorGroup
 
 class TextBoxRenderer is Control
 
@@ -428,4 +429,124 @@ class TextBoxRenderer is Control
         return false
     end
 
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBackgroundColor()
+        else
+            return parent:Control:GetBackgroundColor()
+        end
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBorderColor()
+        else
+            return parent:Control:GetBorderColor()
+        end
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBorderThickness()
+        else
+            return parent:Control:GetBorderThickness()
+        end
+    end
+
+    action GetTextBox returns TextBox
+        Item2D candidate = GetParent()
+        repeat until candidate is TextBox or candidate = undefined
+            candidate = candidate:GetParent()
+        end
+
+        // Returns either the TextBox this is attached to, or undefined
+        return cast(TextBox, candidate)
+    end
+
+    action GetTopLeftRounding returns number
+        if HasNumberPropertyOverride("topLeftRounding")
+            return parent:Control:GetTopLeftRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetTopLeftRounding()
+        else
+            return parent:Control:GetTopLeftRounding()
+        end
+    end
+
+    action HasTopLeftRounding returns boolean
+        number value = GetTopLeftRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetTopRightRounding returns number
+        if HasNumberPropertyOverride("topRightRounding")
+            return parent:Control:GetTopRightRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetTopRightRounding()
+        else
+            return parent:Control:GetTopRightRounding()
+        end
+    end
+
+    action HasTopRightRounding returns boolean
+        number value = GetTopRightRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetBottomLeftRounding returns number
+        if HasNumberPropertyOverride("bottomLeftRounding")
+            return parent:Control:GetBottomLeftRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBottomLeftRounding()
+        else
+            return parent:Control:GetBottomLeftRounding()
+        end
+    end
+
+    action HasBottomLeftRounding returns boolean
+        number value = GetBottomLeftRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetBottomRightRounding returns number
+        if HasNumberPropertyOverride("bottomRightRounding")
+            return parent:Control:GetBottomRightRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBottomRightRounding()
+        else
+            return parent:Control:GetBottomRightRounding()
+        end
+    end
+
+    action HasBottomRightRounding returns boolean
+        number value = GetBottomRightRounding()
+        return value:IsNotANumber() = false
+    end
 end

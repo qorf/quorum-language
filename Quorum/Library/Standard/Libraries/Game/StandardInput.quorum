@@ -999,12 +999,6 @@ class StandardInput is GameInput
         TextInputListener currentListener = undefined
         Iterator<TextInputListener> listenIterator = textInputListeners:GetIterator()
 
-        text inputGroup = ""
-        Item focusedItem = manager:GetFocus()
-        if focusedItem not= undefined
-            inputGroup = focusedItem:GetInputGroup()
-        end
-
         repeat while not events:IsEmpty()
             currentEvent = events:RemoveFromFront()
             currentEvent:SetKeyUsed(keypressCaught)
@@ -1012,20 +1006,42 @@ class StandardInput is GameInput
             InputSet set
             set:SetInputType(set:TEXT_INPUT)
 
+            Item focusedItem = manager:GetFocus()
+
             BehaviorEvent behaviorEvent
             behaviorEvent:SetItem(focusedItem)
             behaviorEvent:SetTextInputEvent(currentEvent)
 
-            InputTable table = GetInputTable(inputGroup)
-
             /*
-            Using boolean short-circuit evaluation. If the table is defined,
-            the input is processed - if the input set wasn't found in the table,
-            it returns false. Thus the default table is referenced if there was
-            no table with an identifier matching the input group, or if such a
-            table existed but didn't handle this InputSet.
+            Attempt to trigger an InputTable on the focused item. If that fails,
+            repeat on its parent hierarchy until we've either found a valid
+            InputTable or there's no item left to test against, in which case
+            we'll go use the default InputTable instead.
             */
-            if table = undefined or table:ProcessInput(set, behaviorEvent) = false
+            boolean processed = false
+            repeat while processed = false and focusedItem not= undefined
+                text inputGroup = focusedItem:GetInputGroup()
+                behaviorEvent:SetItem(focusedItem)
+
+                InputTable table = GetInputTable(inputGroup)
+                if table not= undefined
+                    processed = table:ProcessInput(set, behaviorEvent)
+                end
+
+                if focusedItem is Item2D
+                    Item2D item2D = cast(Item2D, focusedItem)
+                    focusedItem = item2D:GetParent()
+                elseif focusedItem is Item3D
+                    Item3D item3D = cast(Item3D, focusedItem)
+                    focusedItem = item3D:GetParent()
+                else
+                    focusedItem = undefined
+                end
+            end
+
+            if processed = false
+                focusedItem = manager:GetFocus()
+                behaviorEvent:SetItem(focusedItem)
                 GetDefaultInputTable():ProcessInput(set, behaviorEvent)
             end
 

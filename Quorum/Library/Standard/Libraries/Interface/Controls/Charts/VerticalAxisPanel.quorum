@@ -178,10 +178,7 @@ class VerticalAxisPanel is ChartItem
         
         yAxis:SetDisplayName(GenerateSummary())
         yAxis:SetContainer(chart)
-        
-        yAxis:SetNextFocus(chartArea)
-        yAxis:SetPreviousFocus(summary)
-        //yAxis:SetRightItem(chartArea)  
+       
 
         if chart:IsShowingXAxis()
             xAxis:SetRightItem(yAxis)
@@ -764,7 +761,8 @@ class VerticalAxisPanel is ChartItem
             tickCount = cast(integer, math:Round(range / scaleWidth)) + 1
         else
             range = max - min
-            tickCount = cast(integer, range) + 1
+            tickCount = cast(integer, math:Ceiling(range)) + 1
+            max = min + (tickCount - 1) * scaleWidth
         end
     end
 

@@ -35,6 +35,7 @@ use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Game
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.SharedTextureManager
 
 class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
 
@@ -104,11 +105,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     GameStateManager gameStateManager
     TextBoxSelection selection
 
-    /*
-    The texture used for the selection higlight. Initialized as a 1x1 white texture.
-    */
-    Texture selectionTexture = undefined
-
     TextBoxRenderer background
     Control horizontalBar
     Control horizontalControl
@@ -160,8 +156,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     increase or decrease indentation. The default strategy uses spaces.
     */
     IndentationStrategy indentation
-    EditManager editManager = undefined
     TextBoxEditManager textEditManager
+    // A custom edit manager to use for this TextBox. If this is undefined, the default edit manager from the game will be used instead.
+    EditManager customEditManager = undefined
 
     /*
     TextStyle objects are used to indicate changes in the style of text at
@@ -197,6 +194,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     // A boolean that checks if line padding should be considered when sizing selection highlights.
     // Classes that inherit from TextBox can override this.
     boolean applyPaddingToSelection = true
+
+    boolean initialized = false
+
+    /*
+    Determines if the TextBox places its Drawables along the baseline or not. If
+    this value is false, then each Drawable will be adjusted upward by the 
+    maximum descent of the Font.
+    */
+    boolean positionOnBaseLine = true
 
     on create
         SetName("Text Box")
@@ -299,9 +305,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         horizontalBar:Add(horizontalControl)
 
         HideCaret()
-
-        Game game = gameStateManager:GetGame()
-        editManager = game:GetEditManager()
     end
 
     action SetInterfaceOptionsKey(text key)
@@ -331,17 +334,42 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         leftCharacterPadding = padding
     end
 
+    private action GetSelectionTexture returns Texture
+        SharedTextureManager manager
+        return manager:GetUnitTexture()
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action IsPositioningOnBaseLine returns boolean
+        return positionOnBaseLine
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action SetPositionOnBaseLine(boolean position)
+        positionOnBaseLine = position
+    end
+
     /*
     This action is used to load the graphical components of the Control. This is
     handled automatically by the Game engine as needed, and most users shouldn't
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        if selectionTexture = undefined
-            Texture texture
-            selectionTexture = texture
-            selectionTexture:LoadFilledRectangle(1, 1)
-        end
+        initialized = true
 
         if background:GetView2D() = undefined
             ControlShaderView backgroundView
@@ -450,12 +478,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     Makes everything from scratch. For initialization purposes.
     */
     private action GetLineDrawables
-        if selectionTexture = undefined
-            // If we don't have a selection texture, the graphics haven't been
-            // loaded yet, and we should wait until they are to create the
-            // drawables for text.
+        if initialized = false
+            // If we haven't loaded graphics yet, don't try to create the drawables yet.
             return now
         end
+
+        Texture selectionTexture = GetSelectionTexture()
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
 
@@ -482,6 +510,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         firstLine = totalLines - (totalLines * verticalViewPercentage)
         integer firstLineInteger = cast(integer, firstLine)
         number halfPadding = GetTotalLineHeightPadding() / 2
+
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
         
         background:Empty()
         background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
@@ -514,7 +547,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Text Drawables
         */
 
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight
+        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight - maxDescent
         startLineY = yPosition - lineHeight
 
         integer counter = firstLineInteger
@@ -729,10 +762,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         ColorGroup fontColor = GetFontColor()
 
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
+
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
         number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2
+        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2 - maxDescent
 
         number xPosition = 0
 
@@ -1127,7 +1165,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
             Drawable highlight = background:GetDrawable()
             highlight:SetName("TextBox Highlight")
-            highlight:Load(selectionTexture)
+            highlight:Load(GetSelectionTexture())
             highlight:SetColor(GetSelectionColor())
 
             Array<Drawable> lineDrawables = background:GetLine(firstLine)
@@ -1894,11 +1932,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action GetEditManager returns EditManager
-        return editManager
+        return customEditManager
     end
 
     action SetEditManager(EditManager edits)
-        me:editManager = edits
+        customEditManager = edits
     end
 
     action SetTextBoxEditManager(TextBoxEditManager manager)
