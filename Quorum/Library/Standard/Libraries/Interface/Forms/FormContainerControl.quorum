@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Controls.List
 
 class FormContainerControl is FormContainerInterface, Control
 
@@ -133,6 +134,15 @@ class FormContainerControl is FormContainerInterface, Control
 
         Add(button)
         return button
+    end
+
+    action AddList(text name) returns List
+        List list
+        list:SetName(name)
+
+        Add(list)
+
+        return list
     end
 
     action AddButton(text name, text fileName) returns Button

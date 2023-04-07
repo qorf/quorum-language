@@ -22,9 +22,6 @@ class Checkbox is ToggleButton
 
     on create
         // The layout should already be present, courtesy of our inheritance of Button.
-        FlowLayout layout = cast(FlowLayout, GetLayout())
-        layout:SetIgnoreHidden(false)
-        layout:SetSingleLine(true)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)

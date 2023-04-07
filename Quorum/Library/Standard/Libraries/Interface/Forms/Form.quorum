@@ -19,6 +19,7 @@ use Libraries.Interface.Pages.StackedRowPage
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.List
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -219,6 +220,10 @@ class Form is Game, FormContainerInterface
 
     action FindControl(text name) returns Item2D
         return currentPage:FindControl(name)
+    end
+
+    action AddList(text name) returns List
+        return currentPage:AddList(name)
     end
 
     action AddButton(text name) returns Button
