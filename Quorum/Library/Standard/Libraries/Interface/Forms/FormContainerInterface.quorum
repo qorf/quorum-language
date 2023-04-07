@@ -1,0 +1,42 @@
+package Libraries.Interface.Forms
+
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.TextField
+
+class FormContainerInterface
+
+    blueprint action SetTitle(text name)
+    blueprint action GetTitle returns text
+    blueprint action SetTitleFontSize(integer size)
+    blueprint action GetTitleFontSize returns integer
+    blueprint action SetTitleSizeSmall
+    blueprint action SetTitleSizeMedium
+    blueprint action SetTitleSizeLarge
+    blueprint action LeftAlignTitle
+    blueprint action RightAlignTitle
+    blueprint action CenterAlignTitle
+
+    blueprint action LeftAlignContent
+    blueprint action RightAlignContent
+    blueprint action CenterAlignContent
+
+    blueprint action AddButton(text name) returns Button
+    blueprint action AddButton(text name, text fileName) returns Button
+    blueprint action RemoveButton(text name) returns Button
+
+    blueprint action AddLabel(text name) returns Label
+    blueprint action AddLabel(text name, text value) returns Label
+    blueprint action RemoveLabel(text name) returns Label
+
+    blueprint action AddIcon(text name, text fileName) returns Icon
+    blueprint action RemoveIcon(text name) returns Icon
+
+    blueprint action AddTextField(text name) returns TextField
+    blueprint action RemoveTextField(text name) returns TextField
+
+    blueprint action FindControl(text name) returns Item2D
+end

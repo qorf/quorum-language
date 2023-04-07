@@ -520,10 +520,8 @@ class SharedBarChartParent is Chart
 
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNextFocus(chartArea)
 
         chartArea:SetDisplayName("Chart Area with " + numberOfBars + bartext)
-        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
 
         AddChartAreaInstructions(" with " + numberOfBars + bartext)
@@ -545,11 +543,10 @@ class SharedBarChartParent is Chart
                 ChartAreaPanel firstArea = GetSubChartAreas():Get(0)
                 firstArea:SetDisplayName(GetName())
                 firstArea:SetContainer(me)
-                firstArea:SetPreviousFocus(summary)
 
                 AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
-                chartArea:SetEnterItem(firstArea)
-                firstArea:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstArea)
+                firstArea:SetEscapeItem(summary)
                 Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                 AddSubChartAreaInstructions(firstArea, " chart area with " + chartAreaItems:GetSize() + " bars, 1 of " + subAreaCount + " sub charts")
 
@@ -557,7 +554,6 @@ class SharedBarChartParent is Chart
                 if chartAreaItems:GetSize() > 0
                     ChartItem firstBar = chartAreaItems:Get(0)
                     firstBar:SetContainer(me)
-                    firstBar:SetPreviousFocus(summary)
                     firstArea:SetEnterItem(firstBar)
                     firstBar:SetEscapeItem(firstArea)
                     AddChartItemInstructions(firstBar, firstBar:GetDescription())
@@ -567,7 +563,6 @@ class SharedBarChartParent is Chart
                     repeat while j < chartAreaItems:GetSize()
                         ChartItem bar = chartAreaItems:Get(j)
                         bar:SetContainer(me)
-                        bar:SetPreviousFocus(summary)
                         bar:SetEscapeItem(firstArea)
                         bar:SetDescription(chartAreaItems:Get(j):GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " bars.")
                         previousBar:SetRightItem(bar)
@@ -600,8 +595,7 @@ class SharedBarChartParent is Chart
                     if chartSubArea:IsShowing()
                         ChartItem nextArea = chartSubArea
                         nextArea:SetContainer(me)
-                        nextArea:SetPreviousFocus(summary)
-                        nextArea:SetEscapeItem(chartArea)
+                        nextArea:SetEscapeItem(summary)
                         previousArea:SetRightItem(nextArea)
                         nextArea:SetLeftItem(previousArea)
                         previousArea = nextArea
@@ -614,7 +608,6 @@ class SharedBarChartParent is Chart
                         if chartAreaItems:GetSize() > 0
                             ChartItem firstBar = subAreaItems:Get(0)
                             firstBar:SetContainer(me)
-                            firstBar:SetPreviousFocus(summary)
                             nextArea:SetEnterItem(firstBar)
                             firstBar:SetEscapeItem(nextArea)
                             AddChartItemInstructions(firstBar, firstBar:GetDescription())
@@ -624,7 +617,6 @@ class SharedBarChartParent is Chart
                             repeat while j < subAreaItems:GetSize()
                                 ChartItem bar = subAreaItems:Get(j)
                                 bar:SetContainer(me)
-                                bar:SetPreviousFocus(summary)
                                 bar:SetEscapeItem(nextArea)
                                 bar:SetDescription(bar:GetDescription() + ", " + (j+1) + " of " + subAreaItems:GetSize() + " bars.")
                                 previousBar:SetRightItem(bar)
@@ -659,15 +651,13 @@ class SharedBarChartParent is Chart
                 if barGroups:GetSize() > 0
                     ChartItem firstGroup = barGroups:Get(0)
                     firstGroup:SetContainer(me)
-                    firstGroup:SetPreviousFocus(summary)
-                    chartArea:SetEnterItem(firstGroup)
-                    firstGroup:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstGroup)
+                    firstGroup:SetEscapeItem(summary)
         
                     //Bars within Bar Groups
                     if barGroups:Get(0):GetSize() > 0
                         ChartItem firstBar = barGroups:Get(0):Get(0)
                         firstBar:SetContainer(me)
-                        firstBar:SetPreviousFocus(summary)
                         AddChartItemInstructions(firstBar, firstBar:GetDescription())
 
                         firstGroup:SetEnterItem(firstBar)
@@ -678,7 +668,6 @@ class SharedBarChartParent is Chart
                         repeat while j < barGroups:Get(0):GetSize()
                             ChartItem bar = barGroups:Get(0):Get(j)
                             bar:SetContainer(me)
-                            bar:SetPreviousFocus(summary)
                             bar:SetEscapeItem(firstGroup)
                             previousBar:SetRightItem(bar)
                             bar:SetLeftItem(previousBar)
@@ -708,8 +697,7 @@ class SharedBarChartParent is Chart
                     repeat while i < barGroups:GetSize()
                         ChartItem group = barGroups:Get(i)
                         group:SetContainer(me)
-                        group:SetPreviousFocus(summary)
-                        group:SetEscapeItem(chartArea)
+                        group:SetEscapeItem(summary)
                         previousGroup:SetRightItem(group)
                         group:SetLeftItem(previousGroup)
                         previousGroup = group
@@ -718,7 +706,6 @@ class SharedBarChartParent is Chart
                         if barGroups:Get(i):GetSize() > 0
                             ChartItem firstBar = barGroups:Get(i):Get(0)
                             firstBar:SetContainer(me)
-                            firstBar:SetPreviousFocus(summary)
                             group:SetEnterItem(firstBar)
                             firstBar:SetEscapeItem(group)
                             AddChartItemInstructions(firstBar, firstBar:GetDescription())
@@ -728,7 +715,6 @@ class SharedBarChartParent is Chart
                             repeat while j < barGroups:Get(i):GetSize()
                                 ChartItem bar = barGroups:Get(i):Get(j)
                                 bar:SetContainer(me)
-                                bar:SetPreviousFocus(summary)
                                 bar:SetEscapeItem(group)
                                 previousBar:SetRightItem(bar)
                                 bar:SetLeftItem(previousBar)
@@ -762,17 +748,15 @@ class SharedBarChartParent is Chart
                         ChartItem firstBar = barGroups:Get(0):Get(0)
                         AddChartItemInstructions(firstBar, firstBar:GetDescription())
                         firstBar:SetContainer(me)
-                        firstBar:SetPreviousFocus(summary)
-                        chartArea:SetEnterItem(firstBar)
-                        firstBar:SetEscapeItem(chartArea)
+                        summary:SetEnterItem(firstBar)
+                        firstBar:SetEscapeItem(summary)
 
                         integer i = 1
                         ChartItem previousBar = firstBar
                         repeat while i < barGroups:GetSize()
                             ChartItem bar = barGroups:Get(i):Get(0)
                             bar:SetContainer(me)
-                            bar:SetPreviousFocus(summary)
-                            bar:SetEscapeItem(chartArea)
+                            bar:SetEscapeItem(summary)
                             previousBar:SetRightItem(bar)
                             bar:SetLeftItem(previousBar)
                             previousBar = bar

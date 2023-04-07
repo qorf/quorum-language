@@ -57,6 +57,7 @@ class Label is Control
     */
     boolean positionOnBaseLine = true
 
+    integer lineCount = 0
     number outlineThickness = 0
 
     ColorGroup outlineColor = undefined
@@ -731,6 +732,8 @@ class Label is Control
 
             number maxDescent = 0
 
+            // Recalculate line count. Reset to 0, then increment as we go.
+            lineCount = 0
 
             if positionOnBaseLine = false
                 maxDescent = font:GetMaximumDescent()
@@ -767,6 +770,7 @@ class Label is Control
                         x = originX
                         y = originY - font:GetLineHeight()
                         originY = y
+                        lineCount = lineCount + 1
                     end
 
                     glyphIndex = 0
@@ -807,6 +811,7 @@ class Label is Control
                             x = originX
                             y = originY - font:GetLineHeight()
                             originY = y
+                            lineCount = lineCount + 1
                         end
                     end
 
@@ -825,6 +830,7 @@ class Label is Control
                 x = originX
                 y = originY - font:GetLineHeight()
                 originY = y
+                lineCount = lineCount + 1
             end
 
             number newWidth = maxLineWidth + 2 * horizontalMargins
@@ -1090,6 +1096,37 @@ class Label is Control
             return GetText()
         end
         return description
+    end
+
+    /*
+    This action returns how many lines the text of this Label takes. By default,
+    all Labels take only a single line (i.e. this action will return 1). If the
+    Label has a maximum length that is shorter than the full text, however, word
+    wrapping will cause the Label to take multiple lines.
+
+    Attribute: Returns How many lines of text are in this Label.
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetText("This is a long string of text which will require word wrapping.")
+                label:SetPosition(200, 200)
+                label:SetMaximumWidth(100)
+                Add(label)
+                output "The label has " + label:GetLineCount() + " lines"
+            end
+        end
+    */
+    action GetLineCount returns integer
+        return lineCount
     end
 
     action GetOutlineThickness returns number

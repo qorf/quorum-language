@@ -155,6 +155,48 @@ class ControlShaderMapping is BatchingShaderMapping2D
             topRightRounding = properties:GetTopRightRounding()
             topLeftRounding = properties:GetTopLeftRounding()
 
+            /*
+            Determine how much the pixel rounding contributes to the overall percentage.
+            At a minimum, 0 pixels of rounding contributes nothing. The maximum contribution
+            possible is a number of pixels equal to half of the width or height (whichever is
+            smaller). We calculate using half the dimensions because each corner represents one
+            quadrant of the rectangle.
+            */
+            number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() / halfSize
+
+            // Clamp the values between 0 and 1.
+            if bottomLeftRounding > 1.0
+                bottomLeftRounding = 1.0
+            elseif bottomLeftRounding < 0
+                bottomLeftRounding = 0
+            end
+
+            if bottomRightRounding > 1.0
+                bottomRightRounding = 1.0
+            elseif bottomRightRounding < 0
+                bottomRightRounding = 0
+            end
+
+            if topLeftRounding > 1.0
+                topLeftRounding = 1.0
+            elseif topLeftRounding < 0
+                topLeftRounding = 0
+            end
+
+            if topRightRounding > 1.0
+                topRightRounding = 1.0
+            elseif topRightRounding < 0
+                topRightRounding = 0
+            end
+
             if properties:GetBorderColor() not= undefined
                 borderColor = properties:GetBorderColor():GetBottomLeft()
             end
@@ -200,6 +242,48 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 bottomRightRounding = control:GetBottomRightRounding()
                 topRightRounding = control:GetTopRightRounding()
                 topLeftRounding = control:GetTopLeftRounding()
+
+                /*
+            Determine how much the pixel rounding contributes to the overall percentage.
+            At a minimum, 0 pixels of rounding contributes nothing. The maximum contribution
+            possible is a number of pixels equal to half of the width or height (whichever is
+            smaller). We calculate using half the dimensions because each corner represents one
+            quadrant of the rectangle.
+            */
+            number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+
+            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() / halfSize
+            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() / halfSize
+            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() / halfSize
+            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() / halfSize
+
+            // Clamp the values between 0 and 1.
+            if bottomLeftRounding > 1.0
+                bottomLeftRounding = 1.0
+            elseif bottomLeftRounding < 0
+                bottomLeftRounding = 0
+            end
+
+            if bottomRightRounding > 1.0
+                bottomRightRounding = 1.0
+            elseif bottomRightRounding < 0
+                bottomRightRounding = 0
+            end
+
+            if topLeftRounding > 1.0
+                topLeftRounding = 1.0
+            elseif topLeftRounding < 0
+                topLeftRounding = 0
+            end
+
+            if topRightRounding > 1.0
+                topRightRounding = 1.0
+            elseif topRightRounding < 0
+                topRightRounding = 0
+            end
 
                 /*
                 Determine what color the control should be, based on how the user is interacting with it.

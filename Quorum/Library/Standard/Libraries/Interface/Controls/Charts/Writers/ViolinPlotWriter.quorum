@@ -106,22 +106,28 @@ class ViolinPlotWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        chartContent:SetTabIndex(0)
-        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
-        chartContent:SetIsOneLine(true)
-        chartContent:SetRole("graphics-object") 
 
         canvas:Add(chartContent)
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
         chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
-        chartContentBoundingBox:SetTabIndex(-1)
+        chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
+            chartContent:SetTabIndex(0)
+            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetIsOneLine(true)
+            chartContent:SetRole("graphics-object") 
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -136,11 +142,12 @@ class ViolinPlotWriter is ChartWriter
 
                 Group plotGroupSVG
                 if chart:HasGroups()                
-                    plotGroupSVG:SetID(canvas:GetID() + "_" + group:GetHashCode())
-                    plotGroupSVG:SetStyleClass("quorum-chart-plotgroup quorum-chart-category-list")
                     plotGroupSVG:SetFill(cast(Color, chart:GetSelectionColor()))
-                    plotGroupSVG:SetTabIndex(-1)
+                    plotGroupSVG:SetFillOpacity(cast(Color, chart:GetSelectionColor()))
                     if HasAccessibility()
+                        plotGroupSVG:SetID(canvas:GetID() + "_" + group:GetHashCode())
+                        plotGroupSVG:SetStyleClass("quorum-chart-plotgroup quorum-chart-category-list")
+                        plotGroupSVG:SetTabIndex(-1)
                         plotGroupSVG:SetRole("graphics-object") 
                         plotGroupSVG:SetAriaLabel(group:GetName() + group:GetDescription())
                         plotGroupSVG:SetAriaHidden("false")
@@ -157,9 +164,10 @@ class ViolinPlotWriter is ChartWriter
                     plotGroup:SetHeight(group:GetHeight())
                     plotGroup:SetPosition(group:GetGlobalX(), TranslatePositionY(group) - group:GetHeight()) 
                     plotGroup:SetFill(transparent)
-                    plotGroup:SetStyleClass("quorum-chart-rect")
-                    plotGroup:SetTabIndex(-1)
+                    plotGroup:SetFillOpacity(transparent)
                     if HasAccessibility()
+                        plotGroup:SetStyleClass("quorum-chart-rect")
+                        plotGroup:SetTabIndex(-1)
                         plotGroup:SetAriaHidden("true")
                     end
                     plotGroupSVG:Add(plotGroup)
@@ -172,10 +180,11 @@ class ViolinPlotWriter is ChartWriter
                             bracket:SetHeight(group:GetSelectionBracket():Get(k):GetHeight())
                             bracket:SetPosition(group:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(group:GetSelectionBracket():Get(k)) - group:GetSelectionBracket():Get(k):GetHeight()) 
                             bracket:SetFill(transparent) // Should be transparent until selected
-                            bracket:SetStyleClass("quorum-chart-selection-bracket")
-                            bracket:SetTabIndex(-1)
-                            bracket:SetID(plotGroupSVG:GetID() + "_bracket" + k)
+                            bracket:SetFillOpacity(transparent)
                             if HasAccessibility()
+                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                bracket:SetTabIndex(-1)
+                                bracket:SetID(plotGroupSVG:GetID() + "_bracket" + k)
                                 bracket:SetAriaHidden("true")
                                 plotGroupFocus = plotGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
                                 plotGroupBlur = plotGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
@@ -197,10 +206,11 @@ class ViolinPlotWriter is ChartWriter
                             k = k + 2
                         end
                         arrow:SetFill(transparent) // Should be transparent until selected
-                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                        arrow:SetID(plotGroupSVG:GetID() + "_arrow")
-                        arrow:SetTabIndex(-1)
+                        arrow:SetFillOpacity(transparent)
                         if HasAccessibility()
+                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetID(plotGroupSVG:GetID() + "_arrow")
+                            arrow:SetTabIndex(-1)
                             arrow:SetAriaHidden("true")
                             plotGroupFocus = plotGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
                             plotGroupBlur = plotGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -223,11 +233,12 @@ class ViolinPlotWriter is ChartWriter
                     Plot plot = group:Get(j)
 
                     Group plotSVG
-                    plotSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
-                    plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")
                     plotSVG:SetFill(plot:GetColor())
-                    plotSVG:SetTabIndex(-1)
-                    if HasAccessibility()   
+                    plotSVG:SetFillOpacity(plot:GetColor())
+                    if HasAccessibility()  
+                        plotSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
+                        plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list") 
+                        plotSVG:SetTabIndex(-1)
                         plotSVG:SetRole("graphics-object") 
                         plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                         plotSVG:SetAriaHidden("false")
@@ -248,9 +259,10 @@ class ViolinPlotWriter is ChartWriter
                     plotArea:SetHeight(plot:GetPlotArea():GetHeight())
                     plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
                     plotArea:SetFill(transparent)
-                    plotArea:SetStyleClass("quorum-chart-rect")
-                    plotArea:SetTabIndex(-1)
+                    plotArea:SetFillOpacity(transparent)
                     if HasAccessibility()
+                        plotArea:SetStyleClass("quorum-chart-rect")
+                        plotArea:SetTabIndex(-1)
                         plotArea:SetAriaHidden("true")
                     end
                     plotSVG:Add(plotArea)
@@ -263,10 +275,11 @@ class ViolinPlotWriter is ChartWriter
                             bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
                             bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
                             bracket:SetFill(transparent) // Should be transparent until selected
-                            bracket:SetStyleClass("quorum-chart-selection-bracket")
-                            bracket:SetTabIndex(-1)
-                            bracket:SetID(plotSVG:GetID() + "_bracket" + k)
+                            bracket:SetFillOpacity(transparent)
                             if HasAccessibility()
+                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                bracket:SetTabIndex(-1)
+                                bracket:SetID(plotSVG:GetID() + "_bracket" + k)
                                 bracket:SetAriaHidden("true")
                                 plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
                                 plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
@@ -288,10 +301,11 @@ class ViolinPlotWriter is ChartWriter
                             k = k + 2
                         end
                         arrow:SetFill(transparent) // Should be transparent until selected
-                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                        arrow:SetID(plotSVG:GetID() + "_arrow")
-                        arrow:SetTabIndex(-1)
+                        arrow:SetFillOpacity(transparent)
                         if HasAccessibility()
+                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetID(plotSVG:GetID() + "_arrow")
+                            arrow:SetTabIndex(-1)
                             arrow:SetAriaHidden("true")
                             plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
                             plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -322,10 +336,12 @@ class ViolinPlotWriter is ChartWriter
                         index = index + 1
                     end 
                     violin:SetFill(plot:GetColor())
+                    violin:SetFillOpacity(plot:GetColor())
                     violin:SetStroke(cast(Color, plot:GetBorderColor()))
+                    violin:SetStrokeOpacity(cast(Color, plot:GetBorderColor()))
                     violin:SetStrokeWidth(plot:GetBorderThickness())
-                    violin:SetTabIndex(-1)
                     if HasAccessibility()
+                        violin:SetTabIndex(-1)
                         violin:SetAriaHidden("true")
                     end 
                     plotSVG:Add(violin)
@@ -353,11 +369,12 @@ class ViolinPlotWriter is ChartWriter
                         if currentItem not= undefined 
     
                             Group itemSVG
-                            itemSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
-                            itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
                             itemSVG:SetFill(currentItem:GetColor())
-                            itemSVG:SetTabIndex(-1)
-                            if HasAccessibility()   
+                            itemSVG:SetFillOpacity(currentItem:GetColor())
+                            if HasAccessibility()  
+                                itemSVG:SetID(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
+                                itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list") 
+                                itemSVG:SetTabIndex(-1) 
                                 itemSVG:SetRole("graphics-symbol") 
                                 itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                 itemSVG:SetAriaHidden("false")
@@ -379,12 +396,14 @@ class ViolinPlotWriter is ChartWriter
                                 outlier:SetRadius(radius)
                                 outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
                                 outlier:SetFill(currentItem:GetColor())
+                                outlier:SetFillOpacity(currentItem:GetColor())
                                 outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                outlier:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                 outlier:SetStrokeWidth(currentItem:GetBorderThickness())
-                                outlier:SetStyleClass("quorum-chart-circle")
-                                outlier:SetID(itemSVG:GetID() + "_item")
-                                outlier:SetTabIndex(-1)
                                 if HasAccessibility()
+                                    outlier:SetStyleClass("quorum-chart-circle")
+                                    outlier:SetID(itemSVG:GetID() + "_item")
+                                    outlier:SetTabIndex(-1)
                                     outlier:SetAriaHidden("true")
                                     itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
                                     itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
@@ -395,12 +414,14 @@ class ViolinPlotWriter is ChartWriter
                                 plotLine:SetSize(currentItem:GetWidth(), currentItem:GetHeight())
                                 plotLine:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight())
                                 plotLine:SetFill(currentItem:GetColor())
+                                plotLine:SetFillOpacity(currentItem:GetColor())
                                 plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                plotLine:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                 plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
-                                plotLine:SetStyleClass("quorum-chart-rect")
-                                plotLine:SetID(itemSVG:GetID() + "_item")
-                                plotLine:SetTabIndex(-1)
                                 if HasAccessibility() 
+                                    plotLine:SetStyleClass("quorum-chart-rect")
+                                    plotLine:SetID(itemSVG:GetID() + "_item")
+                                    plotLine:SetTabIndex(-1)
                                     plotLine:SetAriaHidden("true")
                                     itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
                                     itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
@@ -419,10 +440,11 @@ class ViolinPlotWriter is ChartWriter
                                         labelSVG:SetFontSize(label:GetFontSize() + "px")                            
                                         labelSVG:SetFontFamily("Arial")
                                         labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                        labelSVG:SetID(itemSVG:GetID() + "_annotation")
-                                        labelSVG:SetStyleClass("quorum-chart-text")
-                                        labelSVG:SetTabIndex(-1)
+                                        labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                                         if HasAccessibility()
+                                            labelSVG:SetID(itemSVG:GetID() + "_annotation")
+                                            labelSVG:SetStyleClass("quorum-chart-text")
+                                            labelSVG:SetTabIndex(-1)
                                             labelSVG:SetAriaHidden("true")
                                             itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                             itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
@@ -440,10 +462,11 @@ class ViolinPlotWriter is ChartWriter
                                         bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
                                         bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
                                         bracket:SetFill(transparent) // Should be transparent until selected
-                                        bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                        bracket:SetTabIndex(-1)
-                                        bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+                                        bracket:SetFillOpacity(transparent)
                                         if HasAccessibility()
+                                            bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                            bracket:SetTabIndex(-1)
+                                            bracket:SetID(itemSVG:GetID() + "_bracket" + m)
                                             bracket:SetAriaHidden("true")
                                             itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
                                             itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
@@ -465,10 +488,11 @@ class ViolinPlotWriter is ChartWriter
                                         m = m + 2
                                     end
                                     arrow:SetFill(transparent) // Should be transparent until selected 
-                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                    arrow:SetTabIndex(-1)
-                                    arrow:SetID(itemSVG:GetID() + "_arrow")
+                                    arrow:SetFillOpacity(transparent)
                                     if HasAccessibility()
+                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                        arrow:SetTabIndex(-1)
+                                        arrow:SetID(itemSVG:GetID() + "_arrow")
                                         arrow:SetAriaHidden("true")
                                         itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
                                         itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -499,16 +523,19 @@ class ViolinPlotWriter is ChartWriter
                     Group subChartContent
                     subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                     subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
-                    subChartContent:SetTabIndex(-1)
-                    subChartContent:SetStyleClass("quorum-chart-region")
+
                     Rectangle subChartContentBoundingBox
                     subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                     subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
                     subChartContentBoundingBox:SetFill(transparent)
+                    subChartContentBoundingBox:SetFillOpacity(transparent)
                     subChartContentBoundingBox:SetStroke(transparent)
-                    subChartContentBoundingBox:SetTabIndex(-1)
+                    subChartContentBoundingBox:SetStrokeOpacity(transparent)
                     if HasAccessibility()
+                        subChartContent:SetTabIndex(-1)
+                        subChartContent:SetStyleClass("quorum-chart-region")
                         subChartContentBoundingBox:SetAriaHidden("true")
+                        subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
     
@@ -520,6 +547,9 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                         elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
@@ -528,6 +558,9 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         else
                             subChartContent:SetAriaHidden("true")
@@ -541,11 +574,12 @@ class ViolinPlotWriter is ChartWriter
                         Plot plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
     
                         Group plotSVG
-                        plotSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode())
-                        plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")
                         plotSVG:SetFill(plot:GetColor())
-                        plotSVG:SetTabIndex(-1)
-                        if HasAccessibility()  
+                        plotSVG:SetFillOpacity(plot:GetColor())
+                        if HasAccessibility()
+                            plotSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode())
+                            plotSVG:SetStyleClass("quorum-chart-plot quorum-chart-plot-list")  
+                            plotSVG:SetTabIndex(-1)
                             plotSVG:SetRole("graphics-object")  
                             plotSVG:SetAriaLabel(plot:GetName() + plot:GetDescription())
                             plotSVG:SetAriaHidden("false")
@@ -565,10 +599,11 @@ class ViolinPlotWriter is ChartWriter
                         plotArea:SetWidth(plot:GetPlotArea():GetWidth())
                         plotArea:SetHeight(plot:GetPlotArea():GetHeight())
                         plotArea:SetPosition(plot:GetPlotArea():GetGlobalX(), TranslatePositionY(plot:GetPlotArea()) - plot:GetPlotArea():GetHeight()) 
-                        plotArea:SetFill(transparent)
-                        plotArea:SetStyleClass("quorum-chart-rect")
-                        plotArea:SetTabIndex(-1)
+                        plotArea:SetFill(transparent) 
+                        plotArea:SetFillOpacity(transparent)
                         if HasAccessibility()
+                            plotArea:SetStyleClass("quorum-chart-rect")
+                            plotArea:SetTabIndex(-1)
                             plotArea:SetAriaHidden("true")
                         end
                         plotSVG:Add(plotArea)
@@ -581,10 +616,11 @@ class ViolinPlotWriter is ChartWriter
                                 bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
                                 bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
                                 bracket:SetFill(transparent) // Should be transparent until selected
-                                bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                bracket:SetTabIndex(-1)
-                                bracket:SetID(plotSVG:GetID() + "_bracket" + k)
+                                bracket:SetFillOpacity(transparent)
                                 if HasAccessibility()
+                                    bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                    bracket:SetTabIndex(-1)
+                                    bracket:SetID(plotSVG:GetID() + "_bracket" + k)
                                     bracket:SetAriaHidden("true")
                                     plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
                                     plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
@@ -606,10 +642,11 @@ class ViolinPlotWriter is ChartWriter
                                 k = k + 2
                             end
                             arrow:SetFill(transparent) // Should be transparent until selected
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetID(plotSVG:GetID() + "_arrow")
-                            arrow:SetTabIndex(-1)
+                            arrow:SetFillOpacity(transparent)
                             if HasAccessibility()
+                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                arrow:SetID(plotSVG:GetID() + "_arrow")
+                                arrow:SetTabIndex(-1)
                                 arrow:SetAriaHidden("true")
                                 plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
                                 plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -640,10 +677,12 @@ class ViolinPlotWriter is ChartWriter
                             index = index + 1
                         end 
                         violin:SetFill(plot:GetColor())
+                        violin:SetFillOpacity(plot:GetColor())
                         violin:SetStroke(cast(Color, plot:GetBorderColor()))
+                        violin:SetStrokeOpacity(cast(Color, plot:GetBorderColor()))
                         violin:SetStrokeWidth(plot:GetBorderThickness())
-                        violin:SetTabIndex(-1)
                         if HasAccessibility()
+                            violin:SetTabIndex(-1)
                             violin:SetAriaHidden("true")
                         end 
                         plotSVG:Add(violin)
@@ -671,11 +710,12 @@ class ViolinPlotWriter is ChartWriter
                             if currentItem not= undefined 
         
                                 Group itemSVG
-                                itemSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
-                                itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
                                 itemSVG:SetFill(currentItem:GetColor())
-                                itemSVG:SetTabIndex(-1)
+                                itemSVG:SetFillOpacity(currentItem:GetColor())
                                 if HasAccessibility() 
+                                    itemSVG:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetHashCode() + "_" + plot:GetHashCode() + "_" + currentItem:GetHashCode())
+                                    itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list")
+                                    itemSVG:SetTabIndex(-1)
                                     itemSVG:SetRole("graphics-symbol")    
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
@@ -697,12 +737,14 @@ class ViolinPlotWriter is ChartWriter
                                     outlier:SetRadius(radius)
                                     outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
                                     outlier:SetFill(currentItem:GetColor())
+                                    outlier:SetFillOpacity(currentItem:GetColor())
                                     outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                    outlier:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                     outlier:SetStrokeWidth(currentItem:GetBorderThickness())
-                                    outlier:SetStyleClass("quorum-chart-circle")
-                                    outlier:SetID(itemSVG:GetID() + "_item")
-                                    outlier:SetTabIndex(-1)
                                     if HasAccessibility()
+                                        outlier:SetStyleClass("quorum-chart-circle")
+                                        outlier:SetID(itemSVG:GetID() + "_item")
+                                        outlier:SetTabIndex(-1)
                                         outlier:SetAriaHidden("true")
                                         itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
                                         itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
@@ -713,12 +755,14 @@ class ViolinPlotWriter is ChartWriter
                                     plotLine:SetSize(currentItem:GetWidth(), currentItem:GetHeight())
                                     plotLine:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight())
                                     plotLine:SetFill(currentItem:GetColor())
+                                    plotLine:SetFillOpacity(currentItem:GetColor())
                                     plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
+                                    plotLine:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                     plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
-                                    plotLine:SetStyleClass("quorum-chart-rect")
-                                    plotLine:SetID(itemSVG:GetID() + "_item")
-                                    plotLine:SetTabIndex(-1)
                                     if HasAccessibility() 
+                                        plotLine:SetStyleClass("quorum-chart-rect")
+                                        plotLine:SetID(itemSVG:GetID() + "_item")
+                                        plotLine:SetTabIndex(-1)
                                         plotLine:SetAriaHidden("true")
                                         itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
                                         itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
@@ -737,10 +781,11 @@ class ViolinPlotWriter is ChartWriter
                                             labelSVG:SetFontSize(label:GetFontSize() + "px")                            
                                             labelSVG:SetFontFamily("Arial")
                                             labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                            labelSVG:SetID(itemSVG:GetID() + "_annotation")
-                                            labelSVG:SetStyleClass("quorum-chart-text")
-                                            labelSVG:SetTabIndex(-1)
+                                            labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                                             if HasAccessibility()
+                                                labelSVG:SetID(itemSVG:GetID() + "_annotation")
+                                                labelSVG:SetStyleClass("quorum-chart-text")
+                                                labelSVG:SetTabIndex(-1)
                                                 labelSVG:SetAriaHidden("true")
                                                 itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                                 itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
@@ -758,10 +803,11 @@ class ViolinPlotWriter is ChartWriter
                                             bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
                                             bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
                                             bracket:SetFill(transparent) // Should be transparent until selected
-                                            bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                            bracket:SetTabIndex(-1)
-                                            bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+                                            bracket:SetFillOpacity(transparent)
                                             if HasAccessibility()
+                                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+                                                bracket:SetTabIndex(-1)
+                                                bracket:SetID(itemSVG:GetID() + "_bracket" + m)
                                                 bracket:SetAriaHidden("true")
                                                 itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
                                                 itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
@@ -783,10 +829,11 @@ class ViolinPlotWriter is ChartWriter
                                             m = m + 2
                                         end
                                         arrow:SetFill(transparent) // Should be transparent until selected 
-                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                        arrow:SetTabIndex(-1)
-                                        arrow:SetID(itemSVG:GetID() + "_arrow")
+                                        arrow:SetFillOpacity(transparent)
                                         if HasAccessibility()
+                                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                            arrow:SetTabIndex(-1)
+                                            arrow:SetID(itemSVG:GetID() + "_arrow")
                                             arrow:SetAriaHidden("true")
                                             itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
                                             itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -808,114 +855,6 @@ class ViolinPlotWriter is ChartWriter
                         end      
                         j = j + 1
                     end
-                end
-                i = i + 1
-            end
-        end
-    end
-
-    action AddChartContentAccessibility(ScalableVectorGraphics canvas, Chart chart, ChartAreaPanel chartArea, ListItem chartAreaItem)
-        ViolinPlot violinPlot
-        violinPlot = cast(ViolinPlot, chart)
-
-        if not chart:IsSeparated()
-            Array<PlotGroup> plotGroups = violinPlot:GetPlotGroups()
-    
-            UnorderedList plotGroupsUL
-            plotGroupsUL:AddAttribute("role","group")
-            plotGroupsUL:AddClassAttribute("quorum-chart-group")
-            chartAreaItem:AddNestedTag(plotGroupsUL)
-            
-            UnorderedList currentGrouping = plotGroupsUL
-            i = 0
-            repeat while i < plotGroups:GetSize()
-                if violinPlot:HasGroups()
-                    ListItem plotGroupNav 
-                    plotGroupNav:SetIdentifier(canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode() + "_nav")
-                    plotGroupNav:AddAttribute("role","treeitem")
-                    plotGroupNav:AddClassAttribute("quorum-chart-treeitem")
-                    plotGroupNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plotGroups:Get(i):GetHashCode())
-                    plotGroupNav:AddAttribute("aria-expanded","false")
-                    plotGroupNav:SetTabIndex("-1")
-                    plotGroupsUL:Add(plotGroupNav)
-        
-                    
-                    UnorderedList plotsUL
-                    plotsUL:AddAttribute("role","group")
-                    plotsUL:AddClassAttribute("quorum-chart-group")
-                    plotGroupNav:AddNestedTag(plotsUL)
-                    currentGrouping = plotsUL
-                end
-            
-                j = 0
-                repeat while j < plotGroups:Get(i):GetSize()
-                    Plot plot = plotGroups:Get(i):Get(j)
-                    ListItem plotNav 
-                    plotNav:SetIdentifier(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_nav")
-                    plotNav:AddAttribute("role","treeitem")
-                    plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode())
-                    plotNav:AddAttribute("aria-expanded","false")
-                    plotNav:SetTabIndex("-1")
-                    currentGrouping:Add(plotNav)
-
-                    UnorderedList itemsUL
-                    itemsUL:AddAttribute("role","group")
-                    plotNav:AddNestedTag(itemsUL)
-
-                    k = 1
-                    repeat while k < plot:GetPlotItems():GetSize()
-                        // Add navigation for all parts.
-                        if k not= 2 and k not= 4 and k not= 5 and k not= 9 // Skip the elements not included in the navigation
-                            ListItem itemNav 
-                            itemNav:SetIdentifier(canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
-                            itemNav:AddAttribute("role","treeitem")
-                            itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + plot:GetSeries():GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
-                            itemNav:SetTabIndex("-1")
-                            itemsUL:Add(itemNav)
-                        end
-                        k = k + 1
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        else
-            UnorderedList subChartAreaItemsUL
-            subChartAreaItemsUL:AddAttribute("role","group")
-            subChartAreaItemsUL:AddClassAttribute("quorum-chart-group")
-            chartAreaItem:AddNestedTag(subChartAreaItemsUL)
-
-            integer i = 0
-            repeat while i < chartArea:GetChartAreaItems():GetSize()
-                Plot plot = cast(Plot, chartArea:GetChartAreaItems():Get(i))
-
-                ListItem plotNav 
-                plotNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_nav")
-                plotNav:AddAttribute("role","treeitem")
-                plotNav:AddClassAttribute("quorum-chart-treeitem")
-                plotNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode())
-                plotNav:AddAttribute("aria-expanded","false")
-                plotNav:SetTabIndex("-1")
-                subChartAreaItemsUL:Add(plotNav)
-
-                UnorderedList itemsUL
-                itemsUL:AddAttribute("role","group")
-                itemsUL:AddClassAttribute("quorum-chart-group")
-                plotNav:AddNestedTag(itemsUL)
-
-                integer k = 1
-                repeat while k < plot:GetPlotItems():GetSize()
-                    // Add navigation for all parts.
-                    if k not= 2 and k not= 4 and k not= 5 and k not= 9// Skip the elements not included in the navigation
-                        ListItem itemNav 
-                        itemNav:SetIdentifier(canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode() + "_nav")
-                        itemNav:AddAttribute("role","treeitem")
-                        itemNav:AddClassAttribute("quorum-chart-treeitem")
-                        itemNav:AddAttribute("aria-labelledby",canvas:GetID() + "_" + chartArea:GetHashCode() + "_" + plot:GetHashCode() + "_" + plot:GetPlotItems():Get(k):GetHashCode())
-                        itemNav:SetTabIndex("-1")
-                        itemsUL:Add(itemNav)
-                    end
-                    k = k + 1
                 end
                 i = i + 1
             end
