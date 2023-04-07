@@ -43,6 +43,11 @@ class ScrollableControl is Control
     on create
         scrollableRegion = GetScrollableRegion()
 
+        SetClipping(true)
+
+        ManualLayout layout
+        SetLayout(layout)
+
         // Initialize the properties used to position the scroll bars.
         verticalBar:SetVertical(true)
         horizontalBar:SetVertical(false)
@@ -258,14 +263,18 @@ class ScrollableControl is Control
             horizontalViewRatio = 1.0
         end
 
+        number gutterWidth = GetCombinedGutterWidth()
+
         if verticalVisible
             verticalControl:SetPercentageHeight(verticalViewRatio)
             verticalBar:Show()
-            scrollableRegion:SetPixelWidth(-barThickness)
+            scrollableRegion:SetPixelWidth(-barThickness - gutterWidth)
         else
             verticalBar:Hide()
-            scrollableRegion:SetPixelWidth(0)
+            scrollableRegion:SetPixelWidth(-gutterWidth)
         end
+
+        scrollableRegion:SetPixelX(gutterWidth)
 
         if horizontalVisible
             horizontalControl:SetPercentageWidth(horizontalViewRatio)
@@ -306,6 +315,17 @@ class ScrollableControl is Control
         RefreshScrollableRegion()
 
         parent:Control:Resize()
+
+        RefreshGutterRegion()
+    end
+
+    private action GetCombinedGutterWidth returns number
+        // By default, this does nothing, but ScrollableLineControl overrides this to offset elements by the width of the gutters.
+        return 0
+    end
+
+    private action RefreshGutterRegion
+        // By default, this does nothing, but ScrollableLineControl overrides this to handle gutter values at the right time.
     end
 
     // This action translate a pixel value to a percentage scroll Y value. The pixel value is relative to the Spreadsheet.
