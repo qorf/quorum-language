@@ -51,7 +51,7 @@ public class DesktopDisplay {
     However, we sometimes need to prevent this, especially if the resize event would happen before
     we've finished setting up the environment.
     */
-    private static boolean continueOnResize = false;
+    private static boolean continueOnResize = true;
     
     GLFWWindowSizeCallback resizeCallback = new GLFWWindowSizeCallback()
         {
