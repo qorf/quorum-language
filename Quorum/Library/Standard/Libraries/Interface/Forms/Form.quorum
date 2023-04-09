@@ -140,6 +140,10 @@ class Form is Game, FormContainerInterface
         return mainPage
     end
 
+    action GetCurrentPage returns Page
+        return currentPage
+    end
+
     action AddGrouping(text name) returns Grouping
         return currentPage:AddGrouping(name)
     end
@@ -148,12 +152,20 @@ class Form is Game, FormContainerInterface
         return currentPage:RemoveGrouping(name)
     end
 
+    action GetGrouping(text name) returns Grouping
+        return currentPage:GetGrouping(name)
+    end
+
     action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
         return currentPage:AddStartButtonGrouping(title, label, buttonName)
     end
 
     action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
         return currentPage:RemoveStartButtonGrouping(name)
+    end
+
+    action GetStartButtonGrouping(text name) returns StartButtonGrouping
+        return currentPage:GetStartButtonGrouping(name)
     end
 
     action AddBanner(text title) returns Banner
@@ -166,6 +178,10 @@ class Form is Game, FormContainerInterface
 
     action RemoveBanner(text name) returns Banner
         return currentPage:RemoveBanner(name)
+    end
+
+    action GetBanner(text name) returns Banner
+        return currentPage:GetBanner(name)
     end
 
     action SetTitle(text name)
@@ -224,10 +240,6 @@ class Form is Game, FormContainerInterface
         return currentPage:FindControl(name)
     end
 
-    action AddList(text name) returns List
-        return currentPage:AddList(name)
-    end
-
     action AddButton(text name) returns Button
         return currentPage:AddButton(name)
     end
@@ -238,6 +250,10 @@ class Form is Game, FormContainerInterface
 
     action RemoveButton(text name) returns Button
         return currentPage:RemoveButton(name)
+    end
+
+    action GetButton(text name) returns Button
+        return currentPage:GetButton(name)
     end
 
     action AddLabel(text name) returns Label
@@ -252,6 +268,10 @@ class Form is Game, FormContainerInterface
         return currentPage:RemoveLabel(name)
     end
 
+    action GetLabel(text name) returns Label
+        return currentPage:GetLabel(name)
+    end
+
     action AddIcon(text name, text fileName) returns Icon
         return currentPage:AddIcon(name, fileName)
     end
@@ -260,8 +280,20 @@ class Form is Game, FormContainerInterface
         return currentPage:RemoveIcon(name)
     end
 
+    action GetIcon(text name) returns Icon
+        return currentPage:GetIcon(name)
+    end
+
     action AddTextField(text name) returns TextField
         return currentPage:AddTextField(name)
+    end
+
+    action RemoveTextField(text name) returns TextField
+        return currentPage:RemoveTextField(name)
+    end
+
+    action GetTextField(text name) returns TextField
+        return currentPage:GetTextField(name)
     end
 
     action AddRadioButton(text name) returns RadioButton
@@ -272,7 +304,24 @@ class Form is Game, FormContainerInterface
         return currentPage:AddCheckbox(name)
     end
 
-    action RemoveTextField(text name) returns TextField
-        return currentPage:RemoveTextField(name)
+    action RemoveCheckbox(text name) returns Checkbox
+        return currentPage:RemoveCheckbox(name)
     end
+
+    action GetCheckbox(text name) returns Checkbox
+        return currentPage:GetCheckbox(name)
+    end
+
+    action AddList(text name) returns List
+        return currentPage:AddList(name)
+    end
+
+    action RemoveList(text name) returns List
+        return currentPage:RemoveList(name)
+    end
+
+    action GetList(text name) returns List
+        return currentPage:GetList(name)
+    end
+
 end
