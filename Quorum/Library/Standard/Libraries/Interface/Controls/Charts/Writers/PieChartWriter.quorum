@@ -109,22 +109,28 @@ class PieChartWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        chartContent:SetTabIndex(0)
-        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
-        chartContent:SetIsOneLine(true)
-        chartContent:SetRole("graphics-object")  
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
         chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
-        chartContentBoundingBox:SetTabIndex(-1)
+        chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
+            chartContent:SetTabIndex(0)
+            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetIsOneLine(true)
+            chartContent:SetRole("graphics-object")
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
+            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -146,11 +152,12 @@ class PieChartWriter is ChartWriter
                 integer i = 0
                 repeat while i < pieBox:GetSize()
                     Group sliceSVG
-                    sliceSVG:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
-                    sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                     sliceSVG:SetFill(pieBox:Get(i):GetColor())
-                    sliceSVG:SetTabIndex(-1)
-                    if HasAccessibility()   
+                    sliceSVG:SetFillOpacity(pieBox:Get(i):GetColor())
+                    if HasAccessibility()  
+                        sliceSVG:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
+                        sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
+                        sliceSVG:SetTabIndex(-1) 
                         sliceSVG:SetRole("graphics-symbol") 
                         sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                         sliceSVG:SetAriaHidden("false")
@@ -199,16 +206,18 @@ class PieChartWriter is ChartWriter
                         slice:SetCenter(centerX, centerY)
                     end
                     slice:SetFill(pieBox:Get(i):GetColor())
+                    slice:SetFillOpacity(pieBox:Get(i):GetColor())
                     slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
+                    slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
-                    slice:SetID(sliceSVG:GetID() + "_slice")
-                    slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
-                    slice:SetTabIndex(-1)
                     
                     text sliceFocus = ""
                     text sliceBlur = ""
 
                     if HasAccessibility()
+                        slice:SetID(sliceSVG:GetID() + "_slice")
+                        slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
+                        slice:SetTabIndex(-1)
                         slice:SetAriaHidden("true")
                         sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
                         sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
@@ -225,10 +234,11 @@ class PieChartWriter is ChartWriter
                             labelSVG:SetFontSize(label:GetFontSize() + "px")
                             labelSVG:SetFontFamily("Arial")
                             labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                            labelSVG:SetID(slice:GetID() + "_annotation")
-                            labelSVG:SetStyleClass("quorum-chart-text")
-                            labelSVG:SetTabIndex(-1)
+                            labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                             if HasAccessibility()
+                                labelSVG:SetID(slice:GetID() + "_annotation")
+                                labelSVG:SetStyleClass("quorum-chart-text")
+                                labelSVG:SetTabIndex(-1)
                                 labelSVG:SetAriaHidden("true")
                                 sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                 sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "
@@ -258,17 +268,19 @@ class PieChartWriter is ChartWriter
                     Group subChartContent
                     subChartContent:SetSize(cast(integer, pieBox:GetChartArea():GetWidth()), cast(integer, pieBox:GetChartArea():GetHeight()))
                     subChartContent:SetPosition(pieBox:GetChartArea():GetGlobalX(), TranslatePositionY(pieBox:GetChartArea())  - pieBox:GetChartArea():GetHeight())
-                    subChartContent:SetTabIndex(-1)
-                    subChartContent:SetStyleClass("quorum-chart-region")
     
                     Rectangle subChartContentBoundingBox
                     subChartContentBoundingBox:SetSize(cast(integer, pieBox:GetChartArea():GetWidth()), cast(integer, pieBox:GetChartArea():GetHeight()))
                     subChartContentBoundingBox:SetPosition(pieBox:GetChartArea():GetGlobalX(), TranslatePositionY(pieBox:GetChartArea())  - pieBox:GetChartArea():GetHeight())
                     subChartContentBoundingBox:SetFill(transparent)
+                    subChartContentBoundingBox:SetFillOpacity(transparent)
                     subChartContentBoundingBox:SetStroke(transparent)
-                    subChartContentBoundingBox:SetTabIndex(-1)
+                    subChartContentBoundingBox:SetStrokeOpacity(transparent)
                     if HasAccessibility()
+                        subChartContent:SetTabIndex(-1)
+                        subChartContent:SetStyleClass("quorum-chart-region")
                         subChartContentBoundingBox:SetAriaHidden("true")
+                        subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
 
@@ -280,6 +292,9 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                         elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
@@ -288,6 +303,9 @@ class PieChartWriter is ChartWriter
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
+                            subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         else
                             subChartContent:SetAriaHidden("true")
@@ -309,11 +327,12 @@ class PieChartWriter is ChartWriter
                     integer i = 0
                     repeat while i < pieBox:GetSize()
                         Group sliceSVG
-                        sliceSVG:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
-                        sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
                         sliceSVG:SetFill(pieBox:Get(i):GetColor())
-                        sliceSVG:SetTabIndex(-1)
-                        if HasAccessibility()   
+                        sliceSVG:SetFillOpacity(pieBox:Get(i):GetColor())
+                        if HasAccessibility() 
+                            sliceSVG:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
+                            sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
+                            sliceSVG:SetTabIndex(-1)  
                             sliceSVG:SetRole("graphics-symbol") 
                             sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                             sliceSVG:SetAriaHidden("false")
@@ -362,16 +381,18 @@ class PieChartWriter is ChartWriter
                             slice:SetCenter(centerX, centerY)
                         end
                         slice:SetFill(pieBox:Get(i):GetColor())
+                        slice:SetFillOpacity(pieBox:Get(i):GetColor())
                         slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
+                        slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                         slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
-                        slice:SetID(sliceSVG:GetID() + "_slice")
-                        slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
-                        slice:SetTabIndex(-1)
 
                         text sliceFocus = ""
                         text sliceBlur = ""
 
                         if HasAccessibility()
+                            slice:SetID(sliceSVG:GetID() + "_slice")
+                            slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
+                            slice:SetTabIndex(-1)
                             slice:SetAriaHidden("true")
                             sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
                             sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
@@ -388,10 +409,11 @@ class PieChartWriter is ChartWriter
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
-                                labelSVG:SetStyleClass("quorum-chart-text")
-                                labelSVG:SetTabIndex(-1)
+                                labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                                 if HasAccessibility()
+                                    labelSVG:SetID(canvas:GetID() + "_" + label:GetHashCode())
+                                    labelSVG:SetStyleClass("quorum-chart-text")
+                                    labelSVG:SetTabIndex(-1)
                                     labelSVG:SetAriaHidden("true")
                                     sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                     sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "

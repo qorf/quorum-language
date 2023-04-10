@@ -758,7 +758,7 @@ end
     Translate the values in the given Vector2 from the mapped space (the custom region set by the user via the mapping action)
     to the real space (pixel values contained within the dimensions of the LinePath object).
     */
-    private action TranslateFromMappedSpace(Vector2 point)
+    action TranslateFromMappedSpace(Vector2 point)
         number leftBound = mappedLeft
         if mappedLeft:IsNotANumber()
             leftBound = 0
@@ -792,7 +792,7 @@ end
     Translate the values in the given Vector2 from the real space (pixel values contained within the dimensions of the LinePath object)
     to the mapped space (the custom region set by the user via the mapping action)
     */
-    private action TranslateToMappedSpace(Vector2 point)
+    action TranslateToMappedSpace(Vector2 point)
         number leftBound = mappedLeft
         if mappedLeft:IsNotANumber()
             leftBound = 0
@@ -1488,5 +1488,27 @@ end
                 GetParent():ProcessMouseEvent(event)
             end
         end
+    end
+
+    action SetBackgroundColor(ColorGroup group)
+        integer i = 0
+        repeat while i < curves:GetSize()
+            BezierCurve curve = curves:Get(i)
+            curve:SetBackgroundColor(group)
+            i = i + 1
+        end
+
+        parent:Control:SetBackgroundColor(group)
+    end
+
+    action SetIconColor(ColorGroup group)
+        integer i = 0
+        repeat while i < curves:GetSize()
+            BezierCurve curve = curves:Get(i)
+            curve:SetIconColor(group)
+            i = i + 1
+        end
+
+        parent:Control:SetIconColor(group)
     end
 end

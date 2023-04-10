@@ -43,11 +43,16 @@ class LightModeOptions is InterfaceOptions
         Color controlBackground = color:CustomColor(215.0 / MAX, 215.0 / MAX, 215.0 / MAX, 1)
         Color hoverBlue = color:CustomColor(179.0 / MAX, 208.0 / MAX, 221.0 / MAX, 1)
         Color darkBlue = color:CustomColor(49.0/MAX, 113.0/MAX, 159.0/MAX, 1)
+
+        Color blackFont = color:Black()
+        Color white = color:White()
+        Color darkBorder = color:CustomColor(32.0 / MAX, 32.0 / MAX, 32.0 / MAX, 1)
+
         number defaultButtonRounding = 0.5
         SetButtonBorderThickness(1)
-        SetButtonBackgroundColor(controlBackground)
-        SetButtonBorderColor(controlBackground)
-        SetButtonFontColor(darkFont)
+        SetButtonBackgroundColor(white)
+        SetButtonBorderColor(darkBorder)
+        SetButtonFontColor(blackFont)
         SetButtonTopLeftRounding(defaultButtonRounding)
         SetButtonTopRightRounding(defaultButtonRounding)
         SetButtonBottomLeftRounding(defaultButtonRounding)
@@ -213,5 +218,21 @@ class LightModeOptions is InterfaceOptions
 
         // Label specific properties.
         SetLabelBackgroundColor(color:CustomColor(1, 1, 1, 0))
+
+        // Flowchart and flowchart element properties.
+        SetFlowchartBackgroundColor(color:White())
+        
+        SetFlowchartNodeBackgroundColor(color:CustomColor(0.8, 0.92, 1.0, 1.0))
+        SetFlowchartNodeSelectionColor(color:CustomColor(0.65, 0.77, 0.85, 1.0))
+        SetFlowchartNodeSelectionBorderColor(color:Blue())
+        SetFlowchartNodeBorderThickness(3)
+        SetFlowchartNodeTopLeftRounding(0.2)
+        SetFlowchartNodeTopRightRounding(0.2)
+        SetFlowchartNodeBottomLeftRounding(0.2)
+        SetFlowchartNodeBottomRightRounding(0.2)
+
+        SetFlowchartArrowBackgroundColor(color:Black())
+        SetFlowchartArrowIconColor(color:Black())
+        SetFlowchartArrowSelectionColor(color:Blue())
     end
 end
