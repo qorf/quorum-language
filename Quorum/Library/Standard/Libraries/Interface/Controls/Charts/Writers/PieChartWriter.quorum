@@ -102,6 +102,10 @@ class PieChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
@@ -235,10 +239,10 @@ class PieChartWriter is ChartWriter
                     
                     if HasAccessibility()
                         if sliceFocus not= ""
-                            sliceSVG:SetOnFocus(sliceFocus)
+                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + sliceFocus + "});"
                         end
                         if sliceBlur not= ""
-                            sliceSVG:SetOnBlur(sliceBlur)
+                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + sliceBlur + "});"
                         end
                     end
                         
@@ -399,10 +403,10 @@ class PieChartWriter is ChartWriter
                         
                         if HasAccessibility()
                             if sliceFocus not= ""
-                                sliceSVG:SetOnFocus(sliceFocus)
+                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + sliceFocus + "});"
                             end
                             if sliceBlur not= ""
-                                sliceSVG:SetOnBlur(sliceBlur)
+                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + sliceBlur + "});"
                             end
                         end
 
@@ -411,6 +415,10 @@ class PieChartWriter is ChartWriter
                 end
                 index = index + 1
             end
+        end
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
         end
     end
 

@@ -104,6 +104,10 @@ class ScatterPlotWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
         
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
@@ -251,10 +255,10 @@ class ScatterPlotWriter is ChartWriter
 
                             if HasAccessibility()
                                 if pointFocus not= ""
-                                    pointSVG:SetOnFocus(pointFocus)
+                                    scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
                                 end
                                 if pointBlur not= ""
-                                    pointSVG:SetOnBlur(pointBlur)
+                                    scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
                                 end
                             end 
                         end
@@ -263,10 +267,10 @@ class ScatterPlotWriter is ChartWriter
 
                     if HasAccessibility()
                         if seriesFocus not= ""
-                            seriesSVG:SetOnFocus(seriesFocus)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
                         end
                         if seriesBlur not= ""
-                            seriesSVG:SetOnBlur(seriesBlur)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
                         end
                     end            
                 end
@@ -392,10 +396,10 @@ class ScatterPlotWriter is ChartWriter
                         
                         if HasAccessibility()
                             if pointFocus not= ""
-                                pointSVG:SetOnFocus(pointFocus)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
                             end
                             if pointBlur not= ""
-                                pointSVG:SetOnBlur(pointBlur)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
                             end
                         end 
                     end
@@ -404,15 +408,19 @@ class ScatterPlotWriter is ChartWriter
 
                 if HasAccessibility()
                     if seriesFocus not= ""
-                        subChartContent:SetOnFocus(seriesFocus)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
                     end
                     if seriesBlur not= ""
-                        subChartContent:SetOnBlur(seriesBlur)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
                     end
                 end   
 
                 i = i + 1
             end
+        end
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
         end
     end
 

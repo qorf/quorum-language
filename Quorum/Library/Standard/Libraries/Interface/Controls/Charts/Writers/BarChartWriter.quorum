@@ -101,6 +101,10 @@ class BarChartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
@@ -205,10 +209,10 @@ class BarChartWriter is ChartWriter
                     
                     if HasAccessibility()
                         if barGroupFocus not= ""
-                            barGroupSVG:SetOnFocus(barGroupFocus)
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barGroupFocus + "});"
                         end
                         if barGroupBlur not= ""
-                            barGroupSVG:SetOnBlur(barGroupBlur)
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barGroupBlur + "});"
                         end
                     end
                 end
@@ -300,10 +304,10 @@ class BarChartWriter is ChartWriter
 
                     if HasAccessibility()
                         if barFocus not= ""
-                            barSVG:SetOnFocus(barFocus)
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
                         end
                         if barBlur not= ""
-                            barSVG:SetOnBlur(barBlur)
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
                         end
                     end
 
@@ -443,10 +447,10 @@ class BarChartWriter is ChartWriter
                         end
                         if HasAccessibility()
                             if barFocus not= ""
-                                barSVG:SetOnFocus(barFocus)
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
                             end
                             if barBlur not= ""
-                                barSVG:SetOnBlur(barBlur)
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
                             end
                         end
                     end
@@ -454,6 +458,10 @@ class BarChartWriter is ChartWriter
                 end
                 i = i + 1
             end
+        end
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
         end
     end
 

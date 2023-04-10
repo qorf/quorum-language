@@ -103,6 +103,10 @@ class ViolinPlotWriter is ChartWriter
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
 
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
@@ -210,10 +214,10 @@ class ViolinPlotWriter is ChartWriter
     
                     if HasAccessibility()
                         if plotGroupFocus not= ""
-                            plotGroupSVG:SetOnFocus(plotGroupFocus)
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotGroupFocus + "});"
                         end
                         if plotGroupBlur not= ""
-                            plotGroupSVG:SetOnBlur(plotGroupBlur)
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotGroupBlur + "});"
                         end
                     end
                 end
@@ -301,10 +305,10 @@ class ViolinPlotWriter is ChartWriter
 
                     if HasAccessibility()
                         if plotFocus not= ""
-                            plotSVG:SetOnFocus(plotFocus)
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
                         end
                         if plotBlur not= ""
-                            plotSVG:SetOnBlur(plotBlur)
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
                         end
                     end   
 
@@ -479,10 +483,10 @@ class ViolinPlotWriter is ChartWriter
         
                             if HasAccessibility()
                                 if itemFocus not= ""
-                                    itemSVG:SetOnFocus(itemFocus)
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
                                 end
                                 if itemBlur not= ""
-                                    itemSVG:SetOnBlur(itemBlur)
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
                                 end
                             end 
                         end
@@ -619,10 +623,10 @@ class ViolinPlotWriter is ChartWriter
 
                         if HasAccessibility()
                             if plotFocus not= ""
-                                plotSVG:SetOnFocus(plotFocus)
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
                             end
                             if plotBlur not= ""
-                                plotSVG:SetOnBlur(plotBlur)
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
                             end
                         end   
     
@@ -797,10 +801,10 @@ class ViolinPlotWriter is ChartWriter
         
                                 if HasAccessibility()
                                     if itemFocus not= ""
-                                        itemSVG:SetOnFocus(itemFocus)
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
                                     end
                                     if itemBlur not= ""
-                                        itemSVG:SetOnBlur(itemBlur)
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
                                     end
                                 end 
                             end
@@ -811,6 +815,10 @@ class ViolinPlotWriter is ChartWriter
                 end
                 i = i + 1
             end
+        end
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
         end
     end
 
@@ -925,7 +933,7 @@ class ViolinPlotWriter is ChartWriter
     action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)
         ViolinPlot currentChart
         currentChart = cast(ViolinPlot, chart)
-        Script script
+        Script script       
 
         text scriptText = ""
         text newLine = scriptText:GetLineFeed()
