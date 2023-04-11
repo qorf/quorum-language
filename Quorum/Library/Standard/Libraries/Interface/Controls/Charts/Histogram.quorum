@@ -50,12 +50,14 @@ class Histogram is SharedBarChartParent
     integer binCount = 0
     boolean binCountOverride = false
     boolean isOverlayed = false
+    boolean frequencyIsPercent = false
 
     boolean decimalScale = false
     number dataMin = 0
     number dataMax = 0
     
     on create
+        CheckPlatformInstructions()
         HistogramLayout layout
         SetLayout(layout)
 
@@ -111,10 +113,12 @@ class Histogram is SharedBarChartParent
             bartext = GetNumberOfBars() + " bar."
         end
         if GetName() = "Histogram"
-            SetDescription(" with " + grouptext + bartext + ". Use the arrow keys to navigate the chart.")
+            SetDescription(" with " + grouptext + bartext + ".")
         else
-            SetDescription(", Histogram with " + grouptext + bartext + ". Use the arrow keys to navigate chart information and Tab to access the chart content")
+            SetDescription(", Histogram with " + grouptext + bartext + ".")
         end
+        AddChartAreaInstructions(GetDescription())
+        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -146,7 +150,7 @@ class Histogram is SharedBarChartParent
 
         // Take range and divide it amongst bins and round up to get the default bin width
         if binCountOverride //Bin count override supercedes bin width override
-            if max < 2.5 and max > -2.5
+            if range <= 2.5 
                 decimalScale = true
                 binWidth = math:Round(range / cast(number, binCount),3)
                 if GetHorizontalFlag()
@@ -170,7 +174,7 @@ class Histogram is SharedBarChartParent
             end
         else
             if binWidthOverride
-                if max < 2.5 and max > -2.5
+                if range <= 2.5 
                     decimalScale = true
                     binCount = cast(integer, math:Ceiling(range/binWidth))+1
                     if GetHorizontalFlag()
@@ -200,9 +204,18 @@ class Histogram is SharedBarChartParent
             else
                 //Default binwidth and bincount (don't count undefined column values)
                 binCount = cast(integer, math:Ceiling(math:SquareRoot(columns:Get(0):GetSize()-columns:Get(0):GetUndefinedSize())))
-                if max < 2.5 and max > -2.5
+                if range <= 2.5 
                     decimalScale = true
                     binWidth = math:Round(range / cast(number, binCount),1)
+                    d = 2
+                    repeat while binWidth = 0 and d < 100
+                        binWidth = math:Round(range / cast(number, binCount),d)
+                        d = d + 1
+                    end
+                    if binWidth = 0
+                        alert("These numbers are too small to include in a histogram")
+                    end
+
                     if GetHorizontalFlag()
                         GetVerticalPanel():SetTickDigits(3)
                     else
@@ -224,12 +237,14 @@ class Histogram is SharedBarChartParent
         end
 
         Array<integer> count
+        Array<number> percentOfCount
         binFloor:Empty()
 
         n = 0
         number floor = min // Starts at minimum value
         repeat while n < binCount
             count:Add(0)
+            percentOfCount:Add(0)
             binFloor:Add(floor)
             text valueDisplay = "[" + cast(integer, floor) + " to " + cast(integer, floor + binWidth) + "]"
             if(decimalScale)
@@ -247,12 +262,14 @@ class Histogram is SharedBarChartParent
         Array<text> seriesNames
         n = 0
         repeat while n < numberOfColumns 
-            DataFrameColumn column = columns:Get(n)   
+            DataFrameColumn column = columns:Get(n)  
+            integer columnCountSum = 0 
 
             // Reset counts to zero for each series
             i = 0
             repeat while i < binCount
                 count:Set(i, 0)
+                percentOfCount:Set(i, 0)
                 i = i + 1
             end     
 
@@ -266,23 +283,38 @@ class Histogram is SharedBarChartParent
                             number binRoof = binFloor:Get(bin) + binWidth
                             if value < binRoof and value >= binFloor:Get(bin)
                                 count:Set(bin, count:Get(bin) + 1)
+                                columnCountSum = columnCountSum + 1
                             elseif value >= binRoof
                                 count:Set(bin+1, count:Get(bin+1) + 1)
+                                columnCountSum = columnCountSum + 1
                             end
                         end
                     end
                 end
                 i = i + 1
             end
-    
-            // Find max frequency of all counts across all series
-            i = 0
-            repeat while i < count:GetSize()
-                integer amount = count:Get(i)
-                if amount > maxFrequency
-                    maxFrequency = amount
+
+            if frequencyIsPercent
+                i = 0
+                repeat while i < count:GetSize()
+                    number amount = count:Get(i)
+                    number percent = amount/columnCountSum
+                    percentOfCount:Add(i, percent)
+                    if percent > maxFrequency
+                        maxFrequency = percent
+                    end
+                    i = i + 1
                 end
-                i = i + 1
+            else
+                // Find max frequency of all counts across all series
+                i = 0
+                repeat while i < count:GetSize()
+                    integer amount = count:Get(i)
+                    if amount > maxFrequency
+                        maxFrequency = amount
+                    end
+                    i = i + 1
+                end
             end
 
             // If a new series (ie new column)
@@ -295,6 +327,7 @@ class Histogram is SharedBarChartParent
     
             i = 0
             floor = min
+            
             repeat while i < count:GetSize() and floor < max
                 integer amount = count:Get(i)
                 floor = binFloor:Get(i)
@@ -303,11 +336,16 @@ class Histogram is SharedBarChartParent
                     valueDisplay = "[" + (math:Round(floor, 2)) + " to " + (math:Round(floor+binWidth, 2)) + "]"
                 end
                 Bar bar
-                bar:SetValue(amount)
+                if frequencyIsPercent and i < percentOfCount:GetSize()
+                    bar:SetValue(percentOfCount:Get(i))
+                else
+                    bar:SetValue(amount)
+                end
                 bar:SetName(column:GetHeader() + " " + valueDisplay)
                 // If bar is part of a group
                 if(groupFactor:HasKey(valueDisplay))
                     groupFactor:GetValue(valueDisplay):AddBar(bar)
+                    
                 end
                 // If bar is part of a series
                 if(seriesFactor:HasKey(column:GetHeader()))
@@ -367,6 +405,9 @@ class Histogram is SharedBarChartParent
 
     private action SetScale(number ymin, number ymax, number xmin, number xmax)
         if GetHorizontalFlag()
+            if me:frequencyIsPercent
+                parent:SharedBarChartParent:maxBarValue = xmax
+            end
             parent:SharedBarChartParent:SetYAxisMaximum(ymax)
             parent:SharedBarChartParent:SetYAxisMinimum(ymin)
             GetHorizontalPanel():SetMinimum(xmin)
@@ -374,8 +415,12 @@ class Histogram is SharedBarChartParent
         else
             GetVerticalPanel():SetMinimum(ymin)
             GetVerticalPanel():SetMaximum(ymax)
+            if me:frequencyIsPercent
+                parent:SharedBarChartParent:maxBarValue = ymax
+            end
             parent:SharedBarChartParent:SetXAxisMaximum(xmax)
             parent:SharedBarChartParent:SetXAxisMinimum(xmin)
+
         end
     end
 
@@ -483,6 +528,11 @@ class Histogram is SharedBarChartParent
 
     action SetDecimalScale(boolean decimalScale)
         me:decimalScale = decimalScale
+    end
+    
+    action SetFrequencyAsPercent(boolean frequencyIsPercent)
+        me:frequencyIsPercent = frequencyIsPercent
+        MakeBins()
     end
 
     action GetColumns() returns Array<DataFrameColumn>

@@ -1,0 +1,172 @@
+package Libraries.Interface.Controls.Charts.Flowcharts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.Array
+
+class FlowchartNode is Control
+
+    Array<FlowchartArrow> inArrows
+    Array<FlowchartArrow> outArrows
+
+    on create
+        SetInterfaceOptionsKey("FlowchartNode")
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action AddChildNode(FlowchartNode node) returns FlowchartArrow
+        FlowchartArrow arrow
+        arrow:SetNodes(me, node)
+        outArrows:Add(arrow)
+
+        node:AddInArrow(arrow)
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined
+            chart:Add(arrow)
+        end
+
+        return arrow
+    end
+
+    action GetOutArrows returns Array<FlowchartArrow>
+        return outArrows
+    end
+
+    action GetInArrows returns Array<FlowchartArrow>
+        return inArrows
+    end
+
+    action AddInArrow(FlowchartArrow arrow)
+        inArrows:Add(arrow)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeBackgroundColor() not= undefined
+            return chart:GetNodeBackgroundColor()
+        end
+
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeBorderColor() not= undefined
+            return chart:GetNodeBorderColor()
+        end
+
+        return parent:Control:GetBorderColor()
+    end
+
+    action GetSelectionColor returns ColorGroup
+        if HasColorPropertyOverride("selectionColor")
+            return parent:Control:GetSelectionColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeSelectionColor() not= undefined
+            return chart:GetNodeSelectionColor()
+        end
+
+        return parent:Control:GetSelectionColor()
+    end
+
+    action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeSelectionBorderColor() not= undefined
+            return chart:GetNodeSelectionBorderColor()
+        end
+
+        return parent:Control:GetSelectionBorderColor()
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeBorderThickness():IsNotANumber() = false
+            return chart:GetNodeBorderThickness()
+        end
+
+        return parent:Control:GetBorderThickness()
+    end
+
+    action GetBottomLeftRounding returns number
+        if HasNumberPropertyOverride("bottomLeftRounding")
+            return parent:Control:GetBottomLeftRounding()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeCornerRounding():IsNotANumber() = false
+            return chart:GetNodeCornerRounding()
+        end
+
+        return parent:Control:GetBottomLeftRounding()
+    end
+
+    action GetBottomRightRounding returns number
+        if HasNumberPropertyOverride("bottomRightRounding")
+            return parent:Control:GetBottomRightRounding()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeCornerRounding():IsNotANumber() = false
+            return chart:GetNodeCornerRounding()
+        end
+
+        return parent:Control:GetBottomRightRounding()
+    end
+
+    action GetTopLeftRounding returns number
+        if HasNumberPropertyOverride("topLeftRounding")
+            return parent:Control:GetTopLeftRounding()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeCornerRounding():IsNotANumber() = false
+            return chart:GetNodeCornerRounding()
+        end
+
+        return parent:Control:GetTopLeftRounding()
+    end
+
+    action GetTopRightRounding returns number
+        if HasNumberPropertyOverride("topRightRounding")
+            return parent:Control:GetTopRightRounding()
+        end
+
+        Flowchart chart = GetFlowchart()
+        if chart not= undefined and chart:GetNodeCornerRounding():IsNotANumber() = false
+            return chart:GetNodeCornerRounding()
+        end
+
+        return parent:Control:GetTopRightRounding()
+    end
+
+    blueprint action ConvertToScalableVectorGraphics returns text
+
+    action GetFlowchart returns Flowchart
+        Item2D result = GetParent()
+        repeat until result is Flowchart or result = undefined
+            result = result:GetParent()
+        end
+        return cast(Flowchart, result)
+    end
+end

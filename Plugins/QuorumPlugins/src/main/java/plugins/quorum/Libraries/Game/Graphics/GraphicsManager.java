@@ -7,6 +7,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -40,7 +41,7 @@ public interface GraphicsManager {
 
     //Actually glViewport
     public void SetDrawingRegion(int x, int y, int width, int height);
-    
+
     public void glActiveTexture(int texture);
 
     public int glGenTexture();
@@ -180,6 +181,8 @@ public interface GraphicsManager {
     public void glBlendFunc (int sfactor, int dfactor);
     
     public void glScissor(int x, int y, int width, int height);
+
+	public void glReadPixels(int x, int y, int width, int height, int format, int type, ByteBuffer buffer);
   
     /* 
     This is actually glTexParameteri. It was renamed early in the development

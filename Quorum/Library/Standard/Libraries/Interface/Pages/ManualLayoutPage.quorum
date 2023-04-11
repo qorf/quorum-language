@@ -1,0 +1,68 @@
+package Libraries.Interface.Pages
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Control
+
+class ManualLayoutPage is Page
+    HashTable<text, Control> controls
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+    end
+
+    action AddButton(text name) returns Button
+        Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetPercentageWidth(1.0)
+        button:SetPercentageHeight(0.2)
+
+        controls:Add(name, button)
+        Add(button)
+        return button
+    end
+
+    action RemoveButton(text name) returns Button
+        Control button = controls:RemoveKey(name)
+        if button not= undefined and button is Button
+            Remove(button)
+            return cast(Button, button)
+        end
+        alert("The item " + name + " is not a button. Are you looking for the right item?")
+    end
+
+    action AddButton(text name, number x, number y) returns Button
+        Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetPercentageX(x)
+        button:SetPercentageY(y)
+        button:SetPercentageWidth(1.0)
+        button:SetPercentageHeight(0.2)
+        
+        controls:Add(name, button)
+        Add(button)
+        return button
+    end
+
+    action AddButton(text name, number x, number y, number width, number height) returns Button
+        Button button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetPercentageX(x)
+        button:SetPercentageY(y)
+        button:SetPercentageWidth(width)
+        button:SetPercentageHeight(height)
+
+        controls:Add(name, button)
+        Add(button)
+        return button
+    end
+end

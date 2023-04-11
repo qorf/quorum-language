@@ -26,7 +26,7 @@ class ScalableVectorGraphicsObject
     
     //core attributes
     private text id = ""
-    private integer tabIndex = 0
+    private integer tabIndex = -1
 
     //styling attributes
     private text styleClass = ""
@@ -37,6 +37,7 @@ class ScalableVectorGraphicsObject
     private text fill = ""
     private text fillOpacity = ""
     private text stroke = ""
+    private text strokeOpacity = ""
     private text strokeWidth = ""
 
     //aria-related attributes
@@ -92,6 +93,9 @@ class ScalableVectorGraphicsObject
         end
         if stroke not= ""
             result = result + " stroke="+dq+stroke+dq
+        end
+        if strokeOpacity not= ""
+            result = result + " stroke-opacity="+dq+fillOpacity+dq
         end
         if strokeWidth not= ""
             result = result + " stroke-width="+dq+strokeWidth+dq
@@ -502,8 +506,9 @@ class ScalableVectorGraphicsObject
     */
     action SetFill(Color fill)
         if (fill not= undefined)
-            text rgba = "rgba(" + fill:GetRed()*255 + "," + fill:GetGreen()*255 + "," + fill:GetBlue()*255 + "," + fill:GetAlpha()*255 + ")"
-            me:fill = rgba
+            //text rgba = "rgba(" + fill:GetRed()*255 + "," + fill:GetGreen()*255 + "," + fill:GetBlue()*255 + "," + fill:GetAlpha()*255 + ")"
+            text rgb = "rgb(" + fill:GetRed()*255 + "," + fill:GetGreen()*255 + "," + fill:GetBlue()*255 + ")"
+            me:fill = rgb
         end
     end
 
@@ -522,6 +527,31 @@ class ScalableVectorGraphicsObject
     */
     action GetFill returns text
         return fill
+    end
+
+    /*
+        This action will give a fill attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the object
+
+        Attribute: Parameter opacity The fill opacity attribute for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetFill(blue)
+        circle:SetFillOpacity(blue) // alternate: circle:SetFillOpacity("1")
+    */
+    action SetFillOpacity(Color opacity)
+        if (opacity not= undefined)
+            me:fillOpacity = cast(text,opacity:GetAlpha())
+        end
     end
 
     /*
@@ -630,8 +660,9 @@ class ScalableVectorGraphicsObject
     */
     action SetStroke(Color stroke)
         if (stroke not= undefined)
-            text rgba = "rgba(" + stroke:GetRed()*255 + "," + stroke:GetGreen()*255 + "," + stroke:GetBlue()*255 + "," + stroke:GetAlpha()*255 + ")"
-            me:stroke = rgba
+            //text rgba = "rgba(" + stroke:GetRed()*255 + "," + stroke:GetGreen()*255 + "," + stroke:GetBlue()*255 + "," + stroke:GetAlpha()*255 + ")"
+            text rgb = "rgb(" + stroke:GetRed()*255 + "," + stroke:GetGreen()*255 + "," + stroke:GetBlue()*255 + ")"
+            me:stroke = rgb
         end
     end
 
@@ -650,6 +681,95 @@ class ScalableVectorGraphicsObject
     */
     action GetStroke returns text
         return stroke
+    end
+
+
+    /*
+        This action will give a stroke opacity attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the border of the object
+
+        Attribute: Parameter opacity The stroke opacity attribute for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetStroke(blue)
+        circle:SetStrokeOpacity(blue) // alternate: circle:SetStrokeOpacity("1")
+    */
+    action SetStrokeOpacity(Color opacity)
+        if (opacity not= undefined)
+            me:strokeOpacity = cast(text,opacity:GetAlpha())
+        end
+    end
+
+    /*
+        This action will give a stroke opacity attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the border of the object
+
+        Attribute: Parameter opacity The stroke opacity attribute for the object.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetStroke("green")
+        circle:SetStrokeOpacity("50%") // alternate: circle:SetStrokeOpacity("0.5")
+    */
+    action SetStrokeOpacity(text opacity)
+        me:strokeOpacity = opacity
+    end
+
+    /*
+        This action will give a stroke opacity attribute to the SVG element. This attribute may do different things depending
+        on the type of SVG element. For shapes and text it will define the color opaqueness used to paint the border of the object
+
+        Attribute: Parameter opacity. The stroke opacity attribute for the object. Representing the alpha value of the Color.
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        use Libraries.Game.Graphics.Color
+
+        Color blue
+        blue:SetColor(0, 0, 1, 1)
+
+        Circle circle
+        circle:SetStroke(blue)
+        circle:SetStrokeOpacity(0.7)
+    */
+    action SetStrokeOpacity(number opacity)
+        if opacity >= 0 and opacity <= 1
+            me:strokeOpacity = cast(text, opacity)
+        elseif opacity > 1 and opacity <= 100
+            me:strokeOpacity = cast(text, opacity) + "%"
+        end
+    end
+
+    /*
+        This action returns the stroke opacity of the object.
+
+        Attribute: Returns the stroke opacity of the object. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Circle circle
+        circle:SetStroke("navy")
+        circle:SetStrokeOpacity(0.7)
+        output circle:GetStrokeOpacity()
+    */
+    action GetStrokeOpacity returns text
+        return strokeOpacity
     end
 
     /*

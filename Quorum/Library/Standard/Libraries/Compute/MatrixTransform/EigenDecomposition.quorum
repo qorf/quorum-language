@@ -55,8 +55,8 @@ class EigenDecomposition
     /* This matrix represents the eigenvector orthogonal matrix inverse (V^-1). */
     Matrix eigenvectorInverseMatrix = undefined
 
-    Array<number> realEigenvalues
-    Array<number> imaginaryEigenvalues
+    Vector realEigenvalues
+    Vector imaginaryEigenvalues
     Array<Vector> eigenvectors
 
     private number precisionEpsilon = 0
@@ -76,8 +76,8 @@ class EigenDecomposition
         eigenvalueMatrix = undefined
         eigenvectorMatrix = undefined
         eigenvectorTransposedMatrix = undefined
-        realEigenvalues:Empty()
-        imaginaryEigenvalues:Empty()
+        realEigenvalues:SetSize(0)
+        imaginaryEigenvalues:SetSize(0)
         eigenvectors:Empty()
         if not symmetricOverride
             symmetric = matrix:IsSymmetric()
@@ -88,9 +88,10 @@ class EigenDecomposition
             decomposition:Calculate(matrix)
             CalculateEigenVectorsFromTridiagonalDecomposition(decomposition)
         else
-            SchurDecomposition decomposition
-            decomposition:Calculate(matrix)
-            CalculateEigenVectorsFromSchurDecomposition(decomposition)        
+            alert("EigenDecomposition is not set up for asymmetric matrices yet.")
+            //SchurDecomposition decomposition
+            //decomposition:Calculate(matrix)
+            //CalculateEigenVectorsFromSchurDecomposition(decomposition)        
         end
     end
 
@@ -558,7 +559,7 @@ class EigenDecomposition
         end
     end
 
-    action GetEigenvalues returns Array<number>
+    action GetEigenvalues returns Vector
         return realEigenvalues
     end
 

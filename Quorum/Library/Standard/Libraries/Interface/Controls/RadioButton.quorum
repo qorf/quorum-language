@@ -13,6 +13,8 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.ToggleView
 use Libraries.Interface.Views.RadioButtonView
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Layouts.ButtonLayout
+use Libraries.Interface.Layouts.Layout
 
 class RadioButton is ToggleButton
 
@@ -22,9 +24,6 @@ class RadioButton is ToggleButton
     on create
         // The layout should already be present, courtesy of our inheritance of Button.
         SetFocusable(false)
-        FlowLayout layout = cast(FlowLayout, GetLayout())
-        layout:SetIgnoreHidden(false)
-        layout:SetSingleLine(true)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
@@ -33,6 +32,7 @@ class RadioButton is ToggleButton
         // The properties already contain a loaded Font from the Button constructor.
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
+        label:SetPositionOnBaseLine(false)
 
         LayoutProperties iconProperties = buttonIcon:GetDefaultLayoutProperties()
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)

@@ -1,0 +1,271 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Button
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
+use Libraries.Game.Graphics.TextureRegion
+
+/*
+This class is used to layout the internal components of a button. This is only used internally
+and most users will never need to use this class directly.
+*/
+class ButtonLayout is Layout
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+
+        integer containerWidthMode = container:GetHorizontalLayoutMode()
+        integer containerHeightMode = container:GetVerticalLayoutMode()
+
+        /*
+        We only set the container width if the layout style is FIT_CONTENTS,
+        or if it's MAINTAIN_ASPECT_RATIO and setContainerHeight is true.
+        */
+        boolean setContainerWidth = false
+
+        if containerWidthMode = container:FIT_CONTENTS
+            setContainerWidth = true
+        end
+
+        /*
+        We only set the container width if the layout style is FIT_CONTENTS, FIT_FONT,
+        or if it's MAINTAIN_ASPECT_RATIO and setContainerWidth is true.
+        */
+        boolean setContainerHeight = false
+
+        if containerHeightMode = container:FIT_CONTENTS or containerHeightMode = container:FIT_FONT
+                or (containerHeightMode = container:MAINTAIN_ASPECT_RATIO and setContainerWidth = true)
+
+            setContainerHeight = true
+        end
+
+        // Now that we know whether or not we set the container height, we can check for horizontal aspect ratio.
+        if containerWidthMode = container:MAINTAIN_ASPECT_RATIO and setContainerHeight = true
+            setContainerWidth = true
+        end
+
+
+        Button button = cast(Button, container)
+        Label label = undefined
+        Icon icon = undefined        
+
+        // Iterate over the elements in the Button to figure out which elements we have.
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if item is Label
+                label = cast(Label, item)
+            elseif item is Icon
+                icon = cast(Icon, item)
+            end
+
+            counter = counter + 1
+        end
+
+        /*
+        There are three possible states for the internals of the button:
+        1. There is a Label, but no Icon
+        2. There is both a Label and an Icon
+        3. There are no internal components (Image-style buttons don't use a child Icon, they use a special View2D instead)
+        */
+        if label = undefined
+            /*
+            If we don't have a Label, then the Button has no internal components (most likely because
+            it's represented by a View2D, especially an ImageControlView representing an image button). In this
+            case we only care about ensuring any container dimensions are set, if needed.
+            */
+            
+            number totalWidth = containerWidth
+            number totalHeight = containerHeight
+            if setContainerWidth and containerWidthMode not= container:MAINTAIN_ASPECT_RATIO
+                if containerHeightMode = container:FIT_CONTENTS
+                    // In this case, there aren't contents in the traditional sense, but it's not unreasonable to expect this to fit to the size of the Icon.
+                    // We should be able to get this from the Container's properties.
+                    TextureRegion rawIcon = container:GetDefaultLayoutProperties():GetIcon()
+                    totalWidth = rawIcon:GetRegionWidth()
+                end
+            end
+
+            if setContainerHeight
+                if containerHeightMode = container:FIT_FONT
+                    totalHeight = container:GetFont():GetLineHeight()
+                elseif containerHeightMode = container:FIT_CONTENTS
+                    // In this case, there aren't contents in the traditional sense, but it's not unreasonable to expect this to fit to the size of the Icon.
+                    // We should be able to get this from the Container's properties.
+                    TextureRegion rawIcon = container:GetDefaultLayoutProperties():GetIcon()
+                    totalHeight = rawIcon:GetRegionHeight()
+                elseif containerHeightMode = container:MAINTAIN_ASPECT_RATIO
+                    totalHeight = totalWidth * container:GetPercentageHeight()
+                end
+            end
+
+            if setContainerWidth and containerWidthMode = container:MAINTAIN_ASPECT_RATIO
+                totalWidth = totalHeight * container:GetPercentageWidth()
+            end
+
+            if setContainerWidth
+                if setContainerHeight
+                    container:SetSize(totalWidth, totalHeight)
+                else
+                    container:SetWidth(totalWidth)
+                end
+            elseif setContainerHeight
+                container:SetHeight(totalHeight)
+            end
+        else
+            if button:IsAutomaticFontSizing() and setContainerWidth = false and setContainerHeight = false
+                // How much of the width or height we want to attempt to fill with the auto-sized font
+                constant number candidatePercentage = 0.9
+
+                constant integer minimumFontSize = 6
+                constant integer maximumFontSize = 100
+
+                number candidateHeight = candidatePercentage * containerHeight
+                if candidateHeight > containerHeight - label:GetTopPadding() - label:GetBottomPadding()
+                    candidateHeight = containerHeight - label:GetTopPadding() - label:GetBottomPadding()
+                end
+                if icon not= undefined and (candidateHeight > containerHeight - icon:GetTopPadding() - icon:GetBottomPadding())
+                    candidateHeight = containerHeight - icon:GetTopPadding() - icon:GetBottomPadding()
+                end
+
+                integer candidateFontSize = label:GetFontSize()
+
+                number startHeight = label:GetLineHeight()
+                number heightRatio = candidateHeight / startHeight
+
+                number candidateWidth = candidatePercentage * containerWidth
+                if candidateWidth > containerWidth - label:GetLeftPadding() - label:GetRightPadding()
+                    candidateWidth = containerWidth - label:GetLeftPadding() - label:GetRightPadding()
+                end
+
+                // Shorten the candidate width area by the predicted size of the icon
+                if icon not= undefined
+                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftPadding()
+                end
+
+                number startWidth = label:GetWidth()
+                number widthRatio = candidateWidth / startWidth
+
+                if widthRatio < heightRatio
+                    candidateFontSize = cast(integer, candidateFontSize * widthRatio)
+                else
+                    candidateFontSize = cast(integer, candidateFontSize * heightRatio)
+                end
+
+                if candidateFontSize < minimumFontSize
+                    candidateFontSize = minimumFontSize
+                elseif candidateFontSize > maximumFontSize
+                    candidateFontSize = maximumFontSize
+                end
+
+                label:SetFontSize(candidateFontSize)
+            end
+
+            number iconWidth = 0
+            number iconHeight = 0
+            number iconLeftPadding = 0
+
+            if icon not= undefined
+                // For simplicity, presume the Icon is always the height of 1 line of text, for now, and use its aspect ratio for width.
+                iconHeight = label:GetLineHeight()
+                iconWidth = iconHeight * icon:GetPercentageWidth()
+                iconLeftPadding = icon:GetLeftPadding()
+            end
+
+            number labelLeftPadding = label:GetLeftPadding()
+            number labelRightPadding = label:GetRightPadding()
+
+            if setContainerWidth = false
+                label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftPadding - labelLeftPadding - labelRightPadding)
+            else
+                label:SetMaximumWidth(0)
+            end
+
+            if label:GetDefaultLayoutProperties():NeedsRendering()
+                label:LoadGraphics(label:GetDefaultLayoutProperties())
+            end
+
+            // Figure out how much space is actually taken up inside the Button now that the label has laid out its characters.
+            number internalWidth = iconWidth + label:GetWidth()
+            if icon not= undefined
+                internalWidth = internalWidth + labelLeftPadding
+            end
+
+            number totalWidth = 0
+            if setContainerWidth = false
+                totalWidth = container:GetWidth()
+            elseif containerWidthMode not= container:MAINTAIN_ASPECT_RATIO
+                totalWidth = iconLeftPadding + iconWidth + labelLeftPadding + label:GetWidth() + labelRightPadding
+            end
+
+            /*
+            Before we start setting any X values, we should determine what the relative heights look like as well.
+            Depending on the layout mode, there's a possibility we'll need the height to determine the width (if we're
+            using the MAINTAIN_ASPECT_RATIO mode).
+            */
+            number totalHeight = 0
+            number labelTopPadding = label:GetTopPadding()
+            number labelBottomPadding = label:GetBottomPadding()
+            if setContainerHeight
+                if containerHeightMode = container:FIT_FONT
+                    totalHeight = container:GetFont():GetLineHeight() + labelTopPadding + labelBottomPadding
+                elseif containerHeightMode = container:FIT_CONTENTS
+                    totalHeight = label:GetHeight() + labelTopPadding + labelBottomPadding
+                elseif containerHeightMode = container:MAINTAIN_ASPECT_RATIO
+                    totalHeight = totalWidth * container:GetPercentageHeight()
+                end
+            else
+                totalHeight = container:GetHeight()
+            end
+
+            if containerWidthMode = container:MAINTAIN_ASPECT_RATIO
+                totalWidth = totalHeight * container:GetPercentageWidth()
+            end
+
+            if setContainerWidth
+                if setContainerHeight
+                    container:SetSize(totalWidth, totalHeight)
+                else
+                    container:SetWidth(totalWidth)
+                end
+            elseif setContainerHeight
+                container:SetHeight(totalHeight)
+            end
+
+            number iconX = (totalWidth - internalWidth) / 2.0
+            if iconX < iconLeftPadding
+                iconX = iconLeftPadding
+            end
+            
+            number iconY = (totalHeight - iconHeight) / 2.0
+            if icon not= undefined and iconY < icon:GetBottomPadding()
+                iconY = icon:GetBottomPadding()
+            end
+
+            number labelX = iconX
+            if icon not= undefined
+                labelX = iconX + iconWidth + labelLeftPadding
+            elseif labelX < labelLeftPadding
+                labelX = labelLeftPadding
+            end
+
+            number labelY = (totalHeight - label:GetHeight()) / 2.0
+            if label:GetLineCount() > 1
+                labelY = labelY + label:GetFont():GetLineHeight() * (label:GetLineCount() - 1)
+            end
+            if labelY < labelBottomPadding
+                labelY = labelBottomPadding
+            end
+
+            if icon not= undefined
+                icon:SetSize(iconWidth, iconHeight)
+                icon:SetPosition(iconX, iconY)
+            end
+
+            label:SetPosition(labelX, labelY)
+        end
+    end
+
+end

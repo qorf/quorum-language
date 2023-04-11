@@ -152,4 +152,15 @@ class ChartPoint is ChartDrawable
         me:letterCode = convert:GetUnicodeValue((iteration mod 26) + 65)
     end
 
+    
+    action GetSelectionColor returns ColorGroup
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionColor()
+        end
+
+        return undefined
+    end
+
 end

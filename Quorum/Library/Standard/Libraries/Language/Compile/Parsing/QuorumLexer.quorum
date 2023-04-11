@@ -42,6 +42,7 @@ class QuorumLexer is Lexer
     CompilerErrorType typeConstants
     File currentFile = undefined
     constant integer LINE_FEED = 10
+    boolean ignoreWhiteSpace = true
 
     text quote = ""
     HashTable<text, integer> keywords
@@ -167,7 +168,12 @@ class QuorumLexer is Lexer
                 token = CreateToken()
                 ProcessText(token)
             elseif IsWhiteSpace()
-                isIgnored = true
+                if ignoreWhiteSpace
+                    isIgnored = true
+                else
+                    token = CreateToken()
+                    ProcessWhiteSpace(token)
+                end
             else
                 isValid = false
             end
@@ -231,6 +237,17 @@ class QuorumLexer is Lexer
         return false
     end
 
+    private action IsWhiteSpace(integer code) returns boolean
+        if code = LINE_FEED or//linefeed
+           code = 11 or//vertical tab
+           code = 13 or //carriage return
+           code = 32 or //space
+           code = 9 //horizontal tab
+            return true
+        end
+        return false
+    end
+
     private action IsSingleLineComment returns boolean
         if MatchesFromIndex(constants:SINGLE_LINE_COMMENT_TEXT)
             return true
@@ -269,6 +286,31 @@ class QuorumLexer is Lexer
         ProcessGreedy(token, constants:MULTI_LINE_COMMENT_END_TEXT)
         token:SetToCommentChannel()
         token:category = constants:COMMENTS
+    end
+
+    private action ProcessWhiteSpace(Token token)
+        token:SetToWhiteSpaceChannel()
+        token:category = constants:WS
+
+        integer startIndex = index
+        integer j = index + 1
+        boolean done = false
+        text string = currentChar
+        repeat while j < currentValue:GetSize() and not done
+            char2 = currentValue:GetCharacter(j)
+            integer code = char2:GetUnicodeInteger(0)
+            if IsWhiteSpace(code)
+                string = string + char2
+                currentColumn = currentColumn + 1
+            else //stop at the first non-whitespace character
+                done = true
+            end
+            j = j + 1
+        end
+
+        token:value = string
+
+        index = startIndex + string:GetSize() - 1
     end
 
     private action ProcessSingleLineComment(Token token)
@@ -675,4 +717,12 @@ class QuorumLexer is Lexer
     action SetFile(File file)
         currentFile = file
     end
+    action GetIgnoreWhiteSpace returns boolean
+        return ignoreWhiteSpace
+    end
+
+    action SetIgnoreWhiteSpace(boolean ignoreWhiteSpace)
+        me:ignoreWhiteSpace = ignoreWhiteSpace
+    end
+
 end

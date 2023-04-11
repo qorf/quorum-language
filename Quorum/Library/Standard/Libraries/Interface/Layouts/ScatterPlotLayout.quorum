@@ -58,16 +58,24 @@ class ScatterPlotLayout is TwoVariableChartLayout
             integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
             point:SetPosition(x, y)
 
+            //display an annoation of either series name point or letter code in a specified 
+            //location(top or bottom)
             if point:ShowAnnotation() or chart:ShowAnnotations()
                 ControlLabel pointLabel = point:GetAnnotation()
                 if pointLabel not= undefined
                     integer annotX = cast(integer, x+pointRadius-(pointLabel:GetWidth()/2))
                     integer annotY = 0
-                    if chart:HasNameAnnotations()
-                        integer labelDecent = pointLabel:GetFont():GetMaximumDescent()
-                        annotY = cast(integer, y+point:GetHeight() - labelDecent)
+                    integer labelDecent = pointLabel:GetFont():GetMaximumDescent()
+                    if point:IsAnnotationLocationBottom()
+                        annotY = cast(integer, y - pointLabel:GetHeight() - labelDecent)
+                    elseif point:IsAnnotationLocationLeft()
+                        annotY = cast(integer, y)
+                        annotX = cast(integer, x - pointLabel:GetWidth() + labelDecent)
+                    elseif point:IsAnnotationLocationRight()
+                        annotY = cast(integer, y)
+                        annotX = cast(integer, x + point:GetWidth() - labelDecent)
                     else
-                        annotY = cast(integer, y+point:GetHeight())
+                        annotY = cast(integer, y+point:GetHeight() - labelDecent)
                     end
                     pointLabel:SetPosition(annotX, annotY)
                 end

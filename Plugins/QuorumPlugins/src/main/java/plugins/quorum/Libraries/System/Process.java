@@ -36,7 +36,7 @@ public class Process {
     QuorumProcessWatcher watch = null;
     java.lang.Process process = null;
     int exit = -1;
-    int wait = 50;
+    int wait = 0;
     
     public void Run(String name, Array_ flags) {
         myProcess = (Process_) me_;
