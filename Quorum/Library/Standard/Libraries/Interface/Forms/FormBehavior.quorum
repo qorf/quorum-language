@@ -24,12 +24,6 @@ class FormBehavior is Behavior
         return undefined
     end
 
-    action Run(BehaviorEvent event)
-        Run(event, GetForm(), GetPage())
-    end
-
-    blueprint action Run(BehaviorEvent event, Form form, Page page)
-
     action IsFinished returns boolean
         return true
     end
