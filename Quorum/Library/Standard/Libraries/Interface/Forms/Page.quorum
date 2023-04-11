@@ -4,7 +4,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Containers.Array
 
-class Page is FormContainerControl
+class Page is FormPrimitiveContainer, FormContainerControl
 
     on create
         SetPercentageWidth(1.0)

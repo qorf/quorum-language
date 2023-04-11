@@ -11,7 +11,7 @@ use Libraries.Interface.Controls.List
 use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
 
-class FormContainerInterface
+class FormPrimitiveContainer
     HashTable<text, Integer> integers
     HashTable<text, Number> numbers
     HashTable<text, Boolean> booleans
@@ -125,47 +125,4 @@ texts
         end
         return result
     end
-
-    blueprint action SetTitle(text name)
-    blueprint action GetTitle returns text
-    blueprint action SetTitleFontSize(integer size)
-    blueprint action GetTitleFontSize returns integer
-    blueprint action SetTitleSizeSmall
-    blueprint action SetTitleSizeMedium
-    blueprint action SetTitleSizeLarge
-    blueprint action LeftAlignTitle
-    blueprint action RightAlignTitle
-    blueprint action CenterAlignTitle
-
-    blueprint action LeftAlignContent
-    blueprint action RightAlignContent
-    blueprint action CenterAlignContent
-
-    blueprint action AddButton(text name) returns Button
-    blueprint action AddButton(text name, text fileName) returns Button
-    blueprint action RemoveButton(text name) returns Button
-    blueprint action GetButton(text name) returns Button
-
-    blueprint action AddLabel(text name) returns Label
-    blueprint action AddLabel(text name, text value) returns Label
-    blueprint action RemoveLabel(text name) returns Label
-    blueprint action GetLabel(text name) returns Label
-
-    blueprint action AddIcon(text name, text fileName) returns Icon
-    blueprint action RemoveIcon(text name) returns Icon
-    blueprint action GetIcon(text name) returns Icon
-
-    blueprint action AddTextField(text name) returns TextField
-    blueprint action RemoveTextField(text name) returns TextField
-    blueprint action GetTextField(text name) returns TextField
-
-    blueprint action AddCheckbox(text name) returns Checkbox
-    blueprint action RemoveCheckbox(text name) returns Checkbox
-    blueprint action GetCheckbox(text name) returns Checkbox
-
-    blueprint action AddList(text name) returns List
-    blueprint action RemoveList(text name) returns List
-    blueprint action GetList(text name) returns List
-
-    blueprint action FindControl(text name) returns Item2D
 end
