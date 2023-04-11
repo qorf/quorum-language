@@ -28,12 +28,12 @@ import org.robovm.rt.bro.annotation.Callback;
 import org.robovm.rt.bro.annotation.Pointer;
 import org.robovm.apple.opengles.EAGLContext;
 import org.robovm.apple.opengles.EAGLRenderingAPI;
-
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
 import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Graphics.Painter2D;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Interface.Accessibility_;
 
 /**
  *
@@ -130,6 +130,12 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         {
             this.app = app;
             this.display = display;
+            quorum.Libraries.Game.GameStateManager manager = new quorum.Libraries.Game.GameStateManager();
+            Accessibility_ access = manager.GetAccessibility();
+           if(access != null) {
+//                accessibility = (IOSAccessibility_) access;
+                System.out.println("Found the accessibility system");
+           }
         }
         
         @Override
