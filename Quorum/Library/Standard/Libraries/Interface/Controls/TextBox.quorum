@@ -215,6 +215,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         GetLineDrawables()
     end
 
+    action SetInterfaceScale(number scale)
+        parent:Control:SetInterfaceScale(scale)
+        scrollRegionWidth = -1
+    end
+
     /*
     The GetLeftCharacterPadding action returns how much padding has been added
     to the TextBox in between the gutters (or the left side of the TextBox, if
@@ -354,6 +359,8 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         startLineY = yPosition - lineHeight
 
         integer counter = firstLineInteger
+        number startX = -GetScrollPercentageX() * GetTotalContentWidth() + leftCharacterPadding
+
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
 
@@ -369,8 +376,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
             integer characterCounter = 0
             integer styleCounter = 0
-                                                                                                    // TO-DO: REMOVE THIS
-            number startX = -GetScrollPercentageX() * GetTotalContentWidth() + leftCharacterPadding //+ gutterX
+
             lineBeginningX = startX
             number x = startX
 
@@ -579,15 +585,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         number xPosition = 0
 
         if index = 0
-            // TO-DO: REMOVE THIS
-//            Array<Gutter> gutters = background:GetGutters()
-//            number gutterX = 0
-//            if gutters:IsEmpty() = false
-//                Gutter lastGutter = gutters:GetFromEnd()
-//                gutterX = lastGutter:GetX() + lastGutter:GetWidth()
-//            end
-                                                                                                                                        // TO-DO: REMOVE THIS
-            xPosition = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding// + gutterX
+            xPosition = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
         else
             Glyph priorGlyph = font:GetGlyph(currentLine:GetCharacter(index - 1))
             xPosition = lineDrawables:Get(index - 1):GetX() - priorGlyph:lengthToGlyph + priorGlyph:horizontalAdvance
@@ -673,14 +671,6 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         number xPosition = 0
 
         if startIndex = 0
-        // TO-DO: REMOVE THIS
-//            Array<Gutter> gutters = background:GetGutters()
-//            number gutterX = 0
-//            if gutters:IsEmpty() = false
-//                Gutter lastGutter = gutters:GetFromEnd()
-//                gutterX = lastGutter:GetX() + lastGutter:GetWidth()
-//            end
-                                                                                                                            // TO-DO: REMOVE THIS
             xPosition = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding// + gutterX
         else
             Glyph priorGlyph = font:GetGlyph(currentLine:GetCharacter(startIndex - 1))
@@ -735,14 +725,6 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             x = x + glyph:horizontalAdvance
             counter = counter + 1
         end
-
-        // TO-DO: REMOVE THIS
-//        counter = 0
-//        Array<Gutter> gutters = background:GetGutters()
-//        repeat while counter < gutters:GetSize()
-//            x = x + gutters:Get(counter):GetWidth()
-//            counter = counter + 1
-//        end
 
         Drawable caret = background:GetCaret()
         caret:SetPosition(x + horizontalOffset + leftCharacterPadding, lineOffset - GetSelectionYOffset())
@@ -1178,13 +1160,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     positioning of the pane.
     */
     private action FitCharacterOnScreen(integer line, integer character)
-        number barSpace = 0
-        if IsShowingVerticalBar()
-            barSpace = GetBarThickness()
-        end
+        number left = GetScrollPercentageX() * (GetTotalContentWidth() - background:GetWidth())
+        number right = left + background:GetWidth()
 
-        number left = GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - barSpace))
-        number right = left + GetWidth() - barSpace
+        // Don't try to fit the character if the width is 0.
+        if left = right
+            return now
+        end
 
         text lineCharacters = textValue:GetLines():Get(line):GetText()
 
@@ -1198,14 +1180,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
 
         if x < left
-            number newHorizontal = x / (GetTotalContentWidth() - (GetWidth() - barSpace))
+            number newHorizontal = x / (GetTotalContentWidth() - background:GetWidth())
             RefreshPaneView(newHorizontal, GetScrollPercentageY())
         else
             if lineCharacters:GetSize() > counter
                 x = x + font:GetGlyph(lineCharacters:GetCharacter(counter)):horizontalAdvance
             end
             if x > right
-                number newHorizontal = (x - (GetWidth() - barSpace)) / (GetTotalContentWidth() - (GetWidth() - barSpace))
+                number newHorizontal = (x - background:GetWidth()) / (GetTotalContentWidth() - background:GetWidth())
                 RefreshPaneView(newHorizontal, GetScrollPercentageY())
             end
         end
@@ -1317,16 +1299,8 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             size = size - separator:GetSize()
         end
 
-        number x1 = 0
-        // TO-DO: REMOVE THIS
-//        integer counter = 0
-//        Array<Gutter> gutters = GetGutters()
-//        repeat while counter < gutters:GetSize()
-//            x1 = x1 + gutters:Get(counter):GetWidth()
-//            counter = counter + 1
-//        end
-        
-        x1 = x1 + leftCharacterPadding
+        number x1 = leftCharacterPadding
+
         number offset = -GetScrollPercentageX() * GetTotalContentWidth()
         position = position - offset
 
@@ -1782,23 +1756,6 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
     action ClickedMouse(MouseEvent event)
         if event:GetSource() not= undefined and event:GetSource() is Item2D
-            if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
-                // See if the click should be processed by a Gutter.
-            // TO-DO: REMOVE THIS
-//                Array<Gutter> gutters = background:GetGutters()
-//
-//                number x = event:GetX()
-//                integer counter = 0
-//                repeat while counter < gutters:GetSize()
-//                    Gutter gutter = gutters:Get(counter)
-//                    if x >= gutter:GetGlobalX() and x <= gutter:GetGlobalX() + gutter:GetWidth()
-//                        gutter:ClickedMouse(event)
-//                        return now
-//                    end
-//                    counter = counter + 1
-//                end
-            end
-
             if event:mouseButton = event:LEFT
                 draggingInText = true
 
@@ -1921,18 +1878,6 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
 
         return scrollRegionWidth
-
-        // TO-DO: REMOVE THIS
-//        number width = GetWidth()
-//        if IsShowingVerticalBar()
-//            width = width - GetBarThickness()
-//        end
-//
-//        if scrollRegionWidth > width
-//            return scrollRegionWidth
-//        else
-//            return width
-//        end
     end
 
     /*
@@ -1955,6 +1900,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         */
         Array<MultipleLineText> lines = textValue:GetLines()
         
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if font:GetSize() not= cast(integer, (properties:GetFontSize() * properties:GetInterfaceScale()))
+            font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        end
+
         /*
         For monospaced fonts, this choice is arbitrary. For non-monospaced
         fonts, W is typically one of the broadest characters, but this is
@@ -2006,32 +1956,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
                 end
             end
         end
-
-        // TO-DO: REMOVE THIS
-//        if refreshGutters
-//            Array<MultipleLineText> lines = textValue:GetLines()
-//            Array<Gutter> gutters = background:GetGutters()
-//
-//            integer totalLines = lines:GetSize()
-//            number lineHeight = GetLineHeight()
-//            integer firstLineInteger = cast(integer, firstLine)
-//
-//            integer counter = 0
-//            repeat while counter < gutters:GetSize()
-//                Gutter gutter = gutters:Get(counter)
-//                gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
-//                gutter:UpdateLines(firstLineInteger)
-//                counter = counter + 1
-//            end
-//
-//            refreshGutters = false
-//        end
     end
-
-        // TO-DO: REMOVE THIS
-//    action RefreshGuttersOnNextUpdate
-//        refreshGutters = true
-//    end
 
     /*
     This action sets how long it takes for the caret to cycle between visible

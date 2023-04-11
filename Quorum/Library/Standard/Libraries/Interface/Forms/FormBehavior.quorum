@@ -3,13 +3,28 @@ package Libraries.Interface.Forms
 use Libraries.Game.GameStateManager
 use Libraries.Game.Game
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
 
 
 class FormBehavior is Behavior
+
     action GetForm returns Form
         GameStateManager manager
         Game game = manager:GetGame()
         Form form = cast(Form, game)
         return form
+    end
+
+    action GetPage returns Page
+        Form form = GetForm()
+        if form not= undefined
+            return form:GetCurrentPage()
+        end
+
+        return undefined
+    end
+
+    action IsFinished returns boolean
+        return true
     end
 end
