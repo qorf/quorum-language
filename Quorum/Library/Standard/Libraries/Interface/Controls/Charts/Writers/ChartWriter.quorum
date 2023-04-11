@@ -543,8 +543,15 @@ class ChartWriter
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
         text chartTitle = ""
         if chart:GetBackground() not= undefined
-            background:SetFill(cast(Color, chart:GetBackground():GetColor()))
+        if chart:HasAccessibility()
+                Color transparent
+                transparent:SetColor(0,0,0,0)
+                background:SetFill(transparent)
+            else
+              background:SetFill(cast(Color, chart:GetBackground():GetColor()))
+            end
             background:SetFillOpacity(cast(Color, chart:GetBackground():GetColor()))
+
         end
         background:SetSize(100,100, "%")
         background:SetPosition(0, 0, "%")
