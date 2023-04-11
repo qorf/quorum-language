@@ -42,7 +42,7 @@ import quorum.Libraries.Interface.Accessibility_;
 public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewControllerDelegate, UIGestureRecognizerDelegate
 {
     public java.lang.Object me_ = null;
-    
+    public static IOSUIViewController theViewController = null;
     // Is this necessary? Original libgdx code below:
     // private static final String tag = "IOSGraphics";
     private static final String tag = "IOSDisplay";
@@ -122,6 +122,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
 
     static class IOSUIViewController extends GLKViewController
     {
+
         final IOSApplication app;
         final IOSDisplay display;
         boolean created = false;
@@ -130,12 +131,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         {
             this.app = app;
             this.display = display;
-            quorum.Libraries.Game.GameStateManager manager = new quorum.Libraries.Game.GameStateManager();
-            Accessibility_ access = manager.GetAccessibility();
-           if(access != null) {
-//                accessibility = (IOSAccessibility_) access;
-                System.out.println("Found the accessibility system");
-           }
+            theViewController = this;
         }
         
         @Override
