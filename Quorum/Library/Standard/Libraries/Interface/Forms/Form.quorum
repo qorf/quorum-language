@@ -75,7 +75,7 @@ class Form is Game, FormContainerInterface
     end
 
     action AddPage(text name) returns Page
-        FlowLayoutPage page
+        StackedRowPage page
         page:SetName(name)
         pages:Add(name, page)
         return page
@@ -87,6 +87,11 @@ class Form is Game, FormContainerInterface
 
     action RemovePage(text name) returns Page
         return pages:RemoveKey(name)
+    end
+
+    action GetPage(text name) returns Page
+        Page page = pages:GetValue(name)
+        return page
     end
 
     action SetPage(text name)
