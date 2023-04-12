@@ -218,7 +218,7 @@ class CodeEditor is ScrollableLineControl
             
             // Recalculate cached y positions.
             cachedLinePositions:Empty()
-            number currentY = renderer:GetHeight()
+            number currentY = 0
 
             integer counter = 0
             integer lines = GetLineCount()
@@ -288,7 +288,7 @@ class CodeEditor is ScrollableLineControl
             GetTotalContentHeight()
         end
 
-        return cachedLinePositions:Get(line) + (GetScrollPercentageY() * GetTotalContentHeight())
+        return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
     end
 
     action GetFirstVisibleLine returns integer
