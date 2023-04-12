@@ -1,0 +1,29 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.Controls.BlockItem
+use Libraries.Interface.Controls.Blocks.Block
+
+class CodeEditorSelectNextBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        CodeEditor editor = undefined
+        if event:GetItem() is CodeEditor
+            editor = cast(CodeEditor, event:GetItem())
+        elseif event:GetItem() is Block
+            Block block = cast(Block, event:GetItem())
+            editor = block:GetEditor()
+        elseif event:GetItem() is BlockItem
+            BlockItem item = cast(BlockItem, event:GetItem())
+            editor = item:GetEditor()
+        else
+            // If we can't find the editor, abort.
+            return now
+        end
+
+        editor:SelectNext()
+    end
+
+end

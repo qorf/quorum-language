@@ -1,0 +1,178 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.Controls.EditRegion
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Interface.Controls.Blocks.Layouts.SingleLineBlockLayout
+use Libraries.Interface.Events.TextInputEvent
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.ParserToBlockListener
+use Libraries.Language.Compile.Context.StatementContext
+use Libraries.Language.Compile.Context.ClassStatementsContext
+use Libraries.Interface.Controls.Blocks.ParserListeners.FreeformBlockListener
+use Libraries.Language.Compile.Context.OutputContext
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Language.Compile.Location
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Views.BlockErrorShaderView
+use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.Blocks.Controls.EditBox
+
+class FreeformBlock is SingleLineBlock
+    FreeformBlockListener blockListener
+    EditBox editRegion = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:FREEFORM_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Freeform Block")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        EditBox edit
+        editRegion = edit
+        Add(editRegion) 
+
+        editRegion:Setup("Free Text", 0, GetEndIndex() - GetStartIndex())
+    end
+
+    action UpdateName(integer line)
+        SetName(editRegion:GetText())
+    end
+
+    action ReceivedTextInput(TextInputEvent event)
+        editRegion:Focus()
+        editRegion:SetCaretPosition(0)
+        editRegion:Insert(event:GetText())
+    end
+
+    action GetEditBox returns EditBox
+        return editRegion
+    end
+
+    action LostSelection
+        ParseToBlock()
+        parent:Control:LostSelection()
+    end
+
+    action GetName returns text
+        if editRegion not= undefined and editRegion:GetSize() = 0
+            return "Blank"
+        else
+            return parent:SingleLineBlock:GetName()
+        end
+    end
+
+    /*
+    This action attempts to parse the content of the FreeformBlock and convert it into a suitable block.
+    If a suitable block is found, it will replace this FreeformBlock in the editor.
+    */
+    action ParseToBlock
+        text code = editRegion:GetText()
+        if code = undefined or code = "" or GetParentBlock() = undefined
+            return now
+        end
+
+        CodeEditor editor = GetEditor()
+
+        /*
+        First check special cases where the user has typed a short-cut.
+        If so, insert extra code to make it valid before we parse it.
+        */
+        if code = "output" 
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text dq = code:GetDoubleQuote()
+            editRegion:Insert(" " + dq + dq)
+            code = editRegion:GetText()
+        elseif code = "if"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value = " true
+" + editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:Insert(value)
+            code = editRegion:GetText()
+        elseif code:StartsWith("if") = true and code:EndsWith("end") = false
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value = "
+" + editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:Insert(value)
+            code = editRegion:GetText()
+        end
+
+        /*
+        Read the code, and if it's valid, try to parse it.
+        */
+        CompilerErrorManager manager
+        QuorumLexer lexer
+        lexer:SetCompilerErrorManager(manager)
+        lexer:Read(code)
+        
+        // If there's an error, set the block to reflect it, then bail.
+        if not manager:IsCompilationErrorFree()
+            // TO-DO: Set error state visuals
+            BlockErrorShaderView view
+            view:Initialize()
+            SetView2D(view)
+            return now
+        end
+
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(lexer)
+
+        // Set the initial information for the listener. This gives it offset info it needs to calculate correct values.
+        blockListener:SetSourceBlock(me)
+
+        /*
+        If the freeform block is attached to a class, we need to parse a class statement,
+        which might be a full on action declaration.
+        We can check for this by testing if our grandparent is a class block (which can only
+        hold if our direct parent is one of the block parts of the class block).
+        */
+        if GetParentBlock() is MultipleLineBlockPart and GetParentBlock():GetParentBlock() is ClassBlock
+            ClassStatementsContext statement = parser:ClassStatement()
+
+            if statement not= undefined
+                blockListener:EnterClassStatements(statement)
+            end
+        else
+            // If we're not in a class, parse for a standard statement. 
+            // If you KNOW you are inside of an action, you use this
+            StatementContext statement = parser:Statement()
+
+            if statement not= undefined
+                blockListener:EnterStatement(statement)
+            end
+        end
+
+        // Once again, if there's an error, set the block to reflect it, then bail.
+        if not manager:IsCompilationErrorFree()
+            // TO-DO: Set error state visuals
+            BlockErrorShaderView view
+            view:Initialize()
+            SetView2D(view)
+            return now
+        end
+
+        // Once we've parsed, the listener will give us a block (if there's a valid option). It's stored here.
+        Block result = blockListener:GetBlock()
+
+        // If we have a valid block, replace this Freeform block with the new one.
+        if result not= undefined
+            editor:Replace(me, result)
+        end
+    end
+
+end

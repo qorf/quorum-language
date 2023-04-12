@@ -1,0 +1,75 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.Controls.EditField
+use Libraries.Interface.Controls.Blocks.Controls.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Blocks.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Blocks.Layouts.SingleLineBlockLayout
+
+class ActionCallBlock is SingleLineBlock
+
+    EditField actionCallField = undefined
+
+    VariableFunctionCallContext variableActionCall = undefined
+    ParentVariableFunctionCallContext parentActionCall = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:ACTION_CALL_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Action Call Block")
+    end
+
+    action UpdateName(integer selectedLine)
+        // TO-DO: NYI
+        // This should be the entire text read by the screen reader when focused, not just the "output" portion
+        SetName("action call")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        Location location
+        if variableActionCall not= undefined
+            location = variableActionCall:GetLocation()
+        elseif parentActionCall not= undefined
+            location = parentActionCall:GetLocation()
+        end
+
+        EditField actionCallField
+        me:actionCallField = actionCallField
+        Add(actionCallField)
+
+        actionCallField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+
+    action GetVariableFunctionCallContext returns VariableFunctionCallContext
+        return me:variableActionCall
+    end
+
+    action GetParentVariableFunctionCallContext returns ParentVariableFunctionCallContext
+        return me:parentActionCall
+    end
+
+    action SetContext(VariableFunctionCallContext context)
+        me:variableActionCall = context
+        me:parentActionCall = undefined
+        SetContext(cast(ParseContext, context))
+    end
+
+    action SetContext(ParentVariableFunctionCallContext context)
+        me:variableActionCall = undefined
+        me:parentActionCall = context
+        SetContext(cast(ParseContext, context))
+    end
+
+end

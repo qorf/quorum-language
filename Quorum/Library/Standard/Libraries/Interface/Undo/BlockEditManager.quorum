@@ -1,0 +1,93 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Undo.EditManager
+use Libraries.Interface.Undo.Edit
+use Libraries.Interface.Undo.TextBoxEdit
+use Libraries.Interface.Undo.TextBoxEditState
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Events.BlockChangeListener
+use Libraries.Interface.Events.BlockChangeEvent
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.SingleLineBlock
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+
+
+class BlockEditManager is EditManager, BlockChangeListener
+
+    CodeEditor editor = undefined
+
+    on create
+    end
+
+    action SetBlockEditor(CodeEditor blockEditor)
+        me:editor = blockEditor
+        editor:AddBlockChangeListener(me)
+    end
+
+    action CanUndo returns boolean
+        return parent:EditManager:CanUndo()
+    end
+
+    action Undo
+        //save current state
+        //ignore upcoming changes
+        //do the undo
+        parent:EditManager:Undo()
+        editor:RequestViewRefresh()
+        //stop ignoring changes
+    end
+
+    action Redo
+        //ignore upcoming changes
+        //do the redo
+        parent:EditManager:Redo()
+        editor:RequestViewRefresh()
+        //stop ignoring changes
+    end
+
+    action BlockAdded(BlockChangeEvent event)
+        BlockInsertEdit edit
+        edit:SetBlockEditor(editor)
+        edit:SetText(event:GetAddedText())
+        edit:SetCharacterIndex(event:GetCharacterIndex())
+        Add(edit)
+    end
+
+    action BlockDeleted(BlockChangeEvent event)
+        BlockDeleteEdit edit
+        edit:SetBlockEditor(editor)
+        edit:SetText(event:GetDeletedText())
+        edit:SetCharacterIndex(event:GetCharacterIndex())
+        Add(edit)
+    end
+
+    action BlockModified(BlockChangeEvent event)
+        BlockReplaceEdit edit
+        edit:SetBlockEditor(editor)
+        edit:SetOriginalText(event:GetDeletedText())
+        edit:SetNewText(event:GetAddedText())
+        edit:SetCharacterIndex(event:GetCharacterIndex())
+        Add(edit)
+    end
+
+    action TextChanged(BlockChangeEvent event)
+        BlockEdit edit
+        edit:SetCodeEditor(editor)
+        edit:SetUndoState(event:GetOldCode())
+        edit:SetRedoState(event:GetNewCode())
+
+        Add(edit)
+    end
+
+
+    /*
+        This action empties the EditManager of all edits. In the process, it clears the current
+        state and calls dispose on each edit to ensure it has the opportunity to free any resources.
+    */
+    action Empty
+        parent:EditManager:Empty()
+    end
+end

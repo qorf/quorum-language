@@ -1,0 +1,32 @@
+package Libraries.Interface.Events
+
+class BlockChangeListener
+
+    action BlockChanged(BlockChangeEvent event)
+        if event:GetEventType() = event:ADDED
+            BlockAdded(event)
+        elseif event:GetEventType() = event:DELETED
+            BlockDeleted(event)
+        elseif event:GetEventType() = event:MODIFIED
+            BlockModified(event)
+        elseif event:GetEventType() = event:TEXT_CHANGE
+            TextChanged(event)
+        end
+    end
+
+    action BlockAdded(BlockChangeEvent event)
+
+    end
+
+    action BlockDeleted(BlockChangeEvent event)
+
+    end
+
+    action BlockModified(BlockChangeEvent event)
+
+    end
+
+    action TextChanged(BlockChangeEvent event)
+
+    end
+end

@@ -1,0 +1,69 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.Controls.EditField
+use Libraries.Interface.Controls.Blocks.Controls.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Blocks.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Blocks.Layouts.SingleLineBlockLayout
+
+class SayBlock is SingleLineBlock
+    BlockLabel sayLabel = undefined
+    SayContext sayContext = undefined
+    EditField expressionField = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:SAY_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Say Block")
+    end
+
+    action UpdateName(integer selectedLine)
+        // TO-DO: NYI
+        // This should be the entire text read by the screen reader when focused, not just the "say" portion
+        SetName("say")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        BlockLabel bl
+        me:sayLabel = bl
+        sayLabel:SetFont(GetEditor():GetFont())
+        sayLabel:SetFontSize(GetEditor():GetFontSize())
+        sayLabel:SetText("say")
+        sayLabel:SetRightPadding(spacing)
+        Add(sayLabel)
+
+        ParseContext expression = sayContext:expression
+        if expression = undefined //this is an error. Should we flag it in the user interface?
+            return now
+        end
+        Location location = expression:GetLocation()
+
+        EditField expressionField
+        me:expressionField = expressionField
+        Add(expressionField)
+
+        expressionField:Setup( "Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+
+    action GetSayContext returns SayContext
+        return sayContext
+    end
+
+    action SetSayContext(SayContext context)
+        me:sayContext = context
+        SetContext(context)
+    end
+
+end

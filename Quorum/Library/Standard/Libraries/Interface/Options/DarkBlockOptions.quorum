@@ -1,0 +1,54 @@
+package Libraries.Interface.Options
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+
+class DarkBlockOptions is DarkModeOptions, BlockOptions
+    constant number MAX = 255.0
+    BlockOptionConstants constants
+
+    action SetStartingOptions
+        Color color
+        Color defaultStatementColor = color:CustomColor(45.0/MAX, 90.0/MAX, 187.0/MAX, 1)
+        SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:OUTPUT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:SAY_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:USE_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:PACKAGE_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:ALERT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:CHECK_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:ACTION_CALL_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:REPEAT_KEY, color:CustomColor(0.43, 0.25, 0.16, 1))
+        SetBackgroundColor(constants:ACTION_KEY, color:CustomColor(0.35, 0.35, 0, 1))
+        SetBackgroundColor(constants:CONSTRUCTOR_KEY, color:CustomColor(0.35, 0.35, 0, 1))
+        SetBackgroundColor(constants:CLASS_KEY, color:CustomColor(0.43, 0.25, 0.16, 1))
+        SetBackgroundColor(constants:IF_KEY, color:CustomColor(0.43, 0.25, 0.16, 1))
+
+        SetEditBorderThickness(2)
+    end
+
+    action SetDefaultBlockOptions(text key)
+        parent:BlockOptions:SetDefaultBlockOptions(key)
+
+        ColorGroup background = GetBackgroundColor(key)
+        if background not= undefined
+            Color color
+            color:CopyColor(background:GetBottomLeft())
+            color:SetColor((color:GetRed() + 1.0) / 2.0, (color:GetGreen() + 1.0) / 2.0, (color:GetBlue() + 1.0) / 2.0, color:GetAlpha())
+            SetBorderColor(key, color)
+
+            SetSelectionColor(key, color:Orange())
+
+            Color editColor
+            editColor:CopyColor(color)
+            SetEditBorderColor(key, editColor)
+
+            Color backColor
+            backColor:SetColor(43.0/MAX, 43.0/MAX, 43.0/MAX, 1)
+            SetEditBackgroundColor(key, backColor)
+
+            SetStaticFontColor(key, color:White())
+        end
+    end
+
+end

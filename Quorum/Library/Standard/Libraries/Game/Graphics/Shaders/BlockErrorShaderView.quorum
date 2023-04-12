@@ -1,0 +1,74 @@
+package Libraries.Interface.Views
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Game.Graphics.Shaders.BlockErrorShaderProgram
+
+/*
+The ControlShaderView is used to render many standard kinds of Controls. It automatically
+loads a ControlShaderProgram that can use the properties provided by a Control and the
+InterfaceOptions to render a box with borders, including rounded edges and different colors
+for selection, focus, mouse events, etc.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.FlowLayout
+
+class Main is Game
+
+    Color color
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        // Add a layout to position Controls.
+        FlowLayout layout
+        SetLayout(layout)
+
+        // Make a Control and give it some properties we can render with the view.
+        Control box
+        box:SetBackgroundColor(color:Orange())
+        box:SetBorderColor(color:Red())
+        box:SetBorderThickness(4)
+        box:SetCornerRounding(0.5, 0.75, 0.25, 0.0)
+        box:SetPercentageWidth(0.5)
+        box:SetPercentageHeight(0.5)
+        Add(box)
+
+        // Make a view, initialize it, and give it to the box.
+        ControlShaderView view
+        view:Initialize()
+        box:SetView2D(view)
+    end
+end
+*/
+class BlockErrorShaderView is DrawableView
+
+    /*
+    The Initialize action prepares the view for use. It must be called before the view can be used,
+    or else nothing will be drawn while using the view.
+    */
+    action Initialize
+        Color color
+        color:SetColor(1, 1, 1, 1)
+        LoadFilledRectangle(2, 2, color)
+
+        ShaderManager manager
+        ShaderProgram program = undefined
+        if manager:HasShaderProgram("Block Error Shader Program")
+            program = manager:GetShaderProgram("Block Error Shader Program")
+        else
+            BlockErrorShaderProgram controlShader
+            controlShader:Compile()
+            program = controlShader
+        end
+        SetShaderProgram(program)
+    end
+end

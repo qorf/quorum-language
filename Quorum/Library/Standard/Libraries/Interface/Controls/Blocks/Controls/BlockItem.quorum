@@ -1,0 +1,64 @@
+package Libraries.Interface.Controls.Blocks.Controls
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Controls.CodeEditor
+
+class BlockItem is Control
+
+    /*
+    This action returns a line index, relative to the start of the block
+    this item is attached to. For example, if this returns 0, this item
+    is on the same line as where the block starts. If this returns 2, this
+    item appears 2 lines below the starting line of the block.
+    */
+    blueprint action GetRelativeLineIndex returns integer
+
+    action GetLineIndex returns integer
+        return GetRelativeLineIndex() + GetBlock():GetStartLine()
+    end
+
+    // By default, all BlockItems are a single line in length.
+    action GetLineCount returns integer
+        return 1
+    end
+
+    action GetBlock returns Block
+        Item2D result = GetParent()
+        repeat until result is Block or result = undefined
+            result = result:GetParent()
+        end
+
+        return cast(Block, result)
+    end
+
+    action GetEditor returns CodeEditor
+        check
+            return GetBlock():GetEditor()
+        detect error
+            error:OutputStackTrace()
+            return undefined
+        end
+        return undefined
+    end
+
+    action GainedFocus(FocusEvent event)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnFocusChange(event)
+        end
+    end
+
+    action IsSelected returns boolean
+        check
+            return GetEditor():GetSelection():GetBlockItem() = me
+        detect nullPointer
+            
+            // If an error occurred during, we're missing an intermediate component, so we can't possibly have the selection.
+            return false
+        end
+
+        return false
+    end
+end

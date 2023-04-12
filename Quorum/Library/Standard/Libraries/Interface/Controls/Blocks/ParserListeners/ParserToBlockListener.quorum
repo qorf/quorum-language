@@ -1,0 +1,553 @@
+package Libraries.Language.Compile.Parsing
+
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.Context.all
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.ClassBlock
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.OutputBlock
+use Libraries.Interface.Controls.Blocks.SayBlock
+use Libraries.Interface.Controls.Blocks.AssignmentBlock
+use Libraries.Interface.Controls.Blocks.ActionBlock
+use Libraries.Interface.Controls.Blocks.IfBlock
+use Libraries.Interface.Controls.Blocks.ReturnBlock
+use Libraries.Interface.Controls.Blocks.UseBlock
+use Libraries.Interface.Controls.Blocks.PackageBlock
+use Libraries.Interface.Controls.Blocks.AlertBlock
+use Libraries.Interface.Controls.Blocks.RootBlock
+use Libraries.Interface.Controls.Blocks.CheckBlock
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Controls.Blocks.ActionCallBlock
+use Libraries.Interface.Controls.Blocks.RepeatBlock
+use Libraries.Interface.Controls.Blocks.ConstructorBlock
+
+
+class ParserToBlockListener is QuorumSourceListener
+    StartContext startContext = undefined
+    integer startLine = -1
+    integer finishLine = -1
+    CodeEditor editor = undefined
+    integer scopeDepth = 0
+
+    RootBlock rootBlock
+    Block currentBlock = undefined
+    
+    action EnterDocumentation(DocumentationContext context) end
+    action ExitDocumentation(DocumentationContext context) end
+
+    action EnterNoActionsNoClass(NoActionsNoClassContext context) end
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) end
+
+    action EnterActionsNoClass(ActionsNoClassContext context) end
+    action ExitActionsNoClass(ActionsNoClassContext context) end
+    
+    action EnterNumber(NumberContext context) end
+    action ExitNumber(NumberContext context) end
+
+    action EnterParenthesisExpression(ParenthesisContext context) end
+    action ExitParenthesisExpression(ParenthesisContext context) end
+
+    action EnterCast(CastContext context) end
+    action ExitCast(CastContext context) end
+
+    action EnterSayStatement(SayContext context) 
+        SayBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetSayContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitSayStatement(SayContext context) end
+
+    action EnterCheckStatement(CheckContext context)
+        CheckBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+
+        currentBlock:Add(cast(Block, block))
+
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        currentBlock = startLine
+
+        scopeDepth = scopeDepth + 1
+
+    end
+    action ExitCheckStatement(CheckContext context)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+        checkBlock:AddEndLine()
+        checkBlock:Setup()
+        currentBlock = checkBlock:GetParentBlock()
+        scopeDepth = scopeDepth - 1
+    end
+
+    action EnterParentFieldAccess(ParentFieldAccessContext context) end
+    action ExitParentFieldAccess(ParentFieldAccessContext context) end
+
+    action EnterFullClassDeclaration(FullClassDeclarationContext ctx) 
+        ClassBlock block
+        block:SetEditor(editor)
+        block:SetFullClass(ctx)
+        
+        currentBlock:Add(cast(Block, block))
+
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        currentBlock = startLine
+
+        scopeDepth = scopeDepth + 1
+    end
+
+    action ExitFullClassDeclaration(FullClassDeclarationContext ctx)
+        // The current block must be one of the parts of a class block. Get the class block from the part.
+        ClassBlock classBlock = cast(ClassBlock, currentBlock:GetParentBlock())
+        
+        // Add the last line of the class block.
+        classBlock:AddEndLine()
+
+        // Now that all parts have been added, call Setup on the block.
+        classBlock:Setup()
+
+        // Go back to the parent of the class block.
+        currentBlock = classBlock:GetParentBlock()
+        scopeDepth = scopeDepth - 1
+    end
+
+    action EnterNoClassDeclaration(NoClassDeclarationContext ctx) 
+        // For now, do nothing. Don't generate a block if there's no class. Things are logically attached to the root directly in this case.
+    end
+
+    action ExitNoClassDeclaration(NoClassDeclarationContext ctx)
+    end
+
+    action EnterFormalParameter(FormalParameterContext context) end
+    action ExitFormalParameter(FormalParameterContext context) end
+
+    action EnterStatement(StatementContext context) end
+    action ExitStatement(StatementContext context) end
+
+    action EnterMe(MeContext context) end
+    action ExitMe(MeContext context) end
+
+    action EnterActionExpressionList(ActionExpressionListContext context) end
+    action ExitActionExpressionList(ActionExpressionListContext context) end
+
+    action EnterStart(StartContext context) 
+    end
+    action ExitStart(StartContext context) end
+
+    action EnterText(TextContext context) end
+    action ExitText(TextContext context) end
+
+    action EnterOr(AndOrContext context) end
+    action ExitOr(AndOrContext context) end
+
+    action EnterOutputStatement(OutputContext context) 
+        OutputBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetOutputContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitOutputStatement(OutputContext context) end
+
+    action EnterSystemAction(ActionContext context) end
+    action ExitSystemAction(ActionContext context) end
+
+    action EnterConstructor(ConstructorContext context)
+        ConstructorBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        
+        currentBlock:Add(cast(Block, block))
+        currentBlock = startLine
+
+        scopeDepth = scopeDepth + 1
+    end
+
+    action ExitConstructor(ConstructorContext context)
+        ConstructorBlock block = cast(ConstructorBlock, currentBlock:GetParentBlock())
+        block:AddEndLine()
+        block:Setup()
+        currentBlock = block:GetParentBlock()
+        scopeDepth = scopeDepth - 1
+    end
+
+    action EnterBlueprintAction(ActionContext context) end
+    action ExitBlueprintAction(ActionContext context) end
+
+    action EnterActionHeader(ActionContext context) 
+        ActionBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetActionContext(context)
+
+        currentBlock:Add(cast(Block, block))
+
+        MultipleLineBlockPart startLine = block:AddStartLine()
+
+        // system and blueprint actions are single line blocks
+        if not context:isSystem and not context:isBlueprint
+            currentBlock = startLine
+            scopeDepth = scopeDepth + 1
+        else
+            // Don't change the current block, as this is essentially a single line block. Set up the block immediately.
+            block:Setup()
+        end
+    end
+    action ExitActionHeader(ActionContext context) 
+        
+    end
+
+    action EnterAction(ActionContext context) 
+    end
+    action ExitAction(ActionContext context) 
+        if not context:isSystem and not context:isBlueprint
+            // The current block must be one of the parts of an action block. Get the action block from the part.
+            ActionBlock actionBlock = cast(ActionBlock, currentBlock:GetParentBlock())
+            
+            // Add the last line of the action block.
+            actionBlock:AddEndLine()
+    
+            // Now that all parts have been added, call Setup on the block.
+            actionBlock:Setup()
+    
+            // Go back to the parent of the action block.
+            currentBlock = actionBlock:GetParentBlock()
+            scopeDepth = scopeDepth - 1
+        end
+    end
+
+    action EnterGenericStatement(GenericContext context) end
+    action ExitGenericStatement(GenericContext context) end
+
+    action EnterAnd(AndOrContext context) end
+    action ExitAnd(AndOrContext context) end
+
+    action EnterUndefined(UndefinedContext context) end
+    action ExitUndefined(UndefinedContext context) end
+
+    action EnterIs(IsContext context) end
+    action ExitIs(IsContext context) end
+
+    action EnterIfStatement(IfContext context)
+        IfBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+
+        currentBlock:Add(cast(Block, block))
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        
+        currentBlock = startLine
+
+        scopeDepth = scopeDepth + 1
+    end
+
+    action ExitIfStatement(IfContext context)
+        // The current block must be one of the parts of an if block. Get the if block from the part.
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
+        
+        // Add the last line of the if block.
+        ifBlock:AddEndLine()
+
+        // Now that all parts have been added, call Setup on the block.
+        ifBlock:Setup()
+
+        // Go back to the parent of the if block.
+        currentBlock = ifBlock:GetParentBlock()
+        scopeDepth = scopeDepth - 1
+    end
+
+    action EnterElseIfStatement(IfContext context)
+        // The current block must be one of the parts of an if block. Get the if block from the part.
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
+
+        MultipleLineBlockPart newPart = ifBlock:AddElseifLine(ifBlock:GetChildCount() - 1)
+
+        currentBlock = newPart
+    end
+
+    action ExitElseIfStatement(IfContext context)
+    end
+
+    action EnterElseStatement(IfContext context) 
+        // The current block must be one of the parts of an if block. Get the if block from the part.
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
+
+        MultipleLineBlockPart newPart = ifBlock:AddElseLine()
+
+        currentBlock = newPart
+    end
+
+    action ExitElseStatement(IfContext context) 
+    end
+
+    action EnterAccessModifier(AccessModifierContext context) end
+    action ExitAccessModifier(AccessModifierContext context) end
+
+    action EnterBlock(BlockContext context) end
+    action ExitBlock(BlockContext context) end
+
+    action EnterClassStatements(ClassStatementsContext context) end
+    action ExitClassStatements(ClassStatementsContext context) end
+
+    action EnterQualifiedName(QualifiedNameContext context) end
+    action ExitQualifiedName(QualifiedNameContext context) end
+
+    action EnterLoopStatement(LoopContext context)
+        RepeatBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+
+        currentBlock:Add(cast(Block, block))
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        
+        currentBlock = startLine
+        scopeDepth = scopeDepth + 1
+    end
+
+    action ExitLoopStatement(LoopContext context)
+        RepeatBlock repeatBlock = cast(RepeatBlock, currentBlock:GetParentBlock())
+
+        repeatBlock:AddEndLine()
+        repeatBlock:Setup()
+
+        currentBlock = repeatBlock:GetParentBlock()
+        scopeDepth = scopeDepth - 1
+    end
+
+    action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
+    action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
+
+    action EnterInheritStatements(InheritStatementsContext context) end
+    action ExitInheritStatements(InheritStatementsContext context) end
+
+    action EnterInheritStatement(InheritStatementContext context) end
+    action ExitInheritStatement(InheritStatementContext context) end
+
+    action EnterDetectStatement(DetectStatementContext context)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+
+        MultipleLineBlockPart newPart = checkBlock:AddDetectLine(context)
+
+        currentBlock = newPart
+    end
+    action ExitDetectStatement(DetectStatementContext context) end
+
+    action EnterAlwaysStatement(AlwaysStatementContext context)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+
+        MultipleLineBlockPart newPart = checkBlock:AddAlwaysLine(context)
+
+        currentBlock = newPart
+    end
+    action ExitAlwaysStatement(AlwaysStatementContext context) end
+
+    action EnterAddition(AdditionContext addition) end
+    action ExitAddition(AdditionContext addition) end
+
+    action EnterReturnStatement(ReturnContext context)
+        ReturnBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitReturnStatement(ReturnContext context) end
+
+    action EnterInput(InputContext context) end
+    action ExitInput(InputContext context) end
+
+    action EnterInputNoParameters(InputContext context) end
+    action ExitInputNoParameters(InputContext context) end
+
+    action EnterMultiplication(MultiplicationContext context) end
+    action ExitMultiplication(MultiplicationContext context) end
+
+    action EnterMinus(UnaryMinusContext context) end
+    action ExitMinus(UnaryMinusContext context) end
+
+    action EnterBoolean(BooleanContext context) end
+    action ExitBoolean(BooleanContext context) end
+
+    action EnterAlertStatement(AlertContext context)
+        AlertBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitAlertStatement(AlertContext context) end
+
+    action EnterUse(UseContext context)
+        UseBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitUse(UseContext context) end
+
+    action EnterNot(NotContext context) end
+    action ExitNot(NotContext context) end
+
+    action EnterGenericDeclaration(GenericDeclarationContext context) end
+    action ExitGenericDeclaration(GenericDeclarationContext context) end
+
+    action EnterClassType(ClassTypeContext context) end
+    action ExitClassType(ClassTypeContext context) end
+
+    action EnterEquals(EqualsContext context) end
+    action ExitEquals(EqualsContext context) end
+
+    action EnterInequality(InequalityContext context) end
+    action ExitInequality(InequalityContext context) end
+
+    action EnterInteger(IntegerContext int) end
+    action ExitInteger(IntegerContext int) end
+
+    action EnterPackageRule(PackageContext context)
+        PackageBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitPackageRule(PackageContext context) end
+
+    action EnterNormalAssignment(NormalAssignmentContext context)
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitNormalAssignment(NormalAssignmentContext context)
+    end
+
+    action EnterParentAssignment(ParentAssignmentContext context)
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitParentAssignment(ParentAssignmentContext context) end
+
+    action EnterObjectAssignment(ObjectAssignmentContext context)
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitObjectAssignment(ObjectAssignmentContext context) end
+
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context)
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitNoTypeAssignment(NoTypeAssignmentContext context) end
+
+    action EnterMeVariableAccess(MeVariableAccessContext context) end
+    action ExitMeVariableAccess(MeVariableAccessContext context) end
+
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context)
+        ActionCallBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context)
+        ActionCallBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(editor)
+        block:SetContext(context)
+        currentBlock:Add(cast(Block, block))
+
+        block:Setup()
+    end
+    action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+
+    action EnterInitialParentActionCall(ActionCallContext ctx) end
+    action ExitInitialParentActionCall(ActionCallContext ctx) end
+
+    action EnterVariableFunctionCall(VariableFunctionCallContext context) end
+    action ExitVariableFunctionCall(VariableFunctionCallContext context) end
+
+    action EnterParentVariableFunctionCall(ParentVariableFunctionCallContext context) end
+    action ExitParentVariableFunctionCall(ParentVariableFunctionCallContext context) end
+
+    action EnterActionCall(ActionCallContext ctx) end
+    action ExitActionCall(ActionCallContext ctx) end
+
+    action GetStartContext returns StartContext
+        return startContext
+    end
+
+    action SetStartContext(StartContext startContext)
+        me:startContext = startContext
+    end
+
+    /*
+        The start and end line to parse off of.
+    */
+    action Update(integer start, integer finish) returns RootBlock
+        startLine = start
+        finishLine = finish
+        if startContext = undefined
+            return undefined
+        end
+
+        rootBlock:EmptyChildBlocks()
+        rootBlock:SetEditor(editor)
+        rootBlock:SetStartContext(startContext)
+        currentBlock = rootBlock
+
+        startContext:Traverse(me)
+
+        return rootBlock
+    end
+
+    action GetCodeEditor returns CodeEditor
+        return editor
+    end
+
+    action SetCodeEditor(CodeEditor editor)
+        me:editor = editor
+    end
+
+end

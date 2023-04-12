@@ -1,0 +1,70 @@
+package Libraries.Interface.Controls.Blocks.Layouts
+
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.Controls.BlockItem
+
+class ScopeBlockLayout is Layout
+
+    action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        Block block = cast(Block, container)
+        CodeEditor editor = block:GetEditor()
+
+        integer currentLine = -1
+        integer lineRange = block:GetEndLine() - block:GetStartLine()
+        number x = block:GetLeftPadding()
+        number y = editor:GetLineHeight(block:GetStartLine()) / 2.0
+        number totalWidth = 0
+
+        integer i = 0
+        repeat while i < items:GetSize()
+            if items:Get(i) is BlockItem
+                BlockItem control = cast(BlockItem, items:Get(i))
+                
+                integer line = control:GetRelativeLineIndex()
+                if currentLine not= line
+                    x = block:GetLeftPadding()
+                    y = GetHeightToLine(block, lineRange, line) + editor:GetLineHeight(block:GetStartLine()) / 2.0
+                    currentLine = line
+                end
+
+                x = x + control:GetLeftPadding()
+                
+                if control:GetDefaultLayoutProperties():NeedsRendering()
+                    control:LoadGraphics(control:GetDefaultLayoutProperties())
+                end
+
+                // For now, assume the element is capable of figuring out its own size during a Resize.
+                control:Resize()
+
+                control:SetPosition(x, y - control:GetHeight() / 2.0)
+                x = x + control:GetWidth() + control:GetRightPadding()
+                if x > totalWidth
+                    totalWidth = x
+                end
+            end
+            i = i + 1
+        end
+
+        block:SetSize(editor:GetTotalContentWidth() - (block:GetScopeDepth() * 4.5 + 1) * editor:GetDefaultGlyphWidth(), GetHeightToLine(block, lineRange, -1))
+    end
+
+    private action GetHeightToLine(Block block, integer lineRange, integer targetRelativeIndex) returns number
+        number result = 0
+        CodeEditor editor = block:GetEditor()        
+        integer startLine = block:GetStartLine()
+
+        integer i = lineRange
+        repeat until i <= targetRelativeIndex
+            result = result + editor:GetLineHeight(startLine + i)
+            i = i - 1
+        end
+
+        return result
+    end
+
+end

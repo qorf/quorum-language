@@ -1,0 +1,132 @@
+package Libraries.Interface.Events
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.MultipleLineText
+
+class BlockChangeEvent
+
+    public constant integer ADDED = 1
+    public constant integer DELETED = 2
+    public constant integer MODIFIED = 3
+    public constant integer TEXT_CHANGE = 4
+
+    CodeEditor editor = undefined
+    Block block = undefined
+    Block parentBlock = undefined
+    integer eventType = 0
+    integer blockIndex = -1
+    text added = ""
+    text deleted = ""
+    boolean deleteContents = false
+    integer characterIndex = 0
+    MultipleLineText oldCode
+    MultipleLineText newCode
+    
+
+    /*
+        The Set action sets all the fields of the event. When creating a new event this action is called so the 
+        object contains all the information needed for the listeners to react to it.
+
+        Attribute: Parameter editor The Block Editor where the event happened
+        Attribute: Parameter block The block that was added or removed
+        Attribute: Parameter parentBlock The parent block of the affected item
+        Attribute: Parameter eventType The type of event, 1 for ADDED, 2 for REMOVED, 3 for MODIFIED
+    */
+    action Set(CodeEditor editor, integer characterIndex, integer blockIndex, Block block, Block parentBlock, text added, text deleted, integer eventType)
+        me:editor = editor
+        me:block = block
+        me:parentBlock = parentBlock
+        me:eventType = eventType
+        me:blockIndex = blockIndex
+        me:added = added
+        me:deleted = deleted
+        me:characterIndex = characterIndex
+    end
+
+    action Set(CodeEditor editor, MultipleLineText oldText, MultipleLineText newText)
+        me:editor = editor
+        me:eventType = TEXT_CHANGE
+        me:oldCode = oldText
+        me:newCode = newText
+    end
+
+    /*
+        Returns the BlockEditor where the event happened
+
+        Attribute: Returns The block editor
+    */
+    action GetBlockEditor returns CodeEditor
+        return editor
+    end
+
+    /*
+        Returns the item that was added or removed
+
+        Attribute: Returns The item that was added or removed
+    */
+    action GetBlock returns Block
+        return block
+    end
+
+    /*
+        Returns the parent of the item that triggered the event
+
+        Attribute: Returns The parent item
+    */
+    action GetParentBlock returns Block
+        return parentBlock
+    end
+
+
+    /*
+        Returns the event type. If 1 the item was added, if 2 the item was removed.
+
+        Attribute: Returns The event type
+    */
+    action GetEventType returns integer
+        return eventType
+    end
+
+    action GetBlockIndex returns integer
+        return blockIndex
+    end
+
+    action GetCharacterIndex returns integer
+        return characterIndex
+    end
+
+    action SetAddedText(text added)
+        me:added = added
+    end
+
+    action GetAddedText returns text
+        return added
+    end
+
+    action SetDeletedText(text deleted)
+        me:deleted = deleted
+    end
+
+    action GetDeletedText returns text
+        return deleted
+    end
+
+    action SetPreserveChildren(boolean deleteContents)
+        me:deleteContents = deleteContents
+    end
+
+    action GetPreserveChildren returns boolean
+        return deleteContents
+    end
+
+    action GetOldCode returns MultipleLineText
+        return oldCode
+    end
+
+    action GetNewCode returns MultipleLineText
+        return newCode
+    end
+
+end

@@ -1,0 +1,66 @@
+package Libraries.Interface.Controls.Blocks
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.CodeEditor
+
+class SingleLineBlock is Block
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            SingleLineBlockView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    private action AddChildBlock(Block block)
+        alert("I was asked to add a block named " + block:GetName() + " to the block named " + GetName() + ", but single line blocks can't have children blocks.")
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    private action AddChildBlock(integer index, Block block)
+        alert("I was asked to add a block named " + block:GetName() + " to the block named " + GetName() + ", but single line blocks can't have children blocks.")
+    end
+
+    action RemoveChildBlock(Block block) returns boolean
+        return false
+    end
+
+    action RemoveChildBlock(integer index) returns Block
+        return undefined
+    end
+
+    action EmptyChildBlocks
+    end
+
+    action GetChildCount returns integer
+        return 0
+    end
+
+    action GetChild(integer index) returns Block
+        alert("I could not get a child node from the block " + GetName() + " because single line blocks cannot have children blocks.")
+    end
+
+    action GetName returns text
+        CodeEditor editor = GetEditor()
+        if GetStartIndex() >= 0 and GetEndIndex() >= 0 and editor not= undefined
+            check
+               return editor:GetCode():GetText(GetStartIndex(), GetEndIndex())
+            detect error
+                return parent:Item:GetName()
+            end
+        end
+        return parent:Item:GetName()
+    end
+end

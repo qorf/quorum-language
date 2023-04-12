@@ -1,0 +1,157 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.Layouts.SingleLineBlockLayout
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Controls.BlockLabel
+use Libraries.Interface.Controls.Blocks.Controls.EditRegion
+use Libraries.Interface.Controls.Blocks.Controls.EditField
+use Libraries.Interface.Controls.Blocks.Controls.EditBox
+
+class MultipleLineBlockPart is SingleLineBlock
+
+    Array<Block> childBlocks
+
+    on create
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        /*
+        Give block parts a default local line value of 0.
+        Each multi-line block should have a part at the top, so this is a reasonable default.
+        */
+        SetLocalStartLine(0)
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    private action AddChildBlock(Block block)
+        childBlocks:Add(block)
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    private action AddChildBlock(integer index, Block block)
+        childBlocks:Add(index, block)
+    end
+
+    private action RemoveChildBlock(Block block) returns boolean
+        return childBlocks:Remove(block)
+    end
+
+    private action RemoveChildBlock(integer index) returns Block
+        return childBlocks:RemoveAt(index)
+    end
+
+    action GetChildCount returns integer
+        return childBlocks:GetSize()
+    end
+
+    action GetChild(integer index) returns Block
+        return childBlocks:Get(index)
+    end
+
+    action Remove(Block block) returns boolean
+        return childBlocks:Remove(block)
+    end
+
+    action EmptyChildBlocks
+        childBlocks:Empty()
+    end
+
+    action GetInterfaceOptionsKey returns text
+        Block parentBlock = GetParentBlock()
+
+        if parentBlock not= undefined
+            return parentBlock:GetInterfaceOptionsKey()
+        end
+
+        return parent:Block:GetInterfaceOptionsKey()
+    end
+
+    action GetLeftPadding returns number
+        Block parentBlock = GetParentBlock()
+
+        if parentBlock not= undefined
+            return parentBlock:GetLeftPadding()
+        end
+
+        return parent:Block:GetLeftPadding()
+    end
+
+    action GetRightPadding returns number
+        Block parentBlock = GetParentBlock()
+
+        if parentBlock not= undefined
+            return parentBlock:GetRightPadding()
+        end
+
+        return parent:Block:GetRightPadding()
+    end
+
+    private action SetupElements
+        // Do nothing. Block parts need to be setup on a per-component basis by their parent during their own SetupElements action.
+    end
+
+    action UpdateName(integer selectedLine)
+        /*
+        TO-DO: Re-evalulate this. This should likely pull the text directly from the MultipleLineText, 
+        but to do that, GetStartIndex and GetEndIndex need to function correctly for parts first.
+        */
+
+        Array<Item2D> children = GetChildren()
+        text result = ""
+
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D current = children:Get(i)
+            if current is BlockLabel
+                BlockLabel label = cast(BlockLabel, current)
+                result = result + label:GetText() + " "
+            elseif current is EditField
+                EditField edit = cast(EditField, current)
+                result = result + edit:GetText() + " "
+            elseif current is EditBox
+                EditBox edit = cast(EditBox, current)
+                result = result + edit:GetText() + " "
+            end
+
+            i = i + 1
+        end
+
+        SetName(result)
+    end
+
+    private action InitializeLocalIndices
+        /*
+        Do nothing. We can't automate the local indices for parts in the same way
+        we can for most other blocks, because the parts might be represented by a
+        number of different contexts (or none at all).
+        */
+    end
+
+    /*
+    Returns true if this block can be rendered directly, or false otherwise.
+    If this is false, either the item shouldn't be rendered (RootBlock) or should
+    be rendered by a parent object (MultpleLineBlockParts).
+    */
+    action IsDirectlyRenderable returns boolean
+        return false
+    end
+
+    action GetScopeDepth returns integer
+        // The scope depth of a block part always matches the parent MultipleLineBlock.
+        Block block = GetParentBlock()
+        if block not= undefined
+            return block:GetScopeDepth()
+        else
+            return parent:Block:GetScopeDepth()
+        end
+    end
+
+end

@@ -1,0 +1,86 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.CodeEditor
+
+/*
+A dummy RootBlock used by the FreeformBlockListener.
+This represents a temporary parent for generating multiple line
+block parts when converting FreeformBlocks.
+*/
+class FreeformDummyRootBlock is Block
+
+    Array<Block> childBlocks
+
+    on create
+        SetName("Dummy Root Block")
+        SetFocusable(false)
+    end
+
+    /*
+    Nests a block into this block. The root block can accept any block type.
+    */
+    private action AddChildBlock(Block block)
+        childBlocks:Add(block)
+    end
+
+    /*
+    Nests a block into this block. The root block can accept any block type.
+    */
+    private action AddChildBlock(integer index, Block block)
+        childBlocks:Add(index, block)
+    end
+
+    private action RemoveChildBlock(Block block) returns boolean
+        return childBlocks:Remove(block)
+    end
+
+    private action RemoveChildBlock(integer index) returns Block
+        return childBlocks:RemoveAt(index)
+    end
+
+    action EmptyChildBlocks
+        childBlocks:Empty()
+    end
+
+    action GetChildCount returns integer
+        return childBlocks:GetSize()
+    end
+
+    action GetChild(integer index) returns Block
+        return childBlocks:Get(index)
+    end
+
+    private action SetupElements
+        // Do nothing. The root block exists only as a root of a tree structure, it is never drawn and has no elements.
+    end
+
+    action UpdateName(integer selectedLine)
+        // Do nothing. Since the root block can't be selected, its name doesn't change.
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        // Do nothing but call the parent. We explicitly don't want to create a view because this block will never be rendered.
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+    Returns true if this block can be navigated to, or false otherwise.
+    */
+    action IsNavigable returns boolean
+        return false
+    end
+
+    /*
+    Returns true if this block can be rendered directly, or false otherwise.
+    If this is false, either the item shouldn't be rendered (RootBlock) or should
+    be rendered by a parent object (MultpleLineBlockParts).
+    */
+    action IsDirectlyRenderable returns boolean
+        return false
+    end
+
+end

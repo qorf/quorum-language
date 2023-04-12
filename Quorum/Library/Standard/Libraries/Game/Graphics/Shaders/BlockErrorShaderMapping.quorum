@@ -1,0 +1,341 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGLConstants
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Views.ToggleView
+use Libraries.Interface.Controls.Tab
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.DefaultVertexAttributes2D
+use Libraries.Game.Graphics.Mesh
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.NumberUtilities
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Views.BlockErrorShaderView
+
+class BlockErrorShaderMapping is BatchingShaderMapping2D
+
+    ShaderProgram program = undefined
+    GameStateManager manager
+    NumberUtilities utility
+
+    constant integer BATCH_SIZE = 200
+
+    VertexAttribute borderColorAttribute = undefined
+    VertexAttribute arrayIndexAttribute = undefined
+    VertexAttribute roundingAttribute = undefined
+    VertexAttribute leftBorderAttribute = undefined
+    VertexAttribute rightBorderAttribute = undefined
+    VertexAttribute bottomBorderAttribute = undefined
+    VertexAttribute topBorderAttribute = undefined
+    VertexAttribute aspectRatioAttribute = undefined
+    VertexAttribute antiAliasAttribute = undefined
+    VertexAttribute notchSizeAttribute = undefined
+    VertexAttribute notchPositionAttribute = undefined
+
+    // Fetched during vertex mapping, and set just before rendering occurs as a uniform value.
+    number notchHeight = 0
+
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private action InitializeMesh(Mesh mesh)
+        DefaultVertexAttributes2D attributes
+        Array<VertexAttribute> extraAttributes
+        VertexAttribute dummy
+        borderColorAttribute = dummy:CustomColorAttribute("a_borderColor")
+        roundingAttribute = dummy:CustomNormalizedVector4Attribute("a_rounding")
+        leftBorderAttribute = dummy:CustomNumberAttribute("a_leftBorder")
+        rightBorderAttribute = dummy:CustomNumberAttribute("a_rightBorder")
+        bottomBorderAttribute = dummy:CustomNumberAttribute("a_bottomBorder")
+        topBorderAttribute = dummy:CustomNumberAttribute("a_topBorder")
+        aspectRatioAttribute = dummy:CustomNumberAttribute("a_aspectRatio")
+        antiAliasAttribute = dummy:CustomNumberAttribute("a_antiAlias")
+        notchSizeAttribute = dummy:CustomVectorAttribute("a_notchSize", 3)
+        notchPositionAttribute = dummy:CustomVectorAttribute("a_notchPositions", 2)
+        extraAttributes:Add(borderColorAttribute)
+        extraAttributes:Add(roundingAttribute)
+        extraAttributes:Add(leftBorderAttribute)
+        extraAttributes:Add(rightBorderAttribute)
+        extraAttributes:Add(bottomBorderAttribute)
+        extraAttributes:Add(topBorderAttribute)
+        extraAttributes:Add(aspectRatioAttribute)
+        extraAttributes:Add(antiAliasAttribute)
+        extraAttributes:Add(notchSizeAttribute)
+        extraAttributes:Add(notchPositionAttribute)
+        attributes:SetAttributes(extraAttributes)
+        
+        /*
+        We need a mesh with enough 32-bit float values for the vertices, and the correct number of indices.
+        The "vertexSize" value is calculated as bytes, not floats, so we divide by 4 to get the correct number.
+        We multiply by 4 because we'll be rendering quads (4 points per Drawable).
+
+        For the indices, we need 2 triangles (3 points each) to render a quad, so we multiply by 6 to store the values in the array.
+        */
+        mesh:Load(false, (attributes:parent:VertexAttributes:vertexSize / 4) * 4 * BATCH_SIZE, 6 * BATCH_SIZE, attributes)
+
+        integer length = 6 * BATCH_SIZE
+        Integer32BitArray indices
+        indices:SetSize(length)
+
+        integer indexCounter = 0
+        integer vertexCounter = 0
+
+        // Setup the indices to make pairs of triangles to render quads of vertices.
+        repeat while indexCounter < length
+            indices:Set(indexCounter, vertexCounter)
+            indices:Set(indexCounter + 1, vertexCounter + 1)
+            indices:Set(indexCounter + 2, vertexCounter + 2)
+            indices:Set(indexCounter + 3, vertexCounter + 2)
+            indices:Set(indexCounter + 4, vertexCounter + 3)
+            indices:Set(indexCounter + 5, vertexCounter)
+
+            indexCounter = indexCounter + 6
+            vertexCounter = vertexCounter + 4
+        end
+
+        mesh:SetIndices(indices)
+    end
+
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        number leftBorder = 0
+        number topBorder = 0
+        number rightBorder = 0
+        number bottomBorder = 0
+
+        number bottomLeftRounding = 0
+        number bottomRightRounding = 0
+        number topRightRounding = 0
+        number topLeftRounding = 0
+
+        number borderThickness = 0
+        ColorGroup borderColor = undefined
+        ColorGroup backgroundColor = undefined
+
+        number width = drawable:GetWidth() * drawable:GetScaleX()
+        number height = drawable:GetHeight() * drawable:GetScaleY()
+        number aspectRatio = width / height
+
+        boolean selected = false
+
+        /*
+        We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
+        1. The drawable's shader data
+        2. If the drawable itself is a Control
+        3. If the drawable is a view, see if the view is attached to a Control
+        */
+        if drawable:GetShaderData() is LayoutProperties
+            LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
+            
+            borderThickness = (1.0 / height) * (properties:GetBorderThickness() * properties:GetInterfaceScale())
+
+            if borderThickness > 0
+                if properties:HasLeftBorder()
+                    leftBorder = borderThickness
+                end
+                if properties:HasTopBorder()
+                    topBorder = borderThickness
+                end
+                if properties:HasRightBorder()
+                    rightBorder = borderThickness
+                end
+                if properties:HasBottomBorder()
+                    bottomBorder = borderThickness
+                end
+            end
+
+            bottomLeftRounding = properties:GetBottomLeftRounding()
+            bottomRightRounding = properties:GetBottomRightRounding()
+            topRightRounding = properties:GetTopRightRounding()
+            topLeftRounding = properties:GetTopLeftRounding()
+
+            if properties:GetBorderColor() not= undefined
+                borderColor = properties:GetBorderColor():GetBottomLeft()
+            end
+            backgroundColor = properties:GetBackgroundColor()
+        else
+            Control control = undefined
+
+            if drawable:GetShaderData() is Control
+                control = cast(Control, drawable:GetShaderData())
+            elseif drawable is Control
+                control = cast(Control, cast(Object, drawable))
+            elseif drawable is View2D
+                View2D view = cast(View2D, cast(Object, drawable))
+                Item2D item = view:GetItem()
+                if item is Control
+                    control = cast(Control, item)
+                end
+                if view is ToggleView
+                    ToggleView toggle = cast(ToggleView, view)
+                    selected = toggle:GetToggleState()
+                end
+            end
+
+            if control not= undefined
+                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+
+                if borderThickness > 0
+                    if control:HasLeftBorder()
+                        leftBorder = borderThickness
+                    end
+                    if control:HasTopBorder()
+                        topBorder = borderThickness
+                    end
+                    if control:HasRightBorder()
+                        rightBorder = borderThickness
+                    end
+                    if control:HasBottomBorder()
+                        bottomBorder = borderThickness
+                    end
+                end
+    
+                bottomLeftRounding = control:GetBottomLeftRounding()
+                bottomRightRounding = control:GetBottomRightRounding()
+                topRightRounding = control:GetTopRightRounding()
+                topLeftRounding = control:GetTopLeftRounding()
+
+                /*
+                Determine what color the control should be, based on how the user is interacting with it.
+                We check a hierarchy of potential events, falling through to the next case if the event
+                wasn't fulfilled or if there was no color assigned to that event.
+                */
+                if control:IsRenderingMouseDown()
+                    backgroundColor = control:GetMouseDownColor()
+                end
+
+                if control:IsRenderingSelection() or selected
+                    if control:IsRenderingFocus() = false
+                        if backgroundColor = undefined
+                            backgroundColor = control:GetUnfocusedSelectionColor()
+                        end
+                        if borderColor = undefined
+                            borderColor = control:GetUnfocusedSelectionBorderColor()
+                        end
+                    end
+
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetSelectionColor()
+                    end
+                    if borderColor = undefined
+                        borderColor = control:GetSelectionBorderColor()
+                    end
+                end
+
+                if backgroundColor = undefined and control:IsRenderingMouseOver()
+                    backgroundColor = control:GetMouseOverColor()
+                end
+
+                if control:IsFocused()
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetFocusColor()
+                    end
+
+                    if borderColor = undefined
+                        borderColor = control:GetFocusBorderColor()
+                    end
+                end
+
+                if backgroundColor = undefined
+                    backgroundColor = control:GetBackgroundColor()
+                end
+
+                // Get the border color, as well.
+                if borderColor = undefined
+                    borderColor = control:GetBorderColor()
+                end
+            end
+        end
+
+        if backgroundColor not= undefined
+            drawable:GetDrawableShape():SetColor(backgroundColor)
+        end
+
+        if borderColor not= undefined
+            if borderColor is Color
+                Color border = cast(Color, borderColor)
+                shape:SetDataForAllVertices(borderColorAttribute:offset / 4, border:EncodeColorAsNumber())
+            else
+                Color bottomRight = borderColor:GetBottomRight()
+                Color bottomLeft = borderColor:GetBottomLeft()
+                Color topRight = borderColor:GetTopRight()
+                Color topLeft = borderColor:GetTopLeft()
+                shape:SetVertexData(borderColorAttribute:offset / 4, bottomRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+            end
+        else
+            shape:SetDataForAllVertices(borderColorAttribute:offset / 4, 0)
+        end
+
+        number topWidth = 20
+        number bottomWidth = 10
+        number topX = 10
+        number bottomX = 10
+        if drawable is BlockErrorShaderView
+            BlockErrorShaderView blockView = cast(BlockErrorShaderView, drawable)
+            Block block = cast(Block, blockView:GetItem())
+            CodeEditor editor = block:GetEditor()
+
+            topWidth = editor:GetBlockNotchTopWidth()
+            bottomWidth = editor:GetBlockNotchBottomWidth()
+            notchHeight = editor:GetBlockNotchHeight()
+
+            topX = block:GetTopNotchPosition() + (topWidth / 2.0)
+            bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+        end
+        /*
+        Counter-intuitively, we actually divide by the height, not the width, to get the proportional
+        trapezoid width values. This is because we'll already be offsetting the width in the shader via
+        the aspect ratio, so we need to provide the height as the "raw" value and allow the shader to
+        correct it later.
+        */
+        topWidth = topWidth / height
+        bottomWidth = bottomWidth / height
+        number adjustedNotchHeight = notchHeight / height
+
+        topX = topX / width
+        bottomX = bottomX / width
+
+        shape:SetDataForAllVertices(roundingAttribute:offset / 4, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
+        shape:SetDataForAllVertices(leftBorderAttribute:offset / 4, leftBorder)
+        shape:SetDataForAllVertices(rightBorderAttribute:offset / 4, rightBorder)
+        shape:SetDataForAllVertices(bottomBorderAttribute:offset / 4, bottomBorder)
+        shape:SetDataForAllVertices(topBorderAttribute:offset / 4, topBorder)
+        shape:SetDataForAllVertices(aspectRatioAttribute:offset / 4, aspectRatio)
+        shape:SetDataForAllVertices(antiAliasAttribute:offset / 4, 1.0 / height)
+        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4, bottomWidth)
+        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4 + 1, adjustedNotchHeight)
+        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4 + 2, topWidth)
+        shape:SetDataForAllVertices(notchPositionAttribute:offset / 4, bottomX)
+        shape:SetDataForAllVertices(notchPositionAttribute:offset / 4 + 1, topX)
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        program:SetShaderInput("u_notchHeight", notchHeight)
+        program:SetShaderInput("iTime", manager:GetGameDisplay():GetSecondsSinceStart())
+
+        parent:BatchingShaderMapping2D:RenderBatch(program, camera)
+    end
+end
