@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.GlyphDrawable
+use Libraries.Interface.Controls.Control
 
 class BorderedFontShaderMapping is BatchingShaderMapping2D
 
@@ -80,6 +81,26 @@ class BorderedFontShaderMapping is BatchingShaderMapping2D
             borderThickness = glyph:GetOutlineThickness()
         end
         
+        // Get the color from a control, or if the drawable is a child of a control, get that instead.
+        Control control = undefined
+        if drawable is Control
+            control = cast(Control, cast(Object, drawable))
+        elseif drawable:GetParent() is Control
+            control = cast(Control, cast(Object, drawable:GetParent()))
+        end
+
+        if control not= undefined
+            ColorGroup color = control:GetFontOutlineColor()
+            number thickness = control:GetFontOutlineThickness()
+
+            if color not= undefined
+                borderColor = color
+            end
+            if thickness > 0
+                borderThickness = thickness
+            end
+        end
+
         if borderColor is Color
             Color border = cast(Color, borderColor)
             shape:SetDataForAllVertices(borderColorAttribute:offset / 4, border:EncodeColorAsNumber())

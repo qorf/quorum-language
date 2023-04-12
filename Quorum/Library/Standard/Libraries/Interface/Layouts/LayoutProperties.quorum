@@ -722,7 +722,23 @@ class LayoutProperties
         optionsKey = key
     end
 
-        action SetBackgroundColor(ColorGroup value)
+    action GetContainerGridWidth returns integer
+        return containerGridWidth
+    end
+
+    action SetContainerGridWidth(integer containerGridWidth)
+        me:containerGridWidth = containerGridWidth
+    end
+
+    action GetContainerGridHeight returns integer
+        return containerGridHeight
+    end
+
+    action SetContainerGridHeight(integer containerGridHeight)
+        me:containerGridHeight = containerGridHeight
+    end
+
+    action SetBackgroundColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
         end
@@ -812,6 +828,29 @@ class LayoutProperties
         end
 
         return default:GetFontColor()
+    end
+
+    action SetFontOutlineColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFontOutlineColor(value)
+        needsRendering = true
+    end
+
+    action GetFontOutlineColor returns ColorGroup
+        if options not= undefined and options:GetFontOutlineColor() not= undefined
+            return options:GetFontOutlineColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetFontOutlineColor() not= undefined
+            return controlPalette:GetFontOutlineColor()
+        end
+
+        return default:GetFontOutlineColor()
     end
 
     action SetBorderColor(ColorGroup value)
@@ -1312,6 +1351,46 @@ class LayoutProperties
         end
 
         return default:HasBorderThickness()
+    end
+
+    action SetFontOutlineThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFontOutlineThickness(value)
+        needsRendering = true
+    end
+
+    action GetFontOutlineThickness returns number
+        if options not= undefined and options:GetFontOutlineThickness():IsNotANumber() = false
+            return options:GetFontOutlineThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFontOutlineThickness()
+            return controlPalette:GetFontOutlineThickness()
+        end
+
+        if default:HasFontOutlineThickness()
+            return default:GetFontOutlineThickness()
+        end
+        return 0
+    end
+
+    action HasFontOutlineThickness returns boolean
+        if options not= undefined and options:HasFontOutlineThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFontOutlineThickness()
+            return true
+        end
+
+        return default:HasFontOutlineThickness()
     end
 
     action SetTopLeftRounding(number value)
@@ -1832,22 +1911,6 @@ class LayoutProperties
         end
 
         return default:HasShadowEdgeFade()
-    end
-
-    action GetContainerGridWidth returns integer
-        return containerGridWidth
-    end
-
-    action SetContainerGridWidth(integer containerGridWidth)
-        me:containerGridWidth = containerGridWidth
-    end
-
-    action GetContainerGridHeight returns integer
-        return containerGridHeight
-    end
-
-    action SetContainerGridHeight(integer containerGridHeight)
-        me:containerGridHeight = containerGridHeight
     end
 
 end
