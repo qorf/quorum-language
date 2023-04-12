@@ -12,7 +12,7 @@ use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Checkbox
 
-class FormContainerControl is FormContainerInterface, Control
+class FormContainerControl is Control
 
     Label titleLabel = undefined
 
@@ -176,8 +176,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is Button
                 return cast(Button, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Button candidate = interface:GetButton(name)
                 if candidate not= undefined
                     return candidate
@@ -222,8 +222,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is Label
                 return cast(Label, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Label candidate = interface:GetLabel(name)
                 if candidate not= undefined
                     return candidate
@@ -270,8 +270,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is Icon
                 return cast(Icon, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Icon candidate = interface:GetIcon(name)
                 if candidate not= undefined
                     return candidate
@@ -306,8 +306,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is TextField
                 return cast(TextField, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 TextField candidate = interface:GetTextField(name)
                 if candidate not= undefined
                     return candidate
@@ -355,8 +355,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is Checkbox
                 return cast(Checkbox, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Checkbox candidate = interface:GetCheckbox(name)
                 if candidate not= undefined
                     return candidate
@@ -393,8 +393,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name and control is List
                 return cast(List, control)
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 List candidate = interface:GetList(name)
                 if candidate not= undefined
                     return candidate
@@ -413,8 +413,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name
                 return control
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Item2D candidate = interface:FindControl(name)
                 if candidate not= undefined
                     return candidate
