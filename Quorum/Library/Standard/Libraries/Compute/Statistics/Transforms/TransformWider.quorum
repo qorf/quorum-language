@@ -281,10 +281,8 @@ class TransformWider is DataFrameTransform
         DataFrame convertedNewFrame
         i = 0
         repeat while i < newFrame:GetSize()
-            DataFrameColumn column = undefined
-            check
-                column = newFrame:GetColumn(i):ConvertToNumberColumn()
-            detect e
+            DataFrameColumn column = newFrame:GetColumn(i):ConvertToNumberColumn()
+            if column:IsUndefined()
                 column = newFrame:GetColumn(i)
             end
             convertedNewFrame:AddColumn(column)
