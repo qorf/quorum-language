@@ -121,7 +121,23 @@ class TransformLonger is DataFrameTransform
         end
         newFrame:AddColumn(names)      
         newFrame:AddColumn(values)   
-        return newFrame
+
+
+        // Attempt to make the new columns numerical columns if possible
+        DataFrame convertedNewFrame
+        i = 0
+        repeat while i < newFrame:GetSize()
+            DataFrameColumn column = undefined
+            check
+                column = newFrame:GetColumn(i):ConvertToNumberColumn()
+            detect e
+                column = newFrame:GetColumn(i)
+            end
+            convertedNewFrame:AddColumn(column)
+            i = i + 1
+        end 
+
+        return convertedNewFrame
     end
 
     action SetNamesHeader(text namesHeader)
