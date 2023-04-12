@@ -58,9 +58,6 @@ class Label is Control
     boolean positionOnBaseLine = true
 
     integer lineCount = 0
-    number outlineThickness = 0
-
-    ColorGroup outlineColor = undefined
 
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
@@ -68,10 +65,6 @@ class Label is Control
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
         SetName("Label")
         SetInterfaceOptionsKey("Label")
-
-        Color black
-        black:SetColor(0, 0, 0, 1)
-        outlineColor = black
     end
 
 
@@ -656,6 +649,12 @@ class Label is Control
 
         Font font = GetFont()
         if font:IsLoaded()
+            // Ensure we're using a bordered font if needed.
+            boolean isBordered = GetFontOutlineThickness() > 0 and GetFontOutlineColor() not= undefined
+            if font:IsBordered() not= isBordered
+                font:SetBordered(isBordered)
+            end
+
             textChanged = false
 
             LayoutProperties properties = GetCurrentLayoutProperties()
@@ -741,6 +740,13 @@ class Label is Control
 
             ColorGroup fontColor = GetCurrentColor()
 
+            number outlineThickness = 0
+            if HasFontOutlineThickness()
+                outlineThickness = GetFontOutlineThickness()
+            end
+
+            ColorGroup outlineColor = GetFontOutlineColor()
+
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
                 wordsIndex = 0
@@ -781,7 +787,7 @@ class Label is Control
                             GlyphDrawable newDrawable = GetDrawable()
                             newDrawable:SetName("Glyph")
 
-                            if outlineThickness > 0
+                            if isBordered
                                 newDrawable:LoadBorderedGlyph(glyph, outlineThickness, outlineColor)
                             else
                                 newDrawable:LoadGlyph(glyph)
@@ -1129,10 +1135,6 @@ class Label is Control
         return lineCount
     end
 
-    action GetOutlineThickness returns number
-        return outlineThickness
-    end
-
     /*
     This action sets the thickness of the outlines around the text, in pixels.
     By default, this is 0. The thickness can be set to a maximum of 8 pixels,
@@ -1158,25 +1160,16 @@ class Label is Control
             label:SetPosition(100, 300)
             label:SetText("Hello world!")
             label:SetFontColor(color:White())
-            label:SetOutlineThickness(2)
-            label:SetOutlineColor(color:Black())
+            label:SetFontOutlineThickness(2)
+            label:SetFontOutlineColor(color:Black())
             Add(label)
         end
     end
     */
-    action SetOutlineThickness(number outlineThickness)
-        if me:outlineThickness = outlineThickness
-            return now
-        end
-
+    action SetFontOutlineThickness(number outlineThickness)
+        parent:Control:SetFontOutlineThickness(outlineThickness)
         textChanged = true
         GetFont():SetBordered(outlineThickness > 0)
-
-        me:outlineThickness = outlineThickness
-    end
-
-    action GetOutlineColor returns ColorGroup
-        return outlineColor
     end
 
     /*
@@ -1203,14 +1196,14 @@ class Label is Control
             label:SetPosition(100, 300)
             label:SetText("Hello world!")
             label:SetFontColor(color:White())
-            label:SetOutlineThickness(2)
-            label:SetOutlineColor(color:Black())
+            label:SetFontOutlineThickness(2)
+            label:SetFontOutlineColor(color:Black())
             Add(label)
         end
     end
     */
-    action SetOutlineColor(ColorGroup color)
-        outlineColor = color
+    action SetFontOutlineColor(ColorGroup color)
+        parent:Control:SetFontOutlineColor(color)
         textChanged = true
     end
 
