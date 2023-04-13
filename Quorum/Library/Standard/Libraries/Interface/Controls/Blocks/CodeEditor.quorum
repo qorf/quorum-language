@@ -936,8 +936,13 @@ class CodeEditor is ScrollableLineControl
         integer textSize = endIndex - targetIndex
         text deletedText = rawCode:GetText(targetIndex, endIndex)
 
-        Block parentBlock = block:GetParentBlock():GetParentBlock()
+        Block parentBlock = block:GetParentBlock()
         parentBlock:Remove(block)
+
+        // get the whole multiple line block parent unless the block is directly attached to the root
+        if not (parentBlock is RootBlock)
+            parentBlock = parentBlock:GetParentBlock()
+        end
 
         /*
         Call OffsetIndices on the parent. By passing false for the final parameter,
