@@ -1,0 +1,76 @@
+package Libraries.Compute.Statistics.Transforms
+
+use Libraries.Compute.Statistics.DataFrameTransform
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+
+/*
+    This action takes the data from two DataFrame objects and combines them into a copy.
+    This class is not very flexible and requires that the frames are the same size. If
+    the frame to combine into has different column types and are not compatible, the
+    new values fill as undefined positions.
+
+    Attribute: Author Andreas Stefik 
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Transforms.CombineFramesTransform
+    DataFrame frame
+    frame:LoadFromCommaSeparatedValue(
+    "A,B
+    1,2
+    3,4
+    5,6"
+    )
+    
+    DataFrame frame2
+    frame2:LoadFromCommaSeparatedValue(
+    "A,B
+    7,8
+    9,10
+    11,12"
+    )
+    
+    CombineFramesTransform transform
+    transform:SetToCombine(frame2)
+    DataFrame adding = transform:Transform(frame)
+    output adding:ToText()
+*/
+class CombineFramesTransform is DataFrameTransform
+    DataFrame toCombine = undefined
+    action Transform(DataFrame frame) returns DataFrame 
+        if toCombine = undefined or frame = undefined
+            alert("Cannot combine an undefined frame.")
+        end
+
+        if toCombine:GetSize() not= frame:GetSize()
+            alert("Cannot combine data frames of different sizes")
+        end
+
+        DataFrame combined
+        i = 0
+        size = frame:GetSize()
+        repeat while i < size
+            DataFrameColumn original = frame:GetColumn(i)
+            DataFrameColumn copy = original:Copy()
+            DataFrameColumn adding = toCombine:GetColumn(i)
+            j = 0
+            repeat while j < adding:GetSize()
+                text value = adding:GetAsText(j)
+                copy:Add(value)
+                j = j + 1
+            end
+            combined:AddColumn(copy)
+            i = i + 1
+        end
+        return combined
+    end
+
+    action GetToCombine returns DataFrame
+        return toCombine
+    end
+
+    action SetToCombine(DataFrame toCombine)
+        me:toCombine = toCombine
+    end
+end

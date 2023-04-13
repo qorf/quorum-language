@@ -27,12 +27,25 @@ import org.robovm.apple.uikit.UIUserInterfaceIdiom;
 import org.robovm.apple.uikit.UIViewController;
 import org.robovm.apple.uikit.UIInterfaceOrientation;
 
+import java.util.Iterator;
+import java.util.Properties;
+
 /**
  *
  * @author alleew
  */
 public class IOSApplication
 {
+    static final String SIMULATOR_SEARCH = "CoreSimulator";
+    static final String SIMULATOR_PROPERTY = "IOS-Simulator";
+    static {
+        String property = System.getProperty("user.dir");
+        if(property != null && property.contains(SIMULATOR_SEARCH)) {
+            System.setProperty(SIMULATOR_PROPERTY, "true");
+        } else {
+            System.setProperty(SIMULATOR_PROPERTY, "false");
+        }
+    }
     public java.lang.Object me_ = null;
 
     // Reference to the game so we can call its actions.
@@ -63,16 +76,17 @@ public class IOSApplication
 
     public static void SetOperatingSystem()
     {
-        quorum.Libraries.System.File qFile = new quorum.Libraries.System.File();
-
-        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+        if (IsSimulator()) {
             GameStateManager.operatingSystem = "iOS Simulator";
-        else
+        }
+        else {
             GameStateManager.operatingSystem = "iOS Device";
+        }
     }
 
     public static boolean IsSimulator() {
-        if (UIDevice.getCurrentDevice().getName().contains("Simulator")) {
+        String s = System.getProperty(SIMULATOR_PROPERTY);
+        if (s != null && s.contains("true")) {
             return true;
         }
         return false;
@@ -87,7 +101,7 @@ public class IOSApplication
         this.game = game;
 
         // Make the default working directory more useful if we're not on a simulator.
-        if (!UIDevice.getCurrentDevice().getName().contains("Simulator"))
+        if (IsSimulator())
         {
             plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
             qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
@@ -106,11 +120,6 @@ public class IOSApplication
 
         UIApplication.getSharedApplication().setIdleTimerDisabled(config.Get_Libraries_Game_IOSConfiguration__preventScreenDimming_());
 
-        //Gdx.app.debug("IOSApplication", "iOS version: " + UIDevice.getCurrentDevice().getSystemVersion());
-
-        // fix the scale factor if we have a retina device (NOTE: iOS screen sizes are in "points" not pixels by default!)
-        //Gdx.app.debug("IOSApplication", "Running in " + (Bro.IS_64BIT ? "64-bit" : "32-bit") + " mode");
-
         float scale = (float)(GetIOSVersion() >= 8 ? UIScreen.getMainScreen().getNativeScale() : UIScreen.getMainScreen().getScale());
         
         /*
@@ -128,7 +137,6 @@ public class IOSApplication
 
         if (scale >= 2.0f)
         {
-            //Gdx.app.debug("IOSApplication", "scale: " + scale);
             if (UIDevice.getCurrentDevice().getUserInterfaceIdiom() == UIUserInterfaceIdiom.Pad)
             {
                 // it's an iPad!
@@ -157,28 +165,13 @@ public class IOSApplication
 
         plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
 
-        // setup libgdx
-        //this.input = new IOSInput(this);
-
         IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         input.Initialize(this);
         ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSGraphics)GameStateManager.graphics).plugin_);
-        //this.files = new IOSFiles();
-        //this.audio = new IOSAudio(config);
-        //this.net = new IOSNet(this);
-
-        //Gdx.files = this.files;
-        //Gdx.graphics = this.graphics;
-        //Gdx.audio = this.audio;
-        //Gdx.input = this.input;
-        //Gdx.net = this.net;
-
-        //this.input.setupPeripherals();
 
         this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
-        //Gdx.app.debug("IOSApplication", "created");
 
         return true;
     }
@@ -243,8 +236,6 @@ public class IOSApplication
             //debug("IOSApplication", "Status bar is not visible");
         }
 
-        //debug("IOSApplication", "Total computed bounds are w=" + screenWidth + " h=" + screenHeight);
-
         return lastScreenBounds = new CGRect(0.0, statusBarHeight, screenWidth, screenHeight);
     }
 
@@ -258,32 +249,16 @@ public class IOSApplication
 
     public void DidBecomeActive(UIApplication uiApp)
     {
-        /*
-        Gdx.app.debug("IOSApplication", "resumed");
-        // workaround for ObjectAL crash problem
-        // see: https://groups.google.com/forum/?fromgroups=#!topic/objectal-for-iphone/ubRWltp_i1Q
-        OALAudioSession.sharedInstance().forceEndInterruption();
-        if (config.allowIpod) {
-                OALSimpleAudio.sharedInstance().setUseHardwareIfAvailable(false);
-        }*/
         ((IOSDisplay)display).plugin_.MakeCurrent();
         ((IOSDisplay)display).plugin_.Resume();
     }
 
     public void WillEnterForeground (UIApplication uiApp)
     {
-        /*
-        // workaround for ObjectAL crash problem
-        // see: https://groups.google.com/forum/?fromgroups=#!topic/objectal-for-iphone/ubRWltp_i1Q
-        OALAudioSession.sharedInstance().forceEndInterruption(); 
-        */
     }
 
     public void WillResignActive (UIApplication uiApp)
     {
-        /*
-        Gdx.app.debug("IOSApplication", "paused");
-        */
         ((IOSDisplay)display).plugin_.MakeCurrent();
         ((IOSDisplay)display).plugin_.Pause();
         ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
@@ -291,26 +266,9 @@ public class IOSApplication
 
     public void WillTerminate (UIApplication uiApp)
     {
-        /*
-        Gdx.app.debug("IOSApplication", "disposed");
-        */
         ((IOSDisplay)display).plugin_.MakeCurrent();
-        /*
-        Array<LifecycleListener> listeners = lifecycleListeners;
-        synchronized (listeners) {
-                for (LifecycleListener listener : listeners) {
-                        listener.pause();
-                }
-        }
-        listener.dispose();
-        */
         ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
     }
-    
-    /*
-    Actions used by the Quorum IOSApplication class to determine various
-    information.
-    */
 
     /*
     This action returns the location of the application bundle on the iOS
@@ -335,7 +293,7 @@ public class IOSApplication
     */
     public boolean IsRunningOnSimulator()
     {
-        if (UIDevice.getCurrentDevice().getName().contains("Simulator"))
+        if (IsSimulator())
             return true;
         else
             return false;

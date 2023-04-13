@@ -175,3 +175,13 @@ function global_GetValue_(value, type) {
         return value.GetValue();
     }
 }
+
+function global_Output_(value) {
+    console.log(value);
+    if(typeof currentIDEOutput_$Global_ !== 'undefined') {
+        var dom = document.getElementById(currentIDEOutput_$Global_);
+        if(dom != null) {
+            dom.insertAdjacentHTML('beforeend', value);
+        }
+    }
+}

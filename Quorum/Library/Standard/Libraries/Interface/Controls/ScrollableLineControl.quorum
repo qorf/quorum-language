@@ -1,0 +1,129 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.LayoutProperties
+
+class ScrollableLineControl is ScrollableControl
+
+    Control gutterRegion
+    Array<Gutter> gutters
+
+    on create
+        LayoutProperties properties = gutterRegion:GetDefaultLayoutProperties()
+
+        // Affix the gutter region to extend from the top-left corner of the control.
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(1)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+        
+        /*
+        We have to determine the real width later based on what gutters are added.
+        If there are no gutters, the width is 0. The height is always the full height
+        of the container, though.
+        */
+        properties:SetPercentageWidth(0)
+        properties:SetPercentageHeight(1)
+
+        Add(gutterRegion)
+    end
+
+    action Add(Gutter gutter)
+        gutters:Add(gutter)
+        gutter:SetControl(me)
+        parent:Control:Add(gutter)
+    end
+
+    action Remove(Gutter gutter)
+        gutters:Remove(gutter)
+        if gutter:GetControl() = me
+            gutter:SetControl(undefined)
+        end
+
+        parent:Control:Remove(gutter)
+    end
+
+    action GetGutters returns Array<Gutter>
+        return gutters
+    end
+
+    private action GetCombinedGutterWidth returns number
+        number result = 0
+        integer i = 0
+        repeat while i < gutters:GetSize()
+            Gutter gutter = gutters:Get(i)
+            LayoutProperties properties = gutter:GetDefaultLayoutProperties()
+
+            if properties:NeedsRendering()
+                gutter:LoadGraphics(properties)
+            end
+
+            /*
+            Note: Because the region doesn't have a layout, it won't follow normal layout rules for the gutters.
+            We manually position gutters here, and set their width. The height is set during the RefreshGutterRegion 
+            (after other resizing has occurred). We do this because gutters have very specific constraints on their 
+            size and position, where their width determines the layout of other components, but their height is dependent
+            on the overall structure existing first.
+            */
+            number width = gutter:GetGutterThickness()
+            gutter:SetPosition(result, 0)
+            gutter:SetWidth(width)
+
+            result = result + width
+            i = i + 1
+        end
+        
+        // Make sure the gutter region is set to fit the known with of its contents.
+        gutterRegion:SetPixelWidth(result)
+
+        return result
+    end
+
+    private action RefreshGutterRegion
+        integer firstLine = GetFirstVisibleLine()
+
+        integer i = 0
+        repeat while i < gutters:GetSize()
+            Gutter gutter = gutters:Get(i)
+            gutter:SetHeight(GetHeight())
+            gutter:UpdateLines(firstLine)
+
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the height of the requested line in pixels. This action
+    is 0-indexed, so the first line of a control is line 0.
+
+    Attribute: Parameter line The line to get the height of.
+    Attribute: Returns The height of the line in pixels.
+    */
+    blueprint action GetLineHeight(integer line) returns number
+
+    /*
+    This action returns the y value of the requested line. This value is measured in pixels
+    relative to the bottom of the ScrollableLineControl. Lines which are currently off the
+    top of the scrolling region will return a value exceeding the control's height, and if 
+    they're off the bottom of the region, this value will be negative.
+
+    Attribute: Parameter line The requested line
+    Attribute: Returns The y-position of the bottom of the line, relative to the bottom of the control.
+    */
+    blueprint action GetLineY(integer line) returns number
+
+    /*
+    This action returns how many lines are in this control.
+
+    Attribute: Returns The total number of lines currently in this control.
+    */
+    blueprint action GetLineCount returns integer
+
+    /*
+    This action returns the index of the first visible line in the scrollable control.
+
+    Attribute: Returns The index of the first visible line.
+    */
+    blueprint action GetFirstVisibleLine returns integer
+
+end

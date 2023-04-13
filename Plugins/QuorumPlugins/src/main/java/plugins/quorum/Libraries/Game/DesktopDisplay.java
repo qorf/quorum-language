@@ -27,6 +27,7 @@ import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
 import plugins.quorum.Libraries.Interface.Events.TextInputProcessor;
 import quorum.Libraries.Game.Graphics.PixelMap_;
 import quorum.Libraries.Game.ScreenResolution;
+import quorum.Libraries.System.Properties;
 
 /**
  *
@@ -671,16 +672,20 @@ public class DesktopDisplay {
     
     public void SetWindowIcon(String fileName)
     {
-        int[] channels = new int[1];
-        ByteBuffer pixels = org.lwjgl.stb.STBImage.stbi_load(fileName, width, height, channels, 4);
-        
-        org.lwjgl.glfw.GLFWImage image = org.lwjgl.glfw.GLFWImage.malloc();
-        image.set(width[0], height[0], pixels);
-        
-        org.lwjgl.glfw.GLFWImage.Buffer buffer = org.lwjgl.glfw.GLFWImage.malloc(1);
-        buffer.put(0, image);
-        
-        GLFW.glfwSetWindowIcon(window, buffer);
+        Properties prop = new Properties();
+        if(prop.IsWindows()) {
+            int[] channels = new int[1];
+            ByteBuffer pixels = org.lwjgl.stb.STBImage.stbi_load(fileName, width, height, channels, 4);
+
+            org.lwjgl.glfw.GLFWImage image = org.lwjgl.glfw.GLFWImage.malloc();
+            image.set(width[0], height[0], pixels);
+
+            org.lwjgl.glfw.GLFWImage.Buffer buffer = org.lwjgl.glfw.GLFWImage.malloc(1);
+            buffer.put(0, image);
+
+            //Not all platforms support this action. If they don't, just ignore the error.
+            GLFW.glfwSetWindowIcon(window, buffer);
+        }
     }
     
     /*

@@ -7,26 +7,55 @@ use Libraries.Interface.Layouts.LayoutProperties
 
 class LineNumberGutter is Gutter
    
+    Array<Label> labels
+    boolean positionOnBaseLine = true
+
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetLeftPadding(8)
-        properties:SetRightPadding(4)
+        properties:SetLeftPadding(6)
+        properties:SetRightPadding(6)
     end
 
-    Array<Label> labels
+    private action SelectFont returns Font
+        Font font = GetFont()
+        if font = undefined
+            font = GetControl():GetFont()
+        end
+        if font = undefined
+            font = GetLabel(0):GetFont()
+        end
 
-    action UpdateVisuals(integer startLine, integer totalLines, number lineHeight)
+        return font
+    end
+
+    action GetGutterThickness returns number
+        ScrollableLineControl control = GetControl()
+
+        Font font = SelectFont()
+
+        text linesInText = "" + control:GetLineCount()
+        integer glyphsRequired = linesInText:GetSize()
+        
+        return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + GetLeftPadding() + GetRightPadding()
+    end
+
+    action UpdateVisuals(integer startLine)
         Empty()
 
-        TextBox textBox = GetTextBox()
-        integer fontSize = textBox:GetFontSize()
+        ScrollableLineControl control = GetControl()
+        integer fontSize = control:GetFontSize()
+        if GetDefaultLayoutProperties():HasNumberPropertyOverride("fontSize")
+            fontSize = GetFontSize()
+        end
+
+        Font font = SelectFont()
 
         LayoutProperties properties = GetCurrentLayoutProperties()
         if properties = undefined
             properties = GetDefaultLayoutProperties()
         end
 
-        text linesInText = "" + textBox:GetLineCount()
+        text linesInText = "" + control:GetLineCount()
         integer glyphsRequired = linesInText:GetSize()
         /*
         We assume the space required for the "0" glyph is a good predictor of
@@ -35,35 +64,63 @@ class LineNumberGutter is Gutter
         this is only an approximation, which may require some extra space via
         padding in order to look correct.
         */
-        Label firstLabel = GetLabel(0)
-        Font font = firstLabel:GetFont()
         number rightPadding = properties:GetRightPadding()
         number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftPadding() + rightPadding
+        integer totalLines = control:GetLineCount()
 
         integer counter = 0
-        number y = textBox:GetHeight()
-        repeat while counter < totalLines and y > -lineHeight
+        integer currentLine = startLine
+        boolean last = false
+        repeat while currentLine < totalLines and last = false
+            number y = control:GetLineY(currentLine)
+            number height = control:GetLineHeight(currentLine)
+
+            if y < 0
+                last = true
+            end
+
             Label label = GetLabel(counter)
+
+            if font not= undefined
+                label:SetFont(font)
+            end
+
             label:SetSize(fontSize)
-            label:SetText("" + (startLine + counter + 1))
-            label:SetPosition(width - label:GetWidth() - rightPadding, y)
+            label:SetText("" + (currentLine + 1))
+            label:SetPosition(width - label:GetWidth() - rightPadding, y + height / 2.0 - label:GetHeight() / 2.0)
             label:SetColor(GetFontColor())
             Add(label)
 
-            y = y - lineHeight
+            currentLine = currentLine + 1
             counter = counter + 1
         end
-
-        SetSize(width, textBox:GetHeight() + lineHeight)
     end
  
     private action GetLabel(integer index) returns Label
         if labels:GetSize() <= index or labels:Get(index) = undefined
             Label label
+            label:SetPositionOnBaseLine(positionOnBaseLine)
             labels:Add(index, label)
             return label
         else
             return labels:Get(index)
         end
     end
+
+    action IsPositioningOnBaseLine returns boolean
+        return positionOnBaseLine
+    end
+
+    action SetPositionOnBaseLine(boolean positionOnBaseLine)
+        if positionOnBaseLine not= me:positionOnBaseLine
+            integer i = 0
+            repeat while i < labels:GetSize()
+                labels:Get(i):SetPositionOnBaseLine(positionOnBaseLine)
+                i = i + 1
+            end
+        end
+
+        me:positionOnBaseLine = positionOnBaseLine
+    end
+
 end

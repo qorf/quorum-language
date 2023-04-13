@@ -11,10 +11,9 @@ use Libraries.Interface.Views.ControlShaderView
 
 class Gutter is Control
     
-    TextBox textBox = undefined
+    ScrollableLineControl control = undefined
     integer firstLine = -1
-    integer totalLines = -1
-    number lineHeight = -1
+
     Array<GutterListener> listeners
 
     on create
@@ -27,14 +26,14 @@ class Gutter is Control
         SetInputGroup("Gutter")
     end
 
-    action UpdateLines(integer firstLine, integer totalLines, number lineHeight)
+    action UpdateLines(integer firstLine)
         me:firstLine = firstLine
-        me:totalLines = totalLines
-        me:lineHeight = lineHeight
-        UpdateVisuals(firstLine, totalLines, lineHeight)
+        UpdateVisuals(firstLine)
     end
 
-    blueprint action UpdateVisuals(integer firstLine, integer totalLines, number lineHeight)
+    blueprint action UpdateVisuals(integer firstLine)
+
+    blueprint action GetGutterThickness returns number
 
     action ClickedMouse(MouseEvent mouseEvent)
         integer clickedLine = firstLine
@@ -42,7 +41,7 @@ class Gutter is Control
         number threshold = GetHeight()
 
         repeat while threshold >= 0
-            threshold = threshold - lineHeight
+            threshold = threshold - control:GetLineHeight(clickedLine)
             if y > threshold
                 // We've found the clicked line, exit the loop.
                 threshold = -1
@@ -65,48 +64,6 @@ class Gutter is Control
         we don't want the gutter to depress like a button, so we omit it.
         */
         // parent:Control:ClickedMouse()
-    end
-
-    /*
-    This action returns the first line of the TextBox which is described by this
-    Gutter. This value is automatically updated whenever the UpdateLines action
-    is called, or whenever the TextBox associated with this Gutter is modified.
-
-    Attribute: Returns The first line of text the Gutter corresponds to.
-    */
-    action GetFirstLine returns integer
-        return firstLine
-    end
-
-    /*
-    This action returns the total number of lines of text that this Gutter is
-    currently displaying. This value is automatically updated whenever the
-    UpdateLines action is called, or whenever the TextBox associated with this
-    Gutter is modified.
-
-    Attribute: Returns The number of visible lines in this Gutter.
-    */
-    action GetTotalLines returns integer
-        return totalLines
-    end
-
-    /*
-    This action returns the height of each line of text associated with this
-    Gutter. This value is automatically updated whenever the UpdateLines action
-    is called, or whenever the TextBox associated with this Gutter is modified.
-
-    Attribute: Returns The height of each line of text represented by the Gutter.
-    */
-    action GetLineHeight returns number
-        return lineHeight
-    end
-
-    action SetTextBox(TextBox box)
-        textBox = box
-    end
-
-    action GetTextBox returns TextBox
-        return textBox
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -138,4 +95,13 @@ class Gutter is Control
     action EmptyGutterListeners
         listeners:Empty()
     end
+
+    action GetControl returns ScrollableLineControl
+        return control
+    end
+
+    action SetControl(ScrollableLineControl control)
+        me:control = control
+    end
+
 end

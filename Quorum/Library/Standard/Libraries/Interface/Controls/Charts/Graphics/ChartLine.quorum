@@ -9,6 +9,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Charts.ChartLinePointComparison
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Game.Graphics.ColorGroup
 
 /*
     This object class is used to contain the points and lines for each line object in the line chart. It should
@@ -184,6 +185,10 @@ class ChartLine is ChartDrawable
             lines:Get(i):SetColor(GetSelectionColor())
             i = i + 1
         end
+        if series not= undefined
+            series:GetEntryIcon():SetColor(GetSelectionColor())
+            series:GetEntryBox():SetColor(GetSelectionColor())
+        end
         parent:ChartDrawable:GainedSelection()
     end
 
@@ -198,6 +203,22 @@ class ChartLine is ChartDrawable
             lines:Get(i):SetColor(GetColor())
             i = i + 1
         end
+        if series not= undefined
+            series:GetEntryIcon():SetColor(GetColor())
+            Color transparency
+            transparency:SetColor(0, 0, 0, 0)
+            series:GetEntryBox():SetColor(transparency)
+        end
         parent:ChartDrawable:LostSelection()
+    end
+
+    action GetSelectionColor returns ColorGroup
+
+        Chart chart = GetParentChart()
+        if chart not= undefined
+            return chart:GetSelectionColor()
+        end
+
+        return undefined
     end
 end
