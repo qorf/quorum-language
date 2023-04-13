@@ -65,7 +65,7 @@ class CheckBlock is MultipleLineBlock
         part:Add(checkLabel)
 
         // The end index is the same as the length of the label text, since we start from 0.
-        part:SetLocalEndIndex(checkLabel:GetSize())
+        part:SetLocalEndIndex(checkLabel:GetText():GetSize())
         me:checkPart = part
         return part
     end
@@ -122,7 +122,11 @@ class CheckBlock is MultipleLineBlock
             expressionField:Setup("Expression", firstName:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), lastName:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
         end
         
-        part:SetLocalEndIndex(detectContext:GetLocation():GetIndexEnd() - GetStartIndex())
+        if finalName not= undefined
+            part:SetLocalEndIndex(finalName:GetIndexEnd() - GetStartIndex())
+        else
+            part:SetLocalEndIndex((detectContext:nameLocation:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex())) - GetStartIndex())
+        end
         me:detectParts:Add(part)
         return part
     end
@@ -144,7 +148,7 @@ class CheckBlock is MultipleLineBlock
         alwaysLabel:SetFontSize(GetEditor():GetFontSize())
         alwaysLabel:SetText("always")
         part:Add(alwaysLabel)
-        part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetSize())
+        part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
 
         me:alwaysPart = part
         return part
@@ -185,7 +189,6 @@ class CheckBlock is MultipleLineBlock
     action RemoveCheckPart(Block block)
         // a check detect makes no sense without a check and a detect can't be converted to a check so delete the whole thing
         GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
-        output GetEditor():GetCode():GetText()
     end
 
     action RemoveDetectPart(Block block)
