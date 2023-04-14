@@ -21,6 +21,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.Controls.EditBox
+use Libraries.Compute.Random
 
 class FreeformBlock is SingleLineBlock
     FreeformBlockListener blockListener
@@ -76,12 +77,16 @@ class FreeformBlock is SingleLineBlock
         end
     end
 
+
+
     /*
     This action attempts to parse the content of the FreeformBlock and convert it into a suitable block.
     If a suitable block is found, it will replace this FreeformBlock in the editor.
     */
     action ParseToBlock
         text code = editRegion:GetText()
+        text newLine = editRegion:GetDefaultLineSeparator()
+        text dq = code:GetDoubleQuote()
         if code = undefined or code = "" or GetParentBlock() = undefined
             return now
         end
@@ -92,23 +97,87 @@ class FreeformBlock is SingleLineBlock
         First check special cases where the user has typed a short-cut.
         If so, insert extra code to make it valid before we parse it.
         */
-        if code = "output" 
+    // output
+        if code = "output"
             editRegion:SetCaretPosition(editRegion:GetSize())
-            text dq = code:GetDoubleQuote()
             editRegion:Insert(" " + dq + dq)
             code = editRegion:GetText()
+    // if
         elseif code = "if"
             editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = " true
-" + editor:GetIndentationText(GetScopeDepth()) + "end"
+            text value = " true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
             editRegion:Insert(value)
             code = editRegion:GetText()
+    // if (condition)
         elseif code:StartsWith("if") = true and code:EndsWith("end") = false
             editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = "
-" + editor:GetIndentationText(GetScopeDepth()) + "end"
+            text value = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
             editRegion:Insert(value)
             code = editRegion:GetText()
+    //  input
+        elseif code = "input"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("text myInput = input()")
+            code = editRegion:GetText()
+    //  integer
+        elseif code = "integer"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" " +"myInteger" + " = 0")
+            code = editRegion:GetText()
+    //  number
+        elseif code = "number"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" " + "myNumber" + " = 0.0")
+            code = editRegion:GetText()
+    //  boolean
+        elseif code = "boolean"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" " + "myBoolean" + " = false")
+            code = editRegion:GetText()
+    //  text
+        elseif code = "text"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" " + "myText" + " = "+dq+dq)
+            code = editRegion:GetText()
+    //  say
+        elseif code = "say"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" " + dq + dq)
+            code = editRegion:GetText()
+    //  return (now for void or with a field if it does)
+    //  if
+    //  elseif
+    //  else
+    //  repeat - by default it's times
+        elseif code = "repeat"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+            code = editRegion:GetText()
+    //  repeat while
+        elseif code = "repeat while"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" false" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+            code = editRegion:GetText()
+    //  repeat while i (or some name) - maybe
+    //  repeat until
+        elseif code = "repeat until"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+            code = editRegion:GetText()
+    //  repeat until i (or some name) - maybe
+    //  check
+        elseif code = "check"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value = newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:Insert(value)
+            code = editRegion:GetText()
+    //  detect
+    //  always
+    //  action
+    //  blueprint
+    //  system
+    //  class
+    //  shared
         end
 
         /*

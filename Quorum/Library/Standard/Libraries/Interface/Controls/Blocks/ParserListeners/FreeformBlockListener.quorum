@@ -59,11 +59,61 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterCast(CastContext context) end
     action ExitCast(CastContext context) end
 
-    action EnterSayStatement(SayContext context) end
+    action EnterSayStatement(SayContext context)
+        ParseContext expression = context:expression
+        if expression not= undefined
+            /*
+            TO-DO: The "expression" location is initialized as 0 if the statement is
+            of the format: output IDENTIFIER
+            This causes the OutputBlock to fail to get the right indices for where the expression text should be
+            */
+
+            // Offset location indices for this context to match the overall text.
+            OffsetLocation(context:GetLocation())
+            OffsetLocation(context:expression:GetLocation())
+
+            SayBlock result
+            result:SetScopeDepth(scopeDepth)
+            result:SetEditor(dummyRoot:GetEditor())
+            result:SetSayContext(context)
+            block = result
+        end
+    end
     action ExitSayStatement(SayContext context) end
 
-    action EnterCheckStatement(CheckContext context) end
-    action ExitCheckStatement(CheckContext context) end
+    action EnterCheckStatement(CheckContext context)
+        // Correct the locations for the IfContext and its related components.
+        OffsetLocation(context:GetLocation())
+        if context:alwaysContext not= undefined
+        OffsetLocation(context:alwaysContext:GetLocation())
+        end
+
+        integer i = 0
+        repeat while i < context:detectStatements:GetSize()
+            OffsetLocation(context:detectStatements:Get(i):GetLocation())
+            i = i + 1
+        end
+
+        CheckBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        dummyRoot:Add(cast(Block, block))
+
+        me:block = block
+        block:AddStartLine()
+    end
+    action ExitCheckStatement(CheckContext context)
+        // The current block must be one of the parts of an if block. Get the if block from the part.
+        CheckBlock checkBlock = cast(CheckBlock, block)
+        
+        // Add the last line of the if block.
+        checkBlock:AddEndLine()
+
+        // Now that all parts have been added, call Setup on the block.
+        checkBlock:Setup()
+    end
 
     action EnterParentFieldAccess(ParentFieldAccessContext context) end
     action ExitParentFieldAccess(ParentFieldAccessContext context) end
@@ -218,8 +268,26 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterQualifiedName(QualifiedNameContext context) end
     action ExitQualifiedName(QualifiedNameContext context) end
 
-    action EnterLoopStatement(LoopContext context) end
-    action ExitLoopStatement(LoopContext context) end
+    action EnterLoopStatement(LoopContext context)
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:expression:GetLocation())
+        OffsetToken(context:timesToken)
+
+        RepeatBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        dummyRoot:Add(cast(Block, block))
+
+        me:block = block
+        block:AddStartLine()
+    end
+    action ExitLoopStatement(LoopContext context)
+        RepeatBlock repeatBlock = cast(RepeatBlock, block)
+        repeatBlock:AddEndLine()
+        repeatBlock:Setup()
+    end
 
     action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
     action ExitAssignmentDeclaration(AssignmentDeclaractionContext context) end
@@ -230,10 +298,18 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterInheritStatement(InheritStatementContext context) end
     action ExitInheritStatement(InheritStatementContext context) end
 
-    action EnterDetectStatement(DetectStatementContext context) end
+    action EnterDetectStatement(DetectStatementContext context)
+        CheckBlock checkBlock = cast(CheckBlock, block)
+
+        MultipleLineBlockPart newPart = checkBlock:AddDetectLine(context)
+    end
     action ExitDetectStatement(DetectStatementContext context) end
 
-    action EnterAlwaysStatement(AlwaysStatementContext context) end
+    action EnterAlwaysStatement(AlwaysStatementContext context)
+        CheckBlock checkBlock = cast(CheckBlock, block)
+
+        MultipleLineBlockPart newPart = checkBlock:AddAlwaysLine(context)
+    end
     action ExitAlwaysStatement(AlwaysStatementContext context) end
 
     action EnterAddition(AdditionContext addition) end
@@ -284,25 +360,92 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterPackageRule(PackageContext context) end
     action ExitPackageRule(PackageContext context) end
 
-    action EnterNormalAssignment(NormalAssignmentContext context) end
+    action EnterNormalAssignment(NormalAssignmentContext context)
+
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:typeLocation)
+        OffsetLocation(context:variableLocation)
+        OffsetLocation(context:declaration:GetLocation())
+        OffsetLocation(context:expression:GetLocation())
+
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitNormalAssignment(NormalAssignmentContext context) end
 
-    action EnterParentAssignment(ParentAssignmentContext context) end
+    action EnterParentAssignment(ParentAssignmentContext context)
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:variableLocation)
+        OffsetLocation(context:expression:GetLocation())
+
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitParentAssignment(ParentAssignmentContext context) end
 
-    action EnterObjectAssignment(ObjectAssignmentContext context) end
+    action EnterObjectAssignment(ObjectAssignmentContext context)
+
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:variableLocation)
+        OffsetLocation(context:typeLocation)
+        OffsetLocation(context:expression:GetLocation())
+
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitObjectAssignment(ObjectAssignmentContext context) end
 
-    action EnterNoTypeAssignment(NoTypeAssignmentContext context) end
+    action EnterNoTypeAssignment(NoTypeAssignmentContext context)
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:variableLocation)
+        OffsetLocation(context:expression:GetLocation())
+
+        AssignmentBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) end
 
     action EnterMeVariableAccess(MeVariableAccessContext context) end
     action ExitMeVariableAccess(MeVariableAccessContext context) end
 
-    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context) end
+    action EnterVariableSoloFunctionCall(VariableFunctionCallContext context)
+        OffsetLocation(context:GetLocation())
+
+        ActionCallBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) end
 
-    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context)
+        OffsetLocation(context:GetLocation())
+
+        ActionCallBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
 
     action EnterInitialParentActionCall(ActionCallContext ctx) end
