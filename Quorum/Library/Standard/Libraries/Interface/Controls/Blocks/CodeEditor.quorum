@@ -110,6 +110,16 @@ class CodeEditor is ScrollableLineControl
         renderer:SetInterfaceOptionsKey(key)
     end
 
+    action SetInterfaceScale(number scale)
+        if scale = GetInterfaceScale()
+            return now
+        end
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        parent:Control:SetInterfaceScale(scale)
+    end
+
     action SetCode(text code)
         rawCode:Initialize(code)
         GenerateStartContextFromCode(code)

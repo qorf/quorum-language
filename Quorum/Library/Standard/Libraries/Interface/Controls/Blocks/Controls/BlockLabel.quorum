@@ -24,9 +24,47 @@ class BlockLabel is Label, BlockItem
         if block not= undefined
             return block:GetColorProperty(constants:STATIC_FONT_COLOR)
         else
-            return parent:Control:GetColorProperty(constants:STATIC_FONT_COLOR)
+            return parent:Control:GetFontColor()
         end
     end
+
+    action GetFontOutlineColor returns ColorGroup
+        if HasColorPropertyOverride("fontOutlineColor")
+            return parent:Control:GetFontOutlineColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:STATIC_FONT_OUTLINE_COLOR)
+        else
+            return parent:Control:GetFontOutlineColor()
+        end
+    end
+
+    action GetFontOutlineThickness returns number
+        if HasNumberPropertyOverride("fontOutlineThickness")
+            return parent:Control:GetFontOutlineThickness()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetNumberProperty(constants:STATIC_FONT_OUTLINE_THICKNESS)
+        else
+            return parent:Control:GetFontOutlineThickness()
+        end
+    end
+
+    action HasFontOutlineThickness returns boolean
+        Block block = GetBlock()
+        boolean result = false
+
+        if block not= undefined
+            result = block:GetDefaultLayoutProperties():HasNumberProperty(constants:STATIC_FONT_OUTLINE_THICKNESS)
+        end
+
+        return result or parent:Control:HasFontOutlineThickness()
+    end
+    
 
     // By default, all BlockItems are a single line in length.
     action GetLineCount returns integer
