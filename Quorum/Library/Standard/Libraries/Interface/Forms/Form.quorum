@@ -121,6 +121,14 @@ class Form is Game, FormPrimitiveContainer
 
         FormDelayedAssetLoader delayedLoader
         delayedLoader:LoadAssets()
+
+        if not currentPage:HasDefaultFocusOrdering()
+            currentPage:CalculateDefaultFocusOrdering()
+        end
+        Item2D item = currentPage:GetFirstFocusableItem()
+        if item not= undefined
+            item:Focus()
+        end
     end
 
     /*  This action creates a default Game object for displaying charts and sets this chart

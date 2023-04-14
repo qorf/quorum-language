@@ -124,5 +124,9 @@ class Page is FormPrimitiveContainer, FormContainerControl
             view:Initialize()
             SetView2D(view)
         end
+
+        if not HasDefaultFocusOrdering()
+            CalculateDefaultFocusOrdering()
+        end
     end
 end
