@@ -140,6 +140,18 @@ class FormContainerControl is Control
         return button
     end
 
+    action ChangeButtonIcon(text name, text fileName)
+        Button button = GetButton(name)
+        if button = undefined
+            alert("I couldn't find a Button named " + name + ". Are you looking for the right item?")
+        else
+            Drawable drawable
+            drawable:Load(fileName)
+            button:SetIcon(drawable)
+            button:RequestLayout()
+        end
+    end
+
     action AddButton(text name, text fileName) returns Button
         Button button = AddButton(name)
 
@@ -370,6 +382,15 @@ class FormContainerControl is Control
             return item
         end
         alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
+    end
+
+    action ChangeIcon(text name, text fileName)
+        Icon icon = GetIcon(name)
+        if icon = undefined
+            alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
+        else
+            icon:Load(fileName)
+        end
     end
 
     action GetIcon(text name) returns Icon
