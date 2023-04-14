@@ -34,8 +34,14 @@ class SingleLineBlockLayout is Layout
                     control:LoadGraphics(control:GetDefaultLayoutProperties())
                 end
 
-                // For now, assume the element is capable of figuring out its own size during a Resize.
-                control:Resize()
+                if control is EditRegion
+                    // EditRegions can reliably determine their size via the UpdateLength action.
+                    EditRegion region = cast(EditRegion, control)
+                    region:UpdateLength()
+                else
+                    // For now, assume the element is capable of figuring out its own size during a Resize.
+                    control:Resize()
+                end
 
                 control:SetPosition(x, y - control:GetHeight() / 2.0)
                 x = x + control:GetWidth() + control:GetRightPadding()
