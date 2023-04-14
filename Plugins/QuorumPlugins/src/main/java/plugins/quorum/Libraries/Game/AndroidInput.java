@@ -1,13 +1,16 @@
 package plugins.quorum.Libraries.Game;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import java.util.HashMap;
 
 import android.view.ScaleGestureDetector;
+import android.view.inputmethod.InputMethodManager;
 import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
+import plugins.quorum.Libraries.Interface.Mobile.AndroidKeyboard;
 import quorum.Libraries.Containers.List_;
-import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.GestureEvent;
 import quorum.Libraries.Interface.Events.GestureEvent_;
 import quorum.Libraries.Interface.Events.TouchEvent;
@@ -34,6 +37,8 @@ public class AndroidInput
     private List_ touchEvents;
     private List_ gestureEvents;
     private final HashMap<Integer, Coordinates> map = new HashMap<>();
+
+    public final AndroidKeyboard androidKeyboard = new AndroidKeyboard();
 
     boolean longPressed = false;
     int maxFingerCount;
@@ -74,10 +79,38 @@ public class AndroidInput
             {
                     case (MotionEvent.ACTION_DOWN):
                     case (MotionEvent.ACTION_POINTER_DOWN):
-                        if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__BUTTON_()){
-                            ((Button_)temp).ClickedMouse();
-                            Log.e("Quorum", "ConvertToQuorumEvents: CLICKED");
+                        if(temp != null) {
+                            if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__BUTTON_()) {
+                                ((Button_) temp).ClickedMouse();
+                                AndroidAccessibility.sendAccessibilityEventForVirtualView("Clicked the button");
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TEXTBOX_()){
+                                ((TextBox_)temp).Focus();
+                                AndroidAccessibility.sendAccessibilityEventForVirtualView(((TextBox_)temp).GetText());
+                                TextField_ textField = ((TextField_)temp);
+                                androidKeyboard.DisplayKeyboard();
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TREE_ITEM_()){
+                                ((TreeItem_)temp).Focus();
+                                ((TreeItem_)temp).ClickedMouse();
+                                if (((TreeItem_)temp).IsOpen())
+                                    ((TreeItem_)temp).Close();
+                                else
+                                    ((TreeItem_)temp).Open();
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__CHECKBOX_()){
+                                ((Checkbox_)temp).Focus();
+                                if (((Checkbox_)temp).GetToggleState())
+                                    ((Checkbox_)temp).SetToggleState(false);
+                                else
+                                    ((Checkbox_)temp).SetToggleState(true);
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__RADIO_BUTTON_()){
+                                ((RadioButton_)temp).Focus();
+                                ((RadioButton_)temp).SetToggleState(true);
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TAB_()){
+                                ((Tab_)temp).Focus();
+                                ((Tab_)temp).ClickedMouse();
+                                ((Tab_)temp).SetToggleState(true);
+                            }
                         }
+
                         scaleFactor = 1.0f;
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();

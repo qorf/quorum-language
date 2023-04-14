@@ -6,7 +6,9 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeProvider;
 import plugins.quorum.Libraries.Game.AndroidApplication;
+import quorum.Libraries.Interface.Accessibility;
 import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
@@ -45,10 +47,23 @@ public class AndroidAccessibility{
             } else {
                 text += item.GetAccessibilityType();
             }
+            if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__LIST_ITEM_()){
+                ((ListItem_) item).Select();
+                text += " " + ((ListItem_) item).GetText();
+            }
+
             event.getText().add(text);
             AndroidApplication.accessibilityManager.interrupt();
             AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
         }
+    }
+
+    public static void sendAccessibilityEventForVirtualView(String text) {
+        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        event.setSource(AndroidApplication.viewRoot, lastSpokenChild.GetHashCode());
+        event.getText().add(text);
+        AndroidApplication.accessibilityManager.interrupt();
+        AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
     }
 
     public static boolean onHoverVirtualView(Item_ item, MotionEvent event) {
