@@ -10,7 +10,6 @@ use Libraries.Interface.Controls.Button
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
-use Libraries.Interface.Pages.FlowLayoutPage
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Options.DarkModeOptions
 use Libraries.Interface.Options.InterfaceOptions
@@ -38,7 +37,7 @@ use Libraries.Interface.Controls.RadioButton
     app:AddButton("Button")
     app:Display()
 */
-class Form is Game, FormContainerInterface
+class Form is Game, FormPrimitiveContainer
     HashTable<text, Page> pages
     Page currentPage = undefined
     Page mainPage = undefined
@@ -75,7 +74,7 @@ class Form is Game, FormContainerInterface
     end
 
     action AddPage(text name) returns Page
-        FlowLayoutPage page
+        StackedRowPage page
         page:SetName(name)
         pages:Add(name, page)
         return page
@@ -87,6 +86,11 @@ class Form is Game, FormContainerInterface
 
     action RemovePage(text name) returns Page
         return pages:RemoveKey(name)
+    end
+
+    action GetPage(text name) returns Page
+        Page page = pages:GetValue(name)
+        return page
     end
 
     action SetPage(text name)
@@ -140,139 +144,7 @@ class Form is Game, FormContainerInterface
         return mainPage
     end
 
-    action AddGrouping(text name) returns Grouping
-        return currentPage:AddGrouping(name)
-    end
-
-    action RemoveGrouping(text name) returns Grouping
-        return currentPage:RemoveGrouping(name)
-    end
-
-    action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
-        return currentPage:AddStartButtonGrouping(title, label, buttonName)
-    end
-
-    action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
-        return currentPage:RemoveStartButtonGrouping(name)
-    end
-
-    action AddBanner(text title) returns Banner
-        return currentPage:AddBanner(title)
-    end
-
-    action AddBanner(text title, text label) returns Banner
-        return currentPage:AddBanner(title, label)
-    end
-
-    action RemoveBanner(text name) returns Banner
-        return currentPage:RemoveBanner(name)
-    end
-
-    action SetTitle(text name)
-        currentPage:SetTitle(name)
-    end
-
-    action GetTitle returns text
-        return currentPage:GetTitle()
-    end
-
-    action SetTitleFontSize(integer size)
-        currentPage:SetTitleFontSize(size)
-    end
-
-    action GetTitleFontSize returns integer
-        return currentPage:GetTitleFontSize()
-    end
-
-    action SetTitleSizeSmall
-        currentPage:SetTitleSizeSmall()
-    end
-
-    action SetTitleSizeMedium
-        currentPage:SetTitleSizeMedium()
-    end
-
-    action SetTitleSizeLarge
-        currentPage:SetTitleSizeLarge()
-    end
-
-    action LeftAlignTitle
-        currentPage:LeftAlignTitle()
-    end
-
-    action RightAlignTitle
-        currentPage:RightAlignTitle()
-    end
-
-    action CenterAlignTitle
-        currentPage:CenterAlignTitle()
-    end
-
-    action LeftAlignContent
-        currentPage:LeftAlignContent()
-    end
-
-    action RightAlignContent
-        currentPage:RightAlignContent()
-    end
-
-    action CenterAlignContent
-        currentPage:CenterAlignContent()
-    end
-
-    action FindControl(text name) returns Item2D
-        return currentPage:FindControl(name)
-    end
-
-    action AddList(text name) returns List
-        return currentPage:AddList(name)
-    end
-
-    action AddButton(text name) returns Button
-        return currentPage:AddButton(name)
-    end
-
-    action AddButton(text name, text fileName) returns Button
-        return currentPage:AddButton(name, fileName)
-    end
-
-    action RemoveButton(text name) returns Button
-        return currentPage:RemoveButton(name)
-    end
-
-    action AddLabel(text name) returns Label
-        return currentPage:AddLabel(name)
-    end
-
-    action AddLabel(text name, text value) returns Label
-        return currentPage:AddLabel(name, value)
-    end
-
-    action RemoveLabel(text name) returns Label
-        return currentPage:RemoveLabel(name)
-    end
-
-    action AddIcon(text name, text fileName) returns Icon
-        return currentPage:AddIcon(name, fileName)
-    end
-
-    action RemoveIcon(text name) returns Icon
-        return currentPage:RemoveIcon(name)
-    end
-
-    action AddTextField(text name) returns TextField
-        return currentPage:AddTextField(name)
-    end
-
-    action AddRadioButton(text name) returns RadioButton
-        return currentPage:AddRadioButton(name)
-    end
-
-    action AddCheckbox(text name) returns Checkbox
-        return currentPage:AddCheckbox(name)
-    end
-
-    action RemoveTextField(text name) returns TextField
-        return currentPage:RemoveTextField(name)
+    action GetCurrentPage returns Page
+        return currentPage
     end
 end

@@ -1,7 +1,20 @@
 package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
 
 class Icon is Control, Drawable
+
+    action Load(Texture region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
+        // If the Drawable is loaded, ensure it gets laid out again on the next sizing call.
+        parent:Drawable:Load(region, sourceX, sourceY, sourceWidth, sourceHeight)
+        RequestLayout()
+    end
+
+    action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
+        // If the Drawable is loaded, ensure it gets laid out again on the next sizing call.
+        parent:Drawable:Load(region, sourceX, sourceY, sourceWidth, sourceHeight)
+        RequestLayout()
+    end
 
 end
