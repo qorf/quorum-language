@@ -1343,7 +1343,7 @@ class Control is Item2D
         return defaultProperties:HasNumberPropertyOverride(property)
     end
 
-        action SetBackgroundColor(ColorGroup value)
+    action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
 
@@ -1373,6 +1373,14 @@ class Control is Item2D
 
     action GetFontColor returns ColorGroup
         return defaultProperties:GetFontColor()
+    end
+
+    action SetFontOutlineColor(ColorGroup value)
+        defaultProperties:SetFontOutlineColor(value)
+    end
+
+    action GetFontOutlineColor returns ColorGroup
+        return defaultProperties:GetFontOutlineColor()
     end
 
     action SetBorderColor(ColorGroup value)
@@ -1545,6 +1553,18 @@ class Control is Item2D
 
     action HasBorderThickness returns boolean
         return defaultProperties:HasBorderThickness()
+    end
+
+    action SetFontOutlineThickness(number value)
+        defaultProperties:SetFontOutlineThickness(value)
+    end
+
+    action GetFontOutlineThickness returns number
+        return defaultProperties:GetFontOutlineThickness()
+    end
+
+    action HasFontOutlineThickness returns boolean
+        return defaultProperties:HasFontOutlineThickness()
     end
 
     action SetTopLeftRounding(number value)

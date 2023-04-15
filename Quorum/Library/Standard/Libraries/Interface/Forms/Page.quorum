@@ -3,6 +3,8 @@ package Libraries.Interface.Forms
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Containers.Array
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
 
 class Page is FormPrimitiveContainer, FormContainerControl
 
@@ -116,4 +118,15 @@ class Page is FormPrimitiveContainer, FormContainerControl
         return undefined
     end
 
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        if not HasDefaultFocusOrdering()
+            CalculateDefaultFocusOrdering()
+        end
+    end
 end
