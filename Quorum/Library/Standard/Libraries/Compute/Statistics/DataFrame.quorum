@@ -71,6 +71,10 @@ use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Statistics.Tests.CompareDistributions
 use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
 use Libraries.Compute.Statistics.Charts.ScreePlotCreator
+use Libraries.Compute.Statistics.Tests.CheckReducibility
+use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2275,7 +2279,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareCounts counts = CompareSelectedCounts()
+        CompareCounts counts = frame:CompareSelectedCounts()
         output counts:GetSummary()
     */
     action CompareSelectedCounts returns CompareCounts
@@ -2309,7 +2313,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups groups = CompareSelectedColumns()
+        CompareGroups groups = frame:CompareSelectedColumns()
         output groups:GetFormalSummary()
     */
     action CompareSelectedColumns returns CompareGroups
@@ -2343,7 +2347,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups groups = CompareSelectedColumns()
+        CompareGroups groups = frame:CompareSelectedColumns()
         output groups:GetFormalSummary()
     */
     action CompareSelectedRelatedColumns returns CompareGroups
@@ -2378,7 +2382,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(0)
-        CompareGroups result = CompareSelectedColumnsToMean(0)
+        CompareGroups result = frame:CompareSelectedColumnsToMean(0)
         output result:GetFormalSummary()
     */
     action CompareSelectedColumnToMean(number mean) returns CompareGroups
@@ -2418,7 +2422,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups compare = CompareSelectedRankedGroups()
+        CompareGroups compare = frame:CompareSelectedRankedGroups()
         output compare:GetFormalSummary()
     */
     action CompareSelectedRankedGroups returns CompareGroups
@@ -2453,7 +2457,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups compare = CompareSelectedRelatedRankedGroups()
+        CompareGroups compare = frame:CompareSelectedRelatedRankedGroups()
         output compare:GetFormalSummary()
     */
     action CompareSelectedRelatedRankedGroups returns CompareGroups
@@ -2489,7 +2493,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(0)
-        CompareGroups compare = CompareSelectedRanksToMedian(0)
+        CompareGroups compare = frame:CompareSelectedRanksToMedian(0)
         output compare:GetFormalSummary()
     */
     action CompareSelectedRankedGroupToMedian(number median) returns CompareGroups
@@ -2512,6 +2516,106 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareGroupsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareGroupsPairwise compare = frame:CompareGroupsPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareGroupsPairwise returns CompareGroupsPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroupsPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+
+    /*
+        This action uses the selection to conduct a liberal comparison between groups. 
+        The CompareGroupsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareGroupsPairwise compare = frame:CompareGroupsPairwiseUsingLiberalCorrection()
+        output compare:GetFormalSummary()
+    */
+    action CompareGroupsPairwiseUsingLiberalCorrection returns CompareGroupsPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroupsPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseLiberalCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups when 
+        they are not assumed to be normally distributed. 
+        The CompareGroupsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareGroups
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareGroupsPairwise compare = frame:CompareRankedGroupsPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareRankedGroupsPairwise returns CompareGroupsPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareGroupsPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Ranked(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a correlation between two or more independent columns. 
         The CorrelateGroups object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
@@ -2529,7 +2633,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateGroups correlate = CorrelateSelectedColumns()
+        CorrelateGroups correlate = frame:CorrelateSelectedColumns()
         output correlate:GetFormalSummary()
     */
     action CorrelateSelectedColumns returns CorrelateGroups
@@ -2562,7 +2666,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateGroups correlate = CorrelateSelectedRankedColumns()
+        CorrelateGroups correlate = frame:CorrelateSelectedRankedColumns()
         output correlate:GetFormalSummary()
     */
     action CorrelateSelectedRankedColumns returns CorrelateGroups
@@ -2579,7 +2683,8 @@ class DataFrame
     end
 
     /*
-        This action uses the selection to conduct a variance comparison between two or more independent columns. 
+        This action uses the selection to conduct a variance comparison between two or more independent columns.
+        This action will use the center as  
         The CompareVariances object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
@@ -2606,6 +2711,39 @@ class DataFrame
         CompareVariances compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a variance comparison between two or more independent columns. 
+        The CompareVariances object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Levene's Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareVariances compare = frame:CompareSelectedVariancesUsingMean()
+        output compare:GetFormalSummary()
+    */
+    action CompareSelectedVariancesUsingMean returns CompareVariances
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareVariances compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseMeanAsCenter()
         compare:Calculate(me)
         return compare
     end
@@ -2675,6 +2813,106 @@ class DataFrame
         selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
+    end
+
+    /*
+        Check that at least some of the variables have significant correlation, a prerequisite for factor analysis.
+        The CheckReducibility object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Bartlett’s Test of Sphericity
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibility
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CheckReducibility test = frame:CheckReducibility()
+        output test:GetFormalSummary()
+    */
+    action CheckReducibility returns CheckReducibility
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CheckReducibility test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
+    end
+
+
+    /*
+        Measures sampling adequacy for each variable in the model and for the complete model, 
+        a prerequisite for factor analysis to work.
+        The CheckReducibilityStrength object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Kaiser-Meyer-Olkin Measure Of Sampling Adequacy
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CheckReducibilityStrength test = frame:CheckReducibilityStrength()
+        output test:GetFormalSummary()
+    */
+    action CheckReducibilityStrength returns CheckReducibilityStrength
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CheckReducibilityStrength test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
+    end
+
+
+    /*
+        Reduces the dimensionality of a model in an attempt to maximize variances 
+        while maintaining the same explanatory outcome.
+        The PrincipalComponentAnalysis object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Kaiser-Meyer-Olkin Measure Of Sampling Adequacy
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        PrincipalComponentAnalysis pca = frame:PrincipalComponentAnalysis()
+        output pca:GetFormalSummary()
+    */
+    action PrincipalComponentAnalysis returns PrincipalComponentAnalysis
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        PrincipalComponentAnalysis test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
     end
 
     /*
