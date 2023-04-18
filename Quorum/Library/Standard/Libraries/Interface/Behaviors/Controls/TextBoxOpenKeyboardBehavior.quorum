@@ -4,6 +4,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Mobile.AndroidKeyboard
+use Libraries.Interface.Mobile.IOSKeyboard
 use Libraries.System.Properties
 
 class TextBoxOpenKeyboardBehavior is Behavior
@@ -13,6 +14,9 @@ class TextBoxOpenKeyboardBehavior is Behavior
             if prop:IsAndroid()
                 AndroidKeyboard keyboard
                 keyboard:DisplayKeyboard(keyboard:TEXT_NO_CORRECTIONS, keyboard:LINEFEED)
+            elseif prop:IsIos()
+                IOSKeyboard keyboard
+                keyboard:DisplayKeyboard()
             end
         end
     end

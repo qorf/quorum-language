@@ -1,8 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
-import org.robovm.apple.uikit.UIFocusEnvironment;
-import org.robovm.apple.uikit.UIView;
-import org.robovm.apple.uikit.UIViewController;
+import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Interface.Controls.Button_;
@@ -48,16 +46,41 @@ public class IOSAccessibility {
 
     }
 
-    public void  NativeAdd(Item_ item) throws Exception {
-//        IOSApplication.GlobalLog("Native Add");
-//        IOSApplication.GlobalLog(item.GetName());
-//        UIViewController controller = IOSDisplay.theViewController;
-//        UIView view = controller.getView();
-//
-//        UIView subview = new UIView();
-//        subview.setAccessibilityIdentifier(item.GetName());
-//        view.addSubview(subview);
+    public void  Add(Item_ item) throws Exception {
+        System.out.println("Did an Add operation.");
+        IOSApplication.GlobalLog("Native Add");
+        IOSApplication.GlobalLog(item.GetName());
+        UIViewController controller = IOSDisplay.theViewController;
+        UIView view = controller.getView();
 
+        HiddenView subview = new HiddenView();
+        subview.setAccessibilityIdentifier(item.GetName());
+        view.addSubview(subview);
+
+    }
+
+    private class HiddenView extends UIView {
+        public HiddenView() {
+
+        }
+    }
+    private class HiddenTextField extends UITextField {
+        public HiddenTextField () {
+
+            setKeyboardType(UIKeyboardType.Default);
+            setReturnKeyType(UIReturnKeyType.Done);
+            setAutocapitalizationType(UITextAutocapitalizationType.None);
+            setAutocorrectionType(UITextAutocorrectionType.No);
+            setSpellCheckingType(UITextSpellCheckingType.No);
+            setHidden(true);
+        }
+
+        @Override
+        public void deleteBackward () {
+            //app.input.inputProcessor.keyTyped((char)8);
+            //super.deleteBackward();
+            //Gdx.graphics.requestRendering();
+        }
     }
 
     public void  NativeRemove(Item_ item) {
