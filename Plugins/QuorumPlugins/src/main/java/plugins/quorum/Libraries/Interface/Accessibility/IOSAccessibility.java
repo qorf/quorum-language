@@ -47,20 +47,32 @@ public class IOSAccessibility {
     }
 
     public void  Add(Item_ item) throws Exception {
-        System.out.println("Did an Add operation.");
-        IOSApplication.GlobalLog("Native Add");
-        IOSApplication.GlobalLog(item.GetName());
         UIViewController controller = IOSDisplay.theViewController;
         UIView view = controller.getView();
 
-        HiddenView subview = new HiddenView();
-        subview.setAccessibilityIdentifier(item.GetName());
-        view.addSubview(subview);
-
+        //This is probably all wrong, but is a test to see if we can get it to fire on.
+        int code = item.Get_Libraries_Interface_Item__accessibilityCode_();
+        if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
+            HiddenButton subview = new HiddenButton();
+            subview.setAccessibilityIdentifier(item.GetName());
+            System.out.println(item.GetName());
+            view.addSubview(subview);
+        } else if(code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
+            HiddenTextField subview = new HiddenTextField();
+            subview.setAccessibilityIdentifier(item.GetName());
+            System.out.println(item.GetName());
+            view.addSubview(subview);
+        }
     }
 
     private class HiddenView extends UIView {
         public HiddenView() {
+
+        }
+    }
+
+    private class HiddenButton extends UIButton {
+        public HiddenButton() {
 
         }
     }
@@ -83,7 +95,7 @@ public class IOSAccessibility {
         }
     }
 
-    public void  NativeRemove(Item_ item) {
+    public void  Remove(Item_ item) {
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
