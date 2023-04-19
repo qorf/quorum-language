@@ -1758,13 +1758,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         if event:GetSource() not= undefined and event:GetSource() is Item2D
             if event:mouseButton = event:LEFT
                 draggingInText = true
-
-                /*
-                Only position the caret if this was a single click.
-                */
-                if gameStateManager:GetInput():GetClickCount(me) = 1
-                    MousePositionCaret(event, false)
-                end
+                MousePositionCaret(event, false)
             end
         end
     end
@@ -1783,7 +1777,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         integer line = caretLine
         integer index = caretCharacter
 
-        PositionCaretFromCoordinates(event:GetX() - background:GetGlobalX(), event:GetY() - GetGlobalY())
+        PositionCaretFromCoordinates(event:GetX() - background:GetGlobalX(), event:GetY() - background:GetGlobalY())
 
         integer caretPosition = GetCaretPosition()
         if caretPosition < selection:GetLockStart() or caretPosition > selection:GetLockEnd()
@@ -1824,12 +1818,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
 
-        number barOffset = 0
-        if IsShowingHorizontalBar()
-            barOffset = GetBarThickness()
-        end
-
-        number yPosition = GetHeight() + barOffset + (firstLine - line) * lineHeight - lineHeight/4
+        number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
         
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
