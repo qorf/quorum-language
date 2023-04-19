@@ -79,8 +79,7 @@ class RepeatBlock is MultipleLineBlock
         expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
         expressionField:SetRightPadding(spacing * 0.5)
 
-        integer localEnd = expressionField:GetEndIndex()
-
+        integer localEnd = expressionLoc:GetIndexEnd() - GetStartIndex()
         if loopContext:isTimes
             BlockLabel loopLabel
             me:loopLabel = loopLabel

@@ -1781,8 +1781,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
         if next:category = constants:TIMES
             //we don't need to check this one, just advance it, because block will manage it.
-            next = tokenIterator:Next()
             context:timesToken = next
+            next = tokenIterator:Next()
             context:isTimes = true
         end
 
