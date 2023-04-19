@@ -56,10 +56,6 @@ class MultipleLineBlockPart is SingleLineBlock
         return childBlocks:Get(index)
     end
 
-    action Remove(Block block) returns boolean
-        return childBlocks:Remove(block)
-    end
-
     action EmptyChildBlocks
         childBlocks:Empty()
     end

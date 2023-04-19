@@ -949,11 +949,6 @@ class CodeEditor is ScrollableLineControl
         Block parentBlock = block:GetParentBlock()
         parentBlock:Remove(block)
 
-        // get the whole multiple line block parent unless the block is directly attached to the root
-        if not (parentBlock is RootBlock)
-            parentBlock = parentBlock:GetParentBlock()
-        end
-
         /*
         Call OffsetIndices on the parent. By passing false for the final parameter,
         existing blocks shouldn't try to incorporate index changes that fall exactly
