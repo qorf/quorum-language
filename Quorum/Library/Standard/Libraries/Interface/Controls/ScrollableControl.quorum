@@ -99,9 +99,9 @@ class ScrollableControl is Control
         horizontalControlProperties:SetPercentageY(0)
         horizontalControlProperties:SetPercentageHeight(1)
 
-        Add(scrollableRegion)
-        Add(verticalBar)
-        Add(horizontalBar)
+        parent:Control:Add(scrollableRegion)
+        parent:Control:Add(verticalBar)
+        parent:Control:Add(horizontalBar)
         verticalBar:Add(verticalControl)
         horizontalBar:Add(horizontalControl)
     end

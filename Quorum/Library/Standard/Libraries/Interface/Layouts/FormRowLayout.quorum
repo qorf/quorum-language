@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Forms.FormContainerControl
 use Libraries.Interface.Forms.Grouping
 use Libraries.Interface.Forms.Banner
+use Libraries.Game.Graphics.Font
 
 class FormRowLayout is Layout
 
@@ -55,12 +56,21 @@ class FormRowLayout is Layout
             titleAlignment = contentAlignment
         end
 
+        Font containerFont = container:GetDefaultFont()
+        containerFont:SetSize(container:LARGE_FONT_SIZE)
+
         number defaultRowWidth = DEFAULT_ROW_PERCENTAGE_WIDTH * containerWidth
         number defaultRowStartX = (containerWidth - defaultRowWidth) / 2.0
         number defaultRowEndX = defaultRowStartX + defaultRowWidth
         number defaultInRowPadding = defaultRowWidth * DEFAULT_IN_ROW_PERCENTAGE_PADDING
-        number defaultRowHeight = containerHeight * DEFAULT_ROW_PERCENTAGE_HEIGHT
-        number defaultRowVerticalPadding = containerHeight * DEFAULT_ROW_VERTICAL_PADDING
+//        number defaultRowHeight = containerHeight * DEFAULT_ROW_PERCENTAGE_HEIGHT
+//        number defaultRowVerticalPadding = containerHeight * DEFAULT_ROW_VERTICAL_PADDING
+        number defaultRowHeight = containerFont:GetLineHeight()
+        number defaultRowVerticalPadding = cast(integer, defaultRowHeight * 0.4)
+        output "defaultRowHeight = " + defaultRowHeight + ", default padding = " + defaultRowVerticalPadding
+
+        
+        output "Font size = " + containerFont:GetSize() + ", height = " + containerFont:GetLineHeight()
 
         // Reset the area arrays to defaults before assigning items to them.
         integer counter = 0
