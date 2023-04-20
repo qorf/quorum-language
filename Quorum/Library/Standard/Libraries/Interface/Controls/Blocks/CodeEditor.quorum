@@ -471,7 +471,8 @@ class CodeEditor is ScrollableLineControl
                 selection:Set(block, block:GetStartLine(), undefined)
             end
         elseif newFocus:Equals(me)
-            if renderer:GetRootBlock():GetNextNavigableBlock() not= undefined
+            Block block = renderer:GetRootBlock()
+            if block not= undefined and block:GetNextNavigableBlock() not= undefined
                 SelectBlockAtLine(GetFirstVisibleLine())
             end
         end
