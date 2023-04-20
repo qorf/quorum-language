@@ -11,9 +11,11 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.ButtonGroup
 
-class FormContainerControl is FormContainerInterface, Control
-
+class FormContainerControl is Control
+    boolean hasDefaultFocusOrdering = false
     Label titleLabel = undefined
 
     public constant integer TINY_FONT_SIZE = 10
@@ -55,6 +57,7 @@ class FormContainerControl is FormContainerInterface, Control
             label:SetFontSize(titleSize)
             label:SetName(GetName() + " Title Label")
             label:SetText(title)
+            label:SetFocusable(true)
             Add(0, label)
         end
     end
@@ -138,33 +141,16 @@ class FormContainerControl is FormContainerInterface, Control
         return button
     end
 
-    action AddRadioButton(text name) returns RadioButton
-        RadioButton button
-        button:SetName(name)
-        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
-        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
-
-        Add(button)
-        return button
-    end
-
-    action AddCheckbox(text name) returns Checkbox
-        Checkbox button
-        button:SetName(name)
-        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
-        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
-
-        Add(button)
-        return button
-    end
-
-    action AddList(text name) returns List
-        List list
-        list:SetName(name)
-
-        Add(list)
-
-        return list
+    action ChangeButtonIcon(text name, text fileName)
+        Button button = GetButton(name)
+        if button = undefined
+            alert("I couldn't find a Button named " + name + ". Are you looking for the right item?")
+        else
+            Drawable drawable
+            drawable:Load(fileName)
+            button:SetIcon(drawable)
+            button:RequestLayout()
+        end
     end
 
     action AddButton(text name, text fileName) returns Button
@@ -190,12 +176,139 @@ class FormContainerControl is FormContainerInterface, Control
     end
 
     action RemoveButton(text name) returns Button
-        Item2D button = FindControl(name)
-        if button not= undefined and button is Button
+        Button button = GetButton(name)
+        if button not= undefined
             Remove(button)
-            return cast(Button, button)
+            return button
         end
-        alert("The item " + name + " is not a button. Are you looking for the right item?")
+        alert("I couldn't find a Button named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetButton(text name) returns Button
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Button
+                return cast(Button, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Button candidate = interface:GetButton(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action CalculateDefaultFocusOrdering
+        SetHasDefaultFocusOrdering(true)
+        Array<Item2D> children = GetChildren()
+        Item2D previous = undefined
+        Item2D first = undefined
+        i = 0
+
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and first = undefined
+                if control is FormContainerControl
+                    FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                    interface:CalculateDefaultFocusOrdering()
+                    Item2D item = interface:GetFirstFocusableItem()
+                    if item not= undefined
+                        first = item
+                    end
+
+                    item = interface:GetLastFocusableItem()
+                    if item not= undefined
+                        previous = item
+                    end
+                elseif control not= undefined and control:IsFocusable()
+                    first = control
+                    previous = control
+                end
+            else
+                if control not= undefined and previous not= undefined
+                    //if it's a form container, set it to the child
+                    if control is FormContainerControl
+                        FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                        interface:CalculateDefaultFocusOrdering()
+                        Item2D item = interface:GetFirstFocusableItem()
+                        if item not= undefined
+                            previous:SetNextFocus(item)
+                            item:SetPreviousFocus(previous)
+                        end
+
+                        item = interface:GetLastFocusableItem()
+                        if item not= undefined
+                            previous = item
+                        end
+                    else //else just set next and previous
+                        previous:SetNextFocus(control)
+                        control:SetPreviousFocus(previous)
+                    end
+                end
+
+                if control not= undefined and control:IsFocusable()
+                    previous = control
+                end
+            end
+            
+            i = i + 1
+        end
+
+        if previous not= undefined and first not= undefined
+            previous:SetNextFocus(first)
+            first:SetPreviousFocus(previous)
+        end
+    end
+
+    action GetFirstFocusableItem returns Item2D
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            Item2D item = GetFocusedItem(control)
+            if item not= undefined
+                return item
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    private action GetFocusedItem(Item2D control) returns Item2D
+        if control not= undefined 
+            if control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Item2D item = interface:GetFirstFocusableItem()
+                if item not= undefined
+                    return item
+                end
+            elseif control:IsFocusable()
+                return control
+            end
+        end
+        return undefined
+    end
+
+    action GetLastFocusableItem returns Item2D
+        Array<Item2D> children = GetChildren()
+        i = children:GetSize() - 1
+        repeat while i >= 0
+            Item2D control = children:Get(i)
+            Item2D item = GetFocusedItem(control)
+            if item not= undefined
+                return item
+            end
+            i = i - 1
+        end
+
+        return undefined
     end
 
     action AddLabel(text name) returns Label
@@ -204,10 +317,10 @@ class FormContainerControl is FormContainerInterface, Control
 
     action AddLabel(text name, text value) returns Label
         Label label
-        //labelCount = labelCount + 1
         label:SetName(name)
         label:SetText(value)
         label:SetFocusable(true)
+        label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
         label:SetFontSize(MEDIUM_FONT_SIZE)
 
@@ -216,12 +329,32 @@ class FormContainerControl is FormContainerInterface, Control
     end
 
     action RemoveLabel(text name) returns Label
-        Item2D label = FindControl(name)
-        if label not= undefined and label is Label
-            Remove(label)
-            return cast(Label, label)
+        Label item = GetLabel(name)
+        if item not= undefined
+            Remove(item)
+            return item
         end
-        alert("The item " + name + " is not a label. Are you looking for the right item?")
+        alert("I couldn't find a Label named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetLabel(text name) returns Label
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Label
+                return cast(Label, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Label candidate = interface:GetLabel(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action AddIcon(text name, text fileName) returns Icon
@@ -244,12 +377,41 @@ class FormContainerControl is FormContainerInterface, Control
     end
 
     action RemoveIcon(text name) returns Icon
-        Item2D item = FindControl(name)
-        if item not= undefined and item is Icon
+        Icon item = GetIcon(name)
+        if item not= undefined
             Remove(item)
-            return cast(Icon, item)
+            return item
         end
-        alert("The item " + name + " is not an Icon. Are you looking for the right item?")
+        alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
+    end
+
+    action ChangeIcon(text name, text fileName)
+        Icon icon = GetIcon(name)
+        if icon = undefined
+            alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
+        else
+            icon:Load(fileName)
+        end
+    end
+
+    action GetIcon(text name) returns Icon
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Icon
+                return cast(Icon, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Icon candidate = interface:GetIcon(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action AddTextField(text name) returns TextField
@@ -260,12 +422,211 @@ class FormContainerControl is FormContainerInterface, Control
     end
 
     action RemoveTextField(text name) returns TextField
-        Item2D item = FindControl(name)
-        if item not= undefined and item is TextField
+        TextField item = GetTextField(name)
+        if item not= undefined
             Remove(item)
-            return cast(TextField, item)
+            return item
         end
-        alert("The item " + name + " is not a text field. Are you looking for the right item?")
+        alert("I couldn't find a TextField named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetTextField(text name) returns TextField
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is TextField
+                return cast(TextField, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                TextField candidate = interface:GetTextField(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action AddTextBox(text name) returns TextBox
+        TextBox item
+        item:SetName(name)
+        Add(item)
+        return item
+    end
+
+    action RemoveTextBox(text name) returns TextBox
+        TextBox item = GetTextBox(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a TextBox named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetTextBox(text name) returns TextBox
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is TextField
+                return cast(TextBox, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                TextBox candidate = interface:GetTextBox(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action AddRadioButton(text name, ButtonGroup group) returns RadioButton
+        RadioButton button = group:AddRadioButton(name)
+        return button
+    end
+
+    action RemoveRadioButton(text name, text group) returns RadioButton
+        ButtonGroup bg = GetButtonGroup(group)
+        if bg = undefined
+            return undefined
+        end
+
+        //can be undefined
+        RadioButton radio = bg:RemoveRadioButton(name)
+        return radio
+    end
+
+    action GetRadioButton(text name, text group) returns RadioButton
+        ButtonGroup bg = GetButtonGroup(group)
+        if bg = undefined
+            return undefined
+        end
+
+        //can be undefined
+        RadioButton radio = bg:GetRadioButton(name)
+        return radio
+    end
+
+    action AddButtonGroup(text name) returns ButtonGroup
+        ButtonGroup group
+        group:SetName(name)
+        group:SetHorizontalLayoutMode(group:parent:Control:STANDARD)
+        group:SetVerticalLayoutMode(group:parent:Control:STANDARD)
+
+        Add(group)
+        return group
+    end
+
+    action RemoveButtonGroup(text name) returns ButtonGroup
+        ButtonGroup item = GetButtonGroup(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a Checkbox named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetButtonGroup(text name) returns ButtonGroup
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is ButtonGroup
+                return cast(ButtonGroup, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                ButtonGroup candidate = interface:GetButtonGroup(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action AddCheckbox(text name) returns Checkbox
+        Checkbox button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        Add(button)
+        return button
+    end
+
+    action RemoveCheckbox(text name) returns Checkbox
+        Checkbox item = GetCheckbox(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a Checkbox named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetCheckbox(text name) returns Checkbox
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Checkbox
+                return cast(Checkbox, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Checkbox candidate = interface:GetCheckbox(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action AddList(text name) returns List
+        List list
+        list:SetName(name)
+
+        Add(list)
+
+        return list
+    end
+
+    action RemoveList(text name) returns List
+        List item = GetList(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a List named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetList(text name) returns List
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is List
+                return cast(List, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                List candidate = interface:GetList(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action FindControl(text name) returns Item2D
@@ -275,8 +636,8 @@ class FormContainerControl is FormContainerInterface, Control
             Item2D control = children:Get(i)
             if control not= undefined and control:GetName() = name
                 return control
-            elseif control is FormContainerInterface
-                FormContainerInterface interface = cast(FormContainerInterface, cast(Object, control))
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Item2D candidate = interface:FindControl(name)
                 if candidate not= undefined
                     return candidate
@@ -296,4 +657,11 @@ class FormContainerControl is FormContainerInterface, Control
         return contentAlignment
     end
 
+    action HasDefaultFocusOrdering returns boolean
+        return hasDefaultFocusOrdering
+    end
+
+    action SetHasDefaultFocusOrdering(boolean hasDefaultFocusOrdering)
+        me:hasDefaultFocusOrdering = hasDefaultFocusOrdering
+    end
 end

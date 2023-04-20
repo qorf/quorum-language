@@ -48,8 +48,6 @@ class LineNumberGutter is Gutter
             fontSize = GetFontSize()
         end
 
-        fontSize = cast(integer, fontSize * GetInterfaceScale())
-
         Font font = SelectFont()
 
         LayoutProperties properties = GetCurrentLayoutProperties()

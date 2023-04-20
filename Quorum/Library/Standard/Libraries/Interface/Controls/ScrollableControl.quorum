@@ -268,10 +268,10 @@ class ScrollableControl is Control
         if verticalVisible
             verticalControl:SetPercentageHeight(verticalViewRatio)
             verticalBar:Show()
-            scrollableRegion:SetPixelWidth(-barThickness - gutterWidth)
+            scrollableRegion:SetPixelWidth(-barThickness - gutterWidth / GetInterfaceScale())
         else
             verticalBar:Hide()
-            scrollableRegion:SetPixelWidth(-gutterWidth)
+            scrollableRegion:SetPixelWidth(-gutterWidth / GetInterfaceScale())
         end
 
         scrollableRegion:SetPixelX(gutterWidth)

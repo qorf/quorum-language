@@ -2,8 +2,11 @@ package Libraries.Interface.Forms
 
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
 
-class Page is FormContainerControl
+class Page is FormPrimitiveContainer, FormContainerControl
 
     on create
         SetPercentageWidth(1.0)
@@ -19,12 +22,26 @@ class Page is FormContainerControl
     end
 
     action RemoveGrouping(text name) returns Grouping
-        Item2D grouping = FindControl(name)
-        if grouping not= undefined and grouping is Grouping
-            Remove(grouping)
-            return cast(Grouping, grouping)
+        Grouping item = GetGrouping(name)
+        if item not= undefined
+            Remove(item)
+            return item
         end
-        alert("The item " + name + " is not a grouping. Are you looking for the right item?")
+        alert("I couldn't find a Grouping named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetGrouping(text name) returns Grouping
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Grouping
+                return cast(Grouping, control)
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
@@ -37,12 +54,26 @@ class Page is FormContainerControl
     end
 
     action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
-        Item2D grouping = FindControl(name)
-        if grouping not= undefined and grouping is StartButtonGrouping
-            Remove(grouping)
-            return cast(StartButtonGrouping, grouping)
+        StartButtonGrouping item = GetStartButtonGrouping(name)
+        if item not= undefined
+            Remove(item)
+            return item
         end
-        alert("The item " + name + " is not a start button grouping. Are you looking for the right item?")
+        alert("I couldn't find a StartButtonGrouping named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetStartButtonGrouping(text name) returns StartButtonGrouping
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is StartButtonGrouping
+                return cast(StartButtonGrouping, control)
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action AddBanner(text title) returns Banner
@@ -65,12 +96,37 @@ class Page is FormContainerControl
     end
 
     action RemoveBanner(text name) returns Banner
-        Item2D grouping = FindControl(name)
-        if grouping not= undefined and grouping is Banner
-            Remove(grouping)
-            return cast(Banner, grouping)
+        Banner item = GetBanner(name)
+        if item not= undefined
+            Remove(item)
+            return item
         end
-        alert("The item " + name + " is not a banner Are you looking for the right item?")
+        alert("I couldn't find a Banner named " + name + ". Are you looking for the right item?")
     end
 
+    action GetBanner(text name) returns Banner
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is Banner
+                return cast(Banner, control)
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        if not HasDefaultFocusOrdering()
+            CalculateDefaultFocusOrdering()
+        end
+    end
 end
