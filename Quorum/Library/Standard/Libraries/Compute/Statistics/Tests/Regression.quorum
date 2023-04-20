@@ -427,14 +427,23 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
         integer columns = predictors:GetColumns()
         Matrix upper = ortho:GetUpperTriangularMatrix()
 
-        //LU Decomposition requires a square matrix. The upper triangular is largely filled with 0s on the bottom,
-        //so we can get rid of those to make it square
+        // LU Decomposition requires a square matrix. 
+        // The upper triangular is largely filled with 0s on the bottom,
+        // so we can get rid of those to make it square
         Matrix square = upper:GetSubMatrix(0,0,columns,columns)
-        LowerUpperDecomposition luDecomp
-        luDecomp:Calculate(square)
 
-        Matrix inverse = luDecomp:GetInverse()
-        Matrix result = inverse:Multiply(inverse:Transpose())
+        Matrix result
+        // If the matrix is singular, don't attempt LU decomp, just do X'X^-1 to circumvent the error.
+        // R's default is to ignore the singular issue, but they return NAs for the coefficients, whereas we return 0s
+        check
+            LowerUpperDecomposition luDecomp
+            luDecomp:Calculate(square)
+    
+            Matrix inverse = luDecomp:GetInverse()
+            result = inverse:Multiply(inverse:Transpose())
+        detect e
+            result = predictors:Transpose():Multiply(predictors):Inverse()
+        end
         return result
     end
 

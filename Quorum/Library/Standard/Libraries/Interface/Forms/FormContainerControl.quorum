@@ -11,9 +11,11 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.ButtonGroup
 
 class FormContainerControl is Control
-
+    boolean hasDefaultFocusOrdering = false
     Label titleLabel = undefined
 
     public constant integer TINY_FONT_SIZE = 10
@@ -55,6 +57,7 @@ class FormContainerControl is Control
             label:SetFontSize(titleSize)
             label:SetName(GetName() + " Title Label")
             label:SetText(title)
+            label:SetFocusable(true)
             Add(0, label)
         end
     end
@@ -138,6 +141,18 @@ class FormContainerControl is Control
         return button
     end
 
+    action ChangeButtonIcon(text name, text fileName)
+        Button button = GetButton(name)
+        if button = undefined
+            alert("I couldn't find a Button named " + name + ". Are you looking for the right item?")
+        else
+            Drawable drawable
+            drawable:Load(fileName)
+            button:SetIcon(drawable)
+            button:RequestLayout()
+        end
+    end
+
     action AddButton(text name, text fileName) returns Button
         Button button = AddButton(name)
 
@@ -189,16 +204,123 @@ class FormContainerControl is Control
         return undefined
     end
 
+    action CalculateDefaultFocusOrdering
+        SetHasDefaultFocusOrdering(true)
+        Array<Item2D> children = GetChildren()
+        Item2D previous = undefined
+        Item2D first = undefined
+        i = 0
+
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and first = undefined
+                if control is FormContainerControl
+                    FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                    interface:CalculateDefaultFocusOrdering()
+                    Item2D item = interface:GetFirstFocusableItem()
+                    if item not= undefined
+                        first = item
+                    end
+
+                    item = interface:GetLastFocusableItem()
+                    if item not= undefined
+                        previous = item
+                    end
+                elseif control not= undefined and control:IsFocusable()
+                    first = control
+                    previous = control
+                end
+            else
+                if control not= undefined and previous not= undefined
+                    //if it's a form container, set it to the child
+                    if control is FormContainerControl
+                        FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                        interface:CalculateDefaultFocusOrdering()
+                        Item2D item = interface:GetFirstFocusableItem()
+                        if item not= undefined
+                            previous:SetNextFocus(item)
+                            item:SetPreviousFocus(previous)
+                        end
+
+                        item = interface:GetLastFocusableItem()
+                        if item not= undefined
+                            previous = item
+                        end
+                    else //else just set next and previous
+                        previous:SetNextFocus(control)
+                        control:SetPreviousFocus(previous)
+                    end
+                end
+
+                if control not= undefined and control:IsFocusable()
+                    previous = control
+                end
+            end
+            
+            i = i + 1
+        end
+
+        if previous not= undefined and first not= undefined
+            previous:SetNextFocus(first)
+            first:SetPreviousFocus(previous)
+        end
+    end
+
+    action GetFirstFocusableItem returns Item2D
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            Item2D item = GetFocusedItem(control)
+            if item not= undefined
+                return item
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    private action GetFocusedItem(Item2D control) returns Item2D
+        if control not= undefined 
+            if control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Item2D item = interface:GetFirstFocusableItem()
+                if item not= undefined
+                    return item
+                end
+            elseif control:IsFocusable()
+                return control
+            end
+        end
+        return undefined
+    end
+
+    action GetLastFocusableItem returns Item2D
+        Array<Item2D> children = GetChildren()
+        i = children:GetSize() - 1
+        repeat while i >= 0
+            Item2D control = children:Get(i)
+            Item2D item = GetFocusedItem(control)
+            if item not= undefined
+                return item
+            end
+            i = i - 1
+        end
+
+        return undefined
+    end
+
     action AddLabel(text name) returns Label
         return AddLabel(name, name)
     end
 
     action AddLabel(text name, text value) returns Label
         Label label
-        //labelCount = labelCount + 1
         label:SetName(name)
         label:SetText(value)
         label:SetFocusable(true)
+        label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
         label:SetFontSize(MEDIUM_FONT_SIZE)
 
@@ -263,6 +385,15 @@ class FormContainerControl is Control
         alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
     end
 
+    action ChangeIcon(text name, text fileName)
+        Icon icon = GetIcon(name)
+        if icon = undefined
+            alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
+        else
+            icon:Load(fileName)
+        end
+    end
+
     action GetIcon(text name) returns Icon
         Array<Item2D> children = GetChildren()
         i = 0
@@ -319,14 +450,106 @@ class FormContainerControl is Control
         return undefined
     end
 
-    action AddRadioButton(text name) returns RadioButton
-        RadioButton button
-        button:SetName(name)
-        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
-        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+    action AddTextBox(text name) returns TextBox
+        TextBox item
+        item:SetName(name)
+        Add(item)
+        return item
+    end
 
-        Add(button)
+    action RemoveTextBox(text name) returns TextBox
+        TextBox item = GetTextBox(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a TextBox named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetTextBox(text name) returns TextBox
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is TextField
+                return cast(TextBox, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                TextBox candidate = interface:GetTextBox(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action AddRadioButton(text name, ButtonGroup group) returns RadioButton
+        RadioButton button = group:AddRadioButton(name)
         return button
+    end
+
+    action RemoveRadioButton(text name, text group) returns RadioButton
+        ButtonGroup bg = GetButtonGroup(group)
+        if bg = undefined
+            return undefined
+        end
+
+        //can be undefined
+        RadioButton radio = bg:RemoveRadioButton(name)
+        return radio
+    end
+
+    action GetRadioButton(text name, text group) returns RadioButton
+        ButtonGroup bg = GetButtonGroup(group)
+        if bg = undefined
+            return undefined
+        end
+
+        //can be undefined
+        RadioButton radio = bg:GetRadioButton(name)
+        return radio
+    end
+
+    action AddButtonGroup(text name) returns ButtonGroup
+        ButtonGroup group
+        group:SetName(name)
+        group:SetHorizontalLayoutMode(group:parent:Control:STANDARD)
+        group:SetVerticalLayoutMode(group:parent:Control:STANDARD)
+
+        Add(group)
+        return group
+    end
+
+    action RemoveButtonGroup(text name) returns ButtonGroup
+        ButtonGroup item = GetButtonGroup(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a Checkbox named " + name + ". Are you looking for the right item?")
+    end
+
+    action GetButtonGroup(text name) returns ButtonGroup
+        Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D control = children:Get(i)
+            if control not= undefined and control:GetName() = name and control is ButtonGroup
+                return cast(ButtonGroup, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                ButtonGroup candidate = interface:GetButtonGroup(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            i = i + 1
+        end
+
+        return undefined
     end
 
     action AddCheckbox(text name) returns Checkbox
@@ -434,4 +657,11 @@ class FormContainerControl is Control
         return contentAlignment
     end
 
+    action HasDefaultFocusOrdering returns boolean
+        return hasDefaultFocusOrdering
+    end
+
+    action SetHasDefaultFocusOrdering(boolean hasDefaultFocusOrdering)
+        me:hasDefaultFocusOrdering = hasDefaultFocusOrdering
+    end
 end

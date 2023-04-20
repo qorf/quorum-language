@@ -185,9 +185,8 @@ public class IOSApplication
 
     public UIViewController GetUIViewController()
     {
-        //return graphics.viewController;
-        // TEMP:
-        return null;
+        UIWindow ui = GetUIWindow();
+        return ui.getRootViewController();
     }
 
     public UIWindow GetUIWindow()

@@ -88,6 +88,16 @@ class DataFrameColumnCalculation
     end
 
     /*
+        If this action returns true, the calculation is numerical, the column must be numerical 
+        If this is false, the calculation should be non-numerical, thus the column will not be 
+        required to be a numerical column
+        action. 
+    */
+    action IsNumerical returns boolean
+        return true
+    end
+
+    /*
         This action deletes any saved data in the calculation and returns it
         to its default state.
     */
