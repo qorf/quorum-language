@@ -19,7 +19,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     Color acceptBlue = color:CustomColor(131.0/MAX, 186.0/MAX, 217.0/MAX, 1)
     Color hoverBlue = color:CustomColor(78.0 / MAX, 139.0 / MAX, 175.0 / MAX, 1)
     Color defaultStatementColor = color:CustomColor(45.0/MAX, 112.0/MAX, 160.0/MAX, 1)
-
+    Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
     number mul = 1.4
     Color commonFontColor = color:CustomColor(mul * 186.0 / MAX, mul * 197.0 / MAX, mul * 210.0 / MAX, 1)
 
@@ -40,7 +40,9 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetBackgroundColor(constants:IF_KEY, classBlock)
         SetBackgroundColor(constants:FREEFORM_KEY, color:CustomColor(240.0 / MAX, 240.0 / MAX, 240.0 / MAX, 1))
 
+        SetEditBackgroundColor(editFieldBackground)
         SetEditBorderThickness(1)
+        SetEditFontColor(color:White())
         SetStaticFontColor(color:White())
         SetStaticFontOutlineColor(color:Black())
         SetStaticFontOutlineThickness(1.0)
@@ -61,12 +63,6 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
             Color editColor
             editColor:CopyColor(color)
             SetEditBorderColor(key, editColor)
-
-            Color backColor
-            backColor = backColor:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
-            SetEditBackgroundColor(key, backColor)
-
-            SetFontColor(key, commonFontColor)
         end
     end
 end

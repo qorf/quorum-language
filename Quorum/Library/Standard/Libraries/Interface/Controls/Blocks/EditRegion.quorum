@@ -103,6 +103,19 @@ class EditRegion is BlockItem
         end
     end
 
+    action GetFontColor returns ColorGroup
+        if HasColorPropertyOverride("fontColor")
+            return parent:Control:GetFontColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_FONT_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_FONT_COLOR)
+        end
+    end
+
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
