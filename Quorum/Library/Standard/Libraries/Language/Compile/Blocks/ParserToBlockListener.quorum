@@ -4,6 +4,8 @@ use Libraries.Language.Compile.QuorumSourceListener
 use Libraries.Language.Compile.Context.all
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.all
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.Parsing.QuorumLexer
 
 
 class ParserToBlockListener is QuorumSourceListener
@@ -12,9 +14,11 @@ class ParserToBlockListener is QuorumSourceListener
     integer finishLine = -1
     CodeEditor editor = undefined
     integer scopeDepth = 0
+    QuorumLexer lexer = undefined
 
     RootBlock rootBlock
     Block currentBlock = undefined
+    integer recentToken = -1
     
     action EnterDocumentation(DocumentationContext context) end
     action ExitDocumentation(DocumentationContext context) end
@@ -36,6 +40,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterSayStatement(SayContext context) 
         SayBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetSayContext(context)
@@ -47,6 +52,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterCheckStatement(CheckContext context)
         CheckBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -70,10 +76,30 @@ class ParserToBlockListener is QuorumSourceListener
     action EnterParentFieldAccess(ParentFieldAccessContext context) end
     action ExitParentFieldAccess(ParentFieldAccessContext context) end
 
-    action EnterFullClassDeclaration(FullClassDeclarationContext ctx) 
+    private action FillPreviousCommentBlocks(Block block, Token first, Token last)
+        integer index = first:tokenIndex
+        Array<CommentBlock> comments = block:GetPreviousCommentBlocks()
+        i = index - 1
+        repeat while i >= 0 and i > recentToken
+            Token next = lexer:GetToken(i)
+            boolean isComment = next:IsCommentChannel()
+            if isComment 
+                CommentBlock comment
+                comment:SetIsMultiLineComment(first:IsMultiLineComment())
+                comment:SetToken(next)
+                comments:Add(comment)
+            end
+            i = i - 1
+        end
+
+        recentToken = index
+    end
+    
+    action EnterFullClassDeclaration(FullClassDeclarationContext context)
         ClassBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetEditor(editor)
-        block:SetFullClass(ctx)
+        block:SetFullClass(context)
         
         currentBlock:Add(cast(Block, block))
 
@@ -119,7 +145,9 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterStart(StartContext context) 
     end
-    action ExitStart(StartContext context) end
+    action ExitStart(StartContext context) 
+        //What do we want to do with comments after the valid program. Nothing? Freeform? More comments?
+    end
 
     action EnterText(TextContext context) end
     action ExitText(TextContext context) end
@@ -143,6 +171,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterConstructor(ConstructorContext context)
         ConstructorBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -168,6 +197,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterActionHeader(ActionContext context) 
         ActionBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetActionContext(context)
@@ -222,6 +252,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterIfStatement(IfContext context)
         IfBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -287,6 +318,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterLoopStatement(LoopContext context)
         RepeatBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -340,6 +372,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterReturnStatement(ReturnContext context)
         ReturnBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -366,6 +399,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterAlertStatement(AlertContext context)
         AlertBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -377,6 +411,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterUse(UseContext context)
         UseBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -406,6 +441,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterPackageRule(PackageContext context)
         PackageBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -417,6 +453,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterNormalAssignment(NormalAssignmentContext context)
         AssignmentBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -429,6 +466,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterParentAssignment(ParentAssignmentContext context)
         AssignmentBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -440,6 +478,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterObjectAssignment(ObjectAssignmentContext context)
         AssignmentBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -451,6 +490,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterNoTypeAssignment(NoTypeAssignmentContext context)
         AssignmentBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -465,6 +505,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterVariableSoloFunctionCall(VariableFunctionCallContext context)
         ActionCallBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -476,6 +517,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context)
         ActionCallBlock block
+        FillPreviousCommentBlocks(block, context:GetFirstToken(), context:GetLastToken())
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(editor)
         block:SetContext(context)
@@ -533,4 +575,11 @@ class ParserToBlockListener is QuorumSourceListener
         me:editor = editor
     end
 
+    action GetQuorumLexer returns QuorumLexer
+        return lexer
+    end
+
+    action SetQuorumLexer(QuorumLexer lexer)
+        me:lexer = lexer
+    end
 end

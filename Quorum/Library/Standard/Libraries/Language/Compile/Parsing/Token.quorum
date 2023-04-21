@@ -73,4 +73,17 @@ class Token
     action SetToWhiteSpaceChannel
         channel = 2
     end
+
+    action IsMultiLineComment returns boolean
+        if not IsCommentChannel() or value = undefined 
+            or value:GetSize() < 2 or value:StartsWith("//")
+            return false
+        end
+
+        if value:StartsWith("/*")
+            return true
+        end
+
+        return false
+    end
 end

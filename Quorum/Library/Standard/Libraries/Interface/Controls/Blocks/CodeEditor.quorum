@@ -163,6 +163,7 @@ class CodeEditor is ScrollableLineControl
 " + value
             return now
         end
+        blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
     end
 
