@@ -6,11 +6,15 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     constant number MAX = 255.0
     BlockOptionConstants constants
     Color color
-    Color classBlock = color:CustomColor(32.0 / MAX, 32.0 / MAX, 32.0 / MAX, 1)
+    Color folderButtons = color:CustomColor(144.0 / MAX, 191.0 / MAX, 227.0 / MAX, 1)
+    Color classBlock = folderButtons//color:CustomColor(96.0 / MAX, 96.0 / MAX, 96.0 / MAX, 1)
+    Color ifBlock = color:CustomColor(64.0 / MAX, 128.0 / MAX, 64.0 / MAX, 1)
+    Color packageBlock = color:CustomColor(96.0 / MAX, 32.0 / MAX, 96.0 / MAX, 1)
+    Color useBlock = color:CustomColor(128.0 / MAX, 64.0 / MAX, 128.0 / MAX, 1)
     Color comments = color:CustomColor(175.0 / MAX, 186.0 / MAX, 255.0 / MAX, 1)
     Color textColor = color:CustomColor(255.0 / MAX, 165.0 / MAX, 127.0 / MAX, 1)
     Color playButtons = color:CustomColor(133.0 / MAX, 216.0 / MAX, 144.0 / MAX, 1)
-    Color folderButtons = color:CustomColor(144.0 / MAX, 191.0 / MAX, 227.0 / MAX, 1)
+    
     Color stopButton = color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1)
     Color textboxBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
     Color defaultBackground = color:CustomColor(60.0 / MAX, 63.0 / MAX, 65.0 / MAX, 1)
@@ -18,26 +22,25 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     Color lightFont = color:CustomColor(246.0 / MAX, 246.0 / MAX, 246.0 / MAX, 1)
     Color acceptBlue = color:CustomColor(131.0/MAX, 186.0/MAX, 217.0/MAX, 1)
     Color hoverBlue = color:CustomColor(78.0 / MAX, 139.0 / MAX, 175.0 / MAX, 1)
-    Color defaultStatementColor = color:CustomColor(45.0/MAX, 112.0/MAX, 160.0/MAX, 1)
+    Color defaultStatementColor = color:CustomColor(128.0 / MAX, 128.0 / MAX, 128.0 / MAX, 1)//folderButtons//color:CustomColor(45.0/MAX, 112.0/MAX, 160.0/MAX, 1)
     Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
-    number mul = 1.4
-    Color commonFontColor = color:CustomColor(mul * 186.0 / MAX, mul * 197.0 / MAX, mul * 210.0 / MAX, 1)
+    Color commonFontColor = color:CustomColor(186.0 / MAX, 197.0 / MAX, 210.0 / MAX, 1)
 
     action SetStartingOptions
         SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
         SetBackgroundColor(constants:OUTPUT_KEY, defaultStatementColor)
         SetBackgroundColor(constants:SAY_KEY, defaultStatementColor)
         SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
-        SetBackgroundColor(constants:USE_KEY, defaultStatementColor)
-        SetBackgroundColor(constants:PACKAGE_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:USE_KEY, useBlock)
+        SetBackgroundColor(constants:PACKAGE_KEY, packageBlock)
         SetBackgroundColor(constants:ALERT_KEY, defaultStatementColor)
         SetBackgroundColor(constants:CHECK_KEY, defaultStatementColor)
         SetBackgroundColor(constants:ACTION_CALL_KEY, defaultStatementColor)
-        SetBackgroundColor(constants:REPEAT_KEY, classBlock)
+        SetBackgroundColor(constants:REPEAT_KEY, ifBlock)
         SetBackgroundColor(constants:ACTION_KEY, playButtons)
         SetBackgroundColor(constants:CONSTRUCTOR_KEY, playButtons)
         SetBackgroundColor(constants:CLASS_KEY, classBlock)
-        SetBackgroundColor(constants:IF_KEY, classBlock)
+        SetBackgroundColor(constants:IF_KEY, ifBlock)
         SetBackgroundColor(constants:FREEFORM_KEY, color:CustomColor(240.0 / MAX, 240.0 / MAX, 240.0 / MAX, 1))
 
         SetEditBackgroundColor(editFieldBackground)
