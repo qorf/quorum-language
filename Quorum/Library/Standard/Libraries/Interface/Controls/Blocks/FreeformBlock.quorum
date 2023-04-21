@@ -1,26 +1,26 @@
 package Libraries.Interface.Controls.Blocks
 
-use Libraries.Interface.Controls.Blocks.Controls.EditRegion
-use Libraries.Interface.Controls.CodeEditor
+use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Options.BlockOptionConstants
-use Libraries.Interface.Controls.Blocks.Layouts.SingleLineBlockLayout
+use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
 use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Parsing.QuorumLexer
-use Libraries.Language.Compile.Parsing.ParserToBlockListener
+use Libraries.Language.Compile.Blocks.ParserToBlockListener
 use Libraries.Language.Compile.Context.StatementContext
 use Libraries.Language.Compile.Context.ClassStatementsContext
-use Libraries.Interface.Controls.Blocks.ParserListeners.FreeformBlockListener
+use Libraries.Interface.Controls.Blocks.FreeformBlockListener
 use Libraries.Language.Compile.Context.OutputContext
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Language.Compile.Location
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Views.SingleLineBlockView
-use Libraries.Interface.Controls.Blocks.Controls.EditBox
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Compute.Random
 
 class FreeformBlock is SingleLineBlock
@@ -147,6 +147,21 @@ class FreeformBlock is SingleLineBlock
     //  return (now for void or with a field if it does)
     //  if
     //  elseif
+        elseif code = "elseif"
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:Insert(" false")
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is IfBlock
+                IfBlock ifParent = cast(IfBlock, grandparent)
+                ifParent:AddElseifLineFromFreeform(me, " false")
+                
+            else
+                // TO-DO: Set error state visuals
+                BlockErrorShaderView view
+                view:Initialize()
+                SetView2D(view)
+                return now
+            end 
     //  else
     //  repeat - by default it's times
         elseif code = "repeat"

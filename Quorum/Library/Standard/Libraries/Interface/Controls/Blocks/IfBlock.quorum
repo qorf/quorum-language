@@ -1,13 +1,12 @@
 package Libraries.Interface.Controls.Blocks
 
-use Libraries.Interface.Controls.CodeEditor
-use Libraries.Interface.Controls.Blocks.Controls.EditField
-use Libraries.Interface.Controls.Blocks.Controls.BlockLabel
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.BlockLabel
 use Libraries.Interface.Options.BlockOptionConstants
-use Libraries.Interface.Controls.Blocks.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
 use Libraries.Language.Compile.Context.all
 use Libraries.Language.Compile.Location
-use Libraries.Interface.Controls.Blocks.Layouts.MultipleLineBlockLayout
+use Libraries.Interface.Controls.Layouts.MultipleLineBlockLayout
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Parsing.Token
 use Libraries.Interface.Events.TextChangeEvent
@@ -105,6 +104,38 @@ class IfBlock is MultipleLineBlock
         Location expressionLoc = elseifExpression:GetLocation()
         part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine() - 1)
         expressionField:Setup("Expression", expressionLoc:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), expressionLoc:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
+
+        part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
+
+        elseifParts:Add(part)
+        return part
+    end
+
+    action AddElseifLineFromFreeform(FreeformBlock block, text expression) returns MultipleLineBlockPart
+        MultipleLineBlockPart part
+        part:UseEnterAndExitScopeStyling()
+        Add(part)
+
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        BlockLabel elseifLabel
+        me:elseifLabels:Add(elseifLabel)
+        elseifLabel:SetFont(GetEditor():GetFont())
+        elseifLabel:SetFontSize(GetEditor():GetFontSize())
+        elseifLabel:SetText("elseif")
+        elseifLabel:SetRightPadding(spacing)
+        part:Add(elseifLabel)
+
+        EditField expressionField
+        me:elseifExpressionFields:Add(expressionField)
+        part:Add(expressionField)
+
+        
+        part:SetLocalStartLine(block:GetLocalStartLine())
+        expressionField:Setup("Expression", block:GetLocalStartIndex() + 7, block:GetLocalStartIndex() + 7 + expression:GetSize())
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
 
