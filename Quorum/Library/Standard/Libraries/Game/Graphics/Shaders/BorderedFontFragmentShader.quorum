@@ -36,9 +36,23 @@ void main()
 
     float borderThickness = v_borderThickness;
 
+    //Negative = Exterior
+    //Position = Interior
+    //SDF is between 0 and 1, the next line converts it from -1 to 1, multiplied by spread
     sdf = (sdf - 0.5) * 2.0 * spread;
-    outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 1.0, -borderThickness, sdf));
-    outputColor = mix(outputColor, v_color, smoothstep(-1.0, 0.0, sdf));
+    
+    //Two colors and a parameter saying how much to use of each. 
+    //v_borderColor.rgb, 0.0) is the first three slots, plus alpha
+    //transparent because it's outside the region
+    //smoothstep(-borderThickness - 1.0, -borderThickness, sdf), gives value between 0 and 1, 
+    //Params, lower bound, upper bound, value to compare
+    outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 0.5, -borderThickness + 0.5, sdf));
+
+
+    //v_color is the actual font color
+    //Mixes the actual font color, transparency or the border color
+    //smoothstep(-1.0, 0.0, sdf), -1 transparency or border, 0 font color
+    outputColor = mix(outputColor, v_color, smoothstep(-0.5, 0.5, sdf));
 }"
 )
     end

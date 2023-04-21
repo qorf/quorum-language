@@ -41,9 +41,9 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetBackgroundColor(constants:FREEFORM_KEY, color:CustomColor(240.0 / MAX, 240.0 / MAX, 240.0 / MAX, 1))
 
         SetEditBorderThickness(1)
-        SetStaticFontColor(commonFontColor)
+        SetStaticFontColor(color:White())
         SetStaticFontOutlineColor(color:Black())
-        SetStaticFontOutlineThickness(1.2)
+        SetStaticFontOutlineThickness(1.0)
     end
 
     action SetDefaultBlockOptions(text key)
