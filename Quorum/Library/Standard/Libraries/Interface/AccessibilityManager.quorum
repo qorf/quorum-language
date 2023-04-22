@@ -204,7 +204,7 @@ class AccessibilityManager is Accessibility
         elseif selection is ButtonGroupSelection
             ButtonGroupSelection groupSelection = cast(ButtonGroupSelection, selection)
             if not groupSelection:IsEmpty()
-                RadioButton button = groupSelection:GetButton()
+                ToggleButton button = groupSelection:GetButton()
 
                 Select(button)
             end
