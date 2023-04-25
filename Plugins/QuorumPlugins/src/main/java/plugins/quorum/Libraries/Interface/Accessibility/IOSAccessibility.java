@@ -54,6 +54,8 @@ public class IOSAccessibility {
         int code = item.Get_Libraries_Interface_Item__accessibilityCode_();
         if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
             HiddenButton subview = new HiddenButton();
+            //subview.setHidden(true);
+
             subview.setAccessibilityIdentifier(item.GetName());
             System.out.println(item.GetName());
             view.addSubview(subview);
