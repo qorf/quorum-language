@@ -42,11 +42,13 @@ class ScrollableControl is Control
 
     on create
         scrollableRegion = GetScrollableRegion()
+        scrollableRegion:SetPercentageWidth(1)
+        scrollableRegion:SetPercentageHeight(1)
 
         SetClipping(true)
 
         ManualLayout layout
-        SetLayout(layout)
+        parent:Control:SetLayout(layout)
 
         // Initialize the properties used to position the scroll bars.
         verticalBar:SetVertical(true)

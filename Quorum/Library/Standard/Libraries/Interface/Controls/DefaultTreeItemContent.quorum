@@ -132,6 +132,8 @@ class DefaultTreeItemContent is TreeItemContent
                     DefaultTreeMenuView content
                     content:Initialize(height, height * 2)
                     buttonView = content
+
+                    expandButton:SetView2D(buttonView)
                 else
                     buttonView = currentView
                 end

@@ -7,6 +7,7 @@ use Libraries.Interface.Forms.FormContainerControl
 use Libraries.Interface.Forms.Grouping
 use Libraries.Interface.Forms.Banner
 use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.ScrollPaneRendererAnchor
 
 class FormRowLayout is Layout
 
@@ -44,7 +45,18 @@ class FormRowLayout is Layout
     end
 
     action Layout(Control parentControl, Array<Item2D> childItems, number containerWidth, number containerHeight)
-        FormContainerControl container = cast(FormContainerControl, parentControl)
+
+        FormContainerControl container = undefined
+
+        number minimumResultHeight = containerHeight
+
+        if parentControl is FormContainerControl
+            container = cast(FormContainerControl, parentControl)
+        elseif parentControl is ScrollPaneRendererAnchor
+            ScrollPaneRendererAnchor anchor = cast(ScrollPaneRendererAnchor, parentControl)
+            container = cast(FormContainerControl, cast(Object, anchor:GetScrollPane()))
+            minimumResultHeight = container:GetHeight()
+        end
         
         integer titleAlignment = container:GetTitleAlignment()
         integer contentAlignment = container:GetContentAlignment()
@@ -63,14 +75,8 @@ class FormRowLayout is Layout
         number defaultRowStartX = (containerWidth - defaultRowWidth) / 2.0
         number defaultRowEndX = defaultRowStartX + defaultRowWidth
         number defaultInRowPadding = defaultRowWidth * DEFAULT_IN_ROW_PERCENTAGE_PADDING
-//        number defaultRowHeight = containerHeight * DEFAULT_ROW_PERCENTAGE_HEIGHT
-//        number defaultRowVerticalPadding = containerHeight * DEFAULT_ROW_VERTICAL_PADDING
         number defaultRowHeight = containerFont:GetLineHeight()
         number defaultRowVerticalPadding = cast(integer, defaultRowHeight * 0.4)
-        output "defaultRowHeight = " + defaultRowHeight + ", default padding = " + defaultRowVerticalPadding
-
-        
-        output "Font size = " + containerFont:GetSize() + ", height = " + containerFont:GetLineHeight()
 
         // Reset the area arrays to defaults before assigning items to them.
         integer counter = 0
@@ -327,28 +333,59 @@ class FormRowLayout is Layout
             areaCounter = areaCounter + 1
         end
 
-        // After setting the regions, the top set doesn't need to move at all. Only the bottom and center do.
-        // Start by offsetting the bottom area.
+        number resultHeight = containerHeight
+        number newContainerHeightOffset = 0
+
+        // If the container is depending on us to figure out the height, use our calculated heights instead of assuming the containerHeight is trustworthy.
+        if parentControl:GetVerticalLayoutMode() = parentControl:FIT_CONTENTS
+            resultHeight = areaHeights:Get(TOP_AREA) + areaHeights:Get(CENTER_AREA) + areaHeights:Get(BOTTOM_AREA)
+            if resultHeight < minimumResultHeight
+                resultHeight = minimumResultHeight
+            end
+
+            // This is how much each item needs to be moved to maintain positions relative to the new top of the control.
+            newContainerHeightOffset = resultHeight - parentControl:GetHeight()
+
+            // Set the parent control to match the new height, if it isn't already.
+            if parentControl:GetHeight() not= resultHeight
+                parentControl:SetHeight(resultHeight)
+            end
+        end
+
+        // After setting the regions, the top set only needs to move if the height of the container changed.
+        if newContainerHeightOffset not= 0
+            Array<Item2D> topItems = areaItems:Get(TOP_AREA)
+            integer i = 0
+            repeat while i < topItems:GetSize()
+                Item2D item = topItems:Get(i)
+                item:MoveY(newContainerHeightOffset)
+                i = i + 1
+            end
+        end
+
+        
+        // The bottom and center areas need adjusting regardless of whether or not the container height changed.
         Array<Item2D> bottomItems = areaItems:Get(BOTTOM_AREA)
         integer i = 0
-        number bottomOffset = cast(integer, containerHeight - areaHeights:Get(BOTTOM_AREA))
+        number bottomOffset = newContainerHeightOffset - cast(integer, resultHeight - areaHeights:Get(BOTTOM_AREA))
         repeat while i < bottomItems:GetSize()
             Item2D item = bottomItems:Get(i)
-            item:MoveY(-bottomOffset)
+            item:MoveY(bottomOffset)
             i = i + 1
         end
 
         // Finally position the center items between the top and bottom areas.
         Array<Item2D> centerItems = areaItems:Get(CENTER_AREA)
         i = 0
-        number centerTarget = (containerHeight - areaHeights:Get(TOP_AREA) + areaHeights:Get(BOTTOM_AREA)) / 2.0
-        number centerOfItems = containerHeight - areaHeights:Get(CENTER_AREA) / 2.0
-        number centerOffset = cast(integer, centerOfItems - centerTarget)
+        number centerTarget = (resultHeight - areaHeights:Get(TOP_AREA) + areaHeights:Get(BOTTOM_AREA)) / 2.0
+        number centerOfItems = resultHeight - areaHeights:Get(CENTER_AREA) / 2.0
+        number centerOffset = newContainerHeightOffset - cast(integer, centerOfItems - centerTarget)
         repeat while i < centerItems:GetSize()
             Item2D item = centerItems:Get(i)
-            item:MoveY(-centerOffset)
+            item:MoveY(centerOffset)
             i = i + 1
         end
+
     end
 
 end

@@ -6,12 +6,9 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Controls.ScrollPane
 
-class Page is FormPrimitiveContainer, FormContainerControl, ScrollableControl
-
-    // The scrollable region. Stuff added to the page is actually added to this.
-    // Automatically added to the control via the ScrollableControl constructor and the GetScrollableRegion implemented blueprint action.
-    Control scrollableRegion
+class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     on create
         SetPercentageWidth(1.0)
@@ -133,32 +130,6 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollableControl
         if not HasDefaultFocusOrdering()
             CalculateDefaultFocusOrdering()
         end
-    end
-
-    action Add(Item2D newItem)
-        // Pass through to the scrollable region.
-        scrollableRegion:Add(newItem)
-    end
-
-    action Add(integer index, Item2D newItem)
-        // Pass through to the scrollable region.
-        scrollableRegion:Add(index, newItem)
-    end
-
-    action Remove(Item2D item) returns boolean
-        // Pass through to the scrollable region.
-        return scrollableRegion:Remove(item)
-    end
-
-    action Remove(integer index) returns Item2D
-        // Pass through to the scrollable region.
-        return scrollableRegion:Remove(index)
-    end
-
-    
-
-    action GetScrollableRegion returns Control
-        return scrollableRegion
     end
 
 end
