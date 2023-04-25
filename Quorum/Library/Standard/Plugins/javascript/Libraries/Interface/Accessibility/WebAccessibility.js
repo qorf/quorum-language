@@ -347,7 +347,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //ITEM or CUSTOM
             case 0:
             case 1:
-                if (item.IsFocusable()) {
+                if (item.IsFocusable() ) {
                     role = "application";
                 } else {
                     role = "img";
@@ -618,6 +618,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 role = "radiogroup";
                 if (item.GetName() == undefined)
                     itemName = "Radio Group"
+                break;
+            case 26:
+                role="document graphics-document";
+                break;
+            case 27:
+                role="graphics-object group";
+                break;
+            case 28:
+                role="graphics-symbol img";
                 break;
             default:
                 // do nothing?

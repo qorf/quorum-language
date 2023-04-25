@@ -62,7 +62,7 @@ class Legend is ChartItem
         SetName("Legend")
 
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:CUSTOM)
+        SetAccessibilityCode(parent:Item:CHART_SECTION)
     end
 
     action IsAccessibleParent returns boolean
@@ -201,7 +201,7 @@ class Legend is ChartItem
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetFocusable(true)
-            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            newLabel:SetAccessibilityCode(parent:Item:CHART_SECTION)
             Add(GetTitleLabel())
         end
                   
@@ -219,7 +219,7 @@ class Legend is ChartItem
             newLabel:SetName(seriesList:Get(i):GetName())
             seriesList:Get(i):SetLabel(newLabel)
             seriesList:Get(i):SetFocusable(true)
-            seriesList:Get(i):SetAccessibilityCode(parent:Item:ITEM)
+            seriesList:Get(i):SetAccessibilityCode(parent:Item:CHART_SECTION)
            
             Add(seriesList:Get(i):GetLabel())
             Add(seriesList:Get(i))
@@ -231,12 +231,12 @@ class Legend is ChartItem
 
                     ChartLabel regressionLabel = seriesList:Get(i):GetRegressionLine():GetLabel()
                     regressionLabel:SetFocusable(true)
-                    regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
+                    regressionLabel:SetAccessibilityCode(parent:Item:CHART_SECTION)
                     Add(regressionLabel)
 
                     ChartLabel r2Label = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
                     r2Label:SetFocusable(true)
-                    r2Label:SetAccessibilityCode(parent:Item:ITEM)
+                    r2Label:SetAccessibilityCode(parent:Item:CHART_SECTION)
                     Add(r2Label)
     
                     Icon regressionIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
