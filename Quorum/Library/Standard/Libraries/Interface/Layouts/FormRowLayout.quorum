@@ -8,6 +8,7 @@ use Libraries.Interface.Forms.Grouping
 use Libraries.Interface.Forms.Banner
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Controls.ScrollPaneRendererAnchor
+use Libraries.Interface.Forms.FormConstants
 
 class FormRowLayout is Layout
 
@@ -32,6 +33,8 @@ class FormRowLayout is Layout
     // Items are separated into three sets, based on whether they're positioned from the top, center, or bottom.
     Array<Array<Item2D>> areaItems
     Array<number> areaHeights
+
+    FormConstants constants
 
     on create
         integer i = 0
@@ -61,15 +64,15 @@ class FormRowLayout is Layout
         integer titleAlignment = container:GetTitleAlignment()
         integer contentAlignment = container:GetContentAlignment()
 
-        if contentAlignment = container:DEFAULT_ALIGN
-            contentAlignment = container:CENTER_ALIGN
+        if contentAlignment = constants:DEFAULT_ALIGN
+            contentAlignment = constants:CENTER_ALIGN
         end
-        if titleAlignment = container:DEFAULT_ALIGN
+        if titleAlignment = constants:DEFAULT_ALIGN
             titleAlignment = contentAlignment
         end
 
-        Font containerFont = container:GetDefaultFont()
-        containerFont:SetSize(container:LARGE_FONT_SIZE)
+        Font containerFont = container:GetDefaultFont():Copy()
+        containerFont:SetSize(constants:LARGE_FONT_SIZE)
 
         number defaultRowWidth = DEFAULT_ROW_PERCENTAGE_WIDTH * containerWidth
         number defaultRowStartX = (containerWidth - defaultRowWidth) / 2.0
@@ -143,11 +146,68 @@ class FormRowLayout is Layout
                         width = group:GetPixelWidth() + containerWidth * group:GetPercentageWidth()
                     end
     
+                    Array<number> itemHeights
+                    itemHeights:SetSize(groupItems:GetSize())
+
+                    // Now that the potential title has been handled, handle the content that shares a row.
+                    number rowHeight = defaultRowHeight
+                    if group:GetPixelHeight() not= 0 or group:GetPercentageHeight() not= 0
+                        height = group:GetPixelHeight() + containerHeight * group:GetPercentageHeight()
+                    elseif j >= groupItems:GetSize()
+                        // Don't bother alotting space for a row if the group has a title and no other content
+                        rowHeight = 0
+                    else
+                        // Unfortunately, we have to iterate quickly through the elements to determine the tallest.
+                        integer k = 0
+
+                        // Skip the title, if there is one
+                        if group:GetTitle() not= ""
+                            k = k + 1
+                        end
+
+                        rowHeight = 0
+                        repeat while k < groupItems:GetSize()
+                            if groupItems:Get(k) is Control
+                                Control control = cast(Control, groupItems:Get(k))
+                                Font font = control:GetFont()
+                                if font = undefined
+                                    font = containerFont:Copy()
+                                else
+                                    font = font:Copy()
+                                end
+            
+                                font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
+            
+                                number height = font:GetLineHeight()
+            
+                                if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
+                                    height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+                                end
+            
+                                height = height * control:GetLayoutRows()
+
+                                if height > rowHeight
+                                    rowHeight = height
+                                end
+
+                                itemHeights:Set(k, height)
+                            else
+                                itemHeights:Set(k, 0)
+                            end
+
+                            k = k + 1
+                        end
+
+                        if rowHeight <= 0
+                            rowHeight = defaultRowHeight
+                        end
+                    end
+
                     // The title gets its own row, if there is one.
                     if group:GetTitle() not= ""
                         currentAlignment = group:GetTitleAlignment()
     
-                        if currentAlignment = container:DEFAULT_ALIGN
+                        if currentAlignment = constants:DEFAULT_ALIGN
                             currentAlignment = titleAlignment
                         end
     
@@ -164,15 +224,15 @@ class FormRowLayout is Layout
                         number height = control:GetHeight()
         
                         number x = 0
-                        if currentAlignment = container:LEFT_ALIGN
+                        if currentAlignment = constants:LEFT_ALIGN
                             if width > rowWidth
                                 x = (rowWidth - width) / 2.0
                             else
                                 x = 0
                             end
-                        elseif currentAlignment = container:CENTER_ALIGN
+                        elseif currentAlignment = constants:CENTER_ALIGN
                             x = (rowWidth - width) / 2.0
-                        elseif currentAlignment = container:RIGHT_ALIGN
+                        elseif currentAlignment = constants:RIGHT_ALIGN
                             if width > rowWidth
                                 x = (rowWidth - width) / 2.0
                             else
@@ -187,7 +247,7 @@ class FormRowLayout is Layout
                         if groupItems:GetSize() = 1
                             control:SetPosition(x, defaultRowVerticalPadding)
                         else
-                            control:SetPosition(x, defaultRowHeight + defaultRowVerticalPadding)
+                            control:SetPosition(x, rowHeight + defaultRowVerticalPadding)
                         end
         
                         rowTopY = y - defaultRowVerticalPadding
@@ -196,31 +256,22 @@ class FormRowLayout is Layout
                         j = j + 1
                     end
     
-                    // Now that the potential title has been handled, handle the content that shares a row.
-                    number rowHeight = defaultRowHeight
-                    if group:GetPixelHeight() not= 0 or group:GetPercentageHeight() not= 0
-                        height = group:GetPixelHeight() + containerHeight * group:GetPercentageHeight()
-                    elseif j >= groupItems:GetSize()
-                        // Don't bother alotting space for a row if the group has a title and no other content
-                        rowHeight = 0
-                    end
-    
                     currentAlignment = group:GetContentAlignment()
     
-                    if currentAlignment = container:DEFAULT_ALIGN
+                    if currentAlignment = constants:DEFAULT_ALIGN
                         currentAlignment = contentAlignment
                     end
     
                     number groupX = 0
-                    if currentAlignment = container:LEFT_ALIGN
+                    if currentAlignment = constants:LEFT_ALIGN
                         if rowWidth > defaultRowWidth
                             x = (containerWidth - rowWidth) / 2.0
                         else
                             x = defaultRowStartX
                         end
-                    elseif currentAlignment = container:CENTER_ALIGN
+                    elseif currentAlignment = constants:CENTER_ALIGN
                         x = (containerWidth - rowWidth) / 2.0
-                    elseif currentAlignment = container:RIGHT_ALIGN
+                    elseif currentAlignment = constants:RIGHT_ALIGN
                         if rowWidth > defaultRowWidth
                             x = (containerWidth - rowWidth) / 2.0
                         else
@@ -253,9 +304,9 @@ class FormRowLayout is Layout
                                 control:LoadGraphics(control:GetDefaultLayoutProperties())
                             end
     
-                            control:SetSize(elementWidth, rowHeight)
-                            control:SetPosition(elementX, (rowHeight - control:GetHeight()) / 2.0)
-    
+                            control:SetSize(cast(integer, elementWidth), cast(integer, itemHeights:Get(j)))
+                            control:SetPosition(cast(integer, elementX), cast(integer, (rowHeight - control:GetHeight()) / 2.0))
+
                             elementX = elementX + elementWidth + defaultInRowPadding
                         end
     
@@ -268,25 +319,38 @@ class FormRowLayout is Layout
                         control:LoadGraphics(control:GetDefaultLayoutProperties())
                     end
     
-                    // TO-DO: Start from here. We can guess as to ideal row height by using font size, which is shared by every component type except for icons, leaving them as the sole special exception.
-                    // TO-DO: Make this more responsive to the content. For now, default row width/height are used as basic values for the first pass of the prototype.
-    
                     number width = defaultRowWidth
                     if control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
                         width = control:GetPixelWidth() + containerWidth * control:GetPercentageWidth()
                     end
     
-                    number height = defaultRowHeight
+                    Font font = control:GetFont()
+                    if font = undefined
+                        font = containerFont:Copy()
+                    else
+                        font = font:Copy()
+                    end
+
+                    font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
+
+                    number height = font:GetLineHeight()
+
+                    if height <= 0
+                        height = defaultRowHeight
+                    end
+
                     if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
                         height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
                     end
+
+                    height = height * control:GetLayoutRows()
     
                     if control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO
                         width = height * control:GetPercentageWidth()
                     elseif control:GetVerticalLayoutMode() = control:MAINTAIN_ASPECT_RATIO
                         height = width * control:GetPercentageHeight()
                     end
-    
+
                     control:SetSize(width, height)
     
                     /*
@@ -295,18 +359,17 @@ class FormRowLayout is Layout
                     request, as they strictly derive their height from their text and how many lines the text requires.
                     */
                     width = control:GetWidth()
-                    height = control:GetHeight()
     
                     number x = 0
-                    if currentAlignment = container:LEFT_ALIGN
+                    if currentAlignment = constants:LEFT_ALIGN
                         if width > defaultRowWidth
                             x = (containerWidth - width) / 2.0
                         else
                             x = defaultRowStartX
                         end
-                    elseif currentAlignment = container:CENTER_ALIGN
+                    elseif currentAlignment = constants:CENTER_ALIGN
                         x = (containerWidth - width) / 2.0
-                    elseif currentAlignment = container:RIGHT_ALIGN
+                    elseif currentAlignment = constants:RIGHT_ALIGN
                         if width > defaultRowWidth
                             x = (containerWidth - width) / 2.0
                         else

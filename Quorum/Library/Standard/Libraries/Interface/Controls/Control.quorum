@@ -793,6 +793,24 @@ class Control is Item2D
     end
 
     /*
+    This action returns how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action GetLayoutRows returns number
+        return defaultProperties:GetLayoutRows()
+    end
+
+    /*
+    This action sets how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action SetLayoutRows(number layoutRows)
+        defaultProperties:SetLayoutRows(layoutRows)
+    end
+
+    /*
     This action sets the x-coordinate of the "origin" of the Control, as a percentage of its width.
     The origin is the point that the Control is positioned by. For example, by default, the origin
     is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x

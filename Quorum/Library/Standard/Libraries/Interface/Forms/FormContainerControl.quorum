@@ -18,19 +18,8 @@ class FormContainerControl is Control
     boolean hasDefaultFocusOrdering = false
     Label titleLabel = undefined
 
-    public constant integer TINY_FONT_SIZE = 10
-    public constant integer SMALL_FONT_SIZE = 12
-    public constant integer MEDIUM_FONT_SIZE = 20
-    public constant integer LARGE_FONT_SIZE = 32
-    public constant integer HUGE_FONT_SIZE = 60
-    public constant integer DEFAULT_FONT_SIZE = MEDIUM_FONT_SIZE
-
-    integer titleSize = DEFAULT_FONT_SIZE
-
-    public constant integer DEFAULT_ALIGN = 0
-    public constant integer LEFT_ALIGN = 1
-    public constant integer CENTER_ALIGN = 2
-    public constant integer RIGHT_ALIGN = 3
+    FormConstants constants
+    integer titleSize = constants:DEFAULT_FONT_SIZE
 
     /*
     If the titleAlignment is set to default, it'll attempt to match the alignment
@@ -39,8 +28,8 @@ class FormContainerControl is Control
     If the contentAlignment is set to default, it'll match the alignment of the
     container if there is one, or otherwise it'll align to the center.
     */
-    integer titleAlignment = DEFAULT_ALIGN
-    integer contentAlignment = DEFAULT_ALIGN
+    integer titleAlignment = constants:DEFAULT_ALIGN
+    integer contentAlignment = constants:DEFAULT_ALIGN
 
     FormDelayedAssetLoader delayedLoader
 
@@ -82,52 +71,52 @@ class FormContainerControl is Control
     end
 
     action SetTitleSizeTiny
-        SetTitleFontSize(TINY_FONT_SIZE)
+        SetTitleFontSize(constants:TINY_FONT_SIZE)
     end
 
     action SetTitleSizeSmall
-        SetTitleFontSize(SMALL_FONT_SIZE)
+        SetTitleFontSize(constants:SMALL_FONT_SIZE)
     end
 
     action SetTitleSizeMedium
-        SetTitleFontSize(MEDIUM_FONT_SIZE)
+        SetTitleFontSize(constants:MEDIUM_FONT_SIZE)
     end
 
     action SetTitleSizeLarge
-        SetTitleFontSize(LARGE_FONT_SIZE)
+        SetTitleFontSize(constants:LARGE_FONT_SIZE)
     end
 
     action SetTitleSizeHuge
-        SetTitleFontSize(HUGE_FONT_SIZE)
+        SetTitleFontSize(constants:HUGE_FONT_SIZE)
     end
 
     action LeftAlignTitle
-        titleAlignment = LEFT_ALIGN
+        titleAlignment = constants:LEFT_ALIGN
         RequestLayout()
     end
 
     action RightAlignTitle
-        titleAlignment = RIGHT_ALIGN
+        titleAlignment = constants:RIGHT_ALIGN
         RequestLayout()
     end
 
     action CenterAlignTitle
-        titleAlignment = CENTER_ALIGN
+        titleAlignment = constants:CENTER_ALIGN
         RequestLayout()
     end
 
     action LeftAlignContent
-        contentAlignment = LEFT_ALIGN
+        contentAlignment = constants:LEFT_ALIGN
         RequestLayout()
     end
 
     action RightAlignContent
-        contentAlignment = RIGHT_ALIGN
+        contentAlignment = constants:RIGHT_ALIGN
         RequestLayout()
     end
 
     action CenterAlignContent
-        contentAlignment = CENTER_ALIGN
+        contentAlignment = constants:CENTER_ALIGN
         RequestLayout()
     end
 
@@ -136,6 +125,7 @@ class FormContainerControl is Control
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+//        button:SetFontSize(constants:DEFAULT_FONT_SIZE)
 
         Add(button)
         return button
@@ -322,7 +312,7 @@ class FormContainerControl is Control
         label:SetFocusable(true)
         label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
-        label:SetFontSize(MEDIUM_FONT_SIZE)
+        label:SetFontSize(constants:MEDIUM_FONT_SIZE)
 
         Add(label)
         return label
