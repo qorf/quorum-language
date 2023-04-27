@@ -79,18 +79,26 @@ class ParserToBlockListener is QuorumSourceListener
     private action FillPreviousCommentBlocks(Token first, Token last)
         integer index = first:tokenIndex
         i = index - 1
+        Array<Token> comments
         repeat while i >= 0 and i > recentToken
             Token next = lexer:GetToken(i)
             boolean isComment = next:IsCommentChannel()
             if isComment
-                CommentBlock comment
-                comment:SetIsMultiLineComment(first:IsMultiLineComment())
-                comment:SetToken(next)
-                comment:SetScopeDepth(scopeDepth)
-                comment:SetEditor(editor)
-                currentBlock:Add(cast(Block, comment))
-                comment:Setup()
+                comments:AddToEnd(next)
             end
+            i = i - 1
+        end
+
+        i = comments:GetSize() - 1
+        repeat while i >= 0
+            Token next = comments:Get(i)
+            CommentBlock comment
+            comment:SetIsMultiLineComment(next:IsMultiLineComment())
+            comment:SetToken(next)
+            comment:SetScopeDepth(scopeDepth)
+            comment:SetEditor(editor)
+            currentBlock:Add(cast(Block, comment))
+            comment:Setup()
             i = i - 1
         end
 
