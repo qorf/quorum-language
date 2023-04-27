@@ -67,6 +67,7 @@ class ParserToBlockListener is QuorumSourceListener
     end
     action ExitCheckStatement(CheckContext context)
         CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
         checkBlock:AddEndLine()
         checkBlock:Setup()
         currentBlock = checkBlock:GetParentBlock()
@@ -148,7 +149,27 @@ class ParserToBlockListener is QuorumSourceListener
     action EnterStart(StartContext context) 
     end
     action ExitStart(StartContext context) 
-        //What do we want to do with comments after the valid program. Nothing? Freeform? More comments?
+        FillFinalCommentBlocks()
+    end
+
+    private action FillFinalCommentBlocks()
+        i = recentToken + 1
+        repeat while i < lexer:GetSize()
+            Token next = lexer:GetToken(i)
+            boolean isComment = next:IsCommentChannel()
+            if isComment
+                CommentBlock comment
+                comment:SetIsMultiLineComment(next:IsMultiLineComment())
+                comment:SetToken(next)
+                comment:SetScopeDepth(scopeDepth)
+                comment:SetEditor(editor)
+                currentBlock:Add(cast(Block, comment))
+                comment:Setup()
+            end
+            i = i - 1
+        end
+
+        recentToken = lexer:GetSize()
     end
 
     action EnterText(TextContext context) end
