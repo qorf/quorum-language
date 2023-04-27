@@ -53,7 +53,7 @@ class ConstructorBlock is MultipleLineBlock
         part:Add(constructorLabel)
 
         // The end index is the same as the length of the label text, since we start from 0.
-        part:SetLocalEndIndex(constructorLabel:GetSize())
+        part:SetLocalEndIndex(constructorLabel:GetText():GetSize())
 
         return part
     end
