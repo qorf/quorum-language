@@ -2335,4 +2335,16 @@ shared class DefaultInputSets
         gameInput:AddInputTable(scrollBarTable)
     end
 
+    action SetupScrollPaneInput(GameInput gameInput)
+        InputTable scrollPaneTable
+        scrollPaneTable:SetIdentifier("ScrollPane")
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        scrollPaneTable:Add(mouseScrollSet, scrollBehavior)
+
+        gameInput:AddInputTable(scrollPaneTable)
+    end
+
 end

@@ -5,8 +5,10 @@ use Libraries.Interface.Controls.Button
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Controls.ScrollPane
 
-class Page is FormPrimitiveContainer, FormContainerControl
+class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     on create
         SetPercentageWidth(1.0)
@@ -129,4 +131,5 @@ class Page is FormPrimitiveContainer, FormContainerControl
             CalculateDefaultFocusOrdering()
         end
     end
+
 end

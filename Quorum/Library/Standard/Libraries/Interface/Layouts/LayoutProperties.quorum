@@ -179,6 +179,11 @@ class LayoutProperties
     integer containerGridHeight = 5
 
     /*
+    This is how many rows across this item occupies in a FormRowLayout (e.g. in a StackedRowPage).
+    */
+    number layoutRows = 1
+
+    /*
     These variables hold on to the ColorPalette and its related components.
     */
     InterfaceOptions options = undefined
@@ -616,6 +621,24 @@ class LayoutProperties
     action SetGridSize(integer gridWidth, integer gridHeight)
         me:gridWidth = gridWidth
         me:gridHeight = gridHeight
+    end
+
+    /*
+    This action returns how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action GetLayoutRows returns number
+        return layoutRows
+    end
+
+    /*
+    This action sets how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action SetLayoutRows(number layoutRows)
+        me:layoutRows = layoutRows
     end
 
     /*
