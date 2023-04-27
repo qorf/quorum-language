@@ -191,8 +191,60 @@ class CodeEditor is ScrollableLineControl
         return index
     end
 
+    action GetCaretGlobalX returns number
+        CodeEditorSelection blockSelection = GetSelection()
+        if selection = undefined
+            return -1
+        end
+
+        Block block = blockSelection:GetBlock()
+        if block = undefined
+            return -1
+        end
+        integer index = block:GetStartIndex()
+
+        //Now get the block item and cast it
+        BlockItem item = blockSelection:GetBlockItem()
+        if item is EditBox
+            EditBox edit = cast(EditBox, item)
+            return edit:GetCaretGlobalX()
+        elseif item is EditField
+            EditField edit = cast(EditField, item)
+            return edit:GetCaretGlobalX()
+        end
+        return -1
+    end
+
+    action GetCaretGlobalY returns number
+        CodeEditorSelection blockSelection = GetSelection()
+        if selection = undefined
+            return -1
+        end
+
+        Block block = blockSelection:GetBlock()
+        if block = undefined
+            return -1
+        end
+        integer index = block:GetStartIndex()
+
+        //Now get the block item and cast it
+        BlockItem item = blockSelection:GetBlockItem()
+        if item is EditBox
+            EditBox edit = cast(EditBox, item)
+            return edit:GetCaretGlobalY()
+        elseif item is EditField
+            EditField edit = cast(EditField, item)
+            return edit:GetCaretGlobalY()
+        end
+        return -1
+    end
+
     action GetCode returns MultipleLineText
         return rawCode
+    end
+
+    action GetText returns text
+        return rawCode:GetText()
     end
 
     action GetCodeBetween(integer startIndex, integer endIndex) returns text
