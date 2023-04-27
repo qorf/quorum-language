@@ -174,7 +174,7 @@ class ParserToBlockListener is QuorumSourceListener
                 currentBlock:Add(cast(Block, comment))
                 comment:Setup()
             end
-            i = i - 1
+            i = i + 1
         end
 
         recentToken = lexer:GetSize()
