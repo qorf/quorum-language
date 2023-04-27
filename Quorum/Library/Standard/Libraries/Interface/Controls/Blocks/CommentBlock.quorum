@@ -10,6 +10,9 @@ use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
 use Libraries.Language.Compile.Parsing.Token
 
 class CommentBlock is SingleLineBlock
+    BlockLabel commentLabel = undefined
+    BlockLabel secondLabel = undefined
+    EditBox messageBox = undefined
     EditField messageField = undefined
     boolean isMultiLineComment = false
     Token token = undefined
@@ -31,7 +34,49 @@ class CommentBlock is SingleLineBlock
     end
 
     action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        if not isMultiLineComment and token:value:StartsWith("//")
+            BlockLabel bl
+            me:commentLabel = bl
+            commentLabel:SetFont(GetEditor():GetFont())
+            commentLabel:SetFontSize(GetEditor():GetFontSize())
+            commentLabel:SetText("//")
+            commentLabel:SetRightPadding(spacing)
+            Add(commentLabel)
+
+            EditField box
+            me:messageField = box
+            Add(messageField)
+            integer eolSize = editor:GetCode():GetDefaultLineSeparator():GetSize()
+            messageField:Setup("Expression", token:startIndex + 2 - GetStartIndex(), 1 + token:endIndex - eolSize - GetStartIndex())
+        else
+            BlockLabel bl
+            me:commentLabel = bl
+            commentLabel:SetFont(GetEditor():GetFont())
+            commentLabel:SetFontSize(GetEditor():GetFontSize())
+            commentLabel:SetText("/*")
+            commentLabel:SetRightPadding(spacing)
+            Add(commentLabel)
+
+            EditBox box
+            me:messageBox = box
+            Add(messageBox) 
+    
+            messageBox:Setup("Expression", token:startIndex + 2 - GetStartIndex(), 1 + token:endIndex - 2 - GetStartIndex())
+
+            BlockLabel bl2
+            me:secondLabel = bl2
+            secondLabel:SetFont(GetEditor():GetFont())
+            secondLabel:SetFontSize(GetEditor():GetFontSize())
+            secondLabel:SetText("*/")
+            Add(secondLabel)
+        end
         
+
     end
 
     action IsMultiLineComment returns boolean
@@ -48,5 +93,20 @@ class CommentBlock is SingleLineBlock
 
     action SetToken(Token token)
         me:token = token
+    end
+
+    private action InitializeLocalIndices
+        // Check if we have a valid context and parent block, but the start index hasn't been set yet.
+        if token not= undefined and GetParentBlock() not= undefined and GetLocalStartIndex() < 0
+            // Set our starting local values using the context and parent.
+            SetLocalStartIndex(token:startIndex - GetParentBlock():GetStartIndex())
+            SetLocalEndIndex(token:endIndex + 1 - GetParentBlock():GetStartIndex())
+            SetLocalStartLine(token:startLine - 1 - GetParentBlock():GetStartLine())
+            if token:value:StartsWith("//")
+                SetLocalEndLine(token:endLine - 2 - GetParentBlock():GetStartLine())
+            else
+                SetLocalEndLine(token:endLine - 1 - GetParentBlock():GetStartLine())
+            end
+        end
     end
 end

@@ -15,7 +15,6 @@ class Block is Control
     integer scopeDepth = 0
     CodeEditor editor = undefined
     ParseContext context = undefined
-    Array<CommentBlock> previousCommentBlocks
 
     /*
     These values store the LOCAL character and line indices represented by this Block.
@@ -705,13 +704,5 @@ class Block is Control
         end
 
         return 0
-    end
-
-    action GetPreviousCommentBlocks returns Array<CommentBlock>
-        return previousCommentBlocks
-    end
-
-    action SetPreviousCommentBlocks(Array<CommentBlock> previousCommentBlocks)
-        me:previousCommentBlocks = previousCommentBlocks
     end
 end
