@@ -130,6 +130,9 @@ class CodeEditorRenderer is Control
         Empty()
 
         rootBlock = block
+        if rootBlock = undefined
+            return now
+        end
         FillWhiteSpace()
 
         CodeEditor editor = GetEditor()
