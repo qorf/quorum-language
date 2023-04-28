@@ -140,14 +140,18 @@ class FormRowLayout is Layout
     
                     number groupTitleHeightOffset = 0
                     integer numberOfRowItems = groupItems:GetSize()
+
+                    if group:GetTitle() not= ""
+                        // The title doesn't contribute to the number of elements in a row, because it's on its own row.
+                        numberOfRowItems = numberOfRowItems - 1
+                    end
     
                     number rowWidth = defaultRowWidth
                     if group:GetPixelWidth() not= 0 or group:GetPercentageWidth() not= 0
-                        width = group:GetPixelWidth() + containerWidth * group:GetPercentageWidth()
+                        rowWidth = group:GetPixelWidth() + containerWidth * group:GetPercentageWidth()
                     end
-    
-                    Array<number> itemHeights
-                    itemHeights:SetSize(groupItems:GetSize())
+
+                    number elementWidth = (rowWidth - defaultInRowPadding * (numberOfRowItems - 1)) / numberOfRowItems
 
                     // Now that the potential title has been handled, handle the content that shares a row.
                     number rowHeight = defaultRowHeight
@@ -186,13 +190,15 @@ class FormRowLayout is Layout
             
                                 height = height * control:GetLayoutRows() + control:GetTopPadding() + control:GetBottomPadding()
 
+                                control:SetSize(cast(integer, elementWidth), cast(integer, height))
+
+                                // Set the height to match the Control's actual height.
+                                // This might differ from what we expected if the Control has its own special height calculations, e.g. a multi-line Label.
+                                height = control:GetHeight()
+
                                 if height > rowHeight
                                     rowHeight = height
                                 end
-
-                                itemHeights:Set(k, height)
-                            else
-                                itemHeights:Set(k, 0)
                             end
 
                             k = k + 1
@@ -212,9 +218,6 @@ class FormRowLayout is Layout
                         if currentAlignment = constants:DEFAULT_ALIGN
                             currentAlignment = titleAlignment
                         end
-    
-                        // The title doesn't contribute to the number of elements in a row, because it's on its own row.
-                        numberOfRowItems = numberOfRowItems - 1
     
                         Control control = cast(Control, groupItems:Get(0))
                         if control:GetDefaultLayoutProperties():NeedsRendering()
@@ -306,7 +309,6 @@ class FormRowLayout is Layout
                     end
     
                     rowTopY = rowTopY - contentRowHeight - defaultRowVerticalPadding
-                    number elementWidth = (rowWidth - defaultInRowPadding * (numberOfRowItems - 1)) / numberOfRowItems
                     number elementX = 0
 
                     if group is Banner
@@ -320,7 +322,6 @@ class FormRowLayout is Layout
                                 control:LoadGraphics(control:GetDefaultLayoutProperties())
                             end
     
-                            control:SetSize(cast(integer, elementWidth), cast(integer, itemHeights:Get(j)))
                             control:SetPosition(cast(integer, elementX + (elementWidth - control:GetWidth()) / 2.0), cast(integer, (rowHeight - control:GetHeight()) / 2.0) + bannerPadding)
 
                             elementX = elementX + elementWidth + defaultInRowPadding
@@ -368,6 +369,10 @@ class FormRowLayout is Layout
                     end
 
                     control:SetSize(width, height)
+
+                    // Set the height to match the Control's actual height.
+                    // This might differ from what we expected if the Control has its own special height calculations, e.g. a multi-line Label.
+                    height = control:GetHeight()
     
                     /*
                     Reassign the width and height based on the "real" width and height, which might differ from our request based on
