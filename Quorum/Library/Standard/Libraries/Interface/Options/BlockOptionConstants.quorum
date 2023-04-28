@@ -20,6 +20,7 @@ shared class BlockOptionConstants
     public constant text ACTION_CALL_KEY = "Action Call"
     public constant text REPEAT_KEY = "Repeat"
     public constant text CONSTRUCTOR_KEY = "Constructor"
+    public constant text COMMENT_KEY = "Comment"
 
     Array<text> blockKeys
 
@@ -56,6 +57,7 @@ shared class BlockOptionConstants
         blockKeys:Add(REPEAT_KEY)
         blockKeys:Add(CONSTRUCTOR_KEY)
         blockKeys:Add(FREEFORM_KEY)
+        blockKeys:Add(COMMENT_KEY)
 
         // Add all custom color options to the appropriate array.
         colorOptionKeys:Add(EDIT_BACKGROUND_COLOR)
