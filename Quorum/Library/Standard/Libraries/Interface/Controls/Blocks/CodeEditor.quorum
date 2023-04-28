@@ -930,9 +930,21 @@ class CodeEditor is ScrollableLineControl
                         end
                         DeleteBlockAndChildren(block)
                         RequestViewRefresh()
+                        if triggerEvent
+                            BlockChangeEvent event
+                            event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
+                            NotifyBlockChangeListeners(event)
+                        end
                         return now
                     else
                         DeleteBlockAndChildren(actionParent)
+                        RequestViewRefresh()
+                        if triggerEvent
+                            BlockChangeEvent event
+                            event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
+                            NotifyBlockChangeListeners(event)
+                        end
+                        return now
                     end
                     
                 end
