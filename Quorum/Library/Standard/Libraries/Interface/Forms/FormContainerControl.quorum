@@ -177,7 +177,7 @@ class FormContainerControl is Control
     end
 
     action GetButton(text name) returns Button
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -198,7 +198,7 @@ class FormContainerControl is Control
 
     action CalculateDefaultFocusOrdering
         SetHasDefaultFocusOrdering(true)
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         Item2D previous = undefined
         Item2D first = undefined
         i = 0
@@ -259,7 +259,7 @@ class FormContainerControl is Control
     end
 
     action GetFirstFocusableItem returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -289,7 +289,7 @@ class FormContainerControl is Control
     end
 
     action GetLastFocusableItem returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = children:GetSize() - 1
         repeat while i >= 0
             Item2D control = children:Get(i)
@@ -330,7 +330,7 @@ class FormContainerControl is Control
     end
 
     action GetLabel(text name) returns Label
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -388,7 +388,7 @@ class FormContainerControl is Control
     end
 
     action GetIcon(text name) returns Icon
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -425,7 +425,7 @@ class FormContainerControl is Control
     end
 
     action GetTextField(text name) returns TextField
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -462,7 +462,7 @@ class FormContainerControl is Control
     end
 
     action GetTextBox(text name) returns TextBox
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -482,7 +482,7 @@ class FormContainerControl is Control
     end
 
     action GetToggleButton(text name) returns ToggleButton
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -502,7 +502,7 @@ class FormContainerControl is Control
     end
 
     action GetRadioButton(text name) returns RadioButton
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -542,7 +542,7 @@ class FormContainerControl is Control
     end
 
     action GetCheckbox(text name) returns Checkbox
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -581,7 +581,7 @@ class FormContainerControl is Control
     end
 
     action GetList(text name) returns List
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -601,7 +601,7 @@ class FormContainerControl is Control
     end
 
     action FindControl(text name) returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -639,4 +639,6 @@ class FormContainerControl is Control
     action GetTitleLabel returns Label
         return titleLabel
     end
+
+    blueprint action GetFormChildren returns Array<Item2D>
 end
