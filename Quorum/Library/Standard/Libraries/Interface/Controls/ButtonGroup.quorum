@@ -15,32 +15,9 @@ class ButtonGroup is Control
         SetAccessibilityCode(parent:Item:GROUP)
 
         SetFocusable(true)
-//        FlowLayout layout
-//        SetLayout(layout)
-//        LayoutProperties properties = GetDefaultLayoutProperties()
-//        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-//        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
         SetInputGroup("ButtonGroup")
         selection:Initialize(me, -1)
     end
-
-//    action Add(Item2D item)
-//        if item is RadioButton
-//            RadioButton button = cast(RadioButton, item)
-//            buttons:Add(button)
-//            button:SetButtonGroup(me)
-//        end
-//        parent:Control:Add(item)
-//    end
-//
-//    action Remove(Item2D item) returns boolean
-//        if item is RadioButton
-//            RadioButton button = cast(RadioButton, item)
-//            buttons:Remove(button)
-//            button:SetButtonGroup(undefined)
-//        end
-//        return parent:Control:Remove(item)
-//    end
 
     action AddToGrouping(ToggleButton button)
         buttons:Add(button)
@@ -122,11 +99,13 @@ class ButtonGroup is Control
     end
 
     action GainedFocus(FocusEvent event)
-        if selection:GetIndex() = -1
-            ToggleButton first = buttons:Get(0)
-            first:SetToggleState(true)
-        else
-            buttons:Get(selection:GetIndex()):SetToggleState(true)
+        if not buttons:IsEmpty()
+            if selection:GetIndex() = -1
+                ToggleButton first = buttons:Get(0)
+                first:SetToggleState(true)
+            else
+                buttons:Get(selection:GetIndex()):SetToggleState(true)
+            end
         end
         parent:Control:GainedFocus(event)
     end
