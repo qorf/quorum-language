@@ -118,27 +118,27 @@ class MenuItem is Control
         iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
         iconProperties:SetPercentageWidth(1.0)
         iconProperties:SetPercentageHeight(1)
-        iconProperties:SetLeftPadding(6)
-        iconProperties:SetTopPadding(4)
-        iconProperties:SetBottomPadding(4)
+        iconProperties:SetLeftMargin(6)
+        iconProperties:SetTopMargin(4)
+        iconProperties:SetBottomMargin(4)
 
         labelProperties:SetVerticalLayoutMode(labelProperties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(6)
-        labelProperties:SetRightPadding(6)
-        labelProperties:SetBottomPadding(4)
+        labelProperties:SetLeftMargin(6)
+        labelProperties:SetRightMargin(6)
+        labelProperties:SetBottomMargin(4)
 
         shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
-        shortcutProperties:SetLeftPadding(4)
-        shortcutProperties:SetRightPadding(6)
-        shortcutProperties:SetBottomPadding(4)
+        shortcutProperties:SetLeftMargin(4)
+        shortcutProperties:SetRightMargin(6)
+        shortcutProperties:SetBottomMargin(4)
 
         arrowProperties:SetHorizontalLayoutMode(arrowProperties:MAINTAIN_ASPECT_RATIO)
         arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
         arrowProperties:SetPercentageWidth(1.0)
         arrowProperties:SetPercentageHeight(0.5)
-        arrowProperties:SetRightPadding(6)
-        arrowProperties:SetTopPadding(4)
-        arrowProperties:SetBottomPadding(4)
+        arrowProperties:SetRightMargin(6)
+        arrowProperties:SetTopMargin(4)
+        arrowProperties:SetBottomMargin(4)
 
         label:SetName("Label")
         icon:SetName("Icon")
@@ -529,7 +529,7 @@ class MenuItem is Control
                     aspectRatio = iconProperties:GetPercentageWidth()
                 end
 
-                return (font:GetLineHeight() * aspectRatio) + iconProperties:GetLeftPadding() + iconProperties:GetRightPadding()
+                return (font:GetLineHeight() * aspectRatio) + iconProperties:GetLeftMargin() + iconProperties:GetRightMargin()
             end
         end
         return 0
@@ -538,7 +538,7 @@ class MenuItem is Control
     action GetNameWidth returns number
         if label:IsShowing()
             LayoutProperties properties = label:GetDefaultLayoutProperties()
-            return label:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+            return label:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
         else
             return 0
         end
@@ -547,7 +547,7 @@ class MenuItem is Control
     action GetShortcutWidth returns number
         if shortcutLabel:IsShowing() and shortcutLabel:GetText() not= ""
             LayoutProperties properties = label:GetDefaultLayoutProperties()
-            return shortcutLabel:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+            return shortcutLabel:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
         else
             return 0
         end
@@ -563,7 +563,7 @@ class MenuItem is Control
                     aspectRatio = arrowProperties:GetPercentageWidth()
                 end
 
-                return (font:GetLineHeight() * aspectRatio) + arrowProperties:GetLeftPadding() + arrowProperties:GetRightPadding()
+                return (font:GetLineHeight() * aspectRatio) + arrowProperties:GetLeftMargin() + arrowProperties:GetRightMargin()
             end
         end
         return 0

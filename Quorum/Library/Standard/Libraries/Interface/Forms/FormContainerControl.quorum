@@ -126,7 +126,7 @@ class FormContainerControl is Control
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
-//        button:SetFontSize(constants:DEFAULT_FONT_SIZE)
+        button:SetToDefaultFontSize()
 
         Add(button)
         return button
@@ -163,6 +163,7 @@ class FormContainerControl is Control
 
 
         button:SetFont(undefined)
+        button:SetToDefaultFontSize()
         return button
     end
 
@@ -313,7 +314,7 @@ class FormContainerControl is Control
         label:SetFocusable(true)
         label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
-        label:SetFontSize(constants:MEDIUM_FONT_SIZE)
+        label:SetToDefaultFontSize()
 
         Add(label)
         return label
@@ -362,6 +363,7 @@ class FormContainerControl is Control
         end
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
+        icon:SetToDefaultFontSize()
 
         Add(icon)
         return icon
@@ -408,6 +410,7 @@ class FormContainerControl is Control
     action AddTextField(text name) returns TextField
         TextField field
         field:SetName(name)
+        field:SetToDefaultFontSize()
         Add(field)
         return field
     end
@@ -444,6 +447,7 @@ class FormContainerControl is Control
     action AddTextBox(text name) returns TextBox
         TextBox item
         item:SetName(name)
+        item:SetToDefaultFontSize()
         Add(item)
         return item
     end
@@ -482,8 +486,8 @@ class FormContainerControl is Control
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
-            if control not= undefined and control:GetName() = name and control is RadioButton
-                return cast(RadioButton, control)
+            if control not= undefined and control:GetName() = name and control is ToggleButton
+                return cast(ToggleButton, control)
             elseif control is FormContainerControl
                 FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 ToggleButton candidate = interface:GetToggleButton(name)
@@ -522,6 +526,7 @@ class FormContainerControl is Control
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetToDefaultFontSize()
 
         Add(button)
         return button
@@ -559,6 +564,7 @@ class FormContainerControl is Control
     action AddList(text name) returns List
         List list
         list:SetName(name)
+        list:SetToDefaultFontSize()
 
         Add(list)
 

@@ -44,7 +44,7 @@ class LayoutProperties
 
     /*
     The FIT_FONT layout style is used to ensure a Control's height can fit the
-    Font used in this LayoutProperties, plus padding from the children elements.
+    Font used in this LayoutProperties, plus margin from the children elements.
     FIT_FONT is only effective for the vertical layout style, and requires that
     a Font is present in this LayoutProperties.
     */
@@ -112,6 +112,11 @@ class LayoutProperties
     number maximumHeight = heightPercentage:GetPositiveInfinityValue()
     number maximumContainerWidth = widthPercentage:GetPositiveInfinityValue()
     number maximumContainerHeight = heightPercentage:GetPositiveInfinityValue()
+
+    number leftMargin = 0
+    number rightMargin = 0
+    number bottomMargin = 0
+    number topMargin = 0
 
     number leftPadding = 0
     number rightPadding = 0
@@ -409,6 +414,38 @@ class LayoutProperties
 
     action SetHeightSetting(boolean enable)
         setHeight = enable
+    end
+
+    action SetLeftMargin(number margin)
+        leftMargin = margin
+    end
+
+    action SetRightMargin(number margin)
+        rightMargin = margin
+    end
+
+    action SetBottomMargin(number margin)
+        bottomMargin = margin
+    end
+
+    action SetTopMargin(number margin)
+        topMargin = margin
+    end
+
+    action GetLeftMargin returns number
+        return leftMargin
+    end
+
+    action GetRightMargin returns number
+        return rightMargin
+    end
+
+    action GetBottomMargin returns number
+        return bottomMargin
+    end
+
+    action GetTopMargin returns number
+        return topMargin
     end
 
     action SetLeftPadding(number padding)

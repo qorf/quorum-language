@@ -700,7 +700,7 @@ class Label is Control
             */
             if properties:GetHorizontalLayoutMode() = properties:STANDARD and GetParent() is Control
                 Control control = cast(Control, GetParent())
-                standardLayoutWidth = properties:GetLeftPadding() + properties:GetRightPadding() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
+                standardLayoutWidth = properties:GetLeftMargin() + properties:GetRightMargin() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
             end
 
             if standardLayoutWidth >= 0
