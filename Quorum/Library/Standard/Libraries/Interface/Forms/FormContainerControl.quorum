@@ -241,11 +241,11 @@ class FormContainerControl is Control
                     else //else just set next and previous
                         previous:SetNextFocus(control)
                         control:SetPreviousFocus(previous)
-                    end
-                end
 
-                if control not= undefined and control:IsFocusable()
-                    previous = control
+                        if control not= undefined and control:IsFocusable()
+                            previous = control
+                        end
+                    end
                 end
             end
             
