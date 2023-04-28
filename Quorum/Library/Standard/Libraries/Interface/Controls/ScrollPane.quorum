@@ -166,5 +166,9 @@ class ScrollPane is ScrollableControl
     action GetScrollRegionProperties returns LayoutProperties
         return renderer:GetScrollRegionProperties()
     end
+
+    action GetScrollRegionItems returns Array<Item2D>
+        return renderer:GetScrollRegionItems()
+    end
     
 end

@@ -151,4 +151,8 @@ class ScrollPaneRenderer is Control
         scrollAnchorLayout:SetPixelHeight(height)
     end
 
+    action GetScrollRegionItems returns Array<Item2D>
+        return scrollAnchor:GetChildren()
+    end
+
 end
