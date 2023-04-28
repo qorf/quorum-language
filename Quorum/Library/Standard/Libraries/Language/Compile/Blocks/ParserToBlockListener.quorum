@@ -67,7 +67,6 @@ class ParserToBlockListener is QuorumSourceListener
     end
     action ExitCheckStatement(CheckContext context)
         CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
-        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
         checkBlock:AddEndLine()
         checkBlock:Setup()
         currentBlock = checkBlock:GetParentBlock()
