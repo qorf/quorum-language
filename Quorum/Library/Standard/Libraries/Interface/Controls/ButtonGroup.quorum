@@ -39,6 +39,7 @@ class ButtonGroup is Control
     end
 
     action SelectNext
+        if buttons:IsEmpty() return now end
         integer index = selection:GetIndex()
         if index + 1 < GetSize()
             buttons:Get(index + 1):SetToggleState(true)
@@ -48,6 +49,7 @@ class ButtonGroup is Control
     end
 
     action SelectPrevious
+        if buttons:IsEmpty() return now end
         integer index = selection:GetIndex()
         if index - 1 >= 0
             buttons:Get(index - 1):SetToggleState(true)
