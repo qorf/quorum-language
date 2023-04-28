@@ -42,8 +42,8 @@ class MenuItemLayout is Layout
                 if containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_FONT
                     Font font = containerProperties:GetFont()
                     if font not= undefined
-                        number topPadding = 0
-                        number bottomPadding = 0
+                        number topMargin = 0
+                        number bottomMargin = 0
 
                         integer i = 0
                         repeat while i < items:GetSize()
@@ -52,18 +52,18 @@ class MenuItemLayout is Layout
                                 if item is Control
                                     Control control = cast(Control, item)
                                     LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                                    if properties:GetTopPadding() > topPadding
-                                        topPadding = properties:GetTopPadding()
+                                    if properties:GetTopMargin() > topMargin
+                                        topMargin = properties:GetTopMargin()
                                     end
-                                    if properties:GetBottomPadding() > bottomPadding
-                                        bottomPadding = properties:GetBottomPadding()
+                                    if properties:GetBottomMargin() > bottomMargin
+                                        bottomMargin = properties:GetBottomMargin()
                                     end
                                 end
                             end
                             i = i + 1
                         end
 
-                        containerHeight = font:GetLineHeight() + containerBorder + topPadding + bottomPadding
+                        containerHeight = font:GetLineHeight() + containerBorder + topMargin + bottomMargin
 
                         if container:GetHeight() not= containerHeight
                             container:SetHeight(containerHeight)
@@ -90,12 +90,12 @@ class MenuItemLayout is Layout
                                 end
 
                                 if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
-                                    totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
                                 elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                                     // We have to estimate the height now to determine the width.
                                     number height = 0
                                     if properties:GetVerticalLayoutMode() = properties:STANDARD
-                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) + properties:GetPixelHeight()
+                                        height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) + properties:GetPixelHeight()
                                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                         if properties:GetFont() not= undefined
                                             height = properties:GetFont():GetLineHeight()
@@ -107,9 +107,9 @@ class MenuItemLayout is Layout
                                     end
 
                                     totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
-                                        + properties:GetLeftPadding() + properties:GetRightPadding()
+                                        + properties:GetLeftMargin() + properties:GetRightMargin()
                                 else
-                                    totalWidthOffset = totalWidthOffset + properties:GetPixelWidth() + properties:GetLeftPadding() + properties:GetRightPadding()
+                                    totalWidthOffset = totalWidthOffset + properties:GetPixelWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
                                     totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
                                 end
                             else
@@ -155,46 +155,46 @@ class MenuItemLayout is Layout
             LayoutProperties shortcutProperties = shortcut:GetLayoutProperties(containerWidth, containerHeight)
             LayoutProperties arrowProperties = arrow:GetLayoutProperties(containerWidth, containerHeight)
             
-            number bottomPadding = iconProperties:GetBottomPadding()
-            number topPadding = iconProperties:GetTopPadding()
-            if labelProperties:GetBottomPadding() > bottomPadding
-                bottomPadding = labelProperties:GetBottomPadding()
+            number bottomMargin = iconProperties:GetBottomMargin()
+            number topMargin = iconProperties:GetTopMargin()
+            if labelProperties:GetBottomMargin() > bottomMargin
+                bottomMargin = labelProperties:GetBottomMargin()
             end
-            if shortcutProperties:GetBottomPadding() > bottomPadding
-                bottomPadding = shortcutProperties:GetBottomPadding()
+            if shortcutProperties:GetBottomMargin() > bottomMargin
+                bottomMargin = shortcutProperties:GetBottomMargin()
             end
-            if arrowProperties:GetBottomPadding() > bottomPadding
-                bottomPadding = arrowProperties:GetBottomPadding()
-            end
-
-            if labelProperties:GetTopPadding() > topPadding
-                topPadding = labelProperties:GetTopPadding()
-            end
-            if shortcutProperties:GetTopPadding() > topPadding
-                topPadding = shortcutProperties:GetTopPadding()
-            end
-            if arrowProperties:GetTopPadding() > topPadding
-                topPadding = arrowProperties:GetTopPadding()
+            if arrowProperties:GetBottomMargin() > bottomMargin
+                bottomMargin = arrowProperties:GetBottomMargin()
             end
 
-            number height = containerProperties:GetFont():GetLineHeight() + topPadding + bottomPadding
+            if labelProperties:GetTopMargin() > topMargin
+                topMargin = labelProperties:GetTopMargin()
+            end
+            if shortcutProperties:GetTopMargin() > topMargin
+                topMargin = shortcutProperties:GetTopMargin()
+            end
+            if arrowProperties:GetTopMargin() > topMargin
+                topMargin = arrowProperties:GetTopMargin()
+            end
+
+            number height = containerProperties:GetFont():GetLineHeight() + topMargin + bottomMargin
 
             number panelIconWidth = parentPanel:GetIconRegionWidth()
-            number iconHeight = (height - iconProperties:GetTopPadding() - iconProperties:GetBottomPadding()) * iconProperties:GetPercentageHeight()
+            number iconHeight = (height - iconProperties:GetTopMargin() - iconProperties:GetBottomMargin()) * iconProperties:GetPercentageHeight()
             number iconWidth = iconHeight * iconProperties:GetPercentageWidth()
-            icon:SetPosition(iconProperties:GetLeftPadding(), iconProperties:GetBottomPadding())
+            icon:SetPosition(iconProperties:GetLeftMargin(), iconProperties:GetBottomMargin())
             icon:SetSize(iconWidth, iconHeight)
 
-            number x = parentPanel:GetIconRegionWidth() + labelProperties:GetLeftPadding()
-            label:SetPosition(x, labelProperties:GetBottomPadding())
+            number x = parentPanel:GetIconRegionWidth() + labelProperties:GetLeftMargin()
+            label:SetPosition(x, labelProperties:GetBottomMargin())
             
-            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + shortcutProperties:GetLeftPadding()
-            shortcut:SetPosition(x, shortcutProperties:GetBottomPadding())
+            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + shortcutProperties:GetLeftMargin()
+            shortcut:SetPosition(x, shortcutProperties:GetBottomMargin())
             
-            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + parentPanel:GetShortcutRegionWidth() + arrowProperties:GetLeftPadding()
-            number arrowHeight = (height - arrowProperties:GetTopPadding() - arrowProperties:GetBottomPadding()) * arrowProperties:GetPercentageHeight()
+            x = parentPanel:GetIconRegionWidth() + parentPanel:GetLabelRegionWidth() + parentPanel:GetShortcutRegionWidth() + arrowProperties:GetLeftMargin()
+            number arrowHeight = (height - arrowProperties:GetTopMargin() - arrowProperties:GetBottomMargin()) * arrowProperties:GetPercentageHeight()
             number arrowWidth = arrowHeight * arrowProperties:GetPercentageWidth()
-            arrow:SetPosition(x, arrowProperties:GetBottomPadding())
+            arrow:SetPosition(x, arrowProperties:GetBottomMargin())
             arrow:SetSize(arrowWidth, arrowHeight)
 
             containerHeight = height
@@ -216,10 +216,10 @@ class MenuItemLayout is Layout
                     if properties not= undefined and (ignoreHidden = false or control:IsShowing())
                         number width = 0
                         number height = 0
-                        number leftPadding = properties:GetLeftPadding()
-                        number rightPadding = properties:GetRightPadding()
-                        number topPadding = properties:GetTopPadding()
-                        number bottomPadding = properties:GetBottomPadding()
+                        number leftMargin = properties:GetLeftMargin()
+                        number rightMargin = properties:GetRightMargin()
+                        number topMargin = properties:GetTopMargin()
+                        number bottomMargin = properties:GetBottomMargin()
 
                         boolean fromLeft = true
                         if properties:GetPercentageX() > 0.5
@@ -244,7 +244,7 @@ class MenuItemLayout is Layout
                                 control:SetHeight(currentY)
                             elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                                 // Setting the height will trigger a resize.
-                                control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight())
+                                control:SetHeight((containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) * properties:GetPercentageHeight() + properties:GetPixelHeight())
                             elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                 if properties:GetFont() not= undefined
                                     control:SetHeight(properties:GetFont():GetLineHeight())
@@ -258,13 +258,13 @@ class MenuItemLayout is Layout
                                 width = containerWidth - rightX
                             end
                         elseif properties:GetHorizontalLayoutMode() not= properties:MAINTAIN_ASPECT_RATIO
-                            width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() + leftPadding + rightPadding
+                            width = containerWidth * properties:GetPercentageWidth() + properties:GetPixelWidth() + leftMargin + rightMargin
                         end
 
                         if fromLeft
-                            leftX = leftX + leftPadding
+                            leftX = leftX + leftMargin
                         else
-                            rightX = rightX - rightPadding
+                            rightX = rightX - rightMargin
                         end
 
                         // When we set the size in this step, we also trigger a
@@ -282,7 +282,7 @@ class MenuItemLayout is Layout
                                     height = font:GetLineHeight()
                                 end
                             elseif properties:GetVerticalLayoutMode() = properties:STANDARD
-                                height = (containerHeight - containerBorder * 2 - properties:GetTopPadding() - properties:GetBottomPadding()) * properties:GetPercentageHeight() + properties:GetPixelHeight()
+                                height = (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) * properties:GetPercentageHeight() + properties:GetPixelHeight()
                             elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                                 height = properties:GetPercentageHeight() * width
                             end
@@ -295,12 +295,12 @@ class MenuItemLayout is Layout
                         end
 
                         if fromLeft
-                            control:SetPosition(leftX, currentY - control:GetHeight() - topPadding)
-                            leftX = leftX + control:GetWidth() + rightPadding
+                            control:SetPosition(leftX, currentY - control:GetHeight() - topMargin)
+                            leftX = leftX + control:GetWidth() + rightMargin
                         else
                             rightX = rightX - control:GetWidth()
-                            control:SetPosition(rightX, currentY - control:GetHeight() - topPadding)
-                            rightX = rightX - leftPadding
+                            control:SetPosition(rightX, currentY - control:GetHeight() - topMargin)
+                            rightX = rightX - leftMargin
                         end
                     end
                 end
@@ -325,35 +325,35 @@ class MenuItemLayout is Layout
             repeat while counter < items:GetSize()
                 Item2D item = items:Get(counter)
 
-                number leftPadding = 0
-                number rightPadding = 0
-                number topPadding = 0
-                number bottomPadding = 0
+                number leftMargin = 0
+                number rightMargin = 0
+                number topMargin = 0
+                number bottomMargin = 0
 
                 if item is Control
                     Control control = cast(Control, item)
                     LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
                     if properties not= undefined
-                        leftPadding = properties:GetLeftPadding()
-                        rightPadding = properties:GetRightPadding()
-                        topPadding = properties:GetTopPadding()
-                        bottomPadding = properties:GetBottomPadding()
+                        leftMargin = properties:GetLeftMargin()
+                        rightMargin = properties:GetRightMargin()
+                        topMargin = properties:GetTopMargin()
+                        bottomMargin = properties:GetBottomMargin()
                     end
                 end
 
-                x = x + leftPadding
+                x = x + leftMargin
 
-                if x + item:GetWidth() + rightPadding > containerWidth
+                if x + item:GetWidth() + rightMargin > containerWidth
                     currentY = nextY
-                    x = leftPadding
+                    x = leftMargin
                 end
 
-                if currentY - item:GetHeight() - topPadding - bottomPadding < nextY
-                    nextY = currentY - item:GetHeight() - topPadding - bottomPadding
+                if currentY - item:GetHeight() - topMargin - bottomMargin < nextY
+                    nextY = currentY - item:GetHeight() - topMargin - bottomMargin
                 end
 
-                item:SetPosition(x, currentY - item:GetHeight() - topPadding)
-                x = x + item:GetWidth() + rightPadding
+                item:SetPosition(x, currentY - item:GetHeight() - topMargin)
+                x = x + item:GetWidth() + rightMargin
 
                 counter = counter + 1
             end

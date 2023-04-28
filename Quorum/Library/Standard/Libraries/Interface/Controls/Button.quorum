@@ -59,6 +59,12 @@ class Button is Control, TextureLoadListener
         SetInputGroup("Button")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:BUTTON)
+
+        // The padding is used to space out the internal contents.
+        SetTopPadding(4)
+        SetBottomPadding(7)
+        SetLeftPadding(7)
+        SetRightPadding(7)
     end
 
     action GetDefaultFontName returns text
@@ -298,9 +304,9 @@ class Button is Control, TextureLoadListener
                     iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
                     iconProperties:SetPercentageWidth(cast(number, icon:GetRegionWidth()) / icon:GetRegionHeight())
                     iconProperties:SetPercentageHeight(1.0)
-                    iconProperties:SetLeftPadding(7)
-                    iconProperties:SetTopPadding(4)
-                    iconProperties:SetBottomPadding(4)
+                    iconProperties:SetLeftMargin(GetLeftPadding())
+                    iconProperties:SetTopMargin(GetTopPadding())
+                    iconProperties:SetBottomMargin(GetBottomPadding())
                     icon:SetColor(properties:GetIconColor())
                     Add(icon)
                 end
@@ -312,10 +318,10 @@ class Button is Control, TextureLoadListener
                 LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
                 labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
                 labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-                labelProperties:SetLeftPadding(7)
-                labelProperties:SetRightPadding(7)
-                labelProperties:SetTopPadding(4)
-                labelProperties:SetBottomPadding(7)
+                labelProperties:SetLeftMargin(GetLeftPadding())
+                labelProperties:SetRightMargin(GetRightPadding())
+                labelProperties:SetTopMargin(GetTopPadding())
+                labelProperties:SetBottomMargin(GetBottomPadding())
                 label:SetFont(font)
                 label:SetSize(properties:GetFontSize())
                 label:SetText(labelText)

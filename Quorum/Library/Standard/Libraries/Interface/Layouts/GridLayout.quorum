@@ -147,9 +147,9 @@ class GridLayout is Layout
                     end
 
                     if xMode = properties:STANDARD
-                        itemWidth = regionWidth * control:GetPercentageWidth() + (control:GetPixelWidth() - control:GetLeftPadding() - control:GetRightPadding()) * control:GetInterfaceScale()
+                        itemWidth = regionWidth * control:GetPercentageWidth() + (control:GetPixelWidth() - control:GetLeftMargin() - control:GetRightMargin()) * control:GetInterfaceScale()
                     elseif xMode = properties:FILL
-                        itemWidth = regionWidth - (control:GetLeftPadding() + control:GetRightPadding()) * control:GetInterfaceScale()
+                        itemWidth = regionWidth - (control:GetLeftMargin() + control:GetRightMargin()) * control:GetInterfaceScale()
                     end
 
                     setWidth = true
@@ -173,9 +173,9 @@ class GridLayout is Layout
                     end
 
                     if yMode = properties:STANDARD
-                        itemHeight = regionHeight * control:GetPercentageHeight() + (control:GetPixelHeight() - control:GetBottomPadding() - control:GetTopPadding()) * control:GetInterfaceScale()
+                        itemHeight = regionHeight * control:GetPercentageHeight() + (control:GetPixelHeight() - control:GetBottomMargin() - control:GetTopMargin()) * control:GetInterfaceScale()
                     elseif yMode = properties:FILL
-                        itemHeight = regionHeight - (control:GetBottomPadding() + control:GetTopPadding()) * control:GetInterfaceScale()
+                        itemHeight = regionHeight - (control:GetBottomMargin() + control:GetTopMargin()) * control:GetInterfaceScale()
                     end
 
                     setHeight = true
@@ -222,8 +222,8 @@ class GridLayout is Layout
                 number startX = GetCellX(control:GetGridX(), container, containerWidth)
                 number startY = GetCellY(control:GetGridY(), container, containerHeight)
 
-                number x = startX + control:GetPixelX() + control:GetLeftPadding() + control:GetPercentageX() * regionWidth - originOffsetX
-                number y = startY + control:GetPixelY() + control:GetBottomPadding() + control:GetPercentageY() * regionHeight - originOffsetY                
+                number x = startX + control:GetPixelX() + control:GetLeftMargin() + control:GetPercentageX() * regionWidth - originOffsetX
+                number y = startY + control:GetPixelY() + control:GetBottomMargin() + control:GetPercentageY() * regionHeight - originOffsetY                
                 control:SetPosition(x, y)
             end
             i = i + 1
