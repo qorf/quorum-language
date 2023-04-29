@@ -33,7 +33,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     end
 
     action GetGrouping(text name) returns Grouping
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -65,7 +65,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     end
 
     action GetStartButtonGrouping(text name) returns StartButtonGrouping
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -107,7 +107,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     end
 
     action GetBanner(text name) returns Banner
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -132,4 +132,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         end
     end
 
+    action GetFormChildren returns Array<Item2D>
+        return GetScrollRegionItems()
+    end
 end

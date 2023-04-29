@@ -104,4 +104,8 @@ class Grouping is FormContainerControl, ButtonGroup
     action SetColumns(integer columns)
         me:columns = columns
     end
+
+    action GetFormChildren returns Array<Item2D>
+        return GetChildren()
+    end
 end
