@@ -117,8 +117,20 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterParentFieldAccess(ParentFieldAccessContext context) end
     action ExitParentFieldAccess(ParentFieldAccessContext context) end
 
-    action EnterFullClassDeclaration(FullClassDeclarationContext ctx) end
-    action ExitFullClassDeclaration(FullClassDeclarationContext ctx) end
+    action EnterFullClassDeclaration(FullClassDeclarationContext ctx)
+        ClassBlock block
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetFullClass(ctx)
+        
+        dummyRoot:Add(cast(Block, block))
+        me:block = block
+        MultipleLineBlockPart startLine = block:AddStartLine()
+    end
+    action ExitFullClassDeclaration(FullClassDeclarationContext ctx)
+        ClassBlock classBlock = cast(ClassBlock, block)
+        classBlock:AddEndLine()
+        classBlock:Setup()
+    end
 
     action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
     action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
@@ -176,17 +188,74 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterSystemAction(ActionContext context) end
     action ExitSystemAction(ActionContext context) end
 
-    action EnterConstructor(ConstructorContext context) end
-    action ExitConstructor(ConstructorContext context) end
+    action EnterConstructor(ConstructorContext context)
+        OffsetLocation(context:GetLocation())
+        ConstructorBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+        
+        dummyRoot:Add(cast(Block, block))
+        me:block = block
+        MultipleLineBlockPart startLine = block:AddStartLine()
+        scopeDepth = scopeDepth + 1
+    end
+    action ExitConstructor(ConstructorContext context)
+        ConstructorBlock block = cast(ConstructorBlock, me:block)
+        block:AddEndLine()
+        block:Setup()
+        scopeDepth = scopeDepth - 1
+    end
 
     action EnterBlueprintAction(ActionContext context) end
     action ExitBlueprintAction(ActionContext context) end
 
-    action EnterActionHeader(ActionContext context) end
+    action EnterActionHeader(ActionContext context)
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:actionNameLocation)
+        integer i = 0
+        repeat while i < context:parameterContexts:GetSize()
+            OffsetLocation(context:parameterContexts:Get(i):GetLocation())
+            i = i + 1
+        end
+        if context:returnLocation not= undefined 
+            OffsetLocation(context:returnLocation)
+        end
+        ActionBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetActionContext(context)
+
+        dummyRoot:Add(cast(Block, block))
+        me:block = block
+
+        MultipleLineBlockPart startLine = block:AddStartLine()
+
+        // system and blueprint actions are single line blocks
+        if not context:isSystem and not context:isBlueprint
+            scopeDepth = scopeDepth + 1
+        else
+            // Don't change the current block, as this is essentially a single line block. Set up the block immediately.
+            block:Setup()
+        end
+    end
     action ExitActionHeader(ActionContext context) end
 
     action EnterAction(ActionContext context) end
-    action ExitAction(ActionContext context) end
+    action ExitAction(ActionContext context)
+        if not context:isSystem and not context:isBlueprint
+            // The current block must be one of the parts of an action block. Get the action block from the part.
+            ActionBlock actionBlock = cast(ActionBlock, me:block)
+            
+            // Add the last line of the action block.
+            actionBlock:AddEndLine()
+    
+            // Now that all parts have been added, call Setup on the block.
+            actionBlock:Setup()
+    
+            scopeDepth = scopeDepth - 1
+        end
+    end
 
     action EnterGenericStatement(GenericContext context) end
     action ExitGenericStatement(GenericContext context) end
@@ -281,11 +350,13 @@ class FreeformBlockListener is QuorumSourceListener
 
         me:block = block
         block:AddStartLine()
+        scopeDepth = scopeDepth + 1
     end
     action ExitLoopStatement(LoopContext context)
         RepeatBlock repeatBlock = cast(RepeatBlock, block)
         repeatBlock:AddEndLine()
         repeatBlock:Setup()
+        scopeDepth = scopeDepth - 1
     end
 
     action EnterAssignmentDeclaration(AssignmentDeclaractionContext context) end
@@ -298,6 +369,12 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitInheritStatement(InheritStatementContext context) end
 
     action EnterDetectStatement(DetectStatementContext context)
+        OffsetLocation(context:nameLocation)
+        integer i = 0
+        repeat while i < context:qualifiedNameContexts:GetSize()
+            OffsetLocation(context:qualifiedNameContexts:Get(i):GetLocation())
+            i = i + 1
+        end
         CheckBlock checkBlock = cast(CheckBlock, block)
 
         MultipleLineBlockPart newPart = checkBlock:AddDetectLine(context)
@@ -305,6 +382,7 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitDetectStatement(DetectStatementContext context) end
 
     action EnterAlwaysStatement(AlwaysStatementContext context)
+        OffsetLocation(context:GetLocation())
         CheckBlock checkBlock = cast(CheckBlock, block)
 
         MultipleLineBlockPart newPart = checkBlock:AddAlwaysLine(context)
@@ -365,8 +443,9 @@ class FreeformBlockListener is QuorumSourceListener
         OffsetLocation(context:typeLocation)
         OffsetLocation(context:variableLocation)
         OffsetLocation(context:declaration:GetLocation())
-        OffsetLocation(context:expression:GetLocation())
-
+        if context:expression not= undefined
+            OffsetLocation(context:expression:GetLocation())
+        end
         AssignmentBlock block
         block:SetScopeDepth(scopeDepth)
         block:SetEditor(dummyRoot:GetEditor())
