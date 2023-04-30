@@ -693,9 +693,6 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
         end
 
         //now calculate the effect size
-        Vector value = col:ConvertToVector()
-        output value:ToText()
-
         number rsquared = CalculatePredictedEffectSize(col, predictions)
 
         VectorColumn column
