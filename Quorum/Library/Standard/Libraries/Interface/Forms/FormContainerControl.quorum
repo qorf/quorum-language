@@ -163,7 +163,7 @@ class FormContainerControl is Control
 
 
         button:SetFont(undefined)
-        button:SetToDefaultFontSize()
+        button:SetToHugeFont()
         return button
     end
 
@@ -364,7 +364,7 @@ class FormContainerControl is Control
         end
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
-        icon:SetToDefaultFontSize()
+        icon:SetToHugeFont()
 
         Add(icon)
         return icon
