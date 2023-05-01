@@ -235,8 +235,8 @@ class ScrollableControl is Control
 
         verticalViewRatio = height / totalHeight
         horizontalViewRatio = width / totalWidth
-        boolean verticalVisible = verticalViewRatio < 1.0
-        boolean horizontalVisible = horizontalViewRatio < 1.0
+        boolean verticalVisible = (verticalViewRatio < 1.0 and verticalMode = VISIBLE_IF_NEEDED) or verticalMode = ALWAYS_VISIBLE
+        boolean horizontalVisible = (horizontalViewRatio < 1.0 and horizontalMode = VISIBLE_IF_NEEDED) or horizontalMode = ALWAYS_VISIBLE
         number barHeight = height
         number barWidth = width
 

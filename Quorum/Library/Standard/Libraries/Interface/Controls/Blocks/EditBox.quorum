@@ -23,6 +23,8 @@ class EditBox is TextBox, EditRegion
         SetCornerRounding(0.5, 0.5, 0.5, 0.5)
         SetInputGroup("EditBox")
         SetPositionOnBaseLine(false)
+
+        SetHorizontalBarVisibility(parent:ScrollableControl:NEVER_VISIBLE)
     end
 
     action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)
