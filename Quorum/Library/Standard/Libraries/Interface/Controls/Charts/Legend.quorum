@@ -509,7 +509,7 @@ class Legend is ChartItem
     end
 
     // This is currently obsolete
-    private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
+    private action MakeEntry(Series series, Color color, integer rightMargin) returns Icon
         Icon newItemStructure
         newItemStructure:SetFocusable(true)
         newItemStructure:SetAccessibilityCode(parent:Item:ITEM)
@@ -521,10 +521,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7+rightPadding)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7+rightMargin)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
 
         Icon newIcon
@@ -535,9 +535,9 @@ class Legend is ChartItem
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
         iconProperties:SetPercentageWidth(cast(number, newIcon:GetWidth()) / newIcon:GetHeight())
         iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetLeftPadding(7)
-        iconProperties:SetTopPadding(4)
-        iconProperties:SetBottomPadding(4)
+        iconProperties:SetLeftMargin(7)
+        iconProperties:SetTopMargin(4)
+        iconProperties:SetBottomMargin(4)
 
         LayoutProperties itemStructureProperties = newItemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
@@ -567,10 +567,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
         newLabel:SetText(name)
 
@@ -582,9 +582,9 @@ class Legend is ChartItem
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
         iconProperties:SetPercentageWidth(cast(number, newIcon:GetWidth()) / newIcon:GetHeight())
         iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetLeftPadding(7)
-        iconProperties:SetTopPadding(4)
-        iconProperties:SetBottomPadding(4)
+        iconProperties:SetLeftMargin(7)
+        iconProperties:SetTopMargin(4)
+        iconProperties:SetBottomMargin(4)
 
         LayoutProperties itemStructureProperties = newItemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
@@ -612,10 +612,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
         newLabel:SetText(title)
 

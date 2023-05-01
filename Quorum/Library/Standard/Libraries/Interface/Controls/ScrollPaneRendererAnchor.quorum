@@ -1,0 +1,23 @@
+package Libraries.Interface.Controls
+
+class ScrollPaneRendererAnchor is Control
+
+    action GetScrollPaneRenderer returns ScrollPaneRenderer
+        return cast(ScrollPaneRenderer, GetParent())
+    end
+
+    action GetScrollPane returns ScrollPane
+        return GetScrollPaneRenderer():GetScrollPane()
+    end
+
+    action RequestLayout
+        parent:Control:RequestLayout()
+        ScrollPane pane = GetScrollPane()
+
+        // Because the ScrollPane handles the sizing of scroll bars during resizing, any change to the scroll content also requires resizing the pane.
+        if pane not= undefined
+            pane:RequestLayout()
+        end
+    end
+
+end

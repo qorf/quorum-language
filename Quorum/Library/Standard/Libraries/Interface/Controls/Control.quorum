@@ -24,6 +24,7 @@ use Libraries.Interface.Views.DrawableView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.EmptyIterator
+use Libraries.Interface.Forms.FormConstants
 
 class Control is Item2D
 
@@ -793,6 +794,24 @@ class Control is Item2D
     end
 
     /*
+    This action returns how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action GetLayoutRows returns number
+        return defaultProperties:GetLayoutRows()
+    end
+
+    /*
+    This action sets how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action SetLayoutRows(number layoutRows)
+        defaultProperties:SetLayoutRows(layoutRows)
+    end
+
+    /*
     This action sets the x-coordinate of the "origin" of the Control, as a percentage of its width.
     The origin is the point that the Control is positioned by. For example, by default, the origin
     is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
@@ -844,6 +863,38 @@ class Control is Item2D
         return defaultProperties:GetPercentageOriginY()
     end
 
+    action SetLeftMargin(number padding)
+        defaultProperties:SetLeftMargin(padding)
+    end
+
+    action SetRightMargin(number padding)
+        defaultProperties:SetRightMargin(padding)
+    end
+
+    action SetBottomMargin(number padding)
+        defaultProperties:SetBottomMargin(padding)
+    end
+
+    action SetTopMargin(number padding)
+        defaultProperties:SetTopMargin(padding)
+    end
+
+    action GetLeftMargin returns number
+        return defaultProperties:GetLeftMargin()
+    end
+
+    action GetRightMargin returns number
+        return defaultProperties:GetRightMargin()
+    end
+
+    action GetBottomMargin returns number
+        return defaultProperties:GetBottomMargin()
+    end
+
+    action GetTopMargin returns number
+        return defaultProperties:GetTopMargin()
+    end
+
     action SetLeftPadding(number padding)
         defaultProperties:SetLeftPadding(padding)
     end
@@ -874,6 +925,138 @@ class Control is Item2D
 
     action GetTopPadding returns number
         return defaultProperties:GetTopPadding()
+    end
+
+    /*
+    This action sets the font size to the system's specified "tiny" size.
+    By default, this is font size 10.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToTinyFont()
+    
+    form:Display()
+    */
+    action SetToTinyFont
+        FormConstants constants
+        SetFontSize(constants:TINY_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "small" size.
+    By default, this is font size 14.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToSmallFont()
+    
+    form:Display()
+    */
+    action SetToSmallFont
+        FormConstants constants
+        SetFontSize(constants:SMALL_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "medium" size.
+    By default, this is font size 20.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToMediumFont()
+    
+    form:Display()
+    */
+    action SetToMediumFont
+        FormConstants constants
+        SetFontSize(constants:MEDIUM_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified default size for Forms.
+    By default, this is font size 20, the same as the medium font size.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToDefaultFontSize()
+    
+    form:Display()
+    */
+    action SetToDefaultFontSize
+        FormConstants constants
+        SetFontSize(constants:DEFAULT_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "large" size for Forms.
+    By default, this is font size 32.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToLargeFont()
+    
+    form:Display()
+    */
+    action SetToLargeFont
+        FormConstants constants
+        SetFontSize(constants:LARGE_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "huge" size for Forms.
+    By default, this is font size 60.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToHugeFont()
+    
+    form:Display()
+    */
+    action SetToHugeFont
+        FormConstants constants
+        SetFontSize(constants:HUGE_FONT_SIZE)
     end
 
     /*

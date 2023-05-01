@@ -1,0 +1,158 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Containers.Array
+
+class ScrollPaneRenderer is Control
+
+    public constant integer FIT_CONTENTS_VERTICALLY = 1
+    public constant integer FIT_CONTENTS_HORIZONTALLY = 2
+    public constant integer MANUAL_REGION_SIZING = 3
+
+    integer contentMode = FIT_CONTENTS_VERTICALLY
+
+    /*
+    A single element that contains whatever is added to the renderer. 
+    In order to scroll around, we move this single element, instead of all of the children.
+    Note that we don't move the renderer itself because we want it to maintain a constant
+    position in the ScrollPane, so that it supports a view for the background.
+    */
+    ScrollPaneRendererAnchor scrollAnchor
+
+    on create
+        ManualLayout layout
+        parent:Control:SetLayout(layout)
+
+        FlowLayout flow
+        SetLayout(flow)
+
+        FitContentsVertically()
+
+        parent:Control:Add(scrollAnchor)
+    end
+
+    action FitContentsVertically
+        scrollAnchor:SetHorizontalLayoutMode(parent:Control:STANDARD)
+        scrollAnchor:SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
+        scrollAnchor:SetPercentageWidth(1)
+        contentMode = FIT_CONTENTS_VERTICALLY
+    end
+
+    action FitContentsHorizontally
+        scrollAnchor:SetHorizontalLayoutMode(parent:Control:FIT_CONTENTS)
+        scrollAnchor:SetVerticalLayoutMode(parent:Control:STANDARD)
+        scrollAnchor:SetPercentageHeight(1)
+        contentMode = FIT_CONTENTS_HORIZONTALLY
+    end
+
+    action SetManualRegionSizing
+        scrollAnchor:SetHorizontalLayoutMode(parent:Control:STANDARD)
+        scrollAnchor:SetVerticalLayoutMode(parent:Control:STANDARD)
+        contentMode = MANUAL_REGION_SIZING
+    end
+
+    action GetScrollPane returns ScrollPane
+        return cast(ScrollPane, GetParent())
+    end
+
+    action Resize
+        parent:Control:Resize()
+        
+        ScrollPane pane = GetScrollPane()
+        if pane not= undefined
+
+            number height = GetHeight()
+            number contentHeight = pane:GetTotalContentHeight()
+            number contentWidth = pane:GetTotalContentWidth()
+
+            scrollAnchor:SetX(-pane:GetScrollPercentageX() * contentWidth)
+            scrollAnchor:SetY(pane:GetScrollPercentageY() * contentHeight - (contentHeight - height))
+        end
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView backgroundView
+            backgroundView:SetName("ScrollPane Background View")
+            backgroundView:Initialize()
+            SetView2D(backgroundView)
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action SetLayout(Layout layout)
+        scrollAnchor:SetLayout(layout)
+    end
+
+    action Add(Item2D item)
+        scrollAnchor:Add(item)
+        RequestLayout()
+    end
+
+    action Add(integer index, Item2D item)
+        scrollAnchor:Add(index, item)
+        RequestLayout()
+    end
+
+    action Remove(Item2D item) returns boolean
+        boolean result = scrollAnchor:Remove(item)
+        if result
+            RequestLayout()
+        end
+        return result
+    end
+
+    action Remove(integer index) returns Item2D
+        Item2D result = scrollAnchor:Remove(index)
+        if result not= undefined
+            RequestLayout()
+        end
+        return result
+    end
+
+    action GetContentWidth returns number
+        // Make sure we layout the anchor, if needed, before reporting its size
+        if NeedsLayout() or scrollAnchor:NeedsLayout()
+            Resize()
+        end
+
+        return scrollAnchor:GetWidth()
+    end
+
+    action GetContentHeight returns number
+        // Make sure we layout the anchor, if needed, before reporting its size
+        if NeedsLayout() or scrollAnchor:NeedsLayout()
+            Resize()
+        end
+
+        return scrollAnchor:GetHeight()
+    end
+
+    action GetScrollRegionProperties returns LayoutProperties
+        return scrollAnchor:GetDefaultLayoutProperties()
+    end
+
+    action SetRegionSize(number width, number height)
+        scrollAnchor:SetWidth(width)
+        scrollAnchor:SetHeight(height)
+        LayoutProperties scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
+        scrollAnchorLayout:SetPixelWidth(width)
+        scrollAnchorLayout:SetPixelHeight(height)
+    end
+
+    action GetScrollRegionItems returns Array<Item2D>
+        return scrollAnchor:GetChildren()
+    end
+
+end

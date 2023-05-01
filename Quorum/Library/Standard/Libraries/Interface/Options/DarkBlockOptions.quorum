@@ -1,0 +1,73 @@
+package Libraries.Interface.Options
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+
+class DarkBlockOptions is DarkModeOptions, BlockOptions
+    constant number MAX = 255.0
+    BlockOptionConstants constants
+    Color color
+    Color folderButtons = color:CustomColor(144.0 / MAX, 191.0 / MAX, 227.0 / MAX, 1)
+    Color classBlock = folderButtons//color:CustomColor(96.0 / MAX, 96.0 / MAX, 96.0 / MAX, 1)
+    Color ifBlock = color:CustomColor(64.0 / MAX, 128.0 / MAX, 64.0 / MAX, 1)
+    Color repeatBlock = color:CustomColor(64.0 / MAX, 64.0 / MAX, 128.0 / MAX, 1)
+    Color packageBlock = color:CustomColor(96.0 / MAX, 32.0 / MAX, 96.0 / MAX, 1)
+    Color useBlock = color:CustomColor(128.0 / MAX, 64.0 / MAX, 128.0 / MAX, 1)
+    Color comments = color:CustomColor(175.0 / MAX, 186.0 / MAX, 255.0 / MAX, 1)
+    Color textColor = color:CustomColor(255.0 / MAX, 165.0 / MAX, 127.0 / MAX, 1)
+    Color playButtons = color:CustomColor(133.0 / MAX, 216.0 / MAX, 144.0 / MAX, 1)
+    
+    Color stopButton = color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1)
+    Color textboxBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
+    Color defaultBackground = color:CustomColor(60.0 / MAX, 63.0 / MAX, 65.0 / MAX, 1)
+    Color focusColor = color:CustomColor(48.0 / MAX, 138.0 / MAX, 175.0 / MAX, 1)
+    Color lightFont = color:CustomColor(246.0 / MAX, 246.0 / MAX, 246.0 / MAX, 1)
+    Color acceptBlue = color:CustomColor(131.0/MAX, 186.0/MAX, 217.0/MAX, 1)
+    Color hoverBlue = color:CustomColor(78.0 / MAX, 139.0 / MAX, 175.0 / MAX, 1)
+    Color defaultStatementColor = color:CustomColor(128.0 / MAX, 128.0 / MAX, 128.0 / MAX, 1)//folderButtons//color:CustomColor(45.0/MAX, 112.0/MAX, 160.0/MAX, 1)
+    Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
+    Color commonFontColor = color:CustomColor(186.0 / MAX, 197.0 / MAX, 210.0 / MAX, 1)
+
+    action SetStartingOptions
+        SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:OUTPUT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:SAY_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:USE_KEY, useBlock)
+        SetBackgroundColor(constants:PACKAGE_KEY, packageBlock)
+        SetBackgroundColor(constants:ALERT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:CHECK_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:ACTION_CALL_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:REPEAT_KEY, repeatBlock)
+        SetBackgroundColor(constants:ACTION_KEY, playButtons)
+        SetBackgroundColor(constants:CONSTRUCTOR_KEY, playButtons)
+        SetBackgroundColor(constants:CLASS_KEY, classBlock)
+        SetBackgroundColor(constants:IF_KEY, ifBlock)
+        SetBackgroundColor(constants:FREEFORM_KEY, color:CustomColor(240.0 / MAX, 240.0 / MAX, 240.0 / MAX, 1))
+        SetBackgroundColor(constants:COMMENT_KEY, comments)
+
+        SetEditBackgroundColor(editFieldBackground)
+        SetEditBorderThickness(1)
+        SetEditFontColor(color:White())
+        SetStaticFontColor(color:White())
+        SetStaticFontOutlineColor(color:Black())
+        SetStaticFontOutlineThickness(1.0)
+    end
+
+    action SetDefaultBlockOptions(text key)
+        parent:BlockOptions:SetDefaultBlockOptions(key)
+
+        ColorGroup background = GetBackgroundColor(key)
+        if background not= undefined
+            Color color
+            color:CopyColor(background:GetBottomLeft())
+            color:SetColor(color:GetRed() * 0.7, color:GetGreen() * 0.7, color:GetBlue() * 0.7, color:GetAlpha())
+            SetBorderColor(key, color)
+
+            SetSelectionColor(key, color:CustomColor(0.5, 0.75, 0.59, 1))
+
+            Color editColor
+            editColor:CopyColor(color)
+            SetEditBorderColor(key, editColor)
+        end
+    end
+end

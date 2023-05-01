@@ -1,0 +1,61 @@
+package Libraries.Interface.Selections
+
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Controls.Blocks.Block
+
+class CodeEditorSelection is Selection
+
+    integer selectedLine = -1
+    Block selectedBlock = undefined
+    BlockItem selectedItem = undefined
+
+    action Set(Block block, integer line, BlockItem item)
+        Block oldBlock = selectedBlock
+        BlockItem oldItem = selectedItem
+        integer oldLine = line
+
+        selectedBlock = block
+        selectedLine = line
+        selectedItem = item
+        if item not= undefined
+            UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine)
+        elseif block not= undefined
+            UpdateSelection(block:GetName(), oldBlock, oldItem, oldLine)
+        elseif line >= 0
+            UpdateSelection("Line " + line, oldBlock, oldItem, oldLine)
+        else
+            UpdateSelection("No selection",  oldBlock, oldItem, oldLine)
+        end
+    end
+
+    private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnSelectionChange(oldBlock, oldItem, oldLine)
+        end
+
+        SetDisplayName(name)
+    end
+
+    action GetLine returns integer
+        return selectedLine
+    end
+
+    action GetBlock returns Block
+        return selectedBlock
+    end
+
+    action GetBlockItem returns BlockItem
+        return selectedItem
+    end
+
+    action IsEmpty returns boolean
+        return selectedLine < 0
+    end
+
+    action GetEditor returns CodeEditor
+        return cast(CodeEditor, GetItem())
+    end
+end

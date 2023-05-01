@@ -2,6 +2,7 @@ package Libraries.Interface.Selections
 
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Controls.ToggleButton
 
 class ButtonGroupSelection is Selection
 
@@ -10,7 +11,7 @@ class ButtonGroupSelection is Selection
     action Initialize(ButtonGroup group, integer index)
         text value = ""
         me:index = index
-        RadioButton button = GetButton()
+        ToggleButton button = GetButton()
         if button not= undefined
             value = button:GetName()
         end
@@ -19,7 +20,7 @@ class ButtonGroupSelection is Selection
 
     action Set(integer index)
         me:index = index
-        RadioButton button = GetButton()
+        ToggleButton button = GetButton()
         if button not= undefined
             SetDisplayName(button:GetName())
         else
@@ -31,7 +32,7 @@ class ButtonGroupSelection is Selection
         return index
     end
 
-    action GetButton returns RadioButton
+    action GetButton returns ToggleButton
         ButtonGroup group = GetButtonGroup()
         if index >= 0 and group not= undefined and index < group:GetSize()
             return group:GetButtonAt(index)

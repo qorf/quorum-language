@@ -57,6 +57,13 @@ class Label is Control
     */
     boolean positionOnBaseLine = true
 
+    /*
+    If this is true, the first line of text will be placed at the y position of the label,
+    and other lines will be placed below it. If this is false, the last line of text will
+    be placed at the label's y-position, and prior lines will be placed above it.
+    */
+    boolean descendingLines = true
+
     integer lineCount = 0
 
     on create
@@ -700,7 +707,7 @@ class Label is Control
             */
             if properties:GetHorizontalLayoutMode() = properties:STANDARD and GetParent() is Control
                 Control control = cast(Control, GetParent())
-                standardLayoutWidth = properties:GetLeftPadding() + properties:GetRightPadding() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
+                standardLayoutWidth = properties:GetLeftMargin() + properties:GetRightMargin() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
             end
 
             if standardLayoutWidth >= 0
@@ -837,6 +844,17 @@ class Label is Control
                 y = originY - font:GetLineHeight()
                 originY = y
                 lineCount = lineCount + 1
+            end
+
+            if descendingLines = false and lineCount > 1
+                number offset = (lineCount - 1) * font:GetLineHeight()
+                Array<Item2D> children = GetChildren()
+
+                integer i = 0
+                repeat while i < children:GetSize()
+                    children:Get(i):MoveY(offset)
+                    i = i + 1
+                end
             end
 
             number newWidth = maxLineWidth + 2 * horizontalMargins
@@ -1205,6 +1223,34 @@ class Label is Control
     action SetFontOutlineColor(ColorGroup color)
         parent:Control:SetFontOutlineColor(color)
         textChanged = true
+    end
+
+    /*
+    This action determines if new lines should descend below the first line.
+    If this value is true, the first line of text will be positioned at the
+    y-coordinate of the Label, and following lines will be placed beneath it.
+    If this value is false, the last line of text will be positioned at the
+    y-coordinate of the Label, and prior lines will be placed above it.
+    By default, this value is true.
+
+    Attribute: Parameter descendingLines True to place the first line at the Label's y-position and other lines below it, or false to position the last line at the y-position and other lines above it.
+    */
+    action SetDescendingLines(boolean descendingLines)
+        me:descendingLines = descendingLines
+    end
+
+    /*
+    This action returns if extra lines descend below the first line.
+    If this value is true, the first line of text will be positioned at the
+    y-coordinate of the Label, and following lines will be placed beneath it.
+    If this value is false, the last line of text will be positioned at the
+    y-coordinate of the Label, and prior lines will be placed above it.
+    By default, this value is true.
+
+    Attribute: Returns True if the first line is at the Label's y-position and other lines below it, or false if the last line is at the y-position and other lines above it.
+    */
+    action HasDescendingLines returns boolean
+        return descendingLines
     end
 
 end

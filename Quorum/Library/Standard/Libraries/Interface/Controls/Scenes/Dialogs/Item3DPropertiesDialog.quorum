@@ -64,7 +64,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         Label basicPropertiesLabel
         basicPropertiesLabel:SetSize(18)
         basicPropertiesLabel:SetText("Basic Properties")
-        basicPropertiesLabel:SetLeftPadding(20)
+        basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
 
         FlowLayout nameLayout
@@ -72,13 +72,13 @@ class Item3DPropertiesDialog is PropertiesDialog
         nameContainer:SetLayout(nameLayout)
         nameContainer:SetPercentageWidth(1.0)
         nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
-        nameContainer:SetLeftPadding(20)
-        nameContainer:SetTopPadding(10)
-        nameContainer:SetRightPadding(30)
-        nameContainer:SetBottomPadding(10)
+        nameContainer:SetLeftMargin(20)
+        nameContainer:SetTopMargin(10)
+        nameContainer:SetRightMargin(30)
+        nameContainer:SetBottomMargin(10)
 
         nameLabel:SetText("Name:")
-        nameLabel:SetRightPadding(10)
+        nameLabel:SetRightMargin(10)
         nameContainer:Add(nameLabel)
         
         nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
@@ -106,13 +106,13 @@ class Item3DPropertiesDialog is PropertiesDialog
         positionContainer:SetLayout(positionLayout)
         positionContainer:SetPercentageWidth(1.0)
         positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftPadding(20)
-        positionContainer:SetTopPadding(10)
-        positionContainer:SetRightPadding(30)
-        positionContainer:SetBottomPadding(10)
+        positionContainer:SetLeftMargin(20)
+        positionContainer:SetTopMargin(10)
+        positionContainer:SetRightMargin(30)
+        positionContainer:SetBottomMargin(10)
 
         positionLabel:SetText("Position:")
-        positionLabel:SetRightPadding(10)
+        positionLabel:SetRightMargin(10)
         positionContainer:Add(positionLabel)
         
         FlowLayout positionFieldLayout
@@ -125,7 +125,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         positionXField:SetText("")
         positionXField:SetFocusable(true)
         positionXField:AddTextChangeListener(me)
-        positionXField:SetRightPadding(8)
+        positionXField:SetRightMargin(8)
         positionXField:SetPercentageWidth(0.33)
         positionXField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionXField)
@@ -134,7 +134,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         positionYField:SetText("")
         positionYField:SetFocusable(true)
         positionYField:AddTextChangeListener(me)
-        positionYField:SetRightPadding(8)
+        positionYField:SetRightMargin(8)
         positionYField:SetPercentageWidth(0.33)
         positionYField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionYField)
@@ -143,7 +143,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         positionZField:SetText("")
         positionZField:SetFocusable(true)
         positionZField:AddTextChangeListener(me)
-        positionZField:SetRightPadding(8)
+        positionZField:SetRightMargin(8)
         positionZField:SetPercentageWidth(0.33)
         positionZField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionZField)
@@ -171,13 +171,13 @@ class Item3DPropertiesDialog is PropertiesDialog
         scaleContainer:SetLayout(scaleLayout)
         scaleContainer:SetPercentageWidth(1.0)
         scaleContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        scaleContainer:SetLeftPadding(20)
-        scaleContainer:SetTopPadding(10)
-        scaleContainer:SetRightPadding(30)
-        scaleContainer:SetBottomPadding(10)
+        scaleContainer:SetLeftMargin(20)
+        scaleContainer:SetTopMargin(10)
+        scaleContainer:SetRightMargin(30)
+        scaleContainer:SetBottomMargin(10)
 
         scaleLabel:SetText("Scale:")
-        scaleLabel:SetRightPadding(10)
+        scaleLabel:SetRightMargin(10)
         scaleContainer:Add(scaleLabel)
         
         FlowLayout scaleFieldLayout
@@ -190,7 +190,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         scaleXField:SetText("")
         scaleXField:SetFocusable(true)
         scaleXField:AddTextChangeListener(me)
-        scaleXField:SetRightPadding(8)
+        scaleXField:SetRightMargin(8)
         scaleXField:SetPercentageWidth(0.33)
         scaleXField:SetPixelWidth(-8)
         scaleFieldContainer:Add(scaleXField)
@@ -199,7 +199,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         scaleYField:SetText("")
         scaleYField:SetFocusable(true)
         scaleYField:AddTextChangeListener(me)
-        scaleYField:SetRightPadding(8)
+        scaleYField:SetRightMargin(8)
         scaleYField:SetPercentageWidth(0.33)
         scaleYField:SetPixelWidth(-8)
         scaleFieldContainer:Add(scaleYField)
@@ -208,7 +208,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         scaleZField:SetText("")
         scaleZField:SetFocusable(true)
         scaleZField:AddTextChangeListener(me)
-        scaleZField:SetRightPadding(8)
+        scaleZField:SetRightMargin(8)
         scaleZField:SetPercentageWidth(0.33)
         scaleZField:SetPixelWidth(-8)
         scaleFieldContainer:Add(scaleZField)
@@ -236,13 +236,13 @@ class Item3DPropertiesDialog is PropertiesDialog
         rotationContainer:SetLayout(rotationLayout)
         rotationContainer:SetPercentageWidth(1.0)
         rotationContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        rotationContainer:SetLeftPadding(20)
-        rotationContainer:SetTopPadding(10)
-        rotationContainer:SetRightPadding(30)
-        rotationContainer:SetBottomPadding(10)
+        rotationContainer:SetLeftMargin(20)
+        rotationContainer:SetTopMargin(10)
+        rotationContainer:SetRightMargin(30)
+        rotationContainer:SetBottomMargin(10)
 
         rotationLabel:SetText("Rotation:")
-        rotationLabel:SetRightPadding(10)
+        rotationLabel:SetRightMargin(10)
         rotationContainer:Add(rotationLabel)
         
         FlowLayout rotationFieldLayout
@@ -255,7 +255,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         rotationYawField:SetText("")
         rotationYawField:SetFocusable(true)
         rotationYawField:AddTextChangeListener(me)
-        rotationYawField:SetRightPadding(8)
+        rotationYawField:SetRightMargin(8)
         rotationYawField:SetPercentageWidth(0.33)
         rotationYawField:SetPixelWidth(-8)
         rotationFieldContainer:Add(rotationYawField)
@@ -264,7 +264,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         rotationPitchField:SetText("")
         rotationPitchField:SetFocusable(true)
         rotationPitchField:AddTextChangeListener(me)
-        rotationPitchField:SetRightPadding(8)
+        rotationPitchField:SetRightMargin(8)
         rotationPitchField:SetPercentageWidth(0.33)
         rotationPitchField:SetPixelWidth(-8)
         rotationFieldContainer:Add(rotationPitchField)
@@ -273,7 +273,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         rotationRollField:SetText("")
         rotationRollField:SetFocusable(true)
         rotationRollField:AddTextChangeListener(me)
-        rotationRollField:SetRightPadding(8)
+        rotationRollField:SetRightMargin(8)
         rotationRollField:SetPercentageWidth(0.33)
         rotationRollField:SetPixelWidth(-8)
         rotationFieldContainer:Add(rotationRollField)
@@ -301,13 +301,13 @@ class Item3DPropertiesDialog is PropertiesDialog
         colorContainer:SetLayout(colorLayout)
         colorContainer:SetPercentageWidth(1.0)
         colorContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        colorContainer:SetLeftPadding(20)
-        colorContainer:SetTopPadding(10)
-        colorContainer:SetRightPadding(30)
-        colorContainer:SetBottomPadding(10)
+        colorContainer:SetLeftMargin(20)
+        colorContainer:SetTopMargin(10)
+        colorContainer:SetRightMargin(30)
+        colorContainer:SetBottomMargin(10)
 
         colorLabel:SetText("Color (RGB):")
-        colorLabel:SetRightPadding(10)
+        colorLabel:SetRightMargin(10)
         colorContainer:Add(colorLabel)
         
         FlowLayout colorFieldLayout
@@ -320,7 +320,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         colorRedField:SetText("")
         colorRedField:SetFocusable(true)
         colorRedField:AddTextChangeListener(me)
-        colorRedField:SetRightPadding(8)
+        colorRedField:SetRightMargin(8)
         colorRedField:SetPercentageWidth(0.33)
         colorRedField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorRedField)
@@ -329,7 +329,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         colorGreenField:SetText("")
         colorGreenField:SetFocusable(true)
         colorGreenField:AddTextChangeListener(me)
-        colorGreenField:SetRightPadding(8)
+        colorGreenField:SetRightMargin(8)
         colorGreenField:SetPercentageWidth(0.33)
         colorGreenField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorGreenField)
@@ -338,7 +338,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         colorBlueField:SetText("")
         colorBlueField:SetFocusable(true)
         colorBlueField:AddTextChangeListener(me)
-        colorBlueField:SetRightPadding(8)
+        colorBlueField:SetRightMargin(8)
         colorBlueField:SetPercentageWidth(0.33)
         colorBlueField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorBlueField)
@@ -353,7 +353,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         Label physicsLabel
         physicsLabel:SetSize(18)
         physicsLabel:SetText("Physics")
-        physicsLabel:SetLeftPadding(20)
+        physicsLabel:SetLeftMargin(20)
         panel:Add(physicsLabel)
 
         FlowLayout physicsEnabledLayout
@@ -361,18 +361,18 @@ class Item3DPropertiesDialog is PropertiesDialog
         physicsEnabledContainer:SetLayout(physicsEnabledLayout)
         physicsEnabledContainer:SetPercentageWidth(1.0)
         physicsEnabledContainer:SetVerticalLayoutMode(physicsEnabledContainer:FIT_CONTENTS)
-        physicsEnabledContainer:SetLeftPadding(20)
-        physicsEnabledContainer:SetTopPadding(10)
-        physicsEnabledContainer:SetRightPadding(30)
-        physicsEnabledContainer:SetBottomPadding(10)
+        physicsEnabledContainer:SetLeftMargin(20)
+        physicsEnabledContainer:SetTopMargin(10)
+        physicsEnabledContainer:SetRightMargin(30)
+        physicsEnabledContainer:SetBottomMargin(10)
 
         Checkbox physicsEnabledCheckbox
         me:physicsEnabledCheckbox = physicsEnabledCheckbox
         
         physicsEnabledCheckbox:SetName("Physics Enabled")
         physicsEnabledContainer:Add(physicsEnabledCheckbox)
-        physicsEnabledContainer:SetTopPadding(10)
-        physicsEnabledContainer:SetBottomPadding(10)
+        physicsEnabledContainer:SetTopMargin(10)
+        physicsEnabledContainer:SetBottomMargin(10)
         panel:Add(physicsEnabledContainer)
 
         PropertiesEnablePhysicsBehavior propertiesEnablePhysicsBehavior
@@ -384,8 +384,8 @@ class Item3DPropertiesDialog is PropertiesDialog
         Control responsiveLabelControl
         responsiveLabelControl:SetPercentageWidth(1.0)
         responsiveLabelControl:SetVerticalLayoutMode(responsiveLabelControl:FIT_CONTENTS)
-        responsiveLabelControl:SetLeftPadding(20)
-        responsiveLabelControl:SetTopPadding(10)
+        responsiveLabelControl:SetLeftMargin(20)
+        responsiveLabelControl:SetTopMargin(10)
         panel:Add(responsiveLabelControl)
 
         Label responsivenessLabel
@@ -398,9 +398,9 @@ class Item3DPropertiesDialog is PropertiesDialog
         responsivenessPanel:SetVerticalLayoutMode(responsivenessPanel:FIT_CONTENTS)
         FlowLayout responsivenessPanelLayout
         responsivenessPanel:SetLayout(responsivenessPanelLayout)
-        responsivenessPanel:SetLeftPadding(20)
-        responsivenessPanel:SetRightPadding(30)
-        responsivenessPanel:SetBottomPadding(10)
+        responsivenessPanel:SetLeftMargin(20)
+        responsivenessPanel:SetRightMargin(30)
+        responsivenessPanel:SetBottomMargin(10)
 
         ButtonGroup responsivenessGroup
         responsivenessGroup:SetName("Responsiveness")
@@ -433,14 +433,14 @@ class Item3DPropertiesDialog is PropertiesDialog
         massContainer:SetLayout(massLayout)
         massContainer:SetPercentageWidth(1.0)
         massContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        massContainer:SetLeftPadding(20)
-        massContainer:SetTopPadding(10)
-        massContainer:SetRightPadding(30)
-        massContainer:SetBottomPadding(10)
+        massContainer:SetLeftMargin(20)
+        massContainer:SetTopMargin(10)
+        massContainer:SetRightMargin(30)
+        massContainer:SetBottomMargin(10)
 
         Label massLabel
         massLabel:SetText("Mass:")
-        massLabel:SetRightPadding(10)
+        massLabel:SetRightMargin(10)
         massContainer:Add(massLabel)
 
         TextField massField
@@ -449,7 +449,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         massField:SetText("")
         massField:SetFocusable(true)
         massField:AddTextChangeListener(me)
-        massField:SetRightPadding(8)
+        massField:SetRightMargin(8)
         massField:SetHorizontalLayoutMode(massContainer:FILL)
         massContainer:Add(massField)
 
@@ -461,14 +461,14 @@ class Item3DPropertiesDialog is PropertiesDialog
         frictionContainer:SetLayout(frictionLayout)
         frictionContainer:SetPercentageWidth(1.0)
         frictionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        frictionContainer:SetLeftPadding(20)
-        frictionContainer:SetTopPadding(10)
-        frictionContainer:SetRightPadding(30)
-        frictionContainer:SetBottomPadding(10)
+        frictionContainer:SetLeftMargin(20)
+        frictionContainer:SetTopMargin(10)
+        frictionContainer:SetRightMargin(30)
+        frictionContainer:SetBottomMargin(10)
 
         Label frictionLabel
         frictionLabel:SetText("Friction:")
-        frictionLabel:SetRightPadding(10)
+        frictionLabel:SetRightMargin(10)
         frictionContainer:Add(frictionLabel)
 
         TextField frictionField
@@ -477,7 +477,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         frictionField:SetText("")
         frictionField:SetFocusable(true)
         frictionField:AddTextChangeListener(me)
-        frictionField:SetRightPadding(8)
+        frictionField:SetRightMargin(8)
         frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
         frictionContainer:Add(frictionField)
 
@@ -489,14 +489,14 @@ class Item3DPropertiesDialog is PropertiesDialog
         restitutionContainer:SetLayout(restitutionLayout)
         restitutionContainer:SetPercentageWidth(1.0)
         restitutionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        restitutionContainer:SetLeftPadding(20)
-        restitutionContainer:SetTopPadding(10)
-        restitutionContainer:SetRightPadding(30)
-        restitutionContainer:SetBottomPadding(10)
+        restitutionContainer:SetLeftMargin(20)
+        restitutionContainer:SetTopMargin(10)
+        restitutionContainer:SetRightMargin(30)
+        restitutionContainer:SetBottomMargin(10)
 
         Label restitutionLabel
         restitutionLabel:SetText("Restitution:")
-        restitutionLabel:SetRightPadding(10)
+        restitutionLabel:SetRightMargin(10)
         restitutionContainer:Add(restitutionLabel)
 
         TextField restitutionField
@@ -505,7 +505,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         restitutionField:SetText("")
         restitutionField:SetFocusable(true)
         restitutionField:AddTextChangeListener(me)
-        restitutionField:SetRightPadding(8)
+        restitutionField:SetRightMargin(8)
         restitutionField:SetHorizontalLayoutMode(frictionContainer:FILL)
         restitutionContainer:Add(restitutionField)
 

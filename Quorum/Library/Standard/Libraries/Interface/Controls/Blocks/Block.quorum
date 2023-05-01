@@ -1,0 +1,708 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Language.Compile.Context.ParseContext
+use Libraries.Interface.Events.FocusEvent
+
+class Block is Control
+    integer scopeDepth = 0
+    CodeEditor editor = undefined
+    ParseContext context = undefined
+
+    /*
+    These values store the LOCAL character and line indices represented by this Block.
+    These values are relative to the parent Block these are attached to.
+    This allows us to specifically target index changes to relevant portions of the tree.
+    */
+    integer startIndex = -1
+    integer endIndex = -1
+    integer startLine = -1
+    integer endLine = -1
+
+    /*
+    Blocks store their relatives, making them elements in a linked list style structure.
+    Relative blocks can be undefined if there's no code to correspond to a block (e.g.
+    there's no "nextBlock" at the end of the file) OR if there is viable code, but the
+    block isn't visible (e.g. there's no "nextBlock" if this block is the last block
+    that's visible in the CodeEditor window).
+
+    These are set when blocks are generated (e.g. CodeEditorRenderer's "RegenerateBlocks" action)
+    */
+    Block nextBlock = undefined
+    Block previousBlock = undefined
+    Block enclosingBlock = undefined
+
+    // This block's parent in the Block tree structure.
+    Block parentBlock = undefined
+
+    // This block's index within the parent's node hierarchy.
+    integer parentIndex = -1
+
+    /*
+    Multipliers on the notch positions, used to offset the notches.
+    This is used in case of increasing/decreasing scope. In practice,
+    these values should basically always be either 1 or 2.
+    */
+    number topNotchPositionFactor = 1
+    number bottomNotchPositionFactor = 1
+
+    on create
+        SetName("Block")
+
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    action Add(Block block)
+        block:SetParentIndex(GetChildCount())
+        block:SetParentBlock(me)
+        block:SetEditor(GetEditor())
+
+        AddChildBlock(block)
+    end
+
+    /*
+    Nests a block into this block. This is illegal for single line blocks. For multi-line blocks,
+    only multi-line block parts can be added. Multi-line block parts can accept either single or
+    multi-line blocks (as contents of a scope).
+    */
+    action Add(integer index, Block block)
+        block:SetParentIndex(index)
+        block:SetParentBlock(me)
+
+        block:SetEditor(GetEditor())
+
+        integer i = index
+        repeat while i < GetChildCount()
+            Block child = GetChild(i)
+            i = i + 1
+            child:SetParentIndex(i)
+        end
+
+        AddChildBlock(index, block)
+    end
+
+    /*
+    Removes a nested block from this block.
+    */
+    action Remove(Block block) returns boolean
+        boolean result = RemoveChildBlock(block)
+
+        if result = true
+            integer index = block:GetParentIndex()
+
+            integer i = GetChildCount() - 1
+            repeat while i >= index
+                Block child = GetChild(i)
+                child:SetParentIndex(i)
+                i = i - 1
+            end
+
+            block:SetParentIndex(-1)
+            block:SetParentBlock(undefined)
+            block:SetEditor(undefined)
+        end
+
+        return result
+    end
+
+    /*
+    Removes a nested block from this block at the given index.
+    */
+    action RemoveAt(integer index) returns Block
+        Block result = RemoveChildBlock(index)
+
+        if result not= undefined
+            result:SetParentIndex(-1)
+            result:SetParentBlock(undefined)
+            result:SetEditor(undefined)
+    
+            integer i = GetChildCount() - 1
+            repeat while i >= index
+                Block child = GetChild(i)
+                child:SetParentIndex(i)
+                i = i - 1
+            end
+        end
+
+        return result
+    end
+
+    /*
+    Inserts this block as a child at the given relative line index. This follows the same
+    rules as Adding blocks otherwise.
+    */
+    action InsertAtLine(Block block, integer line)
+        // Find the first block that will come after this one once it's inserted
+        // We start from the end because we expect new lines are more commonly added to the end of scopes, rather than the beginning
+        integer i = GetChildCount()
+        repeat until i <= 0
+            Block child = GetChild(i - 1)
+            if child:GetStartLine() < line
+                Add(i, block)
+                return now
+            end
+
+            i = i - 1
+        end
+
+        // If we got here, then we checked every block, and they all go after the candidate.
+        Add(0, block)
+    end
+
+    private blueprint action AddChildBlock(Block block)
+
+    private blueprint action AddChildBlock(integer index, Block block)
+
+    private blueprint action RemoveChildBlock(Block block) returns boolean
+
+    private blueprint action RemoveChildBlock(integer index) returns Block
+
+    blueprint action EmptyChildBlocks
+
+    blueprint action GetChildCount returns integer
+
+    blueprint action GetChild(integer index) returns Block
+
+    /*
+    This action gets the starting character index of this block,
+    relative to its parent block (if it has one).
+    */
+    action GetLocalStartIndex returns integer
+        return startIndex
+    end
+
+    /*
+    This action gets the ending character index of this block,
+    relative to its parent block (if it has one).
+    */
+    action GetLocalEndIndex returns integer
+        return endIndex
+    end
+
+    /*
+    This action sets the starting character index of this block,
+    relative to its parent block (if it has one).
+    */
+    action SetLocalStartIndex(integer index)
+        startIndex = index
+    end
+
+    /*
+    This action sets the ending character index of this block,
+    relative to its parent block (if it has one).
+    */
+    action SetLocalEndIndex(integer index)
+        endIndex = index
+    end
+
+    /*
+    This action returns the starting character index of this block.
+    This is the "overall" index, e.g. the position in the overall
+    text regardless of parent or children blocks.
+    */
+    action GetStartIndex returns integer
+        if parentBlock not= undefined
+            return parentBlock:GetStartIndex() + GetLocalStartIndex()
+        else
+            return GetLocalStartIndex()
+        end
+    end
+
+    /*
+    This action returns the ending character index of this block.
+    This is the "overall" index, e.g. the position in the overall
+    text regardless of parent or children blocks.
+    */
+    action GetEndIndex returns integer
+        if parentBlock not= undefined
+            return parentBlock:GetStartIndex() + GetLocalEndIndex()
+        else
+            return GetLocalEndIndex()
+        end
+    end
+
+    /*
+    This action gets the starting line index of this block,
+    relative to its parent block (if it has one).
+    */
+    action GetLocalStartLine returns integer
+        return startLine
+    end
+
+    /*
+    This action gets the ending line index of this block,
+    relative to its parent block (if it has one).
+    */
+    action GetLocalEndLine returns integer
+        return endLine
+    end
+
+    /*
+    This action sets the starting line index of this block,
+    relative to its parent block (if it has one).
+    */
+    action SetLocalStartLine(integer index)
+        startLine = index
+
+        // Ensure the end line doesn't precede the start line.
+        if startLine > endLine
+            SetLocalEndLine(startLine)
+        end
+    end
+
+    /*
+    This action sets the ending line index of this block,
+    relative to its parent block (if it has one).
+    */
+    action SetLocalEndLine(integer index)
+        endLine = index
+    end
+
+    /*
+    This action returns the starting line index of this block.
+    This is the "overall" index, e.g. the position in the overall
+    text regardless of parent or children blocks.
+    */
+    action GetStartLine returns integer
+        if parentBlock not= undefined
+            return parentBlock:GetStartLine() + GetLocalStartLine()
+        else
+            return GetLocalStartLine()
+        end
+    end
+
+    /*
+    This action returns the ending line index of this block.
+    This is the "overall" index, e.g. the position in the overall
+    text regardless of parent or children blocks.
+    */
+    action GetEndLine returns integer
+        if parentBlock not= undefined
+            return parentBlock:GetStartLine() + GetLocalEndLine()
+        else
+            return GetLocalEndLine()
+        end
+    end
+
+    /*
+    This action offsets all of the text and line indices of this Block and the Blocks
+    that are attached to it. If the change index is located after a Block's indices,
+    they won't be modified.
+    */
+    action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged)
+        OffsetIndices(changeIndex, textChanged, linesChanged, true)
+    end
+
+    /*
+    This action offsets all of the text and line indices of this Block and the Blocks
+    that are attached to it. If the change index is located after a Block's indices,
+    they won't be modified.
+
+    If the "processEndpoints" value is true, blocks will incorporate changes made at
+    the beginning and end indices. For typical use, this should be true when handling
+    edits made to the beginning or end of a block. This should be false when inserting
+    a new block between two blocks (so as not to adjust the contents of the existing
+    blocks, since a new block will receive the new content instead).
+    */
+    action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, boolean processEndpoints)
+        Block current = me
+        repeat until current = undefined
+            integer counter = 0
+            repeat while counter < current:GetChildCount()
+                Block child = current:GetChild(counter)
+                integer startIndex = child:GetStartIndex()
+                integer endIndex = child:GetEndIndex()
+
+                if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
+                    if changeIndex > startIndex or (processEndpoints = true and changeIndex = startIndex)
+                        child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
+                    else
+                        child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
+                    end
+                    child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
+                end
+
+                if linesChanged not= 0 
+                    integer startLine = child:GetLocalStartLine()
+                    integer endLine = child:GetLocalEndLine()
+
+                    if changeIndex < startIndex
+                        child:SetLocalStartLine(startLine + linesChanged)
+                    end
+                    if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
+                        child:SetLocalEndLine(endLine + linesChanged)
+                    end
+                end
+
+                counter = counter + 1
+            end
+
+            Block parentBlock = current:GetParentBlock()
+            if parentBlock = undefined
+                /*
+                The last block is the root, and it must be handled specially.
+                Since it doesn't have a parent, if we exit from the loop normally,
+                it'll never be affected. We just need to offset the end by the changed amount
+                (as the root block always starts at 0 and encompasses the whole text).
+                */
+                current:SetLocalEndIndex(current:GetLocalEndIndex() + textChanged)
+                current:SetLocalEndLine(current:GetLocalEndLine() + linesChanged)
+            end
+
+            current = parentBlock
+        end
+    end
+
+    /*
+    Used to adjust relative indices within the Block, most commonly for EditRegions.
+    By default this iterates over the block's children and adjusts the found EditRegions,
+    but this can be overridden for custom adjustment of element vertices if needed.
+    */
+    private action OffsetRelativeIndices(integer index, integer amount)
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is EditRegion
+                EditRegion region = cast(EditRegion, child)
+
+                integer startIndex = region:GetStartIndex()
+                if index < startIndex
+                    region:SetStartIndex(startIndex + amount)
+                end
+
+                integer endIndex = region:GetEndIndex()
+                if index <= endIndex
+                    region:SetEndIndex(endIndex + amount)
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    action GetScopeDepth returns integer
+        return scopeDepth
+    end
+
+    action SetScopeDepth(integer depth)
+        me:scopeDepth = depth
+    end
+
+    action GetTopNotchPosition returns number
+        if editor = undefined
+            return 0
+        end
+
+        return editor:GetScopeIndentationWidth() * topNotchPositionFactor
+    end
+
+    action GetBottomNotchPosition returns number
+        if editor = undefined
+            return 0
+        end
+
+        return editor:GetScopeIndentationWidth() * bottomNotchPositionFactor
+    end
+
+    action UseEnterScopeStyling
+        topNotchPositionFactor = 1
+        bottomNotchPositionFactor = 2
+        SetBottomLeftRounding(0)
+    end
+
+    action UseExitScopeStyling
+        topNotchPositionFactor = 2
+        bottomNotchPositionFactor = 1
+        SetTopLeftRounding(0)
+    end
+
+    action UseEnterAndExitScopeStyling
+        topNotchPositionFactor = 2
+        bottomNotchPositionFactor = 2
+        SetTopLeftRounding(0)
+        SetBottomLeftRounding(0)
+    end
+
+    action UseNeutralScopeStyling
+        topNotchPositionFactor = 1
+        bottomNotchPositionFactor = 1
+    end
+
+    action IsEnteringScope returns boolean
+        return bottomNotchPositionFactor > 1
+    end
+
+    action IsExitingScope returns boolean
+        return topNotchPositionFactor > 1
+    end
+
+    action GetEditor returns CodeEditor
+        return editor
+    end
+
+    action SetEditor(CodeEditor editor)
+        me:editor = editor
+    end
+
+    action Setup
+        SetupElements()
+        SetDefaultTabOrder()
+
+        // Set the default name to reflect the first line of the block.
+        UpdateName(0)
+    end
+
+    private blueprint action SetupElements
+
+    blueprint action UpdateName(integer selectedLine)
+
+    action GetNextBlock returns Block
+        if GetChildCount() > 0
+            return GetChild(0)
+        end
+
+        Block currentParent = me
+        repeat until currentParent = undefined
+            Block candidate = currentParent:GetNextSibling()
+            if candidate not= undefined
+                return candidate
+            end
+
+            currentParent = currentParent:GetParentBlock()
+        end
+
+        return undefined
+    end
+
+    action GetPreviousBlock returns Block
+        Block sibling = GetPreviousSibling()
+        if sibling not= undefined
+            return sibling
+        end
+
+        return parentBlock
+    end
+
+    action GetNextRenderableBlock returns Block
+        Block block = GetNextBlock()
+        if block not= undefined and block:IsDirectlyRenderable() = false
+            return block:GetNextRenderableBlock()
+        else
+            return block
+        end
+    end
+
+    action GetNextNavigableBlock returns Block
+        Block block = GetNextBlock()
+        if block not= undefined and block:IsNavigable() = false
+            return block:GetNextNavigableBlock()
+        else
+            return block
+        end
+    end
+
+    action GetPreviousRenderableBlock returns Block
+        Block block = GetPreviousBlock()
+        if block not= undefined and block:IsDirectlyRenderable() = false
+            return block:GetPreviousRenderableBlock()
+        else
+            return block
+        end
+    end
+
+    action GetPreviousNavigableBlock returns Block
+        Block block = GetPreviousBlock()
+        if block not= undefined and block:IsNavigable() = false
+            return block:GetPreviousNavigableBlock()
+        else
+            return block
+        end
+    end
+
+    action GetNextSibling returns Block
+        if parentBlock = undefined or parentBlock:GetChildCount() <= (parentIndex + 1)
+            return undefined
+        end
+
+        return parentBlock:GetChild(parentIndex + 1)
+    end
+
+    action GetPreviousSibling returns Block
+        if parentBlock = undefined or parentIndex <= 0
+            return undefined
+        end
+
+        return parentBlock:GetChild(parentIndex - 1)
+    end
+
+    /*
+    This action returns the last focusable block item in the Block.
+    This is typically the last BlockItem in the tab order as well.
+    */
+    action GetLastBlockItem returns BlockItem
+        // When the next block is set, make the last BlockItem point to it, if it doesn't already have a focus target.
+        Array<Item2D> children = GetChildren()
+
+        integer i = children:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Item2D current = children:Get(i)
+            if current is BlockItem and current:IsFocusable()
+                return cast(BlockItem, current)
+            end
+        end
+
+        return undefined
+    end
+
+    action GetEnclosingBlock returns Block
+        return enclosingBlock
+    end
+
+    action SetEnclosingBlock(Block enclosingBlock)
+        me:enclosingBlock = enclosingBlock
+    end
+
+    action SetDefaultTabOrder
+        Array<Item2D> children = GetChildren()
+
+        BlockItem previous = undefined
+
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D current = children:Get(i)
+            if current is BlockItem and current:IsFocusable()
+                BlockItem item = cast(BlockItem, current)
+                if previous not= undefined
+                    previous:SetNextFocus(item)
+                    item:SetPreviousFocus(previous)
+                else
+                    SetNextFocus(item)
+                    item:SetPreviousFocus(me)
+                end
+                previous = item
+            end
+
+            i = i + 1
+        end
+    end
+
+    action GainedSelection
+        CodeEditor editor = GetEditor()
+        CodeEditorSelection selection = editor:GetSelection()
+
+        if selection:GetBlockItem() = undefined
+            if editor:ContainsFocus()
+                integer line = selection:GetLine() - GetStartLine()
+                UpdateName(line)
+                Focus()
+            end
+        end
+
+        parent:Control:GainedSelection()
+    end
+
+    action SetContext(ParseContext context)
+        me:context = context
+        InitializeLocalIndices()
+    end
+
+    action GetContext returns ParseContext
+        return context
+    end
+
+    action GetParentIndex returns integer
+        return parentIndex
+    end
+
+    action SetParentIndex(integer parentIndex)
+        me:parentIndex = parentIndex
+    end
+
+    action GetParentBlock returns Block
+        return parentBlock
+    end
+
+    action SetParentBlock(Block parentBlock)
+        me:parentBlock = parentBlock
+        if parentBlock not= undefined and parentBlock:GetEditor() not= editor
+            SetEditor(parentBlock:GetEditor())
+        end
+
+        InitializeLocalIndices()
+    end
+
+    private action InitializeLocalIndices
+        // Check if we have a valid context and parent block, but the start index hasn't been set yet.
+        if context not= undefined and parentBlock not= undefined and startIndex < 0
+            // Set our starting local values using the context and parent.
+            SetLocalStartIndex(context:GetLocation():GetIndex() - parentBlock:GetStartIndex())
+            SetLocalEndIndex(context:GetLocation():GetIndexEnd() + 1 - parentBlock:GetStartIndex())
+            SetLocalStartLine(context:GetLocation():GetLineNumber() - 1 - parentBlock:GetStartLine())
+            SetLocalEndLine(context:GetLocation():GetLineNumberEnd() - 1 - parentBlock:GetStartLine())
+        end
+    end
+
+    /*
+    Returns true if this block can be navigated to, or false otherwise.
+    */
+    action IsNavigable returns boolean
+        return true
+    end
+
+    /*
+    Returns true if this block can be rendered directly, or false otherwise.
+    If this is false, either the item shouldn't be rendered (RootBlock) or should
+    be rendered by a parent object (MultpleLineBlockParts).
+    */
+    action IsDirectlyRenderable returns boolean
+        return true
+    end
+
+    action GainedFocus(FocusEvent event)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnFocusChange(event)
+        end
+    end
+
+    action GetText returns text
+        check
+            return GetEditor():GetCode():GetText(GetStartIndex(), GetEndIndex())
+        detect error
+            return undefined
+        end
+
+        return undefined
+    end
+
+    /*
+
+    */
+    action GetMinimumWidth returns number
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            number minimumWidth = GetTopNotchPosition()
+            if GetBottomNotchPosition() > minimumWidth
+                minimumWidth = GetBottomNotchPosition()
+            end
+            minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth() + GetRightPadding()
+            return minimumWidth
+        end
+
+        return 0
+    end
+end

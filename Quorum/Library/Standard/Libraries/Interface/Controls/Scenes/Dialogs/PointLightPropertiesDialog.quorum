@@ -48,7 +48,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         Label basicPropertiesLabel
         basicPropertiesLabel:SetSize(18)
         basicPropertiesLabel:SetText("Basic Properties")
-        basicPropertiesLabel:SetLeftPadding(20)
+        basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
 
         FlowLayout nameLayout
@@ -56,13 +56,13 @@ class PointLightPropertiesDialog is PropertiesDialog
         nameContainer:SetLayout(nameLayout)
         nameContainer:SetPercentageWidth(1.0)
         nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
-        nameContainer:SetLeftPadding(20)
-        nameContainer:SetTopPadding(10)
-        nameContainer:SetRightPadding(30)
-        nameContainer:SetBottomPadding(10)
+        nameContainer:SetLeftMargin(20)
+        nameContainer:SetTopMargin(10)
+        nameContainer:SetRightMargin(30)
+        nameContainer:SetBottomMargin(10)
 
         nameLabel:SetText("Name:")
-        nameLabel:SetRightPadding(10)
+        nameLabel:SetRightMargin(10)
         nameContainer:Add(nameLabel)
         
         nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
@@ -90,13 +90,13 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionContainer:SetLayout(positionLayout)
         positionContainer:SetPercentageWidth(1.0)
         positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftPadding(20)
-        positionContainer:SetTopPadding(10)
-        positionContainer:SetRightPadding(30)
-        positionContainer:SetBottomPadding(10)
+        positionContainer:SetLeftMargin(20)
+        positionContainer:SetTopMargin(10)
+        positionContainer:SetRightMargin(30)
+        positionContainer:SetBottomMargin(10)
 
         positionLabel:SetText("Position:")
-        positionLabel:SetRightPadding(10)
+        positionLabel:SetRightMargin(10)
         positionContainer:Add(positionLabel)
         
         FlowLayout positionFieldLayout
@@ -109,7 +109,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionXField:SetText("")
         positionXField:SetFocusable(true)
         positionXField:AddTextChangeListener(me)
-        positionXField:SetRightPadding(8)
+        positionXField:SetRightMargin(8)
         positionXField:SetPercentageWidth(0.33)
         positionXField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionXField)
@@ -118,7 +118,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionYField:SetText("")
         positionYField:SetFocusable(true)
         positionYField:AddTextChangeListener(me)
-        positionYField:SetRightPadding(8)
+        positionYField:SetRightMargin(8)
         positionYField:SetPercentageWidth(0.33)
         positionYField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionYField)
@@ -127,7 +127,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionZField:SetText("")
         positionZField:SetFocusable(true)
         positionZField:AddTextChangeListener(me)
-        positionZField:SetRightPadding(8)
+        positionZField:SetRightMargin(8)
         positionZField:SetPercentageWidth(0.33)
         positionZField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionZField)
@@ -155,13 +155,13 @@ class PointLightPropertiesDialog is PropertiesDialog
         colorContainer:SetLayout(colorLayout)
         colorContainer:SetPercentageWidth(1.0)
         colorContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        colorContainer:SetLeftPadding(20)
-        colorContainer:SetTopPadding(10)
-        colorContainer:SetRightPadding(30)
-        colorContainer:SetBottomPadding(10)
+        colorContainer:SetLeftMargin(20)
+        colorContainer:SetTopMargin(10)
+        colorContainer:SetRightMargin(30)
+        colorContainer:SetBottomMargin(10)
 
         colorLabel:SetText("Color (RGB):")
-        colorLabel:SetRightPadding(10)
+        colorLabel:SetRightMargin(10)
         colorContainer:Add(colorLabel)
         
         FlowLayout colorFieldLayout
@@ -174,7 +174,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         colorRedField:SetText("")
         colorRedField:SetFocusable(true)
         colorRedField:AddTextChangeListener(me)
-        colorRedField:SetRightPadding(8)
+        colorRedField:SetRightMargin(8)
         colorRedField:SetPercentageWidth(0.33)
         colorRedField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorRedField)
@@ -183,7 +183,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         colorGreenField:SetText("")
         colorGreenField:SetFocusable(true)
         colorGreenField:AddTextChangeListener(me)
-        colorGreenField:SetRightPadding(8)
+        colorGreenField:SetRightMargin(8)
         colorGreenField:SetPercentageWidth(0.33)
         colorGreenField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorGreenField)
@@ -192,7 +192,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         colorBlueField:SetText("")
         colorBlueField:SetFocusable(true)
         colorBlueField:AddTextChangeListener(me)
-        colorBlueField:SetRightPadding(8)
+        colorBlueField:SetRightMargin(8)
         colorBlueField:SetPercentageWidth(0.33)
         colorBlueField:SetPixelWidth(-8)
         colorFieldContainer:Add(colorBlueField)
@@ -209,17 +209,17 @@ class PointLightPropertiesDialog is PropertiesDialog
         intensityContainer:SetLayout(intensityLayout)
         intensityContainer:SetPercentageWidth(1.0)
         intensityContainer:SetVerticalLayoutMode(intensityContainer:FIT_CONTENTS)
-        intensityContainer:SetLeftPadding(20)
-        intensityContainer:SetTopPadding(10)
-        intensityContainer:SetRightPadding(30)
-        intensityContainer:SetBottomPadding(10)
+        intensityContainer:SetLeftMargin(20)
+        intensityContainer:SetTopMargin(10)
+        intensityContainer:SetRightMargin(30)
+        intensityContainer:SetBottomMargin(10)
 
         Label intensityLabel
         TextField intensityField
         me:intensityField = intensityField
 
         intensityLabel:SetText("Intensity:")
-        intensityLabel:SetRightPadding(10)
+        intensityLabel:SetRightMargin(10)
         intensityContainer:Add(intensityLabel)
         
         intensityField:SetHorizontalLayoutMode(intensityField:parent:Libraries.Interface.Controls.Control:FILL)
