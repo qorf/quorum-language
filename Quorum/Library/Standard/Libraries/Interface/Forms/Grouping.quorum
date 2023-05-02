@@ -10,11 +10,7 @@ use Libraries.Interface.Controls.ToggleButton
 class Grouping is FormContainerControl, ButtonGroup
 
     on create
-        Color transparency
-        transparency:SetColor(0, 0, 0, 0)
-        SetBackgroundColor(transparency)
-
-        SetBorderThickness(0)
+        SetInterfaceOptionsKey("Grouping")
     end
 
     public constant integer TOP_POSITION = 0
@@ -103,5 +99,9 @@ class Grouping is FormContainerControl, ButtonGroup
 
     action SetColumns(integer columns)
         me:columns = columns
+    end
+
+    action GetFormChildren returns Array<Item2D>
+        return GetChildren()
     end
 end

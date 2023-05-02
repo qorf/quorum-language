@@ -17,7 +17,7 @@ use Libraries.Interface.Controls.ToggleButton
 
 class FormContainerControl is Control
     boolean hasDefaultFocusOrdering = false
-    Label titleLabel = undefined
+    FormLabel titleLabel = undefined
 
     FormConstants constants
     integer titleSize = constants:DEFAULT_FONT_SIZE
@@ -41,7 +41,7 @@ class FormContainerControl is Control
             end
             titleLabel = undefined
         else
-            Label label
+            FormLabel label
             titleLabel = label
 
             label:SetFontSize(titleSize)
@@ -163,7 +163,7 @@ class FormContainerControl is Control
 
 
         button:SetFont(undefined)
-        button:SetToDefaultFontSize()
+        button:SetToHugeFont()
         return button
     end
 
@@ -177,7 +177,7 @@ class FormContainerControl is Control
     end
 
     action GetButton(text name) returns Button
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -198,7 +198,7 @@ class FormContainerControl is Control
 
     action CalculateDefaultFocusOrdering
         SetHasDefaultFocusOrdering(true)
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         Item2D previous = undefined
         Item2D first = undefined
         i = 0
@@ -241,11 +241,11 @@ class FormContainerControl is Control
                     else //else just set next and previous
                         previous:SetNextFocus(control)
                         control:SetPreviousFocus(previous)
-                    end
-                end
 
-                if control not= undefined and control:IsFocusable()
-                    previous = control
+                        if control not= undefined and control:IsFocusable()
+                            previous = control
+                        end
+                    end
                 end
             end
             
@@ -259,7 +259,7 @@ class FormContainerControl is Control
     end
 
     action GetFirstFocusableItem returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -289,7 +289,7 @@ class FormContainerControl is Control
     end
 
     action GetLastFocusableItem returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = children:GetSize() - 1
         repeat while i >= 0
             Item2D control = children:Get(i)
@@ -308,12 +308,13 @@ class FormContainerControl is Control
     end
 
     action AddLabel(text name, text value) returns Label
-        Label label
+        FormLabel label
         label:SetName(name)
         label:SetText(value)
         label:SetFocusable(true)
         label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
+        label:SetDescendingLines(false)
         label:SetToDefaultFontSize()
 
         Add(label)
@@ -330,7 +331,7 @@ class FormContainerControl is Control
     end
 
     action GetLabel(text name) returns Label
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -363,7 +364,7 @@ class FormContainerControl is Control
         end
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
-        icon:SetToDefaultFontSize()
+        icon:SetToHugeFont()
 
         Add(icon)
         return icon
@@ -388,7 +389,7 @@ class FormContainerControl is Control
     end
 
     action GetIcon(text name) returns Icon
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -425,7 +426,7 @@ class FormContainerControl is Control
     end
 
     action GetTextField(text name) returns TextField
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -462,7 +463,7 @@ class FormContainerControl is Control
     end
 
     action GetTextBox(text name) returns TextBox
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -482,7 +483,7 @@ class FormContainerControl is Control
     end
 
     action GetToggleButton(text name) returns ToggleButton
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -502,7 +503,7 @@ class FormContainerControl is Control
     end
 
     action GetRadioButton(text name) returns RadioButton
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -542,7 +543,7 @@ class FormContainerControl is Control
     end
 
     action GetCheckbox(text name) returns Checkbox
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -581,7 +582,7 @@ class FormContainerControl is Control
     end
 
     action GetList(text name) returns List
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -601,7 +602,7 @@ class FormContainerControl is Control
     end
 
     action FindControl(text name) returns Item2D
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -635,4 +636,10 @@ class FormContainerControl is Control
     action SetHasDefaultFocusOrdering(boolean hasDefaultFocusOrdering)
         me:hasDefaultFocusOrdering = hasDefaultFocusOrdering
     end
+
+    action GetTitleLabel returns Label
+        return titleLabel
+    end
+
+    blueprint action GetFormChildren returns Array<Item2D>
 end

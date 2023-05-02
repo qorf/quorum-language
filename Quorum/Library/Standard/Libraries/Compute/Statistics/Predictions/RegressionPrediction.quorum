@@ -1,0 +1,32 @@
+package Libraries.Compute.Statistics.Predictions
+use Libraries.Compute.Statistics.DataFrame
+
+class RegressionPrediction
+    boolean computed = false
+    DataFrame resultFrame = undefined
+    number effectSize = 0
+    
+
+    action IsComputed returns boolean
+        return computed
+    end
+
+    action SetIsComputed(boolean computed)
+        me:computed = computed
+    end
+    action GetResultFrame returns DataFrame
+        return resultFrame
+    end
+
+    action SetResultFrame(DataFrame resultFrame)
+        me:resultFrame = resultFrame
+    end
+
+    action GetEffectSize returns number
+        return effectSize
+    end
+
+    action SetEffectSize(number effectSize)
+        me:effectSize = effectSize
+    end
+end

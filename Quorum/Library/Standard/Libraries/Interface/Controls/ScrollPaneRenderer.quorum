@@ -7,6 +7,7 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.ColorGroup
 
 class ScrollPaneRenderer is Control
 
@@ -149,6 +150,49 @@ class ScrollPaneRenderer is Control
         LayoutProperties scrollAnchorLayout = scrollAnchor:GetDefaultLayoutProperties()
         scrollAnchorLayout:SetPixelWidth(width)
         scrollAnchorLayout:SetPixelHeight(height)
+    end
+
+    action GetScrollRegionItems returns Array<Item2D>
+        return scrollAnchor:GetChildren()
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        ScrollPane pane = GetScrollPane()
+        if pane not= undefined
+            return pane:GetBackgroundColor()
+        else
+            return parent:Control:GetBackgroundColor()
+        end
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        ScrollPane pane = GetScrollPane()
+        if pane not= undefined
+            return pane:GetBorderColor()
+        else
+            return parent:Control:GetBorderColor()
+        end
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        ScrollPane pane = GetScrollPane()
+        if pane not= undefined
+            return pane:GetBorderThickness()
+        else
+            return parent:Control:GetBorderThickness()
+        end
     end
 
 end

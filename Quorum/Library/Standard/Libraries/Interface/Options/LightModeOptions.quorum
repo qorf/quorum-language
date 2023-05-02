@@ -234,5 +234,23 @@ class LightModeOptions is InterfaceOptions
         SetFlowchartArrowBackgroundColor(color:Black())
         SetFlowchartArrowIconColor(color:Black())
         SetFlowchartArrowSelectionColor(color:Blue())
+
+        // Grouping specific values.
+        SetGroupingBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetGroupingBorderThickness(0)
+
+        // Banner specific values.
+        SetBannerBackgroundColor(color:CustomColor(172 / MAX, 209 / MAX, 223 / MAX, 1))
+        SetBannerFontColor(color:CustomColor(32 / MAX, 32 / MAX, 32 / MAX, 1))
+        SetBannerBorderThickness(0)
+
+        // StartButtonGrouping specific values.
+        SetStartButtonGroupingBackgroundColor(color:CustomColor(0.92, 0.92, 0.92, 1.0))
+        SetStartButtonGroupingBorderColor(color:White())
+        SetStartButtonGroupingBorderThickness(1)
+        SetStartButtonGroupingTopLeftRounding(0.2)
+        SetStartButtonGroupingTopRightRounding(0.2)
+        SetStartButtonGroupingBottomLeftRounding(0.2)
+        SetStartButtonGroupingBottomRightRounding(0.2)
     end
 end

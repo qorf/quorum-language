@@ -299,4 +299,13 @@ class VectorColumn is DataFrameColumn
         end
         return result
     end
+
+    action GetRows returns Vector
+        return rows
+    end
+
+    action SetRows(Vector rows)
+        me:rows = rows
+        index = rows:GetSize()
+    end
 end
