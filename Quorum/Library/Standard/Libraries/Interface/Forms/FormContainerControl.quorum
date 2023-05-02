@@ -17,7 +17,7 @@ use Libraries.Interface.Controls.ToggleButton
 
 class FormContainerControl is Control
     boolean hasDefaultFocusOrdering = false
-    Label titleLabel = undefined
+    FormLabel titleLabel = undefined
 
     FormConstants constants
     integer titleSize = constants:DEFAULT_FONT_SIZE
@@ -41,7 +41,7 @@ class FormContainerControl is Control
             end
             titleLabel = undefined
         else
-            Label label
+            FormLabel label
             titleLabel = label
 
             label:SetFontSize(titleSize)
@@ -308,7 +308,7 @@ class FormContainerControl is Control
     end
 
     action AddLabel(text name, text value) returns Label
-        Label label
+        FormLabel label
         label:SetName(name)
         label:SetText(value)
         label:SetFocusable(true)

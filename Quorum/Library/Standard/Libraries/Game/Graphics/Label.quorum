@@ -775,7 +775,7 @@ class Label is Control
                         glyphIndex = glyphIndex + 1
                     end
 
-                    if availableWidth > 0 and currentLineLength + currentWordLength > availableWidth
+                    if wordsIndex > 0 and availableWidth > 0 and currentLineLength + currentWordLength > availableWidth
                         if currentLineLength > maxLineWidth
                             maxLineWidth = currentLineLength
                         end
@@ -818,7 +818,7 @@ class Label is Control
                         glyphIndex = glyphIndex + 1
                         x = x + glyph:horizontalAdvance
                         y = y + glyph:verticalAdvance
-                        if availableWidth > 0 and x - originX > availableWidth
+                        if wordsIndex > 0 and availableWidth > 0 and x - originX > availableWidth
                             currentLineLength = 0
                             currentWordLength = 0
                             x = originX
