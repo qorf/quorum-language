@@ -534,15 +534,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //LIST
             case 18:
-                role = "listbox";
+                role = "list";
                 break;
             //LIST_ITEM
             case 19:
-                role = "option";
+                role = "listitem";
                 if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
                     let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
                     para.textContent = listItem.GetText();
-                    itemName = null;
+                    itemName = listItem.GetText();
                     //attach to proper parent
                     let parentList = listItem.GetList();
                     if (parentList != undefined) {
