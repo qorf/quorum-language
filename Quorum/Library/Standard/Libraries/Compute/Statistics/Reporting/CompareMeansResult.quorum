@@ -1,0 +1,581 @@
+package Libraries.Compute.Statistics.Reporting
+
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+use Libraries.Containers.Iterator
+use Libraries.Compute.Matrix
+
+/*
+    This class represents a test result that comes back from 
+    a CompareGroups calculation.
+
+    Attribute: Author Hannah Stabler
+*/
+class CompareMeansResult is StatisticalTestResult
+    Math math
+
+    /* The pairwise results of each sub-sample tests within the post hoc test (if conducted) */
+    Array<CompareMeansResult> pairwise 
+
+    /* Saved result for normal distribution tests (if conducted) */
+    Array<CompareDistributionsResult> distributionResults = undefined
+
+    /* Saved result for equal variance test (if conducted) */
+    CompareVariancesResult varianceResult = undefined
+
+    /* UNIVARIATE: A dataframe that holds each of the samples in a column */
+    DataFrame groupsFrame
+
+    /* MULTIIVARIATE: An hashtable of dataframes that holds each of the samples in a dataframe */
+    HashTable<text, DataFrame> groupsTable
+
+    /* */
+    HashTable<text, HashTable<text, number>> probabilityValues
+    HashTable<text, HashTable<text, number>> degreesOfFreedom
+    HashTable<text, HashTable<text, number>> testStatistics
+    HashTable<text, HashTable<text, number>> effectSizes
+    HashTable<text, HashTable<text, number>> information
+    HashTable<text, HashTable<text, Matrix>> matrixInformation // Used in multivariate designs
+
+    boolean repeated = false
+    boolean ranked = false
+    boolean equalVariances = false
+    boolean normalDistribution = false
+
+    Array<text> factors
+    Array<text> columns
+    Array<text> sources
+                              
+    action GetFactors returns Array<text>
+        return factors
+    end
+
+    action SetFactors(Array<text> factors)
+        me:factors = factors
+    end
+
+    action GetFactorList returns text
+        text list = "None"
+        i = 0
+        repeat while i < factors:GetSize()
+            if i = 0
+                list = factors:Get(i)
+            else
+                list = list + ", "+factors:Get(i)
+            end
+            i = i + 1
+        end
+        return list
+    end
+
+    action GetColumns returns Array<text>
+        return columns
+    end
+
+    action SetColumns(Array<text> columns)
+        me:columns = columns
+    end
+
+    action GetColumnList returns text
+        text list = ""
+        i = 0
+        repeat while i < columns:GetSize()
+            if i = 0
+                list = columns:Get(i)
+            else
+                list = list + ", "+columns:Get(i)
+            end
+            i = i + 1
+        end
+        return list
+    end
+
+    action GetSources returns Array<text>
+        return sources
+    end
+
+    action SetSources(Array<text> sources)
+        me:sources = sources
+    end
+
+    /* 
+        Stores the p-value for each group and test statistic 
+
+        Example: 
+            SetInformation("A", "t", 0.05)
+    */
+    action SetProbabilityValue(text source, text statistic, number probabilityValue)
+        if not probabilityValues:HasKey(source)
+            HashTable<text, number> p
+            p:Add(statistic, probabilityValue)
+            probabilityValues:Add(source, p)
+        else
+            if not probabilityValues:GetValue(source):HasKey(statistic)
+                probabilityValues:GetValue(source):Add(statistic, probabilityValue)
+            else
+                probabilityValues:GetValue(source):Set(statistic, probabilityValue)
+            end
+        end
+    end
+
+    /* The p-value (if only one) calculated for this result. */
+    action GetProbabilityValue returns number
+        if probabilityValues:GetSize() = 1
+            Iterator<text> i = probabilityValues:GetKeyIterator()
+            text source = i:Next()
+            if probabilityValues:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = probabilityValues:GetValue(source):GetKeyIterator()
+                return probabilityValues:GetValue(source):GetValue(i2:Next())
+            end
+            alert("There is more than one probability value calculated for this source. Try using GetProbabilityValuesTable(text source)")
+        elseif probabilityValues:GetSize() > 1
+            alert("There is more than one source with probability values calculated. Try using GetProbabilityValuesTable()")
+        else
+            alert("There is no probability value calculated in this result")
+        end
+    end
+
+    /* The hash table of p-values for this source, could have one or more */ 
+    action GetProbabilityValuesTable(text source) returns HashTable<text, number>
+        if probabilityValues:HasKey(source)
+            return probabilityValues:GetValue(source)
+        end
+        alert("There is no probability value calculated for this source: "+ source)
+    end
+
+    /* The full double hash table of p-values */ 
+    action GetProbabilityValuesTable returns HashTable<text, HashTable<text, number>>
+        return probabilityValues
+    end
+
+    /* 
+        Stores the degrees of freedom for each group or test statistic, some may have multiple dfs calculated 
+
+        Examples: 
+            SetInformation("A", "between", 4)
+            SetInformation("A", "within", 2)
+    */
+    action SetDegreesOfFreedom(text source, text dfName, number dfValue)
+        if not degreesOfFreedom:HasKey(source)
+            HashTable<text, number> df
+            df:Add(dfName, dfValue)
+            degreesOfFreedom:Add(source, df)
+        else
+            if not degreesOfFreedom:GetValue(source):HasKey(dfName)
+                degreesOfFreedom:GetValue(source):Add(dfName, dfValue)
+            else
+                degreesOfFreedom:GetValue(source):Set(dfName, dfValue)
+            end
+        end
+    end
+
+    /* The degrees of freedom (if only one) calculated for this result. */
+    action GetDegreesOfFreedom returns number
+        if degreesOfFreedom:GetSize() = 1
+            Iterator<text> i = degreesOfFreedom:GetKeyIterator()
+            text source = i:Next()
+            if degreesOfFreedom:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = degreesOfFreedom:GetValue(source):GetKeyIterator()
+                return degreesOfFreedom:GetValue(source):GetValue(i2:Next())
+            end
+            alert("There is more than one degree of freedom calculated for this source. Try using GetDegreesOfFreedomTable(text source)")
+        elseif degreesOfFreedom:GetSize() > 1
+            alert("There is more than one source with degrees of freedom calculated. Try using GetDegreesOfFreedomTable()")
+        else
+            alert("There is no degree of freedom calculated in this result")
+        end
+    end
+
+    /* The hash table of df-values for this source, could have one or more */ 
+    action GetDegreesOfFreedomTable(text source) returns HashTable<text, number>
+        if degreesOfFreedom:HasKey(source)
+            return degreesOfFreedom:GetValue(source)
+        end
+        alert("There is no degree of freedom calculated for this source: "+ source)
+    end
+
+    /* The full double hash table of df-values */ 
+    action GetDegreesOfFreedomTable() returns HashTable<text, HashTable<text, number>>
+        return degreesOfFreedom
+    end
+
+    /* 
+        Stores the test statistic for each group, some groups may have multiple test statistics calculated 
+
+        Examples: 
+            SetInformation("A", "T", 1.34)
+            SetInformation("A", "Wilk's Lambda", 1.39)
+    */
+    action SetTestStatistic(text source, text statName, number testStatistic)
+        if not testStatistics:HasKey(source)
+            HashTable<text, number> stat
+            stat:Add(statName, testStatistic)
+            testStatistics:Add(source, stat)
+        else
+            if not testStatistics:GetValue(source):HasKey(statName)
+                testStatistics:GetValue(source):Add(statName, testStatistic)
+            else
+                testStatistics:GetValue(source):Set(statName, testStatistic)
+            end
+        end
+    end
+
+    /* The test statistic name (if only one) calculated for this result. */
+    action GetTestStatisticName returns text
+        if testStatistics:GetSize() = 1
+            Iterator<text> i = testStatistics:GetKeyIterator()
+            text source = i:Next()
+            if testStatistics:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = testStatistics:GetValue(source):GetKeyIterator()
+                return i2:Next()
+            end
+            alert("There is more than one test statistic calculated for this source. Try using GetTestStatisticsTable(text source)")
+        elseif testStatistics:GetSize() > 1
+            alert("There is more than one source with test statistics calculated. Try using GetTestStatisticsTable()")
+        else
+            alert("There is no test statistic calculated in this result")
+        end
+    end
+
+    /* The test statistic (if only one) calculated for this result. */
+    action GetTestStatistic returns number
+        if testStatistics:GetSize() = 1
+            Iterator<text> i = testStatistics:GetKeyIterator()
+            text source = i:Next()
+            if testStatistics:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = testStatistics:GetValue(source):GetKeyIterator()
+                return testStatistics:GetValue(source):GetValue(i2:Next())
+            end
+            alert("There is more than one test statistic calculated for this source. Try using GetTestStatisticsTable(text source)")
+        elseif testStatistics:GetSize() > 1
+            alert("There is more than one source with test statistics calculated. Try using GetTestStatisticsTable()")
+        else
+            alert("There is no test statistic calculated in this result")
+        end
+    end
+
+    /* The hash table of test statistics for this source, could have one or more */ 
+    action GetTestStatisticsTable(text source) returns HashTable<text, number>
+        if testStatistics:HasKey(source)
+            return testStatistics:GetValue(source)
+        end
+        alert("There is no test statistic calculated for this source: "+ source)
+    end
+
+    /* The full double hash table of stat-values */ 
+    action GetTestStatisticsTable() returns HashTable<text, HashTable<text, number>>
+        return testStatistics
+    end
+
+    /* 
+        Stores the effect size for each group, some groups may have multiple effect sizes calculated 
+
+        Examples: 
+            SetInformation("A", "Cohen's D", 1.2)
+            SetInformation("A", "Eta-Squared", 0.52)
+    */
+    action SetEffectSize(text source, text effectName, number effectSize)
+        if not effectSizes:HasKey(source)
+            HashTable<text, number> effect
+            effect:Add(effectName, effectSize)
+            effectSizes:Add(source, effect)
+        else
+            if not effectSizes:GetValue(source):HasKey(effectName)
+                effectSizes:GetValue(source):Add(effectName, effectSize)
+            else
+                effectSizes:GetValue(source):Set(effectName, effectSize)
+            end
+        end
+    end
+
+    /* The effect size name (if only one) calculated for this result. */
+    action GetEffectSizeName returns text
+        if effectSizes:GetSize() = 1
+            Iterator<text> i = effectSizes:GetKeyIterator()
+            text source = i:Next()
+            if testStatistics:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = effectSizes:GetValue(source):GetKeyIterator()
+                return i2:Next()
+            end
+            alert("There is more than one effect size calculated for this source. Try using GetEffectSizesTable(text source)")
+        elseif effectSizes:GetSize() > 1
+            alert("There is more than one source with effect sizes calculated. Try using GetEffectSizesTable()")
+        else
+            alert("There is no effect size calculated in this result")
+        end
+    end
+
+    /* The effect size (if only one) calculated for this result. */
+    action GetEffectSize returns number
+        if effectSizes:GetSize() = 1
+            Iterator<text> i = effectSizes:GetKeyIterator()
+            text source = i:Next()
+            if effectSizes:GetValue(source):GetSize() = 1
+                Iterator<text> i2 = effectSizes:GetValue(source):GetKeyIterator()
+                return effectSizes:GetValue(source):GetValue(i2:Next())
+            end
+            alert("There is more than one effect size calculated for this source. Try using GetEffectSizesTable(text source)")
+        elseif effectSizes:GetSize() > 1
+            alert("There is more than one source with effect sizes calculated. Try using GetEffectSizesTable()")
+        else
+            alert("There is no effect size calculated in this result")
+        end
+    end
+
+    /* The hash table of effect sizes for this source, could have one or more */ 
+    action GetEffectSizesTable(text source) returns HashTable<text, number>
+        if effectSizes:HasKey(source)
+            return effectSizes:GetValue(source)
+        end
+        alert("There is no effect size calculated for this source: "+ source)
+    end
+
+    /* The full double hash table of effect sizes */ 
+    action GetEffectSizesTable() returns HashTable<text, HashTable<text, number>>
+        return effectSizes
+    end
+
+    /* 
+        Stores the other information for each group, could include summary values, sum of squares etc 
+
+        Examples: 
+            SetInformation("A", "Mean", 10)
+            SetInformation("A", "Sum Of Squares", 32.45)
+    */
+    action SetInformation(text source, text infoName, number infoValue)
+        if not information:HasKey(source)
+            HashTable<text, number> info
+            info:Add(infoName, infoValue)
+            information:Add(source, info)
+        else
+            if not information:GetValue(source):HasKey(infoName)
+                information:GetValue(source):Add(infoName, infoValue)
+            else
+                information:GetValue(source):Set(infoName, infoValue)
+            end
+        end
+    end
+    action SetInformation(text source, text infoName, Matrix infoValue)
+        if not matrixInformation:HasKey(source)
+            HashTable<text, Matrix> info
+            info:Add(infoName, infoValue)
+            matrixInformation:Add(source, info)
+        else
+            if not matrixInformation:GetValue(source):HasKey(infoName)
+                matrixInformation:GetValue(source):Add(infoName, infoValue)
+            else
+                matrixInformation:GetValue(source):Set(infoName, infoValue)
+            end
+        end
+    end
+
+    action GetInformation returns HashTable<text, HashTable<text, number>>
+        return information
+    end
+
+    action GetMatrixInformation returns HashTable<text, HashTable<text, Matrix>>
+        return matrixInformation
+    end
+
+    action GetGroupsFrame returns DataFrame
+        return groupsFrame
+    end
+
+    action SetGroupsFrame(DataFrame groupsFrame)
+        me:groupsFrame = groupsFrame
+    end
+
+    action SetGroupsTable(HashTable<text, DataFrame> groupsTable)
+        me:groupsTable = groupsTable
+    end
+
+    action GetGroupsTable returns HashTable<text, DataFrame> 
+        return groupsTable
+    end
+
+    action IsRepeated returns boolean
+        return repeated
+    end
+
+    action Repeated(boolean repeated)
+        me:repeated = repeated
+    end
+
+    action IsRanked returns boolean
+        return ranked
+    end
+
+    action Ranked(boolean ranked)
+        me:ranked = ranked
+    end
+
+    action IsSignificant returns boolean
+        if probabilityValues:GetSize() = 1
+            return parent:StatisticalTestResult:IsSignificant()
+        else
+            // There may be more than one p-value
+            boolean significant = false
+            i = 0
+            repeat while i < sources:GetSize()
+                text source = sources:Get(i)
+                Array<number> pvals = probabilityValues:GetValue(source):CopyToValueArray()
+                j = 0 
+                repeat while j < pvals:GetSize()
+                    if pvals:Get(j) <= GetSignificanceLevel()
+                        significant = true
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            return significant
+        end
+    end
+
+    action HasEqualVariances returns boolean
+        return equalVariances
+    end
+
+    action EqualVariances(boolean equalVariances)
+        me:equalVariances = equalVariances
+    end
+
+    action HasNormalDistribution returns boolean
+        return normalDistribution
+    end
+
+    action NormalDistribution(boolean normalDistribution)
+        me:normalDistribution = normalDistribution
+    end
+
+    // Saved results for normal distribution test (if conducted)
+    action GetDistributionResults returns Array<CompareDistributionsResult>
+        return distributionResults
+    end
+
+    action SetDistributionResults(Array<CompareDistributionsResult> distributionResults)
+        me:distributionResults = distributionResults
+    end
+
+    // Saved result for equal variance test (if conducted)
+    action GetVarianceResult returns CompareVariancesResult
+        return varianceResult
+    end
+
+    action SetVarianceResult(CompareVariancesResult varianceResult)
+        me:varianceResult = varianceResult
+    end
+
+    // Saved results for pairwise post hoc test (if conducted)
+    action GetPairwiseResults returns Array<CompareMeansResult>
+        return pairwise
+    end
+
+    action SetPairwiseResults(Array<CompareMeansResult> pairwise)
+        me:pairwise = pairwise
+    end
+
+
+    /* Returns the summary of a CompareGroupsPairwise test in CompareGroups or CompareRanks (if conducted) */
+    action GetPairwiseSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = GetFormat():GetSignificantDigits()
+        if GetPairwiseResults() not= undefined
+            integer i = 0
+            repeat while i < GetPairwiseResults():GetSize()
+                CompareMeansResult pair = GetPairwiseResults():Get(i)
+                if i = 0
+                    summary = summary + pair:GetFormalTestName()
+                end
+                if pair:GetGroupsFrame():GetSize() > 1
+                    text group1 = pair:GetGroupsFrame():GetColumn(0):GetHeader()
+                    text group2 = pair:GetGroupsFrame():GetColumn(1):GetHeader()
+                    summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + math:Round(pair:GetProbabilityValue(), digits)
+                    if pair:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
+                i = i + 1
+            end
+        end
+        return summary
+    end
+
+    /* Returns the summaries of any assumption tests (if conducted) */
+    action GetAssumptionTestSummary returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        if GetDistributionResults() not= undefined
+            integer i = 0
+            repeat while i < GetDistributionResults():GetSize()
+                CompareDistributionsResult dResult = GetDistributionResults():Get(i)
+                if i = 0
+                    summary = summary + lf + dResult:GetFormalTestName()
+                end
+                if dResult:GetGroups():GetSize() = 1
+                    text group = dResult:GetGroups():Get(0):GetHeader()
+                    summary = summary + lf + " " + group + ": p = " + dResult:GetProbabilityValue()
+                    if dResult:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
+                i = i + 1
+            end
+        end
+        if GetVarianceResult() not= undefined
+            CompareVariancesResult vResult = GetVarianceResult()
+            summary = summary + lf + vResult:GetFormalTestName()
+            summary = summary + lf + " p = " + vResult:GetProbabilityValue()
+            if vResult:IsSignificant()
+                summary = summary + " ** significant **"
+            end
+        end
+        return summary
+    end
+
+    /* This action summarizes the result and lists it informally. */
+    action GetSummary returns text
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        return summary:GetSummary()
+    end
+
+    /* This action summarizes the result and puts it in a frame. */
+    action GetSummaryDataFrame returns DataFrame
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        return summary:GetSummaryDataFrame()
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalSummary returns text
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        return summary:GetFormalSummary()
+    end
+
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
+    action GetFormalNumericalResult returns text
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        return summary:GetFormalNumericalResult()
+    end
+
+    /*
+        This action is overwritten in descendent classes.
+    */
+    action Save(text path)
+    end
+end

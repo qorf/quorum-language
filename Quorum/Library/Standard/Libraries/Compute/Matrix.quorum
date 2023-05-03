@@ -1786,6 +1786,87 @@ class Matrix
         return newMatrix
     end
 
+
+    /*
+    This action centers the matrix by column and returns a new matrix.
+    Subtracts the column mean from each value in the column.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:CenterByColumn()
+        end
+    end
+    */
+    action CenterByColumn() returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer colCount = me:GetColumns()
+
+        Array<number> colMeans
+        i = 0
+        repeat while i < colCount
+            number mean = newMatrix:GetColumn(i):GetMean()
+            colMeans:Add(mean)
+            i = i + 1
+        end
+        // Subtract Column Means
+        i = 0
+        repeat while i < colCount
+            newMatrix:SetColumn(i, newMatrix:GetColumn(i):Subtract(colMeans:Get(i)))
+            i = i + 1
+        end       
+        return newMatrix
+    end
+
+
+    /*
+    This action centers the matrix by row and returns a new matrix.
+    Subtracts the row mean from each value in the row.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:CenterByRow()
+        end
+    end
+    */
+    action CenterByRow() returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer rowCount = me:GetRows()
+
+        Array<number> rowMeans
+        i = 0
+        repeat while i < rowCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            rowMeans:Add(mean)
+            i = i + 1
+        end
+        // Subtract Row Means
+        i = 0
+        repeat while i < rowCount
+            newMatrix:SetRow(i, newMatrix:GetRow(i):Subtract(rowMeans:Get(i)))
+            i = i + 1
+        end  
+        return newMatrix
+    end
+
+
     /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
 
@@ -2262,7 +2343,7 @@ class Matrix
     end
 
     /*
-    This method returns the variance of all the elements in a Matrix
+    This method returns the population variance of all the elements in a Matrix
 
     Attribute Returns The variance of all the elements in the matrix.
 
