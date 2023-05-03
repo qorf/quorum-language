@@ -12,6 +12,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
 use Libraries.Interface.Controls.Blocks.EditBox
 use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 
 class CodeEditorFreeformEditingBehavior is Behavior
 
@@ -40,8 +41,12 @@ class CodeEditorFreeformEditingBehavior is Behavior
             // Process the event specifically for the Freeform block
             freeform = cast(FreeformBlock, block)
         elseif block not= undefined
-            // Ask the editor to convert the block into a Freeform block and start typing
-            freeform = editor:ConvertToFreeform(block)
+            if not (block is MultipleLineBlockPart)
+                // Ask the editor to convert the block into a Freeform block and start typing
+                freeform = editor:ConvertToFreeform(block)
+            else
+                return now
+            end
         end
 
         EditBox region = freeform:GetEditBox()

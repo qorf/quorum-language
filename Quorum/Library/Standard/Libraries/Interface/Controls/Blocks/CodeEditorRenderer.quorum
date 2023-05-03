@@ -194,7 +194,7 @@ class CodeEditorRenderer is Control
                     newBlock:SetLocalEndIndex(lineEnd - parentBlock:GetStartIndex())
                     newBlock:SetScopeDepth(scopeLevel)
 
-                    parentBlock:InsertAtLine(newBlock, parentIndex + i)
+                    parentBlock:InsertAtLine(newBlock, expected)
                     expected = expected + 1
                     i = i + 1
 
