@@ -490,6 +490,9 @@ class Block is Control
     action GetPreviousBlock returns Block
         Block sibling = GetPreviousSibling()
         if sibling not= undefined
+            repeat while sibling:GetChildCount() > 0
+                sibling = sibling:GetChild(sibling:GetChildCount()-1)
+            end
             return sibling
         end
 
