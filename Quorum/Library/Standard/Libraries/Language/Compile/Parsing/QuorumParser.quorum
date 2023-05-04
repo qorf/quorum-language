@@ -3627,10 +3627,11 @@ class QuorumParser
     */
     action Me returns MeContext
         MeContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
         context:SetFirstToken(current)
         context:SetLastToken(current)
         SetLocation(context)
+        tokenIterator:Next()
         return context
     end
 
