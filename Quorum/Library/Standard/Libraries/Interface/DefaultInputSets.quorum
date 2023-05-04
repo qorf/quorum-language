@@ -970,8 +970,19 @@ shared class DefaultInputSets
         Behavior emptyBehavior
         textBoxTable:Add(GetLeftClick(), emptyBehavior)
 
+        InputSet clickSet
+        clickSet:SetMouseInput(mouse:LEFT)
+        TextBoxClickBehavior clickBehavior
+        textBoxTable:Add(clickSet, clickBehavior)
+
+        InputSet clickEndSet
+        clickEndSet:SetMouseInput(mouse:LEFT)
+        clickEndSet:SetInputTrigger(clickEndSet:FINISH)
+        TextBoxClickEndBehavior clickEndBehavior
+        textBoxTable:Add(clickEndSet, clickEndBehavior)
+
         InputSet doubleClick
-        doubleClick:SetMouseInput(mouse:CLICKED_MOUSE)
+        doubleClick:SetMouseInput(mouse:LEFT)
         doubleClick:SetEventCount(2)
         TextBoxDoubleClickSelectWordBehavior textBoxDoubleClickSelectWordBehavior
         textBoxTable:Add(doubleClick, textBoxDoubleClickSelectWordBehavior)
@@ -1044,6 +1055,11 @@ shared class DefaultInputSets
             textBoxTable:Add(AddShiftModifier(AddMetaModifier(GetLeftArrowKey())), selectLineStartBehavior)
             textBoxTable:Add(AddShiftModifier(AddMetaModifier(GetRightArrowKey())), selectLineEndBehavior)
         end
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        textBoxTable:Add(mouseScrollSet, scrollBehavior)
 
         gameInput:AddInputTable(textBoxTable)
     end
@@ -2094,6 +2110,35 @@ shared class DefaultInputSets
         dragSet:SetInputTrigger(dragSet:CONTINUE)
         regressionLineTable:Add(dragSet, chartDragBehavior)
         gameInput:AddInputTable(regressionLineTable)
+    end
+
+    action SetupScrollBarControlInput(GameInput gameInput)
+        InputTable scrollBarTable
+        scrollBarTable:SetIdentifier("ScrollBarControl")
+        
+        InputSet dragStartSet
+        dragStartSet:SetDragItemInput()
+        dragStartSet:SetInputTrigger(dragStartSet:BEGIN)
+        InputSet dragSet
+        dragSet:SetDragItemInput()
+        dragSet:SetInputTrigger(dragSet:CONTINUE)
+        
+        ScrollBarDragBehavior barDragBehavior
+        scrollBarTable:Add(dragStartSet, barDragBehavior)
+        scrollBarTable:Add(dragSet, barDragBehavior)
+
+        /*
+        Giving the scroll bars an empty behavior for mouse click will make them intercept
+        the mouse clicks even if it isn't going to do anything with them. Necessary for e.g.
+        TextBox to ensure attempts to use the scroll bars don't propagate down as clicks
+        in the text area.
+        */
+        InputSet leftClickSet
+        leftClickSet:SetMouseInput(mouse:LEFT)
+        Behavior emptyBehavior
+        scrollBarTable:Add(leftClickSet, emptyBehavior)
+
+        gameInput:AddInputTable(scrollBarTable)
     end
 
 end

@@ -636,6 +636,22 @@ class LayoutProperties
         SetTopRightRounding(topRight)
     end
 
+    /*
+    This action sets how much rounding to apply to the four corners of a rectangular control. 
+    This action takes the amount of rounding to apply as a number of pixels. 
+
+    Attribute: Parameter bottomLeft The rounding value to be applied to the bottom left corner, in pixels.
+    Attribute: Parameter bottomRight The rounding value to be applied to the bottom right corner, in pixels.
+    Attribute: Parameter topLeft The rounding value to be applied to the top left corner, in pixels.
+    Attribute: Parameter topRight The rounding value to be applied to the top right corner, in pixels.
+    */
+    action SetCornerPixelRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
+        SetBottomLeftPixelRounding(bottomLeft)
+        SetBottomRightPixelRounding(bottomRight)
+        SetTopLeftPixelRounding(topLeft)
+        SetTopRightPixelRounding(topRight)
+    end
+
     action HasColorPropertyOverride(text property) returns boolean
         return options not= undefined and options:GetColorProperty(property) not= undefined
     end
@@ -704,6 +720,22 @@ class LayoutProperties
 
     action SetInterfaceOptionsKey(text key)
         optionsKey = key
+    end
+
+    action GetContainerGridWidth returns integer
+        return containerGridWidth
+    end
+
+    action SetContainerGridWidth(integer containerGridWidth)
+        me:containerGridWidth = containerGridWidth
+    end
+
+    action GetContainerGridHeight returns integer
+        return containerGridHeight
+    end
+
+    action SetContainerGridHeight(integer containerGridHeight)
+        me:containerGridHeight = containerGridHeight
     end
 
     action SetBackgroundColor(ColorGroup value)
@@ -796,6 +828,29 @@ class LayoutProperties
         end
 
         return default:GetFontColor()
+    end
+
+    action SetFontOutlineColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFontOutlineColor(value)
+        needsRendering = true
+    end
+
+    action GetFontOutlineColor returns ColorGroup
+        if options not= undefined and options:GetFontOutlineColor() not= undefined
+            return options:GetFontOutlineColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetFontOutlineColor() not= undefined
+            return controlPalette:GetFontOutlineColor()
+        end
+
+        return default:GetFontOutlineColor()
     end
 
     action SetBorderColor(ColorGroup value)
@@ -1298,6 +1353,46 @@ class LayoutProperties
         return default:HasBorderThickness()
     end
 
+    action SetFontOutlineThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFontOutlineThickness(value)
+        needsRendering = true
+    end
+
+    action GetFontOutlineThickness returns number
+        if options not= undefined and options:GetFontOutlineThickness():IsNotANumber() = false
+            return options:GetFontOutlineThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFontOutlineThickness()
+            return controlPalette:GetFontOutlineThickness()
+        end
+
+        if default:HasFontOutlineThickness()
+            return default:GetFontOutlineThickness()
+        end
+        return 0
+    end
+
+    action HasFontOutlineThickness returns boolean
+        if options not= undefined and options:HasFontOutlineThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFontOutlineThickness()
+            return true
+        end
+
+        return default:HasFontOutlineThickness()
+    end
+
     action SetTopLeftRounding(number value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1456,6 +1551,166 @@ class LayoutProperties
         end
 
         return default:HasBottomRightRounding()
+    end
+
+    action SetTopLeftPixelRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetTopLeftPixelRounding(value)
+        needsRendering = true
+    end
+
+    action GetTopLeftPixelRounding returns number
+        if options not= undefined and options:GetTopLeftPixelRounding():IsNotANumber() = false
+            return options:GetTopLeftPixelRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopLeftPixelRounding()
+            return controlPalette:GetTopLeftPixelRounding()
+        end
+
+        if default:HasTopLeftPixelRounding()
+            return default:GetTopLeftPixelRounding()
+        end
+        return 0
+    end
+
+    action HasTopLeftPixelRounding returns boolean
+        if options not= undefined and options:HasTopLeftPixelRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopLeftPixelRounding()
+            return true
+        end
+
+        return default:HasTopLeftPixelRounding()
+    end
+
+    action SetTopRightPixelRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetTopRightPixelRounding(value)
+        needsRendering = true
+    end
+
+    action GetTopRightPixelRounding returns number
+        if options not= undefined and options:GetTopRightPixelRounding():IsNotANumber() = false
+            return options:GetTopRightPixelRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopRightPixelRounding()
+            return controlPalette:GetTopRightPixelRounding()
+        end
+
+        if default:HasTopRightPixelRounding()
+            return default:GetTopRightPixelRounding()
+        end
+        return 0
+    end
+
+    action HasTopRightPixelRounding returns boolean
+        if options not= undefined and options:HasTopRightPixelRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasTopRightPixelRounding()
+            return true
+        end
+
+        return default:HasTopRightPixelRounding()
+    end
+
+    action SetBottomLeftPixelRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetBottomLeftPixelRounding(value)
+        needsRendering = true
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        if options not= undefined and options:GetBottomLeftPixelRounding():IsNotANumber() = false
+            return options:GetBottomLeftPixelRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomLeftPixelRounding()
+            return controlPalette:GetBottomLeftPixelRounding()
+        end
+
+        if default:HasBottomLeftPixelRounding()
+            return default:GetBottomLeftPixelRounding()
+        end
+        return 0
+    end
+
+    action HasBottomLeftPixelRounding returns boolean
+        if options not= undefined and options:HasBottomLeftPixelRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomLeftPixelRounding()
+            return true
+        end
+
+        return default:HasBottomLeftPixelRounding()
+    end
+
+    action SetBottomRightPixelRounding(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetBottomRightPixelRounding(value)
+        needsRendering = true
+    end
+
+    action GetBottomRightPixelRounding returns number
+        if options not= undefined and options:GetBottomRightPixelRounding():IsNotANumber() = false
+            return options:GetBottomRightPixelRounding()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomRightPixelRounding()
+            return controlPalette:GetBottomRightPixelRounding()
+        end
+
+        if default:HasBottomRightPixelRounding()
+            return default:GetBottomRightPixelRounding()
+        end
+        return 0
+    end
+
+    action HasBottomRightPixelRounding returns boolean
+        if options not= undefined and options:HasBottomRightPixelRounding()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasBottomRightPixelRounding()
+            return true
+        end
+
+        return default:HasBottomRightPixelRounding()
     end
 
     action SetShadowX(number value)
@@ -1656,22 +1911,6 @@ class LayoutProperties
         end
 
         return default:HasShadowEdgeFade()
-    end
-
-    action GetContainerGridWidth returns integer
-        return containerGridWidth
-    end
-
-    action SetContainerGridWidth(integer containerGridWidth)
-        me:containerGridWidth = containerGridWidth
-    end
-
-    action GetContainerGridHeight returns integer
-        return containerGridHeight
-    end
-
-    action SetContainerGridHeight(integer containerGridHeight)
-        me:containerGridHeight = containerGridHeight
     end
 
 end

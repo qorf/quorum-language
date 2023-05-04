@@ -103,7 +103,11 @@ class LineChartWriter is ChartWriter
     private action AddPointsAndLines(ScalableVectorGraphics canvas, LineChart chart)
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
-        
+
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
@@ -315,10 +319,10 @@ class LineChartWriter is ChartWriter
 
                         if HasAccessibility()
                             if pointFocus not= ""
-                                pointSVG:SetOnFocus(pointFocus)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
                             end
                             if pointBlur not= ""
-                                pointSVG:SetOnBlur(pointBlur)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
                             end
                         end 
                         j = j + 1
@@ -326,10 +330,10 @@ class LineChartWriter is ChartWriter
 
                     if HasAccessibility()
                         if seriesFocus not= ""
-                            seriesSVG:SetOnFocus(seriesFocus)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
                         end
                         if seriesBlur not= ""
-                            seriesSVG:SetOnBlur(seriesBlur)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
                         end
                     end            
                 end
@@ -561,10 +565,10 @@ class LineChartWriter is ChartWriter
 
                                     if HasAccessibility()
                                         if pointFocus not= ""
-                                            pointSVG:SetOnFocus(pointFocus)
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
                                         end
                                         if pointBlur not= ""
-                                            pointSVG:SetOnBlur(pointBlur)
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
                                         end
                                     end 
                                 end
@@ -576,10 +580,10 @@ class LineChartWriter is ChartWriter
                     
                 if HasAccessibility()
                     if seriesFocus not= ""
-                        subChartContent:SetOnFocus(seriesFocus)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
                     end
                     if seriesBlur not= ""
-                        subChartContent:SetOnBlur(seriesBlur)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
                     end
                 end   
         
@@ -588,6 +592,10 @@ class LineChartWriter is ChartWriter
         end
         // Add chartContent to the canvas after all non-nav elements
         GetChartInformation():Add(chartContent)
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
+        end
     end
 
     action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)

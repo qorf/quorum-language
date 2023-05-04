@@ -1,7 +1,7 @@
 package Libraries.Interface.Events
 
 use Libraries.Interface.Controls.Gutter
-use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.ScrollableLineControl
 
 class GutterEvent 
 
@@ -36,9 +36,9 @@ class GutterEvent
         return mouseEvent
     end
 
-    action GetTextBox returns TextBox
+    action GetControl returns ScrollableLineControl
         if gutter not= undefined
-            return gutter:GetTextBox()
+            return gutter:GetControl()
         else
             return undefined
         end

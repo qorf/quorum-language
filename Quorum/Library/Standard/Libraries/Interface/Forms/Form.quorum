@@ -1,4 +1,4 @@
-package Libraries.Interface
+package Libraries.Interface.Forms
 
 use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
@@ -10,10 +10,17 @@ use Libraries.Interface.Controls.Button
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
-use Libraries.Interface.Pages.FlowLayoutPage
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Options.DarkModeOptions
 use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Item2D
+use Libraries.Interface.Pages.StackedRowPage
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.List
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.RadioButton
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -30,7 +37,7 @@ use Libraries.Interface.Options.InterfaceOptions
     app:AddButton("Button")
     app:Display()
 */
-class Form is Game
+class Form is Game, FormPrimitiveContainer
     HashTable<text, Page> pages
     Page currentPage = undefined
     Page mainPage = undefined
@@ -43,7 +50,7 @@ class Form is Game
         WebConfiguration web = GetWebConfiguration()
         web:framesPerSecondLimit = 10
         
-        FlowLayoutPage page
+        StackedRowPage page
         page:SetName(DEFAULT_PAGE_NAME)
         pages:Add(DEFAULT_PAGE_NAME, page)
         currentPage = page
@@ -67,7 +74,7 @@ class Form is Game
     end
 
     action AddPage(text name) returns Page
-        FlowLayoutPage page
+        StackedRowPage page
         page:SetName(name)
         pages:Add(name, page)
         return page
@@ -81,11 +88,17 @@ class Form is Game
         return pages:RemoveKey(name)
     end
 
+    action GetPage(text name) returns Page
+        Page page = pages:GetValue(name)
+        return page
+    end
+
     action SetPage(text name)
         Remove(currentPage)
 
         Page page = pages:GetValue(name)
         Add(page)
+        currentPage = page
     end
 
     action CreateGame
@@ -104,6 +117,9 @@ class Form is Game
         currentPage = mainPage
         Add(mainPage)
         manager:SetInterfaceOptions(options)
+
+        FormDelayedAssetLoader delayedLoader
+        delayedLoader:LoadAssets()
     end
 
     /*  This action creates a default Game object for displaying charts and sets this chart
@@ -126,5 +142,9 @@ class Form is Game
 
     action GetMainPage returns Page
         return mainPage
+    end
+
+    action GetCurrentPage returns Page
+        return currentPage
     end
 end
