@@ -578,6 +578,22 @@ shared class DefaultInputSets
         FirstLetterNavigateBehavior firstLetterNavigateBehavior
         listInputTable:Add(GetTextInputSet(), firstLetterNavigateBehavior)
 
+        ListHomeBehavior homeBehavior
+        ListEndBehavior endBehavior
+
+        InputSet homeKey
+        homeKey:SetKeyboardInput(keys:HOME)
+        InputSet endKey
+        endKey:SetKeyboardInput(keys:END)
+
+        listInputTable:Add(homeKey, homeBehavior)
+        listInputTable:Add(endKey, endBehavior)
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        listInputTable:Add(mouseScrollSet, scrollBehavior)
+
         gameInput:AddInputTable(listInputTable)
 
         InputTable listItemTable

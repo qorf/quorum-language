@@ -11,18 +11,17 @@ use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Controls.Support.FirstLetterNavigator
 use Libraries.Interface.Views.ControlShaderView
 
-class List is Control, FirstLetterNavigator
+class List is ScrollableLineControl, FirstLetterNavigator
 
     ListSelection selection
 
     // The itemBehavior is called when a ListItem would be activated if it 
     // doesn't have an activation behavior of its own defined.
     Behavior itemBehavior = undefined
+
+    ListRenderer renderer
     
     on create
-        FlowLayout layout
-        SetLayout(layout)
-
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:STANDARD)
@@ -62,14 +61,14 @@ class List is Control, FirstLetterNavigator
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
         end
-        parent:Control:Add(item)
+        renderer:Add(item)
     end
 
     action Add(integer index, Item2D item)
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
         end
-        parent:Control:Add(index, item)
+        renderer:Add(index, item)
     end
 
     private action NewListItem(text value) returns Control
@@ -94,10 +93,7 @@ class List is Control, FirstLetterNavigator
     end
 
     action GetListItem(integer index) returns ListItem
-        if index < 0
-            return undefined
-        end
-        return cast(ListItem, GetChildren():Get(index))
+        return renderer:GetListItem(index)
     end
 
     action GetSelection returns ListSelection
@@ -105,11 +101,11 @@ class List is Control, FirstLetterNavigator
     end
 
     action GetIndexOf(ListItem item) returns integer
-        return GetChildren():GetFirstLocation(item)
+        return renderer:GetChildren():GetFirstLocation(item)
     end
 
     action GetSize returns integer
-        return GetItemCount()
+        return renderer:GetItemCount()
     end
 
     /*
@@ -123,6 +119,10 @@ class List is Control, FirstLetterNavigator
 
         if item not= undefined
             item:GainedSelection()
+
+            if item:GetY() + item:GetHeight() > renderer:GetHeight() or item:GetY() < 0
+                GoToItem(GetIndexOf(item))
+            end
         end
 
         selection:Set(item)
@@ -140,6 +140,9 @@ class List is Control, FirstLetterNavigator
         ListItem item = GetListItem(index)
         if item not= undefined
             item:GainedSelection()
+            if item:GetY() + item:GetHeight() > renderer:GetHeight() or item:GetY() < 0
+                GoToItem(GetIndexOf(item))
+            end
         end
 
         selection:Set(index)
@@ -170,22 +173,6 @@ class List is Control, FirstLetterNavigator
         end
     end
 
-    action LoadGraphics(LayoutProperties properties)
-        parent:Control:LoadGraphics(properties)
-
-        View2D view = properties:GetView2D()
-
-        if view not= undefined and view not= GetView2D()
-            SetView2D(view)
-        end
-
-        if GetView2D() = undefined
-            ControlShaderView newView
-            newView:Initialize()
-            SetView2D(newView)
-        end
-    end
-
     /*
     This action sets the item activation Behavior for this List. If a ListItem
     would ever be activated (such as by a double-click), if it doesn't have
@@ -207,7 +194,7 @@ class List is Control, FirstLetterNavigator
     end
 
     action GetListItems returns Array<ListItem>
-        return cast(Array<ListItem>, GetChildren())
+        return cast(Array<ListItem>, renderer:GetChildren())
     end
 
     /*
@@ -247,4 +234,145 @@ class List is Control, FirstLetterNavigator
             firstValid:Select()
         end
     end
+
+    /*
+    This action returns the total width of the content contained inside
+    the scrollable region of this Control. If the content's width is larger
+    than the width of the Control, then horizontal scrolling can be used.
+    */
+    action GetTotalContentWidth returns number
+        // TO-DO: Optimize this so it isn't an O(n) check every time. This could be cached, if nothing else.
+        number result = 0
+
+        integer i = 0
+        repeat while i < GetLineCount()
+            ListItem item = GetListItem(i)
+            number width = item:GetWidth()
+
+            if width > result
+                result = width
+            end
+
+            i = i + 1
+        end
+
+        return result
+    end
+
+    /*
+    This action returns the total height of the content contained inside
+    the scrollable region of this Control. If the content's height is larger
+    than the height of the Control, then vertical scrolling can be used.
+    */
+    action GetTotalContentHeight returns number
+        // TO-DO: Optimize this so it isn't an O(n) summation every time. This could be cached, if nothing else.
+        number result = 0
+
+        integer i = 0
+        repeat while i < GetLineCount()
+            ListItem item = GetListItem(i)
+            result = result + item:GetHeight()
+            i = i + 1
+        end
+
+        return result
+    end
+
+    /*
+    This action returns the Control that represents the main content of the
+    scrollable control. This is most commonly a pane or a specialized renderer
+    used to display other elements inside of it.
+    */
+    action GetScrollableRegion returns Control
+        return renderer
+    end
+    
+    /*
+    This action returns how far the scrollable region should scroll vertically for
+    a single "tick" of mouse scrolling on the y-axis. This value is returned as a
+    percentage of the total content height (represented between 0 and 1).
+    */
+    action GetScrollIncrement returns number
+        return 1.0 / GetLineCount()
+    end
+
+    /*
+    This action occurs just after the scroll positions are updated and just before Resizing occurs.
+    It can be used to adjust any layout properties that need to be modified on the scrollable region
+    before processing a resize.
+    */
+    private action RefreshScrollableRegion
+        renderer:RefreshContents()
+    end
+
+    /*
+    This action returns the height of the requested line in pixels. This action
+    is 0-indexed, so the first line of a control is line 0.
+
+    Attribute: Parameter line The line to get the height of.
+    Attribute: Returns The height of the line in pixels.
+    */
+    action GetLineHeight(integer line) returns number
+        if line >= GetLineCount()
+            return 0
+        end
+
+        ListItem item = GetListItem(line)
+
+        if item:GetDefaultLayoutProperties():NeedsRendering()
+            item:LoadGraphics(item:GetDefaultLayoutProperties())
+        end
+
+        if item:NeedsLayout()
+            item:Resize()
+        end
+
+        return item:GetHeight()
+    end
+
+    /*
+    This action returns the y value of the requested line. This value is measured in pixels
+    relative to the bottom of the ScrollableLineControl. Lines which are currently off the
+    top of the scrolling region will return a value exceeding the control's height, and if 
+    they're off the bottom of the region, this value will be negative.
+
+    Attribute: Parameter line The requested line
+    Attribute: Returns The y-position of the bottom of the line, relative to the bottom of the control.
+    */
+    action GetLineY(integer line) returns number
+        number contentHeight = GetTotalContentHeight()
+
+        number baseY = GetHeight() - ((line + 1.0) / GetLineCount() * contentHeight)
+        number scrollOffset = GetScrollPercentageY() * contentHeight
+
+        return baseY + scrollOffset
+    end
+
+    /*
+    This action returns how many lines are in this control.
+
+    Attribute: Returns The total number of lines currently in this control.
+    */
+    action GetLineCount returns integer
+        return renderer:GetItemCount()
+    end
+
+    /*
+    This action returns the index of the first visible line in the scrollable control.
+
+    Attribute: Returns The index of the first visible line.
+    */
+    action GetFirstVisibleLine returns integer
+        return cast(integer, GetScrollPercentageY() * GetLineCount())
+    end
+
+    action GoToItem(integer index)
+        // ScrollPercentY = (y - (height - ((line + 1) / LineCount * contentHeight))) / contentHeight
+        number height = renderer:GetHeight()
+        number contentHeight = GetTotalContentHeight()
+        number targetY = height / 2.0
+        number result = (targetY - (height - ((index + 1) / GetLineCount() * contentHeight))) / contentHeight
+        SetScrollPercentageY(result)
+    end
+
 end
