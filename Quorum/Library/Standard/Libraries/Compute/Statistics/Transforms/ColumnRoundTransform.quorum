@@ -26,7 +26,7 @@ use Libraries.Compute.Math
     frame:Transform(transform) 
 */
 class ColumnRoundTransform is DataFrameTransform
-    integer decimalPlaceValue = 0
+    integer decimalPlaceValue = 1
 
     action Transform(DataFrame frame) returns DataFrame 
 
@@ -50,7 +50,7 @@ class ColumnRoundTransform is DataFrameTransform
                 end
 
             else
-                alert("All columns selected for rounding must be NumberColumns.")
+                alert("All columns selected for rounding must contain numbers.")
             end
 
             i = i + 1
@@ -61,7 +61,11 @@ class ColumnRoundTransform is DataFrameTransform
 
     /* The decimal place to round to */
     action SetDecimalPlace(integer decimalPlace)
-        decimalPlaceValue = decimalPlace
+        if decimalPlace not= 0
+            decimalPlaceValue = decimalPlace
+        else
+            alert("Cannot round the columns to the 0 place value. Try converting to an IntegerColumn instead.")
+        end
     end
     
 end

@@ -4429,7 +4429,7 @@ class DataFrame
     */
     action RoundSelectedColumns(integer decimalPlace) returns DataFrame
         ColumnRoundTransform round
-        round:SetDecimalPlace(1)
+        round:SetDecimalPlace(decimalPlace)
         return round:Transform(me)
     end
 
