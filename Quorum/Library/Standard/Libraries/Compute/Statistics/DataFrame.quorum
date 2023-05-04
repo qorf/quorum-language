@@ -77,6 +77,7 @@ use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
 use Libraries.Compute.Statistics.Tests.CompareGroupsPairwise
 use Libraries.Compute.Statistics.Tests.CompareMeans
 use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Transforms.ColumnRoundTransform
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -4409,6 +4410,27 @@ class DataFrame
         splitter:SetHeaders(headers)
         splitter:SetDelimiter(delimiter)
         return splitter:Transform(me)
+    end
+
+    /*
+        This action rounds values in selected number columns to a specified decimal place. If the value is 1.3209873 
+        and a decimal place is set to 2 the value will be rounded to 1.32.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+
+        //set which column or columns we want to round values
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:RoundSelectedColumns(2)
+        output result:ToText()
+    */
+    action RoundSelectedColumns(integer decimalPlace) returns DataFrame
+        ColumnRoundTransform round
+        round:SetDecimalPlace(decimalPlace)
+        return round:Transform(me)
     end
 
     /*
