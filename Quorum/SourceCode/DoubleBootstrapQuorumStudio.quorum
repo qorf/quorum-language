@@ -142,7 +142,7 @@ class DoubleBootstrapQuorumStudio
             else
                 if file:GetFileName() = "main.quorum" //don't add it, just let it know it is the main
                     main = file
-                else
+                elseif file:GetFileExtension() = "quorum"
                     returnMe:Add(file)
                 end
             end
