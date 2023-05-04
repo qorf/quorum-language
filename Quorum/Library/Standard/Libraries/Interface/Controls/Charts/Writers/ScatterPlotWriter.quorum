@@ -107,7 +107,7 @@ class ScatterPlotWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        canvas:Add(chartContent)
+        GetChartInformation():Add(chartContent)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
@@ -118,7 +118,7 @@ class ScatterPlotWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object")
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
@@ -127,8 +127,8 @@ class ScatterPlotWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
-            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
-            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -229,8 +229,8 @@ class ScatterPlotWriter is ChartWriter
                                         labelSVG:SetTabIndex(-1)
                                         labelSVG:SetAriaHidden("true")
                                         pointSVG:SetAriaDescription(label:GetText())
-                                        pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                        pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                        //pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                        //pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                     end
                                     canvas:Add(labelSVG)
                                 end
@@ -316,8 +316,8 @@ class ScatterPlotWriter is ChartWriter
                         subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
                         subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
@@ -327,8 +327,8 @@ class ScatterPlotWriter is ChartWriter
                         subChartContent:SetRole("graphics-object")
                         subChartContent:SetAriaHidden("false")
                         subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -407,8 +407,8 @@ class ScatterPlotWriter is ChartWriter
                                     labelSVG:SetStyleClass("quorum-chart-text")
                                     labelSVG:SetTabIndex(-1)
                                     labelSVG:SetAriaHidden("true")
-                                    pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                    pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                    //pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                    //pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                 end
                                 canvas:Add(labelSVG)
                             end

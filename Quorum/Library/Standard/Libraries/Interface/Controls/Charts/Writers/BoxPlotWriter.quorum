@@ -103,7 +103,7 @@ class BoxPlotWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        canvas:Add(chartContent)
+        GetChartInformation():Add(chartContent)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
@@ -114,7 +114,7 @@ class BoxPlotWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object") 
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
@@ -124,8 +124,8 @@ class BoxPlotWriter is ChartWriter
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
             chartContentBoundingBox:SetTabIndex(-1)
-            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
-            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 

@@ -114,7 +114,7 @@ class HistogramWriter is ChartWriter
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        canvas:Add(chartContent)
+        GetChartInformation():Add(chartContent)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
@@ -127,15 +127,15 @@ class HistogramWriter is ChartWriter
             chartContent:SetTabIndex(0)
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object")  
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
-            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
-            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -271,8 +271,8 @@ class HistogramWriter is ChartWriter
                         bar:SetID(barSVG:GetID() + "_bar")
                         bar:SetTabIndex(-1)
                         bar:SetAriaHidden("true")
-                        barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
-                        barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                        //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                        //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                     end
                     barSVG:Add(bar)
     
@@ -292,8 +292,8 @@ class HistogramWriter is ChartWriter
                                 labelSVG:SetStyleClass("quorum-chart-text")
                                 labelSVG:SetTabIndex(-1)
                                 labelSVG:SetAriaHidden("true")
-                                barFocus = barFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                barBlur = barBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                //barFocus = barFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                //barBlur = barBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                             end
                             canvas:Add(labelSVG)
                         end
@@ -369,8 +369,8 @@ class HistogramWriter is ChartWriter
                         subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
                         subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
@@ -380,8 +380,8 @@ class HistogramWriter is ChartWriter
                         subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
                         subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                        subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                        subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -428,8 +428,8 @@ class HistogramWriter is ChartWriter
                             bar:SetID(barSVG:GetID() + "_bar")
                             bar:SetTabIndex(-1)
                             bar:SetAriaHidden("true")
-                            barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
-                            barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                            //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                            //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                         end
                         barSVG:Add(bar)
 
@@ -449,8 +449,8 @@ class HistogramWriter is ChartWriter
                                     labelSVG:SetStyleClass("quorum-chart-text")
                                     labelSVG:SetTabIndex(-1)
                                     labelSVG:SetAriaHidden("true")
-                                    barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
-                                    barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                                    //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
+                                    //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                                 end
                                 canvas:Add(labelSVG)
                             end
