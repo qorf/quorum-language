@@ -45,7 +45,7 @@ class FindReplace
         return Find(find, false, false)
     end
 
-    action Find(text find, boolean matchCase, boolean wholeWord) returns Array<Pair<integer>>
+    action Find(text find, boolean wholeWord, boolean matchCase) returns Array<Pair<integer>> //Hello
         Array<Pair<integer>> array
         if find = undefined or find:IsEmpty()
             return array
