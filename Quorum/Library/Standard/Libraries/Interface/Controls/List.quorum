@@ -35,6 +35,8 @@ class List is ScrollableLineControl, FirstLetterNavigator
         // TO-DO: This needs to be changed to something more appropriate.
         SetAccessibilityCode(parent:Item:LIST)
         SetName("List")
+
+        SetLayoutRows(5)
     end
 
     action IsAccessibleParent returns boolean
@@ -71,6 +73,28 @@ class List is ScrollableLineControl, FirstLetterNavigator
         renderer:Add(index, item)
     end
 
+    action Remove(text entry) returns ListItem
+        integer i = 0
+        repeat while i < GetSize()
+            ListItem item = renderer:GetListItem(i)
+            if item:GetText() = entry
+                Remove(item)
+                return item
+            end
+            i = i + 1
+        end
+
+        return undefined
+    end
+
+    action Remove(integer index) returns Item2D
+        return renderer:Remove(index)
+    end
+
+    action Remove(Item2D item) returns boolean
+        return renderer:Remove(item)
+    end
+
     private action NewListItem(text value) returns Control
         return NewListItem(value, undefined)
     end
@@ -80,12 +104,22 @@ class List is ScrollableLineControl, FirstLetterNavigator
 
         ListItem newItem
         newItem:SetText(value)
+        newItem:SetFontSize(GetFontSize())
 
         if icon not= undefined
             newItem:SetIcon(icon)
         end
 
         return newItem
+    end
+
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        integer i = 0
+        repeat while i < GetSize()
+            GetListItem(i):SetFontSize(size)
+            i = i + 1
+        end
     end
 
     action Get(integer index) returns text
