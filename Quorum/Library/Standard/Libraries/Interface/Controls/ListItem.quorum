@@ -147,6 +147,13 @@ class ListItem is Control
         end
     end
 
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        if label not= undefined
+            label:SetFontSize(size)
+        end
+    end
+
     /*
     This action returns the List that this ListItem has been added to, if such a
     List is present. If this ListItem's parent isn't a List, or if it has no

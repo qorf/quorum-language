@@ -395,4 +395,12 @@ class ScrollableControl is Control
         me:horizontalMode = mode
     end
 
+    action Empty
+        /*
+        We don't want to remove the scrolling elements. Most likely we want to remove the contents of the scroll region.
+        Classes that need more customized functionality can overwrite this.
+        */
+        GetScrollableRegion():Empty()
+    end
+
 end
