@@ -207,10 +207,10 @@ class BoxPlotWriter is ChartWriter
     
                     if HasAccessibility()
                         if plotGroupFocus not= ""       
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotGroupFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotGroupFocus + "});" + newLine
                         end
                         if plotGroupBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotGroupBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotGroupBlur + "});" + newLine
                         end
                     end
                 end
@@ -303,10 +303,10 @@ class BoxPlotWriter is ChartWriter
 
                     if HasAccessibility()
                         if plotFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
                         end
                         if plotBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
                         end
                     end       
 
@@ -466,10 +466,10 @@ class BoxPlotWriter is ChartWriter
         
                             if HasAccessibility()
                                 if itemFocus not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
                                 end
                                 if itemBlur not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
                                 end
                             end 
                         end
@@ -501,6 +501,8 @@ class BoxPlotWriter is ChartWriter
                         subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
+
+                    AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
 
                     if HasAccessibility()
                         //Separated, by the Factor levels with multiple Series per subplot
@@ -620,10 +622,10 @@ class BoxPlotWriter is ChartWriter
 
                         if HasAccessibility()
                             if plotFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
                             end
                             if plotBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
                             end
                         end       
 
@@ -782,10 +784,10 @@ class BoxPlotWriter is ChartWriter
         
                                 if HasAccessibility()
                                     if itemFocus not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
                                     end
                                     if itemBlur not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
                                     end
                                 end 
                             end

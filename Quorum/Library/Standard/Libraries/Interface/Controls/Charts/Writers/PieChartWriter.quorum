@@ -249,10 +249,10 @@ class PieChartWriter is ChartWriter
                     
                     if HasAccessibility()
                         if sliceFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + sliceFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + sliceFocus + "});" + newLine
                         end
                         if sliceBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + sliceBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + sliceBlur + "});" + newLine
                         end
                     end
                         
@@ -283,6 +283,7 @@ class PieChartWriter is ChartWriter
                         subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
+                    AddSubChartTitle(canvas, pieBox:GetChartArea())
 
                     if HasAccessibility()
                         //Separated, by the Factor levels with multiple Series per subplot
@@ -425,10 +426,10 @@ class PieChartWriter is ChartWriter
                         
                         if HasAccessibility()
                             if sliceFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + sliceFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + sliceFocus + "});" + newLine
                             end
                             if sliceBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + sliceBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + sliceSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + sliceBlur + "});" + newLine
                             end
                         end
 

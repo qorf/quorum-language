@@ -218,10 +218,10 @@ class BarChartWriter is ChartWriter
                     
                     if HasAccessibility()
                         if barGroupFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barGroupFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barGroupFocus + "});" + newLine
                         end
                         if barGroupBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barGroupBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barGroupBlur + "});" + newLine
                         end
                     end
                 end
@@ -318,10 +318,10 @@ class BarChartWriter is ChartWriter
 
                     if HasAccessibility()
                         if barFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barFocus + "});" + newLine
                         end
                         if barBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barBlur + "});" + newLine
                         end
                     end
 
@@ -352,6 +352,8 @@ class BarChartWriter is ChartWriter
                     subChartContentBoundingBox:SetTabIndex(-1)
                 end
                 subChartContent:Add(subChartContentBoundingBox)
+
+                AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
 
                 if HasAccessibility()
                     //Separated, by the Factor levels with multiple Series per subplot
@@ -474,10 +476,10 @@ class BarChartWriter is ChartWriter
                         end
                         if HasAccessibility()
                             if barFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barFocus + "});" + newLine
                             end
                             if barBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barBlur + "});" + newLine
                             end
                         end
                     end

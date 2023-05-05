@@ -137,9 +137,7 @@ class HistogramWriter is ChartWriter
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
-            chartContent:SetAriaHidden("false")
-            //scriptText = scriptText + "document.getElementById('" + chartContentBoundingBox:GetID() + "').addEventListener('focusin', (event) => {gainFocus('" + chartContentBoundingBox:GetID() + "'); });" + newLine
-            //scriptText = scriptText + "document.getElementById('" + chartContentBoundingBox:GetID() + "').addEventListener('focusout', (event) => {gainFocus('" + chartContentBoundingBox:GetID() + "'); });" + newLine       
+            chartContent:SetAriaHidden("false")     
         end
 
         chartContent:Add(chartContentBoundingBox)
@@ -230,10 +228,10 @@ class HistogramWriter is ChartWriter
                     
                     if HasAccessibility()
                         if barGroupFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barGroupFocus + "});" + newLine
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barGroupFocus + "});" + newLine
                         end
                         if barGroupBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barGroupBlur+ "});" + newLine
+                            scriptText = scriptText + "document.getElementById('" + barGroupSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barGroupBlur+ "});" + newLine
                         end
                     end
                 end
@@ -331,10 +329,10 @@ class HistogramWriter is ChartWriter
                     if HasAccessibility()
 
                         if barFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barFocus + "});" + newLine
                         end
                         if barBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barBlur + "});" + newLine
                         end
                     end
 
@@ -363,10 +361,11 @@ class HistogramWriter is ChartWriter
                     subChartContent:SetStyleClass("quorum-chart-region")
                     subChartContentBoundingBox:SetTabIndex(-1)
                     subChartContentBoundingBox:SetAriaHidden("true")
-                    scriptText = scriptText + "document.getElementById('" + subChartContentBoundingBox:GetID() + "').addEventListener('focusin', (event) => {gainFocus('" + subChartContentBoundingBox:GetID() + "'); });"
-                    scriptText = scriptText + "document.getElementById('" + subChartContentBoundingBox:GetID() + "').addEventListener('focusout', (event) => {loseFocus('" + subChartContentBoundingBox:GetID() + "'); });"
+                    //scriptText = scriptText + "document.getElementById('" + subChartContentBoundingBox:GetID() + "').addEventListener('focusin', (event) => {gainFocus('" + subChartContentBoundingBox:GetID() + "'); });"
+                    //scriptText = scriptText + "document.getElementById('" + subChartContentBoundingBox:GetID() + "').addEventListener('focusout', (event) => {loseFocus('" + subChartContentBoundingBox:GetID() + "'); });"
                 end
                 subChartContent:Add(subChartContentBoundingBox)
+                AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
 
                 if HasAccessibility()
                     //Separated, by the Factor levels with multiple Series per subplot
@@ -489,10 +488,10 @@ class HistogramWriter is ChartWriter
                         end
                         if HasAccessibility()
                             if barFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + barFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barFocus + "});" + newLine
                             end
                             if barBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + barBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + barBlur + "});" + newLine
                             end
                         end
                     end

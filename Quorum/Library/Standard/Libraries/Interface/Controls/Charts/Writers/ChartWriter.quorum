@@ -951,6 +951,29 @@ class ChartWriter
     end
 
     /*
+        This action adds a chart title for the subchart to the canvas
+    */
+    private action AddSubChartTitle(ScalableVectorGraphics canvas, ChartAreaPanel subChartArea)
+        Label subChartTitle
+        if subChartArea:GetLabel() not= undefined
+            subChartTitle:SetText(subChartArea:GetLabel():GetText())
+            subChartTitle:SetTextAnchor("left")
+            subChartTitle:SetPosition(subChartArea:GetLabel():GetGlobalX(), TranslatePositionY(subChartArea:GetLabel()))// - chart:GetTitleLabel():GetHeight()/2)
+            subChartTitle:SetFontSize(subChartArea:GetLabel():GetFontSize() + "px")
+            subChartTitle:SetFontFamily("Arial")
+            subChartTitle:SetFill(cast(Color, subChartArea:GetLabel():GetFontColor()))
+            subChartTitle:SetFillOpacity(cast(Color, subChartArea:GetLabel():GetFontColor()))
+            if HasAccessibility()
+                subChartTitle:SetID(canvas:GetID() + "_" + subChartTitle:GetHashCode())
+                subChartTitle:SetStyleClass("quorum-chart-text")
+                subChartTitle:SetTabIndex(-1)
+                subChartTitle:SetAriaHidden("true")
+            end
+            canvas:Add(subChartTitle)
+        end
+    end
+
+    /*
         This action adds the elements used within the chart area (bars, lines, datapoints, etc). 
 
         Attribute: Parameter The chart that will be used to create an SVG

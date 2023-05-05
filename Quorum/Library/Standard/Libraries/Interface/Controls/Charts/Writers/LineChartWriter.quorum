@@ -319,10 +319,10 @@ class LineChartWriter is ChartWriter
 
                         if HasAccessibility()
                             if pointFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + pointFocus + "});" + newLine
                             end
                             if pointBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + pointBlur + "});" + newLine
                             end
                         end 
                         j = j + 1
@@ -330,10 +330,10 @@ class LineChartWriter is ChartWriter
 
                     if HasAccessibility()
                         if seriesFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + seriesFocus + "});" + newLine
                         end
                         if seriesBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + seriesBlur + "});" + newLine
                         end
                     end            
                 end
@@ -360,6 +360,7 @@ class LineChartWriter is ChartWriter
                     subChartContentBoundingBox:SetTabIndex(-1)
                 end
                 subChartContent:Add(subChartContentBoundingBox)
+                AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
                 
                 if HasAccessibility()
                     //Separated, by the Factor levels with multiple Series per subplot
@@ -565,10 +566,10 @@ class LineChartWriter is ChartWriter
 
                                     if HasAccessibility()
                                         if pointFocus not= ""
-                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + pointFocus + "});"
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + pointFocus + "});" + newLine
                                         end
                                         if pointBlur not= ""
-                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + pointBlur + "});"
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + pointBlur + "});" + newLine
                                         end
                                     end 
                                 end
@@ -580,10 +581,10 @@ class LineChartWriter is ChartWriter
                     
                 if HasAccessibility()
                     if seriesFocus not= ""
-                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusin', (event) => {" + newLine + seriesFocus + "});"
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focus', (event) => {" + newLine + seriesFocus + "});" + newLine
                     end
                     if seriesBlur not= ""
-                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focusout', (event) => {" + newLine + seriesBlur + "});"
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('blur', (event) => {" + newLine + seriesBlur + "});" + newLine
                     end
                 end   
         
