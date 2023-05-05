@@ -402,7 +402,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TEXTBOX
             case 6:
-                role = "textbox";
+                role="textbox";
+                para.setAttribute('aria-multiline','true');
+                para.id = id;
                 break;
             //MENU_BAR
             case 7:
@@ -764,7 +766,12 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.ControlActivated$quorum_Libraries_Interface_Events_ControlActivationEvent = function(event) {
         //console.log("Control Activated");
     };
-    
+
+//      system action PressedKey(KeyboardEvent event)
+    this.PressedKey$quorum_Libraries_Interface_Events_KeyboardListener = function(event){
+        console.log("Key pressed"); 
+    }
+
 //    system action TextChanged(TextChangeEvent event)
     this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
         var control = event.GetControl();
@@ -773,11 +780,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var textbox = global_CheckCast(control, "Libraries.Interface.Controls.TextBox");
             var text = textbox.GetText();
             var id = textbox.GetHashCode();
+            var position = textbox.GetCaretPosition();
             var element = document.getElementById(id);
             if(element != null) {
+              element.selectionStart = position;
+              element.selectionEnd = position;
               element.innerHTML = text;
             }
-            //console.log("TextBox text Changed");
+            // console.log("Caret Position: ", position);
+            // console.log("Current Line", linePosition);
+            console.log("TextBox text Changed");
         }
         else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
         {
