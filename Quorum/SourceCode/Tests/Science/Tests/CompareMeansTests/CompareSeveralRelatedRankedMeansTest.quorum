@@ -2,32 +2,29 @@ package Science.Tests
 
 use Libraries.Testing.Test
 use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.Tests.CompareGroups
-use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 
 /*
     This class tests a friedman test
 */
-class CompareNDependentRankedGroupsTest is Test
+class CompareSeveralRelatedRankedMeansTest is Test
 
     on create
-        SetName("Calculate CompareNDependentRankedGroups")
+        SetName("Calculate CompareSeveralRelatedRankedMeansTest")
     end
 
     action Run
         ColumnCalculationTest framer
         DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
 
-        CompareGroups compare
+        CompareMeans compare
         compare:Ranked(true)
         compare:RepeatedMeasures(true)
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:AddColumn(2)
-        compare:AddColumn(3)
         frame:Calculate(compare)
         
-        CompareNGroupsResult result = cast(CompareNGroupsResult, compare:GetResult())
+        CompareMeansResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 14.0)
         Check(result:GetDegreesOfFreedom(), 3.0)
         Check(result:GetProbabilityValue(), 0.0029051527742673944)

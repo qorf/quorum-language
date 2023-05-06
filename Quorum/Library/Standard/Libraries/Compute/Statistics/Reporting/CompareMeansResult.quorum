@@ -12,7 +12,7 @@ use Libraries.Compute.Matrix
 
 /*
     This class represents a test result that comes back from 
-    a CompareGroups calculation.
+    a CompareMeans calculation.
 
     Attribute: Author Hannah Stabler
 */
@@ -415,11 +415,8 @@ class CompareMeansResult is StatisticalTestResult
     end
 
     action IsSignificant returns boolean
-        if probabilityValues:GetSize() = 1
-            return parent:StatisticalTestResult:IsSignificant()
-        else
+        if sources:GetSize() > 0
             // There may be more than one p-value
-            boolean significant = false
             i = 0
             repeat while i < sources:GetSize()
                 text source = sources:Get(i)
@@ -427,13 +424,15 @@ class CompareMeansResult is StatisticalTestResult
                 j = 0 
                 repeat while j < pvals:GetSize()
                     if pvals:Get(j) <= GetSignificanceLevel()
-                        significant = true
+                        return true
                     end
                     j = j + 1
                 end
                 i = i + 1
             end
-            return significant
+            return false
+        else
+            return parent:StatisticalTestResult:IsSignificant()
         end
     end
 
@@ -481,7 +480,7 @@ class CompareMeansResult is StatisticalTestResult
     end
 
 
-    /* Returns the summary of a CompareGroupsPairwise test in CompareGroups or CompareRanks (if conducted) */
+    /* Returns the summary of a CompareMeansPairwise test in CompareMeans (if conducted) */
     action GetPairwiseSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
