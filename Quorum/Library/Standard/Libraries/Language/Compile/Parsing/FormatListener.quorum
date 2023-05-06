@@ -1,83 +1,49 @@
 package Libraries.Language.Compile.Parsing
-use Libraries.Language.Compile.QuorumSourceListener
-use Libraries.Language.Compile.Context.OutputContext
-use Libraries.Data.Formats.JavaScriptObjectNotation
+
 use Libraries.Language.Compile.Context.all
-use Libraries.Containers.Stack
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.QuorumSourceListener
+use Libraries.Language.Compile.QualifiedName
 
-/*
-    This class converts Quorum Source code into JavaScriptObjectNotation (JSON) objects,
-    which can be used to calculate information appropriate for blocks. It is not
-    intended as a converter to a JSON representation of Quorum's abstract syntax tree 
-    and should not be used in this way, as it intentionally leaves out particular nodes
-    for efficiency and because the block system does not need it.
+class FormatListener is QuorumSourceListener
+    integer tabSpaces = 4
+    integer tabs = 0
+    text tabSpacesText = ""
+    text source = undefined
+    text sourceFormatted = undefined
+    text line = ""
+    QuorumLexerConstants constants
+    QuorumLexer lexer = undefined
+    boolean preserveLines = true
 
-    Attribute: Example
-
-    package Blocks
-
-    use Libraries.Language.Compile.Parsing.BlockListener
-    use Libraries.Language.Compile.Parsing.QuorumLexer
-    use Libraries.System.File
-    use Libraries.Language.Compile.Parsing.QuorumParser
-    use Libraries.Language.Compile.Context.StartContext
-    use Libraries.Language.Compile.CompilerErrorManager
-    use Libraries.Data.Formats.JavaScriptObjectNotation
-
-    class Main
-    
-        action Main
-            BlockListener listener
-    
-            CompilerErrorManager manager
-            QuorumLexer lexer
-            lexer:SetCompilerErrorManager(manager)
-            File file
-            file:SetPath("SourceCode/Main.quorum")
-            lexer:Read(file)
-            
-            QuorumParser parser
-            parser:SetCompilerErrorManager(manager)
-            parser:SetLexer(lexer)
-    
-            StartContext start = parser:Start()
-            start:Traverse(listener)
-            JavaScriptObjectNotation result = listener:Convert()
-            result:SetPrettyPrint(true)
-            output result:ToText()
-        end
-    end
-*/
-class BlockListener is QuorumSourceListener
-    JavaScriptObjectNotation start
-    Stack<JavaScriptObjectNotation> scopes
-    JavaScriptObjectNotation currentScope = start
-    integer key = 0
     on create
-        scopes:Push(start)
+        line = line:GetLineFeed()
+        sourceFormatted = ""
     end
 
-    action AddUniqueToScope(JavaScriptObjectNotation item)
-        JavaScriptObjectNotation unique
-        unique:SetKey("" + key)
-        unique:SetObject()
-        unique:Add(item)
-        currentScope:Add(unique)
-        key = key + 1
-    end
-
-    action EnterDocumentation(DocumentationContext context) 
-        JavaScriptObjectNotation statement
-        JavaScriptObjectNotation location = GetLocation(context)
-        if location not= undefined
-            currentScope:Add("Documentation", location)
+    private action ChangeTab(integer amount)
+        tabs = tabs + amount
+        if tabs < 0
+            tabs = 0
+        end
+        tabSpacesText = ""
+        i = 0
+        repeat while i < tabs * tabSpaces
+            tabSpacesText = tabSpacesText + " "
+            i = i + 1
         end
     end
+    action GetTokenRegionText(Token first, Token last) returns text
+        integer find = first:startIndex
+        integer lind = last:endIndex
+        return source:GetSubtext(find, lind + 1)
+    end
+
+    action EnterDocumentation(DocumentationContext context) end
+    action ExitDocumentation(DocumentationContext context) end
 
     action EnterNoActionsNoClass(NoActionsNoClassContext context) end
-    action ExitNoActionsNoClass(NoActionsNoClassContext context) 
-        currentScope = scopes:Pop()
-    end
+    action ExitNoActionsNoClass(NoActionsNoClassContext context) end
 
     action EnterActionsNoClass(ActionsNoClassContext context) end
     action ExitActionsNoClass(ActionsNoClassContext context) end
@@ -91,13 +57,8 @@ class BlockListener is QuorumSourceListener
     action EnterCast(CastContext context) end
     action ExitCast(CastContext context) end
 
-    action EnterSayStatement(SayContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("SayStatement")
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-        AddExpression(context:expression, statement)
-    end
+    action EnterSayStatement(SayContext context) end
+    action ExitSayStatement(SayContext context) end
 
     action EnterCheckStatement(CheckContext context) end
     action ExitCheckStatement(CheckContext context) end
@@ -106,35 +67,40 @@ class BlockListener is QuorumSourceListener
     action ExitParentFieldAccess(ParentFieldAccessContext context) end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("FullClassDeclaration")
-        statement:Add("Name", context:className)
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-        currentScope = statement
-        scopes:Push(statement)
-    end
+        if not sourceFormatted:IsEmpty()
+            sourceFormatted = sourceFormatted + line
+        end        
+        if context:staticClass
+            sourceFormatted = sourceFormatted + "shared "
+        end
 
+        sourceFormatted = sourceFormatted + "class " + context:className
+        if context:generic not= undefined
+            text value = GetTokenRegionText(context:generic:GetFirstToken(), context:generic:GetLastToken())
+            sourceFormatted = sourceFormatted + value + " " 
+        end
+
+        if context:inherit not= undefined
+            text value = GetTokenRegionText(context:inherit:GetFirstToken(), context:inherit:GetLastToken())
+            sourceFormatted = sourceFormatted + value + " " 
+        end
+        ChangeTab(1)
+    end
     action ExitFullClassDeclaration(FullClassDeclarationContext context) 
-        currentScope = scopes:Pop()
+        sourceFormatted = sourceFormatted + line + "end"
+        ChangeTab(-1)
     end
 
-    action EnterNoClassDeclaration(NoClassDeclarationContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("NoClassDeclaration")
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-        currentScope = statement
-        scopes:Push(statement)
-    end
-    action ExitNoClassDeclaration(NoClassDeclarationContext ctx) 
-        currentScope = scopes:Pop()
-    end
+    action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
+    action ExitNoClassDeclaration(NoClassDeclarationContext ctx)  end
 
     action EnterFormalParameter(FormalParameterContext context) end
     action ExitFormalParameter(FormalParameterContext context) end
 
-    action EnterStatement(StatementContext context) end
+    action EnterStatement(StatementContext context)
+        text value = GetTokenRegionText(context:GetFirstToken(), context:GetLastToken())
+        sourceFormatted = sourceFormatted + line + tabSpacesText + value + " "
+    end
     action ExitStatement(StatementContext context) end
 
     action EnterMe(MeContext context) end
@@ -152,38 +118,86 @@ class BlockListener is QuorumSourceListener
     action EnterOr(AndOrContext context) end
     action ExitOr(AndOrContext context) end
 
-    action EnterOutputStatement(OutputContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("OutputStatement")
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-        AddExpression(context:expression, statement)
-    end
+    action EnterOutputStatement(OutputContext context) end
     action ExitOutputStatement(OutputContext context) end
 
     action EnterSystemAction(ActionContext context) end
     action ExitSystemAction(ActionContext context) end
 
-    action EnterConstructor(ConstructorContext context) end
-    action ExitConstructor(ConstructorContext context) end
+    action EnterConstructor(ConstructorContext context) 
+        Token firstToken = context:GetFirstToken()
+        Token lastToken = context:GetLastToken()
+
+        if context:block not= undefined
+            Token blockToken = context:block:GetFirstToken()
+            text value = GetTextWithoutWhiteSpace(firstToken, blockToken, false)
+            sourceFormatted = sourceFormatted + line + value + " "
+        else
+
+        end
+    end
+    action ExitConstructor(ConstructorContext context) 
+        Token lastToken = context:GetLastToken()
+        sourceFormatted = sourceFormatted + line + tabSpacesText
+        sourceFormatted = sourceFormatted + lastToken:ToText()
+    end
 
     action EnterBlueprintAction(ActionContext context) end
     action ExitBlueprintAction(ActionContext context) end
 
-    action EnterActionHeader(ActionContext context) end
+    action GetTextWithoutWhiteSpace(Token first, Token last, boolean includeLast) returns text
+        text result = tabSpacesText
+        integer firstIndex = first:tokenIndex
+        integer lastIndex = last:tokenIndex
+        if not includeLast
+            lastIndex = lastIndex - 1
+        end
+        integer size = lexer:GetSize()
+        i = firstIndex
+        repeat while i < size and i <= lastIndex
+            Token token = lexer:GetToken(i)
+            if not constants:IsWhiteSpace(token)
+                result = result + token:ToText() + GetDefaultSeparator(token)
+            end
+            i = i + 1
+        end
+        return result
+    end
+
+    action GetDefaultSeparator(Token token) returns text
+        if constants:IsKeyword(token)
+            return " "
+        end
+        return " " //what should the standard be?
+    end
+
+    action EnterActionHeader(ActionContext context) 
+        
+    end
     action ExitActionHeader(ActionContext context) end
 
     action EnterAction(ActionContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("Action")
-        statement:Add("Name", context:actionName)
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-        currentScope = statement
-        scopes:Push(statement)
+        Token firstToken = context:GetFirstToken()
+        Token lastToken = context:GetLastToken()
+        
+        if context:block not= undefined
+
+            if context:block:statements not= undefined
+                Token blockToken = context:block:GetFirstToken()
+                text value = GetTextWithoutWhiteSpace(firstToken, blockToken, false)
+                sourceFormatted = sourceFormatted + line + value + " "
+            else
+                Token blockToken = context:block:GetFirstToken()
+                text value = GetTextWithoutWhiteSpace(firstToken, lastToken, false)
+                sourceFormatted = sourceFormatted + line + value + " "
+            end
+        else
+
+        end
     end
     action ExitAction(ActionContext context) 
-        currentScope = scopes:Pop()
+        Token lastToken = context:GetLastToken()
+        sourceFormatted = sourceFormatted + line + tabSpacesText + lastToken:ToText()
     end
 
     action EnterGenericStatement(GenericContext context) end
@@ -198,19 +212,8 @@ class BlockListener is QuorumSourceListener
     action EnterIs(IsContext context) end
     action ExitIs(IsContext context) end
 
-    action EnterIfStatement(IfContext context) 
-        JavaScriptObjectNotation statement
-        statement:SetKey("IfStatement")
-        SetLocation(context, statement)
-        AddUniqueToScope(statement)
-
-        AddExpression(context:ifExpression, statement)
-        currentScope = statement
-        scopes:Push(statement)
-    end
-    action ExitIfStatement(IfContext context) 
-        currentScope = scopes:Pop()
-    end
+    action EnterIfStatement(IfContext context) end
+    action ExitIfStatement(IfContext context) end
 
     action EnterElseIfStatement(IfContext context) end
     action ExitElseIfStatement(IfContext context) end
@@ -221,13 +224,27 @@ class BlockListener is QuorumSourceListener
     action EnterAccessModifier(AccessModifierContext context) end
     action ExitAccessModifier(AccessModifierContext context) end
 
-    action EnterBlock(BlockContext context) end
-    action ExitBlock(BlockContext context) end
+    action EnterBlock(BlockContext context) 
+        ChangeTab(1)
+    end
+    action ExitBlock(BlockContext context) 
+        ChangeTab(-1)
+    end
 
-    action EnterClassStatements(ClassStatementsContext context) end
+    action EnterClassStatements(ClassStatementsContext context)
+         
+//        if context:statement not= undefined
+//            Token firstToken = context:statement:GetFirstToken()
+//            Token lastToken = context:statement:GetLastToken()
+//            text value = GetTokenRegionText(firstToken, lastToken)
+//            sourceFormatted = sourceFormatted + line + tabSpacesText + value + " "
+//        end
+    end
     action ExitClassStatements(ClassStatementsContext context) end
 
-    action EnterQualifiedName(QualifiedNameContext context) end
+    action EnterQualifiedName(QualifiedNameContext context) 
+        
+    end
     action ExitQualifiedName(QualifiedNameContext context) end
 
     action EnterLoopStatement(LoopContext context) end
@@ -272,8 +289,7 @@ class BlockListener is QuorumSourceListener
     action EnterAlertStatement(AlertContext context) end
     action ExitAlertStatement(AlertContext context) end
 
-    action EnterUse(UseContext context) end
-    action ExitUse(UseContext context) end
+    
 
     action EnterNot(NotContext context) end
     action ExitNot(NotContext context) end
@@ -293,8 +309,21 @@ class BlockListener is QuorumSourceListener
     action EnterInteger(IntegerContext int) end
     action ExitInteger(IntegerContext int) end
 
-    action EnterPackageRule(PackageContext context) end
-    action ExitPackageRule(PackageContext context) end
+    action EnterPackageRule(PackageContext context) 
+        QualifiedName name = context:name
+        sourceFormatted = sourceFormatted + "package " + name:GetStaticKey()
+    end
+    action ExitPackageRule(PackageContext context) 
+        sourceFormatted = sourceFormatted + line + line
+    end
+
+    action EnterUse(UseContext context) 
+        QualifiedName name = context:name
+        sourceFormatted = sourceFormatted + "use " + name:GetStaticKey()
+    end
+    action ExitUse(UseContext context)
+        sourceFormatted = sourceFormatted + line
+    end
 
     action EnterNormalAssignment(NormalAssignmentContext context) end
     action ExitNormalAssignment(NormalAssignmentContext context) end
@@ -328,41 +357,27 @@ class BlockListener is QuorumSourceListener
 
     action EnterActionCall(ActionCallContext ctx) end
     action ExitActionCall(ActionCallContext ctx) end
-
-    action SetLocation(ParseContext context, JavaScriptObjectNotation statement)
-        JavaScriptObjectNotation location = GetLocation(context)
-        if location not= undefined
-            statement:Add("Index", GetLocation(context))
-        end
+    action GetSource returns text
+        return source
     end
 
-    action GetLocation(ParseContext context) returns JavaScriptObjectNotation
-        Token first = context:GetFirstToken()
-        if first = undefined
-            return undefined
-        end
-        Token last = context:GetLastToken()
-        integer start = first:startIndex
-        integer finish = first:endIndex
-        
-        if last not= undefined
-            finish = last:endIndex
-        end
-        JavaScriptObjectNotation notation
-        notation:SetArray()
-        notation:Add(start)
-        notation:Add(finish)
-        return notation
+    action SetSource(text source)
+        me:source = source
     end
 
-    private action AddExpression(ParseContext expression, JavaScriptObjectNotation statement)
-        JavaScriptObjectNotation express
-        express:SetKey("Expression")
-        SetLocation(expression, express)
-        statement:Add(express)
+    action GetSourceFormatted returns text
+        return sourceFormatted
     end
 
-    action Convert returns JavaScriptObjectNotation
-        return start
+    action SetSourceFormatted(text sourceFormatted)
+        me:sourceFormatted = sourceFormatted
+    end
+
+    action GetQuorumLexer returns QuorumLexer
+        return me:lexer
+    end
+
+    action SetQuorumLexer(QuorumLexer lexer)
+        me:lexer = lexer
     end
 end

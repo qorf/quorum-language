@@ -42,11 +42,13 @@ class ScrollableControl is Control
 
     on create
         scrollableRegion = GetScrollableRegion()
+        scrollableRegion:SetPercentageWidth(1)
+        scrollableRegion:SetPercentageHeight(1)
 
         SetClipping(true)
 
         ManualLayout layout
-        SetLayout(layout)
+        parent:Control:SetLayout(layout)
 
         // Initialize the properties used to position the scroll bars.
         verticalBar:SetVertical(true)
@@ -99,9 +101,9 @@ class ScrollableControl is Control
         horizontalControlProperties:SetPercentageY(0)
         horizontalControlProperties:SetPercentageHeight(1)
 
-        Add(scrollableRegion)
-        Add(verticalBar)
-        Add(horizontalBar)
+        parent:Control:Add(scrollableRegion)
+        parent:Control:Add(verticalBar)
+        parent:Control:Add(horizontalBar)
         verticalBar:Add(verticalControl)
         horizontalBar:Add(horizontalControl)
     end
@@ -233,8 +235,8 @@ class ScrollableControl is Control
 
         verticalViewRatio = height / totalHeight
         horizontalViewRatio = width / totalWidth
-        boolean verticalVisible = verticalViewRatio < 1.0
-        boolean horizontalVisible = horizontalViewRatio < 1.0
+        boolean verticalVisible = (verticalViewRatio < 1.0 and verticalMode = VISIBLE_IF_NEEDED) or verticalMode = ALWAYS_VISIBLE
+        boolean horizontalVisible = (horizontalViewRatio < 1.0 and horizontalMode = VISIBLE_IF_NEEDED) or horizontalMode = ALWAYS_VISIBLE
         number barHeight = height
         number barWidth = width
 
@@ -363,7 +365,7 @@ class ScrollableControl is Control
         if not positive
             heightChange = heightChange * -1
         end
-        
+
         RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
     end
 
@@ -391,6 +393,14 @@ class ScrollableControl is Control
 
     action SetHorizontalBarVisibility(integer mode)
         me:horizontalMode = mode
+    end
+
+    action Empty
+        /*
+        We don't want to remove the scrolling elements. Most likely we want to remove the contents of the scroll region.
+        Classes that need more customized functionality can overwrite this.
+        */
+        GetScrollableRegion():Empty()
     end
 
 end

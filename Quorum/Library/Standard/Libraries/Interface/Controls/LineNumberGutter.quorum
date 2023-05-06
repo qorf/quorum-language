@@ -12,8 +12,8 @@ class LineNumberGutter is Gutter
 
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetLeftPadding(6)
-        properties:SetRightPadding(6)
+        properties:SetLeftMargin(6)
+        properties:SetRightMargin(6)
     end
 
     private action SelectFont returns Font
@@ -36,7 +36,7 @@ class LineNumberGutter is Gutter
         text linesInText = "" + control:GetLineCount()
         integer glyphsRequired = linesInText:GetSize()
         
-        return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + GetLeftPadding() + GetRightPadding()
+        return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + GetLeftMargin() + GetRightMargin()
     end
 
     action UpdateVisuals(integer startLine)
@@ -64,15 +64,22 @@ class LineNumberGutter is Gutter
         this is only an approximation, which may require some extra space via
         padding in order to look correct.
         */
-        number rightPadding = properties:GetRightPadding()
-        number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftPadding() + rightPadding
+        number rightMargin = properties:GetRightMargin()
+        number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftMargin() + rightMargin
         integer totalLines = control:GetLineCount()
+
+        // If the horizontal scroll bar is visible, the rendering area will be slightly shorter than the gutter is.
+        // We have to compensate for it if it's there.
+        number barOffset = 0
+        if control:IsShowingHorizontalBar()
+            barOffset = control:GetBarThickness() * control:GetInterfaceScale()
+        end
 
         integer counter = 0
         integer currentLine = startLine
         boolean last = false
         repeat while currentLine < totalLines and last = false
-            number y = control:GetLineY(currentLine)
+            number y = control:GetLineY(currentLine) + barOffset
             number height = control:GetLineHeight(currentLine)
 
             if y < 0
@@ -87,7 +94,7 @@ class LineNumberGutter is Gutter
 
             label:SetSize(fontSize)
             label:SetText("" + (currentLine + 1))
-            label:SetPosition(width - label:GetWidth() - rightPadding, y + height / 2.0 - label:GetHeight() / 2.0)
+            label:SetPosition(width - label:GetWidth() - rightMargin, y + height / 2.0 - label:GetHeight() / 2.0)
             label:SetColor(GetFontColor())
             Add(label)
 

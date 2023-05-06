@@ -3,8 +3,12 @@ package Libraries.Interface.Forms
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Containers.Array
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Controls.ScrollPane
 
-class Page is FormPrimitiveContainer, FormContainerControl
+class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     on create
         SetPercentageWidth(1.0)
@@ -29,7 +33,7 @@ class Page is FormPrimitiveContainer, FormContainerControl
     end
 
     action GetGrouping(text name) returns Grouping
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -61,7 +65,7 @@ class Page is FormPrimitiveContainer, FormContainerControl
     end
 
     action GetStartButtonGrouping(text name) returns StartButtonGrouping
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -77,7 +81,7 @@ class Page is FormPrimitiveContainer, FormContainerControl
     action AddBanner(text title) returns Banner
         Banner grouping
         grouping:SetName(title)
-        grouping:SetTitle(title)
+        grouping:Initialize(title)
 
         Add(grouping)
         return grouping
@@ -86,8 +90,7 @@ class Page is FormPrimitiveContainer, FormContainerControl
     action AddBanner(text title, text label) returns Banner
         Banner grouping
         grouping:SetName(title)
-        grouping:SetTitle(title)
-        grouping:AddLabel(title + " Label", label)
+        grouping:Initialize(title, label)
 
         Add(grouping)
         return grouping
@@ -103,7 +106,7 @@ class Page is FormPrimitiveContainer, FormContainerControl
     end
 
     action GetBanner(text name) returns Banner
-        Array<Item2D> children = GetChildren()
+        Array<Item2D> children = GetFormChildren()
         i = 0
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
@@ -116,4 +119,19 @@ class Page is FormPrimitiveContainer, FormContainerControl
         return undefined
     end
 
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        if not HasDefaultFocusOrdering()
+            CalculateDefaultFocusOrdering()
+        end
+    end
+
+    action GetFormChildren returns Array<Item2D>
+        return GetScrollRegionItems()
+    end
 end

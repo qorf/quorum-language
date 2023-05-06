@@ -20,6 +20,9 @@ use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Inputs.FactorInput
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Reporting.StatisticsFormatting
+use Libraries.Compute.Statistics.DataFrameSelection
+use Libraries.Compute.Statistics.Predictions.RegressionPrediction
+use Libraries.Compute.Statistics.Columns.VectorColumn
 
 /*
     This class conducts an Ordinary Least Squares regression on a DataFrame. By default, an 
@@ -625,5 +628,132 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
         result = result + format:FormatProbabilityValue(GetCriticalValue()) + ", p = " + format:FormatProbabilityValue(GetProbabilityValue())
 
         return result
+    end
+
+    action Predict(DataFrame frame) returns RegressionPrediction
+        RegressionPrediction result
+        Vector beta = GetCoefficients()
+        //get all the factors that are predictions and check to be sure
+        //they match
+        boolean intercept = HasIntercept()
+        boolean match = false
+        if intercept
+            if frame:GetSelectedFactorSize() = beta:GetSize() - 1
+                match = true
+            end
+        else
+            if frame:GetSelectedFactorSize() = beta:GetSize()
+                match = true
+            end
+        end
+
+        if not match
+            return result
+        end
+
+        integer maxRows = -1
+        //now predict every value based on the model
+        DataFrameSelection selection = frame:GetSelection()
+        i = 0
+        repeat while i < selection:GetFactorSize()
+            integer column = selection:GetFactor(i)
+            DataFrameColumn factor = frame:GetColumn(column)
+            if not factor:IsNumberColumn()
+                alert("Cannot process prediction from a non-numerical column.")
+            end
+            integer rows = factor:GetSize()
+            if rows > maxRows
+                maxRows = rows
+            end
+            i = i + 1
+        end
+        
+        Vector predictions
+        predictions:SetSize(maxRows)
+        i = 0
+        repeat while i < maxRows
+            number prediction = CalculatePrediction(frame, beta, intercept, i)
+            predictions:Set(i, prediction)
+            i = i + 1
+        end
+
+        integer predictedColumns = selection:GetColumnSize()
+        if predictedColumns not= 1 //are we predicting a single variable?
+            return result
+        end
+
+        integer dependentVariable = selection:GetColumn(0)
+        DataFrameColumn col = frame:GetColumn(dependentVariable)
+        if not col:IsNumberColumn()
+            alert("Cannot check the prediction for a non-numeric column")
+        end
+
+        if predictions:GetSize() not= col:GetSize()
+            alert("Prediction size and column size do not match.")
+        end
+
+        //now calculate the effect size
+        number rsquared = CalculatePredictedEffectSize(col, predictions)
+
+        VectorColumn column
+        column:SetRows(predictions)
+        column:SetHeader("YPredict")
+
+        DataFrame resultFrame
+        resultFrame:AddColumn(column)
+        result:SetEffectSize(rsquared)
+        result:SetResultFrame(resultFrame)
+
+        return result
+    end
+
+    private action CalculatePredictedEffectSize(DataFrameColumn col, Vector predictions) returns number
+        Mean mean
+        col:Calculate(mean)
+        number average = mean:GetMean()
+
+        number topSum = 0
+        number bottomSum = 0
+        i = 0
+        repeat while i < col:GetSize()
+            number actual = col:GetAsNumber(i)
+            number predicted = predictions:Get(i)
+
+            number top = (actual - predicted) * (actual - predicted)
+            number bottom = (actual - average) * (actual - average)
+            topSum = topSum + top
+            bottomSum = bottomSum + bottom
+            i = i + 1
+        end
+
+        number divide = topSum / bottomSum
+
+        return 1.0 - divide
+    end
+
+    private action CalculatePrediction(DataFrame frame, Vector beta, boolean intercept, integer row) returns number
+        DataFrameSelection selection = frame:GetSelection()
+        number prediction = 0
+        j = 0
+        repeat while j < selection:GetFactorSize()
+            integer column = selection:GetFactor(j)
+            DataFrameColumn factor = frame:GetColumn(column)
+            number fromFrame = factor:GetAsNumber(row)
+            number coefficient = 0
+            if intercept
+                coefficient = beta:Get(j+1)
+            else
+                coefficient = beta:Get(j+1)
+            end
+
+            prediction = prediction + (fromFrame * coefficient)
+            j = j + 1
+        end
+
+        if intercept
+            prediction = prediction + beta:Get(0)
+        end
+    
+        return prediction
     end
 end

@@ -1416,6 +1416,11 @@ class Layer2D is Layer
     end
 
     private action GetItemHierarchy(Item2D root, Array<Item2D> array)
+        // Don't add elements that are hidden, nor their children
+        if root:IsShowing() = false
+            return now
+        end
+
         Array<Item2D> children = root:GetChildren()
         integer i = children:GetSize()
         repeat while i > 0

@@ -1,0 +1,78 @@
+package Libraries.Interface.Controls.Layouts
+
+use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Controls.Blocks.CodeEditor
+
+class SingleLineBlockLayout is Layout
+
+    action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        Block block = cast(Block, container)
+        CodeEditor editor = block:GetEditor()
+
+        number height = editor:GetLineHeight(block:GetStartLine())
+        integer i = block:GetStartLine() + 1
+        repeat while i <= block:GetEndLine()
+            height = height + editor:GetLineHeight(i)
+            i = i + 1
+        end
+
+        number x = block:GetLeftPadding()
+        number y = height / 2.0 
+
+        i = 0
+        repeat while i < items:GetSize()
+            if items:Get(i) is Control            
+                Control control = cast(Control, items:Get(i))
+                x = x + control:GetLeftPadding()
+                
+                if control:GetDefaultLayoutProperties():NeedsRendering()
+                    control:LoadGraphics(control:GetDefaultLayoutProperties())
+                end
+
+                if control is EditRegion
+                    // EditRegions can reliably determine their size via the UpdateLength action.
+                    EditRegion region = cast(EditRegion, control)
+                    region:UpdateLength()
+                else
+                    // For now, assume the element is capable of figuring out its own size during a Resize.
+                    control:Resize()
+                end
+
+                control:SetPosition(x, y - control:GetHeight() / 2.0)
+                x = x + control:GetWidth() + control:GetRightPadding()
+            end
+            i = i + 1
+        end
+
+        number minimumWidth = block:GetTopNotchPosition()
+        if block:GetBottomNotchPosition() > minimumWidth
+            minimumWidth = block:GetBottomNotchPosition()
+        end
+        minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth()
+
+        if x < minimumWidth
+            x = minimumWidth
+        end
+
+        block:SetSize(x + block:GetRightPadding(), height)
+
+        /*
+        After we've figured out the block's size, double check if we need to extend the last EditRegion.
+        Our aim is to ensure that if the last Item in the block is an EditRegion, it fills any extra space
+        present due to the minimum width.
+        */
+        if items:GetFromEnd() is EditRegion
+            EditRegion region = cast(EditRegion, items:GetFromEnd())
+            number fillWidth = block:GetMinimumWidth() - region:GetX() - block:GetRightPadding()
+            if region:GetWidth() < fillWidth
+                region:SetWidth(fillWidth)
+            end
+        end
+    end
+
+end

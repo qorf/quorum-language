@@ -25,8 +25,9 @@ class Main
 end
 */
 class Script is WebTag, FlowContent
-
     text code = ""
+    boolean isAsync = false
+    boolean generateType = true
     constant text async = "async"
     constant text charSet = "charset"
     constant text defer = "defer"
@@ -84,11 +85,7 @@ class Script is WebTag, FlowContent
         script:SetAsync(true)
     */
     action SetAsync(boolean value)
-        if value
-            AddAttribute(async, async)
-        else
-            RemoveAttribute(async)
-        end
+        isAsync = value
     end
 
     /*
@@ -103,12 +100,8 @@ class Script is WebTag, FlowContent
         Script script
         boolean asych = script:GetAsync()
     */
-    action GetAsync returns boolean
-        Attribute isAsync = GetAttribute(async)
-        if isAsync not= undefined
-            return isAsync:GetValue() = async
-        end
-        return false
+    action IsAsync returns boolean
+        return isAsync
     end
 
     /*
@@ -253,9 +246,16 @@ class Script is WebTag, FlowContent
 
     action Generate returns text
         text result = "<script " 
+        if IsAsync()
+            result = result + async + " "
+        end
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
-        result = result + attributeText + " type=" + code:GetDoubleQuote() + "text/javascript" + code:GetDoubleQuote() + ">"
+        if IsGenerateType()
+            result = result + attributeText + " type=" + code:GetDoubleQuote() + "text/javascript" + code:GetDoubleQuote() + ">"
+        else
+            result = result + attributeText + ">"
+        end
         result = result + me:GenerateNestedTags()
         result = result + code
         result = result + "<" + "/" + "script" + ">"
@@ -263,4 +263,11 @@ class Script is WebTag, FlowContent
     end
 
 
+    action IsGenerateType returns boolean
+        return generateType
+    end
+
+    action SetGenerateType(boolean generateType)
+        me:generateType = generateType
+    end
 end

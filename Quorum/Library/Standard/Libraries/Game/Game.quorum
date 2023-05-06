@@ -575,8 +575,14 @@ class Game
         // Adding FlowChart Input, which is different than typical charts.
         sets:SetupFlowChartInput(gameInput)
 
+        // Adding Block Editor Input
+        sets:SetupBlockEditorInput(gameInput)
+
         // Add the default input sets for the scroll bars of ScrollableControls.
         sets:SetupScrollBarControlInput(gameInput)
+
+        // Add the default input sets for ScrollPanes.
+        sets:SetupScrollPaneInput(gameInput)
     end
 
     /*

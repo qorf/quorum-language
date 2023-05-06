@@ -983,6 +983,22 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return caretCharacter
     end
 
+    action GetCaretX returns number
+        return caret:GetX()
+    end
+
+    action GetCaretY returns number
+        return caret:GetY()
+    end
+
+    action GetCaretGlobalX returns number
+        return caret:GetGlobalX()
+    end
+
+    action GetCaretGlobalY returns number
+        return caret:GetGlobalY()
+    end
+
     action GetText returns text
         return textValue
     end

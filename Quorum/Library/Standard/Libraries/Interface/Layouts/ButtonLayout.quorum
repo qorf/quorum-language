@@ -123,11 +123,11 @@ class ButtonLayout is Layout
                 constant integer maximumFontSize = 100
 
                 number candidateHeight = candidatePercentage * containerHeight
-                if candidateHeight > containerHeight - label:GetTopPadding() - label:GetBottomPadding()
-                    candidateHeight = containerHeight - label:GetTopPadding() - label:GetBottomPadding()
+                if candidateHeight > containerHeight - label:GetTopMargin() - label:GetBottomMargin()
+                    candidateHeight = containerHeight - label:GetTopMargin() - label:GetBottomMargin()
                 end
-                if icon not= undefined and (candidateHeight > containerHeight - icon:GetTopPadding() - icon:GetBottomPadding())
-                    candidateHeight = containerHeight - icon:GetTopPadding() - icon:GetBottomPadding()
+                if icon not= undefined and (candidateHeight > containerHeight - icon:GetTopMargin() - icon:GetBottomMargin())
+                    candidateHeight = containerHeight - icon:GetTopMargin() - icon:GetBottomMargin()
                 end
 
                 integer candidateFontSize = label:GetFontSize()
@@ -136,13 +136,13 @@ class ButtonLayout is Layout
                 number heightRatio = candidateHeight / startHeight
 
                 number candidateWidth = candidatePercentage * containerWidth
-                if candidateWidth > containerWidth - label:GetLeftPadding() - label:GetRightPadding()
-                    candidateWidth = containerWidth - label:GetLeftPadding() - label:GetRightPadding()
+                if candidateWidth > containerWidth - label:GetLeftMargin() - label:GetRightMargin()
+                    candidateWidth = containerWidth - label:GetLeftMargin() - label:GetRightMargin()
                 end
 
                 // Shorten the candidate width area by the predicted size of the icon
                 if icon not= undefined
-                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftPadding()
+                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftMargin()
                 end
 
                 number startWidth = label:GetWidth()
@@ -165,20 +165,20 @@ class ButtonLayout is Layout
 
             number iconWidth = 0
             number iconHeight = 0
-            number iconLeftPadding = 0
+            number iconLeftMargin = 0
 
             if icon not= undefined
                 // For simplicity, presume the Icon is always the height of 1 line of text, for now, and use its aspect ratio for width.
                 iconHeight = label:GetLineHeight()
                 iconWidth = iconHeight * icon:GetPercentageWidth()
-                iconLeftPadding = icon:GetLeftPadding()
+                iconLeftMargin = icon:GetLeftMargin()
             end
 
-            number labelLeftPadding = label:GetLeftPadding()
-            number labelRightPadding = label:GetRightPadding()
+            number labelLeftMargin = label:GetLeftMargin()
+            number labelRightMargin = label:GetRightMargin()
 
             if setContainerWidth = false
-                label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftPadding - labelLeftPadding - labelRightPadding)
+                label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftMargin - labelLeftMargin - labelRightMargin)
             else
                 label:SetMaximumWidth(0)
             end
@@ -190,14 +190,14 @@ class ButtonLayout is Layout
             // Figure out how much space is actually taken up inside the Button now that the label has laid out its characters.
             number internalWidth = iconWidth + label:GetWidth()
             if icon not= undefined
-                internalWidth = internalWidth + labelLeftPadding
+                internalWidth = internalWidth + labelLeftMargin
             end
 
             number totalWidth = 0
             if setContainerWidth = false
                 totalWidth = container:GetWidth()
             elseif containerWidthMode not= container:MAINTAIN_ASPECT_RATIO
-                totalWidth = iconLeftPadding + iconWidth + labelLeftPadding + label:GetWidth() + labelRightPadding
+                totalWidth = iconLeftMargin + iconWidth + labelLeftMargin + label:GetWidth() + labelRightMargin
             end
 
             /*
@@ -206,13 +206,13 @@ class ButtonLayout is Layout
             using the MAINTAIN_ASPECT_RATIO mode).
             */
             number totalHeight = 0
-            number labelTopPadding = label:GetTopPadding()
-            number labelBottomPadding = label:GetBottomPadding()
+            number labelTopMargin = label:GetTopMargin()
+            number labelBottomMargin = label:GetBottomMargin()
             if setContainerHeight
                 if containerHeightMode = container:FIT_FONT
-                    totalHeight = container:GetFont():GetLineHeight() + labelTopPadding + labelBottomPadding
+                    totalHeight = container:GetFont():GetLineHeight() + labelTopMargin + labelBottomMargin
                 elseif containerHeightMode = container:FIT_CONTENTS
-                    totalHeight = label:GetHeight() + labelTopPadding + labelBottomPadding
+                    totalHeight = label:GetHeight() + labelTopMargin + labelBottomMargin
                 elseif containerHeightMode = container:MAINTAIN_ASPECT_RATIO
                     totalHeight = totalWidth * container:GetPercentageHeight()
                 end
@@ -235,28 +235,28 @@ class ButtonLayout is Layout
             end
 
             number iconX = (totalWidth - internalWidth) / 2.0
-            if iconX < iconLeftPadding
-                iconX = iconLeftPadding
+            if iconX < iconLeftMargin
+                iconX = iconLeftMargin
             end
             
             number iconY = (totalHeight - iconHeight) / 2.0
-            if icon not= undefined and iconY < icon:GetBottomPadding()
-                iconY = icon:GetBottomPadding()
+            if icon not= undefined and iconY < icon:GetBottomMargin()
+                iconY = icon:GetBottomMargin()
             end
 
             number labelX = iconX
             if icon not= undefined
-                labelX = iconX + iconWidth + labelLeftPadding
-            elseif labelX < labelLeftPadding
-                labelX = labelLeftPadding
+                labelX = iconX + iconWidth + labelLeftMargin
+            elseif labelX < labelLeftMargin
+                labelX = labelLeftMargin
             end
 
             number labelY = (totalHeight - label:GetHeight()) / 2.0
             if label:GetLineCount() > 1
                 labelY = labelY + label:GetFont():GetLineHeight() * (label:GetLineCount() - 1)
             end
-            if labelY < labelBottomPadding
-                labelY = labelBottomPadding
+            if labelY < labelBottomMargin
+                labelY = labelBottomMargin
             end
 
             if icon not= undefined

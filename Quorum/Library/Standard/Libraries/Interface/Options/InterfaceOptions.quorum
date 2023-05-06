@@ -145,6 +145,9 @@ class InterfaceOptions
     public constant text TOOL_BAR = "ToolBar"
     public constant text TREE_ITEM = "TreeItem"
     public constant text TREE_TABLE_CELL = "TreeTableCell"
+    public constant text GROUPING = "Grouping"
+    public constant text START_BUTTON_GROUPING = "StartButtonGrouping"
+    public constant text BANNER = "Banner"
 
     // HashTables for color & number properties and interface options.
     HashTable<text, ColorGroup> colorProperties
@@ -11813,6 +11816,1158 @@ class InterfaceOptions
 
     action CopyTreeTableCellInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TREE_TABLE_CELL)
+    end
+
+    action SetGroupingBackgroundColor(ColorGroup value)
+        SetBackgroundColor(GROUPING, value)
+    end
+
+    action GetGroupingBackgroundColor returns ColorGroup
+        return GetBackgroundColor(GROUPING)
+    end
+
+    action SetGroupingForegroundColor(ColorGroup value)
+        SetForegroundColor(GROUPING, value)
+    end
+
+    action GetGroupingForegroundColor returns ColorGroup
+        return GetForegroundColor(GROUPING)
+    end
+
+    action SetGroupingForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(GROUPING, value)
+    end
+
+    action GetGroupingForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(GROUPING)
+    end
+
+    action SetGroupingFontColor(ColorGroup value)
+        SetFontColor(GROUPING, value)
+    end
+
+    action GetGroupingFontColor returns ColorGroup
+        return GetFontColor(GROUPING)
+    end
+
+    action SetGroupingFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(GROUPING, value)
+    end
+
+    action GetGroupingFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(GROUPING)
+    end
+
+    action SetGroupingBorderColor(ColorGroup value)
+        SetBorderColor(GROUPING, value)
+    end
+
+    action GetGroupingBorderColor returns ColorGroup
+        return GetBorderColor(GROUPING)
+    end
+
+    action SetGroupingFocusColor(ColorGroup value)
+        SetFocusColor(GROUPING, value)
+    end
+
+    action GetGroupingFocusColor returns ColorGroup
+        return GetFocusColor(GROUPING)
+    end
+
+    action SetGroupingFocusFontColor(ColorGroup value)
+        SetFocusFontColor(GROUPING, value)
+    end
+
+    action GetGroupingFocusFontColor returns ColorGroup
+        return GetFocusFontColor(GROUPING)
+    end
+
+    action SetGroupingFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(GROUPING, value)
+    end
+
+    action GetGroupingFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(GROUPING)
+    end
+
+    action SetGroupingMouseOverColor(ColorGroup value)
+        SetMouseOverColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseOverColor returns ColorGroup
+        return GetMouseOverColor(GROUPING)
+    end
+
+    action SetGroupingMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(GROUPING)
+    end
+
+    action SetGroupingMouseDownColor(ColorGroup value)
+        SetMouseDownColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseDownColor returns ColorGroup
+        return GetMouseDownColor(GROUPING)
+    end
+
+    action SetGroupingMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(GROUPING)
+    end
+
+    action SetGroupingSelectionColor(ColorGroup value)
+        SetSelectionColor(GROUPING, value)
+    end
+
+    action GetGroupingSelectionColor returns ColorGroup
+        return GetSelectionColor(GROUPING)
+    end
+
+    action SetGroupingSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(GROUPING, value)
+    end
+
+    action GetGroupingSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(GROUPING)
+    end
+
+    action SetGroupingUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(GROUPING, value)
+    end
+
+    action GetGroupingUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(GROUPING)
+    end
+
+    action SetGroupingUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(GROUPING, value)
+    end
+
+    action GetGroupingUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(GROUPING)
+    end
+
+    action SetGroupingSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(GROUPING, value)
+    end
+
+    action GetGroupingSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(GROUPING)
+    end
+
+    action SetGroupingUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(GROUPING, value)
+    end
+
+    action GetGroupingUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(GROUPING)
+    end
+
+    action SetGroupingGlowColor(ColorGroup value)
+        SetGlowColor(GROUPING, value)
+    end
+
+    action GetGroupingGlowColor returns ColorGroup
+        return GetGlowColor(GROUPING)
+    end
+
+    action SetGroupingMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(GROUPING)
+    end
+
+    action SetGroupingMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(GROUPING)
+    end
+
+    action SetGroupingIconColor(ColorGroup value)
+        SetIconColor(GROUPING, value)
+    end
+
+    action GetGroupingIconColor returns ColorGroup
+        return GetIconColor(GROUPING)
+    end
+
+    action SetGroupingAccentColor(ColorGroup value)
+        SetAccentColor(GROUPING, value)
+    end
+
+    action GetGroupingAccentColor returns ColorGroup
+        return GetAccentColor(GROUPING)
+    end
+
+    action SetGroupingShadowColor(ColorGroup value)
+        SetShadowColor(GROUPING, value)
+    end
+
+    action GetGroupingShadowColor returns ColorGroup
+        return GetShadowColor(GROUPING)
+    end
+
+    action SetGroupingBorderThickness(number value)
+        SetBorderThickness(GROUPING, value)
+    end
+
+    action GetGroupingBorderThickness returns number
+        return GetBorderThickness(GROUPING)
+    end
+
+    action HasGroupingBorderThickness returns boolean
+        return GetBorderThickness(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingFontOutlineThickness(number value)
+        SetFontOutlineThickness(GROUPING, value)
+    end
+
+    action GetGroupingFontOutlineThickness returns number
+        return GetFontOutlineThickness(GROUPING)
+    end
+
+    action HasGroupingFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingTopLeftRounding(number value)
+        SetTopLeftRounding(GROUPING, value)
+    end
+
+    action GetGroupingTopLeftRounding returns number
+        return GetTopLeftRounding(GROUPING)
+    end
+
+    action HasGroupingTopLeftRounding returns boolean
+        return GetTopLeftRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingTopRightRounding(number value)
+        SetTopRightRounding(GROUPING, value)
+    end
+
+    action GetGroupingTopRightRounding returns number
+        return GetTopRightRounding(GROUPING)
+    end
+
+    action HasGroupingTopRightRounding returns boolean
+        return GetTopRightRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingBottomLeftRounding(number value)
+        SetBottomLeftRounding(GROUPING, value)
+    end
+
+    action GetGroupingBottomLeftRounding returns number
+        return GetBottomLeftRounding(GROUPING)
+    end
+
+    action HasGroupingBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingBottomRightRounding(number value)
+        SetBottomRightRounding(GROUPING, value)
+    end
+
+    action GetGroupingBottomRightRounding returns number
+        return GetBottomRightRounding(GROUPING)
+    end
+
+    action HasGroupingBottomRightRounding returns boolean
+        return GetBottomRightRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(GROUPING, value)
+    end
+
+    action GetGroupingTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(GROUPING)
+    end
+
+    action HasGroupingTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(GROUPING, value)
+    end
+
+    action GetGroupingTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(GROUPING)
+    end
+
+    action HasGroupingTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(GROUPING, value)
+    end
+
+    action GetGroupingBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(GROUPING)
+    end
+
+    action HasGroupingBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(GROUPING, value)
+    end
+
+    action GetGroupingBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(GROUPING)
+    end
+
+    action HasGroupingBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingShadowX(number value)
+        SetShadowX(GROUPING, value)
+    end
+
+    action GetGroupingShadowX returns number
+        return GetShadowX(GROUPING)
+    end
+
+    action HasGroupingShadowX returns boolean
+        return GetShadowX(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingShadowY(number value)
+        SetShadowY(GROUPING, value)
+    end
+
+    action GetGroupingShadowY returns number
+        return GetShadowY(GROUPING)
+    end
+
+    action HasGroupingShadowY returns boolean
+        return GetShadowY(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingShadowWidth(number value)
+        SetShadowWidth(GROUPING, value)
+    end
+
+    action GetGroupingShadowWidth returns number
+        return GetShadowWidth(GROUPING)
+    end
+
+    action HasGroupingShadowWidth returns boolean
+        return GetShadowWidth(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingShadowHeight(number value)
+        SetShadowHeight(GROUPING, value)
+    end
+
+    action GetGroupingShadowHeight returns number
+        return GetShadowHeight(GROUPING)
+    end
+
+    action HasGroupingShadowHeight returns boolean
+        return GetShadowHeight(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingShadowEdgeFade(number value)
+        SetShadowEdgeFade(GROUPING, value)
+    end
+
+    action GetGroupingShadowEdgeFade returns number
+        return GetShadowEdgeFade(GROUPING)
+    end
+
+    action HasGroupingShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(GROUPING):IsNotANumber() = false
+    end
+
+    action CopyGroupingInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(GROUPING)
+    end
+
+    action SetStartButtonGroupingBackgroundColor(ColorGroup value)
+        SetBackgroundColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBackgroundColor returns ColorGroup
+        return GetBackgroundColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingForegroundColor(ColorGroup value)
+        SetForegroundColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingForegroundColor returns ColorGroup
+        return GetForegroundColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingFontColor(ColorGroup value)
+        SetFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFontColor returns ColorGroup
+        return GetFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingBorderColor(ColorGroup value)
+        SetBorderColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBorderColor returns ColorGroup
+        return GetBorderColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingFocusColor(ColorGroup value)
+        SetFocusColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFocusColor returns ColorGroup
+        return GetFocusColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingFocusFontColor(ColorGroup value)
+        SetFocusFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFocusFontColor returns ColorGroup
+        return GetFocusFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseOverColor(ColorGroup value)
+        SetMouseOverColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseOverColor returns ColorGroup
+        return GetMouseOverColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseDownColor(ColorGroup value)
+        SetMouseDownColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseDownColor returns ColorGroup
+        return GetMouseDownColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingSelectionColor(ColorGroup value)
+        SetSelectionColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingSelectionColor returns ColorGroup
+        return GetSelectionColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingGlowColor(ColorGroup value)
+        SetGlowColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingGlowColor returns ColorGroup
+        return GetGlowColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingIconColor(ColorGroup value)
+        SetIconColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingIconColor returns ColorGroup
+        return GetIconColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingAccentColor(ColorGroup value)
+        SetAccentColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingAccentColor returns ColorGroup
+        return GetAccentColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingShadowColor(ColorGroup value)
+        SetShadowColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowColor returns ColorGroup
+        return GetShadowColor(START_BUTTON_GROUPING)
+    end
+
+    action SetStartButtonGroupingBorderThickness(number value)
+        SetBorderThickness(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBorderThickness returns number
+        return GetBorderThickness(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingBorderThickness returns boolean
+        return GetBorderThickness(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingFontOutlineThickness(number value)
+        SetFontOutlineThickness(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingFontOutlineThickness returns number
+        return GetFontOutlineThickness(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingTopLeftRounding(number value)
+        SetTopLeftRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingTopLeftRounding returns number
+        return GetTopLeftRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingTopLeftRounding returns boolean
+        return GetTopLeftRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingTopRightRounding(number value)
+        SetTopRightRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingTopRightRounding returns number
+        return GetTopRightRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingTopRightRounding returns boolean
+        return GetTopRightRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingBottomLeftRounding(number value)
+        SetBottomLeftRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBottomLeftRounding returns number
+        return GetBottomLeftRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingBottomRightRounding(number value)
+        SetBottomRightRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBottomRightRounding returns number
+        return GetBottomRightRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingBottomRightRounding returns boolean
+        return GetBottomRightRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingShadowX(number value)
+        SetShadowX(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowX returns number
+        return GetShadowX(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingShadowX returns boolean
+        return GetShadowX(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingShadowY(number value)
+        SetShadowY(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowY returns number
+        return GetShadowY(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingShadowY returns boolean
+        return GetShadowY(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingShadowWidth(number value)
+        SetShadowWidth(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowWidth returns number
+        return GetShadowWidth(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingShadowWidth returns boolean
+        return GetShadowWidth(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingShadowHeight(number value)
+        SetShadowHeight(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowHeight returns number
+        return GetShadowHeight(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingShadowHeight returns boolean
+        return GetShadowHeight(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingShadowEdgeFade(number value)
+        SetShadowEdgeFade(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingShadowEdgeFade returns number
+        return GetShadowEdgeFade(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action CopyStartButtonGroupingInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(START_BUTTON_GROUPING)
+    end
+
+    action SetBannerBackgroundColor(ColorGroup value)
+        SetBackgroundColor(BANNER, value)
+    end
+
+    action GetBannerBackgroundColor returns ColorGroup
+        return GetBackgroundColor(BANNER)
+    end
+
+    action SetBannerForegroundColor(ColorGroup value)
+        SetForegroundColor(BANNER, value)
+    end
+
+    action GetBannerForegroundColor returns ColorGroup
+        return GetForegroundColor(BANNER)
+    end
+
+    action SetBannerForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(BANNER, value)
+    end
+
+    action GetBannerForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(BANNER)
+    end
+
+    action SetBannerFontColor(ColorGroup value)
+        SetFontColor(BANNER, value)
+    end
+
+    action GetBannerFontColor returns ColorGroup
+        return GetFontColor(BANNER)
+    end
+
+    action SetBannerFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(BANNER, value)
+    end
+
+    action GetBannerFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(BANNER)
+    end
+
+    action SetBannerBorderColor(ColorGroup value)
+        SetBorderColor(BANNER, value)
+    end
+
+    action GetBannerBorderColor returns ColorGroup
+        return GetBorderColor(BANNER)
+    end
+
+    action SetBannerFocusColor(ColorGroup value)
+        SetFocusColor(BANNER, value)
+    end
+
+    action GetBannerFocusColor returns ColorGroup
+        return GetFocusColor(BANNER)
+    end
+
+    action SetBannerFocusFontColor(ColorGroup value)
+        SetFocusFontColor(BANNER, value)
+    end
+
+    action GetBannerFocusFontColor returns ColorGroup
+        return GetFocusFontColor(BANNER)
+    end
+
+    action SetBannerFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(BANNER, value)
+    end
+
+    action GetBannerFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(BANNER)
+    end
+
+    action SetBannerMouseOverColor(ColorGroup value)
+        SetMouseOverColor(BANNER, value)
+    end
+
+    action GetBannerMouseOverColor returns ColorGroup
+        return GetMouseOverColor(BANNER)
+    end
+
+    action SetBannerMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(BANNER, value)
+    end
+
+    action GetBannerMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(BANNER)
+    end
+
+    action SetBannerMouseDownColor(ColorGroup value)
+        SetMouseDownColor(BANNER, value)
+    end
+
+    action GetBannerMouseDownColor returns ColorGroup
+        return GetMouseDownColor(BANNER)
+    end
+
+    action SetBannerMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(BANNER, value)
+    end
+
+    action GetBannerMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(BANNER)
+    end
+
+    action SetBannerSelectionColor(ColorGroup value)
+        SetSelectionColor(BANNER, value)
+    end
+
+    action GetBannerSelectionColor returns ColorGroup
+        return GetSelectionColor(BANNER)
+    end
+
+    action SetBannerSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(BANNER, value)
+    end
+
+    action GetBannerSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(BANNER)
+    end
+
+    action SetBannerUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(BANNER, value)
+    end
+
+    action GetBannerUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(BANNER)
+    end
+
+    action SetBannerUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(BANNER, value)
+    end
+
+    action GetBannerUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(BANNER)
+    end
+
+    action SetBannerSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(BANNER, value)
+    end
+
+    action GetBannerSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(BANNER)
+    end
+
+    action SetBannerUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(BANNER, value)
+    end
+
+    action GetBannerUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(BANNER)
+    end
+
+    action SetBannerGlowColor(ColorGroup value)
+        SetGlowColor(BANNER, value)
+    end
+
+    action GetBannerGlowColor returns ColorGroup
+        return GetGlowColor(BANNER)
+    end
+
+    action SetBannerMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(BANNER, value)
+    end
+
+    action GetBannerMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(BANNER)
+    end
+
+    action SetBannerMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(BANNER, value)
+    end
+
+    action GetBannerMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(BANNER)
+    end
+
+    action SetBannerIconColor(ColorGroup value)
+        SetIconColor(BANNER, value)
+    end
+
+    action GetBannerIconColor returns ColorGroup
+        return GetIconColor(BANNER)
+    end
+
+    action SetBannerAccentColor(ColorGroup value)
+        SetAccentColor(BANNER, value)
+    end
+
+    action GetBannerAccentColor returns ColorGroup
+        return GetAccentColor(BANNER)
+    end
+
+    action SetBannerShadowColor(ColorGroup value)
+        SetShadowColor(BANNER, value)
+    end
+
+    action GetBannerShadowColor returns ColorGroup
+        return GetShadowColor(BANNER)
+    end
+
+    action SetBannerBorderThickness(number value)
+        SetBorderThickness(BANNER, value)
+    end
+
+    action GetBannerBorderThickness returns number
+        return GetBorderThickness(BANNER)
+    end
+
+    action HasBannerBorderThickness returns boolean
+        return GetBorderThickness(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerFontOutlineThickness(number value)
+        SetFontOutlineThickness(BANNER, value)
+    end
+
+    action GetBannerFontOutlineThickness returns number
+        return GetFontOutlineThickness(BANNER)
+    end
+
+    action HasBannerFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerTopLeftRounding(number value)
+        SetTopLeftRounding(BANNER, value)
+    end
+
+    action GetBannerTopLeftRounding returns number
+        return GetTopLeftRounding(BANNER)
+    end
+
+    action HasBannerTopLeftRounding returns boolean
+        return GetTopLeftRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerTopRightRounding(number value)
+        SetTopRightRounding(BANNER, value)
+    end
+
+    action GetBannerTopRightRounding returns number
+        return GetTopRightRounding(BANNER)
+    end
+
+    action HasBannerTopRightRounding returns boolean
+        return GetTopRightRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerBottomLeftRounding(number value)
+        SetBottomLeftRounding(BANNER, value)
+    end
+
+    action GetBannerBottomLeftRounding returns number
+        return GetBottomLeftRounding(BANNER)
+    end
+
+    action HasBannerBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerBottomRightRounding(number value)
+        SetBottomRightRounding(BANNER, value)
+    end
+
+    action GetBannerBottomRightRounding returns number
+        return GetBottomRightRounding(BANNER)
+    end
+
+    action HasBannerBottomRightRounding returns boolean
+        return GetBottomRightRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(BANNER, value)
+    end
+
+    action GetBannerTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(BANNER)
+    end
+
+    action HasBannerTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(BANNER, value)
+    end
+
+    action GetBannerTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(BANNER)
+    end
+
+    action HasBannerTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(BANNER, value)
+    end
+
+    action GetBannerBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(BANNER)
+    end
+
+    action HasBannerBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(BANNER, value)
+    end
+
+    action GetBannerBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(BANNER)
+    end
+
+    action HasBannerBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerShadowX(number value)
+        SetShadowX(BANNER, value)
+    end
+
+    action GetBannerShadowX returns number
+        return GetShadowX(BANNER)
+    end
+
+    action HasBannerShadowX returns boolean
+        return GetShadowX(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerShadowY(number value)
+        SetShadowY(BANNER, value)
+    end
+
+    action GetBannerShadowY returns number
+        return GetShadowY(BANNER)
+    end
+
+    action HasBannerShadowY returns boolean
+        return GetShadowY(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerShadowWidth(number value)
+        SetShadowWidth(BANNER, value)
+    end
+
+    action GetBannerShadowWidth returns number
+        return GetShadowWidth(BANNER)
+    end
+
+    action HasBannerShadowWidth returns boolean
+        return GetShadowWidth(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerShadowHeight(number value)
+        SetShadowHeight(BANNER, value)
+    end
+
+    action GetBannerShadowHeight returns number
+        return GetShadowHeight(BANNER)
+    end
+
+    action HasBannerShadowHeight returns boolean
+        return GetShadowHeight(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerShadowEdgeFade(number value)
+        SetShadowEdgeFade(BANNER, value)
+    end
+
+    action GetBannerShadowEdgeFade returns number
+        return GetShadowEdgeFade(BANNER)
+    end
+
+    action HasBannerShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(BANNER):IsNotANumber() = false
+    end
+
+    action CopyBannerInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(BANNER)
     end
 
 end

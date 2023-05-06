@@ -2,6 +2,7 @@ package Libraries.Interface.Forms
 
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.ColorGroup
 
 class Banner is Grouping
 
@@ -12,10 +13,7 @@ class Banner is Grouping
         CenterAlignContent()
         SetTitleSizeLarge()
         
-        // These colors shouldn't be hardcoded in the long run, but this works as temporary values for testing.
-        Color color
-        color:SetColor(172.0 / 255.0, 209.0 / 255.0, 223.0 / 255.0, 1.0)
-        SetBackgroundColor(color)
+        SetInterfaceOptionsKey("Banner")
     end
 
     action Initialize(text title)

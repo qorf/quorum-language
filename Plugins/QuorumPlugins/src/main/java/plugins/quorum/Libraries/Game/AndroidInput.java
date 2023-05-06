@@ -1,15 +1,21 @@
 package plugins.quorum.Libraries.Game;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import java.util.HashMap;
 
 import android.view.ScaleGestureDetector;
+import android.view.inputmethod.InputMethodManager;
+import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility;
+import plugins.quorum.Libraries.Interface.Mobile.AndroidKeyboard;
 import quorum.Libraries.Containers.List_;
+import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.GestureEvent;
 import quorum.Libraries.Interface.Events.GestureEvent_;
 import quorum.Libraries.Interface.Events.TouchEvent;
 import quorum.Libraries.Interface.Events.TouchEvent_;
+import quorum.Libraries.Interface.Item_;
 
 /**
  *
@@ -31,6 +37,8 @@ public class AndroidInput
     private List_ touchEvents;
     private List_ gestureEvents;
     private final HashMap<Integer, Coordinates> map = new HashMap<>();
+
+    public final AndroidKeyboard androidKeyboard = new AndroidKeyboard();
 
     boolean longPressed = false;
     int maxFingerCount;
@@ -57,16 +65,52 @@ public class AndroidInput
     
     public TouchEvent_[] ConvertToQuorumEvents(MotionEvent e)
     {
+        if (e == null) {
+            return new TouchEvent_[0];
+        }
             TouchEvent_[] eventArray;
             TouchEvent event;
             int id;
             int x;
             int y;
             Coordinates coordinates;
+            Item_ temp =  AndroidAccessibility.lastSpokenChild;
             switch(e.getActionMasked())
             {
                     case (MotionEvent.ACTION_DOWN):
                     case (MotionEvent.ACTION_POINTER_DOWN):
+                        if(temp != null) {
+                            if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__BUTTON_()) {
+                                ((Button_) temp).ClickedMouse();
+                                AndroidAccessibility.sendAccessibilityEventForVirtualView("Clicked the button");
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TEXTBOX_()){
+                                ((TextBox_)temp).Focus();
+                                AndroidAccessibility.sendAccessibilityEventForVirtualView(((TextBox_)temp).GetText());
+                                TextField_ textField = ((TextField_)temp);
+                                androidKeyboard.DisplayKeyboard();
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TREE_ITEM_()){
+                                ((TreeItem_)temp).Focus();
+                                ((TreeItem_)temp).ClickedMouse();
+                                if (((TreeItem_)temp).IsOpen())
+                                    ((TreeItem_)temp).Close();
+                                else
+                                    ((TreeItem_)temp).Open();
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__CHECKBOX_()){
+                                ((Checkbox_)temp).Focus();
+                                if (((Checkbox_)temp).GetToggleState())
+                                    ((Checkbox_)temp).SetToggleState(false);
+                                else
+                                    ((Checkbox_)temp).SetToggleState(true);
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__RADIO_BUTTON_()){
+                                ((RadioButton_)temp).Focus();
+                                ((RadioButton_)temp).SetToggleState(true);
+                            } else if(temp.GetAccessibilityCode() == temp.Get_Libraries_Interface_Item__TAB_()){
+                                ((Tab_)temp).Focus();
+                                ((Tab_)temp).ClickedMouse();
+                                ((Tab_)temp).SetToggleState(true);
+                            }
+                        }
+
                         scaleFactor = 1.0f;
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();
@@ -103,10 +147,16 @@ public class AndroidInput
                         event.fingerID = id;
                         event.eventType = event.MOVED;
                         coordinates = map.get(id);
-                        event.movementX = event.x - coordinates.x;
-                        event.movementY = event.y - coordinates.y;
-                        coordinates.x = x;
-                        coordinates.y = y;
+
+                        if (coordinates != null) {
+                            event.movementX = event.x - coordinates.x;
+                            event.movementY = event.y - coordinates.y;
+                            coordinates.x = x;
+                            coordinates.y = y;
+                        } else {
+                            event.movementX = 0;
+                            event.movementY = 0;
+                        }
                         eventArray[i] = event;
                     }
                     break;
@@ -179,8 +229,13 @@ public class AndroidInput
 
     private void InitializeValues(MotionEvent event, GestureEvent quorumEvent)
     {
-        int x = (int)event.getRawX();
-        int y = GameStateManager.display.GetHeight() - (int)event.getRawY();
+        int x = 0;
+        int y = 0;
+        if (event != null){
+            x = (int)event.getRawX();
+            y = GameStateManager.display.GetHeight() - (int)event.getRawY();
+        }
+
 
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
