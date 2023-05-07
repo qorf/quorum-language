@@ -103,7 +103,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         var loadImage = new Image();
         var pixelMap = this.me_;
         var url = file.GetAbsolutePath();
-        if (!url.startsWith("http"))
+        if (!url.startsWith("http") && !url.startsWith("data:image"))
         {
             if (location.protocol === "https:")
                 url = "https://" + url;
