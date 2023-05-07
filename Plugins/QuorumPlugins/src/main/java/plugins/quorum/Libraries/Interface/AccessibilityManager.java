@@ -519,6 +519,7 @@ public class AccessibilityManager
                 break;
             case LIST_ITEM:
                 selected = SelectListItemNative(selectedItem);
+                break;
             case CELL:
             case TREE_TABLE_CELL:
                 selected = SelectCellNative(selectedItem);

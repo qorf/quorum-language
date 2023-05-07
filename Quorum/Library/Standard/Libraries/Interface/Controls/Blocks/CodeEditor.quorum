@@ -175,7 +175,7 @@ class CodeEditor is ScrollableLineControl
     currentSelection highlight and remove the previousSelection highlight 
     from the textBox */
     action NextFindSelection()
-        if findIndices:GetSize() not= 0
+        if findIndices not= undefined and findIndices:GetSize() not= 0
             integer previousSelection = findSelection
             findSelection = findSelection + 1
             UpdateCurrentFindSelection(previousSelection, true)
@@ -187,7 +187,7 @@ class CodeEditor is ScrollableLineControl
     currentSelection highlight and remove the previousSelection highlight 
     from the textBox */
     action PreviousFindSelection()
-        if findIndices:GetSize() not= 0
+        if findIndices not= undefined and findIndices:GetSize() not= 0
             integer previousSelection = findSelection
             findSelection = findSelection - 1
             UpdateCurrentFindSelection(previousSelection, true)
@@ -219,8 +219,10 @@ class CodeEditor is ScrollableLineControl
 
         integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
         integer line = GetLineIndex(wordStartIndex)
-        SelectBlockAtLine(line)
-        GoToLine(line)
+
+          
+        SelectBlockAtLine(line, false)
+        //GoToLine(line)
 //
 //        
 //        integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
@@ -879,6 +881,22 @@ class CodeEditor is ScrollableLineControl
 
         // Selecting the block without selecting an item will cause it to be focused.
         SelectBlockOrItem(candidate)
+    end
+
+    action SelectBlockAtLine(integer line, boolean focus)
+        if focus
+            SelectBlockAtLine(line)
+            return now
+        end
+        if line >= rawCode:GetLineCount() or line < 0
+            return now
+        end
+
+        Block candidate = renderer:GetNavigableBlockAtLine(line)
+
+        // Selecting the block without selecting an item will cause it to be focused.
+        selection:Set(candidate, line, undefined)
+        //SelectBlockOrItem(candidate)
     end
 
     action GetSelection returns CodeEditorSelection
