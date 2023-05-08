@@ -53,6 +53,30 @@ class DarkModeOptions is InterfaceOptions
         SetButtonFocusFontColor(darkFont)
         SetButtonFocusBorderColor(acceptBlue)
 
+        // ToggleButton properties.
+        SetToggleButtonBorderThickness(1)
+        SetToggleButtonBackgroundColor(controlBackground)
+        SetToggleButtonFontColor(lightFont)
+        SetToggleButtonTopLeftRounding(defaultButtonRounding)
+        SetToggleButtonTopRightRounding(defaultButtonRounding)
+        SetToggleButtonBottomLeftRounding(defaultButtonRounding)
+        SetToggleButtonBottomRightRounding(defaultButtonRounding)
+        SetToggleButtonMouseOverColor(hoverBlue)
+
+        // The color when the button is focused but not selected.
+        SetToggleButtonFocusColor(color:CustomColor(78.0 / MAX, 139.0 / MAX, 205.0 / MAX, 1))
+        SetToggleButtonFocusFontColor(lightFont)
+        SetToggleButtonFocusBorderColor(acceptBlue)
+
+        // The color when the button is selected but not focused.
+        SetToggleButtonUnfocusedSelectionColor(acceptBlue)
+        SetToggleButtonUnfocusedSelectionFontColor(lightFont)
+
+        // The color when the button is focused and selected.
+        SetToggleButtonSelectionColor(color:CustomColor(141.0/MAX, 196.0/MAX, 237.0/MAX, 1))
+
+
+
         // Cell specific colors.
         SetCellBackgroundColor(darkGray)
 

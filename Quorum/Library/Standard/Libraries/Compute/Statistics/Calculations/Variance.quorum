@@ -34,6 +34,7 @@ class Variance is DataFrameColumnCalculation
     number mean = 0
     number variance = 0
     boolean meanSet = false
+    boolean population = false
 
     action Start(DataFrameColumn column) 
         size = column:GetSize() - column:GetUndefinedSize()
@@ -57,7 +58,11 @@ class Variance is DataFrameColumnCalculation
             Math math
             number num = value:GetValue()
             number n = num - mean
-            n = math:RaiseToPower(n, 2) / (size - 1)
+            if population
+                n = math:RaiseToPower(n, 2) / (size)
+            else
+                n = math:RaiseToPower(n, 2) / (size - 1)
+            end
             variance = variance + n
         end
     end
@@ -67,7 +72,11 @@ class Variance is DataFrameColumnCalculation
             Math math
             number num = value:GetValue()
             number n = num - mean
-            n = math:RaiseToPower(n, 2) / (size - 1)
+            if population
+                n = math:RaiseToPower(n, 2) / (size)
+            else
+                n = math:RaiseToPower(n, 2) / (size - 1)
+            end
             variance = variance + n
         end
     end
@@ -80,6 +89,7 @@ class Variance is DataFrameColumnCalculation
         mean = 0
         variance = 0
         meanSet = false
+        population = false
     end
 
     /*
@@ -97,10 +107,17 @@ class Variance is DataFrameColumnCalculation
     end
 
     /*
-        Sets the mean. The variance then uses this valus in its calculation.
+        Sets the mean. The variance then uses this value in its calculation.
     */
     action SetMean(number mean)
         me:mean = mean
         meanSet = true
+    end
+
+    /*
+        Sets the population variance flag, default is sample variance. The variance then uses this value in its calculation.
+    */
+    action UsePopulation(boolean usepopulation)
+        population = true
     end
 end

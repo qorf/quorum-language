@@ -21,23 +21,23 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 
         ** NOT IMPLEMENTED YET **
         Holm-Bonferroni Procedure (Bonferroni Extension)
-            After CompareNIndependentGroups OR CompareNDependentGroups
+            After CompareSeveralMeans OR CompareSeveralRelatedMeans
             Controls for family-wise error rate by adjusting p-values
             For more information: https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method
 
     Lenient:
         Tukey's HSD Multiple Comparison Test
-            After (ANOVA) CompareNIndependentGroups > AssumeEqualVariances(true)
+            After (ANOVA) CompareSeveralMeans > AssumeEqualVariances(true)
             Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
             For more information: https://en.wikipedia.org/wiki/Tukey%27s_range_test
 
         Tukey-Kramer Multiple Comparison Test (Tukey Extension for non-equal sample sizes)
-            After (ANOVA) CompareNIndependentGroups > AssumeEqualVariances(true)
+            After (ANOVA) CompareSeveralMeans > AssumeEqualVariances(true)
             Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
             For more information: https://en.wikipedia.org/wiki/Tukey%27s_range_test 
 
         Games-Howell Multiple Comparison Test (Tukey Extension for non-equal variances)
-            After (Welch ANOVA) CompareNIndependentGroups > AssumeEqualVariances(false)
+            After (Welch ANOVA) CompareSeveralMeans > AssumeEqualVariances(false)
             Find which groups differ using 'Honest Significant Difference' to compare each mean with every other mean
             For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis      
 
@@ -83,56 +83,9 @@ class CompareMeansPairwise is CompareMeans
 
     Math math
 
-    action Calculate(DataFrame frame)       
-        // If nothing is selected attempt to grab frame's selection.
-        if GetColumnSize() = 0 
-            if frame:GetSelection() not= undefined
-                frame:GetSelection():CopyTo(cast(ColumnInput, me))
-            end
-        end
-        if GetFactorSize() = 0 
-            if frame:GetSelection() not= undefined 
-                frame:GetSelection():CopyTo(cast(FactorInput, me))
-            end
-        end
-
-        if Paired() or RepeatedMeasures() or Ranked()
-            parent:StatisticalTest:RemoveUndefined(true)
-        end
-        if GetFactorSize() = 0
-            parent:StatisticalTest:Calculate(frame)
-        else
-            parent:StatisticalTest:CalculateWithFactor(frame)
-        end
-    end
-
-    private action RunTest(DataFrame frame)
-        if GetColumnSize() < 2
-            alert("Must include at least two columns.")
-        end
-
-        // Copy this test's selection to frame
-        frame:EmptySelectedFactors()
-        frame:EmptySelectedColumns()
-        i = 0
-        repeat while i < GetColumnSize()
-            frame:AddSelectedColumn(GetColumn(i))
-            i = i + 1
-        end
-        i = 0
-        repeat while i < GetFactorSize()
-            frame:AddSelectedFactor(GetFactor(i))
-            i = i + 1
-        end
-
-        /* 
-        Run a CompareMeans test, one of the following:
-            Repeated Measures ANOVA
-            Friedman Test
-            ANOVA
-            Welch ANOVA
-            Kruskall Wallis Test 
-        */
+    action Calculate(DataFrame frame)   
+        results:Empty()
+ 
         CompareMeans compare
         compare:Ranked(Ranked())
         compare:Paired(Paired())
@@ -147,9 +100,19 @@ class CompareMeansPairwise is CompareMeans
         Calculate(compare:GetResult())
     end
 
+    private action RunTest(DataFrame frame)
+        
+    end
+
     action Calculate(CompareMeansResult result)
         if result = undefined or result:GetGroupsFrame():GetSize() = 0
             alert("Prior test result is undefined.")
+        end
+        if result:GetGroupsTable():GetSize() > 0
+            alert("Multivariate post hoc tests are not available yet.")
+        end
+        if result:GetFactors():GetSize() > 1
+            alert("Factorial post hoc tests are not available yet.")
         end
         if result:GetGroupsFrame():GetSize() < 3
             alert("Prior test result must be from an N-sample test.")
@@ -184,13 +147,14 @@ class CompareMeansPairwise is CompareMeans
             numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
         end
 
-        if RepeatedMeasures() or Ranked() or not AssumeNormalDistribution()
+        if RepeatedMeasures() or Paired() or Ranked() or not AssumeNormalDistribution()
             i = 0
             repeat while i < k
                 j = i + 1
                 repeat while j < k
                     DataFrameColumn left = testResult:GetGroupsFrame():GetColumn(i)
                     DataFrameColumn right = testResult:GetGroupsFrame():GetColumn(j)
+                    text combo = left:GetHeader()+"_"+right:GetHeader()
     
                     DataFrame pairFrame
                     pairFrame:AddColumn(left)
@@ -213,7 +177,7 @@ class CompareMeansPairwise is CompareMeans
                         if p > 1
                             p = 1
                         end
-                        pair:SetProbabilityValue(p)
+                        pair:SetProbabilityValue(combo, pair:GetTestStatisticName(), p)
                         pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with Bonferroni Correction")
                     else
                         pair:SetFormalTestName("Pairwise " + pair:GetFormalTestName() + " with no family-wise error correction")
@@ -236,10 +200,13 @@ class CompareMeansPairwise is CompareMeans
                 repeat while j < k
                     DataFrameColumn left = testResult:GetGroupsFrame():GetColumn(i)
                     DataFrameColumn right = testResult:GetGroupsFrame():GetColumn(j)
+                    text group1Text = left:GetHeader()
+                    text group2Text = right:GetHeader()
 
                     DataFrame groupFrame
                     groupFrame:AddColumn(left)
                     groupFrame:AddColumn(right)
+                    text combo = group1Text+"_"+group2Text
     
                     Variance var
                     left:Calculate(var)
@@ -258,7 +225,15 @@ class CompareMeansPairwise is CompareMeans
                     pair:SetSignificanceLevel(GetSignificanceLevel())
                     pair:SetFormat(GetStatisticalFormatting())
                     pair:SetGroupsFrame(groupFrame)
-                    pair:SetDegreesOfFreedom(degreesOfFreedom)
+                    pair:NormalDistribution(true)
+                    pair:EqualVariances(AssumeEqualVariances() or defaultVarianceAssumption)
+                    pair:SetDegreesOfFreedom(combo, "t", degreesOfFreedom)
+                    pair:SetInformation(group1Text,"mean", meanL)
+                    pair:SetInformation(group1Text,"variance", varL)
+                    pair:SetInformation(group1Text,"size", sizeL)
+                    pair:SetInformation(group2Text,"mean", meanR)
+                    pair:SetInformation(group2Text,"variance", varR)
+                    pair:SetInformation(group2Text,"size", sizeR)
     
                     number error = 0
                     number t = 0
@@ -319,10 +294,9 @@ class CompareMeansPairwise is CompareMeans
                             p = 1
                         end 
                     end
-
                     // Save the result
-                    pair:SetTestStatistic(t)
-                    pair:SetProbabilityValue(p)
+                    pair:SetTestStatistic(combo, "t", t)
+                    pair:SetProbabilityValue(combo, "t", p)
                     results:Add(pair)
                     j = j + 1
                 end

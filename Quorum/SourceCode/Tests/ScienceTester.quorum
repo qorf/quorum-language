@@ -29,16 +29,6 @@ use Science.Tests.FilterTest
 use Science.Tests.BetaDistributionTest
 use Science.Tests.CompareCountsGoodnessOfFitTest
 use Science.Tests.CompareCountsIndependenceTest
-use Science.Tests.CompareGroupToMeanTest
-use Science.Tests.CompareRankedGroupToMedianTest
-use Science.Tests.Compare2DependentGroupsTest
-use Science.Tests.Compare2DependentRankedGroupsTest
-use Science.Tests.Compare2IndependentGroupsTest
-use Science.Tests.Compare2IndependentRankedGroupsTest
-use Science.Tests.CompareNDependentGroupsTest
-use Science.Tests.CompareNDependentRankedGroupsTest
-use Science.Tests.CompareNIndependentGroupsTest
-use Science.Tests.CompareNIndependentRankedGroupsTest
 use Science.Tests.BonferroniProcedureTest
 use Science.Tests.TukeyProcedureTest
 use Science.Tests.GamesHowellProcedureTest
@@ -50,6 +40,20 @@ use Science.Tests.Correlate2RankedGroupsTest
 use Science.Tests.PrincipalComponentAnalysisNoRotationTest
 use Science.Tests.PrincipalComponentAnalysisVarimaxRotationTest
 use Science.Tests.PrincipalComponentAnalysisObliminRotationTest
+use Science.Tests.CompareSeveralMeansTest
+use Science.Tests.CompareSeveralRankedMeansTest
+use Science.Tests.CompareSeveralRelatedMeansTest
+use Science.Tests.CompareSeveralRelatedRankedMeansTest
+use Science.Tests.CompareToMeanTest
+use Science.Tests.CompareToRankedMeanTest
+use Science.Tests.CompareTwoMeansTest
+use Science.Tests.CompareTwoRankedMeansTest
+use Science.Tests.CompareTwoRelatedMeansTest
+use Science.Tests.CompareTwoRelatedRankedMeansTest
+use Science.Tests.FactorialCompareSeveralMeansTest
+use Science.Tests.MultivariateCompareSeveralMeansTest
+use Science.Tests.MultivariateFactorialCompareSeveralMeansTest
+use Science.Tests.FactorialCompareVariancesTest
 
 class ScienceTester
     Tester tester = undefined
@@ -59,8 +63,8 @@ class ScienceTester
     end
 
     action Test
-        TestCompareGroups()
-        TestCompareGroupsPairwise()
+        TestCompareMeans()
+        TestCompareMeansPairwise()
         TestCompareVariances()
         TestCompareDistributions()
         TestCorrelateGroups()
@@ -87,39 +91,48 @@ class ScienceTester
         TestFilters()
     end
 
-    action TestCompareGroups
-        CompareGroupToMeanTest test1
+    action TestCompareMeans
+        CompareSeveralMeansTest test1
         tester:Run(test1)
 
-        CompareRankedGroupToMedianTest test2
+        CompareSeveralRankedMeansTest test2
         tester:Run(test2)
 
-        Compare2DependentGroupsTest test3
+        CompareSeveralRelatedMeansTest test3
         tester:Run(test3)
 
-        Compare2DependentRankedGroupsTest test4
+        CompareSeveralRelatedRankedMeansTest test4
         tester:Run(test4)
 
-        Compare2IndependentGroupsTest test5
+        CompareToMeanTest test5
         tester:Run(test5)
 
-        Compare2IndependentRankedGroupsTest test6
+        CompareToRankedMeanTest test6
         tester:Run(test6)
 
-        CompareNDependentGroupsTest test7
+        CompareTwoMeansTest test7
         tester:Run(test7)
 
-        CompareNDependentRankedGroupsTest test8
+        CompareTwoRankedMeansTest test8
         tester:Run(test8)
 
-        CompareNIndependentGroupsTest test9
+        CompareTwoRelatedMeansTest test9
         tester:Run(test9)
 
-        CompareNIndependentRankedGroupsTest test10
+        CompareTwoRelatedRankedMeansTest test10
         tester:Run(test10)
+
+        FactorialCompareSeveralMeansTest test11
+        tester:Run(test11)
+
+        MultivariateCompareSeveralMeansTest test12
+        tester:Run(test12)
+
+        MultivariateFactorialCompareSeveralMeansTest test13
+        tester:Run(test13)
     end
 
-    action TestCompareGroupsPairwise
+    action TestCompareMeansPairwise
         BonferroniProcedureTest test1
         tester:Run(test1)
 
@@ -136,6 +149,9 @@ class ScienceTester
 
         CompareDependentVariancesTest test2
         tester:Run(test2)
+
+        FactorialCompareVariancesTest test3
+        tester:Run(test3)
     end
 
     action TestCompareDistributions

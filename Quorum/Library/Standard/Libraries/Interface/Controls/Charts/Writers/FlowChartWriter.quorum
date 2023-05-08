@@ -31,6 +31,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
 use Libraries.Game.Graphics.Texture
 use Libraries.Data.Formats.ScalableVectorGraphics.Image
+use Libraries.Data.Formats.DataEncoder
 
 class FlowchartWriter is ChartWriter
 
@@ -73,7 +74,8 @@ class FlowchartWriter is ChartWriter
         if drawable is Drawable
             Image image
             Texture texture = drawable:GetTexture()
-            image:SetHref(texture:GetSource())
+            DataEncoder encoder
+            image:SetHref(encoder:EncodeImageAsDataURI(texture:GetSource()))
             canvas:Add(image)
         end
 

@@ -1,0 +1,33 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a repeated measures anova
+*/
+class CompareSeveralRelatedMeansTest is Test
+
+    on create
+        SetName("Calculate CompareSeveralRelatedMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
+
+        CompareMeans compare
+        compare:RepeatedMeasures(true)
+        frame:Calculate(compare)
+
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 13.240542687771192)
+        Check(result:GetDegreesOfFreedomTable():GetValue("Between Measures"):GetValueIterator():Next(), 3.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValueIterator():Next(), 15.0)
+        Check(result:GetProbabilityValue(), 1.7181881658023812e-4)
+        Check(result:GetEffectSize(), 0.6262429182564458)
+    end
+end
