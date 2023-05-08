@@ -208,9 +208,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
-    var textbox = selection.GetTextBox();
-    if (textbox == null){
+    var textBox = selection.GetTextBox();
+    if (textBox == null){
         return;
+    }else{
+        var id = textBox.GetHashCode();
+        var element = document.getElementById(id);
+        element.selectionStart = selection.GetStartIndex();
+        element.selectionEnd = selection.GetEndIndex();
     }
     
 }
@@ -766,11 +771,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.ControlActivated$quorum_Libraries_Interface_Events_ControlActivationEvent = function(event) {
         //console.log("Control Activated");
     };
-
-//      system action PressedKey(KeyboardEvent event)
-    this.PressedKey$quorum_Libraries_Interface_Events_KeyboardListener = function(event){
-        console.log("Key pressed"); 
-    }
 
 //    system action TextChanged(TextChangeEvent event)
     this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
