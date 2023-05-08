@@ -62,6 +62,29 @@ class LightModeOptions is InterfaceOptions
         SetButtonFocusFontColor(lightFont)
         SetButtonFocusBorderColor(acceptBlue)
 
+        // ToggleButton properties.
+        SetToggleButtonBorderThickness(1)
+        SetToggleButtonBackgroundColor(white)
+        SetToggleButtonBorderColor(darkBorder)
+        SetToggleButtonFontColor(blackFont)
+        SetToggleButtonTopLeftRounding(defaultButtonRounding)
+        SetToggleButtonTopRightRounding(defaultButtonRounding)
+        SetToggleButtonBottomLeftRounding(defaultButtonRounding)
+        SetToggleButtonBottomRightRounding(defaultButtonRounding)
+        SetToggleButtonMouseOverColor(hoverBlue)
+
+        // The color when the button is focused but not selected.
+        SetToggleButtonFocusColor(darkBlue)
+        SetToggleButtonFocusFontColor(lightFont)
+        SetToggleButtonFocusBorderColor(acceptBlue)
+
+        // The color when the button is selected but not focused.
+        SetToggleButtonUnfocusedSelectionColor(acceptBlue)
+        SetToggleButtonUnfocusedSelectionFontColor(lightFont)
+
+        // The color when the button is focused and selected.
+        SetToggleButtonSelectionColor(color:Blue())
+
         // Cell specific colors.
         SetCellBackgroundColor(color:White())
 
