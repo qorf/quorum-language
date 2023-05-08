@@ -233,20 +233,16 @@ class Button is Control, TextureLoadListener
         This action is fired if the item received the focus.
     */
     action GainedFocus(FocusEvent event)
-        if label not= undefined and GetFocusFontColor() not= undefined
-            label:SetColor(GetFocusFontColor())
-        end
         parent:Control:GainedFocus(event)
+        UpdateLabelColor()
     end
 
     /*
         This action is fired if the item lost the focus.
     */
     action LostFocus(FocusEvent event)
-        if label not= undefined and GetFontColor() not= undefined
-            label:SetColor(GetFontColor())
-        end
         parent:Control:LostFocus(event)
+        UpdateLabelColor()
     end
 
     /*
@@ -328,11 +324,7 @@ class Button is Control, TextureLoadListener
                 label:SetPositionOnBaseLine(false)
                 Add(label)
 
-                if IsFocused() and GetFocusFontColor() not= undefined
-                    label:SetFontColor(GetFocusFontColor())
-                else
-                    label:SetFontColor(properties:GetFontColor())
-                end
+                UpdateLabelColor()
             end
         elseif iconTexture not= undefined
             if manager:GetApplication() is Libraries.Game.WebApplication 
@@ -369,6 +361,29 @@ class Button is Control, TextureLoadListener
         end
 
         parent:Control:LoadGraphics(properties)
+    end
+
+    private action UpdateLabelColor
+        ColorGroup color = undefined
+        if IsFocused()
+            if IsRenderingSelection()
+                color = GetSelectionFontColor()
+            end
+
+            if color = undefined
+                color = GetFocusFontColor()
+            end
+        elseif IsRenderingSelection()
+            color = GetUnfocusedSelectionFontColor()
+        end
+
+        if color = undefined
+            color = GetFontColor()
+        end
+
+        if color not= undefined
+            label:SetFontColor(color)
+        end
     end
 
     /*

@@ -142,6 +142,7 @@ class InterfaceOptions
     public constant text TAB_BAR = "TabBar"
     public constant text TEXT_BOX = "TextBox"
     public constant text TEXT_FIELD = "TextField"
+    public constant text TOGGLE_BUTTON = "ToggleButton"
     public constant text TOOL_BAR = "ToolBar"
     public constant text TREE_ITEM = "TreeItem"
     public constant text TREE_TABLE_CELL = "TreeTableCell"
@@ -10664,6 +10665,390 @@ class InterfaceOptions
 
     action CopyTextFieldInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(TEXT_FIELD)
+    end
+
+    action SetToggleButtonBackgroundColor(ColorGroup value)
+        SetBackgroundColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBackgroundColor returns ColorGroup
+        return GetBackgroundColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonForegroundColor(ColorGroup value)
+        SetForegroundColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonForegroundColor returns ColorGroup
+        return GetForegroundColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonFontColor(ColorGroup value)
+        SetFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFontColor returns ColorGroup
+        return GetFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonBorderColor(ColorGroup value)
+        SetBorderColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBorderColor returns ColorGroup
+        return GetBorderColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonFocusColor(ColorGroup value)
+        SetFocusColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFocusColor returns ColorGroup
+        return GetFocusColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonFocusFontColor(ColorGroup value)
+        SetFocusFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFocusFontColor returns ColorGroup
+        return GetFocusFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseOverColor(ColorGroup value)
+        SetMouseOverColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseOverColor returns ColorGroup
+        return GetMouseOverColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseDownColor(ColorGroup value)
+        SetMouseDownColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseDownColor returns ColorGroup
+        return GetMouseDownColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonSelectionColor(ColorGroup value)
+        SetSelectionColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonSelectionColor returns ColorGroup
+        return GetSelectionColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonGlowColor(ColorGroup value)
+        SetGlowColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonGlowColor returns ColorGroup
+        return GetGlowColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonIconColor(ColorGroup value)
+        SetIconColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonIconColor returns ColorGroup
+        return GetIconColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonAccentColor(ColorGroup value)
+        SetAccentColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonAccentColor returns ColorGroup
+        return GetAccentColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonShadowColor(ColorGroup value)
+        SetShadowColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowColor returns ColorGroup
+        return GetShadowColor(TOGGLE_BUTTON)
+    end
+
+    action SetToggleButtonBorderThickness(number value)
+        SetBorderThickness(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBorderThickness returns number
+        return GetBorderThickness(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonBorderThickness returns boolean
+        return GetBorderThickness(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonFontOutlineThickness(number value)
+        SetFontOutlineThickness(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonFontOutlineThickness returns number
+        return GetFontOutlineThickness(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonTopLeftRounding(number value)
+        SetTopLeftRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonTopLeftRounding returns number
+        return GetTopLeftRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonTopLeftRounding returns boolean
+        return GetTopLeftRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonTopRightRounding(number value)
+        SetTopRightRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonTopRightRounding returns number
+        return GetTopRightRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonTopRightRounding returns boolean
+        return GetTopRightRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonBottomLeftRounding(number value)
+        SetBottomLeftRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBottomLeftRounding returns number
+        return GetBottomLeftRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonBottomRightRounding(number value)
+        SetBottomRightRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBottomRightRounding returns number
+        return GetBottomRightRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonBottomRightRounding returns boolean
+        return GetBottomRightRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonShadowX(number value)
+        SetShadowX(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowX returns number
+        return GetShadowX(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonShadowX returns boolean
+        return GetShadowX(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonShadowY(number value)
+        SetShadowY(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowY returns number
+        return GetShadowY(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonShadowY returns boolean
+        return GetShadowY(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonShadowWidth(number value)
+        SetShadowWidth(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowWidth returns number
+        return GetShadowWidth(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonShadowWidth returns boolean
+        return GetShadowWidth(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonShadowHeight(number value)
+        SetShadowHeight(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowHeight returns number
+        return GetShadowHeight(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonShadowHeight returns boolean
+        return GetShadowHeight(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonShadowEdgeFade(number value)
+        SetShadowEdgeFade(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonShadowEdgeFade returns number
+        return GetShadowEdgeFade(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action CopyToggleButtonInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(TOGGLE_BUTTON)
     end
 
     action SetToolBarBackgroundColor(ColorGroup value)

@@ -53,6 +53,7 @@ class PieChart is Chart
     boolean showPercentAnnotation = true // When annotations are showing, the slices will display a %
     boolean showValueAnnotation = false // When annotations are showing, the slices will display value
     boolean showNameAnnotation = false // When annotations are showing, the slices will display name, can be used in combination with percent or value
+    integer annotationFontSize = 0
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -79,6 +80,7 @@ class PieChart is Chart
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
+        annotationFontSize = GetDefaultFontSize()
 
         properties:SetBorderThickness(2)
         SetName("Pie Chart")
@@ -148,6 +150,7 @@ class PieChart is Chart
 
                             if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
                                 ChartLabel sliceLabel
+                                sliceLabel:SetFontSize(annotationFontSize)
                                 
                                 text nameText = ""
                                 if showNameAnnotation
@@ -206,6 +209,7 @@ class PieChart is Chart
                 
                 if slice:ShowAnnotation() or ShowAnnotations()
                     ChartLabel sliceLabel
+                    sliceLabel:SetFontSize(annotationFontSize)
                     text nameText = ""
                     if showNameAnnotation
                         nameText = slice:GetName()
@@ -253,6 +257,14 @@ class PieChart is Chart
     action ShowNameAnnotations(boolean show)
         showNameAnnotation = show
         ShowAnnotations(show)
+    end
+
+    action SetAnnotationFontSize(integer fontSize)
+        annotationFontSize = fontSize
+    end
+
+    action GetAnnotationFontSize() returns integer
+        return annotationFontSize
     end
 
     /*
