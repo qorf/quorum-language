@@ -407,6 +407,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TEXTBOX
             case 6:
+                elementType = "textarea"
+                para = document.createElement(elementType);
                 role="textbox";
                 para.setAttribute('aria-multiline','true');
                 para.id = id;
