@@ -101,7 +101,7 @@ class BoxPlot is Chart
 
         SetInputGroup("Chart")
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:CHART)
 
         SeparationCapable(true)
         SetDefaultShowBrackets(true)
@@ -185,7 +185,7 @@ class BoxPlot is Chart
     
                     // Minimum Line 
                     minimumLine:SetFocusable(true)
-                    minimumLine:SetAccessibilityCode(0)
+                    minimumLine:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     minimumLine:SetNextFocus(GetNextFocus())
                     minimumLine:SetPreviousFocus(GetPreviousFocus())
                     minimumLine:SetName("Minimum")
@@ -210,7 +210,7 @@ class BoxPlot is Chart
 
                     // Interquartile Range Region Area
                     interQuartileRange:SetFocusable(true)
-                    interQuartileRange:SetAccessibilityCode(0)
+                    interQuartileRange:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     interQuartileRange:SetNextFocus(GetNextFocus())
                     interQuartileRange:SetPreviousFocus(GetPreviousFocus())
                     interQuartileRange:SetName("Interquartile range")
@@ -231,7 +231,7 @@ class BoxPlot is Chart
     
                     // Lower Quartile Line Q1
                     firstQuartileLine:SetFocusable(true)
-                    firstQuartileLine:SetAccessibilityCode(0)
+                    firstQuartileLine:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     firstQuartileLine:SetNextFocus(GetNextFocus())
                     firstQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     firstQuartileLine:SetName("1st Quartile")
@@ -256,7 +256,7 @@ class BoxPlot is Chart
     
                     // Median Line (denser) 
                     medianLine:SetFocusable(true)
-                    medianLine:SetAccessibilityCode(0)
+                    medianLine:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     medianLine:SetNextFocus(GetNextFocus())
                     medianLine:SetPreviousFocus(GetPreviousFocus())
                     medianLine:SetName("Median")
@@ -281,7 +281,7 @@ class BoxPlot is Chart
     
                     // Upper Quartile Line Q3
                     thirdQuartileLine:SetFocusable(true)
-                    thirdQuartileLine:SetAccessibilityCode(0)
+                    thirdQuartileLine:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     thirdQuartileLine:SetNextFocus(GetNextFocus())
                     thirdQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     thirdQuartileLine:SetName("3rd Quartile")
@@ -306,7 +306,7 @@ class BoxPlot is Chart
     
                     // Maximum Line
                     maximumLine:SetFocusable(true)
-                    maximumLine:SetAccessibilityCode(0)
+                    maximumLine:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     maximumLine:SetNextFocus(GetNextFocus())
                     maximumLine:SetPreviousFocus(GetPreviousFocus())
                     maximumLine:SetName("Maximum")
@@ -392,7 +392,7 @@ class BoxPlot is Chart
                             outlier:SetDescription(" " + outliers:Get(j))
                         end
                         outlier:SetFocusable(true)
-                        outlier:SetAccessibilityCode(0)
+                        outlier:SetAccessibilityCode(parent:Item:CHART_ITEM)
                         outlier:SetNextFocus(GetNextFocus())
                         outlier:SetPreviousFocus(GetPreviousFocus())
                         plot:Add(outlier)
@@ -404,7 +404,7 @@ class BoxPlot is Chart
 
                 // Set the plot description
                 plot:SetFocusable(true)
-                plot:SetAccessibilityCode(parent:Item:ITEM)
+                plot:SetAccessibilityCode(parent:Item:CHART_SECTION)
                 plot:SetNextFocus(GetNextFocus())
                 plot:SetPreviousFocus(GetPreviousFocus())
                 plot:SetName(group:GetName() + " " + plot:GetSeries():GetName() + " plot, ")
@@ -472,7 +472,7 @@ class BoxPlot is Chart
             group:SetName(group:GetName() + " group, ")
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " box plots.")
             group:SetFocusable(true)
-            group:SetAccessibilityCode(parent:Item:ITEM)
+            group:SetAccessibilityCode(parent:Item:CHART_SECTION)
             group:SetNextFocus(GetNextFocus())
             group:SetPreviousFocus(GetPreviousFocus())
             chartArea:Add(group)

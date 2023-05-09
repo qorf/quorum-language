@@ -2,29 +2,28 @@ package Science.Tests
 
 use Libraries.Testing.Test
 use Libraries.Compute.Statistics.DataFrame
-use Libraries.Compute.Statistics.Tests.CompareGroups
-use Libraries.Compute.Statistics.Reporting.CompareGroupsResult
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 
 /*
     This class tests a two-sample mann-whitney test
 */
-class Compare2IndependentRankedGroupsTest is Test
+class CompareTwoRankedMeansTest is Test
 
     on create
-        SetName("Calculate Compare2IndependentRankedGroups")
+        SetName("Calculate CompareTwoRankedMeansTest")
     end
 
     action Run
         ColumnCalculationTest framer
         DataFrame frame = framer:GetDefaultDataFrame()
+        frame:AddSelectedColumnRange(0,1)
 
-        CompareGroups compare
+        CompareMeans compare
         compare:Ranked(true)
-        compare:AddColumn(0)
-        compare:AddColumn(1)
         frame:Calculate(compare)
         
-        CompareGroupsResult result = compare:GetResult()
+        CompareMeansResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 13.5)
         Check(result:GetProbabilityValue(), 0.5203772558898254)
         Check(result:GetEffectSize(), 0.18554997976872775)

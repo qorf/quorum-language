@@ -194,7 +194,7 @@ class CompareMeans is StatisticalTest
         // Anything else will be dropped for this computation.
         // No need to remove undefined values unless using a factor
         DataFrame cleanedFrame = frame:Copy()
-        if numberOfFactors > 0
+        if multivariate
             cleanedFrame = frame:RemoveUndefinedRowsFromSelectedColumns()
         end
         DataFrame copy
@@ -243,7 +243,7 @@ class CompareMeans is StatisticalTest
 
 
         // Collect data for each possible group
-        PopulateGroups(copy)
+        groups = GetGroups(copy)
 
 
         // Check if samples are equal size
@@ -688,7 +688,7 @@ class CompareMeans is StatisticalTest
                         CompareVariances compare
                         compare:SetSignificanceLevel(GetSignificanceLevel())
                         compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                        compare:CompareIndependentVariances(groupFrame)
+                        compare:Calculate(groupFrame)
                         result:SetVarianceResult(compare:GetResult())
                     end
                     results:Add(result)
@@ -745,6 +745,11 @@ class CompareMeans is StatisticalTest
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
+        if numberOfColumns = 1 and numberOfFactors = 0
+            alert("CompareSeveralRelatedMeans currently only accepts repeated measure designs in 
+                   wide format with each row being a single subject and each column a measurement/sample.")
+        end
+
         if groups:GetSize() < 2
             alert("CompareSeveralRelatedMeans must have at least two samples.")
         end
@@ -1029,7 +1034,7 @@ class CompareMeans is StatisticalTest
                 integer size = group:GetRows()
                 groupMeans:SetColumn(i, group:GetMean()) 
                 groupSizes:SetColumn(i, size)
-                groupWeights:SetColumn(i, size / (group:GetVariance()*size/(size-1.0))) // Matrix class uses pop var
+                groupWeights:SetColumn(i, size / group:GetVariance())
 
                 result:SetInformation(groupText, "Mean", group:GetMean()) 
                 result:SetInformation(groupText, "Size", size)
@@ -1120,36 +1125,35 @@ class CompareMeans is StatisticalTest
                 end
                 responseMatrix = dependent:ConvertToMatrix()
             else
-                designMatrix:SetSize(designMatrix:GetRows(), designMatrix:GetColumns() + 1)
+                designMatrix:SetSize(designMatrix:GetRows(), numberOfColumns)
                 designMatrix:SetColumn(0, 1)
-    
                 responseMatrix:SetSize(designMatrix:GetRows(), 1)
     
                 TextColumn levels
                 integer rowIndex = 0
-                integer columnToMatrix = numberOfColumns - 1
                 i = 0
                 repeat while i < numberOfColumns
-                    DataFrameColumn column = frame:GetColumn(i)
+                    DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(i))
                     j = 0
                     repeat while j < column:GetSize()
-                        number value = column:GetAsNumber(j)
-                        if i < columnToMatrix   
-                            designMatrix:Set(rowIndex, 1, 1)
-                        end 
-                        responseMatrix:Set(rowIndex, 0, value)   
-                        rowIndex = rowIndex + 1           
+                        if not column:IsUndefined(j)
+                            number value = column:GetAsNumber(j)  
+                            if i <  numberOfColumns - 1 // we need size-1 design matrix columns
+                                designMatrix:Set(rowIndex, i+1, 1)
+                            end
+                            responseMatrix:Set(rowIndex, 0, value)   
+                            rowIndex = rowIndex + 1   
+                        end        
                         j = j + 1
                     end
                     levels:Add(column:GetHeader())
+                    factorsAssociatedWithColumn:Add(i+1, GetInitialEncoding(numberOfColumns))
+                    factorsAssociatedWithColumn:GetValue(i+1):Set(0, 0, 1)
                     i = i + 1
                 end
-                factorsAssociatedWithColumn:Add(0, GetInitialEncoding(numberOfColumns))
-                factorsAssociatedWithColumn:Add(1, GetInitialEncoding(numberOfColumns))
-                factorsAssociatedWithColumn:GetValue(1):Set(0, 0, 1)
-    
                 factorIndex:Add(0, "between")
                 factorLevels:Add(levels)
+                factorsAssociatedWithColumn:Add(0, GetInitialEncoding(numberOfColumns))
             end
 
             CompareMeansResult result
@@ -1263,15 +1267,11 @@ class CompareMeans is StatisticalTest
                     number pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
                     number part_eta = (df1 * f) / ((df1 * f) + df2)
                     result:SetTestStatistic(source, "Wilks Lambda", wilksLambda)
-                    result:SetTestStatistic("Wilks Lambda", "F", f)
+                    result:SetTestStatistic(source+"Wilks Lambda", "F", f)
                     result:SetDegreesOfFreedom(source, "numerator", df1)
                     result:SetDegreesOfFreedom(source, "denominator", df2)
                     result:SetProbabilityValue(source, source, pvalue)
-                    if factorial
-                        result:SetEffectSize(source, "partial-eta-squared", part_eta)
-                    else
-                        result:SetEffectSize(source, "eta-squared", part_eta)
-                    end
+                    result:SetEffectSize(source, "partial-eta-squared", part_eta)
 
 //                    // Hotelling-Lawley Trace Test ** degrees of freedom needs to be fixed **
 //                    number hotellingTrace = sscpFactor:Multiply(sscpWithin:Inverse()):GetTrace()
@@ -1316,7 +1316,7 @@ class CompareMeans is StatisticalTest
                     fStatistic:Add(factor, f)
                     pValue:Add(factor, p)
                     number part_eta = ssFactor / (ssFactor + ssWithin)
-                    number omega_squared = (ssFactor - dfFactor*meanSSWithin) / ((ssFactor + ssWithin) + meanSSWithin)
+                    number part_omega_squared = (ssFactor - dfFactor*meanSSWithin) / (ssFactor + (totalObservations - dfFactor*meanSSWithin))
         
                     text source = "Between Groups"
                     if numberOfFactors > 0
@@ -1324,11 +1324,12 @@ class CompareMeans is StatisticalTest
                     end
                     sources:Add(source)
                     result:SetTestStatistic(source, "F", f)
-                    result:SetEffectSize(source, "omega-squared", omega_squared)
                     if factorial
                         result:SetEffectSize(source, "partial-eta-squared", part_eta)
+                        result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
                     else
                         result:SetEffectSize(source, "eta-squared", part_eta)
+                        result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
                     end
                     result:SetDegreesOfFreedom(source, "F", dfFactor)
                     result:SetProbabilityValue(source, "F", p)
@@ -1392,19 +1393,22 @@ class CompareMeans is StatisticalTest
                 compare:SetSignificanceLevel(GetSignificanceLevel())
                 compare:SetStatisticalFormatting(GetStatisticalFormatting())
                 result:GetGroupsFrame():SelectAllColumns()
-                compare:CompareIndependentVariances(result:GetGroupsFrame())
+                compare:Calculate(result:GetGroupsFrame())
                 result:SetVarianceResult(compare:GetResult())
             end
             if userRequestedPairwise or significant
                 if userRequestedPairwise and multivariate
                     alert("Post hoc testing for multiple dependent variables is not supported yet")
                 end
-                if not multivariate
+                if userRequestedPairwise and factorial
+                    alert("Post hoc testing for factorial designs is not supported yet")
+                end
+                if not multivariate and not factorial
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
                     compare:SetSignificanceLevel(GetSignificanceLevel())
                     compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    compare:UseStrictCorrection(true)
+                    compare:UseLenientCorrection(true)
                     compare:Calculate(result)
                     result:SetPairwiseResults(compare:GetResults())
                 end
@@ -2350,7 +2354,7 @@ class CompareMeans is StatisticalTest
         correctFamilyWiseError = useLenientCorrection
         me:useLenientCorrection = useLenientCorrection
         if useLenientCorrection
-            useLenientCorrection = false
+            useStrictCorrection = false
         end
     end
 
@@ -2735,70 +2739,6 @@ class CompareMeans is StatisticalTest
             end
             i = i + 1
         end
-    end
-
-    /*
-        groups: stores the fully factored samples 
-    */
-    private action PopulateGroups(DataFrame frame)
-        // No factor is selected, thus use the columns as the groups
-        if numberOfFactors = 0
-            i = 0
-            repeat while i < frame:GetSelectedColumnSize()
-                DataFrame group
-                DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(i))
-                group:AddColumn(column)
-                groups:Add(column:GetHeader(), group)
-                i = i + 1
-            end  
-        else
-            i = 0
-            repeat while i < totalObservations
-                text groupText = ""
-                j = 0
-                repeat while j < numberOfFactors
-                    DataFrameColumn factor = frame:GetColumn(frame:GetSelection():GetFactor(j))
-                    if not factor:IsUndefined(i)
-                        if numberOfFactors = 1
-                            if j = 0
-                                groupText = factor:GetAsText(i)
-                            end
-                        else
-                            if j = 0
-                                groupText = factor:GetHeader()+"_"+factor:GetAsText(i)
-                            else
-                                groupText = groupText + ":" +factor:GetHeader()+"_"+factor:GetAsText(i)
-                            end
-                        end
-                    end
-                    j = j + 1
-                end
-
-                j = 0
-                repeat while j < numberOfColumns
-                    DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(j))
-                    if not column:IsUndefined(i)
-                        if not groups:HasKey(groupText)
-                            DataFrame group
-                            NumberColumn col
-                            col:Add(column:GetAsText(i))
-                            group:AddColumn(col)
-                            groups:Add(groupText, group)
-                        else
-                            if j >= groups:GetValue(groupText):GetSize()
-                                NumberColumn col
-                                col:Add(column:GetAsText(i))
-                                groups:GetValue(groupText):AddColumn(col)
-                            else
-                                groups:GetValue(groupText):GetColumn(j):Add(column:GetAsText(i))
-                            end
-                        end
-                    end
-                    j = j + 1
-                end
-                i = i + 1
-            end
-        end   
     end
 
     // Checks if all sample sizes are equal.

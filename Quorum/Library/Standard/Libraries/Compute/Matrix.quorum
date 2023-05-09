@@ -2319,7 +2319,7 @@ class Matrix
     end
 
     /*
-    This method returns the standard deviation of all the elements in a Matrix
+    This method returns the sample standard deviation of all the elements in a Matrix
 
     Attribute Returns The standard deviation of all the elements in the matrix.
 
@@ -2343,7 +2343,31 @@ class Matrix
     end
 
     /*
-    This method returns the population variance of all the elements in a Matrix
+    This method returns the population standard deviation of all the elements in a Matrix
+
+    Attribute Returns The standard deviation of all the elements in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetStandardDeviation()
+        end
+    end
+    */
+    action GetPopulationStandardDeviation returns number
+        return math:SquareRoot(GetPopulationVariance())
+    end
+
+    /*
+    This method returns the sample variance of all the elements in a Matrix
 
     Attribute Returns The variance of all the elements in the matrix.
 
@@ -2363,6 +2387,43 @@ class Matrix
     end
     */
     action GetVariance returns number
+        number mean = GetMean()
+        number total = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number diff = Get(row, col) - mean
+                total = total + (diff * diff)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        number elements = GetSize() - 1
+        return total / elements
+    end
+
+    /*
+    This method returns the population variance of all the elements in a Matrix
+
+    Attribute Returns The variance of all the elements in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetVariance()
+        end
+    end
+    */
+    action GetPopulationVariance returns number
         number mean = GetMean()
         number total = 0.0
         row = 0
