@@ -364,6 +364,10 @@ class Button is Control, TextureLoadListener
     end
 
     private action UpdateLabelColor
+        if label = undefined
+            return now
+        end
+
         ColorGroup color = undefined
         if IsFocused()
             if IsRenderingSelection()
