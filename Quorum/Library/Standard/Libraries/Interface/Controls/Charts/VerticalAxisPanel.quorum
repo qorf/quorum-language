@@ -127,7 +127,7 @@ class VerticalAxisPanel is ChartItem
         SetName("y axis")
 
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:CHART_SECTION)
     end
 
     action IsAccessibleParent returns boolean
@@ -380,7 +380,7 @@ class VerticalAxisPanel is ChartItem
             newLabel:SetName(GetTitleText())
             newLabel:SetDescription("Vertical axis")
             newLabel:SetFocusable(true)
-            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            newLabel:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
             labelAnchor:Add(GetTitleLabel())
             Add(labelAnchor)
         end
@@ -453,7 +453,7 @@ class VerticalAxisPanel is ChartItem
                 ChartLabel label
                 label:SetFontSize(GetFontSize() - 5)
                 label:SetFocusable(true)
-                label:SetAccessibilityCode(parent:Item:ITEM)
+                label:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
                 theLabels:Add(label)
                 labelAnchor:Add(label)
                 labelCount = labelCount + 1
