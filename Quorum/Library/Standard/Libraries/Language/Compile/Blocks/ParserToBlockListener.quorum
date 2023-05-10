@@ -120,6 +120,7 @@ class ParserToBlockListener is QuorumSourceListener
     end
 
     action ExitFullClassDeclaration(FullClassDeclarationContext ctx)
+        FillPreviousCommentBlocks(ctx:GetLastToken(), ctx:GetLastToken())
         // The current block must be one of the parts of a class block. Get the class block from the part.
         ClassBlock classBlock = cast(ClassBlock, currentBlock:GetParentBlock())
         
@@ -216,6 +217,7 @@ class ParserToBlockListener is QuorumSourceListener
     end
 
     action ExitConstructor(ConstructorContext context)
+        FillPreviousCommentBlocks(context:GetLastToken(), context:GetLastToken())
         ConstructorBlock block = cast(ConstructorBlock, currentBlock:GetParentBlock())
         block:AddEndLine()
         block:Setup()
@@ -254,6 +256,7 @@ class ParserToBlockListener is QuorumSourceListener
     end
     action ExitAction(ActionContext context) 
         if not context:isSystem and not context:isBlueprint
+            FillPreviousCommentBlocks(context:GetLastToken(), context:GetLastToken())
             // The current block must be one of the parts of an action block. Get the action block from the part.
             ActionBlock actionBlock = cast(ActionBlock, currentBlock:GetParentBlock())
             
