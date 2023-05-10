@@ -585,7 +585,10 @@ class ParserToBlockListener is QuorumSourceListener
         startLine = start
         finishLine = finish
         if startContext = undefined
-            return undefined
+            rootBlock:EmptyChildBlocks()
+            rootBlock:SetEditor(editor)
+            rootBlock:SetStartContext(undefined)
+            return rootBlock
         end
 
         rootBlock:EmptyChildBlocks()

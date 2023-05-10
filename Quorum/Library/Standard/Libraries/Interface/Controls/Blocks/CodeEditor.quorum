@@ -78,6 +78,7 @@ class CodeEditor is ScrollableLineControl
     FindReplace findReplace
     Array<Pair<integer>> findIndices = undefined
     integer findSelection = -1
+    boolean failState = false
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -105,6 +106,7 @@ class CodeEditor is ScrollableLineControl
 
         selection:Initialize(me, "")
         editManager:SetBlockEditor(me)
+        rawCode:Initialize("")
 
         SetFocusable(true)
 
@@ -309,7 +311,7 @@ class CodeEditor is ScrollableLineControl
 
     action SetCode(text code)
         rawCode:Initialize(code)
-        GenerateStartContextFromCode(code)
+        failState = not GenerateStartContextFromCode(code)
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -318,37 +320,38 @@ class CodeEditor is ScrollableLineControl
 
     action SetCode(MultipleLineText code)
         rawCode = code
-        GenerateStartContextFromCode(code:GetText())
+        failState = not GenerateStartContextFromCode(code:GetText())
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
         RequestLayout()
     end
 
-    private action GenerateStartContextFromCode(text code)
+    private action GenerateStartContextFromCode(text code) returns boolean
         CompilerErrorManager manager
         QuorumLexer lexer
         lexer:SetCompilerErrorManager(manager)
         lexer:Read(code)
         
         if not manager:IsCompilationErrorFree()
-            text value = manager:GetCompilerErrorsAsText()
-            output "WARNING: Couldn't generate start context due to the following error:
-" + value
-            return now
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return false
         end
         QuorumParser parser
         parser:SetCompilerErrorManager(manager)
         parser:SetLexer(lexer)
         StartContext start = parser:Start()
         if not manager:IsCompilationErrorFree()
-            text value = manager:GetCompilerErrorsAsText()
-            output "WARNING: Couldn't generate start context due to the following error:
-" + value
-            return now
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return false
         end
         blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
+        return true
     end
 
     action GetCaretPosition returns integer
@@ -1455,6 +1458,14 @@ class CodeEditor is ScrollableLineControl
 
     action SetBlockNotchHeight(number blockNotchHeight)
         me:blockNotchHeight = blockNotchHeight
+    end
+
+    action GetFailState returns boolean
+        return failState
+    end
+
+    action SetFailState(boolean failState)
+        me:failState = failState
     end
 
 end
