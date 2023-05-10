@@ -1037,6 +1037,25 @@ class Class is Symbol
         end
     end
 
+    action IsImplicitClass returns boolean
+        if actions not= undefined and actions:GetSize() = 1 //implicit classes have 1 action named Main, but this isn't enough information
+            Action main = actions:GetValue("Main")
+            if main = undefined
+                return false
+            end
+
+            //now check to see if its header is undefined. If it is, we must be implicit
+            Location header = main:GetHeaderLocation()
+            if header = undefined
+                return true
+            else
+                return false
+            end
+        end
+
+        return false
+    end
+
     private action ResolveBlock(Block block, SymbolTable table, CompilerErrorManager errors)
         //first resolve all of the variables in this block
         Iterator<Variable> variables = block:GetVariables()
