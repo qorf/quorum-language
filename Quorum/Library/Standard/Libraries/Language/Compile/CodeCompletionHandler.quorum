@@ -555,6 +555,23 @@ class CodeCompletionHandler
             //if wasn't a raw variable. Next check 
             boolean emptyFilter = false
             //it's not a simple case. Perhaps it is a colon delimited set of interactions?
+            
+
+            //or perhaps it is a case where we have empty white space. Check that first.
+            if request:unmodifiedLine not= undefined and not request:unmodifiedLine:IsEmpty()
+                text char = request:unmodifiedLine:GetCharacter(request:unmodifiedLine:GetSize() - 1)
+                if char = " "
+                    result:filter = ""//set the filter to nothing, so the system doesn't block any valid thing out
+                    listener:SetCanCodeComplete(true)
+                    AddClassVariables(request, result)
+                    AddParentVariables(request, result)
+        
+                    AddActions(request, result)
+                    AddBlockVariables(request, result)
+                    return now
+                end
+            end
+        
             //we need to detect the case where there is an empty filter, which is if the line
             //has a colon at the end
             if request:line not= undefined and not request:line:IsEmpty()
@@ -565,6 +582,15 @@ class CodeCompletionHandler
             end
 
             text newLine = StripAndTrimRightHandSide(value)
+
+            //first split by whitespace and grab only the rightmost value. Then split again.
+            Array<text> spaceSplit = newLine:Split(" ", true)
+            if spaceSplit = undefined or spaceSplit:IsEmpty()
+                return now
+            else
+                newLine = spaceSplit:Get(spaceSplit:GetSize() - 1)
+            end
+
             Array<text> values = newLine:Split(":", true)
             if values = undefined
                 return now
