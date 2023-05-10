@@ -208,9 +208,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
-    var textbox = selection.GetTextBox();
-    if (textbox == null){
+    var textBox = selection.GetTextBox();
+    if (textBox == null){
         return;
+    }else{
+        var id = textBox.GetHashCode();
+        var element = document.getElementById(id);
+        element.selectionStart = selection.GetStartIndex();
+        element.selectionEnd = selection.GetEndIndex();
     }
     
 }
@@ -347,7 +352,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //ITEM or CUSTOM
             case 0:
             case 1:
-                if (item.IsFocusable()) {
+                if (item.IsFocusable() ) {
                     role = "application";
                 } else {
                     role = "img";
@@ -402,7 +407,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TEXTBOX
             case 6:
-                role = "textbox";
+                elementType = "textarea"
+                para = document.createElement(elementType);
+                role="textbox";
+                para.setAttribute('aria-multiline','true');
+                para.id = id;
                 break;
             //MENU_BAR
             case 7:
@@ -534,15 +543,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //LIST
             case 18:
-                role = "listbox";
+                role = "list";
                 break;
             //LIST_ITEM
             case 19:
-                role = "option";
+                role = "listitem";
                 if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
                     let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
                     para.textContent = listItem.GetText();
-                    itemName = null;
+                    itemName = listItem.GetText();
                     //attach to proper parent
                     let parentList = listItem.GetList();
                     if (parentList != undefined) {
@@ -618,6 +627,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 role = "radiogroup";
                 if (item.GetName() == undefined)
                     itemName = "Radio Group"
+                break;
+            case 26:
+                role="document graphics-document";
+                break;
+            case 27:
+                role="graphics-object group";
+                break;
+            case 28:
+                role="graphics-symbol img";
                 break;
             default:
                 // do nothing?
@@ -755,7 +773,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.ControlActivated$quorum_Libraries_Interface_Events_ControlActivationEvent = function(event) {
         //console.log("Control Activated");
     };
-    
+
 //    system action TextChanged(TextChangeEvent event)
     this.TextChanged$quorum_Libraries_Interface_Events_TextChangeEvent = function(event) {
         var control = event.GetControl();
@@ -764,11 +782,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var textbox = global_CheckCast(control, "Libraries.Interface.Controls.TextBox");
             var text = textbox.GetText();
             var id = textbox.GetHashCode();
+            var position = textbox.GetCaretPosition();
             var element = document.getElementById(id);
             if(element != null) {
+              element.selectionStart = position;
+              element.selectionEnd = position;
               element.innerHTML = text;
             }
-            //console.log("TextBox text Changed");
+            // console.log("Caret Position: ", position);
+            // console.log("Current Line", linePosition);
+            console.log("TextBox text Changed");
         }
         else if ( global_InstanceOf(control,"Libraries.Interface.Controls.TextField") )
         {

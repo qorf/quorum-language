@@ -180,7 +180,7 @@ function global_Output_(value) {
     console.log(value);
     var dom = global_Get_Display_Console_();
     if(dom != null) {
-        dom.insertAdjacentHTML('beforeend', value);
+        dom.insertAdjacentHTML('beforeend', value + "\n");
     }
 }
 
