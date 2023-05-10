@@ -89,7 +89,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     action AddBanner(text title, text label) returns Banner
         Banner grouping
-        grouping:SetName(title)
+        grouping:SetName(title + " Banner")
         grouping:Initialize(title, label)
 
         Add(grouping)

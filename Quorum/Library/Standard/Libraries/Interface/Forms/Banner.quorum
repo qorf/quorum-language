@@ -3,6 +3,7 @@ package Libraries.Interface.Forms
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Events.FocusEvent
 
 class Banner is Grouping
 
@@ -31,4 +32,10 @@ class Banner is Grouping
         return label
     end
 
+    action GainedFocus(FocusEvent event)
+        Label title = GetTitleLabel()
+        if title not= undefined
+            title:Focus()
+        end
+    end
 end
