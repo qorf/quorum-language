@@ -248,14 +248,16 @@ class CodeCompletionHandler
         integer actionIndex = -1
         integer blockIndex = 0
         integer candidateBlock = -1
+        Stack<Block> blockStack
         Array<Action> actions = GetSortedActions(clazz)
         Array<Block> blocks = undefined
         if clazz not= undefined and clazz:IsImplicitClass()
             Action main = actions:Get(0) //must be one
             blocks = GetSortedBlocks(main)
+            request:block = main:GetBlock()
+            blockStack:Push(request:block)
         end
 
-        Stack<Block> blockStack
         boolean inClass = false
         boolean inAction = false
         repeat while iterator:HasNext() 
