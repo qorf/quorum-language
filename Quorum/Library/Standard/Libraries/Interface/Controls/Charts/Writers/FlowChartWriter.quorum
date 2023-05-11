@@ -284,7 +284,7 @@ class FlowchartWriter is ChartWriter
                                 segment:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
                                 segment:SetStrokeOpacity(cast(Color,flowchartArrow:GetBackgroundColor()))
                                 segment:SetStrokeWidth(chart:GetArrowLineThickness())
-                                segment:SetStyleClass("quorum-chart-linesegment")
+                                segment:SetStyleClass("quorum-flowchart-linesegment")
                                 segment:SetID(flowArrowSVG:GetID() + "_segment" + k+j)
                                 segment:SetTabIndex(-1)
                                 if HasAccessibility()
@@ -334,7 +334,7 @@ class FlowchartWriter is ChartWriter
                             arrow:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
                             arrow:SetStrokeOpacity(cast(Color, flowchartArrow:GetBackgroundColor()))
                             arrow:SetID(flowNodeSVG:GetID() + "_arrow" + k)
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetStyleClass("quorum-flowchart-arrow")
                             arrow:SetTabIndex(-1)
                             if HasAccessibility()
                                 arrowFocus = arrowFocus + "gainFocus('" + arrow:GetID() + "'); "
