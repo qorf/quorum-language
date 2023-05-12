@@ -26,6 +26,9 @@ class Block is Control
     integer startLine = -1
     integer endLine = -1
 
+    // An index used to navigate and render the blocks in a linear fashion.
+    integer navigationIndex = -1
+
     /*
     Blocks store their relatives, making them elements in a linked list style structure.
     Relative blocks can be undefined if there's no code to correspond to a block (e.g.
@@ -295,6 +298,73 @@ class Block is Control
         else
             return GetLocalEndLine()
         end
+    end
+
+    action SetNavigationIndex(integer navigationIndex)
+        me:navigationIndex = navigationIndex
+    end
+
+    /*
+    This action returns the Block's overall index within the navigation tree structure.
+    This is calculated using the navigation indices of the parents and/or previous siblings.
+    */
+    action GetNavigationIndex returns integer
+        CodeEditor editor = GetEditor()
+        if editor not= undefined and (navigationIndex < 0 or editor:NeedsNavigationIndicesUpdate())
+            editor:RefreshNavigationIndices()
+        end
+
+        return navigationIndex
+    end
+
+    /*
+    This action returns the last line that the Block renders on in the navigation tree structure.
+    */
+    action GetNavigationEndIndex returns integer
+        integer index = GetNavigationIndex()
+        integer size = GetNavigationSize()
+
+        // Don't offset by a size of 1 or less, because in that case the start and end are the same.
+        if size > 1
+            return index + size - 1
+        end
+
+        return index
+    end
+
+    /*
+    This action returns how much space is taken up in the navigation structure by
+    this block and its children hierarchy. Any block that can be navigated to has a
+    size of at least 1, but blocks that can't be navigated to can be size 0.
+    */
+    action GetNavigationSize returns integer
+        if IsNavigable() = false
+            return 0
+        else
+            // Navigable blocks across multiple lines take multiple spots in the navigation hierarchy, as you can navigate across the lines.
+            return GetLocalEndLine() - GetLocalStartLine() + 1
+        end
+    end
+
+    /*
+    This action returns how much space is taken up in the navigation structure by
+    this block and its children hierarchy. Any block that can be navigated to has a
+    size of at least 1, but blocks that can't be navigated to can be size 0.
+    */
+    action GetTotalNavigationSize returns integer
+        // Traverse all the way down the right side of the tree to the last element, then return its index + 1.
+        Block current = me
+        repeat while current:GetChildCount() > 0
+            current = current:GetChild(current:GetChildCount() - 1)
+        end
+
+        // If there were no children to traverse, just return our own size.
+        if current = me
+            return GetNavigationSize()
+        end
+
+        // We can determine the size by subtracting our index from the index of the last child, plus the child's size (to account for extra space it takes)
+        return (current:GetNavigationIndex() - GetNavigationIndex()) + current:GetNavigationSize()
     end
 
     /*
@@ -708,4 +778,5 @@ class Block is Control
 
         return 0
     end
+
 end

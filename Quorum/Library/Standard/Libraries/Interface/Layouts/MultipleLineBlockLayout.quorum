@@ -16,7 +16,8 @@ class MultipleLineBlockLayout is Layout
         MultipleLineBlock block = cast(MultipleLineBlock, container)
         CodeEditor editor = block:GetEditor()
 
-        integer lineRange = block:GetEndLine() - block:GetStartLine()
+        integer lineRange = block:GetTotalNavigationSize()
+        integer blockIndex = block:GetNavigationIndex()
         number connectionTop = 0
 
         Array<MultipleLineBlockPart> blockParts = block:GetBlockParts()
@@ -33,13 +34,13 @@ class MultipleLineBlockLayout is Layout
             // For now, assume the element is capable of figuring out its own size during a Resize.
             part:Resize()
 
-            number currentHeight = GetHeightToLine(part, lineRange, part:GetLocalStartLine())
+            number currentHeight = GetHeightToLine(part, lineRange, part:GetNavigationIndex() - blockIndex)
 
             part:SetPosition(0, currentHeight)
 
             if i > 0
                 Control connector = connectors:Get(i - 1)
-                number y = GetHeightToLine(part, lineRange, part:GetLocalStartLine() - 1) - 1 * part:GetBorderThickness() - 1
+                number y = part:GetY() + part:GetHeight() - 1 * part:GetBorderThickness() - 1
                 connector:SetSize(editor:GetScopeIndentationWidth(), connectionTop - y)
                 connector:SetPosition(0, y)
             end
@@ -52,12 +53,13 @@ class MultipleLineBlockLayout is Layout
         block:SetSize(editor:GetTotalContentWidth() - (block:GetScopeDepth() * 4.5 + 1) * editor:GetDefaultGlyphWidth(), GetHeightToLine(block, lineRange, -1))
     end
 
+    // This action determines the pixel height between the start of a Block and a line index relative to that start.
     private action GetHeightToLine(Block block, integer lineRange, integer targetRelativeIndex) returns number
         number result = 0
         CodeEditor editor = block:GetEditor()        
-        integer startLine = block:GetStartLine()
+        integer startLine = block:GetNavigationIndex()
 
-        integer i = lineRange
+        integer i = lineRange - 1
         repeat until i <= targetRelativeIndex
             result = result + editor:GetLineHeight(startLine + i)
             i = i - 1
