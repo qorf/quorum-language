@@ -54,6 +54,7 @@ use Science.Tests.FactorialCompareSeveralMeansTest
 use Science.Tests.MultivariateCompareSeveralMeansTest
 use Science.Tests.MultivariateFactorialCompareSeveralMeansTest
 use Science.Tests.FactorialCompareVariancesTest
+use Science.Tests.RegressionPredictionTest
 
 class ScienceTester
     Tester tester = undefined
@@ -272,6 +273,9 @@ class ScienceTester
         //first conduct the test
         RegressionTest1 test1
         tester:Run(test1)
+
+        RegressionPredictionTest test2
+        tester:Run(test2)     
     end
 
     action GetTester returns Tester
