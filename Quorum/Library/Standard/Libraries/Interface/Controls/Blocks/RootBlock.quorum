@@ -104,6 +104,16 @@ class RootBlock is Block
     end
 
     /*
+    This action returns the Block's overall index within the tree structure.
+    This is calculated using the Block's parent index added to the parent's
+    block index.
+    */
+    action GetNavigationIndex returns integer
+        // The RootBlock is always at index 0.
+        return 0
+    end
+
+    /*
     This action gets the ending line index of this block,
     relative to its parent block (if it has one).
     */

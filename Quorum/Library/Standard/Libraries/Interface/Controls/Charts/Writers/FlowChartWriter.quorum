@@ -69,6 +69,7 @@ class FlowchartWriter is ChartWriter
         Color transparent
         transparent:SetColor(0,0,0,0)
         canvas:SetFill(transparent) 
+        canvas:SetFillOpacity(transparent)
 
         Drawable drawable = cast(Drawable, chart:GetIcon())
         if drawable is Drawable
@@ -94,7 +95,9 @@ class FlowchartWriter is ChartWriter
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
         chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
+        chartContentBoundingBox:SetStrokeOpacity(transparent)
         chartContentBoundingBox:SetTabIndex(-1)
         if HasAccessibility()
             chartContentBoundingBox:SetAriaHidden("true")
@@ -131,6 +134,7 @@ class FlowchartWriter is ChartWriter
                 flowNodeSVG:SetID(canvas:GetID() + "_" + currentNode:GetHashCode())
                 flowNodeSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                 flowNodeSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                flowNodeSVG:SetFillOpacity(cast(Color, currentNode:GetBackgroundColor()))
                 flowNodeSVG:SetAriaDescribedBy(nodeNameAria)
                 flowNodeSVG:SetTabIndex(-1)
                 if HasAccessibility()
@@ -157,7 +161,9 @@ class FlowchartWriter is ChartWriter
                     end
                 end
                 nodeBox:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                nodeBox:SetFillOpacity(cast(Color, currentNode:GetBackgroundColor()))
                 nodeBox:SetStroke(cast(Color,currentNode:GetBorderColor()))
+                nodeBox:SetStrokeOpacity(cast(Color, currentNode:GetBorderColor()))
                 nodeBox:SetVerticalCornerRadius(15)
                 nodeBox:SetHorizontalCornerRadius(15)
                 nodeBox:SetStrokeWidth(chart:GetNodeCornerRounding())
@@ -175,8 +181,10 @@ class FlowchartWriter is ChartWriter
                 nodeLabel:SetText(nodeName)
                 if currentNode is FlowchartHiddenNode
                     nodeLabel:SetFill(transparent)
+                    nodeLabel:SetFillOpacity(transparent)
                 else
                     nodeLabel:SetFill(cast(Color, currentNode:GetFontColor()))
+                    nodeLabel:SetFillOpacity(cast(Color, currentNode:GetFontColor()))
                 end
                 nodeLabel:SetTextAnchor("middle")
                 nodeLabel:SetPosition(currentNode:GetGlobalX()+(currentNode:GetWidth()/2),cast(number,nodeBox:GetPositionY()) + (currentNode:GetHeight()/2))
@@ -221,6 +229,7 @@ class FlowchartWriter is ChartWriter
                         flowArrowSVG:SetID(canvas:GetID() + "_" + flowchartArrow:GetHashCode())
                         flowArrowSVG:SetStyleClass("quorum-chart-bargroup quorum-chart-category-list")
                         flowArrowSVG:SetFill(cast(Color,currentNode:GetBackgroundColor()))
+                        flowArrowSVG:SetFillOpacity(cast(Color, currentNode:GetBackgroundColor()))
                         flowArrowSVG:SetAriaRoleDescription(ariaDestination)
                         flowArrowSVG:SetAriaDescribedBy(nodeNameAria)
                         flowArrowSVG:SetTabIndex(-1)
@@ -271,9 +280,11 @@ class FlowchartWriter is ChartWriter
                                 segment:SetFirstPoint(x1,y1)
                                 segment:SetSecondPoint(x2,y2)
                                 segment:SetFill(cast(Color,flowchartArrow:GetBackgroundColor()))
+                                segment:SetFillOpacity(cast(Color, flowchartArrow:GetBackgroundColor()))
                                 segment:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
+                                segment:SetStrokeOpacity(cast(Color,flowchartArrow:GetBackgroundColor()))
                                 segment:SetStrokeWidth(chart:GetArrowLineThickness())
-                                segment:SetStyleClass("quorum-chart-linesegment")
+                                segment:SetStyleClass("quorum-flowchart-linesegment")
                                 segment:SetID(flowArrowSVG:GetID() + "_segment" + k+j)
                                 segment:SetTabIndex(-1)
                                 if HasAccessibility()
@@ -319,9 +330,11 @@ class FlowchartWriter is ChartWriter
                             arrow:AddPoint(point2:GetX(),point2:GetY())
                             arrow:AddPoint(point3:GetX(),point3:GetY())
                             arrow:SetFill(cast(Color, flowchartArrow:GetBackgroundColor()))
+                            arrow:SetFillOpacity(cast(Color, flowchartArrow:GetBackgroundColor()))
                             arrow:SetStroke(cast(Color,flowchartArrow:GetBackgroundColor()))
+                            arrow:SetStrokeOpacity(cast(Color, flowchartArrow:GetBackgroundColor()))
                             arrow:SetID(flowNodeSVG:GetID() + "_arrow" + k)
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                            arrow:SetStyleClass("quorum-flowchart-arrow")
                             arrow:SetTabIndex(-1)
                             if HasAccessibility()
                                 arrowFocus = arrowFocus + "gainFocus('" + arrow:GetID() + "'); "

@@ -35,6 +35,10 @@ use Libraries.Interface.Controls.ScrollableLineControl
 use Libraries.Interface.Controls.LineNumberGutter
 use Libraries.Interface.Controls.Gutter
 use Libraries.Language.Support.FindReplace
+use Libraries.Interface.Events.GutterListener
+use Libraries.Interface.Events.GutterEvent
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Debug.BreakpointManager
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -44,7 +48,7 @@ use Libraries.Language.Support.FindReplace
     this block is not present, the editor should default to the behavior of a normal textbox. In other words,
     if a block representation is available, it uses this, whereas if it is not, then it is just text.
 */
-class CodeEditor is ScrollableLineControl
+class CodeEditor is ScrollableLineControl, GutterListener
     public constant text CODE_EDITOR_INPUT_GROUP = "CodeEditor"
     MultipleLineText rawCode
     CodeEditorSelection selection
@@ -70,6 +74,7 @@ class CodeEditor is ScrollableLineControl
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
+    boolean shouldCalculateNavigationIndices = true
     boolean shouldRegenerateBlocks = true
     boolean shouldRefreshView = false
     number totalContentWidth = -1
@@ -79,6 +84,9 @@ class CodeEditor is ScrollableLineControl
     Array<Pair<integer>> findIndices = undefined
     integer findSelection = -1
     boolean failState = false
+    File file = undefined
+    Class clazz = undefined
+    BreakpointManager breakpoints = undefined
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -112,7 +120,30 @@ class CodeEditor is ScrollableLineControl
 
         LineNumberGutter gutter
         gutter:SetPositionOnBaseLine(false)
+        gutter:AddGutterListener(me)
         Add(cast(Gutter, gutter))
+    end
+
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
+    end
+
+    action GutterClicked(GutterEvent event)
+        Gutter gutter = event:GetGutter()
+        if gutter is LineNumberGutter
+            integer line = event:GetLine()
+            if line >= GetLineCount()
+                return now
+            end
+            if clazz not= undefined and clazz:GetFile() not= undefined and breakpoints not= undefined
+                File file = clazz:GetFile()
+                breakpoints:ToggleBreakpoint(file, line)
+            end
+        end
     end
 
     action FindText(text find, boolean wholeWord, boolean matchCase) 
@@ -315,6 +346,7 @@ class CodeEditor is ScrollableLineControl
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
         RequestLayout()
     end
 
@@ -324,6 +356,7 @@ class CodeEditor is ScrollableLineControl
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
         RequestLayout()
     end
 
@@ -446,10 +479,10 @@ class CodeEditor is ScrollableLineControl
         Block block = renderer:GetBlockAtLine(line)
 
         if block is SingleLineBlock
-            integer startLine = block:GetStartLine()
-            integer endLine = block:GetEndLine()
+            integer startLine = block:GetNavigationIndex()
+            integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
-                if line = block:GetStartLine() or line = block:GetEndLine()
+                if line = startLine or line = endLine
                     return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
                 else
                     return GetDefaultUnpaddedLineHeight()
@@ -535,6 +568,26 @@ class CodeEditor is ScrollableLineControl
         return totalContentWidth
     end
 
+    action NeedsNavigationIndicesUpdate returns boolean
+        return shouldCalculateNavigationIndices
+    end
+
+    action RequestNavigationIndicesUpdate
+        // If navigation indices are out of date, the cached line Y values are as well. We need to recalculate height in that case.
+        shouldCalculateHeight = true
+
+        shouldCalculateNavigationIndices = true
+        RequestViewRefresh()
+    end
+
+    action RefreshNavigationIndices
+        // If navigation indices are out of date, the cached line Y values are as well. We need to recalculate height in that case.
+        shouldCalculateHeight = true
+
+        renderer:RefreshNavigationIndices()
+        shouldCalculateNavigationIndices = false
+    end
+
     action GetScrollableRegion returns Control
         return renderer
     end
@@ -549,8 +602,12 @@ class CodeEditor is ScrollableLineControl
     end
 
     action GetLineCount returns integer
-        if rawCode not= undefined
-            return rawCode:GetLineCount()
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
+        if renderer:GetRootBlock() not= undefined
+            return renderer:GetRootBlock():GetTotalNavigationSize()
         else
             return 0
         end
@@ -560,6 +617,11 @@ class CodeEditor is ScrollableLineControl
     Returns the pixel y-coordinate of the given line.
     */
     action GetLineY(integer line) returns number
+        // If navigation indices are out of date, we need to update them, because we rely on them for correct line values.
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
         // If we don't have cached y-position values ready, go fetch them via calculating the height.
         if shouldCalculateHeight
             GetTotalContentHeight()
@@ -615,6 +677,10 @@ class CodeEditor is ScrollableLineControl
 
     // Called automatically during a Resize via the ScrollableControl interface.
     private action RefreshScrollableRegion
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
         shouldRefreshView = false
         if rawCode:GetSize() > 0
             if shouldRegenerateBlocks
@@ -673,6 +739,7 @@ class CodeEditor is ScrollableLineControl
         // If the number of lines has changed, we'll need to recalculate the height and y-positions of lines.
         if previousLineCount not= rawCode:GetLineCount()
             shouldCalculateHeight = true
+            shouldCalculateNavigationIndices = true
         end
 
         if indexOffset = 0
@@ -1056,6 +1123,7 @@ class CodeEditor is ScrollableLineControl
     preserved and reattached into the tree to the parent of the deleted block.
     */
     action Delete(Block block, boolean deleteContents, boolean triggerEvent)
+        shouldCalculateNavigationIndices = true
 
         // After deleting the block, we'll jump to the target selection.
         Block targetSelection = undefined
@@ -1216,6 +1284,8 @@ class CodeEditor is ScrollableLineControl
     end
 
     action DeleteBlockAndChildren(Block block)
+        shouldCalculateNavigationIndices = true
+
         integer startIndex = block:GetStartIndex()
     
         // Make sure we delete the whole line by grabbing any indentation whitespace
@@ -1259,6 +1329,8 @@ class CodeEditor is ScrollableLineControl
     end
 
     action DeleteBlockPreservingChildren(Block block, Block newParent)
+        shouldCalculateNavigationIndices = true
+
         Array<Block> preservedChildren
         integer i = 0
         repeat while i < block:GetChildCount()
@@ -1324,6 +1396,8 @@ class CodeEditor is ScrollableLineControl
     end
 
     action DeleteBlockPreservingGrandchildren(Block block, Block newParent)
+        shouldCalculateNavigationIndices = true
+
         // Just modify the text directly and refresh the blocks.
         MultipleLineText updatedText = rawCode
 
@@ -1468,4 +1542,19 @@ class CodeEditor is ScrollableLineControl
         me:failState = failState
     end
 
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    action GetBreakpointManager returns BreakpointManager
+        return breakpoints
+    end
+
+    action SetBreakpointManager(BreakpointManager breakpoints)
+        me:breakpoints = breakpoints
+    end
 end

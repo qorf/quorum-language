@@ -286,9 +286,29 @@ class CodeEditorRenderer is Control
 
     private action PositionBlock(Block block)
         CodeEditor editor = GetEditor()
-        integer lineIndex = block:GetEndLine()
+
+        integer navigationSize = block:GetNavigationSize()
+        if block is MultipleLineBlock
+            navigationSize = block:GetTotalNavigationSize()
+        end
+
+        if navigationSize <= 0
+            navigationSize = 1
+        end
+
+        integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
 
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
+    end
+
+    action RefreshNavigationIndices
+        Block currentBlock = rootBlock
+        integer index = 0
+        repeat until currentBlock = undefined
+            currentBlock:SetNavigationIndex(index)
+            index = index + currentBlock:GetNavigationSize()
+            currentBlock = currentBlock:GetNextBlock()
+        end
     end
 
     action UpdateSelectionCursor(CodeEditorSelection selection)
@@ -344,11 +364,36 @@ class CodeEditorRenderer is Control
     end
 
     private action GetBlockAtLine(Block block, integer line) returns Block
+        /*
+        TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
+        */
+
+        Block candidate = block
+        repeat until candidate = undefined or candidate:GetNavigationIndex() = line
+            Block nextCandidate = candidate:GetNextNavigableBlock()
+
+            /*
+            If we ever find a block with a navigation index that's too large, go back one step.
+            Most likely the previous block was our best choice, but had a size greater than 1,
+            meaning we found a "gap" in the mostly linear sequence of navigation indices.
+            */
+            if nextCandidate:GetNavigationIndex() > line
+                return candidate
+            end
+
+            candidate = nextCandidate
+        end
+
+        return candidate
+    end
+
+    // This action was formerly "GetBlockAtLine" before that action changed to be based on navigation index instead of lines of text
+    private action GetBlockAtTextLine(Block block, integer line) returns Block
         integer i = 0
         repeat while i < block:GetChildCount()
             Block candidate = block:GetChild(i)
             if candidate:GetStartLine() <= line and candidate:GetEndLine() >= line
-                return GetBlockAtLine(candidate, line)
+                return GetBlockAtTextLine(candidate, line)
             end
 
             i = i + 1
