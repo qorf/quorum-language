@@ -413,7 +413,18 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterAlertStatement(AlertContext context) end
     action ExitAlertStatement(AlertContext context) end
 
-    action EnterUse(UseContext context) end
+    action EnterUse(UseContext context) 
+        OffsetLocation(context:GetLocation())
+        if context:nameContext not= undefined
+            OffsetLocation(context:nameContext:GetLocation())
+        end
+        UseBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitUse(UseContext context) end
 
     action EnterNot(NotContext context) end
@@ -434,7 +445,19 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterInteger(IntegerContext int) end
     action ExitInteger(IntegerContext int) end
 
-    action EnterPackageRule(PackageContext context) end
+    action EnterPackageRule(PackageContext context)
+        OffsetLocation(context:GetLocation())
+        if context:nameContext not= undefined
+            OffsetLocation(context:nameContext:GetLocation())
+        end
+
+        PackageBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+    end
     action ExitPackageRule(PackageContext context) end
 
     action EnterNormalAssignment(NormalAssignmentContext context)
