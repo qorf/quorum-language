@@ -42,6 +42,7 @@ class ChartWriter
     Rectangle yAxis
     Rectangle horizontalPanel
     Rectangle verticalPanel
+    Rectangle legendPanel
     Rectangle background
     Rectangle chartArea
     Array<Rectangle> subChartAreas
@@ -165,7 +166,6 @@ class ChartWriter
             chartInformation:SetIsOneLine(true)
             chartInformation:SetTabIndex(-1)
         end
-        chartCanvas:Add(chartInformation)
         
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
@@ -183,9 +183,22 @@ class ChartWriter
             AddChartSubtitle(chartCanvas, chart)
         end
         AddChartContent(chartCanvas, chart)
+
         if chart:IsShowingLegend()
             AddLegend(chartCanvas, chart)
         end
+
+        //add the rest of the chart information after the chart content has been populated
+        if chart:IsShowingXAxis()
+            chartInformation:Add(horizontalPanel)
+        end
+        if chart:IsShowingYAxis()
+            chartInformation:Add(verticalPanel)
+        end
+        if chart:IsShowingLegend()
+            chartInformation:Add(legendPanel)
+        end
+        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -248,10 +261,12 @@ class ChartWriter
             chartInformation:SetIsOneLine(true)
             chartInformation:SetTabIndex(-1)
         end
-        chartCanvas:Add(chartInformation)
 
         AddBackground(chartCanvas, chart)
         AddChartArea(chartCanvas, chart)
+        if chart:IsShowingLegend()
+            AddLegend(chartCanvas, chart)
+        end
         if chart:IsShowingXAxis()
             AddXLabels(chartCanvas, chart)
         end
@@ -266,9 +281,18 @@ class ChartWriter
             AddChartSubtitle(chartCanvas, chart)
         end
         AddChartContent(chartCanvas, chart)
-        if chart:IsShowingLegend()
-            AddLegend(chartCanvas, chart)
+
+        //add the rest of the chart information after the chart content has been populated
+        if chart:IsShowingXAxis()
+            chartInformation:Add(horizontalPanel)
         end
+        if chart:IsShowingYAxis()
+            chartInformation:Add(verticalPanel)
+        end
+        if chart:IsShowingLegend()
+            chartInformation:Add(legendPanel)
+        end
+        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -536,6 +560,14 @@ class ChartWriter
         return me:styleFilepath
     end
 
+    action SetChartInformation(Group chartInformation)
+        me:chartInformation = chartInformation
+    end
+
+    action GetChartInformation returns Group
+        return me:chartInformation
+    end
+
     /*
         This action adds a white background to the canvas
     */
@@ -543,22 +575,17 @@ class ChartWriter
 //        background:SetFill(cast(Color, chart:GetBackgroundColor()))
         text chartTitle = ""
         if chart:GetBackground() not= undefined
-        if chart:HasAccessibility()
                 Color transparent
                 transparent:SetColor(0,0,0,0)
                 background:SetFill(transparent)
-            else
-              background:SetFill(cast(Color, chart:GetBackground():GetColor()))
-            end
-            background:SetFillOpacity(cast(Color, chart:GetBackground():GetColor()))
-
+                background:SetFillOpacity(0)
         end
         background:SetSize(100,100, "%")
         background:SetPosition(0, 0, "%")
         if HasAccessibility()
             background:SetID(canvas:GetID() + "_" + background:GetHashCode())
-            background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
-            background:SetTabIndex(0)
+            //background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
+            background:SetTabIndex(-1)
             background:SetRole("graphics-object")
             if chart:GetTitle() not= ""
                 chartTitle = chart:GetTitle()
@@ -568,10 +595,10 @@ class ChartWriter
             if chart:GetSubtitle() not= "Subtitle"
                 chartTitle = chartTitle + ", " + chart:GetSubtitle()
             end
-            background:SetAriaLabel(chartTitle + chart:GenerateSummary())
-            background:SetAriaHidden("false")
+            //background:SetAriaLabel(chartTitle + chart:GenerateSummary())
+            background:SetAriaHidden("true")
         end
-        chartInformation:Add(background)
+        canvas:Add(background)
     end
 
     /*
@@ -589,9 +616,9 @@ class ChartWriter
             chartArea:SetTabIndex(-1)
             chartArea:SetID(canvas:GetID() + "_" + chartArea:GetHashCode())
             chartArea:SetStyleClass("quorum-chart-element")
-            chartArea:SetAriaHidden("false")
+            chartArea:SetAriaHidden("true")
         end
-        canvas:Add(chartArea)
+        //canvas:Add(chartArea)
 
         Array<ChartAreaPanel> subChartAreas = chart:GetSubChartAreas()
         i = 0
@@ -616,7 +643,7 @@ class ChartWriter
                     svgSubChartArea:SetAriaHidden("false")
                 end
                 me:subChartAreas:Add(svgSubChartArea)
-                canvas:Add(svgSubChartArea)
+                //canvas:Add(svgSubChartArea)
 
                 if currentSubChartArea:GetLabel() not= undefined
                     Label areaTitle
@@ -632,7 +659,7 @@ class ChartWriter
                         areaTitle:SetStyleClass("quorum-chart-text")
                         areaTitle:SetAriaHidden("true")
                     end
-                    canvas:Add(areaTitle)
+                    //canvas:Add(areaTitle)
                 end
             end
             i = i + 1
@@ -664,7 +691,7 @@ class ChartWriter
                     //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
                     horizontalPanel:SetAriaHidden("false")
                 end
-                chartInformation:Add(horizontalPanel)
+                //chartInformation:Add(horizontalPanel)
 
                 if not chart:IsSeparated()
                     Array<Drawable> axisLines = horizontalAxisPanel:GetAxisLines()
@@ -781,7 +808,7 @@ class ChartWriter
                     //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
                     verticalPanel:SetAriaHidden("false")
                 end
-                chartInformation:Add(verticalPanel)
+                //chartInformation:Add(verticalPanel)
 
                 if not chart:IsSeparated()
                     Array<Drawable> axisLines = verticalAxisPanel:GetAxisLines()
@@ -920,6 +947,29 @@ class ChartWriter
                 chartSubtitle:SetAriaHidden("true")
             end
             canvas:Add(chartSubtitle)
+        end
+    end
+
+    /*
+        This action adds a chart title for the subchart to the canvas
+    */
+    private action AddSubChartTitle(ScalableVectorGraphics canvas, ChartAreaPanel subChartArea)
+        Label subChartTitle
+        if subChartArea:GetLabel() not= undefined
+            subChartTitle:SetText(subChartArea:GetLabel():GetText())
+            subChartTitle:SetTextAnchor("left")
+            subChartTitle:SetPosition(subChartArea:GetLabel():GetGlobalX(), TranslatePositionY(subChartArea:GetLabel()))// - chart:GetTitleLabel():GetHeight()/2)
+            subChartTitle:SetFontSize(subChartArea:GetLabel():GetFontSize() + "px")
+            subChartTitle:SetFontFamily("Arial")
+            subChartTitle:SetFill(cast(Color, subChartArea:GetLabel():GetFontColor()))
+            subChartTitle:SetFillOpacity(cast(Color, subChartArea:GetLabel():GetFontColor()))
+            if HasAccessibility()
+                subChartTitle:SetID(canvas:GetID() + "_" + subChartTitle:GetHashCode())
+                subChartTitle:SetStyleClass("quorum-chart-text")
+                subChartTitle:SetTabIndex(-1)
+                subChartTitle:SetAriaHidden("true")
+            end
+            canvas:Add(subChartTitle)
         end
     end
 
@@ -1501,8 +1551,8 @@ class ChartWriter
             //svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
-
-        chartInformation:Add(svgElementLegend)
+        legendPanel = svgElementLegend
+        //chartInformation:Add(svgElementLegend)
 
         ChartLabel legendTitle = legend:GetTitleLabel()
         if legendTitle not= undefined and legendTitle:IsShowing()

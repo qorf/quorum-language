@@ -96,6 +96,15 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         return grouping
     end
 
+    action AddBanner(text name, text title, text label) returns Banner
+        Banner grouping
+        grouping:SetName(name)
+        grouping:Initialize(title, label)
+
+        Add(grouping)
+        return grouping
+    end
+
     action RemoveBanner(text name) returns Banner
         Banner item = GetBanner(name)
         if item not= undefined

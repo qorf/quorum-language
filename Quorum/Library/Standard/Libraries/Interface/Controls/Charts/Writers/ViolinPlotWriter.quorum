@@ -111,7 +111,7 @@ class ViolinPlotWriter is ChartWriter
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
 
-        canvas:Add(chartContent)
+        GetChartInformation():Add(chartContent)
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
@@ -121,7 +121,7 @@ class ViolinPlotWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
+            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object") 
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
@@ -130,8 +130,8 @@ class ViolinPlotWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
-            chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
-            chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -224,10 +224,10 @@ class ViolinPlotWriter is ChartWriter
     
                     if HasAccessibility()
                         if plotGroupFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotGroupFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotGroupFocus + "});" + newLine
                         end
                         if plotGroupBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotGroupBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotGroupBlur + "});" + newLine
                         end
                     end
                 end
@@ -319,10 +319,10 @@ class ViolinPlotWriter is ChartWriter
 
                     if HasAccessibility()
                         if plotFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
                         end
                         if plotBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
+                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
                         end
                     end   
 
@@ -450,8 +450,8 @@ class ViolinPlotWriter is ChartWriter
                                             labelSVG:SetStyleClass("quorum-chart-text")
                                             labelSVG:SetTabIndex(-1)
                                             labelSVG:SetAriaHidden("true")
-                                            itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                            itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                            //itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                            //itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                         end
                                         canvas:Add(labelSVG)
                                     end
@@ -507,10 +507,10 @@ class ViolinPlotWriter is ChartWriter
         
                             if HasAccessibility()
                                 if itemFocus not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
                                 end
                                 if itemBlur not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
+                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
                                 end
                             end 
                         end
@@ -542,6 +542,7 @@ class ViolinPlotWriter is ChartWriter
                         subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
+                    AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
     
                     if HasAccessibility()
                         //Separated, by the Factor levels with multiple Series per subplot
@@ -552,8 +553,8 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                         elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
@@ -563,8 +564,8 @@ class ViolinPlotWriter is ChartWriter
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
                             subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
-                            subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
-                            subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                            //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                             chartContent:Add(subChartContent)
                         else
                             subChartContent:SetAriaHidden("true")
@@ -660,10 +661,10 @@ class ViolinPlotWriter is ChartWriter
 
                         if HasAccessibility()
                             if plotFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + plotFocus + "});"
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
                             end
                             if plotBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + plotBlur + "});"
+                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
                             end
                         end   
     
@@ -791,8 +792,8 @@ class ViolinPlotWriter is ChartWriter
                                                 labelSVG:SetStyleClass("quorum-chart-text")
                                                 labelSVG:SetTabIndex(-1)
                                                 labelSVG:SetAriaHidden("true")
-                                                itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                                itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                                //itemFocus = itemFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                                //itemBlur = itemBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                             end
                                             canvas:Add(labelSVG)
                                         end
@@ -848,10 +849,10 @@ class ViolinPlotWriter is ChartWriter
         
                                 if HasAccessibility()
                                     if itemFocus not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusin', (event) => {" + newLine + itemFocus + "});"
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
                                     end
                                     if itemBlur not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focusout', (event) => {" + newLine + itemBlur + "});"
+                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
                                     end
                                 end 
                             end

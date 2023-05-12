@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.Blocks.RootBlock
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
+use Libraries.Containers.MultipleLineText
 
 class CodeEditorRenderer is Control
 
@@ -128,14 +129,14 @@ class CodeEditorRenderer is Control
 
     action RegenerateBlocks(RootBlock block)
         Empty()
-
-        rootBlock = block
-        if rootBlock = undefined
-            return now
-        end
-        FillWhiteSpace()
-
         CodeEditor editor = GetEditor()
+        rootBlock = block
+        if editor:GetFailState() or rootBlock:GetStartContext() = undefined
+            FillWithFreeform()
+        else
+            FillWhiteSpace()
+        end
+
         RefreshBlockView(editor:GetFirstVisibleLine(), editor:GetLastVisibleLine())
     end
 
@@ -206,6 +207,33 @@ class CodeEditorRenderer is Control
             expected = lineIndex + (current:GetLocalEndLine() - current:GetLocalStartLine() + 1)
             current = current:GetNextNavigableBlock()
         end
+    end
+
+    action FillWithFreeform
+        CodeEditor editor = GetEditor()
+        rootBlock:EmptyChildBlocks()
+        MultipleLineText rawCode = editor:GetCode()
+
+        integer i = 0
+        repeat while i < rawCode:GetLineCount()
+            integer indexStart = rawCode:CharacterIndexFromLineIndex(i)
+            integer indexEnd = rawCode:CharacterIndexFromLineIndex(i+1) - rawCode:GetDefaultLineSeparator():GetSize()
+            if indexEnd < indexStart
+                indexEnd = indexStart
+            end
+            FreeformBlock newBlock
+            newBlock:SetLocalStartLine(i)
+            newBlock:SetLocalEndLine(i)
+            newBlock:SetLocalStartIndex(indexStart)
+            newBlock:SetLocalEndIndex(indexEnd)
+            newBlock:SetScopeDepth(0)
+
+            rootBlock:Add(cast(Block,newBlock))
+
+            newBlock:Setup()
+            i = i + 1
+        end
+
     end
 
     action RefreshBlockView
