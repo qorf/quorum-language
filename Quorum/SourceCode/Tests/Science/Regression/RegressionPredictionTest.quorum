@@ -1,0 +1,111 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Containers.Array
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.Predictions.RegressionPrediction
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Vector
+
+class RegressionPredictionTest is Test
+
+    on create
+        SetName("Test Regression Prediction")
+    end
+
+    action Run
+        DataFrame frame
+        NumberColumn column0
+        column0:SetHeader("y")
+        column0:Add("1")
+        column0:Add("2")
+        column0:Add("3")
+        column0:Add("4")
+        column0:Add("5")
+        column0:Add("6")
+
+        NumberColumn column2
+        column2:SetHeader("2")
+        column2:Add("12.0")
+        column2:Add("6")
+        column2:Add("-4")
+        column2:Add("1")
+        column2:Add("97")
+        column2:Add("65")
+
+        NumberColumn column3
+        column3:SetHeader("3")
+        column3:Add("-51.0")
+        column3:Add("167")
+        column3:Add("24")
+        column3:Add("2")
+        column3:Add("120")
+        column3:Add("69")
+
+        NumberColumn column4
+        column4:SetHeader("4")
+        column4:Add("4")
+        column4:Add("-68")
+        column4:Add("-41")
+        column4:Add("3")
+        column4:Add("159")
+        column4:Add("73")
+
+        Array<DataFrameColumn> columns
+        columns:Add(column0)
+        columns:Add(column2)
+        columns:Add(column3)
+        columns:Add(column4)
+
+        frame:SetColumns(columns)
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactorRange(1,3)
+        
+        Regression regression = frame:RegressionOnSelected()
+
+        DataFrame frame2
+        NumberColumn column02
+        column02:SetHeader("y")
+        column02:Add("1")
+        column02:Add("2")
+        column02:Add("3")
+        
+        NumberColumn column22
+        column22:SetHeader("2")
+        column22:Add("12.0")
+        column22:Add("6")
+        column22:Add("-4")
+        
+        NumberColumn column32
+        column32:SetHeader("3")
+        column32:Add("-51.0")
+        column32:Add("167")
+        column32:Add("24")
+        
+        NumberColumn column42
+        column42:SetHeader("4")
+        column42:Add("4")
+        column42:Add("-68")
+        column42:Add("-41")
+        
+        
+        Array<DataFrameColumn> columns2
+        columns2:Add(column02)
+        columns2:Add(column22)
+        columns2:Add(column32)
+        columns2:Add(column42)
+        
+        frame2:SetColumns(columns2)
+        frame2:AddSelectedColumn(0)
+        frame2:AddSelectedFactorRange(1,3)
+        
+        RegressionPrediction prediction = regression:Predict(frame2)
+        DataFrame result = prediction:GetResultFrame()
+        Check(result:GetColumn("y"):GetAsNumber(0), 2.665021177938154)
+        Check(result:GetColumn("y"):GetAsNumber(1), 2.6712905896709542)
+        Check(result:GetColumn("y"):GetAsNumber(2), 2.413040827385446)
+
+        Check(prediction:GetEffectSize(), -0.7837238245398483)
+    end
+end
