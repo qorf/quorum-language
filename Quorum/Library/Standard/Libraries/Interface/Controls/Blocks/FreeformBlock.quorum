@@ -21,7 +21,11 @@ use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.EditBox
 use Libraries.Interface.Controls.Blocks.Block
-use Libraries.Compute.Random
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.Parsing.TokenIterator
+use Libraries.Language.Compile.Parsing.QuorumLexerConstants
+use Libraries.Language.Compile.Context.PackageContext
+use Libraries.Language.Compile.Context.UseContext
 
 class FreeformBlock is SingleLineBlock
     FreeformBlockListener blockListener
@@ -100,16 +104,39 @@ class FreeformBlock is SingleLineBlock
         First check special cases where the user has typed a short-cut.
         If so, insert extra code to make it valid before we parse it.
         */
+        CompilerErrorManager errorManager
+        QuorumLexer shortcutLexer
+        shortcutLexer:SetCompilerErrorManager(errorManager)
+        shortcutLexer:Read(code)
+        
+        // If there's an error, set the block to reflect it, then bail.
+        if not errorManager:IsCompilationErrorFree()
+            // TO-DO: Set error state visuals
+            BlockErrorShaderView view
+            view:Initialize()
+            SetView2D(view)
+            return now
+        end
     // output
-        if code = "output"
+        TokenIterator<Token> tokenIterator
+        tokenIterator:SetLexer(shortcutLexer)
+        Token current = tokenIterator:Next()
+        QuorumLexerConstants constants
+        isPackageStatement = false
+        isUseStatement = false
+
+
+        // since we ignore white space the shortcuts will overwrite the text to guarantee spacing
+
+        if current:category = constants:OUTPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " + dq + dq)
+            editRegion:SetText("output " + dq + dq)
             code = editRegion:GetText()
     // if
-        elseif code = "if"
+        elseif current:category = constants:IF and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = " true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-            editRegion:Insert(value)
+            text value = "if true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:SetText(value)
             code = editRegion:GetText()
     // if (condition)
         elseif code:StartsWith("if") = true and code:EndsWith("end") = false
@@ -118,34 +145,34 @@ class FreeformBlock is SingleLineBlock
             editRegion:Insert(value)
             code = editRegion:GetText()
     //  input
-        elseif code = "input"
+        elseif current:category = constants:INPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("text myInput = input()")
             code = editRegion:GetText()
     //  integer
-        elseif code = "integer"
+        elseif current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " +"myInteger" + " = 0")
+            editRegion:SetText("integer " + "myInteger" + " = 0")
             code = editRegion:GetText()
     //  number
-        elseif code = "number"
+        elseif current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " + "myNumber" + " = 0.0")
+            editRegion:SetText("number " + "myNumber" + " = 0.0")
             code = editRegion:GetText()
     //  boolean
-        elseif code = "boolean"
+        elseif current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " + "myBoolean" + " = false")
+            editRegion:SetText("boolean " + "myBoolean" + " = false")
             code = editRegion:GetText()
     //  text
-        elseif code = "text"
+        elseif current:category = constants:TEXT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " + "myText" + " = "+dq+dq)
+            editRegion:SetText("text " + "myText" + " = "+dq+dq)
             code = editRegion:GetText()
     //  say
-        elseif code = "say"
+        elseif current:category = constants:SAY and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" " + dq + dq)
+            editRegion:SetText("say " + dq + dq)
             code = editRegion:GetText()
     //  return (now for void or with a field if it does)
     //  if
@@ -167,9 +194,9 @@ class FreeformBlock is SingleLineBlock
             end 
     //  else
     //  repeat - by default it's times
-        elseif code = "repeat"
+        elseif current:category = constants:REPEAT
             editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+            editRegion:SetText("repeat 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
             code = editRegion:GetText()
     //  repeat while
         elseif code = "repeat while"
@@ -184,10 +211,10 @@ class FreeformBlock is SingleLineBlock
             code = editRegion:GetText()
     //  repeat until i (or some name) - maybe
     //  check
-        elseif code = "check"
+        elseif current:category = constants:CHECK
             editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
-            editRegion:Insert(value)
+            text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:SetText(value)
             code = editRegion:GetText()
     //  detect
     //  always
@@ -196,6 +223,11 @@ class FreeformBlock is SingleLineBlock
     //  system
     //  class
     //  shared
+    // other
+        elseif current:category = constants:PACKAGE_NAME
+            isPackageStatement = true
+        elseif current:category = constants:USE
+            isUseStatement = true
         end
 
         /*
@@ -233,6 +265,16 @@ class FreeformBlock is SingleLineBlock
 
             if statement not= undefined
                 blockListener:EnterClassStatements(statement)
+            end
+        elseif isPackageStatement
+            PackageContext context = parser:Package()
+            if context not= undefined
+                blockListener:EnterPackageRule(context)
+            end
+        elseif isUseStatement
+            UseContext context = parser:Use()
+            if context not= undefined
+                blockListener:EnterUse(context)
             end
         else
             // If we're not in a class, parse for a standard statement. 
