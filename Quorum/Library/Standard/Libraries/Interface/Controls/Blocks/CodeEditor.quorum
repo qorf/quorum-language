@@ -79,6 +79,7 @@ class CodeEditor is ScrollableLineControl
     Array<Pair<integer>> findIndices = undefined
     integer findSelection = -1
     boolean failState = false
+    File file = undefined
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -1468,4 +1469,11 @@ class CodeEditor is ScrollableLineControl
         me:failState = failState
     end
 
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
 end
