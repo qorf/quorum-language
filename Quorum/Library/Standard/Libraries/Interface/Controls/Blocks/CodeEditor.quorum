@@ -204,17 +204,6 @@ class CodeEditor is ScrollableLineControl
         number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
         SetScrollPercentageY(viewPercent)
     end
-
-    /*
-    This action attempts to center the view on the requested line of text in the editor.
-    Note that this differs from the regular GoToLine call which uses navigation index. In
-    most programs this will have the same result, but if the lines of text don't match the
-    lines of the block editor (e.g. you have oddly formatted text) this can produce
-    different result.
-    */
-    action GoToTextLine(integer line)
-        
-    end
     
     /* called by PreviousSelection(), NextSelection(), and SetSelection() to 
     update the current selection in the array of indices. Highlights the line 
