@@ -392,7 +392,18 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterAddition(AdditionContext addition) end
     action ExitAddition(AdditionContext addition) end
 
-    action EnterReturnStatement(ReturnContext context) end
+    action EnterReturnStatement(ReturnContext context) 
+        OffsetLocation(context:GetLocation())
+        if context:expression not= undefined
+            OffsetLocation(context:expression:GetLocation())
+        end
+        ReturnBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+        
+        me:block = block
+    end
     action ExitReturnStatement(ReturnContext context) end
 
     action EnterInput(InputContext context) end

@@ -132,18 +132,7 @@ class FreeformBlock is SingleLineBlock
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("output " + dq + dq)
             code = editRegion:GetText()
-    // if
-        elseif current:category = constants:IF and not tokenIterator:HasNext()
-            editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = "if true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-            editRegion:SetText(value)
-            code = editRegion:GetText()
-    // if (condition)
-        elseif code:StartsWith("if") = true and code:EndsWith("end") = false
-            editRegion:SetCaretPosition(editRegion:GetSize())
-            text value = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-            editRegion:Insert(value)
-            code = editRegion:GetText()
+
     //  input
         elseif current:category = constants:INPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
@@ -175,7 +164,33 @@ class FreeformBlock is SingleLineBlock
             editRegion:SetText("say " + dq + dq)
             code = editRegion:GetText()
     //  return (now for void or with a field if it does)
-    //  if
+        elseif current:category = constants:RETURN and not tokenIterator:HasNext()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            Block parentBlock = GetParentBlock()
+            repeat until parentBlock is ActionBlock or parentBlock = undefined
+                parentBlock = parentBlock:GetParentBlock()
+            end
+            if parentBlock not= undefined
+                ActionBlock parentAction = cast(ActionBlock, parentBlock)
+                if parentAction:HasReturn()
+                    editRegion:SetText("return undefined")
+                else
+                    editRegion:SetText("return now")
+                    code = editRegion:GetText()
+                end
+            end
+    // if
+        elseif current:category = constants:IF and not tokenIterator:HasNext()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value = "if true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:SetText(value)
+            code = editRegion:GetText()
+    // if (condition)
+        elseif code:StartsWith("if") = true and code:EndsWith("end") = false
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:Insert(value)
+            code = editRegion:GetText()
     //  elseif
         elseif code = "elseif"
             editRegion:SetCaretPosition(editRegion:GetSize())
@@ -194,28 +209,56 @@ class FreeformBlock is SingleLineBlock
             end 
     //  else
     //  repeat - by default it's times
-        elseif current:category = constants:REPEAT
-            editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:SetText("repeat 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-            code = editRegion:GetText()
     //  repeat while
-        elseif code = "repeat while"
-            editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" false" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-            code = editRegion:GetText()
     //  repeat while i (or some name) - maybe
     //  repeat until
-        elseif code = "repeat until"
-            editRegion:SetCaretPosition(editRegion:GetSize())
-            editRegion:Insert(" true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-            code = editRegion:GetText()
     //  repeat until i (or some name) - maybe
+        elseif current:category = constants:REPEAT
+            if not tokenIterator:HasNext()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                editRegion:SetText("repeat 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+                code = editRegion:GetText()
+            else
+                current = tokenIterator:Next()
+                boolean hasExpression = true
+                
+                if current:category = constants:WHILE
+                    if not tokenIterator:HasNext()
+                        editRegion:SetCaretPosition(editRegion:GetSize())
+                        editRegion:SetText("repeat while false" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+                        code = editRegion:GetText()
+                        hasExpression = false
+                    end
+                    tokenIterator:Next()
+                elseif current:category = constants:UNTIL
+                    if not tokenIterator:HasNext()
+                        editRegion:SetCaretPosition(editRegion:GetSize())
+                        editRegion:SetText("repeat until true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
+                        code = editRegion:GetText()
+                        hasExpression = false
+                    end
+                    tokenIterator:Next()
+                end
+                // there is an expression here
+                if hasExpression
+                    
+//                    QuorumParser parser
+//                    parser:SetCompilerErrorManager(errorManager)
+//                    parser:SetLexer(shortcutLexer)
+//                    ParseContext context = parser:Expression()
+//
+//                    if context not= undefined
+//                        if 
+//                    end
+                end
+            end
     //  check
         elseif current:category = constants:CHECK
             editRegion:SetCaretPosition(editRegion:GetSize())
             text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
             editRegion:SetText(value)
             code = editRegion:GetText()
+        
     //  detect
     //  always
     //  action
