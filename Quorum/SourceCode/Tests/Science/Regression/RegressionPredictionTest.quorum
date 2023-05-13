@@ -4,13 +4,14 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.Predictions.RegressionPrediction
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Compute.Vector
 
-class RegressionTest1 is Test
+class RegressionPredictionTest is Test
 
     on create
-        SetName("Test Regression")
+        SetName("Test Regression Prediction")
     end
 
     action Run
@@ -62,39 +63,49 @@ class RegressionTest1 is Test
         frame:AddSelectedFactorRange(1,3)
         
         Regression regression = frame:RegressionOnSelected()
-    
-        Vector beta = regression:GetCoefficients()
-        Check(beta:Get(0), 3.035055201547586)
-        Check(beta:Get(1), -0.01065653161706212)
-        Check(beta:Get(2), 0.006309244819505622)
-        Check(beta:Get(3), 0.01990396039752497)
 
-        Vector ts = regression:GetCoefficientProbabilityValues()
-        Check(ts:Get(0), 0.2190170708494098)
-        Check(ts:Get(1), 0.9352876986878369)
-        Check(ts:Get(2), 0.7871528412383143)
-        Check(ts:Get(3), 0.7475527528887522)
-
-        Vector residuals = regression:GetResiduals()
-        Check(residuals:Get(0), -1.6650211779381539)
-        Check(residuals:Get(1), -0.6712905896709542)
-        Check(residuals:Get(2), 0.586959172614554)
-        Check(residuals:Get(3), 0.9032709592378896)
-        Check(residuals:Get(4), -0.923210716239705)
-        Check(residuals:Get(5), 1.7692923519962411)
-
-        number rss = regression:GetResidualSumOfSquares()
-        Check(rss, 8.366059528294453)
+        DataFrame frame2
+        NumberColumn column02
+        column02:SetHeader("y")
+        column02:Add("1")
+        column02:Add("2")
+        column02:Add("3")
         
-        number tss = regression:GetTotalSumOfSquares()
-        Check(tss, 17.5)
+        NumberColumn column22
+        column22:SetHeader("2")
+        column22:Add("12.0")
+        column22:Add("6")
+        column22:Add("-4")
+        
+        NumberColumn column32
+        column32:SetHeader("3")
+        column32:Add("-51.0")
+        column32:Add("167")
+        column32:Add("24")
+        
+        NumberColumn column42
+        column42:SetHeader("4")
+        column42:Add("4")
+        column42:Add("-68")
+        column42:Add("-41")
+        
+        
+        Array<DataFrameColumn> columns2
+        columns2:Add(column02)
+        columns2:Add(column22)
+        columns2:Add(column32)
+        columns2:Add(column42)
+        
+        frame2:SetColumns(columns2)
+        frame2:AddSelectedColumn(0)
+        frame2:AddSelectedFactorRange(1,3)
+        
+        RegressionPrediction prediction = regression:Predict(frame2)
+        DataFrame result = prediction:GetResultFrame()
+        Check(result:GetColumn("y"):GetAsNumber(0), 2.665021177938154)
+        Check(result:GetColumn("y"):GetAsNumber(1), 2.6712905896709542)
+        Check(result:GetColumn("y"):GetAsNumber(2), 2.413040827385446)
 
-        number F = regression:GetTestStatistic()
-        Check(F, 0.7278568395562195)
-
-        number p = regression:GetProbabilityValue()
-        Check(p, 0.6229228705704604)
-
-        Check(regression:GetEffectSize(), 0.5219394555260313)
+        Check(prediction:GetEffectSize(), -0.7837238245398483)
     end
 end

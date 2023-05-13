@@ -35,6 +35,10 @@ use Libraries.Interface.Controls.ScrollableLineControl
 use Libraries.Interface.Controls.LineNumberGutter
 use Libraries.Interface.Controls.Gutter
 use Libraries.Language.Support.FindReplace
+use Libraries.Interface.Events.GutterListener
+use Libraries.Interface.Events.GutterEvent
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Debug.BreakpointManager
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -44,7 +48,7 @@ use Libraries.Language.Support.FindReplace
     this block is not present, the editor should default to the behavior of a normal textbox. In other words,
     if a block representation is available, it uses this, whereas if it is not, then it is just text.
 */
-class CodeEditor is ScrollableLineControl
+class CodeEditor is ScrollableLineControl, GutterListener
     public constant text CODE_EDITOR_INPUT_GROUP = "CodeEditor"
     MultipleLineText rawCode
     CodeEditorSelection selection
@@ -81,6 +85,8 @@ class CodeEditor is ScrollableLineControl
     integer findSelection = -1
     boolean failState = false
     File file = undefined
+    Class clazz = undefined
+    BreakpointManager breakpoints = undefined
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -114,7 +120,30 @@ class CodeEditor is ScrollableLineControl
 
         LineNumberGutter gutter
         gutter:SetPositionOnBaseLine(false)
+        gutter:AddGutterListener(me)
         Add(cast(Gutter, gutter))
+    end
+
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
+    end
+
+    action GutterClicked(GutterEvent event)
+        Gutter gutter = event:GetGutter()
+        if gutter is LineNumberGutter
+            integer line = event:GetLine()
+            if line >= GetLineCount()
+                return now
+            end
+            if clazz not= undefined and clazz:GetFile() not= undefined and breakpoints not= undefined
+                File file = clazz:GetFile()
+                breakpoints:ToggleBreakpoint(file, line)
+            end
+        end
     end
 
     action FindText(text find, boolean wholeWord, boolean matchCase) 
@@ -1539,5 +1568,13 @@ class CodeEditor is ScrollableLineControl
 
     action SetFile(File file)
         me:file = file
+    end
+
+    action GetBreakpointManager returns BreakpointManager
+        return breakpoints
+    end
+
+    action SetBreakpointManager(BreakpointManager breakpoints)
+        me:breakpoints = breakpoints
     end
 end
