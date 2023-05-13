@@ -333,7 +333,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
         
         background:Empty()
-        background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
+        background:SetLineCount(cast(integer, math:Ceiling(background:GetHeight() / lineHeight)))
         background:SetStartLine(firstLineInteger)
 
         integer textIndex = 0
@@ -575,7 +575,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        number yPosition = background:GetHeight() + (firstLine - firstLineInteger) * lineHeight 
         yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2 - maxDescent
 
         number xPosition = 0
@@ -807,7 +807,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     action GetLineY(integer line) returns number
         number contentHeight = GetTotalContentHeight()
 
-        number baseY = GetHeight() - ((line + 1.0) / GetLineCount() * contentHeight)
+        number baseY = background:GetHeight() - ((line + 1.0) / GetLineCount() * contentHeight)
         number scrollOffset = GetScrollPercentageY() * contentHeight
 
         return baseY + scrollOffset
@@ -1813,7 +1813,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
 
-        number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
+        number yPosition = background:GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
         
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
