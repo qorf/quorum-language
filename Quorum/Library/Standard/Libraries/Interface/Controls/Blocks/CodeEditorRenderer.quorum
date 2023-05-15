@@ -51,10 +51,11 @@ class CodeEditorRenderer is Control
             SetView2D(view)
         end
 
-        if cursor:GetView2D() = undefined
+        CodeEditor editor = GetEditor()
+        if cursor:GetView2D() = undefined and editor not= undefined
+            cursor:SetBackgroundColor(editor:GetSelectionColor())
+
             // TO-DO: Change this. Temporary debug values.
-            Libraries.Game.Graphics.Color color
-            cursor:SetBackgroundColor(color:Blue())
             cursor:SetSize(30, 5)
 
             ControlShaderView view

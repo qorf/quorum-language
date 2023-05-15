@@ -169,6 +169,13 @@ class DarkModeOptions is InterfaceOptions
         SetTextFieldFontColor(commonFontColor)
         SetTextFieldIconColor(GetTextBoxFontColor())
 
+        // CodeEditor specific options.
+        SetCodeEditorBackgroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetCodeEditorFontColor(commonFontColor)
+        SetCodeEditorForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))
+        SetCodeEditorAccentColor(color:CustomColor(154.0 / MAX, 155.0 / MAX, 157.0 / MAX, 1))
+        SetCodeEditorIconColor(GetTextBoxFontColor())
+
         // TreeTableCell specific colors.
         SetTreeTableCellSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
         SetTreeTableCellFontColor(commonFontColor)
