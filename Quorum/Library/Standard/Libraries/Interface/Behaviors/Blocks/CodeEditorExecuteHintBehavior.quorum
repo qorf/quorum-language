@@ -17,46 +17,36 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Containers.MultipleLineText
 
-class CodeEditorHintBehavior is Behavior
-    
+class CodeEditorExecuteHintBehavior is Behavior
+    Hint hint = undefined
+    CodeEditor editor = undefined
     GameStateManager manager
 
     action Run(BehaviorEvent event)
-        CodeEditor editor = undefined
-        Block block = undefined
-        Item originalItem = event:GetItem()
-        if originalItem is CodeEditor
-            editor = cast(CodeEditor, originalItem)
-        elseif originalItem is Block
-            block = cast(Block, originalItem)
-            editor = block:GetEditor()
-        elseif originalItem is BlockItem
-            BlockItem item = cast(BlockItem, originalItem)
-            editor = item:GetEditor()
-        else
-            // If we can't find the editor, abort.
+        if editor = undefined or hint = undefined
             return now
         end
-
-        if block = undefined
-            block = editor:GetSelection():GetBlock()
-        end
-
-        if block = undefined // there is no selection
-            return now //so bail
-        end
-
-        if block:IsHintsEmpty()
-            return now
-        end
-
-        Hint hint = block:GetFirstHint()
         integer start = hint:GetStartOffset()
-        integer finish = hint:GetEndOffset()
-
         text insert = hint:GetInsertionText()
+
         MultipleLineText lines = editor:GetCode()
         MultipleLineText newLine = lines:Insert(start, insert)
         editor:SetCode(newLine)
+    end
+
+    action GetHint returns Hint
+        return hint
+    end
+
+    action SetHint(Hint hint)
+        me:hint = hint
+    end
+
+    action GetCodeEditor returns CodeEditor
+        return editor
+    end
+
+    action SetCodeEditor(CodeEditor editor)
+        me:editor = editor
     end
 end

@@ -1,0 +1,95 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Controls.PopupMenu
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Behaviors.Blocks.CodeEditorExecuteHintBehavior
+
+class CodeEditorPopupMenu is PopupMenu
+    CodeEditor editor = undefined
+    MenuItem cut
+    MenuItem copy    
+    MenuItem paste
+
+    on create
+        cut:SetName("Cut")
+        //cut:SetBehavior(qs:GetBehaviors():GetCutBehavior())
+        
+        copy:SetName("Copy")
+        //copy:SetBehavior(qs:GetBehaviors():GetCopyBehavior())
+        
+        paste:SetName("Paste")
+        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())     
+    end
+
+    action GetCodeEditor returns CodeEditor
+        return editor
+    end
+
+    action SetCodeEditor(CodeEditor code)
+        me:editor = code
+    end
+
+    private action GenerateContextSensitiveMenus
+        if editor = undefined or editor:GetSelection() = undefined
+            return now
+        end
+        Block block = editor:GetSelection():GetBlock()
+        if block = undefined or block:IsHintsEmpty()
+            return now
+        end
+
+        Iterator<Hint> iterator = block:GetHintIterator()
+        MenuItem hints
+        hints:SetName("More Hints")
+        integer numberOfHintsOnTop = 4
+
+        i = 0
+        repeat while iterator:HasNext()
+            Hint hint = iterator:Next()
+            MenuItem hintItem
+            hintItem:SetName(hint:GetHintMessage())
+            CodeEditorExecuteHintBehavior behave
+            behave:SetHint(hint)
+            behave:SetCodeEditor(editor)
+
+            hintItem:SetBehavior(behave)
+            if i <= numberOfHintsOnTop
+                Add(hintItem)
+            else
+                hints:Add(hintItem)
+            end
+            
+            i = i + 1
+        end
+
+        if i > numberOfHintsOnTop
+            Add(hints)
+        end
+    end
+
+    private action GenerateMenu
+        //first regenerate the menu based upon context
+        parent:PopupMenu:panel:Empty()
+        if editor not= undefined
+            GenerateContextSensitiveMenus()
+        end
+
+        Add(cut)
+        Add(copy)
+        Add(paste)
+    end
+
+    action OpenAtCursor
+        GenerateMenu()
+        parent:PopupMenu:OpenAtCursor()
+    end
+
+    action OpenAt(number x, number y)
+        GenerateMenu()
+        parent:PopupMenu:OpenAt(x, y)
+    end
+end
