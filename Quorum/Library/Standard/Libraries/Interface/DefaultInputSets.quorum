@@ -2179,6 +2179,19 @@ shared class DefaultInputSets
         table:Add(enterSet, newLineBehavior)
         table:Add(numpadEnterSet, newLineBehavior)
 
+        //Editor Hint Application
+        InputSet altEnterSet
+        altEnterSet:SetKeyboardInput(keys:ENTER)
+        altEnterSet:AddModifier(altEnterSet:ALT)
+
+        InputSet altNumpadEnterSet
+        altNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        altNumpadEnterSet:AddModifier(altEnterSet:ALT)
+
+        CodeEditorHintBehavior codeEditorHintBehavior
+        table:Add(altEnterSet, codeEditorHintBehavior)
+        table:Add(altNumpadEnterSet, codeEditorHintBehavior)
+
         InputSet controlDelete
         controlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
         controlDelete:AddModifier(controlDelete:CONTROL)

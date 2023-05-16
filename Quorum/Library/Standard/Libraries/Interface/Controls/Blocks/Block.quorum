@@ -78,6 +78,22 @@ class Block is Control
         UpdateHintsAndErrorsVisuals()
     end
 
+    action GetFirstHint returns Hint
+        return hints:Get(0)
+    end
+
+    action GetHint(integer index) returns Hint
+        return hints:Get(index)
+    end
+
+    action IsHintsEmpty returns boolean
+        return hints:IsEmpty()
+    end
+
+    action GetHintsSize returns integer
+        return hints:GetSize()
+    end
+
     action Remove(Hint hint) returns boolean
         boolean value = hints:Remove(hint)
         UpdateHintsAndErrorsVisuals()
@@ -96,6 +112,22 @@ class Block is Control
     action Add(CompilerError error)
         errors:Add(error)
         UpdateHintsAndErrorsVisuals()
+    end
+
+    action GetFirstError returns CompilerError
+        return errors:Get(0)
+    end
+
+    action GetError(integer index) returns CompilerError
+        return errors:Get(index)
+    end
+
+    action IsErrorsEmpty returns boolean
+        return errors:IsEmpty()
+    end
+
+    action GetErrorsSize returns integer
+        return errors:GetSize()
     end
 
     action Remove(CompilerError error) returns boolean

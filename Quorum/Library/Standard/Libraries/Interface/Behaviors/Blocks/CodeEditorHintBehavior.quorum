@@ -1,0 +1,64 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Item
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputTable
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Containers.MultipleLineText
+
+class CodeEditorHintBehavior is Behavior
+    
+    GameStateManager manager
+
+    action Run(BehaviorEvent event)
+        CodeEditor editor = undefined
+        Block block = undefined
+        Item originalItem = event:GetItem()
+        if originalItem is CodeEditor
+            editor = cast(CodeEditor, originalItem)
+        elseif originalItem is Block
+            block = cast(Block, originalItem)
+            editor = block:GetEditor()
+        elseif originalItem is BlockItem
+            BlockItem item = cast(BlockItem, originalItem)
+            editor = item:GetEditor()
+        else
+            // If we can't find the editor, abort.
+            return now
+        end
+
+        FreeformBlock freeform = undefined
+
+        if block = undefined
+            block = editor:GetSelection():GetBlock()
+        end
+
+        if block = undefined // there is no selection
+            return now //so bail
+        end
+
+        if block:IsHintsEmpty()
+            return now
+        end
+
+        Hint hint = block:GetFirstHint()
+        integer start = hint:GetStartOffset()
+        integer finish = hint:GetEndOffset()
+
+        text insert = hint:GetInsertionText()
+        MultipleLineText lines = editor:GetCode()
+        MultipleLineText newLine = lines:Insert(start, insert)
+        editor:SetCode(newLine)
+    end
+end
