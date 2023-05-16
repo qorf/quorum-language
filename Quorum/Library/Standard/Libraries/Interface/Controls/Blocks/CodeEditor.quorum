@@ -410,13 +410,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action GetCaretGlobalX returns number
         CodeEditorSelection blockSelection = GetSelection()
         if selection = undefined
-            output "Undefined selection"
             return -1
         end
 
         Block block = blockSelection:GetBlock()
         if block = undefined
-            output "Undefined block"
             return -1
         end
         integer index = block:GetStartIndex()
@@ -429,12 +427,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         elseif item is EditField
             EditField edit = cast(EditField, item)
             return edit:GetCaretGlobalX()
-        elseif item = undefined
-            output "Item was undefined!"
-        else
-            output "BlockItem is " + item:GetName()
         end
-        output "Default case: -1"
         return -1
     end
 
