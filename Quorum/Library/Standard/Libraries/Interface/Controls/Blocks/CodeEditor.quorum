@@ -215,6 +215,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
+    action GetRootBlock returns RootBlock
+        return renderer:GetRootBlock()
+    end
+
     /* moves the selection index to the previous position and sends the 
     previousSelection index to UpdatCurrentSelection() to add the new 
     currentSelection highlight and remove the previousSelection highlight 
