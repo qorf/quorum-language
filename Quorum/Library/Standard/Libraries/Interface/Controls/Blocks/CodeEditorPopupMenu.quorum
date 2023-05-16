@@ -13,6 +13,7 @@ class CodeEditorPopupMenu is PopupMenu
     MenuItem cut
     MenuItem copy    
     MenuItem paste
+    MenuItem delete
 
     on create
         cut:SetName("Cut")
@@ -22,7 +23,10 @@ class CodeEditorPopupMenu is PopupMenu
         //copy:SetBehavior(qs:GetBehaviors():GetCopyBehavior())
         
         paste:SetName("Paste")
-        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())     
+        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())   
+
+        delete:SetName("Delete")  
+        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())   
     end
 
     action GetCodeEditor returns CodeEditor
@@ -81,6 +85,7 @@ class CodeEditorPopupMenu is PopupMenu
         Add(cut)
         Add(copy)
         Add(paste)
+        Add(delete)
     end
 
     action OpenAtCursor
