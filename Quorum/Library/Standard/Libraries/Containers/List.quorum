@@ -75,7 +75,7 @@ class List <Type>
 
         if location < 0 or location > size
             InvalidLocationError error
-            error:SetErrorMessage("The location: " + location + " is not valid.")
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         elseif location = size //it's just a tail add, do it fast
             AddToEnd(value)
@@ -215,7 +215,7 @@ class List <Type>
         Type result = undefined
         if location < 0 or location >= size
             InvalidLocationError error
-            error:SetErrorMessage("The location: " + location + " is not valid.")
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         else
             ListNode<Type> current = head
@@ -510,7 +510,7 @@ class List <Type>
         ListNode<Type> result = undefined
         if location < 0 or location >= size
             InvalidLocationError error
-            error:SetErrorMessage("The location: " + location + " is not valid.")
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         else
             ListNode<Type> current = head

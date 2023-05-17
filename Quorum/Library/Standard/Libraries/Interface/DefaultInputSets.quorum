@@ -16,6 +16,7 @@ use Libraries.Interface.Behaviors.Scenes.Properties.all
 use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Behaviors.Controls.all
+use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
@@ -2178,6 +2179,29 @@ shared class DefaultInputSets
         CodeEditorNewLineBehavior newLineBehavior
         table:Add(enterSet, newLineBehavior)
         table:Add(numpadEnterSet, newLineBehavior)
+
+        //Editor Hint Application
+        InputSet altEnterSet
+        altEnterSet:SetKeyboardInput(keys:ENTER)
+        altEnterSet:AddModifier(altEnterSet:ALT)
+
+        InputSet altNumpadEnterSet
+        altNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        altNumpadEnterSet:AddModifier(altEnterSet:ALT)
+
+        CodeEditorHintBehavior codeEditorHintBehavior
+        table:Add(altEnterSet, codeEditorHintBehavior)
+        table:Add(altNumpadEnterSet, codeEditorHintBehavior)
+
+        InputSet shiftF10SetCodeEditor
+        shiftF10SetCodeEditor:SetKeyboardInput(keys:F10)
+        shiftF10SetCodeEditor:AddModifier(shiftF10SetCodeEditor:SHIFT)
+        CodeEditorOpenPopupMenuBehavior codeEditorOpenPopupMenuBehavior
+        table:Add(shiftF10SetCodeEditor, codeEditorOpenPopupMenuBehavior)
+
+        InputSet rightClickSetCodeEditor
+        rightClickSetCodeEditor:SetMouseInput(mouse:RIGHT)
+        table:Add(rightClickSetCodeEditor, codeEditorOpenPopupMenuBehavior)
 
         InputSet controlDelete
         controlDelete:SetKeyboardInput(keys:FORWARD_DELETE)

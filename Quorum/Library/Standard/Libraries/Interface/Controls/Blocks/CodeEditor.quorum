@@ -39,6 +39,7 @@ use Libraries.Interface.Events.GutterListener
 use Libraries.Interface.Events.GutterEvent
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Debug.BreakpointManager
+use Libraries.Interface.Behaviors.Blocks.all
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -122,6 +123,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
         gutter:SetPositionOnBaseLine(false)
         gutter:AddGutterListener(me)
         Add(cast(Gutter, gutter))
+
+        CodeEditorPopupMenu popup
+        popup:SetCodeEditor(me)
+        SetPopupMenu(popup)
     end
 
     action GetClass returns Class
