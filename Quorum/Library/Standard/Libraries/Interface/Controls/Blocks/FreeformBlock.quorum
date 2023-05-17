@@ -126,15 +126,20 @@ class FreeformBlock is SingleLineBlock
     // output
         TokenIterator<Token> tokenIterator
         tokenIterator:SetLexer(shortcutLexer)
-        Token current = tokenIterator:Next()
+        Token current
         QuorumLexerConstants constants
         isPackageStatement = false
         isUseStatement = false
         isClassStatement = false
+        isEmpty = false
 
-
+    
         // since we ignore white space the shortcuts will overwrite the text to guarantee spacing
-
+        if tokenIterator:HasNext()
+            current = tokenIterator:Next()
+        else
+            isEmpty = true
+        end
         if current:category = constants:OUTPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("output " + dq + dq)
@@ -465,10 +470,14 @@ class FreeformBlock is SingleLineBlock
             if statement not= undefined
                 blockListener:EnterStatement(statement)
             end
+            if blockListener:GetBlock() = undefined
+                blockListener:SetQuorumLexer(lexer)
+                blockListener:FillComment()
+            end
         end
 
         // Once again, if there's an error, set the block to reflect it, then bail.
-        if not manager:IsCompilationErrorFree()
+        if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock() is CommentBlock and isEmpty)
             // TO-DO: Set error state visuals
             BlockErrorShaderView view
             view:Initialize()
