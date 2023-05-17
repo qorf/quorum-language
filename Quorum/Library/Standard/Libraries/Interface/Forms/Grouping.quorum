@@ -1,0 +1,107 @@
+package Libraries.Interface.Forms
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.ToggleButton
+
+class Grouping is FormContainerControl, ButtonGroup
+
+    on create
+        SetInterfaceOptionsKey("Grouping")
+    end
+
+    public constant integer TOP_POSITION = 0
+    public constant integer BOTTOM_POSITION = 1
+    public constant integer CENTER_POSITION = 2
+
+    integer verticalPosition = TOP_POSITION
+    integer columns = 0
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action PositionFromTop
+        SetVerticalPosition(TOP_POSITION)
+    end
+
+    action PositionFromCenter
+        SetVerticalPosition(CENTER_POSITION)
+    end
+
+    action PositionFromBottom
+        SetVerticalPosition(BOTTOM_POSITION)
+    end
+
+    action GetVerticalPosition returns integer
+        return verticalPosition
+    end
+
+    action SetVerticalPosition(integer verticalPosition)
+        me:verticalPosition = verticalPosition
+        RequestLayout()
+    end
+
+    action AddToggleButton(text name) returns ToggleButton
+        ToggleButton button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        AddToGrouping(button)
+        Add(button)
+        return button
+    end    
+
+    action RemoveToggleButton(text name) returns ToggleButton
+        ToggleButton button = GetRadioButton(name)
+        if button not= undefined
+            Remove(button)
+            RemoveFromGrouping(button)
+            return button
+        end
+        alert("I couldn't find a ToggleButton named " + name + ". Are you looking for the right item?")
+    end
+
+    action AddRadioButton(text name) returns RadioButton
+        RadioButton button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+
+        AddToGrouping(button)
+        Add(button)
+        return button
+    end    
+
+    action RemoveRadioButton(text name) returns RadioButton
+        RadioButton button = GetRadioButton(name)
+        if button not= undefined
+            Remove(button)
+            RemoveFromGrouping(button)
+            return button
+        end
+        alert("I couldn't find a RadioButton named " + name + ". Are you looking for the right item?")
+    end
+    
+    action GetColumns returns integer
+        return columns
+    end
+
+    action SetColumns(integer columns)
+        me:columns = columns
+    end
+
+    action GetFormChildren returns Array<Item2D>
+        return GetChildren()
+    end
+end

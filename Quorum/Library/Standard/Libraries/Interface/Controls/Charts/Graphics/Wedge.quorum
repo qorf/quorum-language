@@ -9,6 +9,8 @@ use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Game.Graphics.Shaders.WedgeVertexShader
+use Libraries.Interface.Events.TouchListener
+use Libraries.Interface.Events.TouchEvent
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -65,7 +67,7 @@ class Main is Game
     end
 end
 */
-class Wedge is ChartDrawable
+class Wedge is ChartDrawable, TouchListener
 
     public constant text WEDGE_SHADER_PROGRAM_NAME = "Wedge Shader Program"
 
@@ -100,6 +102,25 @@ class Wedge is ChartDrawable
             SetShaderProgram(program)
             return program
         end
+    end
+
+    action CreateGame()
+        AddTouchListener(me)
+    end
+
+    action BeganTouch(TouchEvent event)
+        Item item = event:GetSource()
+        item:Focus()
+    end
+
+    action ContinuedTouch(TouchEvent event)
+        Item item = event:GetSource()
+        item:Focus()
+    end
+
+    action EndedTouch(TouchEvent event)
+        Item item = event:GetSource()
+        item:Focus()
     end
 
     /*

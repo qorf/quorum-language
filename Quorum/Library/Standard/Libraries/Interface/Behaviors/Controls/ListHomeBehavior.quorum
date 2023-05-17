@@ -1,0 +1,25 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.List
+
+class ListHomeBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is List)
+            return now
+        end
+
+        List list = cast(List, item)
+
+        if list:GetSize() > 0
+            list:Select(0)
+        end
+    end
+
+    action IsFinished returns boolean
+        return true
+    end
+end

@@ -98,7 +98,7 @@ class GeoMap is Chart, FirstLetterNavigator
         SetName("Geo Map")
 
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:CHART)
 
         SetMissingDataColor(color:Gray())
         SetRegionBorderColor(color:Black())
@@ -151,7 +151,7 @@ class GeoMap is Chart, FirstLetterNavigator
                 j = j + 1
             end
             region:SetFocusable(true)
-            region:SetAccessibilityCode(parent:Item:ITEM)
+            region:SetAccessibilityCode(parent:Item:CHART_SECTION)
             region:SetNextFocus(GetNextFocus())
             region:SetPreviousFocus(GetPreviousFocus())
             MapAnchor:Add(region)

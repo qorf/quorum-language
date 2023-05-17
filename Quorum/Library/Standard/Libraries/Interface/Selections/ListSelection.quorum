@@ -36,7 +36,13 @@ class ListSelection is Selection
     end
 
     action GetListItem returns ListItem
-        return GetList():GetListItem(selection)
+        List list = GetList()
+
+        if selection < 0 or selection >= list:GetSize()
+            return undefined
+        end
+
+        return list:GetListItem(selection)
     end
 
     action GetList returns List

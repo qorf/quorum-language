@@ -173,6 +173,11 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     {
         console.log(value);
     };
+
+    this.SaveImageToDownloads$quorum_Libraries_Game_Graphics_PixelMap$quorum_text = function(pixelMap, fileName)
+    {
+        pixelMap.plugin_.SaveToDownloads(fileName);
+    };
     
 }
 

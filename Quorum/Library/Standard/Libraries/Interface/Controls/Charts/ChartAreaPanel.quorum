@@ -43,13 +43,20 @@ class ChartAreaPanel is ChartItem
         ManualLayout manualLayout
         SetLayout(manualLayout)
         
+        
+        Color transparent
+        transparent:SetColor(0,0,0,0)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetBorderColor(transparent)
+        SetBorderThickness(4)
         properties = GetDefaultLayoutProperties()
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
 
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:CUSTOM)
+        SetAccessibilityCode(parent:Item:CHART_SECTION)
     end
 
     action IsAccessibleParent returns boolean
@@ -63,6 +70,22 @@ class ChartAreaPanel is ChartItem
             SetView2D(view)
         else
             SetView2D(GetDefaultLayoutProperties():GetView2D())
+        end
+    end
+
+    action GainedSelection
+        if GetParentChart():GetChartArea() = me
+            parent:Control:GainedSelection()
+        else
+            parent:ChartItem:GainedSelection()
+        end
+    end
+
+    action LostSelection
+        if GetParentChart():GetChartArea() = me
+            parent:Control:LostSelection()
+        else
+            parent:ChartItem:LostSelection()
         end
     end
 
@@ -108,13 +131,17 @@ class ChartAreaPanel is ChartItem
     end
 
     action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
         if selectionBorderColor not= undefined
             return selectionBorderColor
         end
 
         Chart chart = GetParentChart()
         if chart not= undefined
-            return chart:GetSelectionBorderColor()
+            return chart:GetSelectionColor()
         end
         return undefined
     end

@@ -9,7 +9,6 @@ use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedLoader
 use Libraries.Compute.Statistics.Loaders.CommaSeparatedSaver
 use Libraries.Compute.Matrix
-use Libraries.Compute.Statistics.Tests.CompareGroups
 use Libraries.Compute.Statistics.Inputs.ColumnInput
 use Libraries.Compute.Statistics.Tests.CorrelateGroups
 use Libraries.Compute.Statistics.Tests.CompareVariances
@@ -71,6 +70,13 @@ use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
 use Libraries.Compute.Statistics.Tests.CompareDistributions
 use Libraries.Compute.Statistics.Transforms.CorrelationMatrixTransform
 use Libraries.Compute.Statistics.Charts.ScreePlotCreator
+use Libraries.Compute.Statistics.Tests.CheckReducibility
+use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Transforms.ColumnRoundTransform
+use Libraries.Compute.Statistics.Transforms.TransformLonger
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2275,10 +2281,10 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareCounts counts = CompareSelectedCounts()
-        output counts:GetSummary()
+        CompareCounts compare = frame:CompareCounts()
+        output compare:GetSummary()
     */
-    action CompareSelectedCounts returns CompareCounts
+    action CompareCounts returns CompareCounts
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
@@ -2292,32 +2298,32 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between two or more independent columns. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
         This action runs a test based on how many columns are selected:
             1   One-Sample T-Test vs zero-mean
             2   Two-Sample T-Test
-            3+  One-Way Anova
+            3+  Anova/Manova
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups groups = CompareSelectedColumns()
-        output groups:GetFormalSummary()
+        CompareMeans compare = frame:CompareMeans()
+        output compare:GetFormalSummary()
     */
-    action CompareSelectedColumns returns CompareGroups
+    action CompareMeans returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareGroups compare
+        CompareMeans compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
@@ -2326,32 +2332,32 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between two or more related columns. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
         
         This action runs a test based on how many columns are selected:
             1   One-Sample T-Test vs zero-mean
             2   Paired T-Test vs zero-mean
-            3+  One-Way Repeated Measures Anova
+            3+  Repeated Measures Anova
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups groups = CompareSelectedColumns()
-        output groups:GetFormalSummary()
+        CompareMeans compare = frame:CompareRelatedMeans()
+        output compare:GetFormalSummary()
     */
-    action CompareSelectedRelatedColumns returns CompareGroups
+    action CompareRelatedMeans returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareGroups compare
+        CompareMeans compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
@@ -2362,37 +2368,66 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between one or two columns and a mean. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
         This action runs a test based on how many columns are selected:
             1   One-Sample T-Test vs given-mean
-            2   Paired T-Test vs given-mean
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(0)
-        CompareGroups result = CompareSelectedColumnsToMean(0)
-        output result:GetFormalSummary()
+        CompareMeans compare = frame:CompareMeans(0)
+        output compare:GetFormalSummary()
     */
-    action CompareSelectedColumnToMean(number mean) returns CompareGroups
+    action CompareMeans(number mean) returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() > 2
-            alert("No more than 2 columns can be paired to compare to a mean.")
+        CompareMeans compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:SetMean(mean)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between one or two columns and a mean. 
+        The CompareMeans object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   Paired T-Test vs given-mean
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeans
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedColumn(1)
+        CompareMeans compare = frame:CompareRelatedMeans(0)
+        output compare:GetFormalSummary()
+    */
+    action CompareRelatedMeans(number mean) returns CompareMeans
+        if IsInvalidSelection()
+            alert("Invalid Selection")
         end
 
-        CompareGroups compare
-        selection:CopyTo(cast(ColumnInput, compare))
+        CompareMeans compare
         selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
         compare:SetMean(mean)
         compare:Paired(true)
         compare:Calculate(me)
@@ -2401,7 +2436,7 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between two or more ranked columns. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
         
         This action runs a test based on how many columns are selected:
@@ -2413,20 +2448,20 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups compare = CompareSelectedRankedGroups()
+        CompareMeans compare = frame:CompareRankedMeans()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRankedGroups returns CompareGroups
+    action CompareRankedMeans returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareGroups compare
+        CompareMeans compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
         compare:Ranked(true)
@@ -2436,7 +2471,7 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between two or more ranked related columns. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
         
         This action runs a test based on how many columns are selected:
@@ -2448,20 +2483,20 @@ class DataFrame
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareGroups compare = CompareSelectedRelatedRankedGroups()
+        CompareMeans compare = frame:CompareRelatedRankedMeans()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRelatedRankedGroups returns CompareGroups
+    action CompareRelatedRankedMeans returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        CompareGroups compare
+        CompareMeans compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
@@ -2473,40 +2508,271 @@ class DataFrame
 
     /*
         This action uses the selection to conduct a comparison between a ranked column and a median. 
-        The CompareGroups object returned gives information back in several formats, 
+        The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
 
         This action runs a test based on how many columns are selected:
             1   One-Sample Wilcoxon Signed-Ranks Test vs given-median
-            2   Wilcoxon Signed-Ranks Test vs given-median
 
         Attribute: Returns an object representing the comparison
     
         Attribute: Example
         use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareGroups
+        use Libraries.Compute.Statistics.Tests.CompareMeans
     
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(0)
-        CompareGroups compare = CompareSelectedRanksToMedian(0)
+        CompareMeans compare = frame:CompareRankedMeanTo(0)
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRankedGroupToMedian(number median) returns CompareGroups
+    action CompareRankedMeans(number median) returns CompareMeans
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
 
-        if selection:GetColumnSize() > 2
-            alert("No more than 2 columns can be paired to compare to a median.")
+        CompareMeans compare
+        selection:CopyTo(cast(ColumnInput, compare))
+        selection:CopyTo(cast(FactorInput, compare))
+        compare:Ranked(true)
+        compare:SetMedian(median)
+        compare:CompareToRankedMean(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between a ranked column and a median. 
+        The CompareMeans object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            1   Paired Wilcoxon Signed-Ranks Test vs given-median
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeans
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        CompareMeans compare = frame:CompareRankedMeanTo(0)
+        output compare:GetFormalSummary()
+    */
+    action CompareRelatedRankedMeans(number median) returns CompareMeans
+        if IsInvalidSelection()
+            alert("Invalid Selection")
         end
 
-        CompareGroups compare
+        CompareMeans compare
         selection:CopyTo(cast(ColumnInput, compare))
         selection:CopyTo(cast(FactorInput, compare))
         compare:Ranked(true)
         compare:SetMedian(median)
         compare:Paired(true)
+        compare:CompareTwoRelatedRankedMeans(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareMeansPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareMeansPairwise returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups when 
+        they are not assumed to be normally distributed. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Ranked Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareRankedGroupsPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareRankedMeansPairwise returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Ranked(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Paired Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareRelatedMeansPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareRelatedMeansPairwise returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Paired(true)
+        compare:RepeatedMeasures(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Paired Ranked Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareRelatedRankedMeansPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareRelatedRankedMeansPairwise returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Paired(true)
+        compare:RepeatedMeasures(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a liberal comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingLenientCorrection()
+        output compare:GetFormalSummary()
+    */
+    action CompareMeansPairwiseUsingLenientCorrection returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseLenientCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a liberal comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingStrictCorrection()
+        output compare:GetFormalSummary()
+    */
+    action CompareMeansPairwiseUsingStrictCorrection returns CompareMeansPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeansPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseStrictCorrection(true)
         compare:Calculate(me)
         return compare
     end
@@ -2529,7 +2795,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateGroups correlate = CorrelateSelectedColumns()
+        CorrelateGroups correlate = frame:CorrelateSelectedColumns()
         output correlate:GetFormalSummary()
     */
     action CorrelateSelectedColumns returns CorrelateGroups
@@ -2562,7 +2828,7 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CorrelateGroups correlate = CorrelateSelectedRankedColumns()
+        CorrelateGroups correlate = frame:CorrelateSelectedRankedColumns()
         output correlate:GetFormalSummary()
     */
     action CorrelateSelectedRankedColumns returns CorrelateGroups
@@ -2576,6 +2842,39 @@ class DataFrame
         correlate:Ranked(true)
         correlate:Calculate(me)
         return correlate
+    end
+
+    /*
+        This action uses the selection to conduct a variance comparison between two or more independent columns.
+        This action will use the center as  
+        The CompareVariances object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Levene's Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareVariances compare = frame:CompareVariances()
+        output compare:GetFormalSummary()
+    */
+    action CompareVariances returns CompareVariances
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareVariances compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
     end
 
     /*
@@ -2595,10 +2894,10 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareVariances compare = frame:CompareSelectedVariances()
+        CompareVariances compare = frame:CompareVariancesUsingMean()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedVariances returns CompareVariances
+    action CompareVariancesUsingMean returns CompareVariances
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
@@ -2606,6 +2905,7 @@ class DataFrame
         CompareVariances compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseMeanAsCenter()
         compare:Calculate(me)
         return compare
     end
@@ -2627,10 +2927,10 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareVariances compare = frame:CompareSelectedVariances()
+        CompareVariances compare = frame:CompareRelatedVariances()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedRelatedVariances returns CompareVariances
+    action CompareRelatedVariances returns CompareVariances
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
@@ -2662,10 +2962,10 @@ class DataFrame
         DataFrame frame
         frame:Load("Data.csv")
         frame:AddSelectedColumnRange(0,2)
-        CompareDistributions compare = frame:CompareSelectedDistributionsToNormal()
+        CompareDistributions compare = frame:CompareDistributionsToNormal()
         output compare:GetFormalSummary()
     */
-    action CompareSelectedDistributionsToNormal returns CompareDistributions
+    action CompareDistributionsToNormal returns CompareDistributions
         if IsInvalidSelection()
             alert("Invalid Selection")
         end
@@ -2678,8 +2978,108 @@ class DataFrame
     end
 
     /*
+        Check that at least some of the variables have significant correlation, a prerequisite for factor analysis.
+        The CheckReducibility object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Bartlett’s Test of Sphericity
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibility
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CheckReducibility test = frame:CheckReducibility()
+        output test:GetFormalSummary()
+    */
+    action CheckReducibility returns CheckReducibility
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CheckReducibility test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
+    end
+
+
+    /*
+        Measures sampling adequacy for each variable in the model and for the complete model, 
+        a prerequisite for factor analysis to work.
+        The CheckReducibilityStrength object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Kaiser-Meyer-Olkin Measure Of Sampling Adequacy
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CheckReducibilityStrength
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CheckReducibilityStrength test = frame:CheckReducibilityStrength()
+        output test:GetFormalSummary()
+    */
+    action CheckReducibilityStrength returns CheckReducibilityStrength
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CheckReducibilityStrength test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
+    end
+
+
+    /*
+        Reduces the dimensionality of a model in an attempt to maximize variances 
+        while maintaining the same explanatory outcome.
+        The PrincipalComponentAnalysis object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+  Kaiser-Meyer-Olkin Measure Of Sampling Adequacy
+
+        Attribute: Returns an object representing the test
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        PrincipalComponentAnalysis pca = frame:PrincipalComponentAnalysis()
+        output pca:GetFormalSummary()
+    */
+    action PrincipalComponentAnalysis returns PrincipalComponentAnalysis
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        PrincipalComponentAnalysis test
+        selection:CopyTo(cast(FactorInput, test))
+        selection:CopyTo(cast(ColumnInput, test))
+        test:Calculate(me)
+        return test
+    end
+
+    /*
         This action uses the selection to conduct a regression.
-        The comparison is traditionally called a Regression. The CompareGroups object
+        The comparison is traditionally called a Regression. The Regression object
         returned gives information back in several formats, including text formatted in the
         American Psychological Association (APA) style.
 
@@ -2812,7 +3212,7 @@ class DataFrame
     end
 
     /*
-        This action calculates the variance of the selected column.
+        This action calculates the sample variance of the selected column.
 
         Attribute: Returns the variance
     
@@ -2835,7 +3235,31 @@ class DataFrame
     end
 
     /*
-        This action calculates the variance of the selected columns. In this case, the full
+        This action calculates the population variance of the selected column.
+
+        Attribute: Returns the variance
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        output frame:Variance()
+    */
+    action PopulationVariance returns number
+        if not IsSingleColumnSelection()
+            alert("Can only conduct this calculation on a single column")
+        end
+
+        Variance calculation
+        calculation:UsePopulation(true)
+        GetColumn(selection:GetColumn(0)):Calculate(calculation)
+        return calculation:GetVariance()
+    end
+
+    /*
+        This action calculates the sample variance of the selected columns. In this case, the full
         calculation objects are returned.
 
         Attribute: Returns an array of the calculations
@@ -2857,6 +3281,38 @@ class DataFrame
         integer i = 0
         repeat while i < selection:GetColumnSize()
             Variance calculation
+            GetColumn(selection:GetColumn(i)):Calculate(calculation)
+            calculations:Add(calculation)
+            i = i + 1
+        end
+        
+        return calculations
+    end
+
+    /*
+        This action calculates the population variance of the selected columns. In this case, the full
+        calculation objects are returned.
+
+        Attribute: Returns an array of the calculations
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        Array<Variance> values = frame:VarianceSelectedColumns()
+    */
+    action PopulationVarianceSelectedColumns returns Array<Variance>
+        if not IsMultiColumnSelection()
+            alert("Can only conduct this calculation on one or more columns")
+        end
+
+        Array<Variance> calculations
+        integer i = 0
+        repeat while i < selection:GetColumnSize()
+            Variance calculation
+            calculation:UsePopulation(true)
             GetColumn(selection:GetColumn(i)):Calculate(calculation)
             calculations:Add(calculation)
             i = i + 1
@@ -3201,14 +3657,17 @@ class DataFrame
         use Libraries.Interface.Controls.Charts.Histogram
         
         DataFrame frame
-        frame:Load("Dogs.csv")
-        frame:AddSelectedColumns("Maximum Life Span")
+        frame:Load("data.csv")    
+        frame:AddSelectedColumn(0)
+
         Histogram chart = frame:Histogram()
-        chart:SetTitle("Maximum Life Span of Dog Breeds")
-        chart:SetXAxisTitle("Max Life Span")
         chart:Display()
     */
     action Histogram returns Histogram
+        if selection:GetFactorSize() > 0
+            return HistogramByColumn()
+        end
+
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
@@ -3228,14 +3687,17 @@ class DataFrame
         use Libraries.Interface.Controls.Charts.Histogram
         
         DataFrame frame
-        frame:Load("Dogs.csv")
-        frame:AddSelectedColumns("Maximum Life Span")
+        frame:Load("data.csv")    
+        frame:AddSelectedColumn(0)
+
         Histogram chart = frame:Histogram(5)
-        chart:SetTitle("Maximum Life Span of Dog Breeds")
-        chart:SetXAxisTitle("Max Life Span")
         chart:Display()
     */
     action Histogram(integer binWidth) returns Histogram
+        if selection:GetFactorSize() > 0
+            return HistogramByColumn(binWidth)
+        end
+
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
@@ -3246,6 +3708,10 @@ class DataFrame
     end
 
     action Histogram(number binWidth) returns Histogram
+        if selection:GetFactorSize() > 0
+            return HistogramByColumn(binWidth)
+        end
+
         HistogramCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
@@ -3253,6 +3719,51 @@ class DataFrame
         creator:BinWidthIsNumber(true)
 
         return cast(Histogram, CreateChart(creator))
+    end
+
+    // NEW
+    /*
+        This action creates a Histogram from the values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a Histogram chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.Histogram
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        Histogram chart = frame:HistogramByColumn()
+        chart:Display()
+    */
+    action HistogramByColumn returns Histogram
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        Histogram chart = groups:Histogram()
+        if GetSelectedColumnSize() <= 1
+            chart:SetXAxisTitle(GetColumnList())
+        else
+            chart:SetXAxisTitle("")
+        end
+        chart:SetLegendTitle(GetFactorList())
+        return chart
+    end
+    action HistogramByColumn(number binWidth) returns Histogram
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        Histogram chart = groups:Histogram(binWidth)
+        if GetSelectedColumnSize() <= 1
+            chart:SetXAxisTitle(GetColumnList())
+        else
+            chart:SetXAxisTitle("")
+        end
+        chart:SetLegendTitle(GetFactorList())
+        return chart
     end
 
     /*
@@ -3275,12 +3786,170 @@ class DataFrame
         chart:Display()
     */
     action BarChart returns BarChart
+        if selection:GetFactorSize() > 2 or (selection:GetFactorSize() > 1 and selection:GetColumnSize() > 1)
+            return BarChartByColumn()
+        end
+
         BarChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(BarChart, CreateChart(creator))
     end
+
+   /*
+        This action creates a BarChart from the sum of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        BarChart chart = frame:BarChartByColumnSum()
+        chart:Display()
+    */
+    action BarChartByColumn returns BarChart
+        return BarChartByColumnSum()
+    end
+    action BarChartByColumnSum returns BarChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        BarChart chart = groups:BarChart()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle(GetColumnList())
+        return chart
+    end
+
+    /*
+        This action creates a BarChart from the mean of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        BarChart chart = frame:BarChartByColumnMean()
+        chart:Display()
+    */
+    action BarChartByColumnMean returns BarChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        DataFrame means
+        i = 0
+        repeat while i < groups:GetSize()
+            DataFrame temp
+            temp:AddColumn(groups:GetColumn(i))
+
+            NumberColumn mean
+            mean:SetHeader(groups:GetColumn(i):GetHeader())
+            mean:Add(temp:RemoveUndefinedRows():ConvertToMatrix():GetMean())
+            means:AddColumn(mean)
+            i = i + 1
+        end
+        means:SelectAllColumns()
+
+        BarChart chart = means:BarChart()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle("Mean")
+        return chart
+    end
+
+    /*
+        This action creates a BarChart from the max of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        BarChart chart = frame:BarChartByColumnMaximum()
+        chart:Display()
+    */
+   action BarChartByColumnMaximum returns BarChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        DataFrame maximums
+        i = 0
+        repeat while i < groups:GetSize()
+            DataFrame temp
+            temp:AddColumn(groups:GetColumn(i))
+
+            NumberColumn max
+            max:SetHeader(groups:GetColumn(i):GetHeader())
+            max:Add(temp:RemoveUndefinedRows():ConvertToMatrix():GetMaximum())
+            maximums:AddColumn(max)
+            i = i + 1
+        end
+        maximums:SelectAllColumns()
+
+        BarChart chart = maximums:BarChart()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle("Maximum")
+        return chart
+    end
+
+    /*
+        This action creates a BarChart from the min of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a BarChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        BarChart chart = frame:BarChartByColumnMinimum()
+        chart:Display()
+    */
+    action BarChartByColumnMinimum returns BarChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        DataFrame minimums
+        i = 0
+        repeat while i < groups:GetSize()
+            DataFrame temp
+            temp:AddColumn(groups:GetColumn(i))
+
+            NumberColumn min
+            min:SetHeader(groups:GetColumn(i):GetHeader())
+            min:Add(temp:RemoveUndefinedRows():ConvertToMatrix():GetMinimum())
+            minimums:AddColumn(min)
+            i = i + 1
+        end
+        minimums:SelectAllColumns()
+
+        BarChart chart = minimums:BarChart()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle("Minimum")
+        return chart
+    end
+
 
     /*
         This action creates a LineChart from the current column selection in the DataFrame.
@@ -3298,17 +3967,48 @@ class DataFrame
         frame:Load("Data.csv")
         frame:AddSelectedColumn(1)
         frame:AddSelectedFactor(0)
-        LineChart chart = frame:BarChart()
+        LineChart chart = frame:LineChart()
         chart:SetTitle("My Awesome Title")
         chart:SetXAxisTitle("Time")
         chart:Display()
     */
     action LineChart returns LineChart
+        if selection:GetFactorSize() > 1
+            return LineChartByColumn()
+        end
+
         LineChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(LineChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a LineChart from the of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a LineChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.LineChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        LineChart chart = frame:LineChartByColumn()
+        chart:Display()
+    */
+    action LineChartByColumn returns LineChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        LineChart chart = groups:LineChart()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle(GetColumnList())
+        return chart
     end
 
     /*
@@ -3337,7 +4037,7 @@ class DataFrame
 
         return cast(LineChart, CreateChart(creator))
     end
-    
+
     /*
         This action creates a ViolinPlot from the current column selection in the DataFrame.
         By default, it uses all columns as separate values in the selection as the chart area. 
@@ -3358,11 +4058,42 @@ class DataFrame
         chart:Display()
     */
     action ViolinPlot returns ViolinPlot
+        if selection:GetFactorSize() > 2 or (selection:GetFactorSize() > 1 and selection:GetColumnSize() > 1)
+            return ViolinPlotByColumn()
+        end
+
         ViolinPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ViolinPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a ViolinPlot from the of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a ViolinPlot chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ViolinPlot
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        ViolinPlot chart = frame:ViolinPlotByColumn()
+        chart:Display()
+    */
+    action ViolinPlotByColumn returns ViolinPlot
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        ViolinPlot chart = groups:ViolinPlot()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle(GetColumnList())
+        return chart
     end
 
     /*
@@ -3386,11 +4117,42 @@ class DataFrame
         chart:Display()
     */
     action BoxPlot returns BoxPlot
+        if selection:GetFactorSize() > 2 or (selection:GetFactorSize() > 1 and selection:GetColumnSize() > 1)
+            return BoxPlotByColumn()
+        end
+
         BoxPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(BoxPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a BoxPlot from the of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a BoxPlot chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BoxPlot
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        BoxPlot chart = frame:BoxPlotByColumn()
+        chart:Display()
+    */
+    action BoxPlotByColumn returns BoxPlot
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+
+        BoxPlot chart = groups:BoxPlot()
+        chart:SetXAxisTitle(GetFactorList())
+        chart:SetYAxisTitle(GetColumnList())
+        return chart
     end
 
     /*
@@ -3414,11 +4176,70 @@ class DataFrame
         chart:Display()
     */
     action ScatterPlot returns ScatterPlot
+        if selection:GetFactorSize() > 1
+            return ScatterPlotByColumn()
+        end
+
         ScatterPlotCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a BoxPlot from the of values of two selected columns grouped by the selected factors.
+
+        Attribute: Returns a chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ScatterPlot
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(1)
+        frame:AddSelectedColumn(2)
+        ScatterPlot chart = frame:ScatterPlot()
+        chart:SetTitle("My Awesome Title")
+        chart:SetXAxisTitle("Time")
+        chart:Display()
+    */
+    action ScatterPlotByColumn returns ScatterPlot
+        if selection:GetColumnSize() not= 2
+            alert("Expecting two selected columns, first for x-axis, second for y-axis.")
+        end
+        text xHeader = GetColumn(selection:GetColumn(0)):GetHeader()
+        text yHeader = GetColumn(selection:GetColumn(1)):GetHeader()
+
+        DataFrame xColumn = Copy()
+        xColumn:AddSelectedColumns(xHeader)   
+        DataFrame yColumn = Copy()
+        yColumn:AddSelectedColumns(yHeader) 
+        i = 0
+        repeat while i < selection:GetFactorSize()
+            xColumn:AddSelectedFactor(selection:GetFactor(i))   
+            yColumn:AddSelectedFactor(selection:GetFactor(i))           
+            i = i + 1
+        end
+        DataFrame xGroups = xColumn:CreateNewDataFrameFromFactoredColumns()
+        xGroups:SelectAllColumns()
+
+        DataFrame yGroups = yColumn:CreateNewDataFrameFromFactoredColumns()
+        yGroups:SelectAllColumns()
+
+        TransformLonger lengthen
+        DataFrame newFrame = xGroups:Transform(lengthen)
+        newFrame:GetColumn("Names"):SetHeader("Groups")
+        newFrame:GetColumn("Values"):SetHeader(xHeader)
+        newFrame:AddColumn(yGroups:Transform(lengthen):GetColumn("Values"))
+        newFrame:GetColumn("Values"):SetHeader(yHeader)
+        
+        newFrame:AddSelectedFactors("Groups")
+        newFrame:AddSelectedColumns(xHeader)
+        newFrame:AddSelectedColumns(yHeader)
+
+        return newFrame:ScatterPlot()
     end
 
     /*
@@ -3444,11 +4265,47 @@ class DataFrame
         chart:Display()
     */
     action NormalityCheckChart returns ScatterPlot
+        if selection:GetFactorSize() > 1 or selection:GetColumnSize() > 1
+            return NormalityCheckChartByColumn()
+        end
+
         CheckNormalityChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(ScatterPlot, CreateChart(creator))
+    end
+
+    /*
+        This action creates a NormalityCheckChart from the of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a NormalityCheckChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.ScatterPlot
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        ScatterPlot chart = frame:NormalityCheckChartByColumn()
+        chart:Display()
+    */
+    action NormalityCheckChartByColumn returns ScatterPlot
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:AddSelectedColumnRange(0,groups:GetSize()-1)
+
+        TransformLonger lengthen
+        DataFrame stacked = groups:Transform(lengthen)
+        stacked:AddSelectedFactors("Names")
+        stacked:AddSelectedColumns("Values")
+        
+        ScatterPlot chart = stacked:NormalityCheckChart()
+        chart:SetYAxisTitle(GetColumnList())
+        chart:SeparateByFactor(true) // gives a facet grid by default, this can be turned off just like other charts
+        return chart
     end
 
     /*
@@ -3470,11 +4327,41 @@ class DataFrame
         chart:Display()
     */
     action PieChart returns PieChart
+        if selection:GetFactorSize() > 1 
+            return PieChartByColumn()
+        end
+
         PieChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
 
         return cast(PieChart, CreateChart(creator))
+    end
+
+    /*
+        This action creates a PieChart from the sum of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a PieChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.PieChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        PieChart chart = frame:PieChartByColumn()
+        chart:Display()
+    */
+    action PieChartByColumn returns PieChart
+        return PieChartByColumnSum()
+    end
+    action PieChartByColumnSum returns PieChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+        return groups:PieChart()
     end
 
     /*
@@ -3496,6 +4383,10 @@ class DataFrame
         chart:Display()
     */
     action DonutChart returns PieChart
+        if selection:GetFactorSize() > 1 
+            return DonutChartByColumn()
+        end
+
         PieChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
@@ -3524,6 +4415,10 @@ class DataFrame
         chart:Display()
     */
     action DonutChart(number donutHolePercent) returns PieChart
+        if selection:GetFactorSize() > 1 
+            return DonutChartByColumn(donutHolePercent)
+        end
+
         PieChartCreator creator
         selection:CopyTo(cast(ColumnInput, creator))
         selection:CopyTo(cast(FactorInput, creator))
@@ -3535,6 +4430,32 @@ class DataFrame
             alert("Donut hole percent can be a number between 0 and 1")
         end
         return chart
+    end
+
+    /*
+        This action creates a PieChart from the sum of values of selected columns grouped by the selected factors.
+
+        Attribute: Returns a PieChart chart that can be displayed or placed into a user interface or game.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.PieChart
+        
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(3)
+
+        PieChart chart = frame:PieChartByColumn()
+        chart:Display()
+    */
+    action DonutChartByColumn returns PieChart
+        return DonutChartByColumn(0.5)
+    end
+    action DonutChartByColumn(number donutHolePercent) returns PieChart
+        DataFrame groups = CreateNewDataFrameFromFactoredColumns()
+        groups:SelectAllColumns()
+        return groups:DonutChart(donutHolePercent)
     end
 
     /*
@@ -3624,6 +4545,118 @@ class DataFrame
         return Transform(tab)
     end
 
+    // NEW
+    /* Helper action for ByColumn() style charts, used to label the default y-axis */
+    private action GetColumnList() returns text
+        if GetSelectedColumnSize() = 0
+            return "Count"
+        elseif GetSelectedColumnSize() = 1
+            DataFrameColumn column = GetColumn(GetSelection():GetColumn(0))
+            return column:GetHeader()
+        else
+            return "Total"
+        end
+    end
+
+    /* Helper action for ByColumn() style charts, used to label the default x-axis and tick labels */
+    private action GetFactorList() returns text
+        if GetSelectedFactorSize() = 0
+            return "Group"
+        else
+            text factorText = ""
+            j = 0
+            repeat while j < GetSelectedFactorSize()
+                DataFrameColumn factor = GetColumn(GetSelection():GetFactor(j))
+                if j = 0
+                    factorText = factor:GetHeader()
+                else
+                    factorText = factorText+"."+factor:GetHeader()
+                end
+                j = j + 1
+            end
+            return factorText
+        end
+    end
+
+    /* Helper action for ByColumn() style charts, used to create new columns after grouping values by factor */
+    action CreateNewDataFrameFromFactoredColumns() returns DataFrame
+        DataFrame newFrame
+
+        if GetSelectedFactorSize() = 0
+            j = 0
+            repeat while j < GetSelectedColumnSize()
+                DataFrameColumn column = GetColumn(GetSelection():GetColumn(j))
+                newFrame:AddColumn(column)
+                j = j + 1
+            end
+        else
+            integer rowIndex = 0
+            boolean rowIsDefined = true
+
+            repeat while rowIsDefined
+                text groupText = ""
+                j = 0
+                repeat while j < GetSelectedFactorSize()
+                    DataFrameColumn factor = GetColumn(GetSelection():GetFactor(j))
+                    if rowIndex < factor:GetSize()
+                        if not factor:IsUndefined(rowIndex)
+                            if j = 0
+                                groupText = factor:GetAsText(rowIndex)
+                            else
+                                groupText = groupText + "." +factor:GetAsText(rowIndex)
+                            end
+                        else
+                            rowIsDefined = false
+                        end
+                    else
+                        rowIsDefined = false
+                    end
+                    j = j + 1
+                end
+    
+                if rowIsDefined
+                    if GetSelectedColumnSize() = 0
+                        if newFrame:GetColumn(groupText) = undefined
+                            TextColumn col
+                            col:SetHeader(groupText)
+                            col:Add("1")
+                            newFrame:AddColumn(col)
+                        else
+                            newFrame:GetColumn(groupText):Add("1")
+                        end
+                    else
+                        j = 0
+                        repeat while j < GetSelectedColumnSize()
+                            DataFrameColumn column = GetColumn(GetSelection():GetColumn(j))
+                            if rowIndex < column:GetSize()
+                                if not column:IsUndefined(rowIndex)
+                                    text columnText = groupText    
+                                    if GetSelectedColumnSize() > 1
+                                        columnText = columnText+"."+column:GetHeader()
+                                    end
+                                    if newFrame:GetColumn(columnText) = undefined
+                                        TextColumn col
+                                        col:SetHeader(columnText)
+                                        col:Add(column:GetAsText(rowIndex))
+                                        newFrame:AddColumn(col)
+                                    else
+                                        newFrame:GetColumn(columnText):Add(column:GetAsText(rowIndex))
+                                    end
+                                end
+                            end
+                            j = j + 1
+                        end
+                    end
+                end
+                rowIndex = rowIndex + 1
+            end
+        end
+
+        DataFrame result // This will reload the column types back to the correct types.
+        result:LoadFromCommaSeparatedValue(newFrame:ToText())
+        return result
+    end
+    
     /*
         The CovarianceMatrixTransform class takes a DataFrame and its selection to decide how to transform it. 
         Specifically, CovarianceMatrixTransform takes the every pair of two columns in the selection and 
@@ -4009,6 +5042,27 @@ class DataFrame
         splitter:SetHeaders(headers)
         splitter:SetDelimiter(delimiter)
         return splitter:Transform(me)
+    end
+
+    /*
+        This action rounds values in selected number columns to a specified decimal place. If the value is 1.3209873 
+        and a decimal place is set to 2 the value will be rounded to 1.32.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        DataFrame frame
+        frame:Load("file.csv")
+
+        //set which column or columns we want to round values
+        frame:AddSelectedColumn(3)
+        DataFrame result = frame:RoundSelectedColumns(2)
+        output result:ToText()
+    */
+    action RoundSelectedColumns(integer decimalPlace) returns DataFrame
+        ColumnRoundTransform round
+        round:SetDecimalPlace(decimalPlace)
+        return round:Transform(me)
     end
 
     /*

@@ -17,18 +17,29 @@ class CompareIndependentVariancesTest is Test
     action Run
         ColumnCalculationTest framer
         DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
 
+
+        // Median as center
         CompareVariances compare
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:AddColumn(2)
-        compare:AddColumn(3)
         frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 1.2757362522804279)
-        Check(result:GetDegreesOfFreedomBetweenGroups(), 3.0)
-        Check(result:GetDegreesOfFreedomWithinGroups(), 20.0)
-        Check(result:GetProbabilityValue(), 0.3097265758691006)
+        Check(result:GetTestStatistic(), 1.275736252280429)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
+        Check(result:GetProbabilityValue(), 0.30972657586910013)
+
+
+        // Mean as center
+        CompareVariances compare2
+        compare2:UseMeanAsCenter()
+        frame:Calculate(compare2)
+        
+        CompareVariancesResult result2 = compare2:GetResult()
+        Check(result2:GetTestStatistic(), 1.6138848191141646)
+        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
+        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
+        Check(result2:GetProbabilityValue(), 0.2177022863231628)
     end
 end

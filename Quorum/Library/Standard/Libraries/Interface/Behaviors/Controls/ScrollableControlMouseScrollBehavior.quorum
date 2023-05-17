@@ -1,0 +1,20 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Controls.ScrollableControl
+
+class ScrollableControlMouseScrollBehavior is Behavior
+
+    action Run(BehaviorEvent behaviorEvent)
+        MouseEvent event = behaviorEvent:GetMouseEvent()
+        if (event = undefined) or (behaviorEvent:GetItem() is ScrollableControl = false)
+            return now
+        end
+
+        ScrollableControl control = cast(ScrollableControl, behaviorEvent:GetItem())
+        control:ScrolledMouse(event)
+    end
+
+end

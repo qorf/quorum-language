@@ -845,5 +845,14 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     {
         gl.scissor(x, y, width, height);
     };
+
+    /*
+    Takes x, y, width, and height of the window. Also takes format (most commonly gl.RGBA),
+    type (commonly gl.UNSIGNED_BYTE) and a buffer (must match associated type, usually Uint8Array).
+    */
+    this.glReadPixels = function(x, y, width, height, format, type, buffer)
+    {
+        gl.readPixels(x, y, width, height, format, type, buffer);
+    };
 }
 

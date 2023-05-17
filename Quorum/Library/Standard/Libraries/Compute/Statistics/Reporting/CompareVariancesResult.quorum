@@ -8,121 +8,45 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Math
 
 /*
-    This class represents data that comes back from CompareIndependentVariances 
-    or CompareDependentVariances in a CompareVariances calculation (levene's or mauchly's test).
+    This class represents data that comes back from a CompareVariances calculation (levene's or mauchly's test).
 
     Attribute: Author Hannah Williams
 */
-class CompareVariancesResult is CompareGroupsResult
-    number w_statistic = 0      // The Mauchly's W test statistic
-    number chi_w_squared = 0    // The approximate chi squared test statistic for W
-    number v_statistic = 0      // The John, Nagao and Sugiura (JNS)'s V test statistic
-    number chi_v_squared = 0    // The approximate chi squared test statistic for V
-    number lbCorrection = 0     // Lower-bound epsilon
-    number ggCorrection = 0     // Greenhouse-Geisser epsilon
-    number hfCorrection = 0     // Huynh-Feldt epsilon
-    number degreesOfFreedomBetweenGroups = 0    
-    number degreesOfFreedomWithinGroups = 0
-    number degreesOfFreedomError = 0
-    boolean repeatedMeasures = false
-    Math math
-
-    action GetDegreesOfFreedomBetweenGroups returns number
-        return degreesOfFreedomBetweenGroups
-    end
-
-    action SetDegreesOfFreedomBetweenGroups(number degreesOfFreedomBetweenGroups)
-        me:degreesOfFreedomBetweenGroups = degreesOfFreedomBetweenGroups
-    end
-
-    action GetDegreesOfFreedomWithinGroups returns number
-        return degreesOfFreedomWithinGroups
-    end
-
-    action SetDegreesOfFreedomWithinGroups(number degreesOfFreedomWithinGroups)
-        me:degreesOfFreedomWithinGroups = degreesOfFreedomWithinGroups
-    end
-
-    action GetDegreesOfFreedomError returns number
-        return degreesOfFreedomError
-    end
-
-    action SetDegreesOfFreedomError(number degreesOfFreedomError)
-        me:degreesOfFreedomError = degreesOfFreedomError
-    end
-
-    action RepeatedMeasures returns boolean
-        return repeatedMeasures
-    end
-
-    action RepeatedMeasures(boolean repeatedMeasures)
-        me:repeatedMeasures = repeatedMeasures
-    end
-
-    action GetWTestStatistic returns number
-        return w_statistic
-    end
-
-    action SetWTestStatistic(number testStatistic)
-        w_statistic = testStatistic
-        parent:StatisticalTestResult:SetTestStatistic(testStatistic)
-    end
-
-    action GetChiWSquaredTestStatistic returns number
-        return chi_w_squared
-    end
-
-    action SetChiWSquaredTestStatistic(number testStatistic)
-        chi_w_squared = testStatistic
-    end
-
-    action GetVTestStatistic returns number
-        return v_statistic
-    end
-
-    action SetVTestStatistic(number testStatistic)
-        v_statistic = testStatistic
-    end
-
-    action GetChiVSquaredTestStatistic returns number
-        return chi_v_squared
-    end
-
-    action SetChiVSquaredTestStatistic(number testStatistic)
-        chi_v_squared = testStatistic
-    end
-
+class CompareVariancesResult is CompareMeansResult
     action GetLowerBoundCorrection returns number
-        return lbCorrection
-    end
-
-    action SetLowerBoundCorrection(number correction)
-        lbCorrection = correction
+        if GetSources():GetSize() > 0
+            if GetInformation():GetValue(GetSources():Get(0)):HasKey("lb")
+                return GetInformation():GetValue(GetSources():Get(0)):GetValue("lb")
+            end
+        end
+        return 0
     end
 
     action GetGreenhouseGeisserCorrection returns number
-        return ggCorrection
-    end
-
-    action SetGreenhouseGeisserCorrection(number correction)
-        ggCorrection = correction
+        if GetSources():GetSize() > 0
+            if GetInformation():GetValue(GetSources():Get(0)):HasKey("gg")
+                return GetInformation():GetValue(GetSources():Get(0)):GetValue("gg")
+            end
+        end
+        return 0
     end
 
     action GetHuynhFeldtCorrection returns number
-        return hfCorrection
-    end
-
-    action SetHuynhFeldtCorrection(number correction)
-        hfCorrection = correction
+        if GetSources():GetSize() > 0
+            if GetInformation():GetValue(GetSources():Get(0)):HasKey("hf")
+                return GetInformation():GetValue(GetSources():Get(0)):GetValue("hf")
+            end
+        end
+        return 0
     end
 
     action GetCorrection returns number
-        if repeatedMeasures
+        if IsRepeated()
             if GetProbabilityValue() <= GetSignificanceLevel() // significant result
-                if ggCorrection > 0.75
-                    return hfCorrection
+                if GetGreenhouseGeisserCorrection() > 0.75
+                    return GetHuynhFeldtCorrection()
                 else
-                    return ggCorrection
+                    return GetGreenhouseGeisserCorrection()
                 end
             else
                 return 1.0
@@ -133,9 +57,9 @@ class CompareVariancesResult is CompareGroupsResult
     end
 
     action GetCorrectionName returns text
-        if repeatedMeasures
+        if IsRepeated()
             if GetProbabilityValue() <= GetSignificanceLevel() // significant result
-                if ggCorrection > 0.75
+                if GetGreenhouseGeisserCorrection() > 0.75
                     return "Huynh-Feldt"
                 else
                     return "Greenhouse-Geisser"
@@ -152,220 +76,36 @@ class CompareVariancesResult is CompareGroupsResult
         This action summarizes the result and lists it informally.
     */
     action GetSummary returns text
-        text summary = ""
-        text lf = summary:GetLineFeed()
-        integer digits = GetFormat():GetSignificantDigits()
-
-        if repeatedMeasures
-            summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " dependent samples."
-        else
-            summary = summary + "A "+ GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " independent samples."
-        end
-        if GetFactor() not= ""
-            summary = summary + lf + "Factor: " + GetFactor()
-        end
-
-        if repeatedMeasures
-
-            summary = summary + lf + "Statistic (W): " +  math:Round(w_statistic, digits)
-
-            summary = summary + lf + "Statistic (Approximate χ2): " + math:Round(chi_w_squared, digits)
-
-            summary = summary + lf + "Degrees Of Freedom: " + math:Round(GetDegreesOfFreedom(), digits)
-
-            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
-
-            summary = summary + lf + "Greenhouse-Geisser Correction (ε): " + math:Round(ggCorrection, digits)
-
-            summary = summary + lf + "Huynh-Feldt Correction (ε): " + math:Round(hfCorrection, digits)
-
-            summary = summary + lf + "Lower-Bound Correction (ε): " + math:Round(lbCorrection, digits)
-        else
-
-            summary = summary + lf + "Degrees Of Freedom Between Groups: " + math:Round(degreesOfFreedomBetweenGroups, digits)
-    
-            summary = summary + lf + "Degrees Of Freedom Within Groups: " + math:Round(degreesOfFreedomWithinGroups, digits)
-
-            summary = summary + lf + "Statistic (F): " + math:Round(GetTestStatistic(), digits)
-
-            summary = summary + lf + "Probability: " + math:Round(GetProbabilityValue(), digits)
-        end
-
-        if GetEffectSizeName() not= ""
-            summary = summary + lf + "Effect Size (" + GetEffectSizeName() + "): " + math:Round(GetEffectSize(), digits)
-        end
-
-        return summary
+        CompareVariancesSummary summary
+        summary:SetResult(me)
+        return summary:GetSummary()
     end
 
     /*
         This action summarizes the result and places it into formal academic language, in 
         APA format.
-
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
     */
     action GetFormalSummary returns text
-        text summary = ""
-        text lf = summary:GetLineFeed()
-
-        if repeatedMeasures
-            if GetFactor() = ""
-                summary = summary + "A " + GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " dependent samples."
-            else
-                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " across " + GetGroups():GetSize() + " dependent samples."
-            end
-        else
-            if GetFactor() = ""
-                summary = summary + "A " + GetFormalTestName() + " was conducted across " + GetGroups():GetSize() + " independent samples."
-            else
-                summary = summary + "A " + GetFormalTestName() + " was conducted on " + GetFactor() + " across " + GetGroups():GetSize() + " independent samples."
-            end
-        end
-
-        if GetProbabilityValue() <= GetSignificanceLevel()
-            //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
-            summary = summary + lf + "There was a statistically significant difference in the variances"
-        else
-            //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
-            summary = summary + lf + "There was not a statistically significant difference in the variances"
-        end
-
-        summary = summary + ", " + GetFormalNumericalResult() + "."
-
-        return summary
+        CompareVariancesSummary summary
+        summary:SetResult(me)
+        return summary:GetFormalSummary()
     end
 
+    /*
+        This action summarizes the result and places it into formal academic language, in APA format.
+        For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf
+    */
     action GetFormalNumericalResult() returns text
-        text summary = ""
-        if repeatedMeasures 
-            summary = summary + "χ2("                
-                + GetFormat():FormatDegreesOfFreedom(GetDegreesOfFreedom()) + ") = " 
-                + GetFormat():FormatTestStatistic(GetChiWSquaredTestStatistic())
-        else
-            summary = summary + "F(" 
-                + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomBetweenGroups) + ", " 
-                + GetFormat():FormatDegreesOfFreedom(degreesOfFreedomWithinGroups) + ") = " 
-                + GetFormat():FormatTestStatistic(GetTestStatistic())
-        end
-
-        number p = GetProbabilityValue()
-        if p < GetFormat():PRECISION_LIMIT
-            summary = summary + ", p < " + GetFormat():FormatProbabilityValue(p)
-        else
-            summary = summary + ", p = " + GetFormat():FormatProbabilityValue(p)
-        end
-        return summary
+        CompareVariancesSummary summary
+        summary:SetResult(me)
+        return summary:GetFormalNumericalResult()
     end
 
+    /* This action summarizes the result and puts it in a frame. */
     action GetSummaryDataFrame returns DataFrame
-        if RepeatedMeasures()
-            return DependentSummaryDataFrame()
-        else
-            return IndependentSummaryDataFrame()
-        end
-    end
-    
-    private action IndependentSummaryDataFrame returns DataFrame
-        number nan = 0
-        integer digits = GetFormat():GetSignificantDigits()
-
-        TextColumn name
-        name:SetHeader("Levene's Test Of Homogeneity")
-        if IsSignificant()
-            name:Add("Failed")
-        else
-            name:Add("Passed")
-        end
-
-        NumberColumn f
-        f:SetHeader("Statistic (F)")
-        f:Add(math:Round(GetTestStatistic(), digits))
-
-        NumberColumn df1
-        df1:SetHeader("Degrees Of Freedom (DF1)")
-        df1:Add(math:Round(GetDegreesOfFreedomBetweenGroups(), digits))
-
-        NumberColumn df2
-        df2:SetHeader("Degrees Of Freedom (DF2)")
-        df2:Add(math:Round(GetDegreesOfFreedomWithinGroups(), digits))
-
-        NumberColumn p
-        p:SetHeader("Probability (P)")
-        p:Add(math:Round(GetProbabilityValue(), digits))
-
-        DataFrame table
-        table:AddColumn(name)
-        table:AddColumn(f)
-        table:AddColumn(df1)
-        table:AddColumn(df2)
-        table:AddColumn(p)
-
-        if GetEffectSizeName() not= "" 
-            NumberColumn effect
-            effect:SetHeader(GetEffectSizeName())
-            effect:Add(math:Round(GetEffectSize(), digits))
-            table:AddColumn(effect)
-        end
-        return table
-    end
-
-    private action DependentSummaryDataFrame returns DataFrame
-        number nan = 0
-        integer digits = GetFormat():GetSignificantDigits()
-
-        TextColumn name
-        name:SetHeader("Mauchly Test Of Sphericity")
-        if IsSignificant()
-            name:Add("Failed")
-        else
-            name:Add("Passed")
-        end
-
-        NumberColumn w
-        w:SetHeader("Statistic (W)")
-        w:Add(math:Round(w_statistic, digits))
-
-        NumberColumn df
-        df:SetHeader("Degrees Of Freedom (DF)")
-        df:Add(math:Round(GetDegreesOfFreedom(), digits))
-
-        NumberColumn x2
-        x2:SetHeader("Approximate χ2")
-        x2:Add(math:Round(chi_w_squared, digits))
-
-        NumberColumn p
-        p:SetHeader("Probability (P)")
-        p:Add(math:Round(GetProbabilityValue(), digits))
-
-        NumberColumn gg
-        gg:SetHeader("Greenhouse-Geisser (ε)")
-        gg:Add(math:Round(ggCorrection, digits))
-
-        NumberColumn hf
-        hf:SetHeader("Huynh-Feldt (ε)")
-        hf:Add(math:Round(hfCorrection, digits))
-
-        NumberColumn lb
-        lb:SetHeader("Lower-Bound (ε)")
-        lb:Add(math:Round(lbCorrection, digits))
-
-        DataFrame table
-        table:AddColumn(name)
-        table:AddColumn(w)
-        table:AddColumn(x2)
-        table:AddColumn(df)
-        table:AddColumn(p)
-        table:AddColumn(gg)
-        table:AddColumn(hf)
-        table:AddColumn(lb)
-
-        if GetEffectSizeName() not= "" 
-            NumberColumn effect
-            effect:SetHeader(GetEffectSizeName())
-            effect:Add(math:Round(GetEffectSize(), digits))
-            table:AddColumn(effect)
-        end
-
-        return table
+        CompareVariancesSummary summary
+        summary:SetResult(me)
+        return summary:GetSummaryDataFrame()
     end
 end

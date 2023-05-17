@@ -7,25 +7,27 @@ use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
 use Libraries.Compute.Statistics.Calculations.Median
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Compute.Statistics.Transforms.CovarianceMatrixTransform
-use Libraries.Compute.Statistics.Reporting.CompareNGroupsResult
 use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
 use Libraries.Compute.MatrixTransform.EigenDecomposition
 use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Transforms.TransformLonger
 
 /*
     This class implements several tests:
-        CompareIndependentVariances is a Levene's Homogeneity Test 
+        CompareSeveralVariances is a Levene's Homogeneity Test 
         Check that several groups vary in the same way using the mean
         For more information: https://en.wikipedia.org/wiki/Levene%27s_test
 
-        CompareIndependentVariances is a Brown–Forsythe Extension of Levene's Homogeneity Test 
+        CompareSeveralVariances is a Brown–Forsythe Extension of Levene's Homogeneity Test 
         Check that several groups vary in the same way using the median or trimmed mean
         For more information: https://en.wikipedia.org/wiki/Brown%E2%80%93Forsythe_test
     
-        CompareDependentVariances is a Mauchly's Sphericity Test
+        CompareSeveralRelatedVariances is a Mauchly's Sphericity Test
         Check that several groups vary in the same way when there are repeated measures.
         For more information: https://en.wikipedia.org/wiki/Mauchly%27s_sphericity_test
 
@@ -33,6 +35,10 @@ use Libraries.Compute.Vector
         Check that several groups vary in the same way if all are normally distributed 
         For more information: https://en.wikipedia.org/wiki/Bartlett%27s_test
         For more information: https://www.statology.org/bartletts-test/
+
+        _________________ is a Box's M Test for Homogeneity of Covariances Extension Bartlett’s Homogeneity Test (very sensitive to non-normality)
+        Check that several multivariate groups vary in the same way if all are normally distributed 
+        For more information: https://en.wikipedia.org/wiki/Box%27s_M_test
 
         _________________ is a Conover Equal Variance Test aka Squared Ranks Test
         Check that several groups vary in the same way without assumptions about the distribution
@@ -46,16 +52,22 @@ use Libraries.Compute.Vector
 
     DataFrame frame
     frame:Load("Data/Data.csv")
+    frame:AddSelectedColumnRange(0,3)
 
-    CompareVariances compare
-    compare:AddColumn(0)
-    compare:AddColumn(1)
-    compare:AddColumn(2)
-    compare:AddColumn(3)
-    compare:Calculate(frame)
+    CompareVariances compare = frame:CompareVariances()
     output compare:GetFormalSummary()
 */
 class CompareVariances is StatisticalTest
+    private HashTable<text, DataFrame> groups       // Contain the dataframe objects for the most factored of the groups (i.e. the samples)
+    private integer numberOfFactors = 0             // Number of factors selected
+    private integer numberOfColumns = 0             // Number of columns selected
+    private Array<text> factorHeaders               // Used factor headers
+    private Array<text> columnHeaders               // Used column headers
+    private boolean multivariate = false            // Flag for multiple dependent variables
+    private boolean factorial = false               // Flag for multiple independent factors
+    private boolean needToSelectTest = true         // Flag to let this class auto-select a test based on given data
+    private boolean needToProcessData = true        // Flag to let tell this class to process the selected data
+
     /* The distribution used to calculate the p-value.*/
     ClassificationDistribution x2distribution
 
@@ -83,43 +95,81 @@ class CompareVariances is StatisticalTest
     Math math
 
     action Calculate(DataFrame frame) 
-        // If nothing is selected attempt to grab frame's selection.
-        if GetColumnSize() = 0 
-            if frame:GetSelection() not= undefined
-                frame:GetSelection():CopyTo(cast(ColumnInput, me))
-            end
-        end
-        if GetFactorSize() = 0 
-            if frame:GetSelection() not= undefined 
-                frame:GetSelection():CopyTo(cast(FactorInput, me))
-            end
+        results:Empty()
+        groups:Empty()
+        factorHeaders:Empty()
+        columnHeaders:Empty()
+
+        numberOfFactors = frame:GetSelectedFactorSize()
+        numberOfColumns = frame:GetSelectedColumnSize()
+
+        if numberOfFactors > 0 and numberOfColumns > 1
+            multivariate = true
+            alert("A multivariate CompareVariances test is not supported yet.")
+        else
+            multivariate = false
         end
 
-        if repeatedMeasures
-            parent:StatisticalTest:RemoveUndefined(true)
-        end
-        if GetFactorSize() = 0
-            parent:StatisticalTest:Calculate(frame)
+        if numberOfFactors > 1
+            factorial = true
         else
-            parent:StatisticalTest:CalculateWithFactor(frame)
+            factorial = false
         end
+
+        // Copy the frame keeping only the selected factors/columns and reselect them
+        // Anything else will be dropped for this computation.
+        DataFrame cleanedFrame = frame:Copy()
+        if multivariate
+            cleanedFrame = frame:RemoveUndefinedRowsFromSelectedColumns()
+        end
+        DataFrame copy
+        integer index = 0
+        i = 0
+        repeat while i < numberOfFactors
+            DataFrameColumn factor = cleanedFrame:GetColumn(frame:GetSelection():GetFactor(i))
+            copy:AddColumn(factor)
+            copy:AddSelectedFactor(index)
+            factorHeaders:Add(factor:GetHeader())
+            index = index + 1
+            i = i + 1
+        end
+        i = 0
+        repeat while i < numberOfColumns
+            DataFrameColumn column = cleanedFrame:GetColumn(frame:GetSelection():GetColumn(i))
+            copy:AddColumn(column)
+            copy:AddSelectedColumn(index)
+            columnHeaders:Add(column:GetHeader())
+            index = index + 1
+            i = i + 1
+        end
+
+        // Check the data for missing data or incorrect column types
+        CheckDataIntegrity(copy)
+
+        groups = GetGroups(copy)
+
+        if needToSelectTest
+            RunTest(copy)
+        end
+
+        needToProcessData = false
     end
 
     private action RunTest(DataFrame frame)
-        if GetColumnSize() < 2
-            alert("Must include at least two columns.")
+        if groups:GetSize() < 2
+            alert("A CompareVariances calculation must include at least two samples.")
         end
 
         if repeatedMeasures
-            CompareDependentVariances(frame)    
+            CompareSeveralRelatedVariances(frame)    
         else
-            CompareIndependentVariances(frame)  
+            CompareSeveralVariances(frame)  
         end
     end
 
     /* 
         This action tests for variance equality (homogeneity) for 2 or more independent samples. 
-        It is commonly used with a one-way ANOVA in CompareGroups.
+        It is commonly used with a one-way ANOVA in CompareMeans.
 
         It conducts the following tests: 
             Brown-Forsythe Test > CompareVariances:UseMedianAsCenter() or UseTrimmedMeanAsCenter(0.05)
@@ -127,7 +177,7 @@ class CompareVariances is StatisticalTest
 
         Assumptions:
             1. Samples are independent
-                If not independent: Use Mauchly's Sphericity Test   > CompareVariances:CompareDependentVariances 
+                If not independent: Use Mauchly's Sphericity Test   > CompareVariances:CompareSeveralRelatedVariances 
 
         Null hypothesis: The variances are equal across all samples
         Alternative hypothesis: At least one variance is not equal to the others.
@@ -139,108 +189,72 @@ class CompareVariances is StatisticalTest
     
         DataFrame frame
         frame:Load("data.csv")
+        frame:AddSelectedColumnRange(0,2)
     
-        CompareVariances compare 
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:AddColumn(2)
-        compare:Calculate(frame)
-
+        CompareVariances compare = frame:CompareVariances()
         output compare:GetFormalSummary()
     */
-    action CompareIndependentVariances(DataFrame frame)
-        if GetColumnSize() = 0 or GetFactorSize() > 0
-            me:Calculate(frame) 
-        else
-            if GetColumnSize() < 2
-                alert("CompareIndependentVariances must have at least 2 groups.")
-            end
-
-            text center = ""
-            Array<DataFrameColumn> groups
-            Array<DataFrameColumn> differencesDataFrameColumns
-            i = 0
-            repeat while i < GetColumnSize()
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-    
-                if column = undefined
-                    alert("Column is undefined.")
-                end
-        
-                if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-                end
-        
-                if column:GetSize() < 2
-                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
-                end
-    
-                NumberColumn differencesColumn 
-                number difference = 0 
-    
-                if useMedianAsCenter
-                    if column:CanConvertToVector()
-                        Vector v = column:ConvertToVector()
-                        v:Sort()
-                        size = v:GetSize()
-                        if size mod 2 = 1
-                            difference = v:Get(size / 2)
-                        else
-                            difference = 0.5 * (v:Get((size / 2) - 1) + v:Get(size / 2))
-                        end
-                    end
-                    center = " with median as center"
-                elseif useMeanAsCenter
-                    Mean mean
-                    column:Calculate(mean)    
-                    difference = mean:GetMean() 
-                    center = " with mean as center"
-                elseif useTrimmedMeanAsCenter
-                    //Mean mean
-                    //mean:SetTrim(trimmedMeanPercent)
-                    //column:Calculate(mean)    
-                    //difference = mean:GetMean()   
-                    center = " with trimmed mean as Center"
-                    alert("Trimmed mean not yet implemented")             
-                end
-    
-                j = 0
-                repeat while j < column:GetSize()
-                    differencesColumn:Add(math:AbsoluteValue(column:GetAsNumber(j) - difference))
-                    j = j + 1
-                end
-    
-                differencesDataFrameColumns:Add(differencesColumn)
-                groups:Add(column)
-                i = i + 1 
-            end
-
-            // Collect and select the absolute differences data frame
-            DataFrame differences
-            differences:SetColumns(differencesDataFrameColumns)
-            differences:SelectAllColumns()
-    
-            // Conduct a one-way ANOVA on the absolute differences
-            CompareGroups compare       
-            compare:CompareNIndependentGroups(differences)
-    
-            // Get anova result
-            CompareNGroupsResult anovaResult = cast(CompareNGroupsResult, compare:GetResult())
-
-            CompareVariancesResult result
-            result:SetSignificanceLevel(GetSignificanceLevel())
-            result:SetFormat(GetStatisticalFormatting())
-            result:SetTestStatistic(anovaResult:GetTestStatistic())
-            result:SetDegreesOfFreedomBetweenGroups(anovaResult:GetDegreesOfFreedomBetweenGroups())
-            result:SetDegreesOfFreedomWithinGroups(anovaResult:GetDegreesOfFreedomWithinGroups())
-            result:SetProbabilityValue(anovaResult:GetProbabilityValue())
-            result:SetFormalTestName("Levene's Test of Homogeneity"+center)
-            result:SetEffectSize(anovaResult:GetEffectSize())
-            result:SetEffectSizeName(anovaResult:GetEffectSizeName())
-            result:SetGroups(groups)
-            result:SetFactor(GetFactorText())
-            results:Add(result)
+    action CompareSeveralVariances(DataFrame frame)
+        if needToProcessData
+            needToSelectTest = false  // This test has been selected (skip RunTest)
+            me:Calculate(frame)
         end
+        if groups:GetSize() < 2
+            alert("CompareSeveralVariances must have at least two samples.")
+        end
+        if multivariate
+            alert("A multivariate CompareVariances test is not supported yet. Formal Name: Box's M Test")
+            // We will want to add a CompareCovariances (Box's M) test here.
+        end
+        text center = ""
+        DataFrame uncenteredGroupFrame
+        DataFrame centeredGroupFrame = GetCenteredGroupsFrame(uncenteredGroupFrame)
+        centeredGroupFrame:SelectAllColumns()
+    
+        if useMedianAsCenter
+            center = " with median as center"
+        elseif useMeanAsCenter
+            center = " with mean as center"
+        elseif useTrimmedMeanAsCenter
+            center = " with trimmed mean as Center"
+            alert("Trimmed mean not yet implemented")             
+        end
+
+        // Conduct a one-way ANOVA on the centered groups
+        CompareMeans compare       
+        compare:CompareSeveralMeans(centeredGroupFrame)
+        CompareMeansResult aov = compare:GetResult()
+
+        // Get anova result
+        CompareVariancesResult result
+        Array<text> sources
+        text source = "Groups"
+        if numberOfFactors > 0
+            i = 0
+            repeat while i < numberOfFactors
+                if i = 0
+                    source = factorHeaders:Get(i)
+                else
+                    source = source + ":"+ factorHeaders:Get(i)
+                end
+                i = i + 1
+            end
+        end
+        sources:Add(source)
+        result:SetTestStatistic(source, "F", aov:GetTestStatistic())
+        result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValueIterator():Next())
+        result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
+        result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:SetFormalTestName("Levene's Test for Homogeneity of Variances"+center)
+        result:SetGroupsFrame(uncenteredGroupFrame)
+        result:SetFactors(factorHeaders)
+        result:SetColumns(columnHeaders)
+        result:SetSources(sources)
+        results:Add(result)
+
+        needToProcessData = true // Reset processing flag in case user changes selections
     end
 
     /* 
@@ -261,51 +275,28 @@ class CompareVariances is StatisticalTest
         DataFrame frame
         frame:Load("data.csv")
     
-        CompareVariances compare 
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:AddColumn(2)
-        compare:RepeatedMeasures(true)
-        compare:Calculate(frame)
-
+        CompareVariances compare = frame:CompareRelatedVariances()
         output compare:GetFormalSummary()
     */
-    action CompareDependentVariances(DataFrame frame)
-        if GetColumnSize() = 0 or GetFactorSize() > 0
-            me:Calculate(frame) 
+    action CompareSeveralRelatedVariances(DataFrame frame)
+        if needToProcessData
+            needToSelectTest = false  // This test has been selected (skip RunTest)
+            me:Calculate(frame)
+        end
+        if groups:GetSize() < 2
+            alert("CompareSeveralRelatedVariances must have at least two samples.")
+        end
+        if multivariate
+            alert("A multivariate repeated measures CompareVariances test is not supported yet.")
+        elseif factorial
+            alert("A factorial repeated measures CompareVariances test is not supported yet.")
         else
-            if GetColumnSize() < 2
-                alert("CompareDependentVariances must have at least 2 groups.")
-            end
-    
-            Array<DataFrameColumn> groups
-            i = 0
-            repeat while i < GetColumnSize()
-                DataFrameColumn column = frame:GetColumn(GetColumn(i))
-                if column = undefined
-                    alert("Column is undefined.")
-                end
-            
-                if not column:IsNumberColumn() and not column:IsIntegerColumn()
-                    alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
-                end
-    
-                if column:GetSize() < 2
-                    alert("Columns must have 2 or more entries. Not enough data for test to be calculated.")
-                end
-    
-                groups:Add(column)
-                i = i + 1
-            end
-    
-            // Collect only the selected data into a frame
-            DataFrame newFrame
-            newFrame:SetColumns(groups)
-            newFrame:SelectAllColumns()
+            DataFrame groupFrame = GetGroupsFrame()
+            groupFrame:SelectAllColumns()
     
             // Get covariance matrix from frame
             // By default the sample covariance will be calculated.
-            Matrix sampleCovarMatrix = newFrame:CovarianceMatrix()
+            Matrix sampleCovarMatrix = groupFrame:CovarianceMatrix()
     
             // Since a sample covariance matrix was calculated, it must first be estimated 
             // to a population matrix for the later calculations, achieved by double centering it.
@@ -319,7 +310,7 @@ class CompareVariances is StatisticalTest
             number productOfEvals = 1
             number sumOfEvals = 0
             number sumOfSquaredEvals = 0
-            Array<number> evals = eig:GetEigenvalues()
+            Vector evals = eig:GetEigenvalues()
             i = 0
             repeat while i < evals:GetSize()
                 eval = evals:Get(i)
@@ -336,10 +327,10 @@ class CompareVariances is StatisticalTest
             // https://pingouin-stats.org/generated/pingouin.epsilon.html
     
             // Number of measurements
-            number k = newFrame:GetColumns():GetSize() 
+            number k = groupFrame:GetColumns():GetSize() 
     
             // Number of subjects
-            number n = newFrame:GetColumn(0):GetSize()
+            number n = groupFrame:GetColumn(0):GetSize()
     
             // Mauchly's W test statistic
             number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
@@ -389,24 +380,43 @@ class CompareVariances is StatisticalTest
             
             // Probability
             x2distribution:Setup(df)
-            number p = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
+            number pW = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
+            number pV = 1.0 - x2distribution:CumulativeDistribution(chi_v_squared)
     
+            Array<text> sources
+            text source = "Measures"
+            if numberOfFactors > 0
+                i = 0
+                repeat while i < numberOfFactors
+                    if i = 0
+                        source = factorHeaders:Get(i)
+                    else
+                        source = source + ":"+ factorHeaders:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            sources:Add(source)
             CompareVariancesResult result
             result:SetSignificanceLevel(GetSignificanceLevel())
             result:SetFormat(GetStatisticalFormatting())
-            result:RepeatedMeasures(true)
-            result:SetWTestStatistic(w)
-            result:SetChiWSquaredTestStatistic(chi_w_squared)
-            result:SetVTestStatistic(v)
-            result:SetChiVSquaredTestStatistic(chi_v_squared)
-            result:SetDegreesOfFreedom(df)
-            result:SetProbabilityValue(p)
-            result:SetLowerBoundCorrection(lbCorrectionEpsilon)
-            result:SetGreenhouseGeisserCorrection(ggCorrectionEpsilon)
-            result:SetHuynhFeldtCorrection(hfCorrectionEpsilon)
+            result:Repeated(true)
+            result:SetTestStatistic(source, "W", w)
+            result:SetTestStatistic(source+"W", "χ2", chi_w_squared)
+            result:SetTestStatistic(source, "V", w)
+            result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
+            result:SetDegreesOfFreedom(source, "W", df)
+            result:SetDegreesOfFreedom(source, "V", df)
+            result:SetProbabilityValue(source, "W", pW)
+            result:SetProbabilityValue(source, "V", pV)
+            result:SetInformation(source, "lb", lbCorrectionEpsilon)
+            result:SetInformation(source, "gg", ggCorrectionEpsilon)
+            result:SetInformation(source, "hf", hfCorrectionEpsilon)
             result:SetFormalTestName("Mauchly's Test of Sphericity")
-            result:SetGroups(groups)
-            result:SetFactor(GetFactorText())
+            result:SetGroupsFrame(groupFrame)
+            result:SetFactors(factorHeaders)
+            result:SetColumns(columnHeaders)
+            result:SetSources(sources)
             results:Add(result)
         end
     end
@@ -625,4 +635,98 @@ class CompareVariances is StatisticalTest
         return summary
     end
 
+
+    // This is used for univariate designs, only checks for variance equality
+    private action GetCenteredGroupsFrame(DataFrame groupFrame) returns DataFrame
+        DataFrame centeredGroupFrame
+
+        Array<text> groupsArray = groups:CopyToKeyArray()
+        integer i = 0
+        repeat while i < groupsArray:GetSize()
+            text groupText = groupsArray:Get(i)
+            DataFrame group = groups:GetValue(groupText)
+            group:SelectAllColumns()
+        
+            NumberColumn centeredgroup
+            centeredgroup:SetHeader(groupText)
+            centeredGroupFrame:AddColumn(centeredgroup)
+
+            NumberColumn uncenteredgroup
+            uncenteredgroup:SetHeader(groupText)
+            groupFrame:AddColumn(uncenteredgroup)
+
+            number center = 0
+            if useMeanAsCenter
+                center = group:Mean()
+            elseif useMedianAsCenter 
+                // median in dataframe calculation different from levene's requirement, manually calculate
+                Vector v = group:GetColumn(0):ConvertToVector()
+                v:Sort()
+                size = v:GetSize()
+                if size mod 2 = 1
+                    center = v:Get(size / 2)
+                else
+                    center = 0.5 * (v:Get((size / 2) - 1) + v:Get(size / 2))
+                end
+            elseif useTrimmedMeanAsCenter
+                alert("Trimmed mean not yet implemented") 
+            end
+
+            DataFrameColumn column = group:GetColumn(0)
+            j = 0
+            repeat while j < column:GetSize()
+                uncenteredgroup:Add(column:GetAsNumber(j))
+                centeredgroup:Add(math:AbsoluteValue(column:GetAsNumber(j) - center))
+                j = j + 1
+            end
+            i = i + 1     
+        end
+        return centeredGroupFrame
+    end
+
+    // This is only used for univariate designs
+    private action GetGroupsFrame() returns DataFrame
+        DataFrame groupFrame
+
+        integer size = 0
+        Array<text> groupsArray = groups:CopyToKeyArray()
+        integer i = 0
+        repeat while i < groupsArray:GetSize()
+            text groupText = groupsArray:Get(i)
+            DataFrame group = groups:GetValue(groupText)
+            DataFrameColumn column = group:GetColumn(0)
+            if repeatedMeasures
+                if i = 0
+                    size = column:GetSize()
+                else
+                    if size not= column:GetSize()
+                        alert("Samples must be the same size for a repeated design.")
+                    end
+                end
+            end
+            group:GetColumn(0):SetHeader(groupText)
+            groupFrame:AddColumn(group:GetColumn(0):Copy())
+            i = i + 1     
+        end
+
+        return groupFrame
+    end
+
+    private action CheckDataIntegrity(DataFrame frame)
+        i = 0
+        repeat while i < frame:GetSelectedColumnSize()
+            DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(i))
+    
+            if column:IsUndefined()
+                alert("Column is undefined.")
+            end
+            if not column:IsNumberColumn() and not column:IsIntegerColumn()
+                alert("Columns must be numerical. " + column:GetHeader() + " is not a numerical column.")
+            end
+            if column:GetSize() < 2
+                alert("Columns must have 2 or more entries. Not enough data for comparison to be calculated.")
+            end
+            i = i + 1
+        end
+    end
 end

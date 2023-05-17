@@ -1,0 +1,71 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
+
+class OutputBlock is SingleLineBlock
+
+    BlockLabel outputLabel = undefined
+    OutputContext outputContext = undefined
+    EditBox expressionField = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:OUTPUT_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Output Block")
+    end
+
+    action UpdateName(integer selectedLine)
+        // TO-DO: NYI
+        // This should be the entire text read by the screen reader when focused, not just the "output" portion
+        SetName("output")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        BlockLabel bl
+        me:outputLabel = bl
+        outputLabel:SetFont(GetEditor():GetFont())
+        outputLabel:SetFontSize(GetEditor():GetFontSize())
+        outputLabel:SetText("output")
+        outputLabel:SetRightPadding(spacing)
+        Add(outputLabel)
+
+        ParseContext expression = outputContext:expression
+        if expression = undefined //this is an error. Should we flag it in the user interface?
+            return now
+        end
+
+        Location location = expression:GetLocation()
+        
+
+        EditBox expressionField
+        me:expressionField = expressionField
+        Add(expressionField) 
+
+        expressionField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+
+    action GetOutputContext returns OutputContext
+        return outputContext
+    end
+
+    action SetOutputContext(OutputContext context)
+        me:outputContext = context
+        SetContext(context)
+    end
+
+end

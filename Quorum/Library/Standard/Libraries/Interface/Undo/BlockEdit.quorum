@@ -1,0 +1,49 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Containers.MultipleLineText
+
+class BlockEdit is Edit
+
+    // The TextBox this edit relates to.
+    CodeEditor blocks = undefined
+
+    // The state of the editor after the edit was made (and what it is restored to during a Redo).
+    MultipleLineText redoState = undefined
+
+    // The state of the editor before the edit was made (and what it is restored to during an Undo).
+    MultipleLineText undoState = undefined
+
+    action SetRedoState(MultipleLineText state)
+        redoState = state
+    end
+
+    action GetRedoState returns MultipleLineText
+        return redoState
+    end
+
+    action SetUndoState(MultipleLineText state)
+        undoState = state
+    end
+
+    action GetUndoState returns MultipleLineText
+        return undoState
+    end
+
+    action SetCodeEditor(CodeEditor editor)
+        blocks = editor
+    end
+
+    action GetBlockEditor returns CodeEditor
+        return blocks
+    end
+
+    action Undo
+        blocks:SetCode(undoState)
+    end
+
+    action Redo
+        blocks:SetCode(redoState)
+    end
+end

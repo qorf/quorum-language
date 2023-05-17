@@ -51,17 +51,18 @@ class Legend is ChartItem
     on create
         Color transparent
         transparent:SetColor(0,0,0,0)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetBorderColor(transparent)
+        SetBorderThickness(4)
         properties = GetDefaultLayoutProperties()
-        properties:SetBackgroundColor(transparent)
-        properties:SetBorderColor(transparent)
-        properties:SetBorderThickness(4)
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
         SetName("Legend")
 
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:CUSTOM)
+        SetAccessibilityCode(parent:Item:CHART_SECTION)
     end
 
     action IsAccessibleParent returns boolean
@@ -90,9 +91,9 @@ class Legend is ChartItem
             end
         end
 
-        SetNextFocus(chartArea)
-        SetPreviousFocus(summary)
-        //SetRightItem(chartArea)
+        //SetNextFocus(chartArea)
+        //SetPreviousFocus(summary)
+
         text description = ""
         if titleText not= ""
             description = description + " shows " + titleText + " and "
@@ -243,7 +244,7 @@ class Legend is ChartItem
             newLabel:SetText(GetTitleText())
             newLabel:SetName(GetTitleText())
             newLabel:SetFocusable(true)
-            newLabel:SetAccessibilityCode(parent:Item:ITEM)
+            newLabel:SetAccessibilityCode(parent:Item:CHART_SECTION)
             Add(GetTitleLabel())
         end
                   
@@ -261,7 +262,7 @@ class Legend is ChartItem
             newLabel:SetName(seriesList:Get(i):GetName())
             seriesList:Get(i):SetLabel(newLabel)
             seriesList:Get(i):SetFocusable(true)
-            seriesList:Get(i):SetAccessibilityCode(parent:Item:ITEM)
+            seriesList:Get(i):SetAccessibilityCode(parent:Item:CHART_SECTION)
            
             Add(seriesList:Get(i):GetLabel())
             Add(seriesList:Get(i))
@@ -273,12 +274,12 @@ class Legend is ChartItem
 
                     ChartLabel regressionLabel = seriesList:Get(i):GetRegressionLine():GetLabel()
                     regressionLabel:SetFocusable(true)
-                    regressionLabel:SetAccessibilityCode(parent:Item:ITEM)
+                    regressionLabel:SetAccessibilityCode(parent:Item:CHART_SECTION)
                     Add(regressionLabel)
 
                     ChartLabel r2Label = seriesList:Get(i):GetRegressionLine():GetRSquaredLabel()
                     r2Label:SetFocusable(true)
-                    r2Label:SetAccessibilityCode(parent:Item:ITEM)
+                    r2Label:SetAccessibilityCode(parent:Item:CHART_SECTION)
                     Add(r2Label)
     
                     Icon regressionIcon = seriesList:Get(i):GetRegressionLine():GetRegressionIcon()
@@ -467,36 +468,32 @@ class Legend is ChartItem
         itemNames:Empty()
     end
 
-    /*
-        These actions will be used to place the legend on the chart.
-        The user can adjust this by using the word "left" "right" "top" or "bottom"
+    action SetLocationToTop
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = true
+        displayOnBottom = false
+    end
 
-        Attribute: Returns true if to be placed in that location
-    */
-    action SetLocation(text location)
-        if location = "left"
-            displayOnLeft = true
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = false
-        elseif location = "right"
-            displayOnLeft = false
-            displayOnRight = true
-            displayOnTop = false
-            displayOnBottom = false
-        elseif location = "top"
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = true
-            displayOnBottom = false
-        elseif location = "bottom"
-            displayOnLeft = false
-            displayOnRight = false
-            displayOnTop = false
-            displayOnBottom = true
-        else
-            //Those are the only options right now.
-        end
+    action SetLocationToBottom
+        displayOnLeft = false
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = true
+    end
+
+    action SetLocationToLeft
+        displayOnLeft = true
+        displayOnRight = false
+        displayOnTop = false
+        displayOnBottom = false
+    end
+
+    action SetLocationToRight
+        displayOnLeft = false
+        displayOnRight = true
+        displayOnTop = false
+        displayOnBottom = false
     end
 
     action DisplayOnLeft returns boolean
@@ -686,7 +683,7 @@ class Legend is ChartItem
     end
 
     // This is currently obsolete
-    private action MakeEntry(Series series, Color color, integer rightPadding) returns Icon
+    private action MakeEntry(Series series, Color color, integer rightMargin) returns Icon
         Icon newItemStructure
         newItemStructure:SetFocusable(true)
         newItemStructure:SetAccessibilityCode(parent:Item:ITEM)
@@ -698,10 +695,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7+rightPadding)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7+rightMargin)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
 
         Icon newIcon
@@ -712,9 +709,9 @@ class Legend is ChartItem
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
         iconProperties:SetPercentageWidth(cast(number, newIcon:GetWidth()) / newIcon:GetHeight())
         iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetLeftPadding(7)
-        iconProperties:SetTopPadding(4)
-        iconProperties:SetBottomPadding(4)
+        iconProperties:SetLeftMargin(7)
+        iconProperties:SetTopMargin(4)
+        iconProperties:SetBottomMargin(4)
 
         LayoutProperties itemStructureProperties = newItemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
@@ -744,10 +741,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
         newLabel:SetText(name)
 
@@ -759,9 +756,9 @@ class Legend is ChartItem
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
         iconProperties:SetPercentageWidth(cast(number, newIcon:GetWidth()) / newIcon:GetHeight())
         iconProperties:SetPercentageHeight(1.0)
-        iconProperties:SetLeftPadding(7)
-        iconProperties:SetTopPadding(4)
-        iconProperties:SetBottomPadding(4)
+        iconProperties:SetLeftMargin(7)
+        iconProperties:SetTopMargin(4)
+        iconProperties:SetBottomMargin(4)
 
         LayoutProperties itemStructureProperties = newItemStructure:GetDefaultLayoutProperties()
         itemStructureProperties:SetHorizontalLayoutMode(itemStructureProperties:FIT_CONTENTS)
@@ -789,10 +786,10 @@ class Legend is ChartItem
         LayoutProperties labelProperties = newLabel:GetDefaultLayoutProperties()
         labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
         labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        labelProperties:SetLeftPadding(7)
-        labelProperties:SetRightPadding(7)
-        labelProperties:SetTopPadding(4)
-        labelProperties:SetBottomPadding(7)
+        labelProperties:SetLeftMargin(7)
+        labelProperties:SetRightMargin(7)
+        labelProperties:SetTopMargin(4)
+        labelProperties:SetBottomMargin(7)
         newLabel:SetSize(properties:GetFontSize())
         newLabel:SetText(title)
 
@@ -843,13 +840,17 @@ class Legend is ChartItem
     end
 
     action GetSelectionBorderColor returns ColorGroup
+        if HasColorPropertyOverride("selectionBorderColor")
+            return parent:Control:GetSelectionBorderColor()
+        end
+
         if selectionBorderColor not= undefined
             return selectionBorderColor
         end
 
         Chart chart = GetContainer()
         if chart not= undefined
-            return chart:GetSelectionBorderColor()
+            return chart:GetSelectionColor()
         end
         return undefined
     end

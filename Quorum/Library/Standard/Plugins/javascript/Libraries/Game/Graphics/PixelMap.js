@@ -103,7 +103,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         var loadImage = new Image();
         var pixelMap = this.me_;
         var url = file.GetAbsolutePath();
-        if (!url.startsWith("http"))
+        if (!url.startsWith("http") && !url.startsWith("data:image"))
         {
             if (location.protocol === "https:")
                 url = "https://" + url;
@@ -1184,12 +1184,63 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         return true;
     };
 	
-	this.LoadFromFontBitmap = function(pixelArray, newWidth, newHeight, newFormat)
+	this.LoadFromByteBuffer = function(pixelArray, newWidth, newHeight, newFormat)
 	{
 		width = newWidth;
         height = newHeight;
         format = newFormat.GetValue();
         image = undefined;
 		pixels = pixelArray;
+	};
+
+	this.Screenshot$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height)
+	{
+	    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+
+	    // We multiply by 4 because we need 4 bytes per pixel, since we'll be using RGBA8888 format.
+	    var readPixels = new Uint8Array(width * height * 4);
+        graphics.glReadPixels(x, y, width, height, graphics.gl.RGBA, graphics.gl.UNSIGNED_BYTE, readPixels);
+
+        // The result of read pixels is inverted, so we have to flip it vertically.
+        var result = new Uint8Array(width * height * 4);
+
+        // We'll be iterating by row, so we have to iterate over all 4 bytes of each pixel in the row
+        var expandedWidth = width * 4;
+        for (var j = 0; j < height; j++)
+            for (var i = 0; i < expandedWidth; i++)
+            {
+                result[j * expandedWidth + i] = readPixels[(height - 1 - j) * expandedWidth + i];
+            }
+
+        // Finally, load the flipped pixels.
+        var format = new quorum_Libraries_Game_Graphics_Format_();
+        format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
+
+        this.LoadFromByteBuffer(result, width, height, format);
+	};
+
+	this.SaveToDownloads = function(fileName)
+	{
+        // We need a temporary canvas to output the pixels onto.
+        // The canvas can convert the pixels to PNG.
+        var tempCanvas = document.createElement("canvas");
+        var context = tempCanvas.getContext("2d");
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+
+        console.log("w = " + tempCanvas.width + ", h = " + tempCanvas.height);
+
+        // Put the pixels into a Uint8ClampedArray, then construct image data we can insert into the canvas.
+        var clampedPixels = new Uint8ClampedArray(pixels.buffer);
+        var imageData = new ImageData(clampedPixels, width, height);
+        context.putImageData(imageData, 0, 0);
+
+        // Create a dummy link to our image, "click" it, then get rid of the link.
+        var link = document.createElement('a');
+        link.href = tempCanvas.toDataURL();
+        link.download = fileName + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 	};
 }

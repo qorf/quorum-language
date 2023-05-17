@@ -513,6 +513,9 @@ class Main is NetworkExchangeListener
             output "Code"
             output query
             output "------------ ERROR ------------"
+            response = "The compiler server encountered a fatal error and could not fulfill the request"
+            exchange:SendResponseHeaders(500, response)
+            exchange:SendResponse(response)
         end        
     end
 

@@ -1,0 +1,44 @@
+package Libraries.Interface.Forms
+
+use Libraries.Interface.Controls.Control
+use Libraries.System.File
+
+/*
+This class is used internally by Forms and its related classes to store requests
+to load graphical assets. Because it isn't possible to load graphical resources
+before the game has started, attempts to load images in a Form must be stored
+and resolved later.
+
+This class is for internal use, and most users will never need to interact with it directly.
+*/
+class FormAssetLoadRequest
+
+    Control control = undefined
+    File assetFile = undefined
+    text assetPath = ""
+
+    action SetControl(Control control)
+        me:control = control
+    end
+
+    action GetControl returns Control
+        return control
+    end
+
+    action GetAssetFile returns File
+        return assetFile
+    end
+
+    action SetAssetFile(File assetFile)
+        me:assetFile = assetFile
+    end
+
+    action GetAssetPath returns text
+        return assetPath
+    end
+
+    action SetAssetPath(text assetPath)
+        me:assetPath = assetPath
+    end
+
+end

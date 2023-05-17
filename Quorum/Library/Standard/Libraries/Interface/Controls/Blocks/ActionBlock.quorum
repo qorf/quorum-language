@@ -1,0 +1,196 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.ActionContext
+use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Context.FormalParameterContext
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Layouts.MultipleLineBlockLayout
+
+class ActionBlock is MultipleLineBlock
+
+    BlockLabel accessModifierLabel = undefined
+    BlockLabel systemLabel = undefined
+    BlockLabel blueprintLabel = undefined
+
+    BlockLabel actionLabel = undefined
+    EditField nameField = undefined
+
+    BlockLabel leftParen = undefined
+    BlockLabel rightParen = undefined
+    EditField paramField = undefined
+
+    BlockLabel returnsLabel = undefined
+    EditField returnField = undefined
+
+    ActionContext actionContext = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:ACTION_KEY)
+
+        MultipleLineBlockLayout layout
+        SetLayout(layout)
+        SetName("Action Block")
+    end
+
+    action IsSystemAction returns boolean
+        return actionContext:isSystem
+    end
+
+    action IsBlueprintAction returns boolean
+        return actionContext:isBlueprint
+    end
+
+    action HasReturn returns boolean
+        return returnsLabel not= undefined
+    end
+
+    private action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+    end
+
+    action AddStartLine returns MultipleLineBlockPart
+        MultipleLineBlockPart part
+        Add(part)
+
+        part:UseEnterScopeStyling()
+
+        // The start line is always the beginning of the multi-block, so it always starts at local index 0.
+        part:SetLocalStartIndex(0)
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        if actionContext:access not= undefined
+            BlockLabel accessModifierLabel
+            me:accessModifierLabel = accessModifierLabel
+            accessModifierLabel:SetFont(GetEditor():GetFont())
+            accessModifierLabel:SetFontSize(GetEditor():GetFontSize())
+            if actionContext:access:isPrivate
+                accessModifierLabel:SetText("private")
+            else
+                accessModifierLabel:SetText("public")
+            end
+            accessModifierLabel:SetRightPadding(spacing)
+            part:Add(accessModifierLabel)
+        end
+
+        if IsSystemAction()
+            part:UseNeutralScopeStyling()
+            BlockLabel systemLabel
+            me:systemLabel = systemLabel
+            systemLabel:SetFont(GetEditor():GetFont())
+            systemLabel:SetFontSize(GetEditor():GetFontSize())
+            systemLabel:SetText("system")
+            systemLabel:SetRightPadding(spacing)
+            part:Add(systemLabel)
+        end
+        if IsBlueprintAction()
+            part:UseNeutralScopeStyling()
+            BlockLabel blueprintLabel
+            me:blueprintLabel = blueprintLabel
+            blueprintLabel:SetFont(GetEditor():GetFont())
+            blueprintLabel:SetFontSize(GetEditor():GetFontSize())
+            blueprintLabel:SetText("blueprint")
+            blueprintLabel:SetRightPadding(spacing)
+            part:Add(blueprintLabel)
+        end
+
+        BlockLabel actionLabel
+        me:actionLabel = actionLabel
+        actionLabel:SetFont(GetEditor():GetFont())
+        actionLabel:SetFontSize(GetEditor():GetFontSize())
+        actionLabel:SetText("action")
+        actionLabel:SetRightPadding(spacing)
+        part:Add(actionLabel)
+
+        EditField nameField
+        me:nameField = nameField
+        part:Add(nameField)
+
+        nameField:Setup("Name", actionContext:actionNameLocation:GetIndex() - GetStartIndex(), actionContext:actionNameLocation:GetIndexEnd() + 1 - GetStartIndex())
+
+        // Assume the block ends with the name. This will be replaced with a more appropriate value if needed in the if sections below.
+        integer localEnd = nameField:GetEndIndex()
+
+        if actionContext:parameterContexts not= undefined
+            Array<FormalParameterContext> paramList = actionContext:parameterContexts
+
+            BlockLabel leftParen
+            me:leftParen = leftParen
+            leftParen:SetFont(GetEditor():GetFont())
+            leftParen:SetFontSize(GetEditor():GetFontSize())
+            leftParen:SetText("(")
+            part:Add(leftParen)
+
+            EditField paramField
+            me:paramField = paramField
+            Location firstParam = paramList:Get(0):GetLocation()
+            Location lastParam = paramList:Get(paramList:GetSize() - 1):GetLocation()
+            part:Add(paramField)
+
+            paramField:Setup("Parameters", firstParam:GetIndex() - GetStartIndex(), lastParam:GetIndexEnd() + 1 - GetStartIndex())
+
+            BlockLabel rightParen
+            me:rightParen = rightParen
+            rightParen:SetFont(GetEditor():GetFont())
+            rightParen:SetFontSize(GetEditor():GetFontSize())
+            rightParen:SetText(")")
+            part:Add(rightParen)
+
+            // Place the end of the block one character after the last parameter (to account for the right parenthesis).
+            localEnd = paramField:GetEndIndex() + 1
+        end
+
+        if actionContext:returnLocation not= undefined
+            BlockLabel returnsLabel
+            me:returnsLabel = returnsLabel
+            returnsLabel:SetFont(GetEditor():GetFont())
+            returnsLabel:SetFontSize(GetEditor():GetFontSize())
+            returnsLabel:SetText("returns")
+            returnsLabel:SetLeftPadding(spacing * 0.5)
+            returnsLabel:SetRightPadding(spacing * 0.5)
+            part:Add(returnsLabel)
+
+            EditField returnField
+            me:returnField = returnField
+            Location returnLocation = actionContext:returnLocation
+            part:Add(returnField)
+
+            returnField:Setup("Returns", returnLocation:GetIndex() - GetStartIndex(), returnLocation:GetIndexEnd() + 1 - GetStartIndex())
+
+            // Place the end of the block at the end of the return.
+            localEnd = returnField:GetEndIndex()
+        end
+
+        part:SetLocalEndIndex(localEnd)
+
+        return part
+    end
+
+    action UpdateName(integer selectedLine)
+//        if not IsSystemAction() and not IsBlueprintAction() and selectedLine = endLabel:GetRelativeLineIndex()
+//            SetName("end")
+//        else
+//            SetName("action " + nameField:GetText())
+//        end
+    end
+
+    action GetActionContext returns ActionContext
+        return actionContext
+    end
+
+    action SetActionContext(ActionContext actionContext)
+        me:actionContext = actionContext
+        SetContext(actionContext)
+    end
+
+end

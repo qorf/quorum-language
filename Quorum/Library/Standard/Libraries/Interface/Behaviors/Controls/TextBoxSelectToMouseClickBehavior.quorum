@@ -19,7 +19,10 @@ class TextBoxSelectToMouseClickBehavior is Behavior
         caret position to set the textbox selection. 
         */
         TextBox textBox = cast(TextBox, item) 
-        integer previousCaretPosition = textBox:GetPreviousCaretPosition()
+        integer previousCaretPosition = textBox:GetCaretPosition()
+
+        textBox:MousePositionCaret(event:GetMouseEvent(), false)
+
         integer caretPosition = textBox:GetCaretPosition()
 
         if previousCaretPosition < caretPosition

@@ -112,16 +112,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// Get data from Emscripten heap
 		let bitmapBuffer = new Uint8Array(dataHeap.buffer, dataHeap.byteOffset, num_bytes);
 
-		// Output buffer to log
-		var i;
-		var output = "";
-		for (i = 0; i < size; i++) {
-			output = output + bitmapBuffer[i].toString(10) + " ";
-		}
-
-		// Free allocated memory
-		Module._free(dataHeap.byteOffset);
-
 		if (character != ' ') {
                         var rgbaBuffer = new Uint8Array(num_bytes * 4);
                         for (var i = 0; i < rgbaBuffer.length; i += 4)
@@ -137,7 +127,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			var map = pixmap.plugin_;
 			var format = new quorum_Libraries_Game_Graphics_Format_();
 			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
-			map.LoadFromFontBitmap(rgbaBuffer, bitmapData[3], bitmapData[2], format);
+			map.LoadFromByteBuffer(rgbaBuffer, bitmapData[3], bitmapData[2], format);
 
 			// Create File texture data
 			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
@@ -168,9 +158,116 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		glyph.Set_Libraries_Game_Graphics_Glyph__lengthToGlyph_(bitmapData[0]);
 		glyph.Set_Libraries_Game_Graphics_Glyph__heightFromBaseLine_(bitmapData[1]);
 
+        // Free allocated memory
+        Module._free(dataHeap.byteOffset);
 
 		return glyph;
 	};
+
+	this.GetBorderedGlyphNative$quorum_text = function (character) {
+    		// Create glyph
+    		var glyph = new quorum_Libraries_Game_Graphics_Glyph_();
+    		this.SetSizeNative$quorum_integer(this.me_.GetSize());
+    		// Load character into FreeType
+    		var loadChar = Module.cwrap('loadSDFCharC', 'number', ['string']);
+    		var loadCharResult = loadChar(character);
+    		if (loadCharResult == 1) {
+    			// error loading glyph
+    			console.log('Error loading glyph.');
+    		}
+
+    		// Create data array for glyph metrics (7 * 4 bytes = 28 bytes)
+    		var offset = Module._malloc(28);
+
+    		// Setup call to getBitmapData from WASM module
+    		var getBitmapData = Module.cwrap('getBitmapDataC', 'number', ['number']);
+
+    		// Pass array pointer to getBitmapData
+    		getBitmapData(offset);
+
+    		// Create array and copy glyph metrics into it
+    		var bitmapData = [];
+    		bitmapData[0] = Module.getValue(offset, 'i32'); //glyph->bitmap_left;
+    		bitmapData[1] = Module.getValue(offset + 4, 'i32'); //glyph->bitmap_top;
+    		bitmapData[2] = Module.getValue(offset + 8, 'i32'); //glyph->bitmap.rows;
+    		bitmapData[3] = Module.getValue(offset + 12, 'i32'); //glyph->bitmap.width;
+    		bitmapData[4] = Module.getValue(offset + 16, 'i32'); //glyph->advance.x;
+    		bitmapData[5] = Module.getValue(offset + 20, 'i32'); //glyph->advance.y;
+    		bitmapData[6] = Module.getValue(offset + 24, 'i32'); //glyph->bitmap.pitch;
+
+    		// Free allocated memory
+    		Module._free(offset);
+
+    		// Calculate size of byte array for bitmap pixel buffer
+    		// size = |pitch|*rows
+    		var size = bitmapData[6];
+    		if (size < 0)
+    			size = -size;
+    		size *= bitmapData[2];
+
+    		// Allocate memory on Emscripten heap
+    		let num_bytes = size;
+    		let dataPtr = Module._malloc(num_bytes);
+    		let dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, num_bytes);
+
+    		// Call WASM function
+    		var getBitmap = Module.cwrap('getBitmapC', null, ['number', 'number']);
+    		getBitmap(dataHeap.byteOffset, num_bytes);
+    		dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, num_bytes);
+    		// Get data from Emscripten heap
+    		let bitmapBuffer = new Uint8Array(dataHeap.buffer, dataHeap.byteOffset, num_bytes);
+
+    		if (character != ' ') {
+                            var rgbaBuffer = new Uint8Array(num_bytes * 4);
+                            for (var i = 0; i < rgbaBuffer.length; i += 4)
+                            {
+                                rgbaBuffer[i] = 255;
+                                rgbaBuffer[i + 1] = 255;
+                                rgbaBuffer[i + 2] = 255;
+                                rgbaBuffer[i + 3] = bitmapBuffer[i / 4];
+                            }
+
+    			// Create Alpha pixel map
+    			var pixmap = new quorum_Libraries_Game_Graphics_PixelMap_();
+    			var map = pixmap.plugin_;
+    			var format = new quorum_Libraries_Game_Graphics_Format_();
+    			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
+    			map.LoadFromFontBitmap(rgbaBuffer, bitmapData[3], bitmapData[2], format);
+
+    			// Create File texture data
+    			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
+    			texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
+    			//texData.SetDisposalState(false);
+
+    			// Create texture
+    			var texture = new quorum_Libraries_Game_Graphics_Texture_();
+    			texture.LoadFromTextureData$quorum_Libraries_Game_Graphics_TextureData(texData);
+
+    			// Create color
+    			var c = new quorum_Libraries_Game_Graphics_Color_();
+    			c.SetColor$quorum_number$quorum_number$quorum_number$quorum_number(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+    			texture.plugin_.fontColor = c;
+
+    			// Create texture region
+    			var region = new quorum_Libraries_Game_Graphics_TextureRegion_();
+    			region.LoadTextureRegion$quorum_Libraries_Game_Graphics_Texture(texture);
+
+    			glyph.texture = region;
+    		} else {
+    			glyph.texture = null;
+    		}
+
+    		//glyph.Set_Libraries_Game_Graphics_Glyph__texture_(plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.testDrawable);
+    		glyph.Set_Libraries_Game_Graphics_Glyph__horizontalAdvance_(bitmapData[4] >> 6);
+    		glyph.Set_Libraries_Game_Graphics_Glyph__verticalAdvance_(bitmapData[5] >> 6);
+    		glyph.Set_Libraries_Game_Graphics_Glyph__lengthToGlyph_(bitmapData[0]);
+    		glyph.Set_Libraries_Game_Graphics_Glyph__heightFromBaseLine_(bitmapData[1]);
+
+            // Free allocated memory
+            Module._free(dataHeap.byteOffset);
+
+    		return glyph;
+    	};
 
 	this.GetKerning$quorum_text$quorum_text = function (currentCharacter, nextCharacter) {
 		var GetKerningC = Module.cwrap('GetKerningC', 'number', ['string', 'string']);
@@ -185,7 +282,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// NYI
 	};
 
-	this.LoadImageSheet$quorum_Libraries_Game_Graphics_Fonts_FontImageSheet = function (imageSheet) {
+	this.LoadImageSheet$quorum_Libraries_Game_Graphics_Fonts_FontImageSheet$quorum_boolean = function (imageSheet, sdf) {
+	    // NOTE: For now, we ignore the SDF value. It isn't implemented for the web yet.
+
 		// Image Sheet Row
 		// The end of the row is the last image that appears on this row, or
 		// 256 if this is the last row.
@@ -241,7 +340,18 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			*/
 			this.SetSizeNative$quorum_integer(this.me_.GetSize());
 			// Load character into FreeType
-			var loadChar = Module.cwrap('loadCharC', 'number', ['string']);
+			var loadChar;
+			if (sdf)
+			{
+			    // Load the character using a signed-distance field texture
+			    loadChar = Module.cwrap('loadSDFCharC', 'number', ['string']);
+			}
+			else
+			{
+			    // Load the character normally
+			    loadChar = Module.cwrap('loadCharC', 'number', ['string']);
+			}
+
 			var loadCharResult = loadChar(String.fromCharCode(current));
 			if (loadCharResult == 1) {
 				// error loading glyph
@@ -287,9 +397,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, num_bytes);
 			// Get data from Emscripten heap
 			let value = new Uint8Array(dataHeap.buffer, dataHeap.byteOffset, num_bytes);
-
-			// Free allocated memory
-			Module._free(dataHeap.byteOffset);
 
 			var currentWidth = currentData[3];
 			var currentHeight = currentData[2];
@@ -341,6 +448,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			}
 
 			regionData[current] = new TextureRegionData(x, totalHeight, currentWidth, currentHeight);
+
+			// Free allocated memory
+            Module._free(dataHeap.byteOffset);
 		}
 
 		totalHeight += rowHeight + padding;
@@ -417,7 +527,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		var map = pixmap.plugin_;
 		var format = new quorum_Libraries_Game_Graphics_Format_();
 		format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
-		map.LoadFromFontBitmap(destination, totalWidth, totalHeight, format);
+		map.LoadFromByteBuffer(destination, totalWidth, totalHeight, format);
 
 		// Create File texture data
 		var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();

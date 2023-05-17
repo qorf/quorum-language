@@ -48,7 +48,7 @@ class Label is Control
     GameStateManager manager
 
     // Used to store Drawables for re-use, limiting the number of total object instantiations made.
-    Array<Drawable> drawablePool
+    Array<GlyphDrawable> drawablePool
 
     /*
     Determines if the label places its Drawables along the baseline or not. If
@@ -56,6 +56,15 @@ class Label is Control
     maximum descent of the Font.
     */
     boolean positionOnBaseLine = true
+
+    /*
+    If this is true, the first line of text will be placed at the y position of the label,
+    and other lines will be placed below it. If this is false, the last line of text will
+    be placed at the label's y-position, and prior lines will be placed above it.
+    */
+    boolean descendingLines = true
+
+    integer lineCount = 0
 
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
@@ -647,6 +656,12 @@ class Label is Control
 
         Font font = GetFont()
         if font:IsLoaded()
+            // Ensure we're using a bordered font if needed.
+            boolean isBordered = GetFontOutlineThickness() > 0 and GetFontOutlineColor() not= undefined
+            if font:IsBordered() not= isBordered
+                font:SetBordered(isBordered)
+            end
+
             textChanged = false
 
             LayoutProperties properties = GetCurrentLayoutProperties()
@@ -692,7 +707,7 @@ class Label is Control
             */
             if properties:GetHorizontalLayoutMode() = properties:STANDARD and GetParent() is Control
                 Control control = cast(Control, GetParent())
-                standardLayoutWidth = properties:GetLeftPadding() + properties:GetRightPadding() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
+                standardLayoutWidth = properties:GetLeftMargin() + properties:GetRightMargin() + properties:GetPixelWidth() + (properties:GetPercentageWidth() * control:GetWidth())
             end
 
             if standardLayoutWidth >= 0
@@ -723,12 +738,21 @@ class Label is Control
 
             number maxDescent = 0
 
+            // Recalculate line count. Reset to 0, then increment as we go.
+            lineCount = 0
 
             if positionOnBaseLine = false
                 maxDescent = font:GetMaximumDescent()
             end
 
             ColorGroup fontColor = GetCurrentColor()
+
+            number outlineThickness = 0
+            if HasFontOutlineThickness()
+                outlineThickness = GetFontOutlineThickness()
+            end
+
+            ColorGroup outlineColor = GetFontOutlineColor()
 
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
@@ -751,7 +775,7 @@ class Label is Control
                         glyphIndex = glyphIndex + 1
                     end
 
-                    if availableWidth > 0 and currentLineLength + currentWordLength > availableWidth
+                    if wordsIndex > 0 and availableWidth > 0 and currentLineLength + currentWordLength > availableWidth
                         if currentLineLength > maxLineWidth
                             maxLineWidth = currentLineLength
                         end
@@ -759,6 +783,7 @@ class Label is Control
                         x = originX
                         y = originY - font:GetLineHeight()
                         originY = y
+                        lineCount = lineCount + 1
                     end
 
                     glyphIndex = 0
@@ -766,9 +791,15 @@ class Label is Control
                         glyph = glyphs:Get(glyphIndex)
                         drawable = undefined
                         if glyph:texture not= undefined
-                            Drawable newDrawable = GetDrawable()
+                            GlyphDrawable newDrawable = GetDrawable()
                             newDrawable:SetName("Glyph")
-                            newDrawable:Load(glyph:texture)
+
+                            if isBordered
+                                newDrawable:LoadBorderedGlyph(glyph, outlineThickness, outlineColor)
+                            else
+                                newDrawable:LoadGlyph(glyph)
+                            end
+
                             newDrawable:SetColor(fontColor)
                             drawable = newDrawable
                         end
@@ -787,12 +818,13 @@ class Label is Control
                         glyphIndex = glyphIndex + 1
                         x = x + glyph:horizontalAdvance
                         y = y + glyph:verticalAdvance
-                        if availableWidth > 0 and x - originX > availableWidth
+                        if wordsIndex > 0 and availableWidth > 0 and x - originX > availableWidth
                             currentLineLength = 0
                             currentWordLength = 0
                             x = originX
                             y = originY - font:GetLineHeight()
                             originY = y
+                            lineCount = lineCount + 1
                         end
                     end
 
@@ -811,6 +843,18 @@ class Label is Control
                 x = originX
                 y = originY - font:GetLineHeight()
                 originY = y
+                lineCount = lineCount + 1
+            end
+
+            if descendingLines = false and lineCount > 1
+                number offset = (lineCount - 1) * font:GetLineHeight()
+                Array<Item2D> children = GetChildren()
+
+                integer i = 0
+                repeat while i < children:GetSize()
+                    children:Get(i):MoveY(offset)
+                    i = i + 1
+                end
             end
 
             number newWidth = maxLineWidth + 2 * horizontalMargins
@@ -824,13 +868,13 @@ class Label is Control
 
     end
 
-    private action GetDrawable returns Drawable
+    private action GetDrawable returns GlyphDrawable
         if drawablePool:IsEmpty() = false
-            Drawable drawable = drawablePool:RemoveFromEnd()
+            GlyphDrawable drawable = drawablePool:RemoveFromEnd()
             drawable:Show()
             return drawable
         else
-            Drawable drawable
+            GlyphDrawable drawable
             return drawable
         end
     end
@@ -840,8 +884,8 @@ class Label is Control
 
         repeat while children:IsEmpty() = false
             Item2D item = children:RemoveFromFront()
-            if item is Drawable
-                drawablePool:Add(cast(Drawable, item))
+            if item is GlyphDrawable
+                drawablePool:Add(cast(GlyphDrawable, item))
             end
         end
     end
@@ -1077,4 +1121,136 @@ class Label is Control
         end
         return description
     end
+
+    /*
+    This action returns how many lines the text of this Label takes. By default,
+    all Labels take only a single line (i.e. this action will return 1). If the
+    Label has a maximum length that is shorter than the full text, however, word
+    wrapping will cause the Label to take multiple lines.
+
+    Attribute: Returns How many lines of text are in this Label.
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label label
+                label:SetText("This is a long string of text which will require word wrapping.")
+                label:SetPosition(200, 200)
+                label:SetMaximumWidth(100)
+                Add(label)
+                output "The label has " + label:GetLineCount() + " lines"
+            end
+        end
+    */
+    action GetLineCount returns integer
+        return lineCount
+    end
+
+    /*
+    This action sets the thickness of the outlines around the text, in pixels.
+    By default, this is 0. The thickness can be set to a maximum of 8 pixels,
+    though for best results the thickness should usually be no more than 7.
+
+    Attribute: Parameter outlineThickness The thickness of the text outlines, in pixels.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetFontOutlineThickness(2)
+            label:SetFontOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
+    action SetFontOutlineThickness(number outlineThickness)
+        parent:Control:SetFontOutlineThickness(outlineThickness)
+        textChanged = true
+        GetFont():SetBordered(outlineThickness > 0)
+    end
+
+    /*
+    This action sets the color of the outlines around the text. Note that if the outline
+    thickness isn't changed from its default value of zero, no outlines will be drawn.
+
+    Attribute: Parameter color The new color of the outlining for text.
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Label
+    use Libraries.Game.Graphics.Color
+    
+    class Main is Game
+    
+        action Main
+            StartGame()
+        end
+    
+        action CreateGame
+            Color color
+    
+            Label label
+            label:SetFontSize(32)
+            label:SetPosition(100, 300)
+            label:SetText("Hello world!")
+            label:SetFontColor(color:White())
+            label:SetFontOutlineThickness(2)
+            label:SetFontOutlineColor(color:Black())
+            Add(label)
+        end
+    end
+    */
+    action SetFontOutlineColor(ColorGroup color)
+        parent:Control:SetFontOutlineColor(color)
+        textChanged = true
+    end
+
+    /*
+    This action determines if new lines should descend below the first line.
+    If this value is true, the first line of text will be positioned at the
+    y-coordinate of the Label, and following lines will be placed beneath it.
+    If this value is false, the last line of text will be positioned at the
+    y-coordinate of the Label, and prior lines will be placed above it.
+    By default, this value is true.
+
+    Attribute: Parameter descendingLines True to place the first line at the Label's y-position and other lines below it, or false to position the last line at the y-position and other lines above it.
+    */
+    action SetDescendingLines(boolean descendingLines)
+        me:descendingLines = descendingLines
+    end
+
+    /*
+    This action returns if extra lines descend below the first line.
+    If this value is true, the first line of text will be positioned at the
+    y-coordinate of the Label, and following lines will be placed beneath it.
+    If this value is false, the last line of text will be positioned at the
+    y-coordinate of the Label, and prior lines will be placed above it.
+    By default, this value is true.
+
+    Attribute: Returns True if the first line is at the Label's y-position and other lines below it, or false if the last line is at the y-position and other lines above it.
+    */
+    action HasDescendingLines returns boolean
+        return descendingLines
+    end
+
 end

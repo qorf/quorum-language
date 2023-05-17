@@ -1,0 +1,1645 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Game.Graphics.Font
+use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Game.GameStateManager
+use Libraries.System.File
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Language.Compile.Blocks.ParserToBlockListener
+use Libraries.Interface.Controls.Blocks.MultipleLineBlock
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Controls.Blocks.RootBlock
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Containers.Support.Pair
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Interface.Controls.Blocks.SingleLineBlock
+use Libraries.Interface.Events.BlockChangeEvent
+use Libraries.Interface.Events.BlockChangeListener
+use Libraries.Interface.Undo.BlockEditManager
+use Libraries.Interface.Controls.Blocks.IfBlock
+use Libraries.Interface.Controls.Blocks.ActionBlock
+use Libraries.Interface.Controls.Blocks.CheckBlock
+use Libraries.Interface.Controls.ScrollableLineControl
+use Libraries.Interface.Controls.LineNumberGutter
+use Libraries.Interface.Controls.Gutter
+use Libraries.Language.Support.FindReplace
+use Libraries.Interface.Events.GutterListener
+use Libraries.Interface.Events.GutterEvent
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Debug.BreakpointManager
+use Libraries.Interface.Behaviors.Blocks.all
+
+/*
+    This is a class representing a code editor that contains source code and blocks. The design is 
+    intended as a hybrid, showing visual annotations similar to blocks, while maintaining text-based
+    representations for accessibility, version control, and other aspects of programming. This class
+    contains a representation of the source code as a block, generated externally, and if
+    this block is not present, the editor should default to the behavior of a normal textbox. In other words,
+    if a block representation is available, it uses this, whereas if it is not, then it is just text.
+*/
+class CodeEditor is ScrollableLineControl, GutterListener
+    public constant text CODE_EDITOR_INPUT_GROUP = "CodeEditor"
+    MultipleLineText rawCode
+    CodeEditorSelection selection
+
+    number percentageLineHeightPadding = 1
+
+    CodeEditorRenderer renderer
+    ParserToBlockListener blockListener = undefined
+
+    /*
+    An array of listeners which are notified when the text in this editor changes.
+    */
+    Array<TextChangeListener> textChangeListeners
+    Array<BlockChangeListener> blockChangeListeners
+
+    BlockEditManager editManager
+
+    GameStateManager manager
+
+    number blockNotchTopWidth = 50
+    number blockNotchBottomWidth = 25
+    number blockNotchHeight = 10
+
+    boolean shouldCalculateWidth = true
+    boolean shouldCalculateHeight = true
+    boolean shouldCalculateNavigationIndices = true
+    boolean shouldRegenerateBlocks = true
+    boolean shouldRefreshView = false
+    number totalContentWidth = -1
+    number totalContentHeight = -1
+    text findWord = ""
+    FindReplace findReplace
+    Array<Pair<integer>> findIndices = undefined
+    integer findSelection = -1
+    boolean failState = false
+    File file = undefined
+    Class clazz = undefined
+    BreakpointManager breakpoints = undefined
+
+    /* 
+    Cached, raw y-positions of lines in the text (e.g. the y-position of each line
+    before applying offsets due to scrolling, or if the scroll bar as at the top)
+
+    Calculated while calculating total content height.
+    */
+    Array<number> cachedLinePositions
+
+    on create
+        /*
+        Because the renderer is provided as the "scrollable region" for the ScrollableControl,
+        we don't have to manually add it ourselves. It'll automatically be added during the
+        "on create" of ScrollableControl.
+        */
+        renderer:SetName("Code Editor Background")
+
+        SetInterfaceOptionsKey("CodeEditor")
+        SetInputGroup(CODE_EDITOR_INPUT_GROUP)
+
+        ManualLayout layout
+        SetLayout(layout)
+
+        SetFont(GetDefaultFont())
+
+        selection:Initialize(me, "")
+        editManager:SetBlockEditor(me)
+        rawCode:Initialize("")
+
+        SetFocusable(true)
+
+        LineNumberGutter gutter
+        gutter:SetPositionOnBaseLine(false)
+        gutter:AddGutterListener(me)
+        Add(cast(Gutter, gutter))
+
+        CodeEditorPopupMenu popup
+        popup:SetCodeEditor(me)
+        SetPopupMenu(popup)
+    end
+
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
+    end
+
+    action GutterClicked(GutterEvent event)
+        Gutter gutter = event:GetGutter()
+        if gutter is LineNumberGutter
+            integer line = event:GetLine()
+            if line >= GetLineCount()
+                return now
+            end
+            if clazz not= undefined and clazz:GetFile() not= undefined and breakpoints not= undefined
+                File file = clazz:GetFile()
+                breakpoints:ToggleBreakpoint(file, line)
+            end
+        end
+    end
+
+    action FindText(text find, boolean wholeWord, boolean matchCase) 
+        findWord = find
+        text textValue = GetText() //+ bufferSpace
+
+
+        findReplace:SetText(textValue)
+        findIndices = findReplace:Find(find, wholeWord, matchCase)
+
+//        //if there is a current selection then it needs to be removed
+//        if findSelection >= 0
+//            RemoveCurrentSelection()
+//        end
+//        integer findIndex = 0
+//        integer findSize = find:GetSize()       //size of the word we are searching for
+//        integer endIndex = textValue:GetSize()
+//                
+//        removeIndices = findIndices:CopyToArray()       //remove any previously highlighted instances of find 
+//        findIndices:Empty()
+//
+//        if removeIndices:GetSize() not= 0 
+//            RemoveSelections()
+//        end
+//        if find not= ""
+//            if textValue:GetSize() not= 0
+//                repeat while (findIndex >= 0) and ((findIndex + findSize) < endIndex + 1)   //start from beginning of text and go through til the end
+//                    Pair<integer> indices
+//                    if find:EqualsIgnoringCase(textValue:GetSubtext(findIndex, (findIndex + findSize)))
+//                        indices:Set(findIndex, (findIndex + (findSize - 1)))
+//                        findIndices:Add(indices)
+//                        findIndex = findIndex + findSize
+//                    else
+//                        findIndex = findIndex + 1
+//                    end
+//                end
+//            end
+//
+//            if matchCase
+//                findIsMatchCase = true
+//                MatchCaseFindText(find)
+//            else
+//                findIsMatchCase = false
+//            end
+//
+//            if wholeWord
+//                findIsWholeWord = true
+//                WholeWordFindText(find)
+//            else
+//                findIsWholeWord = false
+//            end
+//
+//            if dialogIsOpen
+//                UpdateSelections()
+//            end
+//            SetSelection()
+//        end    
+    end
+
+    /* moves the selection index to the next position and sends the 
+    previousSelection index to UpdatCurrentSelection() to add the new 
+    currentSelection highlight and remove the previousSelection highlight 
+    from the textBox */
+    action NextFindSelection()
+        if findIndices not= undefined and findIndices:GetSize() not= 0
+            integer previousSelection = findSelection
+            findSelection = findSelection + 1
+            UpdateCurrentFindSelection(previousSelection, true)
+        end
+    end
+
+    action GetRootBlock returns RootBlock
+        return renderer:GetRootBlock()
+    end
+
+    /* moves the selection index to the previous position and sends the 
+    previousSelection index to UpdatCurrentSelection() to add the new 
+    currentSelection highlight and remove the previousSelection highlight 
+    from the textBox */
+    action PreviousFindSelection()
+        if findIndices not= undefined and findIndices:GetSize() not= 0
+            integer previousSelection = findSelection
+            findSelection = findSelection - 1
+            UpdateCurrentFindSelection(previousSelection, true)
+        end
+    end
+
+    /*
+    This action scrolls the scrolling area vertically to center on the start line of the Block.
+    */
+    action GoToBlock(Block block)
+        GoToLine(block:GetNavigationIndex())
+    end
+
+    /*
+    This action attempts to center the scrolling area vertically on the provided navigation line index.
+    Note that in most cases, but not all, this will match the line of text.
+    */
+    action GoToLine(integer line)
+        // This equation was derived by algebraicly reverse-engineering the GetLineY action for a fixed y and an unknown scroll percentage.
+        number targetY = renderer:GetHeight() / 2.0
+        number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
+        
+        if viewPercent < 0
+            viewPercent = 0
+        elseif viewPercent > 1
+            viewPercent = 1
+        end
+
+        if viewPercent not= GetScrollPercentageY()
+            SetScrollPercentageY(viewPercent)
+        end
+    end
+    
+    /* called by PreviousSelection(), NextSelection(), and SetSelection() to 
+    update the current selection in the array of indices. Highlights the line 
+    of the current selection in light blue (currently not working as expected), 
+    highlights the current selection in a darker shade of blue, */
+    private action UpdateCurrentFindSelection(integer previousSelection, boolean moveCaret)
+        if findSelection < 0
+            findSelection = (findIndices:GetSize() - 1)
+        end
+        if findSelection >= findIndices:GetSize()
+            findSelection = 0
+        end
+
+        integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
+        integer line = GetLineIndex(wordStartIndex)
+
+          
+        SelectBlockAtLine(line, false)
+        //GoToLine(line)
+//
+//        
+//        integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
+//        integer wordEndIndex = findIndices:Get(findSelection):GetSecondValue()        
+//
+//        integer lineStartIndex = GetLineIndexOfCharacter(wordStartIndex)
+//        //only go to the line when using next and previous functionality
+//        if moveCaret
+//            GoToLine(lineStartIndex)
+//        end
+//
+//        ColoredHighlight highlight
+//        ColoredHighlight selectionHighlight
+//        highlight:SetVisibleWhileSelected(false)
+//        selectionHighlight:SetVisibleWhileSelected(false)
+//        TextStyle textStyle
+//        TextStyle word
+//
+//        InterfaceOptions options = gameStateManager:GetInterfaceOptions()
+//        ColorGroup color = options:GetColorProperty(optionsConstants:EDITOR_FIND_COLOR)
+//        ColorGroup selectColor = options:GetColorProperty(optionsConstants:EDITOR_FIND_SELECTION_COLOR)
+//        highlight:SetColor(color)
+//        selectionHighlight:SetColor(selectColor)
+//
+//        if previousSelection >= 0 
+//            integer previousStartIndex = findIndices:Get(previousSelection):GetFirstValue()
+//            integer previousEndIndex = findIndices:Get(previousSelection):GetSecondValue()
+//            integer previousLineStartIndex = GetLineIndexOfCharacter(previousStartIndex)
+//            textStyle:SetIndex(previousStartIndex)
+//            textStyle:SetSize((previousEndIndex - previousStartIndex) + 1)
+//            textStyle:SetHighlight(highlight)
+//
+//            if dialogIsOpen
+//            //resets the previous selection back to the orange highlight and removes the line highlight
+//                if not HasTextStyle("highlight" + previousStartIndex)
+//                    AddFindReplaceStyle("highlight" + previousStartIndex, textStyle)
+//                end
+//            end
+//            if HasTextStyle("selectionHighlight" + previousStartIndex)
+//                RemoveFindReplaceStyle("selectionHighlight" + previousStartIndex)
+//            end
+//        end
+//
+//        if dialogIsOpen
+//            word:SetIndex(wordStartIndex)
+//            word:SetSize((wordEndIndex - wordStartIndex)+ 1)
+//            word:SetHighlight(selectionHighlight)
+//
+//            //sets the current selection to blue highlight
+//            RemoveFindReplaceStyle("highlight" + wordStartIndex)       //remove the orange highlight
+//            AddFindReplaceStyle("selectionHighlight" + wordStartIndex, word)    //add the blue highlight for current selection
+//        else
+//            SetCaretPosition(wordEndIndex + 1)
+//            Select(wordStartIndex, wordEndIndex + 1, true)
+//        end
+//
+//        if findDialog not= undefined
+//            findDialog:UpdateMatches(findSelection, findIndices:GetSize())
+//        end
+    end
+
+    action GetCurrentFindIndex returns integer
+        return findSelection
+    end
+
+    action GetFindMatches returns integer
+        return findIndices:GetSize()
+    end
+
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        renderer:SetInterfaceOptionsKey(key)
+    end
+
+    action SetInterfaceScale(number scale)
+        if scale = GetInterfaceScale()
+            return now
+        end
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        parent:Control:SetInterfaceScale(scale)
+    end
+
+    action SetCode(text code)
+        rawCode:Initialize(code)
+        failState = not GenerateStartContextFromCode(code)
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
+    action SetCode(MultipleLineText code)
+        rawCode = code
+        failState = not GenerateStartContextFromCode(code:GetText())
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
+    private action GenerateStartContextFromCode(text code) returns boolean
+        CompilerErrorManager manager
+        QuorumLexer lexer
+        lexer:SetCompilerErrorManager(manager)
+        lexer:Read(code)
+        
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return false
+        end
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return false
+        end
+        blockListener:SetQuorumLexer(lexer)
+        blockListener:SetStartContext(start)
+        return true
+    end
+
+    action GetCaretPosition returns integer
+        CodeEditorSelection blockSelection = GetSelection()
+        if selection = undefined
+            return -1
+        end
+
+        Block block = blockSelection:GetBlock()
+        if block = undefined
+            return -1
+        end
+        integer index = block:GetStartIndex()
+
+        //Now get the block item and cast it
+        BlockItem item = blockSelection:GetBlockItem()
+        if item is EditBox
+            EditBox edit = cast(EditBox, item)
+            index = index + edit:GetStartIndex() + edit:GetCaretPosition()
+        elseif item is EditField
+            EditField edit = cast(EditField, item)
+            index = index + edit:GetStartIndex() +edit:GetCaretPosition()
+        end
+        return index
+    end
+
+    action GetCaretGlobalX returns number
+        CodeEditorSelection blockSelection = GetSelection()
+        if selection = undefined
+            return -1
+        end
+
+        Block block = blockSelection:GetBlock()
+        if block = undefined
+            return -1
+        end
+        integer index = block:GetStartIndex()
+
+        //Now get the block item and cast it
+        BlockItem item = blockSelection:GetBlockItem()
+        if item is EditBox
+            EditBox edit = cast(EditBox, item)
+            return edit:GetCaretGlobalX()
+        elseif item is EditField
+            EditField edit = cast(EditField, item)
+            return edit:GetCaretGlobalX()
+        end
+        return -1
+    end
+
+    action GetCaretGlobalY returns number
+        CodeEditorSelection blockSelection = GetSelection()
+        if selection = undefined
+            return -1
+        end
+
+        Block block = blockSelection:GetBlock()
+        if block = undefined
+            return -1
+        end
+        integer index = block:GetStartIndex()
+
+        //Now get the block item and cast it
+        BlockItem item = blockSelection:GetBlockItem()
+        if item is EditBox
+            EditBox edit = cast(EditBox, item)
+            return edit:GetCaretGlobalY()
+        elseif item is EditField
+            EditField edit = cast(EditField, item)
+            return edit:GetCaretGlobalY()
+        end
+        return -1
+    end
+
+    action GetCode returns MultipleLineText
+        return rawCode
+    end
+
+    action GetText returns text
+        return rawCode:GetText()
+    end
+
+    action GetCodeBetween(integer startIndex, integer endIndex) returns text
+        return rawCode:GetText(startIndex, endIndex)
+    end
+
+    action GetDefaultLineHeight returns number
+        return GetFont():GetLineHeight() * (1 + percentageLineHeightPadding)
+    end
+
+    action GetLineHeight(integer line) returns number
+        Block block = renderer:GetBlockAtLine(line)
+
+        if block is SingleLineBlock
+            integer startLine = block:GetNavigationIndex()
+            integer endLine = block:GetNavigationEndIndex()
+            if startLine not= endLine
+                if line = startLine or line = endLine
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
+                else
+                    return GetDefaultUnpaddedLineHeight()
+                end
+            end
+        end
+
+        return GetDefaultLineHeight()
+    end
+
+    action GetLineWidth(integer lineIndex) returns number
+        if rawCode = undefined
+            return 0
+        end
+
+        // TO-DO: Determine this from the node(s) located on this actual line.
+        // Using the raw text is quick and dirty, but not guaranteed to match up with more complex blocks.
+        // The constant "5" is added to provide extra space for enclosing structures, but is inflexible.
+        // A better implementation here depends on a better data structure for the blocks/nodes.
+        MultipleLineText line = rawCode:GetLine(lineIndex)
+        return GetDefaultGlyphWidth() * (line:GetSize() + 5)
+    end
+
+    action GetDefaultUnpaddedLineHeight returns number
+        return GetFont():GetLineHeight()
+    end
+
+    action GetUnpaddedLineHeight(integer line) returns number
+        return GetDefaultUnpaddedLineHeight()
+    end
+
+    action GetLineHeightPadding(integer line) returns number
+        return GetUnpaddedLineHeight(line) * percentageLineHeightPadding
+    end
+
+    action GetPercentageLinePadding(integer line) returns number
+        return GetPercentageLineHeightPadding()
+    end
+
+    action GetTotalContentHeight returns number
+        if shouldCalculateHeight
+            shouldCalculateHeight = false
+            
+            // Recalculate cached y positions.
+            cachedLinePositions:Empty()
+            number currentY = 0
+
+            integer counter = 0
+            integer lines = GetLineCount()
+            number total = 0
+            repeat while counter < lines
+                number currentHeight = GetLineHeight(counter)
+                currentY = currentY - currentHeight
+                cachedLinePositions:Add(currentY)
+                total = total + currentHeight
+                counter = counter + 1
+            end
+
+            totalContentHeight = total
+        end
+
+        return totalContentHeight
+    end
+
+    action GetTotalContentWidth returns number
+        if shouldCalculateWidth
+            shouldCalculateWidth = false
+
+            integer counter = 0
+            integer lines = GetLineCount()
+            number max = 0
+            repeat while counter < lines
+                number value = GetLineWidth(counter)
+                if value > max
+                    max = value
+                end
+                counter = counter + 1
+            end
+
+            totalContentWidth = max
+        end
+
+        return totalContentWidth
+    end
+
+    action NeedsNavigationIndicesUpdate returns boolean
+        return shouldCalculateNavigationIndices
+    end
+
+    action RequestNavigationIndicesUpdate
+        // If navigation indices are out of date, the cached line Y values are as well. We need to recalculate height in that case.
+        shouldCalculateHeight = true
+
+        shouldCalculateNavigationIndices = true
+        RequestViewRefresh()
+    end
+
+    action RefreshNavigationIndices
+        // If navigation indices are out of date, the cached line Y values are as well. We need to recalculate height in that case.
+        shouldCalculateHeight = true
+
+        renderer:RefreshNavigationIndices()
+        shouldCalculateNavigationIndices = false
+    end
+
+    action GetScrollableRegion returns Control
+        return renderer
+    end
+
+    /*
+    This action returns how far the scrollable region should scroll vertically for
+    a single "tick" of mouse scrolling on the y-axis. This value is returned as a
+    percentage of the total content height (represented between 0 and 1).
+    */
+    action GetScrollIncrement returns number
+        return GetDefaultLineHeight() / GetTotalContentHeight()
+    end
+
+    action GetLineCount returns integer
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
+        if renderer:GetRootBlock() not= undefined
+            return renderer:GetRootBlock():GetTotalNavigationSize()
+        else
+            return 0
+        end
+    end
+
+    /*
+    Returns the pixel y-coordinate of the given line.
+    */
+    action GetLineY(integer line) returns number
+        // If navigation indices are out of date, we need to update them, because we rely on them for correct line values.
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
+        // If we don't have cached y-position values ready, go fetch them via calculating the height.
+        if shouldCalculateHeight
+            GetTotalContentHeight()
+        end
+
+        return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
+    end
+
+    action GetFirstVisibleLine returns integer
+        integer i = 0
+        integer size = GetLineCount()
+        number threshold = renderer:GetHeight()
+        repeat while i < size
+            number y = GetLineY(i)
+            if y < threshold
+                return i
+            end
+
+            i = i + 1
+        end
+
+        return i
+    end
+
+    action GetLastVisibleLine returns integer
+        integer i = 0
+        integer size = GetLineCount()
+        number threshold = 0
+        repeat while i < size
+            number y = GetLineY(i)
+            if y < threshold
+                return i
+            end
+
+            i = i + 1
+        end
+
+        return i
+    end
+
+    action GetFont returns Font
+        Font font = parent:Control:GetFont()
+        integer size = cast(integer, GetFontSize() * GetInterfaceScale())
+        if font:GetSize() not= size
+            font:SetSize(size)
+        end
+        return font
+    end
+
+    action GetLineIndex(integer characterIndex) returns integer
+        return rawCode:LineIndexFromCharacterIndex(characterIndex)
+    end
+
+    action GetDefaultGlyphWidth returns number
+        // This approach relies on a monospaced font.
+        return GetFont():GetGlyph("W"):horizontalAdvance
+    end
+
+    action GetScopeIndentationWidth returns number
+        // Currently, assume that indentation is equal to 4 characters worth (e.g., a tab producing 4 spaces)
+        return GetDefaultGlyphWidth() * 4
+    end
+
+    /*
+    This action instructs the CodeEditor to refresh its view.
+    Typically it'll do this during the next frame of animation.
+    */
+    action RequestViewRefresh
+        shouldRefreshView = true
+    end
+
+    action Update(number seconds)
+        if shouldRefreshView
+            RefreshScrollableRegion()
+        end
+    end
+
+    // Called automatically during a Resize via the ScrollableControl interface.
+    private action RefreshScrollableRegion
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
+        shouldRefreshView = false
+        if rawCode:GetSize() > 0
+            if shouldRegenerateBlocks
+                RegenerateBlocks()
+            else
+                renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
+            end
+        end 
+    end
+
+    action RegenerateBlocks
+        // When regenerating the blocks, we must assume that the sizing information we held previously might become invalid.
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+
+        shouldRegenerateBlocks = false
+
+        RootBlock root = blockListener:Update(0, rawCode:GetSize())
+        renderer:RegenerateBlocks(root)
+    end
+
+    action GetPercentageLineHeightPadding returns number
+        return percentageLineHeightPadding
+    end
+
+    action SetPercentageLineHeightPadding(number percentageLineHeightPadding)
+        me:percentageLineHeightPadding = percentageLineHeightPadding
+    end
+
+    action AddTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Add(listener)
+    end
+
+    action RemoveTextChangeListener(TextChangeListener listener)
+        textChangeListeners:Remove(listener)
+    end
+
+    action GetTextChangeListeners returns Array<TextChangeListener>
+        return textChangeListeners
+    end
+
+    action OnTextChange(TextChangeEvent event, integer indexOffset)
+        text deleted = event:GetDeletedText()
+        text added = event:GetAddedText()
+        integer index = event:GetIndex() + indexOffset
+
+        integer previousLineCount = rawCode:GetLineCount()
+
+        if deleted:IsEmpty() = false
+            rawCode = rawCode:Delete(index, index + deleted:GetSize())
+        end
+        if added:IsEmpty() = false
+            rawCode = rawCode:Insert(index, added)
+        end
+
+        // If the number of lines has changed, we'll need to recalculate the height and y-positions of lines.
+        if previousLineCount not= rawCode:GetLineCount()
+            shouldCalculateHeight = true
+            shouldCalculateNavigationIndices = true
+        end
+
+        if indexOffset = 0
+            NotifyTextChangeListeners(event)
+        else
+            TextChangeEvent adjustedEvent
+            adjustedEvent:Initialize(event:GetControl(), event:GetAddedText(), event:GetDeletedText(), index)
+            NotifyTextChangeListeners(adjustedEvent)
+        end
+    end
+
+    private action NotifyTextChangeListeners(TextChangeEvent event)
+        integer counter = 0
+        repeat while counter < textChangeListeners:GetSize()
+            textChangeListeners:Get(counter):TextChanged(event)
+            counter = counter + 1
+        end
+
+        manager:GetInput():NotifyTextChangeListeners(event)
+    end
+
+    action AddBlockChangeListener(BlockChangeListener listener)
+        blockChangeListeners:Add(listener)
+    end
+
+    action RemoveBlockChangeListener(BlockChangeListener listener)
+        blockChangeListeners:Remove(listener)
+    end
+
+    action GetBlockChangeListeners returns Array<BlockChangeListener>
+        return blockChangeListeners
+    end
+
+    action NotifyBlockChangeListeners(BlockChangeEvent event)
+        integer counter = 0
+        repeat while counter < blockChangeListeners:GetSize()
+            blockChangeListeners:Get(counter):BlockChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    action GainedFocus(FocusEvent event)
+        OnFocusChange(event)
+    end
+
+    /*
+    This action is called when a Block or BlockItem in the editor receives focus, or if the Editor is focused directly.
+    This is primarily responsible for updating the selection to match the focused element.
+    */
+    action OnFocusChange(FocusEvent event)
+        Item newFocus = event:GetNewFocus()
+        if newFocus is BlockItem
+            BlockItem item = cast(BlockItem, newFocus)
+            if selection:GetBlockItem() not= item
+                selection:Set(item:GetBlock(), item:GetLineIndex() + (item:GetLineCount() - 1), item)
+            end
+        elseif newFocus is Block
+            Block block = cast(Block, newFocus)
+            if block is SingleLineBlock
+                // In case this is a single line wrapped around multiple, aim to select its last line, so the selection line is rendered at the bottom
+                selection:Set(block, block:GetEndLine(), undefined)
+            else
+                selection:Set(block, block:GetStartLine(), undefined)
+            end
+        elseif newFocus:Equals(me)
+            // If there's no selection, default to selecting the first block visible on the screen.
+            if selection:IsEmpty()
+                Block block = renderer:GetRootBlock()
+                if block not= undefined and block:GetNextNavigableBlock() not= undefined
+                    SelectBlockAtLine(GetFirstVisibleLine())
+                end
+            end
+        end
+    end
+
+    // This action triggers automatically when the selection changes (via its SetDisplayName action, done just before listeners are alerted).
+    action OnSelectionChange(Block lastBlock, BlockItem lastItem, integer lastLine)
+        Block newBlock = selection:GetBlock()
+
+        if newBlock not= lastBlock
+            if lastBlock not= undefined
+                lastBlock:LostSelection()
+            end
+            if newBlock not= undefined
+                newBlock:GainedSelection()
+            elseif lastBlock:IsFocused()
+                //If the last block was focused and the new selection is undefined, give the Editor the focus so it still gets input from the keyboard.
+                Focus()
+            end
+        end
+
+        if newBlock = undefined or IsBlockFullyVisible(newBlock)
+            UpdateSelectionCursor()
+        else
+            GoToBlock(newBlock)
+        end
+    end
+
+    action UpdateSelectionCursor
+        renderer:UpdateSelectionCursor(selection)
+    end
+
+    /*
+    This action indicates whether the Block is currently completely visible in the Editor.
+    This means that if the Editor has enough content to scroll, then the Block is fully
+    visible if the entire bounding rectangle of the Block is in the viewing area.
+    */
+    private action IsBlockFullyVisible(Block block) returns boolean
+        return renderer:IsBlockFullyVisible(block)
+    end
+
+    action GetDefaultFontName returns text
+        text name = undefined
+        Font font
+        if font:IsFontAvailable("Courier New Bold")
+            name = "Courier New Bold"
+        elseif font:IsFontAvailable("Lato")
+            name = "Lato"
+        elseif font:IsFontAvailable("FiraCode-Retina")
+            name = "FiraCode-Retina"
+        elseif font:IsFontAvailable("FiraCode-Regular")
+            name = "FiraCode-Regular"
+        elseif font:IsFontAvailable("Courier")
+            name = "Courier"
+        elseif font:IsFontAvailable("Courier New")
+            name = "Courier New"
+        elseif font:IsFontAvailable("cour")
+            name = "cour"
+        elseif font:IsFontAvailable("Roboto-Black")
+            name = "Roboto-Black"
+        elseif font:IsFontAvailable("Arial")
+            name = "Arial"
+        elseif font:IsFontAvailable("Arial Unicode")
+            font:LoadFont("Arial Unicode")
+            SetFont(font)
+        elseif font:IsFontAvailable("Helvetica")
+            font:LoadFont("Helvetica")
+            SetFont(font)
+        elseif font:IsFontAvailable("Georgia")
+            font:LoadFont("Georgia")
+            SetFont(font)
+        elseif font:IsFontAvailable("Times New Roman")
+            font:LoadFont("Times New Roman")
+            SetFont(font)
+        else
+            Array<File> availableFontFiles = font:GetAvailableFonts()
+            if availableFontFiles:GetSize() > 0
+                File file = availableFontFiles:Get(0)
+                name = file:GetPath()
+            end
+        end
+        return name
+    end
+
+    action MoveSelectionDown
+        if selection:GetBlock() not= undefined
+            SelectBlockOrItem(selection:GetBlock():GetNextNavigableBlock())
+        elseif selection:GetLine() < 0
+            SelectBlockAtLine(0)
+        else
+            SelectBlockAtLine(selection:GetLine() + 1)
+        end
+    end
+
+    action MoveSelectionUp
+        if selection:GetBlock() not= undefined
+            Block next = selection:GetBlock():GetPreviousNavigableBlock()
+            if next not= undefined
+                SelectBlockOrItem(next)
+            else
+                selection:SetToTopOfFile()
+            end
+        elseif selection:IsEmpty()
+            SelectBlockAtLine(0)
+        else
+            SelectBlockAtLine(selection:GetLine() - 1)
+        end
+    end
+
+    action SelectNext
+        BlockItem item = selection:GetBlockItem()
+        Block block = selection:GetBlock()
+
+        Item next = undefined
+        if item not= undefined
+            next = item:GetNextFocus()
+        elseif block not= undefined
+            next = block:GetNextFocus()
+        end
+
+        SelectBlockOrItem(next)
+    end
+
+    action SelectPrevious
+        BlockItem item = selection:GetBlockItem()
+        Block block = selection:GetBlock()
+
+        Item next = undefined
+        if item not= undefined
+            next = item:GetPreviousFocus()
+        elseif block not= undefined
+            next = block:GetPreviousFocus()
+        end
+
+        SelectBlockOrItem(next)
+    end
+
+    action EscapeSelection
+        BlockItem item = selection:GetBlockItem()
+        Block block = selection:GetBlock()
+
+        Item next = undefined
+        if item not= undefined
+            next = item:GetBlock()
+        elseif block not= undefined
+            next = block:GetEnclosingBlock()
+        end
+
+        SelectBlockOrItem(next)
+    end
+
+    private action SelectBlockOrItem(Item target)
+        if target not= undefined
+            target:Focus()
+        end
+    end
+
+    action SelectBlockAtLine(integer line)
+        if line >= rawCode:GetLineCount() or line < 0
+            return now
+        end
+
+        Block candidate = renderer:GetNavigableBlockAtLine(line)
+
+        // Selecting the block without selecting an item will cause it to be focused.
+        SelectBlockOrItem(candidate)
+    end
+
+    action SelectBlockAtLine(integer line, boolean focus)
+        if focus
+            SelectBlockAtLine(line)
+            return now
+        end
+        if line >= rawCode:GetLineCount() or line < 0
+            return now
+        end
+
+        Block candidate = renderer:GetNavigableBlockAtLine(line)
+
+        // Selecting the block without selecting an item will cause it to be focused.
+        selection:Set(candidate, line, undefined)
+        //SelectBlockOrItem(candidate)
+    end
+
+    action GetSelection returns CodeEditorSelection
+        return selection
+    end
+    
+    action CreateNewLineBlock
+        // If the selected block is a FreeformBlock, try to parse it before making a new one.
+        if selection:GetBlock() is FreeformBlock
+            // Note that if the selected block is replaced, the new one will be selected before we continue.
+            FreeformBlock freeform = cast(FreeformBlock, selection:GetBlock())
+            freeform:ParseToBlock()
+        end
+
+        integer currentLine = selection:GetLine()
+        integer targetIndex = 0
+        if currentLine >= rawCode:GetLineCount() - 1
+            targetIndex = rawCode:GetSize()
+        else
+            // Get the start of the next line, then go back one to reach the end of the current line.
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+        end
+
+        // Get the parent that the new block will be attached to.
+        Block parentBlock = undefined
+        integer scopeDepth = 0
+        integer insertIndex = 0
+
+        if currentLine < 0
+            // If we're inserting at the top, we must add to the root block.
+            parentBlock = renderer:GetRootBlock()
+        else
+            parentBlock = selection:GetBlock()
+
+            scopeDepth = parentBlock:GetScopeDepth()
+            insertIndex = parentBlock:GetParentIndex() + 1
+    
+            // If the selected block is the beginning of a scope, we can add straight to it.
+            // Otherwise, we need to grab the parent of the selected block.
+            if parentBlock:IsEnteringScope() = false
+                parentBlock = parentBlock:GetParentBlock()
+    
+                if parentBlock is MultipleLineBlock
+                    // Adjust the insert index to place this just after the MultipleLineBlock, instead of getting the parent index of the part.
+                    insertIndex = parentBlock:GetParentIndex() + 1
+    
+                    // If the parent block is a MultipleLineBlock, go up one extra step to find the actual scoping block we want to attach to.
+                    parentBlock = parentBlock:GetParentBlock()
+                end
+            else
+                // If we're adding straight to a scoping block, it'll be the first block in the scope.
+                insertIndex = 0
+                scopeDepth = scopeDepth + 1
+            end
+        end
+
+        text newLine = "
+" + GetIndentationText(scopeDepth)
+
+        /*
+        Call OffsetIndices on the parent. By passing false for the final parameter,
+        we indicate that we'll be inserting a new block, so existing blocks shouldn't
+        try to incorporate index changes that fall exactly on their start/end boundaries.
+        */
+        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1, false)
+
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, newLine, "", targetIndex)
+        OnTextChange(event, 0)
+
+        targetIndex = targetIndex + newLine:GetSize()
+
+        FreeformBlock newBlock
+        newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
+        newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
+        newBlock:SetLocalEndIndex(newBlock:GetLocalStartIndex())
+        newBlock:SetScopeDepth(scopeDepth)
+
+        parentBlock:Add(insertIndex, cast(Block, newBlock))
+        newBlock:Setup()
+
+        renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
+
+        newBlock:Resize()
+        MoveSelectionDown()
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, targetIndex - newLine:GetSize(), insertIndex, newBlock, parentBlock, newLine, "", blockEvent:ADDED)
+        NotifyBlockChangeListeners(blockEvent)
+    end
+
+    action ConvertToFreeform(Block block) returns FreeformBlock
+        FreeformBlock newBlock
+        newBlock:SetLocalStartLine(block:GetLocalStartLine())
+        newBlock:SetLocalEndLine(block:GetLocalEndLine())
+        newBlock:SetLocalStartIndex(block:GetLocalStartIndex())
+        newBlock:SetLocalEndIndex(block:GetLocalEndIndex())
+        newBlock:SetScopeDepth(block:GetScopeDepth())
+
+        Replace(block, newBlock)
+
+        return newBlock
+    end
+
+    /*
+    This action replaces one block in the editor with another one.
+
+    This does NOT set the local indices or lines of the new block! Make sure
+    to set these values before using Replace!
+    */
+    action Replace(Block oldBlock, Block newBlock)
+        boolean wasSelected = (oldBlock = selection:GetBlock())
+
+        // If the new block has a parent (e.g. a dummy root for constructing multiple line blocks) detach it before doing the swap.
+        if newBlock:GetParentBlock() not= undefined
+            newBlock:GetParentBlock():Remove(newBlock)
+        end
+
+        integer parentIndex = oldBlock:GetParentIndex()
+        Block parentBlock = oldBlock:GetParentBlock()
+
+        parentBlock:RemoveAt(parentIndex)
+        parentBlock:Add(parentIndex, newBlock)
+
+        newBlock:Setup()
+
+        if wasSelected
+            if newBlock is MultipleLineBlock
+                // If the new block is a multi-line block, get the first block part and select that.
+                SelectBlockOrItem(newBlock:GetChild(0))
+            else
+                SelectBlockOrItem(newBlock)
+            end
+        end
+
+        renderer:RefreshBlockView()
+    end
+
+    /*
+    This action deletes the currently selected block. If the passed boolean is true, all blocks
+    nested inside the block will be deleted as well. If the boolean is false, they'll instead be
+    preserved and reattached into the tree to the parent of the deleted block.
+    */
+    action DeleteSelectedBlock(boolean deleteContents)
+        Block block = selection:GetBlock()
+        if block not= undefined
+            Delete(block, deleteContents)
+        end
+    end
+
+    /*
+    This action deletes the given block. If the passed boolean is true, all blocks
+    nested inside the block will be deleted as well. If the boolean is false, they'll instead be
+    preserved and reattached into the tree to the parent of the deleted block.
+    */
+    action Delete(Block block, boolean deleteContents)
+        Delete(block, deleteContents, true)
+    end
+
+    /*
+    This action deletes the given block. If the passed boolean is true, all blocks
+    nested inside the block will be deleted as well. If the boolean is false, they'll instead be
+    preserved and reattached into the tree to the parent of the deleted block.
+    */
+    action Delete(Block block, boolean deleteContents, boolean triggerEvent)
+        shouldCalculateNavigationIndices = true
+
+        // After deleting the block, we'll jump to the target selection.
+        Block targetSelection = undefined
+        Block parentBlock = block:GetParentBlock()
+        text deletedText = ""
+        integer index = -1
+        integer blockIndex = 0
+        boolean isBlockPart = false
+        Array<Block> children = undefined
+
+        // find the index the block was attached to it's parent for undo purposes
+        if parentBlock:IsEnteringScope() = false
+            Block parentCheck = parentBlock:GetParentBlock()
+            if parentCheck is MultipleLineBlock
+                blockIndex = parentCheck:GetParentIndex() + 1
+            end
+        else
+            blockIndex = 0
+        end
+        // find the next target to focus on
+        targetSelection = block:GetNextNavigableBlock()
+        if targetSelection = undefined
+            targetSelection = block:GetPreviousNavigableBlock()
+        end
+
+        // grab the text that's being deleted
+        integer startIndex = block:GetStartIndex()
+        integer targetIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
+        if targetIndex < 0
+            targetIndex = 0
+        end
+
+        integer endIndex = block:GetEndIndex()
+        integer lines = block:GetEndLine() - block:GetStartLine() + 1
+        // Make sure we grab the new line separator
+        endIndex = endIndex + rawCode:GetLineSeparator():GetSize()
+
+        if endIndex > rawCode:GetSize()
+            endIndex = rawCode:GetSize()
+        end
+
+        integer textSize = endIndex - targetIndex
+        deletedText = rawCode:GetText(targetIndex, endIndex)
+        index = targetIndex
+
+        if block is MultipleLineBlockPart
+            isBlockPart = true
+            MultipleLineBlockPart multiBlock = cast(MultipleLineBlockPart, block)
+            // If we're deleting the first or last part of a multi-line block, then we're deleting the whole thing.
+
+                if parentBlock is IfBlock
+                    MultipleLineText originalText = rawCode
+                    MultipleLineText newText 
+                    IfBlock ifParent = cast(IfBlock, parentBlock)
+                    
+                    targetSelection = block:GetNextNavigableBlock()
+                    ifParent:RemoveChildBlock(block)
+                    RequestViewRefresh()
+                    newText = rawCode
+                    if triggerEvent
+                        BlockChangeEvent event
+                        event:Set(me, originalText , newText)
+                        
+                        NotifyBlockChangeListeners(event)
+                    end
+                    return now
+                end
+
+                if parentBlock is ActionBlock
+                    ActionBlock actionParent = cast(ActionBlock, parentBlock)
+                    if actionParent:IsSystemAction() or actionParent:IsBlueprintAction()
+                        targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                        if targetSelection = undefined
+                            targetSelection = block:GetPreviousNavigableBlock()
+                        end
+                        DeleteBlockAndChildren(block)
+                        RequestViewRefresh()
+                        if triggerEvent
+                            BlockChangeEvent event
+                            event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
+                            NotifyBlockChangeListeners(event)
+                        end
+                        return now
+                    else
+                        DeleteBlockAndChildren(actionParent)
+                        RequestViewRefresh()
+                        if triggerEvent
+                            BlockChangeEvent event
+                            event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
+                            NotifyBlockChangeListeners(event)
+                        end
+                        return now
+                    end
+                    
+                end
+
+                if parentBlock is CheckBlock
+                    CheckBlock checkParent = cast(CheckBlock, parentBlock)
+                    MultipleLineText originalText = rawCode
+                    MultipleLineText newText 
+                    targetSelection = block:GetNextNavigableBlock()
+                    checkParent:RemoveChildBlock(block)
+                    RequestViewRefresh()
+                    newText = rawCode
+                    if triggerEvent
+                        BlockChangeEvent event
+                        event:Set(me, originalText , newText)
+                        
+                        NotifyBlockChangeListeners(event)
+                    end
+                    return now
+                end
+
+                if deleteContents
+                    targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                    if targetSelection = undefined
+                        targetSelection = block:GetPreviousNavigableBlock()
+                    end
+
+                    // Delete the entire multi-line block in this case.
+                    DeleteBlockAndChildren(parentBlock)
+                else
+                    targetSelection = block:GetNextNavigableBlock()
+                    if targetSelection = undefined
+                        targetSelection = block:GetPreviousNavigableBlock()
+                    end
+                    
+                    DeleteBlockPreservingGrandchildren(block:GetParentBlock(), block:GetParentBlock():GetParentBlock())
+
+                    if targetSelection not= undefined
+                        SelectBlockOrItem(targetSelection)
+                    end
+                    
+                    // Return early so we don't refresh the block view -- it'll be regenerated on the next frame due to the delete call happening
+                    return now
+                end
+
+
+        else
+            
+            targetSelection = block:GetPreviousNavigableBlock()
+            DeleteBlockAndChildren(block)
+        end
+
+        if triggerEvent
+            BlockChangeEvent event
+            event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
+            
+            NotifyBlockChangeListeners(event)
+        end
+
+        if targetSelection not= undefined
+            SelectBlockOrItem(targetSelection)
+        else
+            selection:SetToTopOfFile()
+        end
+
+        parentBlock:Resize()
+        RequestViewRefresh()
+    end
+
+    action DeleteBlockAndChildren(Block block)
+        shouldCalculateNavigationIndices = true
+
+        integer startIndex = block:GetStartIndex()
+    
+        // Make sure we delete the whole line by grabbing any indentation whitespace
+        integer targetIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
+        if targetIndex < 0
+            targetIndex = 0
+        end
+
+        integer endIndex = block:GetEndIndex()
+        integer lines = block:GetEndLine() - block:GetStartLine() + 1
+        if block:GetChildCount() > 0
+            Block lastBlock = block:GetChild(block:GetChildCount() - 1)
+            endIndex = lastBlock:GetEndIndex()
+            lines = lastBlock:GetEndLine() - block:GetStartLine() + 1
+        end
+
+        // Make sure we grab the new line separator
+        endIndex = endIndex + rawCode:GetLineSeparator():GetSize()
+
+        if endIndex > rawCode:GetSize()
+            endIndex = rawCode:GetSize()
+        end
+
+        integer textSize = endIndex - targetIndex
+        text deletedText = rawCode:GetText(targetIndex, endIndex)
+
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(block)
+
+        /*
+        Call OffsetIndices on the parent. By passing false for the final parameter,
+        existing blocks shouldn't try to incorporate index changes that fall exactly
+        on their start/end boundaries.
+        */
+        parentBlock:OffsetIndices(targetIndex, -textSize, -lines, false)
+
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, "", deletedText, targetIndex)
+        OnTextChange(event, 0)
+    end
+
+    action DeleteBlockPreservingChildren(Block block, Block newParent)
+        shouldCalculateNavigationIndices = true
+
+        Array<Block> preservedChildren
+        integer i = 0
+        repeat while i < block:GetChildCount()
+            preservedChildren:Add(block:GetChild(i))
+            i = i + 1
+        end
+
+        // We'll have to correct the local indices and line numbers to match up with the new parent
+        integer offset = block:GetStartIndex() - newParent:GetStartIndex()
+        integer lineOffset = block:GetStartLine() - newParent:GetStartLine()
+        integer startIndex = block:GetStartIndex()
+    
+        // Make sure we delete the whole line by grabbing any indentation whitespace
+        integer targetIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
+        if targetIndex < 0
+            targetIndex = 0
+        end
+
+        // Make sure we grab the new line separator
+        integer endIndex = block:GetEndIndex() + rawCode:GetLineSeparator():GetSize()
+        integer lines = block:GetEndLine() - block:GetStartLine() + 1
+
+        if endIndex > rawCode:GetSize()
+            endIndex = rawCode:GetSize()
+        end
+
+        integer textSize = endIndex - targetIndex
+        text deletedText = rawCode:GetText(targetIndex, endIndex)
+
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(block)
+
+        /*
+        Call OffsetIndices on the parent. By passing false for the final parameter,
+        existing blocks shouldn't try to incorporate index changes that fall exactly
+        on their start/end boundaries.
+        */
+        parentBlock:OffsetIndices(targetIndex, -textSize, -lines, false)
+
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, "", deletedText, targetIndex)
+        OnTextChange(event, 0)
+
+        // We need to correct the offsets based on the size of the deleted text
+        offset = offset - textSize
+        lineOffset = lineOffset - lines
+
+        // Now correct indices using our previously calculated offsets, and add them to the new parent
+        i = 0    
+        repeat while i < preservedChildren:GetSize()
+            Block kid = preservedChildren:Get(i)
+            integer startLine = kid:GetLocalStartLine()
+            integer endLine = kid:GetLocalEndLine()
+            kid:SetLocalStartIndex(kid:GetLocalStartIndex() + offset)
+            kid:SetLocalEndIndex(kid:GetLocalEndIndex() + offset)
+            kid:SetLocalStartLine(startLine + lineOffset)
+            kid:SetLocalEndLine(endLine + lineOffset)
+            newParent:Add(kid)
+            
+            i = i + 1
+        end
+    end
+
+    action DeleteBlockPreservingGrandchildren(Block block, Block newParent)
+        shouldCalculateNavigationIndices = true
+
+        // Just modify the text directly and refresh the blocks.
+        MultipleLineText updatedText = rawCode
+
+        integer startLine = block:GetStartLine()
+
+        // The end line is where the new end of the updated text will be, once we've deleted the text of the direct children
+        integer endLine = block:GetEndLine() - block:GetChildCount()
+
+        integer i = block:GetChildCount()
+        repeat while i > 0
+            i = i - 1
+            Block current = block:GetChild(i)
+            
+            integer startIndex = current:GetStartIndex()
+    
+            // Make sure we delete the whole line by grabbing any indentation whitespace
+            integer targetIndex = updatedText:CharacterIndexFromLineIndex(updatedText:LineIndexFromCharacterIndex(startIndex))
+            if targetIndex < 0
+                targetIndex = 0
+            end
+    
+            integer endIndex = current:GetEndIndex()
+    
+            // Make sure we grab the new line separator
+            endIndex = endIndex + updatedText:GetLineSeparator():GetSize()
+    
+            if endIndex > updatedText:GetSize()
+                endIndex = updatedText:GetSize()
+            end
+
+            updatedText = updatedText:Delete(targetIndex, endIndex)
+        end
+
+        // Reduce the indentation for the remaining lines.
+        i = startLine
+        repeat while i <= endLine
+            integer startIndex = updatedText:CharacterIndexFromLineIndex(i)
+            updatedText = updatedText:Delete(startIndex, startIndex + 4)
+            i = i + 1
+        end
+
+        SetCode(updatedText)
+        TextChangeEvent event
+        event:Initialize(me, "", "", 0)
+        OnTextChange(event, 0)
+    end
+
+    /*
+    This action returns the character index at the start of the given line.
+    */
+    action GetIndexOfLineStart(integer lineIndex) returns integer
+        return rawCode:CharacterIndexFromLineIndex(lineIndex)
+    end
+
+    /*
+    This action returns the character index at the end of the given line.
+    */
+    action GetIndexOfLineEnd(integer lineIndex) returns integer
+        if lineIndex < rawCode:GetLineCount() - 1
+            return rawCode:CharacterIndexFromLineIndex(lineIndex + 1) - rawCode:GetLineSeparator():GetSize()
+        else
+            return rawCode:GetSize()
+        end
+    end
+
+    /*
+    This action returns the default indentation text at the beginning of a line,
+    depending on the scope depth.
+    */
+    action GetIndentationText(integer scopeDepth) returns text
+        text tab = "    "
+        text result = ""
+        repeat scopeDepth times        
+            result = result + tab
+        end
+        return result
+    end
+
+    /*
+    This action returns true if the CodeEditor is focused, or if any of the Blocks
+    or BlockItems inside of this editor are focused. Otherwise, it returns false.
+    */
+    action ContainsFocus returns boolean
+        if IsFocused()
+            return true
+        end
+
+        Item focus = manager:GetFocus()
+        if focus is Block
+            Block block = cast(Block, focus)
+            return block:GetEditor() = me
+        elseif focus is BlockItem
+            BlockItem item = cast(BlockItem, focus)
+            return item:GetEditor() = me
+        end
+
+        return false
+    end
+
+    action GetBlockEditManager returns BlockEditManager
+        return editManager
+    end
+
+    action GetBlockListener returns ParserToBlockListener
+        return blockListener
+    end
+
+    action SetBlockListener(ParserToBlockListener blockListener)
+        me:blockListener = blockListener
+        me:blockListener:SetCodeEditor(me)
+    end
+
+    action GetBlockNotchTopWidth returns number
+        return blockNotchTopWidth
+    end
+
+    action SetBlockNotchTopWidth(number blockNotchTopWidth)
+        me:blockNotchTopWidth = blockNotchTopWidth
+    end
+
+    action GetBlockNotchBottomWidth returns number
+        return blockNotchBottomWidth
+    end
+
+    action SetBlockNotchBottomWidth(number blockNotchBottomWidth)
+        me:blockNotchBottomWidth = blockNotchBottomWidth
+    end
+
+    action GetBlockNotchHeight returns number
+        return blockNotchHeight
+    end
+
+    action SetBlockNotchHeight(number blockNotchHeight)
+        me:blockNotchHeight = blockNotchHeight
+    end
+
+    action GetFailState returns boolean
+        return failState
+    end
+
+    action SetFailState(boolean failState)
+        me:failState = failState
+    end
+
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    action GetBreakpointManager returns BreakpointManager
+        return breakpoints
+    end
+
+    action SetBreakpointManager(BreakpointManager breakpoints)
+        me:breakpoints = breakpoints
+    end
+end

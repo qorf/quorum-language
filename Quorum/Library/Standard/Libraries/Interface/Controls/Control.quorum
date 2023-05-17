@@ -24,6 +24,7 @@ use Libraries.Interface.Views.DrawableView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.EmptyIterator
+use Libraries.Interface.Forms.FormConstants
 
 class Control is Item2D
 
@@ -660,6 +661,240 @@ class Control is Item2D
         return defaultProperties:GetPixelHeight()
     end
 
+    /*
+    This action returns how many columns this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+    */
+    action GetContainerGridWidth returns integer
+        return defaultProperties:GetContainerGridWidth()
+    end
+
+    /*
+    This action sets how many columns this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+
+    If this value is 0 or less, then the GridLayout will use its default grid width
+    and ignore this value.
+    */
+    action SetContainerGridWidth(integer containerGridWidth)
+        defaultProperties:SetContainerGridWidth(containerGridWidth)
+    end
+
+    /*
+    This action returns how many rows this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+    */
+    action GetContainerGridHeight returns integer
+        return defaultProperties:GetContainerGridHeight()
+    end
+
+    /*
+    This action sets how many rows this Control should be divided into when
+    using a GridLayout. This will have no effect if this Control is not a container
+    or if it is using a different layout.
+
+    If this value is 0 or less, then the GridLayout will use its default grid height
+    and ignore this value.
+    */
+    action SetContainerGridHeight(integer containerGridHeight)
+        defaultProperties:SetContainerGridHeight(containerGridHeight)
+    end
+
+    /*
+    This action returns this Control's cell x-coordinate within a GridLayout. This
+    indicates which column this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action GetGridX returns integer
+        return defaultProperties:GetGridX()
+    end
+
+    /*
+    This action sets this Control's cell x-coordinate within a GridLayout. This
+    indicates which column this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action SetGridX(integer gridX)
+        defaultProperties:SetGridX(gridX)
+    end
+
+    /*
+    This action returns this Control's cell y-coordinate within a GridLayout. This
+    indicates which row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action GetGridY returns integer
+        return defaultProperties:GetGridY()
+    end
+
+    /*
+    This action sets this Control's cell y-coordinate within a GridLayout. This
+    indicates which row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, this value is ignored.
+    */
+    action SetGridY(integer gridY)
+        defaultProperties:SetGridY(gridY)
+    end
+
+    /*
+    This action sets this Control's cell coordinates within a GridLayout. This
+    indicates which column and row this Control is located within. If the Control's parent
+    container isn't using a GridLayout, these values are ignored.
+    */
+    action SetGridPosition(integer gridX, integer gridY)
+        defaultProperties:SetGridPosition(gridX, gridY)
+    end
+
+    /*
+    The GetGridWidth action returns how many cells in a row this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action GetGridWidth returns integer
+        return defaultProperties:GetGridWidth()
+    end
+
+    /*
+    The SetGridWidth action sets how many cells in a row this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action SetGridWidth(integer gridWidth)
+        defaultProperties:SetGridWidth(gridWidth)
+    end
+
+    /*
+    The GetGridHeight action returns how many cells in a column this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action GetGridHeight returns integer
+        return defaultProperties:GetGridHeight()
+    end
+
+    /*
+    The SetGridHeight action sets how many cells in a column this Control occupies.
+    By default, this value is 1. This value is only used for GridLayouts, and is
+    ignored by other layouts.
+    */
+    action SetGridHeight(integer gridHeight)
+        defaultProperties:SetGridHeight(gridHeight)
+    end
+
+    /*
+    The SetGridSize action sets how many cells wide and tall this Control is within a grid.
+    By default, each of these values are 1. These values are only used for GridLayouts, and are
+    ignored by other layouts.
+    */
+    action SetGridSize(integer gridWidth, integer gridHeight)
+        defaultProperties:SetGridSize(gridWidth, gridHeight)
+    end
+
+    /*
+    This action returns how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action GetLayoutRows returns number
+        return defaultProperties:GetLayoutRows()
+    end
+
+    /*
+    This action sets how many rows this element should occupy, if the layout supports it.
+    This effectively makes the control taller. This is most commonly used in conjunction
+    with FormRowLayout (or StackedRowPage which uses that layout).
+    */
+    action SetLayoutRows(number layoutRows)
+        defaultProperties:SetLayoutRows(layoutRows)
+    end
+
+    /*
+    This action sets the x-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action SetPercentageOriginX(number x)
+        defaultProperties:SetPercentageOriginX(x)
+    end
+
+    /*
+    This action returns the x-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action GetPercentageOriginX returns number
+        return defaultProperties:GetPercentageOriginX()
+    end
+
+    /*
+    This action sets the y-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action SetPercentageOriginY(number y)
+        defaultProperties:SetPercentageOriginY(y)
+    end
+
+    /*
+    This action returns the y-coordinate of the "origin" of the Control, as a percentage of its width.
+    The origin is the point that the Control is positioned by. For example, by default, the origin
+    is at 0% x and 0% y, or the bottom-left corner of the Control. Changing the percentage origin x
+    and y to 0.5 (50%) would mean the Control should be positioned using its center instead.
+
+    The origin point is used by layouts that allow for specific positioning, such as ManualLayout or
+    GridLayout. It is ignored by layouts that have special positioning rules, such as FlowLayout.
+    */
+    action GetPercentageOriginY returns number
+        return defaultProperties:GetPercentageOriginY()
+    end
+
+    action SetLeftMargin(number padding)
+        defaultProperties:SetLeftMargin(padding)
+    end
+
+    action SetRightMargin(number padding)
+        defaultProperties:SetRightMargin(padding)
+    end
+
+    action SetBottomMargin(number padding)
+        defaultProperties:SetBottomMargin(padding)
+    end
+
+    action SetTopMargin(number padding)
+        defaultProperties:SetTopMargin(padding)
+    end
+
+    action GetLeftMargin returns number
+        return defaultProperties:GetLeftMargin()
+    end
+
+    action GetRightMargin returns number
+        return defaultProperties:GetRightMargin()
+    end
+
+    action GetBottomMargin returns number
+        return defaultProperties:GetBottomMargin()
+    end
+
+    action GetTopMargin returns number
+        return defaultProperties:GetTopMargin()
+    end
+
     action SetLeftPadding(number padding)
         defaultProperties:SetLeftPadding(padding)
     end
@@ -690,6 +925,138 @@ class Control is Item2D
 
     action GetTopPadding returns number
         return defaultProperties:GetTopPadding()
+    end
+
+    /*
+    This action sets the font size to the system's specified "tiny" size.
+    By default, this is font size 10.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToTinyFont()
+    
+    form:Display()
+    */
+    action SetToTinyFont
+        FormConstants constants
+        SetFontSize(constants:TINY_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "small" size.
+    By default, this is font size 14.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToSmallFont()
+    
+    form:Display()
+    */
+    action SetToSmallFont
+        FormConstants constants
+        SetFontSize(constants:SMALL_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "medium" size.
+    By default, this is font size 20.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToMediumFont()
+    
+    form:Display()
+    */
+    action SetToMediumFont
+        FormConstants constants
+        SetFontSize(constants:MEDIUM_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified default size for Forms.
+    By default, this is font size 20, the same as the medium font size.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToDefaultFontSize()
+    
+    form:Display()
+    */
+    action SetToDefaultFontSize
+        FormConstants constants
+        SetFontSize(constants:DEFAULT_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "large" size for Forms.
+    By default, this is font size 32.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToLargeFont()
+    
+    form:Display()
+    */
+    action SetToLargeFont
+        FormConstants constants
+        SetFontSize(constants:LARGE_FONT_SIZE)
+    end
+
+    /*
+    This action sets the font size to the system's specified "huge" size for Forms.
+    By default, this is font size 60.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    
+    Form form
+    Page page = form:GetMainPage()
+    
+    Button button = page:AddButton("Click for Bacon")
+    button:SetToHugeFont()
+    
+    form:Display()
+    */
+    action SetToHugeFont
+        FormConstants constants
+        SetFontSize(constants:HUGE_FONT_SIZE)
     end
 
     /*
@@ -814,6 +1181,19 @@ class Control is Item2D
     */
     action SetCornerRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
         defaultProperties:SetCornerRounding(bottomLeft, bottomRight, topLeft, topRight)
+    end
+
+    /*
+    This action sets how much rounding to apply to the four corners of a rectangular control. 
+    This action takes the amount of rounding to apply as a number of pixels. 
+
+    Attribute: Parameter bottomLeft The rounding value to be applied to the bottom left corner, in pixels.
+    Attribute: Parameter bottomRight The rounding value to be applied to the bottom right corner, in pixels.
+    Attribute: Parameter topLeft The rounding value to be applied to the top left corner, in pixels.
+    Attribute: Parameter topRight The rounding value to be applied to the top right corner, in pixels.
+    */
+    action SetCornerPixelRounding(number bottomLeft, number bottomRight, number topLeft, number topRight)
+        defaultProperties:SetCornerPixelRounding(bottomLeft, bottomRight, topLeft, topRight)
     end
 
     /*
@@ -1178,6 +1558,14 @@ class Control is Item2D
         return defaultProperties:GetFontColor()
     end
 
+    action SetFontOutlineColor(ColorGroup value)
+        defaultProperties:SetFontOutlineColor(value)
+    end
+
+    action GetFontOutlineColor returns ColorGroup
+        return defaultProperties:GetFontOutlineColor()
+    end
+
     action SetBorderColor(ColorGroup value)
         defaultProperties:SetBorderColor(value)
     end
@@ -1350,6 +1738,18 @@ class Control is Item2D
         return defaultProperties:HasBorderThickness()
     end
 
+    action SetFontOutlineThickness(number value)
+        defaultProperties:SetFontOutlineThickness(value)
+    end
+
+    action GetFontOutlineThickness returns number
+        return defaultProperties:GetFontOutlineThickness()
+    end
+
+    action HasFontOutlineThickness returns boolean
+        return defaultProperties:HasFontOutlineThickness()
+    end
+
     action SetTopLeftRounding(number value)
         defaultProperties:SetTopLeftRounding(value)
     end
@@ -1396,6 +1796,54 @@ class Control is Item2D
 
     action HasBottomRightRounding returns boolean
         return defaultProperties:HasBottomRightRounding()
+    end
+
+    action SetTopLeftPixelRounding(number value)
+        defaultProperties:SetTopLeftPixelRounding(value)
+    end
+
+    action GetTopLeftPixelRounding returns number
+        return defaultProperties:GetTopLeftPixelRounding()
+    end
+
+    action HasTopLeftPixelRounding returns boolean
+        return defaultProperties:HasTopLeftPixelRounding()
+    end
+
+    action SetTopRightPixelRounding(number value)
+        defaultProperties:SetTopRightPixelRounding(value)
+    end
+
+    action GetTopRightPixelRounding returns number
+        return defaultProperties:GetTopRightPixelRounding()
+    end
+
+    action HasTopRightPixelRounding returns boolean
+        return defaultProperties:HasTopRightPixelRounding()
+    end
+
+    action SetBottomLeftPixelRounding(number value)
+        defaultProperties:SetBottomLeftPixelRounding(value)
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        return defaultProperties:GetBottomLeftPixelRounding()
+    end
+
+    action HasBottomLeftPixelRounding returns boolean
+        return defaultProperties:HasBottomLeftPixelRounding()
+    end
+
+    action SetBottomRightPixelRounding(number value)
+        defaultProperties:SetBottomRightPixelRounding(value)
+    end
+
+    action GetBottomRightPixelRounding returns number
+        return defaultProperties:GetBottomRightPixelRounding()
+    end
+
+    action HasBottomRightPixelRounding returns boolean
+        return defaultProperties:HasBottomRightPixelRounding()
     end
 
     action SetShadowX(number value)

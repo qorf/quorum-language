@@ -308,6 +308,41 @@ class Matrix
     end
 
     /*
+    This method is used to get a column of a Matrix returned as an vector of numbers.
+
+    Attribute: Parameter column The column number of the matrix to return.
+
+    Attribute: Returns An vector containing only the specified column.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Vector col1 = matrix:GetColumnVector(0)
+            output col1:GetSize()
+        end
+    end
+    */
+    action GetColumnVector(integer column) returns Vector
+        if column < 0 or column > GetColumns() - 1
+            alert("Index value: " + column + " out of range")
+        end
+        Vector newVector
+        newVector:SetSize(GetRows())
+        row = 0
+        repeat GetRows() times
+            newVector:Set(row, Get(row, column))
+            row = row + 1
+        end
+        return newVector
+    end
+
+    /*
     This method is used to get a list of all the elements in a Matrix ordered by column returned as an array of numbers.
 
     Attribute: Returns An array containing all the elements in matrix in order by column.
@@ -410,6 +445,41 @@ class Matrix
         end
 
         return values
+    end
+
+    /*
+    This method is used to get a row of a Matrix returned as an vector of numbers.
+
+    Attribute: Parameter row the row number of the matrix to return.
+
+    Attribute: Returns An vector containing only the specified row.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Containers.Array
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 1.1)
+            Vector row1 = matrix:GetRowVector(0)
+            output row1:GetSize()
+        end
+    end
+    */
+    action GetRowVector(integer row) returns Vector
+        if row < 0 or row > GetRows() - 1
+            alert("Index value: " + row + " out of range")
+        end
+        Vector newVector
+        newVector:SetSize(GetColumns())
+        column = 0
+        repeat GetColumns() times
+            newVector:Set(column, Get(row, column))
+            column = column + 1
+        end
+        return newVector
     end
 
     /*
@@ -967,6 +1037,141 @@ class Matrix
     end
 
     /*
+    This method performs a multiplication operation on two matrices. 
+    It multiplies each element in this matrix (me) by the entire parameter matrix.
+
+    Attribute: Example
+
+    Attribute Parameter matrix The matrix to multiply by the current matrix.
+
+    Attribute Returns A new matrix after the operation is performed.
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2
+            matrix2:Fill(3, 2, 2.0)
+            matrix = matrix:TensorProduct(matrix2)
+            output matrix:ToText()
+        end
+    end
+    */
+    action TensorProduct(Matrix matrix) returns Matrix
+        Matrix newMatrix
+        integer rows = matrix:GetRows()
+        integer columns = matrix:GetColumns()
+        newMatrix:SetSize(rows * GetRows(), columns * GetColumns())
+        integer colIndex = 0
+        integer rowIndex = 0
+        c = 0
+        repeat while c < GetColumns()
+            r = 0
+            repeat while r < GetRows()
+                Matrix product = matrix:Multiply(Get(r, c))
+                j = 0
+                repeat while j < product:GetColumns()
+                    k = 0
+                    repeat while k < product:GetRows()
+                        newMatrix:Set(rowIndex*rows + k,  colIndex*columns + j, product:Get(k, j))        
+                        k = k + 1
+                    end
+                    j = j + 1
+                end
+                rowIndex = rowIndex + 1
+                r = r + 1
+            end
+            colIndex = colIndex + 1
+            rowIndex = 0
+            c = c + 1
+        end
+        return newMatrix
+    end
+
+
+    /*
+    This method applies a square root to each element in the Matrix.
+
+    Attribute Returns A copied matrix with the calculation applied.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            Matrix matrix2 = matrix:SquareRootElements()
+            output matrix2:ToText()
+        end
+    end
+    */
+    action SquareRootElements returns Matrix
+        Matrix newMatrix
+        newMatrix:SetSize(me)
+        c = 0
+        repeat while c < GetColumns()
+            r = 0
+            repeat while r < GetRows()
+                newMatrix:Set(r, c, math:SquareRoot(Get(r, c)))
+                r = r + 1
+            end
+            c = c + 1
+        end
+        return newMatrix
+    end
+
+    /*
+    This method converts the Matrix to a dataframe with 
+    columns labelled by a given text array. The size of the column header
+    array must be equal to the number of matrix columns.
+
+    Attribute Returns A dataframe with the column headers.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Array<text> headers
+            headers:Add("column1")
+            headers:Add("column2")
+            headers:Add("column3")
+
+            Matrix matrix
+            matrix:Fill(2, 3, 10.0)
+            DataFrame frame = matrix:ConvertToDataFrame(headers)
+            output frame:ToText()
+        end
+    end
+    */
+    action ConvertToDataFrame(Array<text> columnHeaders) returns DataFrame
+        if columnHeaders:GetSize() not= GetColumns()
+            alert("The size of the column headers is not equal to the number of columns in this matrix.")
+        end
+        DataFrame frame
+        c = 0
+        repeat while c < GetColumns()
+            NumberColumn values
+            values:SetHeader(columnHeaders:Get(c))
+            r = 0
+            repeat while r < GetRows()
+                values:Add(Get(r, c))
+                r = r + 1
+            end
+            frame:AddColumn(values)
+            c = c + 1
+        end
+        return frame
+    end
+
+
+
+    /*
     This method returns a copy of a Matrix.
 
     Attribute Returns A new copied matrix.
@@ -1437,6 +1642,38 @@ class Matrix
     end
 
     /*
+    This method returns a matrix conisting of only the upper triangular portion of this matrix.
+    It does not include the diagonal values. It will have zeros in all diagonal and lower indices.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main 
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 1.0)
+            matrix = matrix:GetUpperTriangularSubMatrix()
+            output matrix:ToText()
+        end
+    end
+    */
+    action GetUpperTriangularSubMatrix() returns Matrix
+        Matrix newMatrix
+        newMatrix:Fill(GetRows(), GetColumns(), 0)
+        integer i = 0
+        repeat while i < GetRows()
+            integer j = i + 1
+            repeat while j < GetColumns()
+                newMatrix:Set(i,j, Get(i,j))       
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return newMatrix
+    end
+
+    /*
     This method returns the identity matrix for a square matrix. An identity matrix with ones along the main diagonal from top left to bottom right and zeroes everywhere else.
 
     Attribute Returns A new identity matrix.
@@ -1512,7 +1749,7 @@ class Matrix
         end
         EigenDecomposition eig
         eig:Calculate(me)
-        Array<number> evals = eig:GetEigenvalues()
+        Vector evals = eig:GetEigenvalues()
         number determinant = 1
         i = 0
         repeat while i < evals:GetSize()
@@ -1551,6 +1788,37 @@ class Matrix
             i = i + 1
         end
         return trace
+    end
+
+    /*
+        This method returns the diagonal of a square matrix
+    
+        Attribute Returns Matrix of the diagonal values.
+    
+        Attribute: Example
+    
+        use Libraries.Compute.Matrix
+    
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(4, 4, 0.0)
+                output matrix:GetDiagonal():ToText()
+            end
+        end
+    */
+    action GetDiagonal returns Matrix
+        if IsSquare()   
+            Matrix newMatrix
+            newMatrix:SetSize(GetRows(), 1)
+            i = 0
+            repeat while i < GetRows()
+                newMatrix:Set(i, 0, Get(i, i))
+                i = i + 1
+            end
+            return newMatrix
+        end
+        alert("Cannot return the diagonal elements of a non-square matrix.")
     end
 
 
@@ -1753,6 +2021,87 @@ class Matrix
         newMatrix = newMatrix:Add(newMatrix:GetMean())
         return newMatrix
     end
+
+
+    /*
+    This action centers the matrix by column and returns a new matrix.
+    Subtracts the column mean from each value in the column.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:CenterByColumn()
+        end
+    end
+    */
+    action CenterByColumn() returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer colCount = me:GetColumns()
+
+        Array<number> colMeans
+        i = 0
+        repeat while i < colCount
+            number mean = newMatrix:GetColumn(i):GetMean()
+            colMeans:Add(mean)
+            i = i + 1
+        end
+        // Subtract Column Means
+        i = 0
+        repeat while i < colCount
+            newMatrix:SetColumn(i, newMatrix:GetColumn(i):Subtract(colMeans:Get(i)))
+            i = i + 1
+        end       
+        return newMatrix
+    end
+
+
+    /*
+    This action centers the matrix by row and returns a new matrix.
+    Subtracts the row mean from each value in the row.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:CenterByRow()
+        end
+    end
+    */
+    action CenterByRow() returns Matrix
+        Matrix newMatrix
+        newMatrix = me:Copy()
+        integer rowCount = me:GetRows()
+
+        Array<number> rowMeans
+        i = 0
+        repeat while i < rowCount
+            number mean = newMatrix:GetRow(i):GetMean()
+            rowMeans:Add(mean)
+            i = i + 1
+        end
+        // Subtract Row Means
+        i = 0
+        repeat while i < rowCount
+            newMatrix:SetRow(i, newMatrix:GetRow(i):Subtract(rowMeans:Get(i)))
+            i = i + 1
+        end  
+        return newMatrix
+    end
+
 
     /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
@@ -2206,7 +2555,7 @@ class Matrix
     end
 
     /*
-    This method returns the standard deviation of all the elements in a Matrix
+    This method returns the sample standard deviation of all the elements in a Matrix
 
     Attribute Returns The standard deviation of all the elements in the matrix.
 
@@ -2230,7 +2579,31 @@ class Matrix
     end
 
     /*
-    This method returns the variance of all the elements in a Matrix
+    This method returns the population standard deviation of all the elements in a Matrix
+
+    Attribute Returns The standard deviation of all the elements in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetStandardDeviation()
+        end
+    end
+    */
+    action GetPopulationStandardDeviation returns number
+        return math:SquareRoot(GetPopulationVariance())
+    end
+
+    /*
+    This method returns the sample variance of all the elements in a Matrix
 
     Attribute Returns The variance of all the elements in the matrix.
 
@@ -2250,6 +2623,43 @@ class Matrix
     end
     */
     action GetVariance returns number
+        number mean = GetMean()
+        number total = 0.0
+        row = 0
+        repeat while row < GetRows()
+            col = 0
+            repeat while col < GetColumns()
+                number diff = Get(row, col) - mean
+                total = total + (diff * diff)
+                col = col + 1
+            end
+            row = row + 1
+        end
+        number elements = GetSize() - 1
+        return total / elements
+    end
+
+    /*
+    This method returns the population variance of all the elements in a Matrix
+
+    Attribute Returns The variance of all the elements in the matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 0.0)
+            matrix:SetColumn(0, 1.1)
+            matrix:SetColumn(1, 2.1)
+            matrix:SetColumn(2, 3.1)
+            output matrix:GetVariance()
+        end
+    end
+    */
+    action GetPopulationVariance returns number
         number mean = GetMean()
         number total = 0.0
         row = 0

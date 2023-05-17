@@ -14,6 +14,7 @@ class ToggleButton is Button
     GameStateManager manager
 
     on create
+        SetInterfaceOptionsKey("ToggleButton")
         SetAccessibilityCode(parent:Item:TOGGLE_BUTTON)
     end
 
@@ -51,6 +52,22 @@ class ToggleButton is Button
         if accessibility not= undefined
             accessibility:ToggleButtonToggled(me)
         end
+
+        if toggleState
+            GainedSelection()
+        else
+            LostSelection()
+        end
+    end
+
+    action GainedSelection
+        parent:Control:GainedSelection()
+        parent:Button:UpdateLabelColor()
+    end
+
+    action LostSelection
+        parent:Control:LostSelection()
+        parent:Button:UpdateLabelColor()
     end
 
     action GetToggleState returns boolean

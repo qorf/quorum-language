@@ -74,7 +74,7 @@ class TwoVariableChart is Chart
     private integer maxChunks = 16
 
     private boolean showLetterCodeAnnotation = false
-    private boolean showNameAnnotation = false
+    private boolean showFactorAnnotation = false
     private boolean showPointAnnotation = false
     private boolean annotationFontSizeOverride = false
     private integer annotationFontSize = 0
@@ -125,7 +125,7 @@ class TwoVariableChart is Chart
                 end
 
                 cline:SetFocusable(true)
-                cline:SetAccessibilityCode(parent:Item:ITEM)
+                cline:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 cline:SetNextFocus(GetNextFocus())
                 cline:SetPreviousFocus(GetPreviousFocus())
                 chartArea:Add(cline)
@@ -135,7 +135,7 @@ class TwoVariableChart is Chart
                 repeat while j < cline:GetLines():GetSize()
                     LineSegment line = cline:GetLines():Get(j)
 //                    line:SetFocusable(true)
-                    line:SetAccessibilityCode(parent:Item:ITEM)
+                    line:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     line:SetNextFocus(GetNextFocus())
                     line:SetPreviousFocus(GetPreviousFocus())
                     chartArea:Add(line)
@@ -145,7 +145,7 @@ class TwoVariableChart is Chart
                 repeat while j < cline:GetPoints():GetSize()
                     ChartPoint point = cline:GetPoints():Get(j)
                     point:SetFocusable(true)
-                    point:SetAccessibilityCode(parent:Item:ITEM)
+                    point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     point:SetNextFocus(GetNextFocus())
                     point:SetPreviousFocus(GetPreviousFocus())
                     chartArea:Add(point)
@@ -158,12 +158,12 @@ class TwoVariableChart is Chart
                         text nameText = ""
                         if showPointAnnotation
                             nameText = point:GetName()
-                            if showNameAnnotation or showLetterCodeAnnotation
+                            if showFactorAnnotation or showLetterCodeAnnotation
                                 nameText = ", " + nameText 
                             end
                             pointLabel:SetText(nameText)
                         end
-                        if showNameAnnotation and point:GetSeries() not= undefined
+                        if showFactorAnnotation and point:GetSeries() not= undefined
                             pointLabel:SetText(point:GetSeries():GetName() + nameText)
                         elseif showLetterCodeAnnotation
                             pointLabel:SetText(point:GetLetterCode() + nameText)
@@ -238,7 +238,7 @@ class TwoVariableChart is Chart
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
                 point:SetFocusable(true)
-                point:SetAccessibilityCode(parent:Item:ITEM)
+                point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 point:SetNextFocus(GetNextFocus())
                 point:SetPreviousFocus(GetPreviousFocus())
                 GeneratePointSummary(point)
@@ -287,12 +287,12 @@ class TwoVariableChart is Chart
                     text nameText = ""
                     if showPointAnnotation
                         nameText = point:GetName()
-                        if showNameAnnotation or showLetterCodeAnnotation
+                        if showFactorAnnotation or showLetterCodeAnnotation
                             nameText = ", " + nameText 
                         end
                         pointLabel:SetText(nameText)
                     end
-                    if showNameAnnotation and point:GetSeries() not= undefined
+                    if showFactorAnnotation and point:GetSeries() not= undefined
                         pointLabel:SetText(point:GetSeries():GetName() + nameText)
                     elseif showLetterCodeAnnotation
                         pointLabel:SetText(point:GetLetterCode() + nameText)
@@ -685,12 +685,10 @@ class TwoVariableChart is Chart
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
 
-        chartArea:SetPreviousFocus(summary)
         chartArea:SetContainer(me)
-
+        
         text lineText = "lines"
         text pointText = "points"
         if GetNumberOfLines() = 1
@@ -731,11 +729,10 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
-                    firstArea:SetPreviousFocus(summary)
 
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts.")
-                    chartArea:SetEnterItem(firstArea)
-                    firstArea:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstArea)
+                    firstArea:SetEscapeItem(summary)
 
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
@@ -757,8 +754,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
-                            nextArea:SetPreviousFocus(summary)
-                            nextArea:SetParent(chartArea)
+                            nextArea:SetParent(summary)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
                             previousArea = nextArea
@@ -780,9 +776,8 @@ class TwoVariableChart is Chart
                 ChartLine firstChartLine = lines:Get(0)
                 ChartItem firstChartLineItem = firstChartLine
                 firstChartLineItem:SetContainer(me)
-                firstChartLineItem:SetPreviousFocus(summary)
-                chartArea:SetEnterItem(firstChartLineItem)
-                firstChartLineItem:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstChartLineItem)
+                firstChartLineItem:SetEscapeItem(summary)
 
                 AddPoints(summary, firstChartLineItem, firstChartLine:GetPoints())
                 AddGroupPanelInstructions(firstChartLine, firstChartLine:GetDescription())
@@ -794,8 +789,7 @@ class TwoVariableChart is Chart
                     ChartLine chartLine = lines:Get(i)
                     ChartItem chartLineItem = chartLine
                     chartLineItem:SetContainer(me)
-                    chartLineItem:SetPreviousFocus(summary)
-                    chartLineItem:SetEscapeItem(chartArea)
+                    chartLineItem:SetEscapeItem(summary)
                     AddPoints(summary, chartLineItem, chartLine:GetPoints())
 
                     chartLineItem:SetLeftItem(previousChartLineItem)
@@ -817,11 +811,10 @@ class TwoVariableChart is Chart
                 if GetNumberOfChartAreas() > 0
                     ChartItem firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
-                    firstArea:SetPreviousFocus(summary)
 
                     AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
-                    chartArea:SetEnterItem(firstArea)
-                    firstArea:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstArea)
+                    firstArea:SetEscapeItem(summary)
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                     text description = " chart area with " + chartAreaItems:GetSize() + " points"
@@ -843,8 +836,7 @@ class TwoVariableChart is Chart
                         if chartSubArea:IsShowing()
                             ChartItem nextArea = chartSubArea
                             nextArea:SetContainer(me)
-                            nextArea:SetPreviousFocus(summary)
-                            nextArea:SetEscapeItem(chartArea)
+                            nextArea:SetEscapeItem(summary)
                             previousArea:SetRightItem(nextArea)
                             nextArea:SetLeftItem(previousArea)
                             previousArea = nextArea
@@ -870,10 +862,9 @@ class TwoVariableChart is Chart
                 if GetSeriesList():GetSize() > 0
                     ChartItem firstSeries = GetSeriesList():Get(0)
                     firstSeries:SetContainer(me)
-                    firstSeries:SetPreviousFocus(summary)
 
-                    chartArea:SetEnterItem(firstSeries)
-                    firstSeries:SetEscapeItem(chartArea)
+                    summary:SetEnterItem(firstSeries)
+                    firstSeries:SetEscapeItem(summary)
                     firstSeries:SetDisplayName(GetSeriesList():Get(0):GetName())
                     Array<ChartDrawable> chartAreaItems = GetSeriesList():Get(0):GetChartAreaItems()
                     chartAreaItems:Sort(comparison)
@@ -887,8 +878,7 @@ class TwoVariableChart is Chart
                         Series series = GetSeriesList():Get(i)
                         ChartItem nextSeries = series
                         nextSeries:SetContainer(me)
-                        nextSeries:SetPreviousFocus(summary)
-                        nextSeries:SetEscapeItem(chartArea)
+                        nextSeries:SetEscapeItem(summary)
                         previousSeries:SetRightItem(nextSeries)
                         nextSeries:SetLeftItem(previousSeries)
                         previousSeries = nextSeries
@@ -1071,7 +1061,7 @@ class TwoVariableChart is Chart
         region:SetPercentageWidth(percentWidth)
         region:SetPercentageHeight(percentHeight)
         region:SetFocusable(true)
-        region:SetAccessibilityCode(region:parent:Item:ITEM)
+        region:SetAccessibilityCode(region:parent:Item:CHART_SECTION)
         LayoutProperties properties = region:GetDefaultLayoutProperties()
         region:Hide()
         return region
@@ -1437,19 +1427,18 @@ class TwoVariableChart is Chart
             ChartPoint firstPoint = sortLRPoints:Get(0)
             ChartItem firstPointItem = firstPoint
             firstPointItem:SetContainer(me)
-            firstPointItem:SetPreviousFocus(summary)
             firstPoint:CalculateLetterCode(0)
             if firstPoint:ShowAnnotation() or ShowAnnotations()
                 ChartLabel pointLabel = firstPoint:GetAnnotation() 
                 text nameText = ""
                 if showPointAnnotation
                     nameText = firstPoint:GetName()
-                    if showNameAnnotation or showLetterCodeAnnotation
+                    if showFactorAnnotation or showLetterCodeAnnotation
                         nameText = ", " + nameText 
                     end
                     pointLabel:SetText(nameText)
                 end
-                if showNameAnnotation and (firstPoint:GetSeries() not= undefined)
+                if showFactorAnnotation and (firstPoint:GetSeries() not= undefined)
                     nameText = firstPoint:GetSeries():GetName() + nameText
                 elseif showLetterCodeAnnotation
                     nameText = firstPoint:GetLetterCode() + nameText
@@ -1463,7 +1452,7 @@ class TwoVariableChart is Chart
                 end
                 firstPoint:SetAnnotation(pointLabel)
             end
-            if showNameAnnotation and firstPoint:GetSeries() not= undefined
+            if showFactorAnnotation and firstPoint:GetSeries() not= undefined
                 firstPoint:SetName(firstPoint:GetSeries():GetName() + ", " + firstPoint:GetName())
             elseif showLetterCodeAnnotation 
                 firstPoint:SetName(firstPoint:GetLetterCode() + ", " + firstPoint:GetName())
@@ -1502,19 +1491,18 @@ class TwoVariableChart is Chart
                 ChartPoint point = sortLRPoints:Get(i)
                 ChartItem pointItem = point
                 pointItem:SetContainer(me)
-                pointItem:SetPreviousFocus(summary)
                 point:CalculateLetterCode(i)
                 if point:ShowAnnotation() or ShowAnnotations()
                     ChartLabel pointLabel = point:GetAnnotation() 
                     text nameText = ""
                     if showPointAnnotation
                         nameText = point:GetName()
-                        if showNameAnnotation or showLetterCodeAnnotation
+                        if showFactorAnnotation or showLetterCodeAnnotation
                             nameText = ", " + nameText 
                         end
                         pointLabel:SetText(nameText)
                     end
-                    if showNameAnnotation and (point:GetSeries() not= undefined)
+                    if showFactorAnnotation and (point:GetSeries() not= undefined)
                         nameText = point:GetSeries():GetName() + nameText
                     elseif showLetterCodeAnnotation
                         nameText = point:GetLetterCode() + nameText
@@ -1528,7 +1516,7 @@ class TwoVariableChart is Chart
                     end
                     point:SetAnnotation(pointLabel)
                 end
-                if showNameAnnotation and point:GetSeries() not= undefined
+                if showFactorAnnotation and point:GetSeries() not= undefined
                     point:SetName(point:GetSeries():GetName() + ", " + point:GetName())
                 elseif showLetterCodeAnnotation 
                     point:SetName(point:GetLetterCode() + ", " + point:GetName())
@@ -1663,7 +1651,7 @@ class TwoVariableChart is Chart
         if showLetterCodeAnnotation
             point2:CalculateLetterCode(iteration)
             description = description + point2:GetLetterCode()
-        elseif showNameAnnotation and (point2:GetSeries() not= undefined)
+        elseif showFactorAnnotation and (point2:GetSeries() not= undefined)
             description = description + point2:GetSeries():GetName()
         else
             description = description + " point " + iteration
@@ -1746,13 +1734,13 @@ class TwoVariableChart is Chart
         ShowAnnotations(show)
     end
 
-    action ShowNameAnnotations(boolean show)
-        showNameAnnotation = show
+    action ShowFactorAnnotations(boolean show)
+        showFactorAnnotation = show
         ShowAnnotations(show)
     end
     
-    action HasNameAnnotations() returns boolean
-        return showNameAnnotation
+    action HasFactorAnnotations() returns boolean
+        return showFactorAnnotation
     end
     
     action ShowPointAnnotations(boolean show)

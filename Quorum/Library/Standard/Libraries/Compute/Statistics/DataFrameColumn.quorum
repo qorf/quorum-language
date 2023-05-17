@@ -377,6 +377,27 @@ class DataFrameColumn is Comparison
     end
 
     /*
+        This action converts to a text array from the column.
+
+        Attribute: Returns a version of the column as a text array.
+    */
+    action ConvertToTextArray returns Array<text>
+        Array<text> array
+        array:SetSize(GetSize())
+        i = 0
+        repeat while i < GetSize()
+            text value = GetAsText(i)
+            if value = undefined
+                array:Set(i, undefined)
+            else
+                array:Set(i, value)
+            end
+            i = i + 1
+        end
+        return array
+    end
+
+    /*
         This action swaps two values in the column. 
 
         Attribute: Parameter left the first index to swap
@@ -406,8 +427,17 @@ class DataFrameColumn is Comparison
             return now
         end
 
-        calculation:Start(me)
         boolean iterable = calculation:IsIterable()
+        boolean numerical = calculation:IsNumerical()
+        DataFrameColumn copy = me:Copy()
+        if numerical
+            copy = me:ConvertToNumberColumn()
+            if copy:IsUndefined()
+                alert("This calculation cannot be done on a non-numerical column.")
+            end
+        end
+        calculation:Start(copy)
+
         if iterable
             i = 0
             repeat while i < GetSize()
@@ -415,9 +445,9 @@ class DataFrameColumn is Comparison
                 i = i + 1
             end
         else
-            calculation:Calculate(me)
+            calculation:Calculate(copy)
         end
-        calculation:End(me)
+        calculation:End(copy)
     end
 
     /* Copy from a row to copy from. Specifically, this grabs a value from the 'from' parameter inside 

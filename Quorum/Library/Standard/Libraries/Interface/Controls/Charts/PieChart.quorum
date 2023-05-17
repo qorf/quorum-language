@@ -53,6 +53,7 @@ class PieChart is Chart
     boolean showPercentAnnotation = true // When annotations are showing, the slices will display a %
     boolean showValueAnnotation = false // When annotations are showing, the slices will display value
     boolean showNameAnnotation = false // When annotations are showing, the slices will display name, can be used in combination with percent or value
+    integer annotationFontSize = 0
 
     Color highlightColor = undefined
     ColorGroup previousColorGroup = undefined
@@ -69,6 +70,7 @@ class PieChart is Chart
     private text chartItemsText = "slices"
 
     on create
+        CheckPlatformInstructions()
         PieChartLayout layout
         SetLayout(layout)
 
@@ -78,13 +80,14 @@ class PieChart is Chart
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
+        annotationFontSize = GetDefaultFontSize()
 
         properties:SetBorderThickness(2)
         SetName("Pie Chart")
 
         SetInputGroup("Chart")
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:CHART)
 
         SetDefaultOrientationToVertical()
         ShowSubChartAreaBorders(false)
@@ -127,7 +130,7 @@ class PieChart is Chart
                         repeat while i < pieBoxes:Get(j):GetSize()
                             PieSlice slice = pieBoxes:Get(j):Get(i)
                             slice:SetFocusable(true)
-                            slice:SetAccessibilityCode(parent:Item:ITEM)
+                            slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                             slice:SetNextFocus(GetNextFocus())
                             slice:SetPreviousFocus(GetPreviousFocus())
                             number value = slice:GetValue()
@@ -147,6 +150,7 @@ class PieChart is Chart
 
                             if slice:ShowAnnotation() or ShowAnnotations() //and slice:GetSeries() not= undefined // We don't want to annotate missing values
                                 ChartLabel sliceLabel
+                                sliceLabel:SetFontSize(annotationFontSize)
                                 
                                 text nameText = ""
                                 if showNameAnnotation
@@ -186,7 +190,7 @@ class PieChart is Chart
             repeat while i < pieBoxes:Get(0):GetSize()
                 PieSlice slice = pieBoxes:Get(0):Get(i)
                 slice:SetFocusable(true)
-                slice:SetAccessibilityCode(parent:Item:ITEM)
+                slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 slice:SetNextFocus(GetNextFocus())
                 slice:SetPreviousFocus(GetPreviousFocus())
                 number value = slice:GetValue()
@@ -205,6 +209,7 @@ class PieChart is Chart
                 
                 if slice:ShowAnnotation() or ShowAnnotations()
                     ChartLabel sliceLabel
+                    sliceLabel:SetFontSize(annotationFontSize)
                     text nameText = ""
                     if showNameAnnotation
                         nameText = slice:GetName()
@@ -252,6 +257,14 @@ class PieChart is Chart
     action ShowNameAnnotations(boolean show)
         showNameAnnotation = show
         ShowAnnotations(show)
+    end
+
+    action SetAnnotationFontSize(integer fontSize)
+        annotationFontSize = fontSize
+    end
+
+    action GetAnnotationFontSize() returns integer
+        return annotationFontSize
     end
 
     /*
@@ -676,10 +689,12 @@ class PieChart is Chart
             end
         end
         if GetName() = "Pie Chart"
-            SetDescription(" with " + count + " " + countText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(" with " + count + " " + countText + ".")
         else
-            SetDescription(", pie chart with " + count + " " + countText + ". Use the arrow keys to navigate chart information and Tab to access the chart content.")
+            SetDescription(", pie chart with " + count + " " + countText + ".")
         end
+        AddChartAreaInstructions(GetDescription())
+        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -700,9 +715,8 @@ class PieChart is Chart
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
-        summary:SetNextFocus(chartArea)
         summary:SetContainer(me)
-        chartArea:SetPreviousFocus(summary)
+
         chartArea:SetContainer(me)
         chartArea:SetDisplayName("Pie Chart")
     
@@ -722,11 +736,10 @@ class PieChart is Chart
             if GetNumberOfChartAreas() > 0
                 ChartItem firstArea = GetSubChartAreas():Get(0)
                 firstArea:SetContainer(me)
-                firstArea:SetPreviousFocus(summary)
 
                 AddChartAreaInstructions(" with " + subAreaCount + " pies.")
-                chartArea:SetEnterItem(firstArea)
-                firstArea:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstArea)
+                firstArea:SetEscapeItem(summary)
                 firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                 Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
                 AddSubChartAreaInstructions(GetSubChartAreas():Get(0), " pie with " + chartAreaItems:GetSize() + " slices, 1 of " + subAreaCount + " pies.")
@@ -735,7 +748,6 @@ class PieChart is Chart
                 if chartAreaItems:GetSize() > 0
                     ChartItem firstSlice = chartAreaItems:Get(0)
                     firstSlice:SetContainer(me)
-                    firstSlice:SetPreviousFocus(summary)
 
                     firstArea:SetEnterItem(firstSlice)
                     firstSlice:SetEscapeItem(firstArea)
@@ -746,7 +758,6 @@ class PieChart is Chart
                     repeat while j < chartAreaItems:GetSize()
                         ChartItem slice = chartAreaItems:Get(j)
                         slice:SetContainer(me)
-                        slice:SetPreviousFocus(summary)
                         slice:SetEscapeItem(firstArea)
                         slice:SetDescription(slice:GetDescription() + ", " + (j+1) + " of " + chartAreaItems:GetSize() + " slices.")
                         previousSlice:SetRightItem(slice)
@@ -778,8 +789,7 @@ class PieChart is Chart
                     if chartSubArea:IsShowing()
                         ChartItem nextArea = chartSubArea
                         nextArea:SetContainer(me)
-                        nextArea:SetPreviousFocus(summary)
-                        nextArea:SetEscapeItem(chartArea)
+                        nextArea:SetEscapeItem(summary)
                         previousArea:SetRightItem(nextArea)
                         nextArea:SetLeftItem(previousArea)
                         previousArea = nextArea
@@ -792,7 +802,6 @@ class PieChart is Chart
                         if chartSubAreaItems:GetSize() > 0
                             ChartItem firstSlice = chartSubAreaItems:Get(0)
                             firstSlice:SetContainer(me)
-                            firstSlice:SetPreviousFocus(summary)
                             nextArea:SetEnterItem(firstSlice)
                             firstSlice:SetEscapeItem(nextArea)
                             AddChartItemInstructions(chartSubAreaItems:Get(0), chartSubAreaItems:Get(0):GetDescription() + ", 1 of " + chartSubAreaItems:GetSize() + " slices.")
@@ -802,7 +811,6 @@ class PieChart is Chart
                             repeat while j < chartSubAreaItems:GetSize()
                                 ChartItem slice = chartSubAreaItems:Get(j)
                                 slice:SetContainer(me)
-                                slice:SetPreviousFocus(summary)
                                 slice:SetEscapeItem(nextArea)
                                 slice:SetDescription(slice:GetDescription() + ", " + (j+1) + " of " + chartSubAreaItems:GetSize() + " slices.")
                                 previousSlice:SetRightItem(slice)
@@ -837,9 +845,8 @@ class PieChart is Chart
             if count > 0
                 ChartItem firstSlice = box:Get(0)
                 firstSlice:SetContainer(me)
-                firstSlice:SetPreviousFocus(summary)
-                chartArea:SetEnterItem(firstSlice)
-                firstSlice:SetEscapeItem(chartArea)
+                summary:SetEnterItem(firstSlice)
+                firstSlice:SetEscapeItem(summary)
                 AddChartItemInstructions(firstSlice, firstSlice:GetDescription() + ", 1 of " + count + " slices.")
     
                 integer i = 1
@@ -847,8 +854,7 @@ class PieChart is Chart
                 repeat while i < box:GetSize()
                     ChartItem slice = box:Get(i)
                     slice:SetContainer(me)
-                    slice:SetPreviousFocus(summary)
-                    slice:SetEscapeItem(chartArea)
+                    slice:SetEscapeItem(summary)
                     slice:SetDescription(slice:GetDescription() + ", " + (i+1) + " of " + count + " slices.")
                     previousSlice:SetRightItem(slice)
                     slice:SetLeftItem(previousSlice)

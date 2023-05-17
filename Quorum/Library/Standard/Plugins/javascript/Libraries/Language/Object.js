@@ -175,3 +175,23 @@ function global_GetValue_(value, type) {
         return value.GetValue();
     }
 }
+
+function global_Output_(value) {
+    console.log(value);
+    var dom = global_Get_Display_Console_();
+    if(dom != null) {
+        dom.insertAdjacentHTML('beforeend', value + "\n");
+    }
+}
+
+function global_Get_Display_Console_() {
+    if(typeof window != 'undefined' && typeof document != 'undefined') {
+        if(typeof window.currentIDEOutput_$Global_ !== 'undefined') {
+            return document.getElementById(window.currentIDEOutput_$Global_);
+        }
+        else if(typeof currentIDEOutput_$Global_ !== 'undefined') {
+            return document.getElementById(currentIDEOutput_$Global_);
+        }
+    }
+    return null;
+}

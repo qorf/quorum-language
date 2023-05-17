@@ -80,6 +80,7 @@ class LineChartWriter is ChartWriter
         lineChart = cast(LineChart, chart)
 
         if HasAccessibility()
+            canvas:SetRole("graphics-document document")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -102,26 +103,37 @@ class LineChartWriter is ChartWriter
     private action AddPointsAndLines(ScalableVectorGraphics canvas, LineChart chart)
         Color transparent
         transparent:SetColor(0, 0, 0, 0)
-        
+
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Group chartContent
         chartContent:SetSize(GetChartArea():GetWidth(),GetChartArea():GetHeight())
         chartContent:SetPosition(GetChartArea():GetPositionX(),GetChartArea():GetPositionY())
-        chartContent:SetTabIndex(0)
-        chartContent:SetStyleClass("quorum-chart-region quorum-chart-area")
-        chartContent:SetIsOneLine(true)
-        chartContent:SetRole("application")  
+
         // Add chartContent to the canvas after all non-nav elements (see below)
 
         Rectangle chartContentBoundingBox
         chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
         chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
         chartContentBoundingBox:SetFill(transparent)
+        chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
-        chartContentBoundingBox:SetTabIndex(-1)
+        chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
+            chartContent:SetTabIndex(0)
+            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
+            chartContent:SetIsOneLine(true)
+            chartContent:SetRole("graphics-object")  
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
             chartContent:SetAriaHidden("false")
+            //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
+            //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
 
@@ -133,12 +145,13 @@ class LineChartWriter is ChartWriter
 
                 if currentLine:GetPoints():GetSize() > 0
                     Group seriesSVG
-                    seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
-                    seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
                     seriesSVG:SetFill(cast(Color, chart:GetSelectionColor()))
-                    seriesSVG:SetTabIndex(-1)
+                    seriesSVG:SetFillOpacity(cast(Color, chart:GetSelectionColor()))
                     if HasAccessibility()
-                        seriesSVG:SetRole("application")  
+                        seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
+                        seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
+                        seriesSVG:SetTabIndex(-1)
+                        seriesSVG:SetRole("graphics-object")  
                         seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
                         seriesSVG:SetAriaHidden("false")
                     end
@@ -192,12 +205,13 @@ class LineChartWriter is ChartWriter
                         number radius = currentPoint:GetHeight()/2
 
                         Group pointSVG
-                        pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
-                        pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                         pointSVG:SetFill(currentPoint:GetColor())
-                        pointSVG:SetTabIndex(-1)
+                        pointSVG:SetFillOpacity(currentPoint:GetColor())
                         if HasAccessibility()
-                            pointSVG:SetRole("application")  
+                            pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
+                            pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                            pointSVG:SetTabIndex(-1)
+                            pointSVG:SetRole("graphics-symbol")  
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
                         end
@@ -215,12 +229,14 @@ class LineChartWriter is ChartWriter
                             point:SetRadius(radius)
                             point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
                             point:SetFill(currentPoint:GetColor())
+                            point:SetFillOpacity(currentPoint:GetColor())
                             point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                            point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeWidth(currentPoint:GetBorderThickness())
-                            point:SetID(pointSVG:GetID() + "_point")
-                            point:SetStyleClass("quorum-chart-circle")
-                            point:SetTabIndex(-1)
                             if HasAccessibility()
+                                point:SetID(pointSVG:GetID() + "_point")
+                                point:SetStyleClass("quorum-chart-circle")
+                                point:SetTabIndex(-1)
                                 point:SetAriaHidden("true")
                                 pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                 pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
@@ -239,12 +255,14 @@ class LineChartWriter is ChartWriter
                             segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
                             segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
                             segment:SetFill(currentSegment:GetColor())
+                            segment:SetFillOpacity(currentSegment:GetColor())
                             segment:SetStroke(currentSegment:GetColor())
+                            segment:SetStrokeOpacity(currentSegment:GetColor())
                             segment:SetStrokeWidth(currentSegment:GetHeight())
-                            segment:SetID(seriesSVG:GetID() + "_segment"+j)
-                            segment:SetStyleClass("quorum-chart-linesegment")
-                            segment:SetTabIndex(-1)
                             if HasAccessibility()
+                                segment:SetID(seriesSVG:GetID() + "_segment"+j)
+                                segment:SetStyleClass("quorum-chart-linesegment")
+                                segment:SetTabIndex(-1)
                                 segment:SetAriaHidden("true")
                                 seriesFocus = seriesFocus + "gainFocus('" + segment:GetID() + "'); "
                                 seriesBlur = seriesBlur + "loseFocus('" + segment:GetID() + "'); "
@@ -262,13 +280,14 @@ class LineChartWriter is ChartWriter
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                labelSVG:SetID(pointSVG:GetID() + "_annotation")
-                                labelSVG:SetStyleClass("quorum-chart-text")
-                                labelSVG:SetTabIndex(-1)
+                                labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                                 if HasAccessibility()
+                                    labelSVG:SetID(pointSVG:GetID() + "_annotation")
+                                    labelSVG:SetStyleClass("quorum-chart-text")
+                                    labelSVG:SetTabIndex(-1)
                                     labelSVG:SetAriaHidden("true")
-                                    pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                    pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                    //pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                    //pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                 end
                                 canvas:Add(labelSVG)
                             end
@@ -286,10 +305,11 @@ class LineChartWriter is ChartWriter
                                 m = m + 2
                             end
                             arrow:SetFill(transparent) // Should be transparent until selected 
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetTabIndex(-1)
-                            arrow:SetID(pointSVG:GetID() + "_arrow")
+                            arrow:SetFillOpacity(transparent)
                             if HasAccessibility()
+                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                arrow:SetTabIndex(-1)
+                                arrow:SetID(pointSVG:GetID() + "_arrow")
                                 arrow:SetAriaHidden("true")
                                 pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
                                 pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -299,10 +319,10 @@ class LineChartWriter is ChartWriter
 
                         if HasAccessibility()
                             if pointFocus not= ""
-                                pointSVG:SetOnFocus(pointFocus)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + pointFocus + "});" + newLine
                             end
                             if pointBlur not= ""
-                                pointSVG:SetOnBlur(pointBlur)
+                                scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + pointBlur + "});" + newLine
                             end
                         end 
                         j = j + 1
@@ -310,10 +330,10 @@ class LineChartWriter is ChartWriter
 
                     if HasAccessibility()
                         if seriesFocus not= ""
-                            seriesSVG:SetOnFocus(seriesFocus)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + seriesFocus + "});" + newLine
                         end
                         if seriesBlur not= ""
-                            seriesSVG:SetOnBlur(seriesBlur)
+                            scriptText = scriptText + "document.getElementById('" + seriesSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + seriesBlur + "});" + newLine
                         end
                     end            
                 end
@@ -325,19 +345,22 @@ class LineChartWriter is ChartWriter
                 Group subChartContent
                 subChartContent:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                 subChartContent:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
-                subChartContent:SetTabIndex(-1)
-                subChartContent:SetStyleClass("quorum-chart-region")
 
                 Rectangle subChartContentBoundingBox
                 subChartContentBoundingBox:SetSize(GetSubChartAreas():Get(i):GetWidth(), GetSubChartAreas():Get(i):GetHeight())
                 subChartContentBoundingBox:SetPosition(GetSubChartAreas():Get(i):GetPositionX(), GetSubChartAreas():Get(i):GetPositionY())
                 subChartContentBoundingBox:SetFill(transparent)
+                subChartContentBoundingBox:SetFillOpacity(transparent)
                 subChartContentBoundingBox:SetStroke(transparent)
-                subChartContentBoundingBox:SetTabIndex(-1)
+                subChartContentBoundingBox:SetStrokeOpacity(transparent)
                 if HasAccessibility()
+                    subChartContent:SetTabIndex(-1)
+                    subChartContent:SetStyleClass("quorum-chart-region")
                     subChartContentBoundingBox:SetAriaHidden("true")
+                    subChartContentBoundingBox:SetTabIndex(-1)
                 end
                 subChartContent:Add(subChartContentBoundingBox)
+                AddSubChartTitle(canvas, chart:GetSubChartAreas():Get(i))
                 
                 if HasAccessibility()
                     //Separated, by the Factor levels with multiple Series per subplot
@@ -345,16 +368,22 @@ class LineChartWriter is ChartWriter
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-category-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
                         subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-series-list") 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
-                        subChartContent:SetRole("application")  
+                        subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
+                        subChartContentBoundingBox:SetID(subChartContent:GetID() + "_boundingbox")
+                        //subChartContent:SetOnFocus("gainFocus('" + subChartContentBoundingBox:GetID() + "'); ")
+                        //subChartContent:SetOnBlur("loseFocus('" + subChartContentBoundingBox:GetID() + "'); ")
                         chartContent:Add(subChartContent)
                     else
                         subChartContent:SetAriaHidden("true")
@@ -406,10 +435,11 @@ class LineChartWriter is ChartWriter
                                     m = m + 2
                                 end
                                 arrow:SetFill(transparent) // Should be transparent until selected 
-                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                arrow:SetTabIndex(-1)
-                                arrow:SetID(subChartContent:GetID() + "_arrow")
+                                arrow:SetFillOpacity(transparent)
                                 if HasAccessibility()
+                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                    arrow:SetTabIndex(-1)
+                                    arrow:SetID(subChartContent:GetID() + "_arrow")
                                     arrow:SetAriaHidden("true")
                                     seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
                                     seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -424,12 +454,13 @@ class LineChartWriter is ChartWriter
                                     number radius = currentPoint:GetHeight()/2
         
                                     Group pointSVG
-                                    pointSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
-                                    pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
                                     pointSVG:SetFill(currentPoint:GetColor())
-                                    pointSVG:SetTabIndex(-1)
+                                    pointSVG:SetFillOpacity(currentPoint:GetColor())
                                     if HasAccessibility()
-                                        pointSVG:SetRole("application")  
+                                        pointSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
+                                        pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                                        pointSVG:SetTabIndex(-1)
+                                        pointSVG:SetRole("graphics-symbol")  
                                         pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                         pointSVG:SetAriaHidden("false")
                                     end
@@ -443,12 +474,14 @@ class LineChartWriter is ChartWriter
                                         point:SetRadius(radius)
                                         point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
                                         point:SetFill(currentPoint:GetColor())
+                                        point:SetFillOpacity(currentPoint:GetColor())
                                         point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                                        point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                                         point:SetStrokeWidth(currentPoint:GetBorderThickness())
-                                        point:SetID(pointSVG:GetID() + "_point")
-                                        point:SetStyleClass("quorum-chart-circle")
-                                        point:SetTabIndex(-1)
                                         if HasAccessibility()
+                                            point:SetID(pointSVG:GetID() + "_point")
+                                            point:SetStyleClass("quorum-chart-circle")
+                                            point:SetTabIndex(-1)
                                             point:SetAriaHidden("true")
                                             pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                                             pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
@@ -469,12 +502,14 @@ class LineChartWriter is ChartWriter
                                         segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
                                         segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
                                         segment:SetFill(currentSegment:GetColor())
+                                        segment:SetFillOpacity(currentSegment:GetColor())
                                         segment:SetStroke(currentSegment:GetColor())
+                                        segment:SetStrokeOpacity(currentSegment:GetColor())
                                         segment:SetStrokeWidth(currentSegment:GetHeight())
-                                        segment:SetID(subChartContent:GetID() + "_segment"+j)
-                                        segment:SetStyleClass("quorum-chart-linesegment")
-                                        segment:SetTabIndex(-1)
                                         if HasAccessibility()
+                                            segment:SetID(subChartContent:GetID() + "_segment"+j)
+                                            segment:SetStyleClass("quorum-chart-linesegment")
+                                            segment:SetTabIndex(-1)
                                             segment:SetAriaHidden("true")
                                             seriesFocus = seriesFocus + "gainFocus('" + segment:GetID() + "'); "
                                             seriesBlur = seriesBlur + "loseFocus('" + segment:GetID() + "'); "
@@ -492,13 +527,14 @@ class LineChartWriter is ChartWriter
                                             labelSVG:SetFontSize(label:GetFontSize() + "px")
                                             labelSVG:SetFontFamily("Arial")
                                             labelSVG:SetFill(cast(Color, label:GetFontColor()))
-                                            labelSVG:SetID(pointSVG:GetID() + "_annotation")
-                                            labelSVG:SetStyleClass("quorum-chart-text")
-                                            labelSVG:SetTabIndex(-1)
+                                            labelSVG:SetFillOpacity(cast(Color, label:GetFontColor()))
                                             if HasAccessibility()
+                                                labelSVG:SetID(pointSVG:GetID() + "_annotation")
+                                                labelSVG:SetStyleClass("quorum-chart-text")
+                                                labelSVG:SetTabIndex(-1)
                                                 labelSVG:SetAriaHidden("true")
-                                                pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
-                                                pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
+                                                //pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
+                                                //pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                             end
                                             canvas:Add(labelSVG)
                                         end
@@ -516,10 +552,11 @@ class LineChartWriter is ChartWriter
                                             m = m + 2
                                         end
                                         arrow:SetFill(transparent) // Should be transparent until selected 
-                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                        arrow:SetTabIndex(-1)
-                                        arrow:SetID(pointSVG:GetID() + "_arrow")
+                                        arrow:SetFillOpacity(transparent)
                                         if HasAccessibility()
+                                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+                                            arrow:SetTabIndex(-1)
+                                            arrow:SetID(pointSVG:GetID() + "_arrow")
                                             arrow:SetAriaHidden("true")
                                             pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
                                             pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
@@ -529,10 +566,10 @@ class LineChartWriter is ChartWriter
 
                                     if HasAccessibility()
                                         if pointFocus not= ""
-                                            pointSVG:SetOnFocus(pointFocus)
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + pointFocus + "});" + newLine
                                         end
                                         if pointBlur not= ""
-                                            pointSVG:SetOnBlur(pointBlur)
+                                            scriptText = scriptText + "document.getElementById('" + pointSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + pointBlur + "});" + newLine
                                         end
                                     end 
                                 end
@@ -544,10 +581,10 @@ class LineChartWriter is ChartWriter
                     
                 if HasAccessibility()
                     if seriesFocus not= ""
-                        subChartContent:SetOnFocus(seriesFocus)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('focus', (event) => {" + newLine + seriesFocus + "});" + newLine
                     end
                     if seriesBlur not= ""
-                        subChartContent:SetOnBlur(seriesBlur)
+                        scriptText = scriptText + "document.getElementById('" + subChartContent:GetID() + "').addEventListener('blur', (event) => {" + newLine + seriesBlur + "});" + newLine
                     end
                 end   
         
@@ -555,7 +592,11 @@ class LineChartWriter is ChartWriter
             end
         end
         // Add chartContent to the canvas after all non-nav elements
-        canvas:Add(chartContent)
+        GetChartInformation():Add(chartContent)
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
+        end
     end
 
     action AddOrderingList(ScalableVectorGraphics canvas, Chart chart)

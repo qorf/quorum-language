@@ -1781,8 +1781,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
         if next:category = constants:TIMES
             //we don't need to check this one, just advance it, because block will manage it.
-            next = tokenIterator:Next()
             context:timesToken = next
+            next = tokenIterator:Next()
             context:isTimes = true
         end
 
@@ -2021,8 +2021,6 @@ class QuorumParser
         
         BlockContext elseBlock = undefined
         repeat while next:category = constants:ELSE_IF
-            next = tokenIterator:Next()
-
             //since there is at least one elseif, we need to store the tokens, in order
             if context:elseIfTokens = undefined
                 Array<Token> newTokens
@@ -2030,6 +2028,15 @@ class QuorumParser
             end
 
             context:elseIfTokens:Add(next)
+            next = tokenIterator:Next()
+
+//            //since there is at least one elseif, we need to store the tokens, in order
+//            if context:elseIfTokens = undefined
+//                Array<Token> newTokens
+//                context:elseIfTokens = newTokens
+//            end
+//
+//            context:elseIfTokens:Add(next)
             ParseContext expression = Expression()
             if expression = undefined //no expression, so kill it, because you have to
                 SendDefaultError("The elseif was missing its expression. " 
@@ -3410,14 +3417,16 @@ class QuorumParser
         Token current = tokenIterator:GetCurrent()
 
         if current:category = constants:INPUT
-            current = tokenIterator:Next()
             context:SetFirstToken(current)
+            current = tokenIterator:Next()
         end
 
         //check if it's left and right paren or if it has an expression
         if current not= undefined and current:category = constants:LEFT_PAREN
             Token next = tokenIterator:Next() //if this is a right paren, there is no expression
             if next not= undefined and next:category = constants:RIGHT_PAREN
+                context:SetLastToken(next)
+                SetLocation(context)
                 tokenIterator:Next()
                 return context
             else //it's not a right paren, so try and parse an expression, then check for the right paren
@@ -3618,10 +3627,11 @@ class QuorumParser
     */
     action Me returns MeContext
         MeContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
         context:SetFirstToken(current)
         context:SetLastToken(current)
         SetLocation(context)
+        tokenIterator:Next()
         return context
     end
 

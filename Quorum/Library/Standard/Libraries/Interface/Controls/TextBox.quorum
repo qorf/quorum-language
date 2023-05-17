@@ -9,9 +9,7 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Glyph
 use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
-use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextChangeEvent
@@ -35,8 +33,9 @@ use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Game
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.SharedTextureManager
 
-class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListener, FocusListener
+class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
     /*
     All of the text contained in this object.
@@ -58,16 +57,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     pane.
     */
     number firstLine = 0
-
-    /*
-    How close to the top of the scroll area the top of the vertical view is. A
-    value of 1.0 means the top of the vertical view is at the top of the scroll
-    area, while a value of 0.0 indicates the top of the vertical view is at the
-    very bottom of the scroll area (which is only possible in the unlikely case
-    that the height of the viewing region is 0). This is used to calculate the
-    firstLine value.
-    */
-    number verticalViewPercentage = 1.0
 
     /*
     The width of the scroll region, as calculated by the longest line of text.
@@ -104,42 +93,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     GameStateManager gameStateManager
     TextBoxSelection selection
 
-    /*
-    The texture used for the selection higlight. Initialized as a 1x1 white texture.
-    */
-    Texture selectionTexture = undefined
-
     TextBoxRenderer background
-    Control horizontalBar
-    Control horizontalControl
-    Control verticalBar
-    Control verticalControl
-
-    LayoutProperties horizontalBarProperties
-    LayoutProperties horizontalControlProperties
-    LayoutProperties verticalBarProperties
-    LayoutProperties verticalControlProperties
-    
-    number scrollDistance = 3
-    integer barThickness = 20
-
-    number vertical = 1.0
-    number horizontal = 0
-
-    public constant integer VISIBLE_IF_NEEDED = 1
-    public constant integer ALWAYS_VISIBLE = 2
-    public constant integer NEVER_VISIBLE = 3
-
-    integer verticalMode = VISIBLE_IF_NEEDED
-    integer horizontalMode = VISIBLE_IF_NEEDED
 
     integer leftCharacterPadding = 9
-    /*
-    Values used for when the control is dragged along the scroll track.
-    */
-    boolean barIsClicked = false
-    boolean verticalChanging = true
-    number clickPointOffset = 0
+    
     boolean moveFocusOnTab = true
 
     /*
@@ -160,8 +117,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     increase or decrease indentation. The default strategy uses spaces.
     */
     IndentationStrategy indentation
-    EditManager editManager = undefined
     TextBoxEditManager textEditManager
+    // A custom edit manager to use for this TextBox. If this is undefined, the default edit manager from the game will be used instead.
+    EditManager customEditManager = undefined
 
     /*
     TextStyle objects are used to indicate changes in the style of text at
@@ -174,7 +132,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     HashTable<text, TextStyle> styleTable
 
     Math math
-    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+
     /* 
     The caret's previous position, which is set when the SHIFT key is pressed
     and used in creating a selection following a mouse click
@@ -198,23 +156,28 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     // Classes that inherit from TextBox can override this.
     boolean applyPaddingToSelection = true
 
+    boolean initialized = false
+
+    /*
+    Determines if the TextBox places its Drawables along the baseline or not. If
+    this value is false, then each Drawable will be adjusted upward by the 
+    maximum descent of the Font.
+    */
+    boolean positionOnBaseLine = true
+
     on create
         SetName("Text Box")
         SetInputGroup("TextBox")
         SetInterfaceOptionsKey("TextBox")
+
         SetFocusable(true)
         AddFocusListener(me)
-        SetClipping(true)
-        AddMouseWheelListener(me)
-        AddMouseListener(me)
+        
         AddMouseMovementListener(me)
         AddTextChangeListener(textEditManager)
         textEditManager:SetTextBox(me)
 
-//        SetSelectionType(parent:Selectable:RANGE_SELECTION)
-
         background:SetName("TextBox Background")
-        Add(background)
 
         textValue:DisableTextWrapping()
 
@@ -223,90 +186,34 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         selection:Initialize(me, "")
         SetAccessibilityCode(parent:Item:TEXTBOX)
 
-        ManualLayout layout
-        SetLayout(layout)
-
         textValue:Initialize("")
-
-        LayoutProperties backgroundLayout = background:GetDefaultLayoutProperties()
-        backgroundLayout:SetPercentageWidth(1)
-        backgroundLayout:SetPercentageHeight(1)
 
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetFont(font)
 
-        verticalBar:SetName("Vertical Scroll Track")
-        verticalControl:SetName("Vertical Scroll Control")
-        horizontalBar:SetName("Horizontal Scroll Track")
-        horizontalControl:SetName("Horizontal Scroll Control")
-
-        ManualLayout verticalLayout
-        ManualLayout horizontalLayout
-        verticalBar:SetLayout(verticalLayout)
-        horizontalBar:SetLayout(horizontalLayout)
-
-        /*
-        By default, the vertical bar has width equal to the bar thickness, has a
-        height equal to the height of its container, and has its top right 
-        corner touching the top right corner of the container.
-        */
-        verticalBarProperties:SetPercentageX(1)
-        verticalBarProperties:SetPercentageOriginX(1)
-        verticalBarProperties:SetPercentageY(1)
-        verticalBarProperties:SetPercentageOriginY(1)
-        verticalBarProperties:SetPercentageHeight(1)
-        verticalBarProperties:SetPixelWidth(barThickness)
-
-        verticalBar:AddLayoutProperties(verticalBarProperties)
-
-        /*
-        The horizontal bar has width equal to its container's width, height
-        equal to the bar thickness, and lies along the bottom of the text box.
-        */
-        horizontalBarProperties:SetPercentageX(0)
-        horizontalBarProperties:SetPercentageY(0)
-        horizontalBarProperties:SetPercentageWidth(1)
-        horizontalBarProperties:SetPixelHeight(barThickness)
-
-        horizontalBar:AddLayoutProperties(horizontalBarProperties)
-
-        /*
-        The vertical control begins at the top of the bar, and its width fully
-        fills the bar. Its height is not set here, instead being set during
-        Resize().
-        */
-        verticalControlProperties:SetPercentageOriginY(1)
-        verticalControlProperties:SetPercentageY(1)
-        verticalControlProperties:SetPercentageX(0)
-        verticalControlProperties:SetPercentageWidth(1)
-
-        verticalControl:AddLayoutProperties(verticalControlProperties)
-
-        /*
-        The horizontal control begins at the left of the bar, and its height
-        fully fills the bar. Its width is not set here, instead being set during
-        Resize().
-        */
-        horizontalControlProperties:SetPercentageX(0)
-        horizontalControlProperties:SetPercentageY(0)
-        horizontalControlProperties:SetPercentageHeight(1)
-
-        horizontalControl:AddLayoutProperties(horizontalControlProperties)
-
-        Add(verticalBar)
-        Add(horizontalBar)
-        verticalBar:Add(verticalControl)
-        horizontalBar:Add(horizontalControl)
-
         HideCaret()
-
-        Game game = gameStateManager:GetGame()
-        editManager = game:GetEditManager()
     end
 
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         background:SetInterfaceOptionsKey(key)
+    end
+
+    action GetScrollableRegion returns Control
+        return background
+    end
+
+    action GetScrollIncrement returns number
+        return 1.0 / GetLineCount()
+    end
+
+    private action RefreshScrollableRegion
+        GetLineDrawables()
+    end
+
+    action SetInterfaceScale(number scale)
+        parent:Control:SetInterfaceScale(scale)
+        scrollRegionWidth = -1
     end
 
     /*
@@ -331,17 +238,42 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         leftCharacterPadding = padding
     end
 
+    private action GetSelectionTexture returns Texture
+        SharedTextureManager manager
+        return manager:GetUnitTexture()
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action IsPositioningOnBaseLine returns boolean
+        return positionOnBaseLine
+    end
+
+    /*
+    This action determines if the TextBox should place characters so that they're
+    touching the base line. In practice, if this is true, the TextBox will position
+    characters slightly lower, providing more whitespace above the first line.
+    If this value is false, the characters will be positioned higher, which may look
+    better for TextBoxes that are approximately one line in height.
+    The default value is true.
+    */
+    action SetPositionOnBaseLine(boolean position)
+        positionOnBaseLine = position
+    end
+
     /*
     This action is used to load the graphical components of the Control. This is
     handled automatically by the Game engine as needed, and most users shouldn't
     need to use this action directly.
     */
     action LoadGraphics(LayoutProperties properties)
-        if selectionTexture = undefined
-            Texture texture
-            selectionTexture = texture
-            selectionTexture:LoadFilledRectangle(1, 1)
-        end
+        initialized = true
 
         if background:GetView2D() = undefined
             ControlShaderView backgroundView
@@ -349,34 +281,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             backgroundView:Initialize()
             background:SetView2D(backgroundView)
         end
-
-        // If the bars haven't had views loaded, do that now.
-        if verticalBar:GetView2D() = undefined
-            ControlShaderView verticalBarView
-            ControlShaderView horizontalBarView
-            ControlShaderView verticalControlView
-            ControlShaderView horizontalControlView
-    
-            verticalBarView:SetName("TextBox Vertical Bar View")
-            horizontalBarView:SetName("TextBox Horizontal Bar View")
-            verticalControlView:SetName("TextBox Vertical Control View")
-            horizontalControlView:SetName("TextBox Horizontal ControlView")
-    
-            verticalBarView:Initialize()
-            horizontalBarView:Initialize()
-            verticalControlView:Initialize()
-            horizontalControlView:Initialize()
-    
-            verticalBar:SetView2D(verticalBarView)
-            horizontalBar:SetView2D(horizontalBarView)
-            verticalControl:SetView2D(verticalControlView)
-            horizontalControl:SetView2D(horizontalControlView)
-        end
-
-        verticalBar:SetBackgroundColor(GetForegroundColor())
-        horizontalBar:SetBackgroundColor(GetForegroundColor())
-        verticalControl:SetBackgroundColor(GetAccentColor())
-        horizontalControl:SetBackgroundColor(GetAccentColor())
 
         Drawable caret = background:GetCaret()
         caret:SetColor(GetIconColor())
@@ -387,75 +291,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     /*
-    The Resize action is used to recalculate the size and position of Controls
-    that are being controlled by a Layout. Calling Resize on an Item2D won't
-    have a direct effect on it, but if the Item's children hierarchy contains
-    any Controls, those Controls will be resized.
-    */
-    action Resize
-        number height = GetHeight()
-        number width = GetWidth()
-        number verticalRatio = height / GetScrollRegionHeight()
-        number horizontalRatio = width / GetScrollRegionWidth()
-        boolean verticalVisible = (verticalMode = ALWAYS_VISIBLE or (verticalMode = VISIBLE_IF_NEEDED and verticalRatio < 1.0))
-        boolean horizontalVisible = (horizontalMode = ALWAYS_VISIBLE or (horizontalMode = VISIBLE_IF_NEEDED and horizontalRatio < 1.0))
-        number barHeight = height
-        number barWidth = width
-
-        if verticalVisible and horizontalVisible
-            verticalBarProperties:SetPixelHeight(-barThickness)
-            horizontalBarProperties:SetPixelWidth(-barThickness)
-            barHeight = height - barThickness
-            barWidth = width - barThickness
-            verticalRatio = barHeight / GetScrollRegionHeight()
-            horizontalRatio = barWidth / GetScrollRegionWidth()
-        else
-            verticalBarProperties:SetPixelHeight(0)
-            horizontalBarProperties:SetPixelWidth(0)
-        end
-
-        if verticalRatio > 1.0
-            verticalRatio = 1.0
-        end
-
-        if horizontalRatio > 1.0
-            horizontalRatio = 1.0
-        end
-
-        if verticalVisible
-            verticalControlProperties:SetPercentageHeight(verticalRatio)
-            verticalBar:Show()
-        else
-            verticalBar:Hide()
-        end
-
-        if horizontalVisible
-            horizontalControlProperties:SetPercentageWidth(horizontalRatio)
-            horizontalBar:Show()
-        else
-            horizontalBar:Hide()
-        end
-
-        // UpdatePaneView also calls the parent Resize action from Item2D, so
-        // layouts will properly be applied.
-        UpdatePaneView(horizontal, vertical)
-    end
-
-    private action ResizeLineDrawables
-        GetLineDrawables()
-        parent:Item2D:Resize()
-    end
-
-    /*
     Makes everything from scratch. For initialization purposes.
     */
     private action GetLineDrawables
-        if selectionTexture = undefined
-            // If we don't have a selection texture, the graphics haven't been
-            // loaded yet, and we should wait until they are to create the
-            // drawables for text.
+        if initialized = false
+            // If we haven't loaded graphics yet, don't try to create the drawables yet.
             return now
         end
+
+        Texture selectionTexture = GetSelectionTexture()
 
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
 
@@ -479,25 +323,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         text separator = textValue:GetLineSeparator()
         integer totalLines = lines:GetSize()
         number lineHeight = GetLineHeight()
-        firstLine = totalLines - (totalLines * verticalViewPercentage)
+        firstLine = totalLines - (totalLines * (1.0 - GetScrollPercentageY()))
         integer firstLineInteger = cast(integer, firstLine)
         number halfPadding = GetTotalLineHeightPadding() / 2
+
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
         
         background:Empty()
-        background:SetLineCount(cast(integer, math:Ceiling(GetHeight() / lineHeight)))
+        background:SetLineCount(cast(integer, math:Ceiling(background:GetHeight() / lineHeight)))
         background:SetStartLine(firstLineInteger)
-
-        Array<Gutter> gutters = background:GetGutters()
-        integer gutterCounter = 0
-        number gutterX = 0
-        repeat while gutterCounter < gutters:GetSize()
-            Gutter gutter = gutters:Get(gutterCounter)
-            gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
-            gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
-            gutter:SetPosition(gutterX, (firstLine - firstLineInteger) * lineHeight - lineHeight)
-            gutterX = gutterX + gutter:GetWidth()
-            gutterCounter = gutterCounter + 1
-        end
 
         integer textIndex = 0
 
@@ -514,10 +351,12 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         Text Drawables
         */
 
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight
+        number yPosition = background:GetHeight() + (firstLine - firstLineInteger) * lineHeight - maxDescent
         startLineY = yPosition - lineHeight
 
         integer counter = firstLineInteger
+        number startX = -GetScrollPercentageX() * GetTotalContentWidth() + leftCharacterPadding
+
         repeat while counter < totalLines and yPosition > 0
             yPosition = yPosition - lineHeight
 
@@ -533,7 +372,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
             integer characterCounter = 0
             integer styleCounter = 0
-            number startX = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+
             lineBeginningX = startX
             number x = startX
 
@@ -555,7 +394,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                     if onLine
                         Drawable draw = undefined
                         if highlight:IsLineHighlight()
-                            draw = highlight:GetDrawable(GetScrollRegionWidth(), lineHeight)
+                            draw = highlight:GetDrawable(GetTotalContentWidth(), lineHeight)
                             draw:SetPosition(leftCharacterPadding, drawableY)
                         else
                             characterCounter = 0
@@ -729,22 +568,20 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
         ColorGroup fontColor = GetFontColor()
 
+        integer maxDescent = 0
+        if IsPositioningOnBaseLine() = false
+            maxDescent = font:GetMaximumDescent()
+        end
+
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
-        number yPosition = GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2
+        number yPosition = background:GetHeight() + (firstLine - firstLineInteger) * lineHeight 
+        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2 - maxDescent
 
         number xPosition = 0
 
         if index = 0
-            Array<Gutter> gutters = background:GetGutters()
-            number gutterX = 0
-            if gutters:IsEmpty() = false
-                Gutter lastGutter = gutters:GetFromEnd()
-                gutterX = lastGutter:GetX() + lastGutter:GetWidth()
-            end
-
-            xPosition = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+            xPosition = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding
         else
             Glyph priorGlyph = font:GetGlyph(currentLine:GetCharacter(index - 1))
             xPosition = lineDrawables:Get(index - 1):GetX() - priorGlyph:lengthToGlyph + priorGlyph:horizontalAdvance
@@ -830,14 +667,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number xPosition = 0
 
         if startIndex = 0
-            Array<Gutter> gutters = background:GetGutters()
-            number gutterX = 0
-            if gutters:IsEmpty() = false
-                Gutter lastGutter = gutters:GetFromEnd()
-                gutterX = lastGutter:GetX() + lastGutter:GetWidth()
-            end
-
-            xPosition = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding + gutterX
+            xPosition = -GetScrollPercentageX() * (GetTotalContentWidth() - (GetWidth() - GetSharedSpaceOffset())) + leftCharacterPadding// + gutterX
         else
             Glyph priorGlyph = font:GetGlyph(currentLine:GetCharacter(startIndex - 1))
             xPosition = lineDrawables:Get(startIndex - 1):GetX() - priorGlyph:lengthToGlyph + priorGlyph:horizontalAdvance
@@ -881,7 +711,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number lineOffset = GetCharacterY(textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter)
         
         number x = 0
-        number horizontalOffset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        number horizontalOffset = -GetScrollPercentageX() * GetTotalContentWidth()
         MultipleLineText line = textValue:GetLine(caretLine)
         text lineCharacters = line:GetText()
 
@@ -889,13 +719,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         repeat while counter < caretCharacter
             Glyph glyph = font:GetGlyph(lineCharacters:GetCharacter(counter))
             x = x + glyph:horizontalAdvance
-            counter = counter + 1
-        end
-
-        counter = 0
-        Array<Gutter> gutters = background:GetGutters()
-        repeat while counter < gutters:GetSize()
-            x = x + gutters:Get(counter):GetWidth()
             counter = counter + 1
         end
 
@@ -916,8 +739,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         number paneHeight = GetHeight() - GetSharedSpaceOffset()
         number viableLines = lines:GetSize() - (paneHeight / GetLineHeight())
         number windowLines = (lines:GetSize() - viableLines) / 2.0
-        number newVertical = 1.0 - ((line - windowLines) / viableLines)
-        UpdatePaneView(horizontal, newVertical)
+        number newVertical = (line - windowLines) / lines:GetSize()
+        RefreshPaneView(GetScrollPercentageX(), newVertical)
     end
 
     /* returns the number of lines that are currently visible in the textbox, 
@@ -977,6 +800,18 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return GetUnpaddedLineHeight() + GetTotalLineHeightPadding()
     end
 
+    action GetLineHeight(integer line) returns number
+        return GetLineHeight()
+    end
+
+    action GetLineY(integer line) returns number
+        number contentHeight = GetTotalContentHeight()
+
+        number baseY = background:GetHeight() - ((line + 1.0) / GetLineCount() * contentHeight)
+        number scrollOffset = GetScrollPercentageY() * contentHeight
+
+        return baseY + scrollOffset
+    end
 
     private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -1127,7 +962,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
 
             Drawable highlight = background:GetDrawable()
             highlight:SetName("TextBox Highlight")
-            highlight:Load(selectionTexture)
+            highlight:Load(GetSelectionTexture())
             highlight:SetColor(GetSelectionColor())
 
             Array<Drawable> lineDrawables = background:GetLine(firstLine)
@@ -1321,13 +1156,13 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     positioning of the pane.
     */
     private action FitCharacterOnScreen(integer line, integer character)
-        number barSpace = 0
-        if verticalBar:IsShowing()
-            barSpace = barThickness
-        end
+        number left = GetScrollPercentageX() * (GetTotalContentWidth() - background:GetWidth())
+        number right = left + background:GetWidth()
 
-        number left = horizontal * (GetScrollRegionWidth() - (GetWidth() - barSpace))
-        number right = left + GetWidth() - barSpace
+        // Don't try to fit the character if the width is 0.
+        if left = right
+            return now
+        end
 
         text lineCharacters = textValue:GetLines():Get(line):GetText()
 
@@ -1341,15 +1176,15 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         if x < left
-            number newHorizontal = x / (GetScrollRegionWidth() - (GetWidth() - barSpace))
-            UpdatePaneView(newHorizontal, vertical)
+            number newHorizontal = x / (GetTotalContentWidth() - background:GetWidth())
+            RefreshPaneView(newHorizontal, GetScrollPercentageY())
         else
             if lineCharacters:GetSize() > counter
                 x = x + font:GetGlyph(lineCharacters:GetCharacter(counter)):horizontalAdvance
             end
             if x > right
-                number newHorizontal = (x - (GetWidth() - barSpace)) / (GetScrollRegionWidth() - (GetWidth() - barSpace))
-                UpdatePaneView(newHorizontal, vertical)
+                number newHorizontal = (x - background:GetWidth()) / (GetTotalContentWidth() - background:GetWidth())
+                RefreshPaneView(newHorizontal, GetScrollPercentageY())
             end
         end
     end
@@ -1460,16 +1295,9 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             size = size - separator:GetSize()
         end
 
-        number x1 = 0
-        integer counter = 0
-        Array<Gutter> gutters = background:GetGutters()
-        repeat while counter < gutters:GetSize()
-            x1 = x1 + gutters:Get(counter):GetWidth()
-            counter = counter + 1
-        end
-        
-        x1 = x1 + leftCharacterPadding
-        number offset = -horizontal * (GetScrollRegionWidth() - (GetWidth() - GetSharedSpaceOffset()))
+        number x1 = leftCharacterPadding
+
+        number offset = -GetScrollPercentageX() * GetTotalContentWidth()
         position = position - offset
 
         if position = x1
@@ -1549,7 +1377,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
             caretCharacter = textValue:GetLine(caretLine):GetText():GetSize()
             shouldResize = true
             toDelete = GetLineSeparator():GetSize()
-        elseif oldLength = GetScrollRegionWidth()
+        elseif oldLength = GetTotalContentWidth()
             // Force a recalculation of the width by setting its value to -1.
             scrollRegionWidth = -1
             shouldResize = true
@@ -1782,7 +1610,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         number lineWidth = GetLineWidth(indexLine)
-        if lineWidth > GetScrollRegionWidth()
+        if lineWidth > GetTotalContentWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
@@ -1870,7 +1698,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         end
 
         number lineWidth = GetLineWidth(caretLine)
-        if lineWidth > GetScrollRegionWidth()
+        if lineWidth > GetTotalContentWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
@@ -1894,11 +1722,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     end
 
     action GetEditManager returns EditManager
-        return editManager
+        return customEditManager
     end
 
     action SetEditManager(EditManager edits)
-        me:editManager = edits
+        customEditManager = edits
     end
 
     action SetTextBoxEditManager(TextBoxEditManager manager)
@@ -1916,104 +1744,22 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textEditManager
     end
 
-    action SetScrollDistance(number distance)
-        scrollDistance = distance
-    end
-
-    action GetScrollDistance returns number
-        return scrollDistance
-    end
-
-    action ScrolledMouse(MouseEvent event)
-        number y = event:scrollAmount
-        boolean positive = true
-        if y < 0
-            positive = false
-            y = y * -1
-        end
-
-        y = y + 1
-        y = math:SquareRoot(math:Logarithm(y))
-        number lines = cast(integer, y / liner)
-        if lines <= 1
-            lines = 1
-        end
-        number count = GetLineCount()
-        number linePercentage = lines / count
-
-        number heightChange = linePercentage * lines
-
-        if not positive
-            heightChange = heightChange * -1
-        end
-        y = vertical + heightChange
-        UpdatePaneView(horizontal, y)
-    end
-
     action DraggedMouse(MouseEvent event)
-        if barIsClicked
-            // Determine if we are updating the vertical or horizontal bar.
-            if verticalChanging
-                number y = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - clickPointOffset
-                UpdatePaneView(horizontal, y)
-            else
-                number x = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - clickPointOffset
-                UpdatePaneView(x, vertical)
-            end
-        elseif draggingInText
+        if draggingInText
             MousePositionCaret(event, true)
         end
     end
 
     action ClickedMouse(MouseEvent event)
         if event:GetSource() not= undefined and event:GetSource() is Item2D
-            Item2D source = cast(Item2D, event:GetSource())
-            if source:Equals(verticalControl)
-                barIsClicked = true
-                verticalChanging = true
-                clickPointOffset = GetVerticalTrackPercentage(event:GetY() - verticalBar:GetGlobalY()) - vertical
-            elseif source:Equals(horizontalControl)
-                barIsClicked = true
-                verticalChanging = false
-                clickPointOffset = GetHorizontalTrackPercentage(event:GetX() - horizontalBar:GetGlobalX()) - horizontal
-            elseif source:Equals(verticalBar) or source:Equals(horizontalBar)
-                // React to click being on the bar itself.
-            else 
-                // Assume main text area was clicked.
-                if event:GetY() >= GetGlobalY() and event:GetY() <= GetGlobalY() + GetHeight()
-                    // See if the click should be processed by a Gutter.
-                    Array<Gutter> gutters = background:GetGutters()
-
-                    number x = event:GetX()
-                    integer counter = 0
-                    repeat while counter < gutters:GetSize()
-                        Gutter gutter = gutters:Get(counter)
-                        if x >= gutter:GetGlobalX() and x <= gutter:GetGlobalX() + gutter:GetWidth()
-                            gutter:ClickedMouse(event)
-                            return now
-                        end
-                        counter = counter + 1
-                    end
-                end
-
-                if event:mouseButton = event:LEFT
-                    draggingInText = true
-
-                    /*
-                    If the click count is 1, there's been 1 click before this 
-                    one, and we want to let the double click behavior handle it.
-                    Otherwise, we position the mouse ourselves.
-                    */
-                    if gameStateManager:GetInput():GetClickCount(me) not= 1
-                        MousePositionCaret(event, false)
-                    end
-                end
+            if event:mouseButton = event:LEFT
+                draggingInText = true
+                MousePositionCaret(event, false)
             end
         end
     end
 
     action ReleasedMouse(MouseEvent event)
-        barIsClicked = false
         draggingInText = false
     end
 
@@ -2023,11 +1769,10 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
     directly by users.
     */
     action MousePositionCaret(MouseEvent event, boolean dragging)
-        
         integer line = caretLine
         integer index = caretCharacter
 
-        PositionCaretFromCoordinates(event:GetX() - GetGlobalX(), event:GetY() - GetGlobalY())
+        PositionCaretFromCoordinates(event:GetX() - background:GetGlobalX(), event:GetY() - background:GetGlobalY())
 
         integer caretPosition = GetCaretPosition()
         if caretPosition < selection:GetLockStart() or caretPosition > selection:GetLockEnd()
@@ -2067,7 +1812,8 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         integer totalLines = textValue:GetLines():GetSize()
         number lineHeight = GetLineHeight()
         integer line = cast(integer, firstLine)
-        number yPosition = GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
+
+        number yPosition = background:GetHeight() + (firstLine - line) * lineHeight - lineHeight/4
         
         repeat while yPosition > 0
             yPosition = yPosition - lineHeight
@@ -2097,105 +1843,25 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         parent:Control:LostFocus(event)
     end
 
-    /*
-    Takes values between 0.0 and 1.0 as percentage-style positions for the
-    vertical and horizontal scroll bars and view area.
-    */
-    action UpdatePaneView(number horizontal, number vertical)
-        if vertical > 1.0
-            if me:vertical = 1.0
-                return now
-            else
-                vertical = 1.0
-            end
-        elseif vertical < 0.0
-            if me:vertical = 0.0
-                return now
-            else
-                vertical = 0.0
-            end
-        end
-
-        if horizontal > 1.0
-            if me:horizontal = 1.0
-                return now
-            else
-                horizontal = 1.0
-            end
-        elseif horizontal < 0.0
-            if me:horizontal = 0.0
-                return now
-            else
-                horizontal = 0.0
-            end
-        end
-
-        number sharedSpaceOffset = GetSharedSpaceOffset()
-
-        verticalControlProperties:SetPercentageY(vertical)
-        verticalControlProperties:SetPixelY(((1 - vertical) * ((GetHeight() + verticalBarProperties:GetPixelHeight()) * verticalControlProperties:GetPercentageHeight())))
-        horizontalControlProperties:SetPercentageX(horizontal)
-        horizontalControlProperties:SetPixelX(-(horizontal * ((GetWidth() + horizontalBarProperties:GetPixelWidth()) * horizontalControlProperties:GetPercentageWidth())))
-
-        verticalBar:Resize()
-        horizontalBar:Resize()
-
-        number adjustedScrollWidth = GetScrollRegionWidth() - GetWidth()
-        number adjustedScrollHeight = GetScrollRegionHeight() - GetHeight()
-        
-        if verticalBar:IsShowing() and verticalBar:GetHeight() > 0
-            verticalViewPercentage = (verticalControl:GetHeight() + verticalControl:GetY()) / verticalBar:GetHeight()
-        else
-            verticalViewPercentage = 1.0
-        end
-
-        me:vertical = vertical
-        me:horizontal = horizontal
-
-        ResizeLineDrawables()
-    end
-
     private action GetSharedSpaceOffset returns number
-        if horizontalBar:IsShowing() and verticalBar:IsShowing()
-            return barThickness
+        if IsShowingHorizontalBar() and IsShowingVerticalBar()
+            return GetBarThickness()
         end
         return 0
     end
 
-    private action GetVerticalTrackPercentage(number y) returns number
-        return y / (GetHeight() - verticalControl:GetHeight())
-    end
-
-    private action GetHorizontalTrackPercentage(number x) returns number
-        return x / (GetWidth() - horizontalControl:GetWidth())
-    end
-
-    action GetScrollRegionHeight returns number
+    action GetTotalContentHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
-        number height = textValue:GetLineCount() * GetLineHeight()// + GetSharedSpaceOffset()
-        if height > GetHeight()
-            return height
-        else
-            return GetHeight()
-        end
+        return textValue:GetLineCount() * GetLineHeight()
     end
 
-    action GetScrollRegionWidth returns number
+    action GetTotalContentWidth returns number
         if scrollRegionWidth = -1
             CalculateRegionWidth()
         end
 
-        number width = GetWidth()
-        if verticalBar:IsShowing()
-            width = width - barThickness
-        end
-
-        if scrollRegionWidth > width
-            return scrollRegionWidth
-        else
-            return width
-        end
+        return scrollRegionWidth
     end
 
     /*
@@ -2218,6 +1884,11 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         */
         Array<MultipleLineText> lines = textValue:GetLines()
         
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if font:GetSize() not= cast(integer, (properties:GetFontSize() * properties:GetInterfaceScale()))
+            font:SetSize(cast(integer, properties:GetFontSize() * properties:GetInterfaceScale()))
+        end
+
         /*
         For monospaced fonts, this choice is arbitrary. For non-monospaced
         fonts, W is typically one of the broadest characters, but this is
@@ -2256,14 +1927,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return glyphWidth * line:GetWidth()
     end
 
-    action SetVerticalBarVisibility(integer mode)
-        verticalMode = mode
-    end
-
-    action SetHorizontalBarVisibility(integer mode)
-        horizontalMode = mode
-    end
-
     action Update(number seconds)
         if caretActive
             caretTimer = caretTimer - seconds
@@ -2277,29 +1940,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
                 end
             end
         end
-
-        if refreshGutters
-            Array<MultipleLineText> lines = textValue:GetLines()
-            Array<Gutter> gutters = background:GetGutters()
-
-            integer totalLines = lines:GetSize()
-            number lineHeight = GetLineHeight()
-            integer firstLineInteger = cast(integer, firstLine)
-
-            integer counter = 0
-            repeat while counter < gutters:GetSize()
-                Gutter gutter = gutters:Get(counter)
-                gutter:LoadGraphics(gutter:GetDefaultLayoutProperties())
-                gutter:UpdateLines(firstLineInteger, totalLines, lineHeight)
-                counter = counter + 1
-            end
-
-            refreshGutters = false
-        end
-    end
-
-    action RefreshGuttersOnNextUpdate
-        refreshGutters = true
     end
 
     /*
@@ -2445,7 +2085,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         return textValue:GetText(startIndex, endIndex)
     end
 
-    action GetCurrentLineText() returns text
+    action GetCurrentLineText returns text
         return textValue:GetLine(caretLine):GetText()
     end
 
@@ -2918,80 +2558,6 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         repeat while counter < toDelete:GetSize()
             RemoveTextStyle(toDelete:Get(counter))
             counter = counter + 1
-        end
-    end
-
-    /*  
-    This action adds a different Item2D into this one. This makes a few things happen.
-        1. The added item will get this item as its parent.
-        2. The added item's x and y coordinates will become relative to this Item.
-        3. Most actions on this Item will also affect the added Item.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D parentItem
-        Item2D child
-        parentItem:Add(child)
-        
-    */
-    action Add(Item2D item)
-        if item is Gutter
-            Gutter gutter = cast(Gutter, item)
-            gutter:SetTextBox(me)
-            background:AddGutter(gutter)
-        else
-            parent:Control:Add(item)
-        end
-    end
-
-    /*  
-    This action adds a different Item2D into this one, storing the added Item2D
-    at a specific index in the internal array.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D parentItem
-        Item2D child
-        parentItem:Add(0, child)
-        
-    */
-    action Add(integer index, Item2D item)
-        if item is Gutter
-            Gutter gutter = cast(Gutter, item)
-            gutter:SetTextBox(me)
-            background:AddGutter(gutter)
-        else
-            parent:Control:Add(index, item)
-        end
-    end
-
-    /*  
-    This action removes an Item2D that was previously added to this Item2D. 
-
-    Attribute: Returns Whether or not the Item was found and removed.
-
-    Attribute: Example
-
-        use Libraries.Interface.Item2D
-
-        Item2D parentItem
-        Item2D child1
-        Item2D child2
-        parentItem:Add(child1)
-        parentItem:Add(child2)
-        parentItem:Remove(child1)
-    */
-    action Remove(Item2D removed) returns boolean
-        if removed is Gutter
-            Gutter gutter = cast(Gutter, removed)
-            gutter:SetTextBox(undefined)
-            return background:RemoveGutter(gutter)
-        else
-            return parent:Control:Remove(removed)
         end
     end
 
@@ -3678,4 +3244,7 @@ class TextBox is Control, MouseListener, MouseMovementListener, MouseWheelListen
         selection:UnlockSelection()
     end
 
+    action GetFirstVisibleLine returns integer
+        return cast(integer, firstLine)
+    end
 end

@@ -1,0 +1,71 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
+
+class AlertBlock is SingleLineBlock
+
+    BlockLabel alertLabel = undefined
+    AlertContext alertContext = undefined
+    EditField messageField = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:ALERT_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Package Block")
+    end
+
+    action UpdateName(integer selectedLine)
+        // TO-DO: NYI
+        // This should be the entire text read by the screen reader when focused, not just the "output" portion
+        SetName("alert")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        BlockLabel alertLabel
+        me:alertLabel = alertLabel
+        alertLabel:SetFont(GetEditor():GetFont())
+        alertLabel:SetFontSize(GetEditor():GetFontSize())
+        alertLabel:SetText("alert")
+        alertLabel:SetRightPadding(spacing)
+        Add(alertLabel)
+
+        ParseContext name = alertContext:expression
+        if name = undefined //this is an error. Should we flag it in the user interface?
+            return now
+        end
+
+        Location location = name:GetLocation()
+        
+
+        EditField messageField
+        me:messageField = messageField
+        Add(messageField)
+
+        messageField:Setup("Message", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+
+    action GetAlertContext returns AlertContext
+        return alertContext
+    end
+
+    action SetContext(AlertContext context)
+        me:alertContext = context
+        SetContext(cast(ParseContext,context))
+    end
+
+end

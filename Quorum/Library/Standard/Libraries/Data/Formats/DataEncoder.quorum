@@ -1,0 +1,26 @@
+package Libraries.Data.Formats
+
+use Libraries.System.File
+
+class DataEncoder
+
+    /*
+    This action takes an image file represented by a path relative to the program's default 
+    working directory and translates it into a base 64 data URI string.
+
+    This action is not currently supported in web browsers, and will return the file path instead.
+    */
+    action EncodeImageAsDataURI(text filePath) returns text
+        File file
+        file:SetPath(filePath)
+        return EncodeImageAsDataURI(file)
+    end
+
+    /*
+    This action takes an image file and translates it into a base 64 data URI string.
+
+    This action is not currently supported in web browsers, and will return the file path instead.
+    */
+    system action EncodeImageAsDataURI(File file) returns text
+
+end

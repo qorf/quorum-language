@@ -28,12 +28,12 @@ import org.robovm.rt.bro.annotation.Callback;
 import org.robovm.rt.bro.annotation.Pointer;
 import org.robovm.apple.opengles.EAGLContext;
 import org.robovm.apple.opengles.EAGLRenderingAPI;
-
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
 import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
 import quorum.Libraries.Game.Graphics.Painter2D;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Interface.Accessibility_;
 
 /**
  *
@@ -42,7 +42,7 @@ import quorum.Libraries.Game.IOSConfiguration_;
 public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewControllerDelegate, UIGestureRecognizerDelegate
 {
     public java.lang.Object me_ = null;
-    
+    public static IOSUIViewController theViewController = null;
     // Is this necessary? Original libgdx code below:
     // private static final String tag = "IOSGraphics";
     private static final String tag = "IOSDisplay";
@@ -122,6 +122,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
 
     static class IOSUIViewController extends GLKViewController
     {
+
         final IOSApplication app;
         final IOSDisplay display;
         boolean created = false;
@@ -130,6 +131,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         {
             this.app = app;
             this.display = display;
+            theViewController = this;
         }
         
         @Override

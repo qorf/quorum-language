@@ -6,7 +6,9 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeProvider;
 import plugins.quorum.Libraries.Game.AndroidApplication;
+import quorum.Libraries.Interface.Accessibility;
 import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
@@ -16,18 +18,16 @@ import quorum.Libraries.Interface.Item_;
  *
  * @author andreasstefik
  */
-public class AndroidAccessibility {
+public class AndroidAccessibility{
     public Object me_ = null;
-    public static Item_ lastHoveredChild;
     public static Item_ lastSpokenChild;
+    public static Item_ lastHoveredChild;
 
 
     public static void sendAccessibilityEventForVirtualView(Item_ item, int eventType) {
         if(item == null)
             return;
-        // If touch exploration, i.e. the user gets feedback while touching
-        // the screen, is enabled we fire accessibility events.
-        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && !(item.GetDescription().trim().isEmpty() || item.GetName().trim().isEmpty())) {
+        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled()) {
             if (lastSpokenChild == null)
                 lastSpokenChild = item;
             else if(lastSpokenChild == item)
@@ -38,10 +38,32 @@ public class AndroidAccessibility {
             event.setPackageName(AndroidApplication.androidActivity.getPackageName());
             event.setClassName(item.GetName());
             event.setSource(AndroidApplication.viewRoot, item.GetHashCode());
-            event.getText().add(item.GetName() + " " + item.GetDescription());
+            String text = "";
+            if (!item.GetName().trim().isEmpty()) {
+                text += item.GetName() + " ";
+            }
+            if (!item.GetDescription().trim().isEmpty()){
+                text += item.GetDescription() + " ";
+            } else {
+                text += item.GetAccessibilityType();
+            }
+            if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__LIST_ITEM_()){
+                ((ListItem_) item).Select();
+                text += " " + ((ListItem_) item).GetText();
+            }
+
+            event.getText().add(text);
             AndroidApplication.accessibilityManager.interrupt();
             AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
         }
+    }
+
+    public static void sendAccessibilityEventForVirtualView(String text) {
+        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        event.setSource(AndroidApplication.viewRoot, lastSpokenChild.GetHashCode());
+        event.getText().add(text);
+        AndroidApplication.accessibilityManager.interrupt();
+        AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
     }
 
     public static boolean onHoverVirtualView(Item_ item, MotionEvent event) {
@@ -73,7 +95,10 @@ public class AndroidAccessibility {
 
     public void  SelectionChanged(SelectionEvent_ event) {}
 
-    public void  ButtonActivated(Button_ button) {}
+    public void ButtonActivated(Button_ button) {
+        sendAccessibilityEventForVirtualView(button, AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        android.util.Log.e("Quorum", "ButtonActivated: ");
+    }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
@@ -93,6 +118,7 @@ public class AndroidAccessibility {
         Item_ temp = AndroidApplication.quorumItems.get(id);
         if(temp == null)
             return;
+        //Log.e("Quorum", "FocusChanged: " + temp.GetDescription() + temp.GetName());
         sendAccessibilityEventForVirtualView(temp, AccessibilityEvent.TYPE_ANNOUNCEMENT);
     }
 
@@ -110,6 +136,9 @@ public class AndroidAccessibility {
         if(accessibilityNodeProvider == null) {
             return;
         }
+
+        if(item.GetAccessibilityType().equals("NOT_ACCESSIBLE"))
+            return;
 
         int id = item.GetHashCode();
 

@@ -1,0 +1,33 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a friedman test
+*/
+class CompareSeveralRelatedRankedMeansTest is Test
+
+    on create
+        SetName("Calculate CompareSeveralRelatedRankedMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
+
+        CompareMeans compare
+        compare:Ranked(true)
+        compare:RepeatedMeasures(true)
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 14.0)
+        Check(result:GetDegreesOfFreedom(), 3.0)
+        Check(result:GetProbabilityValue(), 0.0029051527742673944)
+        Check(result:GetEffectSize(), 0.7777777777777778)
+    end
+end

@@ -27,6 +27,7 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
+use Libraries.Interface.Layouts.ButtonLayout
 
 class Button is Control, TextureLoadListener
 
@@ -39,9 +40,11 @@ class Button is Control, TextureLoadListener
     // Whether this button has been depressed, e.g. by a mouse click.
     boolean depressed = false
 
+    boolean automaticFontSizing = true
+
     on create
-        FlowLayout flowLayout
-        SetLayout(flowLayout)
+        ButtonLayout layout
+        SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetInterfaceOptionsKey("Button")
@@ -56,6 +59,12 @@ class Button is Control, TextureLoadListener
         SetInputGroup("Button")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:BUTTON)
+
+        // The padding is used to space out the internal contents.
+        SetTopPadding(4)
+        SetBottomPadding(7)
+        SetLeftPadding(7)
+        SetRightPadding(7)
     end
 
     action GetDefaultFontName returns text
@@ -224,20 +233,16 @@ class Button is Control, TextureLoadListener
         This action is fired if the item received the focus.
     */
     action GainedFocus(FocusEvent event)
-        if label not= undefined and GetFocusFontColor() not= undefined
-            label:SetColor(GetFocusFontColor())
-        end
         parent:Control:GainedFocus(event)
+        UpdateLabelColor()
     end
 
     /*
         This action is fired if the item lost the focus.
     */
     action LostFocus(FocusEvent event)
-        if label not= undefined and GetFontColor() not= undefined
-            label:SetColor(GetFontColor())
-        end
         parent:Control:LostFocus(event)
+        UpdateLabelColor()
     end
 
     /*
@@ -295,9 +300,9 @@ class Button is Control, TextureLoadListener
                     iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
                     iconProperties:SetPercentageWidth(cast(number, icon:GetRegionWidth()) / icon:GetRegionHeight())
                     iconProperties:SetPercentageHeight(1.0)
-                    iconProperties:SetLeftPadding(7)
-                    iconProperties:SetTopPadding(4)
-                    iconProperties:SetBottomPadding(4)
+                    iconProperties:SetLeftMargin(GetLeftPadding())
+                    iconProperties:SetTopMargin(GetTopPadding())
+                    iconProperties:SetBottomMargin(GetBottomPadding())
                     icon:SetColor(properties:GetIconColor())
                     Add(icon)
                 end
@@ -309,21 +314,17 @@ class Button is Control, TextureLoadListener
                 LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
                 labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
                 labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-                labelProperties:SetLeftPadding(7)
-                labelProperties:SetRightPadding(7)
-                labelProperties:SetTopPadding(4)
-                labelProperties:SetBottomPadding(7)
+                labelProperties:SetLeftMargin(GetLeftPadding())
+                labelProperties:SetRightMargin(GetRightPadding())
+                labelProperties:SetTopMargin(GetTopPadding())
+                labelProperties:SetBottomMargin(GetBottomPadding())
                 label:SetFont(font)
                 label:SetSize(properties:GetFontSize())
                 label:SetText(labelText)
                 label:SetPositionOnBaseLine(false)
                 Add(label)
 
-                if IsFocused() and GetFocusFontColor() not= undefined
-                    label:SetFontColor(GetFocusFontColor())
-                else
-                    label:SetFontColor(properties:GetFontColor())
-                end
+                UpdateLabelColor()
             end
         elseif iconTexture not= undefined
             if manager:GetApplication() is Libraries.Game.WebApplication 
@@ -362,6 +363,33 @@ class Button is Control, TextureLoadListener
         parent:Control:LoadGraphics(properties)
     end
 
+    private action UpdateLabelColor
+        if label = undefined
+            return now
+        end
+
+        ColorGroup color = undefined
+        if IsFocused()
+            if IsRenderingSelection()
+                color = GetSelectionFontColor()
+            end
+
+            if color = undefined
+                color = GetFocusFontColor()
+            end
+        elseif IsRenderingSelection()
+            color = GetUnfocusedSelectionFontColor()
+        end
+
+        if color = undefined
+            color = GetFontColor()
+        end
+
+        if color not= undefined
+            label:SetFontColor(color)
+        end
+    end
+
     /*
     Whether or not this button is currently depressed, e.g. by a mouse click or
     touch event.
@@ -383,4 +411,27 @@ class Button is Control, TextureLoadListener
         // If a texture we were listening to has loaded, refresh the visuals.
         LoadGraphics(GetDefaultLayoutProperties())
     end
+
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        SetAutomaticFontSizing(false)
+    end
+
+    /*
+    This action returns true if the Button is automatically setting the size of
+    the font of its Label, if it has one, or false if it uses a static font size.
+    By default, this is true.
+    */
+    action IsAutomaticFontSizing returns boolean
+        return automaticFontSizing
+    end
+
+    /*
+    This action sets whether or not this Button should automatically set the size
+    of the font of its Label, if it has one. This is true by default.
+    */
+    action SetAutomaticFontSizing(boolean automaticFontSizing)
+        me:automaticFontSizing = automaticFontSizing
+    end
+
 end

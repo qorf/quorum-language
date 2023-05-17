@@ -1,0 +1,34 @@
+package Libraries.Interface.Forms
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Button
+
+class StartButtonGrouping is Grouping
+
+    Label label = undefined
+    Button button = undefined
+
+    on create
+        CenterAlignTitle()
+        CenterAlignContent()
+        SetTitleSizeLarge()
+        
+        SetInterfaceOptionsKey("StartButtonGrouping")
+    end
+
+    action Initialize(text title, text label, text buttonName)
+        SetTitle(title)
+        me:label = AddLabel(title + " Label", label)
+        button = AddButton(buttonName)
+    end
+
+    action GetLabel returns Label
+        return label
+    end
+
+    action GetButton returns Button
+        return button
+    end
+
+end
