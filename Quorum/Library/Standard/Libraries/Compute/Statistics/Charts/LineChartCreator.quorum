@@ -19,6 +19,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Containers.Support.Comparison
 use Libraries.System.DateTime
+use Libraries.Compute.Statistics.DataFrameSelection
 
 /*
     This class is used to create a Line Chart from a dataframe. The class contains two possible inputs, 
@@ -340,10 +341,18 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                     regLine:NamedAfterSeries(true)
                     DataFrame regressionFrame
                     regressionFrame:SetColumns(regColumns)
-                    Regression regression 
-                    regression:AddFactor(0) //the independent variable
-                    regression:AddColumn(1) //the dependent variable
+                    Regression regression
+
+                    DataFrameSelection oldSelection = frame:GetSelection()
+
+                    //temporarily flip the selection
+                    DataFrameSelection newSelection
+                    newSelection:AddFactor(0)
+                    newSelection:AddColumn(1)
+                    regressionFrame:SetSelection(newSelection)
+
                     regressionFrame:Calculate(regression)
+                    regressionFrame:SetSelection(oldSelection)
                     regLine:SetRegression(regression)
                     regLine:SetSeries(seriesFactor:GetValue(seriesNames:Get(i)))
                     seriesFactor:GetValue(seriesNames:Get(i)):SetRegressionLine(regLine)
