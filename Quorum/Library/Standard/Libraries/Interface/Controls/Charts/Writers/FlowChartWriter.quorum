@@ -71,12 +71,17 @@ class FlowchartWriter is ChartWriter
         canvas:SetFill(transparent) 
         canvas:SetFillOpacity(transparent)
 
+        Script script
+        text scriptText = ""
+        text newLine = scriptText:GetLineFeed()
+
         Drawable drawable = cast(Drawable, chart:GetIcon())
         if drawable is Drawable
             Image image
             Texture texture = drawable:GetTexture()
             DataEncoder encoder
             image:SetHref(encoder:EncodeImageAsDataURI(texture:GetSource()))
+            image:SetAriaHidden("true")
             canvas:Add(image)
         end
 
@@ -90,10 +95,9 @@ class FlowchartWriter is ChartWriter
         canvas:Add(chartContent)
 
         Rectangle chartContentBoundingBox
-        chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
         chartContentBoundingBox:SetStyleClass("quorum-chart-region quorum-chart-area")
-        chartContentBoundingBox:SetSize(GetChartArea():GetWidth(), GetChartArea():GetHeight())
-        chartContentBoundingBox:SetPosition(GetChartArea():GetPositionX(), GetChartArea():GetPositionY())
+        chartContentBoundingBox:SetSize(chart:GetWidth(), chart:GetHeight())
+        chartContentBoundingBox:SetPosition(0, 0)
         chartContentBoundingBox:SetFill(transparent)
         chartContentBoundingBox:SetFillOpacity(transparent)
         chartContentBoundingBox:SetStroke(transparent)
@@ -101,7 +105,9 @@ class FlowchartWriter is ChartWriter
         chartContentBoundingBox:SetTabIndex(-1)
         if HasAccessibility()
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the FlowChart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
+            chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
+            chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
+            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the FlowChart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
             chartContent:SetAriaHidden("false")
             chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
@@ -110,7 +116,7 @@ class FlowchartWriter is ChartWriter
         
         Array<Item2D> nodes = chart:GetChildren()
         Array<Group> nodeGraphics
-        Array<Group> arrowGraphics        
+        Array<Group> arrowGraphics    
 
         integer i = 0
         repeat while i < nodes:GetSize()
@@ -191,13 +197,12 @@ class FlowchartWriter is ChartWriter
                 nodeLabel:SetFontSize(chart:GetFontSize() + "px")  
                 nodeLabel:SetFontFamily("Arial")  
                 nodeLabel:SetTabIndex(-1)
-                
                 if HasAccessibility()
                     if nodeFocus not= ""
-                        flowNodeSVG:SetOnFocus(nodeFocus)
+                        scriptText = scriptText + "document.getElementById('" + flowNodeSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + nodeFocus + "});" + newLine
                     end
                     if nodeBlur not= ""
-                        flowNodeSVG:SetOnBlur(nodeBlur)
+                        scriptText = scriptText + "document.getElementById('" + flowNodeSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + nodeBlur + "});" + newLine
                     end
                 end
                 canvas:Add(nodeLabel)
@@ -343,10 +348,10 @@ class FlowchartWriter is ChartWriter
                             end
                             if HasAccessibility()
                                 if arrowFocus not= ""
-                                    flowArrowSVG:SetOnFocus(arrowFocus)
+                                    scriptText = scriptText + "document.getElementById('" + flowArrowSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + arrowFocus + "});" + newLine
                                 end
                                 if arrowBlur not= ""
-                                    flowArrowSVG:SetOnBlur(arrowBlur)
+                                    scriptText = scriptText + "document.getElementById('" + flowArrowSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + arrowBlur + "});" + newLine
                                 end
                             end
                             canvas:Add(arrow)
@@ -384,7 +389,10 @@ class FlowchartWriter is ChartWriter
                 end
             i = i + 1
         end
-
+        if HasAccessibility()
+            script:AddText(scriptText)  
+            canvas:Add(script)
+        end
     end
 
 
