@@ -12,11 +12,19 @@ use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Interface.Controls.Charts.MovableRegressionSeries
 
 class ResidualSquare is ChartDrawable
 
     ChartPoint point = undefined
     Color borderColor = undefined
+
+    /*
+    A movable regression series this square is related to. 
+    Undefined by default, and only set if this is attached to such a series.
+    Typically residual squares will be attached to a series via the ChartPoint instead.
+    */
+    MovableRegressionSeries movableSeries = undefined
 
     on create
         Color color
@@ -61,7 +69,12 @@ class ResidualSquare is ChartDrawable
         number x = point:GetValueX()
         number y = point:GetValueY()
 
-        RegressionLine regression = point:GetSeries():GetRegressionLine()
+        RegressionLine regression = undefined
+        if movableSeries not= undefined
+            regression = movableSeries:GetRegressionLine()
+        else
+            regression = point:GetSeries():GetRegressionLine()
+        end
 
         return y - regression:CalculateDependentValue(x)
     end
@@ -71,7 +84,12 @@ class ResidualSquare is ChartDrawable
             return parent:Control:GetBorderColor()
         end
 
-        if point not= undefined and point:GetSeries() not= undefined
+        if movableSeries not= undefined
+            Color color = movableSeries:GetColor()
+            borderColor:SetColor(color:GetRed() - 0.2, color:GetGreen() - 0.2, color:GetBlue() - 0.2, color:GetAlpha())
+
+            return borderColor
+        elseif point not= undefined and point:GetSeries() not= undefined
             Color color = point:GetBackgroundColor():GetBottomLeft()
             borderColor:SetColor(color:GetRed() - 0.2, color:GetGreen() - 0.2, color:GetBlue() - 0.2, color:GetAlpha())
 
@@ -134,4 +152,13 @@ class ResidualSquare is ChartDrawable
 
         return cast(ChartAreaPanel, item)
     end
+
+    action GetMovableSeries returns MovableRegressionSeries
+        return movableSeries
+    end
+
+    action SetMovableSeries(MovableRegressionSeries movableSeries)
+        me:movableSeries = movableSeries
+    end
+
 end

@@ -175,6 +175,13 @@ class LightModeOptions is InterfaceOptions
         SetTextFieldFontColor(color:Black())
         SetTextFieldIconColor(GetTextFieldFontColor())
 
+        // CodeEditor specific options.
+        SetCodeEditorBackgroundColor(color:White())
+        SetCodeEditorFontColor(color:Black())
+        SetCodeEditorForegroundColor(sidePanel)
+        SetCodeEditorAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
+        SetCodeEditorIconColor(GetTextBoxFontColor())
+
         // TreeTableCell specific colors.
         SetTreeTableCellBackgroundColor(color:White())
         SetTreeTableCellSelectionColor(color:CustomColor(9.0 / 255.0, 80.0/255.0, 208.0/255.0, 1))

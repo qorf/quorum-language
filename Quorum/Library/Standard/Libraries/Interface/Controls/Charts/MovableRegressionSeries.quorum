@@ -1,0 +1,87 @@
+package Libraries.Interface.Controls.Charts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
+use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+
+class MovableRegressionSeries is Series
+
+    Array<ResidualSquare> residualSquares
+
+    /*
+    This action adds items from the given series to the items of this MovableRegressionSeries.
+    Unlike the standard Add call for a Series, this does not change the individual ChartItems'
+    associated series.
+    */
+    action AddSeriesItems(Series series)
+        Array<ChartDrawable> items = parent:Series:items
+        integer i = 0
+        repeat while i < series:GetSize()
+            items:Add(series:GetItemAt(i))
+            i = i + 1
+        end    
+    end
+
+    action GetResidualSquares returns Array<ResidualSquare>
+        return residualSquares
+    end
+
+    action RefreshResidualSquares
+        if residualSquares:IsEmpty()
+            return now
+        end
+
+        RegressionLine line = GetRegressionLine()
+        
+        Chart chart = GetChartArea():GetContainer()
+        ChartAreaPanel chartAreaContainer = GetChartArea()
+        if chart = undefined or chartAreaContainer = undefined
+            return now
+        end
+
+        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent() * chartAreaContainer:GetHeight())
+        number containerHeight = chartAreaContainer:GetHeight() - 2 * yAxisPaddingOffset
+
+        number xMin = chart:GetXAxisMinimum()
+        number xMax = chart:GetXAxisMaximum()
+        number yMin = chart:GetYAxisMinimum()
+        number yMax = chart:GetYAxisMaximum()
+
+        integer i = 0
+        repeat while i < residualSquares:GetSize()
+            ResidualSquare square = residualSquares:Get(i)
+            ChartPoint point = square:GetPoint()
+
+            boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
+
+            number residual = square:GetResidual()
+            number percentHeight = residual / (yMax - yMin)
+            if percentHeight < 0
+                percentHeight = -percentHeight
+            end
+
+            number realHeight = percentHeight * containerHeight
+            square:SetSize(realHeight, realHeight)
+
+            number pointX = point:GetX() + point:GetWidth() / 2.0
+            number pointY = point:GetY() + point:GetHeight() / 2.0
+
+            if positiveSlope
+                if residual < 0
+                    square:SetPosition(pointX, pointY)
+                else
+                    square:SetPosition(pointX - realHeight, pointY - realHeight)
+                end
+            else
+                if residual < 0
+                    square:SetPosition(pointX - realHeight, pointY)
+                else
+                    square:SetPosition(pointX, pointY - realHeight)
+                end
+            end
+
+            i = i + 1
+        end
+    end
+
+end

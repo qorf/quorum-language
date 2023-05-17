@@ -1609,16 +1609,16 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             end
         end
 
+        if caretTarget >= 0
+            SetCaretPosition(caretTarget)
+        end
+
         number lineWidth = GetLineWidth(indexLine)
         if lineWidth > GetTotalContentWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
             Resize()
-        end
-
-        if caretTarget >= 0
-            SetCaretPosition(caretTarget)
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)

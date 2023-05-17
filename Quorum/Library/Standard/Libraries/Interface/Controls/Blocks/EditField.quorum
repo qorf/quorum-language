@@ -80,6 +80,10 @@ class EditField is TextField, EditRegion
         parent:BlockItem:GainedFocus(event)
     end
 
+    action ShowCaret
+        parent:TextField:ShowCaret()
+    end
+
     action LostFocus(FocusEvent event)
         parent:TextField:LostFocus(event)
         parent:Control:LostFocus(event)

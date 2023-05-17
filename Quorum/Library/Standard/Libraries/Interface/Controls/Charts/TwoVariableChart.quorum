@@ -219,9 +219,20 @@ class TwoVariableChart is Chart
             integer i = 0
 
             Array<ResidualSquare> squares = undefined
+            Array<ResidualSquare> movableSquares = undefined
+            boolean hasSeparatedMovableLines = false
+
             if me is ScatterPlot
                 ScatterPlot scatter = cast(ScatterPlot, me)
                 squares = scatter:GetResidualSquares()
+                
+                if scatter:HasMovableRegressionLine()
+                    if IsSeparated()
+                        hasSeparatedMovableLines = true
+                    else
+                        movableSquares = GetChartArea():GetMovableRegressionSeries():GetResidualSquares()
+                    end
+                end
             end
 
             repeat while i < points:GetSize()
@@ -239,7 +250,17 @@ class TwoVariableChart is Chart
                         if IsSeparatedBySeries()
                             if point:GetSeries():GetName() = GetSubChartAreas():Get(j):GetName()
                                 chartArea = GetSubChartAreas():Get(j)
-                                GetSubChartAreas():Get(j):AddChartAreaItem(point)
+                                chartArea:AddChartAreaItem(point)
+
+                                if hasSeparatedMovableLines
+                                    MovableRegressionSeries movableSeries = chartArea:GetMovableRegressionSeries()
+
+                                    ResidualSquare square
+                                    square:SetMovableSeries(movableSeries)
+                                    square:SetPoint(point)
+
+                                    movableSeries:GetResidualSquares():Add(square)
+                                end
                             end
                         end
                         j = j + 1
@@ -250,6 +271,13 @@ class TwoVariableChart is Chart
                     ResidualSquare square
                     square:SetPoint(point)
                     squares:Add(square)
+                end
+
+                if movableSquares not= undefined
+                    ResidualSquare square
+                    square:SetPoint(point)
+                    square:SetMovableSeries(chartArea:GetMovableRegressionSeries())
+                    movableSquares:Add(square)
                 end
 
                 chartArea:Add(point)
@@ -311,11 +339,32 @@ class TwoVariableChart is Chart
                         chartArea:Add(squares:Get(i))
                         i = i + 1
                     end
+
+                    if hasSeparatedMovableLines
+                        i = 0
+                        repeat while i < GetNumberOfChartAreas()
+                            ChartAreaPanel subArea = GetSubChartAreas():Get(i)
+                            Array<ResidualSquare> subAreaSquares = subArea:GetMovableRegressionSeries():GetResidualSquares()
+                            integer j = 0
+                            repeat while j < subAreaSquares:GetSize()
+                                subArea:Add(subAreaSquares:Get(j))
+                                j = j + 1
+                            end
+                        end
+                    end
                 else
                     ChartAreaPanel chartArea = GetChartArea()
                     repeat while i < squares:GetSize()
                         chartArea:Add(squares:Get(i))
                         i = i + 1
+                    end
+
+                    if movableSquares not= undefined
+                        i = 0
+                        repeat while i < movableSquares:GetSize()
+                            chartArea:Add(movableSquares:Get(i))
+                            i = i + 1
+                        end
                     end
                 end
             end
@@ -807,6 +856,8 @@ class TwoVariableChart is Chart
                         i = i + 1
                     end
                 end
+
+                // TO-DO: Handle movable regression lines for this case.
             else
                 if GetSeriesList():GetSize() > 0
                     ChartItem firstSeries = GetSeriesList():Get(0)
@@ -839,6 +890,47 @@ class TwoVariableChart is Chart
                         AddPoints(summary, series, nextSeriesPoints)
                         i = i + 1
                     end
+
+                    // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
+                    Array<Series> movableSeries
+                    if HasMovableRegressionLine()
+                        Array<ChartAreaPanel> subAreas
+                        if subAreas = undefined or subAreas:IsEmpty()
+                            movableSeries:Add(GetChartArea():GetMovableRegressionSeries())
+                        else
+                            integer counter = 0
+                            repeat while counter < subAreas:GetSize()
+                                movableSeries:Add(subAreas:Get(counter):GetMovableRegressionSeries())
+                                counter = counter + 1
+                            end
+                        end
+                    end
+
+                    if movableSeries:IsEmpty() = false
+                        Series firstMovableSeries = movableSeries:Get(0)
+                        firstMovableSeries:SetContainer(me)
+                        firstMovableSeries:SetPreviousFocus(summary)
+                        firstMovableSeries:SetEscapeItem(chartArea)
+                        firstMovableSeries:SetDisplayName(firstMovableSeries:GetName())
+                        firstMovableSeries:SetLeftItem(previousSeries)
+                        previousSeries:SetRightItem(firstMovableSeries)
+                        AddGroupPanelInstructions(firstMovableSeries, firstMovableSeries:GetDescription())
+    
+                        i = 1
+                        previousSeries = firstMovableSeries
+                        repeat while i < movableSeries:GetSize()
+                            Series nextSeries = movableSeries:Get(i)
+                            nextSeries:SetContainer(me)
+                            nextSeries:SetPreviousFocus(summary)
+                            nextSeries:SetEscapeItem(chartArea)
+                            previousSeries:SetRightItem(nextSeries)
+                            nextSeries:SetLeftItem(previousSeries)
+                            previousSeries = nextSeries
+                            nextSeries:SetDisplayName(nextSeries:GetName())
+                            
+                            i = i + 1
+                        end
+                    end
                 end
             end
 
@@ -860,6 +952,24 @@ class TwoVariableChart is Chart
                     end
 
                     i = i + 1
+                end
+
+                if HasMovableRegressionLine()
+                    if IsSeparated()
+                        integer counter = 0
+                        repeat while counter < GetNumberOfChartAreas()
+                            MovableRegressionSeries series = GetSubChartAreas():Get(counter):GetMovableRegressionSeries()
+                            RegressionLine line = series:GetRegressionLine()
+                            series:SetEnterItem(line)
+                            line:SetEscapeItem(series)
+                            counter = counter + 1
+                        end
+                    else
+                        MovableRegressionSeries series = GetChartArea():GetMovableRegressionSeries()
+                        RegressionLine line = series:GetRegressionLine()
+                        series:SetEnterItem(line)
+                        line:SetEscapeItem(series)
+                    end
                 end
             end
         end

@@ -1607,6 +1607,10 @@ class DataFrame
         return selection
     end
 
+    action SetSelection(DataFrameSelection selection)
+        me:selection = selection
+    end
+
     /* Private undefined checker. */
     private action CheckDefaultSelection
         if selection = undefined

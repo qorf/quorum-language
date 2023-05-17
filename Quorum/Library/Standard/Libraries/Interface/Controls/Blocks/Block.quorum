@@ -10,6 +10,10 @@ use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Selections.CodeEditorSelection
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Language.Compile.CompilerError
+use Libraries.Containers.Iterator
+use Libraries.Containers.List
 
 class Block is Control
     integer scopeDepth = 0
@@ -55,12 +59,90 @@ class Block is Control
     */
     number topNotchPositionFactor = 1
     number bottomNotchPositionFactor = 1
+    List<Hint> hints
+    List<CompilerError> errors
 
     on create
         SetName("Block")
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    private action UpdateHintsAndErrorsVisuals
+
+    end
+
+    action Add(Hint hint)
+        hints:Add(hint)
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action GetFirstHint returns Hint
+        return hints:Get(0)
+    end
+
+    action GetHint(integer index) returns Hint
+        return hints:Get(index)
+    end
+
+    action IsHintsEmpty returns boolean
+        return hints:IsEmpty()
+    end
+
+    action GetHintsSize returns integer
+        return hints:GetSize()
+    end
+
+    action Remove(Hint hint) returns boolean
+        boolean value = hints:Remove(hint)
+        UpdateHintsAndErrorsVisuals()
+        return value
+    end
+
+    action GetHintIterator returns Iterator<Hint>
+        return hints:GetIterator()
+    end
+
+    action EmptyHints
+        hints:Empty()
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action Add(CompilerError error)
+        errors:Add(error)
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action GetFirstError returns CompilerError
+        return errors:Get(0)
+    end
+
+    action GetError(integer index) returns CompilerError
+        return errors:Get(index)
+    end
+
+    action IsErrorsEmpty returns boolean
+        return errors:IsEmpty()
+    end
+
+    action GetErrorsSize returns integer
+        return errors:GetSize()
+    end
+
+    action Remove(CompilerError error) returns boolean
+        boolean value = errors:Remove(error)
+        UpdateHintsAndErrorsVisuals()
+        return value
+    end
+
+    action GetErrorIterator returns Iterator<Hint>
+        return errors:GetIterator()
+    end
+
+    action EmptyErrors
+        errors:Empty()
+        UpdateHintsAndErrorsVisuals()
     end
 
     /*
