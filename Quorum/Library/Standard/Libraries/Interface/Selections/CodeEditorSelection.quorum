@@ -7,7 +7,8 @@ use Libraries.Interface.Controls.Blocks.Block
 
 class CodeEditorSelection is Selection
 
-    integer selectedLine = -1
+    // Note that line -1 represents the top of the file above the first block. Values that are less than -1 are an empty selection.
+    integer selectedLine = -2
     Block selectedBlock = undefined
     BlockItem selectedItem = undefined
 
@@ -28,6 +29,10 @@ class CodeEditorSelection is Selection
         else
             UpdateSelection("No selection",  oldBlock, oldItem, oldLine)
         end
+    end
+
+    action SetToTopOfFile
+        Set(undefined, -1, undefined)
     end
 
     private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine)
@@ -52,7 +57,11 @@ class CodeEditorSelection is Selection
     end
 
     action IsEmpty returns boolean
-        return selectedLine < 0
+        return selectedLine < -1
+    end
+
+    action Empty
+        Set(undefined, -2, undefined)
     end
 
     action GetEditor returns CodeEditor
