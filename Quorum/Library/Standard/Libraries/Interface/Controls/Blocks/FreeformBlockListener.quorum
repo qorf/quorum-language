@@ -83,15 +83,6 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterCheckStatement(CheckContext context)
         // Correct the locations for the IfContext and its related components.
         OffsetLocation(context:GetLocation())
-        if context:alwaysContext not= undefined
-        OffsetLocation(context:alwaysContext:GetLocation())
-        end
-
-        integer i = 0
-        repeat while i < context:detectStatements:GetSize()
-            OffsetLocation(context:detectStatements:Get(i):GetLocation())
-            i = i + 1
-        end
 
         CheckBlock block
         block:SetScopeDepth(scopeDepth)
@@ -214,9 +205,11 @@ class FreeformBlockListener is QuorumSourceListener
         OffsetLocation(context:GetLocation())
         OffsetLocation(context:actionNameLocation)
         integer i = 0
-        repeat while i < context:parameterContexts:GetSize()
-            OffsetLocation(context:parameterContexts:Get(i):GetLocation())
-            i = i + 1
+        if context:parameterContexts not= undefined
+            repeat while i < context:parameterContexts:GetSize()
+                OffsetLocation(context:parameterContexts:Get(i):GetLocation())
+                i = i + 1
+            end
         end
         if context:returnLocation not= undefined 
             OffsetLocation(context:returnLocation)
@@ -273,8 +266,9 @@ class FreeformBlockListener is QuorumSourceListener
         // Correct the locations for the IfContext and its related components.
         OffsetLocation(context:GetLocation())
         OffsetLocation(context:ifExpression:GetLocation())
-        OffsetLocation(context:elseLocation)
-
+        if context:elseLocation not= undefined
+            OffsetLocation(context:elseLocation)
+        end
         integer i = 0
         repeat while i < context:elseIfExpressions:GetSize()
             OffsetLocation(context:elseIfExpressions:Get(i):GetLocation())
@@ -330,7 +324,12 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterBlock(BlockContext context) end
     action ExitBlock(BlockContext context) end
 
-    action EnterClassStatements(ClassStatementsContext context) end
+    action EnterClassStatements(ClassStatementsContext context) 
+        ParseContext pc = context:statement
+        if pc not= undefined
+            pc:Traverse(me)
+        end
+    end
     action ExitClassStatements(ClassStatementsContext context) end
 
     action EnterQualifiedName(QualifiedNameContext context) end
@@ -369,11 +368,14 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitInheritStatement(InheritStatementContext context) end
 
     action EnterDetectStatement(DetectStatementContext context)
+        OffsetLocation(context:GetLocation())
         OffsetLocation(context:nameLocation)
-        integer i = 0
-        repeat while i < context:qualifiedNameContexts:GetSize()
-            OffsetLocation(context:qualifiedNameContexts:Get(i):GetLocation())
-            i = i + 1
+        if context:qualifiedNameContexts not= undefined
+            integer i = 0
+            repeat while i < context:qualifiedNameContexts:GetSize()
+                OffsetLocation(context:qualifiedNameContexts:Get(i):GetLocation())
+                i = i + 1
+            end
         end
         CheckBlock checkBlock = cast(CheckBlock, block)
 
@@ -421,7 +423,18 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterBoolean(BooleanContext context) end
     action ExitBoolean(BooleanContext context) end
 
-    action EnterAlertStatement(AlertContext context) end
+    action EnterAlertStatement(AlertContext context)
+        OffsetLocation(context:GetLocation())
+        OffsetLocation(context:expression:GetLocation())
+
+        AlertBlock block
+        block:SetScopeDepth(scopeDepth)
+        block:SetEditor(dummyRoot:GetEditor())
+        block:SetContext(context)
+
+        me:block = block
+
+    end
     action ExitAlertStatement(AlertContext context) end
 
     action EnterUse(UseContext context) 

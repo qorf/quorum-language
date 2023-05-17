@@ -1010,7 +1010,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SelectBlockOrItem(next)
     end
 
-    private action SelectBlockOrItem(Item target)
+    action SelectBlockOrItem(Item target)
         if target not= undefined
             target:Focus()
         end
