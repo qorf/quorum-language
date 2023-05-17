@@ -48,7 +48,7 @@ use Libraries.Interface.Controls.Charts.Chart
     Regression regression = frame:RegressionOnSelected()
     output regression:GetSummary()
 */
-class Regression is DataFrameCalculation, ColumnInput, FactorInput
+class Regression is DataFrameCalculation
     private StatisticsFormatting format
     private number significanceLevel = 0.05
     private integer independentVariables = 0        // Number of factors selected
