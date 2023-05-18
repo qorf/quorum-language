@@ -732,13 +732,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         shouldRefreshView = false
-        if rawCode:GetSize() > 0
-            if shouldRegenerateBlocks
-                RegenerateBlocks()
-            else
-                renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
-            end
-        end 
+        if shouldRegenerateBlocks
+            RegenerateBlocks()
+        else
+            renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
+        end
     end
 
     action RegenerateBlocks

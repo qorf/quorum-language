@@ -104,10 +104,7 @@ class FreeformBlock is SingleLineBlock
         end
 
         CodeEditor editor = GetEditor()
-        if editor:GetFailState()
-            editor:SetCode(editor:GetCode())
-            return now
-        end
+
         /*
         First check special cases where the user has typed a short-cut.
         If so, insert extra code to make it valid before we parse it.
@@ -411,6 +408,10 @@ class FreeformBlock is SingleLineBlock
             isUseStatement = true
         end
 
+        if editor:GetFailState()
+            editor:SetCode(editor:GetCode())
+            return now
+        end
         /*
         Read the code, and if it's valid, try to parse it.
         */
