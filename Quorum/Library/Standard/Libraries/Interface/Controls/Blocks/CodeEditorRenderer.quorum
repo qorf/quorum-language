@@ -429,9 +429,9 @@ class CodeEditorRenderer is Control
 
         integer i = 0
         repeat until current = undefined
-            integer endLine = current:GetEndLine()
+            integer endLine = current:GetNavigationEndIndex()
 
-            if current:GetStartLine() <= line
+            if current:GetNavigationIndex() <= line
                 // The first block we find that ends on this line, return it.
                 if endLine = line
                     return current

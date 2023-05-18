@@ -491,7 +491,7 @@ class Block is Control
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
-                    if changeIndex < startIndex
+                    if changeIndex < startIndex or (processEndpoints = true and changeIndex = startIndex)
                         child:SetLocalStartLine(startLine + linesChanged)
                     end
                     if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
