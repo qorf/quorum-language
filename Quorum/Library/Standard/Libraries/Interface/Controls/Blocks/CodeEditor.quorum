@@ -1405,8 +1405,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
             selection:SetToTopOfFile()
         end
 
-        parentBlock:Resize()
-        RequestViewRefresh()
+        if parentBlock is RootBlock and parentBlock:GetChildCount() = 0
+            RegenerateBlocks()
+            SelectBlockAtLine(0)
+        else
+            parentBlock:Resize()
+            RequestViewRefresh()
+        end
     end
 
     action DeleteBlockAndChildren(Block block)
