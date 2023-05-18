@@ -5,6 +5,7 @@ use Libraries.Language.Compile.Context.all
 use Libraries.Interface.Controls.Blocks.all
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.Parsing.QuorumLexer
 
 class FreeformBlockListener is QuorumSourceListener
 
@@ -22,6 +23,10 @@ class FreeformBlockListener is QuorumSourceListener
     
     // The resulting block produced by a parse.
     Block block = undefined
+
+    // used to find comments
+    integer recentToken = -1
+    QuorumLexer lexer = undefined
 
     action SetSourceBlock(FreeformBlock sourceBlock)
         dummyRoot:EmptyChildBlocks()
@@ -42,6 +47,27 @@ class FreeformBlockListener is QuorumSourceListener
 
     action EnterDocumentation(DocumentationContext context) end
     action ExitDocumentation(DocumentationContext context) end
+
+    action FillComment()
+        i = recentToken + 1
+        repeat while i < lexer:GetSize()
+            Token next = lexer:GetToken(i)
+            boolean isComment = next:IsCommentChannel()
+            if isComment
+                OffsetToken(next)
+                CommentBlock comment
+                comment:SetIsMultiLineComment(next:IsMultiLineComment())
+                comment:SetToken(next)
+                comment:SetScopeDepth(scopeDepth)
+                comment:SetEditor(dummyRoot:GetEditor())
+                block = comment
+                return now
+            end
+            i = i + 1
+        end
+
+        recentToken = lexer:GetSize()
+    end
 
     action EnterNoActionsNoClass(NoActionsNoClassContext context) end
     action ExitNoActionsNoClass(NoActionsNoClassContext context) end
@@ -606,4 +632,13 @@ class FreeformBlockListener is QuorumSourceListener
     action GetBlock returns Block
         return block
     end
+
+    action GetQuorumLexer returns QuorumLexer
+        return lexer
+    end
+
+    action SetQuorumLexer(QuorumLexer lexer)
+        me:lexer = lexer
+    end
+
 end

@@ -1609,16 +1609,16 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             end
         end
 
+        if caretTarget >= 0
+            SetCaretPosition(caretTarget)
+        end
+
         number lineWidth = GetLineWidth(indexLine)
         if lineWidth > GetTotalContentWidth()
             // Increase scroll region width and resize bars.
             // Setting the scroll region width to -1 forces recalculation.
             scrollRegionWidth = -1
             Resize()
-        end
-
-        if caretTarget >= 0
-            SetCaretPosition(caretTarget)
         end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
@@ -3001,7 +3001,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             text previousCharacter = textValue:GetCharacter(currentIndex - 1)
             if IsEndOfLine(previousCharacter)
                 nextCharacter = textValue:GetCharacter(currentIndex)
-                repeat while IsWhiteSpace(nextCharacter)
+                repeat while IsWhiteSpace(nextCharacter) and currentIndex + 1 < textValue:GetSize()
                     currentToken = currentToken + nextCharacter
                     currentIndex = currentIndex + 1
                     nextCharacter = textValue:GetCharacter(currentIndex)
@@ -3099,7 +3099,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
                             tokenIsDone = true 
 
                         else
-                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textValue:GetSize()
+                                nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            else
+                                tokenIsDone = true
+                            end
                         end                    
                     else
                         tokenIsDone = true

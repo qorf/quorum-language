@@ -1607,6 +1607,10 @@ class DataFrame
         return selection
     end
 
+    action SetSelection(DataFrameSelection selection)
+        me:selection = selection
+    end
+
     /* Private undefined checker. */
     private action CheckDefaultSelection
         if selection = undefined
@@ -3110,10 +3114,8 @@ class DataFrame
             alert("Must have at least one independent variable (factor column)")
         end
 
+        //In Quorum-11 this was changed to grab the selection purely from the data frame.
         Regression groups
-        //the cast isn't technically necessary, but I'm future proofing, as it could be down the road in case some tests allow both
-        selection:CopyTo(cast(ColumnInput, groups))
-        selection:CopyTo(cast(FactorInput, groups))
         groups:Calculate(me)
         return groups
     end
