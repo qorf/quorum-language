@@ -320,6 +320,11 @@ class CodeEditorRenderer is Control
         number y = 0
 
         integer selectionLine = selection:GetLine()
+        if selectionLine >= editor:GetLineCount() and editor:GetFirstVisibleLine() not= selectionLine
+            // In case of an illegal selection line, force the selection to the first visible block, as an emergency failsafe.
+            editor:SelectBlockAtLine(editor:GetFirstVisibleLine())
+        end
+
         if selectionLine < 0
             y = GetHeight() - cursor:GetHeight()
         else

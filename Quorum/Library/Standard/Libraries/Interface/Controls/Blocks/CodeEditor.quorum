@@ -853,6 +853,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
     */
     action OnFocusChange(FocusEvent event)
         Item newFocus = event:GetNewFocus()
+
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+        
         if newFocus is BlockItem
             BlockItem item = cast(BlockItem, newFocus)
             if selection:GetBlockItem() not= item
@@ -1030,6 +1035,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SelectBlockAtLine(integer line)
+        // If the blocks need to be regenerated or if the indices need to be updated, do that first.
+        if shouldRegenerateBlocks
+            RegenerateBlocks()
+        end
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
         if line >= GetLineCount() or line < 0
             return now
         end
@@ -1292,6 +1305,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                     IfBlock ifParent = cast(IfBlock, parentBlock)
                     
                     targetSelection = block:GetNextNavigableBlock()
+
                     ifParent:RemoveChildBlock(block)
                     RequestViewRefresh()
                     newText = rawCode
@@ -1352,7 +1366,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if deleteContents
                     targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
                     if targetSelection = undefined
-                        targetSelection = block:GetPreviousNavigableBlock()
+                        targetSelection = parentBlock:GetPreviousNavigableBlock()
                     end
 
                     // Delete the entire multi-line block in this case.
