@@ -1608,6 +1608,30 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     /*
+        This on it's own will only affect the raw code underneath but this is usually done with other operations 
+        such as taking a freeform block and converting it into a MultipleLineBlockPart
+    */
+    action SetIndentation(Block block, integer scopeDepth)
+        startIndex = block:GetStartIndex()
+        lineStartIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
+
+        text oldIndentText = rawCode:GetText(lineStartIndex, startIndex)
+        integer oldIndentSize = startIndex - lineStartIndex
+
+        text newIndentText = GetIndentationText(scopeDepth)
+        integer newIndentSize = newIndentText:GetSize()
+
+        integer offset = newIndentSize - oldIndentSize
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:OffsetIndices(lineStartIndex, offset, 0)
+
+        TextChangeEvent event
+        event:Initialize(me, newIndentText, oldIndentText, lineStartIndex)
+        OnTextChange(event, 0)
+        
+    end
+
+    /*
     This action returns true if the CodeEditor is focused, or if any of the Blocks
     or BlockItems inside of this editor are focused. Otherwise, it returns false.
     */

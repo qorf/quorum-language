@@ -137,22 +137,31 @@ class CheckBlock is MultipleLineBlock
         MultipleLineBlockPart part
         part:UseEnterAndExitScopeStyling()
 
-        integer i = 0
+        integer insertIndex = 0
         if detectParts:GetSize() > 0
             MultipleLineBlockPart detectPart = detectParts:Get(0)
-            repeat while i < detectParts:GetSize() and detectPart:GetStartLine() < block:GetStartLine()
-                detectPart = detectParts:Get(i)
-                i = i + 1
+            repeat while insertIndex < detectParts:GetSize() and detectPart:GetStartLine() < block:GetStartLine()
+                detectPart = detectParts:Get(insertIndex)
+                insertIndex = insertIndex + 1
             end
         end
 
         CodeEditor editor = GetEditor()
         number spacing = editor:GetDefaultGlyphWidth()
-        
-        Add(i+1, cast(Block,part))
+
+        editor:SetIndentation(block, GetScopeDepth())
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
+        Add(insertIndex+1, cast(Block,part))
 
         part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
-        part:SetLocalStartLine(block:GetStartLine() - GetStartLine())
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
 
         BlockLabel detectLabel
         me:detectLabels:Add(detectLabel)
@@ -193,13 +202,37 @@ class CheckBlock is MultipleLineBlock
 
         part:SetLocalEndIndex(block:GetEndIndex() - GetStartIndex())
 
-        me:detectParts:Add(part)
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            integer i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+
+        me:detectParts:Add(insertIndex, part)
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
         if cast(Block,block) = editor:GetSelection():GetBlock()
             editor:SelectBlockOrItem(part)
         end
-        Block parentBlock = block:GetParentBlock()
-        parentBlock:Remove(cast(Block, block))
-        editor:RequestViewRefresh()
+        editor:RequestNavigationIndicesUpdate()
         return part
     end
 
@@ -240,16 +273,24 @@ class CheckBlock is MultipleLineBlock
             i = i + 1
         end
 
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        editor:SetIndentation(block, GetScopeDepth())
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
         MultipleLineBlockPart part
         Add(GetChildCount() - 1, cast(Block, part))
         part:UseEnterAndExitScopeStyling()
 
-        CodeEditor editor = GetEditor()
-        number spacing = editor:GetDefaultGlyphWidth()
-
-        part:SetLocalStartLine(block:GetLocalStartLine())
-        part:SetLocalStartIndex(block:GetLocalStartIndex())
-
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
 
         BlockLabel alwaysLabel
         me:alwaysLabel = alwaysLabel
@@ -259,13 +300,37 @@ class CheckBlock is MultipleLineBlock
         part:Add(alwaysLabel)
         part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
 
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+
         me:alwaysPart = part
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
         if cast(Block,block) = editor:GetSelection():GetBlock()
             editor:SelectBlockOrItem(part)
         end
-        Block parentBlock = block:GetParentBlock()
-        parentBlock:Remove(cast(Block, block))
-        editor:RequestViewRefresh()
+        editor:RequestNavigationIndicesUpdate()
         return part
     end
 
