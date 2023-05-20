@@ -155,8 +155,6 @@ class IfBlock is MultipleLineBlock
         me:elseifExpressionFields:Add(expressionField)
         part:Add(expressionField)
 
-        output block:GetStartLine()
-        output GetStartLine()
         part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
         expressionField:Setup("Expression", 7, 7 + expression:GetSize())
 
