@@ -443,8 +443,6 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         end
                     end
                     Regression regression 
-                    regression:AddFactor(0) //the independent variable
-                    regression:AddColumn(1) //the dependent variable
                     DataFrameSelection oldSelection = frame:GetSelection()
 
                     //temporarily flip the selection
