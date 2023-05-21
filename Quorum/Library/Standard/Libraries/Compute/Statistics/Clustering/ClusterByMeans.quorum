@@ -162,6 +162,88 @@ class ClusterByMeans
         return result
     end
 
+    /*
+        This example states to cluster the DataFrame, with the particular selected columns, 
+        without taking any factors into account. By default, 3 clusters are selected and this
+        value needs to be modified using SetClusterSize if a different number is desired. 
+
+        Attribute: Parameter frame The DataFrame we want to do our calculations on. 
+        Attribute: Parameter seed A set seed for the clustering. 
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Clustering.ClusterByMeans
+    
+        //make a DataFrame and toss some data in it
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue(
+            "X,Y
+            1,2
+            2,4
+            3,6
+            4,8
+            5,10
+            9,18
+            10,20
+            11,22
+            12,24
+            13,26"
+        )
+        //set the range of points on which we will calculate distance
+        frame:AddSelectedColumnRange(0,1)
+    
+        output "Calculating K-means Clustering"
+        ClusterByMeans means
+        means:SetClustersSize(3)
+    
+        //Clusters return an additional column with labels, so they can 
+        //be included in a chart or other approach, per point
+        //If we want this in the DataFrame, we need to add it manually
+        ClusterResult result = means:Cluster(frame, 42)
+        Array<Cluster> value = result:GetClusters()
+        IntegerColumn assignments = result:GetClusterIndices()
+        assignments:SetHeader("Clusters")
+        frame:AddColumn(assignments) 
+        
+        //we can also chart the clusters if
+        //we specify that the new clusters are a factor
+        frame:AddSelectedFactor(2)
+        ScatterPlot chart = frame:ScatterPlot()
+        chart:SetTitle("K-Means Clustering Demo")
+        chart:Display()
+    */
+    action Cluster(DataFrame frame, integer seed) returns ClusterResult
+        random:SetSeed(seed)
+        boolean isValid = IsValid(frame)
+        ClusterResult result
+        if not isValid
+            alert(errorMessage)
+        end
+        Setup(frame)
+
+        IntegerColumn assignments
+        assignments:SetSize(totalPoints)
+        AssignPointsToClusters(currentClusters, currentPoints, assignments)
+
+        // iterate through updating the centers until we're done
+        count = 0
+        repeat while count < maxIterations
+            boolean hasEmptyCluster = HasEmptyCluster(currentClusters)
+            Array<Cluster> newClusters = AdjustClusterCenters(currentClusters, currentPoints, assignments)
+            integer changes = AssignPointsToClusters(newClusters, currentPoints, assignments)
+            currentClusters = newClusters
+            if changes = 0 and not hasEmptyCluster
+                result:SetClusterIndices(assignments)
+                result:SetClusters(newClusters)
+                return result
+            end
+
+            count = count + 1
+        end
+
+        return result
+    end
+
     private action HasEmptyCluster(Array<Cluster> clusters) returns boolean
         i = 0
         repeat while i < clusters:GetSize()
