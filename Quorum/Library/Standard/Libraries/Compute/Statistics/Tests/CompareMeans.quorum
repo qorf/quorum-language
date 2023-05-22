@@ -1200,7 +1200,7 @@ class CompareMeans is StatisticalTest
 
             // Sum Of Squares Between Groups
             i = 1 // skip intercept
-            repeat while i < designMatrix:GetSize()
+            repeat while i < factorsAssociatedWithColumn:GetSize()
                 Matrix factorEncoding = factorsAssociatedWithColumn:GetValue(i)
             
                 if factorEncoding not= undefined
@@ -1222,7 +1222,9 @@ class CompareMeans is StatisticalTest
                             number ss = withoutSS - withSS
                             ssBetween:Add(factor, ss)
                         end
-    
+                    end
+
+                    if not dfBetween:HasKey(factor)
                         number df = GetDegreesOfFreedomFromEncoding(factorEncoding)
                         dfBetween:Add(factor, df)
                         dfWithin = dfWithin - df
@@ -1266,43 +1268,48 @@ class CompareMeans is StatisticalTest
                     fDistribution:Setup(df1, df2)
                     number pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
                     number part_eta = (df1 * f) / ((df1 * f) + df2)
+                    text statSource = source+"Wilks Lambda"
                     result:SetTestStatistic(source, "Wilks Lambda", wilksLambda)
-                    result:SetTestStatistic(source+"Wilks Lambda", "F", f)
-                    result:SetDegreesOfFreedom(source, "numerator", df1)
-                    result:SetDegreesOfFreedom(source, "denominator", df2)
-                    result:SetProbabilityValue(source, source, pvalue)
-                    result:SetEffectSize(source, "partial-eta-squared", part_eta)
+                    result:SetTestStatistic(statSource, "F", f)
+                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                    result:SetProbabilityValue(statSource, statSource, pvalue)
+                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
 
-//                    // Hotelling-Lawley Trace Test ** degrees of freedom needs to be fixed **
-//                    number hotellingTrace = sscpFactor:Multiply(sscpWithin:Inverse()):GetTrace()
-//                    number s = math:MinimumOf(numberOfVariables, dfFactor)
-//                    number m = (math:AbsoluteValue(numberOfVariables - dfFactor) - 1.0) / 2.0
-//                    number n = (dfWithin - numberOfVariables - 1.0) / 2.0
-//                    df1 = s * math:MaximumOf(numberOfVariables,dfFactor)
-//                    df2 = 2.0 * (s * n + 1.0) 
-//                    f = (hotellingTrace / s) * (df2 / df1)
-//                    fDistribution:Setup(df1, df2)
-//                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
-//                    part_eta = (df1 * f) / ((df1 * f) + df2)
-//                    result:SetTestStatistic(source, "Hotelling", hotellingTrace)
-//                    result:SetTestStatistic(source+"Hotelling", "F", f)
-//                    result:SetDegreesOfFreedom(source+"Hotelling", "df1", df1)
-//                    result:SetDegreesOfFreedom(source+"Hotelling", "df2", df2)
-//                    result:SetProbabilityValue(source+"Hotelling", source, pvalue)
+                    // Hotelling-Lawley Trace Test
+                    number hotellingTrace = sscpFactor:Multiply(sscpWithin:Inverse()):GetTrace()
+                    number s = math:MinimumOf(numberOfVariables, dfFactor)
+                    number m = (math:AbsoluteValue(numberOfVariables - dfFactor) - 1.0) / 2.0
+                    number n = (dfWithin - numberOfVariables - 1.0) / 2.0
+                    df1 = s * math:MaximumOf(numberOfVariables,dfFactor)
+                    df2 = 2.0 * (s * n + 1.0) 
+                    f = (hotellingTrace / s) * (df2 / df1)
+                    fDistribution:Setup(df1, df2)
+                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
+                    part_eta = (df1 * f) / ((df1 * f) + df2)
+                    statSource = source+"Hotelling Trace"
+                    result:SetTestStatistic(source, "Hotelling Trace", hotellingTrace)
+                    result:SetTestStatistic(statSource, "F", f)
+                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                    result:SetProbabilityValue(statSource, statSource, pvalue)
+                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
 
-//                    // Pillai-Barlett Trace Test ** degrees of freedom needs to be fixed **
-//                    number pillaiTrace = sscpFactor:Multiply(sscpFactor:AddElements(sscpWithin):Inverse()):GetTrace()
-//                    df1 = s * (2.0 * m + s + 1.0)
-//                    df2 = s * (2.0 * n + s + 1.0) 
-//                    f = (pillaiTrace / (s - pillaiTrace)) * (df2 / df1)
-//                    fDistribution:Setup(df1, df2)
-//                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
-//                    part_eta = (df1 * f) / ((df1 * f) + df2)
-//                    result:SetTestStatistic(source, "Pillai", pillaiTrace)
-//                    result:SetTestStatistic(source+"Pillai", "F", f)
-//                    result:SetDegreesOfFreedom(source+"Pillai", "df1", df1)
-//                    result:SetDegreesOfFreedom(source+"Pillai", "df2", df2)
-//                    result:SetProbabilityValue(source+"Pillai", source, pvalue)
+                    // Pillai-Barlett Trace Test 
+                    number pillaiTrace = sscpFactor:Multiply(sscpFactor:AddElements(sscpWithin):Inverse()):GetTrace()
+                    df1 = s * (2.0 * m + s + 1.0)
+                    df2 = s * (2.0 * n + s + 1.0) 
+                    f = (pillaiTrace / (s - pillaiTrace)) * (df2 / df1)
+                    fDistribution:Setup(df1, df2)
+                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
+                    part_eta = (df1 * f) / ((df1 * f) + df2)
+                    statSource = source+"Pillai Trace"
+                    result:SetTestStatistic(source, "Pillai Trace", pillaiTrace)
+                    result:SetTestStatistic(statSource, "F", f)
+                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                    result:SetProbabilityValue(statSource, statSource, pvalue)
+                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
 
                     significant = pvalue <= GetSignificanceLevel()
                 else

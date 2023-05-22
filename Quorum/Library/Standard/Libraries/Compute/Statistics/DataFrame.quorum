@@ -2331,6 +2331,40 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a comparison between two or more independent columns. 
+        The CompareMeans object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2   Two-Sample T-Test
+            3+  Anova/Manova
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeans
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareMeans compare = frame:CompareMeansAssumingEqualVariances()
+        output compare:GetFormalSummary()
+    */
+    action CompareMeansAssumingEqualVariances(boolean equalVariances) returns CompareMeans
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareMeans compare
+        compare:AssumeEqualVariances(equalVariances)
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a comparison between two or more related columns. 
         The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
