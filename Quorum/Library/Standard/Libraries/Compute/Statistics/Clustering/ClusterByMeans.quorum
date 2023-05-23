@@ -214,34 +214,8 @@ class ClusterByMeans
     */
     action Cluster(DataFrame frame, integer seed) returns ClusterResult
         random:SetSeed(seed)
-        boolean isValid = IsValid(frame)
-        ClusterResult result
-        if not isValid
-            alert(errorMessage)
-        end
-        Setup(frame)
-
-        IntegerColumn assignments
-        assignments:SetSize(totalPoints)
-        AssignPointsToClusters(currentClusters, currentPoints, assignments)
-
-        // iterate through updating the centers until we're done
-        count = 0
-        repeat while count < maxIterations
-            boolean hasEmptyCluster = HasEmptyCluster(currentClusters)
-            Array<Cluster> newClusters = AdjustClusterCenters(currentClusters, currentPoints, assignments)
-            integer changes = AssignPointsToClusters(newClusters, currentPoints, assignments)
-            currentClusters = newClusters
-            if changes = 0 and not hasEmptyCluster
-                result:SetClusterIndices(assignments)
-                result:SetClusters(newClusters)
-                return result
-            end
-
-            count = count + 1
-        end
-
-        return result
+        
+        return Cluster(frame)
     end
 
     private action HasEmptyCluster(Array<Cluster> clusters) returns boolean
