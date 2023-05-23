@@ -111,10 +111,8 @@ class CompareMeansSummary
         text factors = result:GetFactorList()
         text columns = result:GetColumnList()
         text statisticName = result:GetTestStatisticName()
-        text effectSizeName = result:GetEffectSizeName()
         number statistic = result:GetTestStatistic()
         number pvalue = result:GetProbabilityValue()
-        number effectSize = result:GetEffectSize()
 
         if result:IsRanked()
             number groupMedian = result:GetInformation():GetValue(groupName):GetValue("median")
@@ -138,7 +136,12 @@ class CompareMeansSummary
             summary = summary + lf + "Degrees Of Freedom: " + math:Round(degreesOfFreedom, digits)
         end
         summary = summary + lf + "Probability: " + math:Round(pvalue, digits)
-        summary = summary + lf + "Effect Size (" + effectSizeName + "): " + math:Round(effectSize, digits)
+
+        if result:GetEffectSizesTable():GetSize() > 0
+            text effectSizeName = result:GetEffectSizeName()
+            number effectSize = result:GetEffectSize()
+            summary = summary + lf + "Effect Size (" + effectSizeName + "): " + math:Round(effectSize, digits)
+        end
         return summary
     end
 
@@ -152,12 +155,10 @@ class CompareMeansSummary
         text factors = result:GetFactorList()
         text columns = result:GetColumnList()
         text statisticName = result:GetTestStatisticName()
-        text effectSizeName = result:GetEffectSizeName()
         integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
         integer group2Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
         number statistic = result:GetTestStatistic()
         number pvalue = result:GetProbabilityValue()
-        number effectSize = result:GetEffectSize()
 
         text dependence = ""
         if result:IsRepeated()
@@ -202,7 +203,11 @@ class CompareMeansSummary
             summary = summary + lf + "Degrees Of Freedom: " + math:Round(degreesOfFreedom, digits)
         end
         summary = summary + lf + "Probability: " + math:Round(pvalue, digits)
-        summary = summary + lf + "Effect Size (" + effectSizeName + "): " + math:Round(effectSize, digits)
+        if result:GetEffectSizesTable():GetSize() > 0
+            text effectSizeName = result:GetEffectSizeName()
+            number effectSize = result:GetEffectSize()
+            summary = summary + lf + "Effect Size (" + effectSizeName + "): " + math:Round(effectSize, digits)
+        end
         return summary
     end
 
@@ -416,7 +421,7 @@ class CompareMeansSummary
                 number groupSD = math:Round(math:SquareRoot(result:GetInformation():GetValue("difference"):GetValue("variance")), digits)
                 number proposedMean = math:Round(result:GetInformation():GetValue("proposed"):GetValue("mean"), digits)
                 if result:IsSignificant()
-                    summary = summary + "The difference was indicated to be statistically significant."
+                    summary = summary + " The difference was indicated to be statistically significant."
                     if groupMean > proposedMean
                         summary = summary + lf + groupName + " had a higher overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
                             + " (M = " + proposedMean +")"
@@ -436,7 +441,7 @@ class CompareMeansSummary
                 number group1SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")), digits)
                 number group2SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")), digits)
                 if result:IsSignificant()
-                    summary = summary + "The difference was indicated to be statistically significant."
+                    summary = summary + " The difference was indicated to be statistically significant."
                     if group1Mean > group2Mean
                         summary = summary + lf + group1Name + " had a higher overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
                             + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
@@ -518,10 +523,8 @@ class CompareMeansSummary
 
         if result:IsRanked()
             text statName = result:GetTestStatisticName()
-            text effName = result:GetEffectSizeName()
             number stat = result:GetTestStatistic()
             number pval = result:GetProbabilityValue()
-            number eff = result:GetEffectSize()
 
             summary = summary + statName + " = " + format:FormatTestStatistic(stat)
             if pval < format:PRECISION_LIMIT
@@ -529,14 +532,17 @@ class CompareMeansSummary
             else
                 summary = summary + ", p = " + format:FormatProbabilityValue(pval)
             end
-            summary = summary + ", "+effName+" = " + format:FormatCorrelation(eff)
+
+            if result:GetEffectSizesTable():GetSize() > 0
+                text effName = result:GetEffectSizeName()
+                number eff = result:GetEffectSize()
+                summary = summary + ", "+effName+" = " + format:FormatCorrelation(eff)
+            end
         else
             text statName = result:GetTestStatisticName()
-            text effName = result:GetEffectSizeName()
             number stat = result:GetTestStatistic()
             number df = result:GetDegreesOfFreedom()
             number pval = result:GetProbabilityValue()
-            number eff = result:GetEffectSize()
 
             summary = summary + statName+"("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(stat)
             if pval < format:PRECISION_LIMIT
@@ -544,7 +550,11 @@ class CompareMeansSummary
             else
                 summary = summary + ", p = " + format:FormatProbabilityValue(pval)
             end
-            summary = summary + ", "+effName+" = " + format:FormatTestStatistic(eff)
+            if result:GetEffectSizesTable():GetSize() > 0
+                text effName = result:GetEffectSizeName()
+                number eff = result:GetEffectSize()
+                summary = summary + ", "+effName+" = " + format:FormatTestStatistic(eff)
+            end
         end
         return summary
     end
@@ -580,10 +590,8 @@ class CompareMeansSummary
             text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
 
             text statName = result:GetTestStatisticName()
-            text effName = result:GetEffectSizeName()
             number stat = result:GetTestStatistic()
             number pval = result:GetProbabilityValue()
-            number eff = result:GetEffectSize()
             integer n1 = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
             integer n2 = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
 
@@ -597,14 +605,16 @@ class CompareMeansSummary
             else
                 summary = summary + ", p = " + format:FormatProbabilityValue(pval)
             end
-            summary = summary + ", "+effName+" = " + format:FormatCorrelation(eff)
+            if result:GetEffectSizesTable():GetSize() > 0
+                text effName = result:GetEffectSizeName()
+                number eff = result:GetEffectSize()
+                summary = summary + ", "+effName+" = " + format:FormatCorrelation(eff)
+            end
         else
             text statName = result:GetTestStatisticName()
-            text effName = result:GetEffectSizeName()
             number stat = result:GetTestStatistic()
             number df = result:GetDegreesOfFreedom()
             number pval = result:GetProbabilityValue()
-            number eff = result:GetEffectSize()
 
             summary = summary + statName+"("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(stat)
             if pval < format:PRECISION_LIMIT
@@ -612,7 +622,11 @@ class CompareMeansSummary
             else
                 summary = summary + ", p = " + format:FormatProbabilityValue(pval)
             end
-            summary = summary + ", "+effName+" = " + format:FormatTestStatistic(eff)
+            if result:GetEffectSizesTable():GetSize() > 0
+                text effName = result:GetEffectSizeName()
+                number eff = result:GetEffectSize()
+                summary = summary + ", "+effName+" = " + format:FormatTestStatistic(eff)
+            end
         end
         return summary
     end

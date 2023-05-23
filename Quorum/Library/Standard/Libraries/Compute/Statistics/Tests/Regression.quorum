@@ -370,6 +370,26 @@ class Regression is DataFrameCalculation, ColumnInput, FactorInput
     end
 
     /*
+        Returns the regression/model sum of squares. This action 
+        returns 0 unless the regression has been calculated.
+
+        Attribute: Returns The regression (model) sum of squares
+    */
+    action GetRegressionSumOfSquares returns number
+        if regressionSumOfSquares not= undefined
+            if regressionSumOfSquares:GetSize() = 1
+                return regressionSumOfSquares:Get(0)
+            else
+                alert("There is more than one dependent variable, use GetRegressionSumOfSquaresVector() instead.")
+            end
+        end
+        alert("The Regression must be calculated first, use Calculate().")
+    end
+    action GetRegressionSumOfSquaresVector returns Vector
+        return regressionSumOfSquares
+    end
+
+    /*
         Returns the standard error for the residuals
     */
     action GetResidualStandardError returns number
