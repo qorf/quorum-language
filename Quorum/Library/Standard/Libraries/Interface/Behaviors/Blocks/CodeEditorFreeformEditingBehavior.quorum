@@ -41,12 +41,8 @@ class CodeEditorFreeformEditingBehavior is Behavior
             // Process the event specifically for the Freeform block
             freeform = cast(FreeformBlock, block)
         elseif block not= undefined
-            if not (block is MultipleLineBlockPart)
-                // Ask the editor to convert the block into a Freeform block and start typing
-                freeform = editor:ConvertToFreeform(block)
-            else
-                return now
-            end
+            // Ask the editor to convert the block into a Freeform block and start typing
+            freeform = editor:ConvertToFreeform(block)
         end
 
         EditBox region = freeform:GetEditBox()

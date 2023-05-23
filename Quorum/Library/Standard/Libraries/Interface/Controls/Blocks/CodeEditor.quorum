@@ -740,6 +740,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action RegenerateBlocks
+        // Attempt to generate a new start context from the code.
+        failState = not GenerateStartContextFromCode(GetText())
+
         // When regenerating the blocks, we must assume that the sizing information we held previously might become invalid.
         shouldCalculateWidth = true
         shouldCalculateHeight = true
@@ -1173,16 +1176,34 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action ConvertToFreeform(Block block) returns FreeformBlock
-        FreeformBlock newBlock
-        newBlock:SetLocalStartLine(block:GetLocalStartLine())
-        newBlock:SetLocalEndLine(block:GetLocalEndLine())
-        newBlock:SetLocalStartIndex(block:GetLocalStartIndex())
-        newBlock:SetLocalEndIndex(block:GetLocalEndIndex())
-        newBlock:SetScopeDepth(block:GetScopeDepth())
+        FreeformBlock result = undefined
+        if block is MultipleLineBlockPart
+            FreeformBlockPart newBlock
+            result = newBlock
+        else
+            FreeformBlock newBlock
+            result = newBlock
+        end
 
-        Replace(block, newBlock)
+        result:SetLocalStartLine(block:GetLocalStartLine())
+        result:SetLocalEndLine(block:GetLocalEndLine())
+        result:SetLocalStartIndex(block:GetLocalStartIndex())
+        result:SetLocalEndIndex(block:GetLocalEndIndex())
+        result:SetScopeDepth(block:GetScopeDepth())
 
-        return newBlock
+        if block:IsEnteringScope()
+            if block:IsExitingScope()
+                result:UseEnterAndExitScopeStyling()
+            else
+                result:UseEnterScopeStyling()
+            end
+        elseif block:IsExitingScope()
+            result:UseExitScopeStyling()
+        end
+
+        Replace(block, result)
+
+        return result
     end
 
     /*
@@ -1192,6 +1213,16 @@ class CodeEditor is ScrollableLineControl, GutterListener
     to set these values before using Replace!
     */
     action Replace(Block oldBlock, Block newBlock)
+        Replace(oldBlock, newBlock, true)
+    end
+
+    /*
+    This action replaces one block in the editor with another one.
+
+    This does NOT set the local indices or lines of the new block! Make sure
+    to set these values before using Replace!
+    */
+    action Replace(Block oldBlock, Block newBlock, boolean transferChildren)
         boolean wasSelected = (oldBlock = selection:GetBlock())
 
         // If the new block has a parent (e.g. a dummy root for constructing multiple line blocks) detach it before doing the swap.
@@ -1204,6 +1235,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         parentBlock:RemoveAt(parentIndex)
         parentBlock:Add(parentIndex, newBlock)
+
+        if transferChildren
+            // If the old block has children, move them to the new block.
+            repeat until oldBlock:GetChildCount() = 0
+                Block child = oldBlock:RemoveAt(0)
+                newBlock:Add(child)
+            end
+        end
 
         newBlock:Setup()
 

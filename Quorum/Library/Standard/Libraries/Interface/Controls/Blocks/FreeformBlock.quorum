@@ -96,6 +96,11 @@ class FreeformBlock is SingleLineBlock
     If a suitable block is found, it will replace this FreeformBlock in the editor.
     */
     action ParseToBlock
+        // Don't try to parse this if it's not in the CodeEditor anymore.
+        if not IsInEditorTree()
+            return now
+        end
+
         text code = editRegion:GetText()
         text newLine = editRegion:GetDefaultLineSeparator()
         text dq = code:GetDoubleQuote()
