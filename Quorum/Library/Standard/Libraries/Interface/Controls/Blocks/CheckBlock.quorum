@@ -130,6 +130,112 @@ class CheckBlock is MultipleLineBlock
         return part
     end
 
+    action AddDetectLineFromFreeform(FreeformBlock block, DetectStatementContext detectContext) returns MultipleLineBlockPart
+        if alwaysPart not= undefined and alwaysPart:GetStartLine() < block:GetStartLine()
+            return undefined
+        end
+        MultipleLineBlockPart part
+        part:UseEnterAndExitScopeStyling()
+
+        integer insertIndex = 0
+        if detectParts:GetSize() > 0
+            MultipleLineBlockPart detectPart = detectParts:Get(0)
+            repeat while insertIndex < detectParts:GetSize() and detectPart:GetStartLine() < block:GetStartLine()
+                detectPart = detectParts:Get(insertIndex)
+                insertIndex = insertIndex + 1
+            end
+        end
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        editor:SetIndentation(block, GetScopeDepth())
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
+        Add(insertIndex+1, cast(Block,part))
+
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+
+        BlockLabel detectLabel
+        me:detectLabels:Add(detectLabel)
+        detectLabel:SetFont(GetEditor():GetFont())
+        detectLabel:SetFontSize(GetEditor():GetFontSize())
+        detectLabel:SetText("detect")
+        detectLabel:SetRightPadding(spacing)
+        part:Add(detectLabel)
+
+        
+        EditField nameField
+        me:detectNameFields:Add(nameField)
+        part:Add(nameField)
+
+        nameField:Setup("Name", detectContext:nameLocation:GetIndex(), detectContext:nameLocation:GetIndexEnd() + 1)
+        nameField:SetRightPadding(spacing)
+
+        if detectContext:qualifiedNameContexts not= undefined
+            BlockLabel isLabel
+            me:detectIsLabels:Add(isLabel)
+            isLabel:SetFont(GetEditor():GetFont())
+            isLabel:SetFontSize(GetEditor():GetFontSize())
+            isLabel:SetText("is")
+            isLabel:SetRightPadding(spacing)
+            part:Add(isLabel)
+
+
+            EditField expressionField
+            me:detectExpressionFields:Add(expressionField)
+            Array<QualifiedNameContext> nameList = detectContext:qualifiedNameContexts
+
+            Location firstName = nameList:Get(0):GetLocation()
+            Location lastName = nameList:Get(nameList:GetSize() - 1):GetLocation()
+            part:Add(expressionField)
+
+            expressionField:Setup("Expression", firstName:GetIndex(), lastName:GetIndexEnd() + 1)
+        end
+
+        part:SetLocalEndIndex(block:GetEndIndex() - GetStartIndex())
+
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            integer i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+
+        me:detectParts:Add(insertIndex, part)
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
+        if cast(Block,block) = editor:GetSelection():GetBlock()
+            editor:SelectBlockOrItem(part)
+        end
+        editor:RequestNavigationIndicesUpdate()
+        return part
+    end
+
     action AddAlwaysLine(AlwaysStatementContext context) returns MultipleLineBlockPart
         MultipleLineBlockPart part
         Add(part)
@@ -150,6 +256,81 @@ class CheckBlock is MultipleLineBlock
         part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
 
         me:alwaysPart = part
+        return part
+    end
+
+    action AddAlwaysLineFromFreeform(FreeformBlock block) returns MultipleLineBlockPart
+        if alwaysPart not= undefined
+            return undefined
+        end
+        integer i = 0
+        repeat while i < detectParts:GetSize()
+            MultipleLineBlockPart detectPart = detectParts:Get(i)
+            // if the block is before an elseif this is an error
+            if detectPart:GetStartLine() > block:GetStartLine()
+                return undefined
+            end
+            i = i + 1
+        end
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        editor:SetIndentation(block, GetScopeDepth())
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
+        MultipleLineBlockPart part
+        Add(GetChildCount() - 1, cast(Block, part))
+        part:UseEnterAndExitScopeStyling()
+
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+
+        BlockLabel alwaysLabel
+        me:alwaysLabel = alwaysLabel
+        alwaysLabel:SetFont(GetEditor():GetFont())
+        alwaysLabel:SetFontSize(GetEditor():GetFontSize())
+        alwaysLabel:SetText("always")
+        part:Add(alwaysLabel)
+        part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
+
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+
+        me:alwaysPart = part
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
+        if cast(Block,block) = editor:GetSelection():GetBlock()
+            editor:SelectBlockOrItem(part)
+        end
+        editor:RequestNavigationIndicesUpdate()
         return part
     end
 
@@ -195,10 +376,14 @@ class CheckBlock is MultipleLineBlock
             RemoveMiddleBlockPart(block, block:GetPreviousSibling())
         else
         end
+        MultipleLineBlockPart detectPart = cast(MultipleLineBlockPart, block)
+        detectParts:Remove(detectPart)
     end
 
     action RemoveAlwaysPart(Block block)
         RemoveMiddleBlockPart(block, block:GetPreviousSibling())
+        alwaysPart = undefined
+        alwaysLabel = undefined
     end
 
     action RemoveEndPart(Block block)

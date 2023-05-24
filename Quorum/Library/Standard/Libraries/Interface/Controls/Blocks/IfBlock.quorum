@@ -112,14 +112,36 @@ class IfBlock is MultipleLineBlock
     end
 
     action AddElseifLineFromFreeform(FreeformBlock block, text expression) returns MultipleLineBlockPart
+        if elsePart not= undefined and elsePart:GetStartLine() < block:GetStartLine()
+            return undefined
+        end
         MultipleLineBlockPart part
         part:UseEnterAndExitScopeStyling()
-        Add(part)
-
-        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+        integer insertIndex = 0
+        if elseifParts:GetSize() > 0
+            MultipleLineBlockPart elseifPart = elseifParts:Get(0)
+            repeat while insertIndex < elseifParts:GetSize() and elseifPart:GetStartLine() < block:GetStartLine()
+                elseifPart = elseifParts:Get(insertIndex)
+                i = insertIndex + 1
+            end
+        end
 
         CodeEditor editor = GetEditor()
         number spacing = editor:GetDefaultGlyphWidth()
+
+        editor:SetIndentation(block, GetScopeDepth())
+
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
+        Add(insertIndex+1, cast(Block,part))
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+
 
         BlockLabel elseifLabel
         me:elseifLabels:Add(elseifLabel)
@@ -133,13 +155,42 @@ class IfBlock is MultipleLineBlock
         me:elseifExpressionFields:Add(expressionField)
         part:Add(expressionField)
 
-        
-        part:SetLocalStartLine(block:GetLocalStartLine())
-        expressionField:Setup("Expression", block:GetLocalStartIndex() + 7, block:GetLocalStartIndex() + 7 + expression:GetSize())
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        expressionField:Setup("Expression", 7, 7 + expression:GetSize())
 
-        part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
+        part:SetLocalEndIndex(part:GetLocalStartIndex() + 7 + expressionField:GetText():GetSize())
 
-        elseifParts:Add(part)
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            integer i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+        elseifParts:Add(insertIndex, part)
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
+        // if the freeform block was selected select this block part instead
+        if cast(Block,block) = editor:GetSelection():GetBlock()
+            editor:SelectBlockOrItem(part)
+        end
+        editor:RequestNavigationIndicesUpdate()
         return part
     end
 
@@ -165,6 +216,83 @@ class IfBlock is MultipleLineBlock
         part:SetLocalEndIndex(part:GetLocalStartIndex() + elseLabel:GetText():GetSize())
 
         elsePart = part
+        return part
+    end
+
+    action AddElseLineFromFreeform(FreeformBlock block) returns MultipleLineBlockPart
+        if elsePart not= undefined
+            return undefined
+        end
+        MultipleLineBlockPart part
+        part:UseEnterAndExitScopeStyling()
+        integer i = 0
+        repeat while i < elseifParts:GetSize()
+            MultipleLineBlockPart elseifPart = elseifParts:Get(i)
+            // if the block is before an elseif this is an error
+            if elseifPart:GetStartLine() > block:GetStartLine()
+                return undefined
+            end
+            i = i + 1
+        end
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        editor:SetIndentation(block, GetScopeDepth())
+        // grab the next siblings of the freeform to add them to the part later
+        Array<Block> newChildren
+        Block sibling = block:GetNextSibling()
+        repeat while sibling not= undefined
+            newChildren:Add(sibling)
+            sibling = sibling:GetNextSibling()
+        end
+
+        Add(GetChildCount() - 1, cast(Block,part))
+        part:SetLocalStartIndex(block:GetStartIndex() - GetStartIndex())
+
+        BlockLabel elseLabel
+        me:elseLabel = elseLabel
+        elseLabel:SetFont(GetEditor():GetFont())
+        elseLabel:SetFontSize(GetEditor():GetFontSize())
+        elseLabel:SetText("else")
+        elseLabel:SetRightPadding(spacing)
+        part:Add(elseLabel)
+
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        part:SetLocalEndIndex(part:GetLocalStartIndex() + elseLabel:GetText():GetSize())
+
+        // with the indicies correct add the new children
+        if newChildren:GetSize() > 0
+            i = 0
+            repeat while i < newChildren:GetSize()
+                Block newChild = newChildren:Get(i)
+                integer childStart = newChild:GetStartIndex()
+                integer childEnd = newChild:GetEndIndex()
+                integer childStartLine = newChild:GetStartLine()
+                integer childEndLine = newChild:GetEndLine()
+                Block oldParent = newChild:GetParentBlock()
+                if oldParent not= undefined
+                    oldParent:Remove(newChild)
+                end
+                part:Add(newChild)
+                newChild:SetLocalStartIndex(childStart - part:GetStartIndex())
+                newChild:SetLocalEndIndex(childEnd - part:GetStartIndex())
+                newChild:SetLocalStartLine(childStartLine - part:GetStartLine())
+                newChild:SetLocalEndLine(childEndLine - part:GetStartLine())
+                i = i + 1
+            end
+        end
+
+        elsePart = part
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:Remove(cast(Block, block))
+        // the selection is set based on navigation indices so they must be set before selecting
+        editor:RefreshNavigationIndices()
+        if cast(Block,block) = editor:GetSelection():GetBlock()
+            editor:SelectBlockOrItem(part)
+        end
+
+        editor:RequestNavigationIndicesUpdate()
         return part
     end
 
@@ -281,10 +409,14 @@ class IfBlock is MultipleLineBlock
 
     private action RemoveElseifPart(Block block)
         RemoveMiddleBlockPart(block, block:GetPreviousSibling())
+        MultipleLineBlockPart elseifPart = cast(MultipleLineBlockPart, block)
+        elseifParts:Remove(elseifPart)
     end
 
     private action RemoveElsePart(Block block)
         RemoveMiddleBlockPart(block, block:GetPreviousSibling())
+        elsePart = undefined
+        elseLabel = undefined
     end
 
     private action RemoveMiddleBlockPart(Block block, Block newParent)

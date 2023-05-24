@@ -16,6 +16,7 @@ use Libraries.System.DateTime
 use Libraries.Compute.Statistics.Tests.Regression
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Compute.Math
+use Libraries.Compute.Statistics.DataFrameSelection
 
 /*
     This class is used to create a Scatter Plot from columns of data in a DataFrame.
@@ -442,9 +443,16 @@ class ScatterPlotCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         end
                     end
                     Regression regression 
-                    regression:AddFactor(0) //the independent variable
-                    regression:AddColumn(1) //the dependent variable
+                    DataFrameSelection oldSelection = frame:GetSelection()
+
+                    //temporarily flip the selection
+                    DataFrameSelection newSelection
+                    newSelection:AddFactor(0)
+                    newSelection:AddColumn(1)
+                    regressionFrame:SetSelection(newSelection)
+
                     regressionFrame:Calculate(regression)
+                    regressionFrame:SetSelection(oldSelection)
                     regLine:SetRegression(regression)
                     if seriesFactor:HasKey(regKeyArray:Get(i))
                         regLine:SetSeries(seriesFactor:GetValue(regKeyArray:Get(i)))

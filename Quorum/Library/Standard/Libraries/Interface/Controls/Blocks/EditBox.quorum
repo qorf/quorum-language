@@ -110,6 +110,10 @@ class EditBox is TextBox, EditRegion
         parent:Control:LostFocus(event)
     end
 
+    action ShowCaret
+        parent:TextBox:ShowCaret()
+    end
+
     private action FitCharacterOnScreen(integer character)
         // This action is overridden to purposely disable the TextField's ability to move the underlying view.
         // We want the EditField to always show the first character, and will resize the field to show more characters as needed.

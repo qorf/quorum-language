@@ -13,18 +13,22 @@ use Libraries.Game.InputTable
 use Libraries.Interface.Controls.Blocks.EditBox
 use Libraries.Interface.Controls.Blocks.EditField
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Containers.MultipleLineText
 
-class CodeEditorFreeformEditingBehavior is Behavior
-
+class CodeEditorHintBehavior is Behavior
+    
     GameStateManager manager
 
     action Run(BehaviorEvent event)
         CodeEditor editor = undefined
+        Block block = undefined
         Item originalItem = event:GetItem()
         if originalItem is CodeEditor
             editor = cast(CodeEditor, originalItem)
         elseif originalItem is Block
-            Block block = cast(Block, originalItem)
+            block = cast(Block, originalItem)
             editor = block:GetEditor()
         elseif originalItem is BlockItem
             BlockItem item = cast(BlockItem, originalItem)
@@ -34,29 +38,25 @@ class CodeEditorFreeformEditingBehavior is Behavior
             return now
         end
 
-        FreeformBlock freeform = undefined
-
-        Block block = editor:GetSelection():GetBlock()
-        if block is FreeformBlock
-            // Process the event specifically for the Freeform block
-            freeform = cast(FreeformBlock, block)
-        elseif block not= undefined
-            // Ask the editor to convert the block into a Freeform block and start typing
-            freeform = editor:ConvertToFreeform(block)
+        if block = undefined
+            block = editor:GetSelection():GetBlock()
         end
 
-        EditBox region = freeform:GetEditBox()
-        region:SetCaretPosition(0)
-        region:Focus()
+        if block = undefined // there is no selection
+            return now //so bail
+        end
 
-        // Let the EditRegion process this input as if it had received it.
-        event:SetItem(region)
-        InputTable table = manager:GetInput():GetInputTable(region:GetInputGroup())
-        table:ProcessInput(event:GetInputSet(), event)
+        if block:IsHintsEmpty()
+            return now
+        end
 
-        
-        // Reset the event to hold the original item before sending it back, to ensure the Input system treats it properly.
-        event:SetItem(originalItem)
+        Hint hint = block:GetFirstHint()
+        integer start = hint:GetStartOffset()
+        integer finish = hint:GetEndOffset()
+
+        text insert = hint:GetInsertionText()
+        MultipleLineText lines = editor:GetCode()
+        MultipleLineText newLine = lines:Insert(start, insert)
+        editor:SetCode(newLine)
     end
-
 end

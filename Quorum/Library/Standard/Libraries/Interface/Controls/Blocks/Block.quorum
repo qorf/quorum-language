@@ -10,6 +10,10 @@ use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Selections.CodeEditorSelection
 use Libraries.Language.Compile.Context.ParseContext
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Language.Compile.CompilerError
+use Libraries.Containers.Iterator
+use Libraries.Containers.List
 
 class Block is Control
     integer scopeDepth = 0
@@ -55,12 +59,90 @@ class Block is Control
     */
     number topNotchPositionFactor = 1
     number bottomNotchPositionFactor = 1
+    List<Hint> hints
+    List<CompilerError> errors
 
     on create
         SetName("Block")
 
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    private action UpdateHintsAndErrorsVisuals
+
+    end
+
+    action Add(Hint hint)
+        hints:Add(hint)
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action GetFirstHint returns Hint
+        return hints:Get(0)
+    end
+
+    action GetHint(integer index) returns Hint
+        return hints:Get(index)
+    end
+
+    action IsHintsEmpty returns boolean
+        return hints:IsEmpty()
+    end
+
+    action GetHintsSize returns integer
+        return hints:GetSize()
+    end
+
+    action Remove(Hint hint) returns boolean
+        boolean value = hints:Remove(hint)
+        UpdateHintsAndErrorsVisuals()
+        return value
+    end
+
+    action GetHintIterator returns Iterator<Hint>
+        return hints:GetIterator()
+    end
+
+    action EmptyHints
+        hints:Empty()
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action Add(CompilerError error)
+        errors:Add(error)
+        UpdateHintsAndErrorsVisuals()
+    end
+
+    action GetFirstError returns CompilerError
+        return errors:Get(0)
+    end
+
+    action GetError(integer index) returns CompilerError
+        return errors:Get(index)
+    end
+
+    action IsErrorsEmpty returns boolean
+        return errors:IsEmpty()
+    end
+
+    action GetErrorsSize returns integer
+        return errors:GetSize()
+    end
+
+    action Remove(CompilerError error) returns boolean
+        boolean value = errors:Remove(error)
+        UpdateHintsAndErrorsVisuals()
+        return value
+    end
+
+    action GetErrorIterator returns Iterator<Hint>
+        return errors:GetIterator()
+    end
+
+    action EmptyErrors
+        errors:Empty()
+        UpdateHintsAndErrorsVisuals()
     end
 
     /*
@@ -409,7 +491,7 @@ class Block is Control
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
-                    if changeIndex < startIndex
+                    if changeIndex < startIndex or (processEndpoints = true and changeIndex = startIndex)
                         child:SetLocalStartLine(startLine + linesChanged)
                     end
                     if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
@@ -779,4 +861,36 @@ class Block is Control
         return 0
     end
 
+    /*
+    This action determines if this Block is currently present in its CodeEditor's block hierarchy.
+    If this returns false, it's most likely because it was removed or because the CodeEditor has
+    regenerated its blocks.
+    */
+    action IsInEditorTree returns boolean
+        CodeEditor editor = GetEditor()
+        if editor = undefined
+            return false
+        end
+
+        RootBlock root = GetRootBlock()
+        if root = undefined
+            return false
+        end
+
+        // Only the RootBlock can be a valid part of the tree with a negative parent index.
+        if not (me is RootBlock) and GetParentIndex() < 0
+            return false
+        end
+
+        return editor:GetRootBlock() = root
+    end
+
+    action GetRootBlock returns RootBlock
+        Block candidate = me
+        repeat until candidate is RootBlock or candidate = undefined
+            candidate = candidate:GetParentBlock()
+        end
+
+        return cast(RootBlock, candidate)
+    end
 end

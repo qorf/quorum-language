@@ -51,10 +51,11 @@ class CodeEditorRenderer is Control
             SetView2D(view)
         end
 
-        if cursor:GetView2D() = undefined
+        CodeEditor editor = GetEditor()
+        if cursor:GetView2D() = undefined and editor not= undefined
+            cursor:SetBackgroundColor(editor:GetSelectionColor())
+
             // TO-DO: Change this. Temporary debug values.
-            Libraries.Game.Graphics.Color color
-            cursor:SetBackgroundColor(color:Blue())
             cursor:SetSize(30, 5)
 
             ControlShaderView view
@@ -282,6 +283,8 @@ class CodeEditorRenderer is Control
 
             currentBlock = currentBlock:GetNextBlock()
         end
+
+        UpdateSelectionCursor(editor:GetSelection())
     end
 
     private action PositionBlock(Block block)
@@ -314,9 +317,27 @@ class CodeEditorRenderer is Control
     action UpdateSelectionCursor(CodeEditorSelection selection)
         CodeEditor editor = GetEditor()
         number x = 0
-        number y = editor:GetLineY(selection:GetLine())
+        number y = 0
 
-        if selection:GetBlockItem() not= undefined
+        integer selectionLine = selection:GetLine()
+        if selectionLine >= editor:GetLineCount() and editor:GetFirstVisibleLine() not= selectionLine
+            // In case of an illegal selection line, force the selection to the first visible block, as an emergency failsafe.
+            editor:SelectBlockAtLine(editor:GetFirstVisibleLine())
+        end
+
+        if selectionLine < 0
+            y = GetHeight() - cursor:GetHeight()
+        else
+            y = editor:GetLineY(selection:GetLine())
+        end
+
+        if selectionLine < 0
+            Block firstBlock = rootBlock:GetNextNavigableBlock()
+            if firstBlock not= undefined
+                x = firstBlock:GetGlobalX() - GetGlobalX()
+                cursor:SetWidth(firstBlock:GetWidth())
+            end
+        elseif selection:GetBlockItem() not= undefined
             BlockItem item = selection:GetBlockItem()
             x = item:GetGlobalX() - GetGlobalX()
             cursor:SetWidth(item:GetWidth())
@@ -377,7 +398,7 @@ class CodeEditorRenderer is Control
             Most likely the previous block was our best choice, but had a size greater than 1,
             meaning we found a "gap" in the mostly linear sequence of navigation indices.
             */
-            if nextCandidate:GetNavigationIndex() > line
+            if nextCandidate not= undefined and nextCandidate:GetNavigationIndex() > line
                 return candidate
             end
 
@@ -413,9 +434,9 @@ class CodeEditorRenderer is Control
 
         integer i = 0
         repeat until current = undefined
-            integer endLine = current:GetEndLine()
+            integer endLine = current:GetNavigationEndIndex()
 
-            if current:GetStartLine() <= line
+            if current:GetNavigationIndex() <= line
                 // The first block we find that ends on this line, return it.
                 if endLine = line
                     return current
@@ -435,4 +456,26 @@ class CodeEditorRenderer is Control
         return rootBlock
     end
 
+    action IsBlockFullyVisible(Block block) returns boolean
+        boolean drawn = false
+        if block:IsDirectlyRenderable()
+            drawn = (drawnBlocks:GetFirstLocation(block) >= 0)
+        else
+            // If the block isn't directly renderable (e.g. it's a MultipleLineBlockPart) see if it's being rendered by a parent
+            Block parentBlock = block:GetParentBlock()
+            repeat until parentBlock = undefined or parentBlock:IsDirectlyRenderable()
+                parentBlock = parentBlock:GetParentBlock()
+            end
+
+            // By the rules of the loop above, if the block is defined, it must be directly renderable.
+            drawn = (parentBlock not= undefined)
+        end
+
+        if drawn = false
+            return false
+        end
+
+        // Make sure the bottom of the block is above the bottom of the renderer, and the top of the block is below the top of the renderer.
+        return block:GetGlobalY() >= GetGlobalY() and (block:GetGlobalY() + block:GetHeight() <= GetGlobalY() + GetHeight())
+    end
 end

@@ -149,6 +149,7 @@ class InterfaceOptions
     public constant text GROUPING = "Grouping"
     public constant text START_BUTTON_GROUPING = "StartButtonGrouping"
     public constant text BANNER = "Banner"
+    public constant text CODE_EDITOR = "CodeEditor"
 
     // HashTables for color & number properties and interface options.
     HashTable<text, ColorGroup> colorProperties
@@ -13353,6 +13354,390 @@ class InterfaceOptions
 
     action CopyBannerInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(BANNER)
+    end
+
+    action SetCodeEditorBackgroundColor(ColorGroup value)
+        SetBackgroundColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBackgroundColor returns ColorGroup
+        return GetBackgroundColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorForegroundColor(ColorGroup value)
+        SetForegroundColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorForegroundColor returns ColorGroup
+        return GetForegroundColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorFontColor(ColorGroup value)
+        SetFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFontColor returns ColorGroup
+        return GetFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorBorderColor(ColorGroup value)
+        SetBorderColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBorderColor returns ColorGroup
+        return GetBorderColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorFocusColor(ColorGroup value)
+        SetFocusColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFocusColor returns ColorGroup
+        return GetFocusColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorFocusFontColor(ColorGroup value)
+        SetFocusFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFocusFontColor returns ColorGroup
+        return GetFocusFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseOverColor(ColorGroup value)
+        SetMouseOverColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseOverColor returns ColorGroup
+        return GetMouseOverColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseDownColor(ColorGroup value)
+        SetMouseDownColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseDownColor returns ColorGroup
+        return GetMouseDownColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorSelectionColor(ColorGroup value)
+        SetSelectionColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorSelectionColor returns ColorGroup
+        return GetSelectionColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorGlowColor(ColorGroup value)
+        SetGlowColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorGlowColor returns ColorGroup
+        return GetGlowColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorIconColor(ColorGroup value)
+        SetIconColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorIconColor returns ColorGroup
+        return GetIconColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorAccentColor(ColorGroup value)
+        SetAccentColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorAccentColor returns ColorGroup
+        return GetAccentColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorShadowColor(ColorGroup value)
+        SetShadowColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowColor returns ColorGroup
+        return GetShadowColor(CODE_EDITOR)
+    end
+
+    action SetCodeEditorBorderThickness(number value)
+        SetBorderThickness(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBorderThickness returns number
+        return GetBorderThickness(CODE_EDITOR)
+    end
+
+    action HasCodeEditorBorderThickness returns boolean
+        return GetBorderThickness(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorFontOutlineThickness(number value)
+        SetFontOutlineThickness(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorFontOutlineThickness returns number
+        return GetFontOutlineThickness(CODE_EDITOR)
+    end
+
+    action HasCodeEditorFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorTopLeftRounding(number value)
+        SetTopLeftRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorTopLeftRounding returns number
+        return GetTopLeftRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorTopLeftRounding returns boolean
+        return GetTopLeftRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorTopRightRounding(number value)
+        SetTopRightRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorTopRightRounding returns number
+        return GetTopRightRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorTopRightRounding returns boolean
+        return GetTopRightRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorBottomLeftRounding(number value)
+        SetBottomLeftRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBottomLeftRounding returns number
+        return GetBottomLeftRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorBottomRightRounding(number value)
+        SetBottomRightRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBottomRightRounding returns number
+        return GetBottomRightRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorBottomRightRounding returns boolean
+        return GetBottomRightRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(CODE_EDITOR)
+    end
+
+    action HasCodeEditorBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorShadowX(number value)
+        SetShadowX(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowX returns number
+        return GetShadowX(CODE_EDITOR)
+    end
+
+    action HasCodeEditorShadowX returns boolean
+        return GetShadowX(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorShadowY(number value)
+        SetShadowY(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowY returns number
+        return GetShadowY(CODE_EDITOR)
+    end
+
+    action HasCodeEditorShadowY returns boolean
+        return GetShadowY(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorShadowWidth(number value)
+        SetShadowWidth(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowWidth returns number
+        return GetShadowWidth(CODE_EDITOR)
+    end
+
+    action HasCodeEditorShadowWidth returns boolean
+        return GetShadowWidth(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorShadowHeight(number value)
+        SetShadowHeight(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowHeight returns number
+        return GetShadowHeight(CODE_EDITOR)
+    end
+
+    action HasCodeEditorShadowHeight returns boolean
+        return GetShadowHeight(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorShadowEdgeFade(number value)
+        SetShadowEdgeFade(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorShadowEdgeFade returns number
+        return GetShadowEdgeFade(CODE_EDITOR)
+    end
+
+    action HasCodeEditorShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action CopyCodeEditorInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(CODE_EDITOR)
     end
 
 end

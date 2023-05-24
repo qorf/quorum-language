@@ -46,6 +46,10 @@ class ActionBlock is MultipleLineBlock
         return actionContext:isBlueprint
     end
 
+    action HasReturn returns boolean
+        return returnsLabel not= undefined
+    end
+
     private action SetupElements
         CodeEditor editor = GetEditor()
         number spacing = editor:GetDefaultGlyphWidth()
