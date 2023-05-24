@@ -385,6 +385,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         RequestLayout()
     end
 
+
     private action GenerateStartContextFromCode(text code) returns boolean
         CompilerErrorManager manager
         QuorumLexer lexer
@@ -731,13 +732,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         shouldRefreshView = false
-        if rawCode:GetSize() > 0
-            if shouldRegenerateBlocks
-                RegenerateBlocks()
-            else
-                renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
-            end
-        end 
+        if shouldRegenerateBlocks
+            RegenerateBlocks()
+        else
+            renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
+        end
     end
 
     action RegenerateBlocks
@@ -749,6 +748,18 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         RootBlock root = blockListener:Update(0, rawCode:GetSize())
         renderer:RegenerateBlocks(root)
+
+        // If there was an old selection, it will be wrong now. Attempt to select in the same position as before.
+        integer selectionLine = selection:GetLine()
+        if selectionLine >= 0
+            integer count = GetLineCount()
+            if selectionLine >= count
+                selectionLine = count - 1
+            end
+
+            SelectBlockAtLine(selectionLine)
+            UpdateSelectionCursor()
+        end
     end
 
     action GetPercentageLineHeightPadding returns number
@@ -840,18 +851,23 @@ class CodeEditor is ScrollableLineControl, GutterListener
     */
     action OnFocusChange(FocusEvent event)
         Item newFocus = event:GetNewFocus()
+
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+        
         if newFocus is BlockItem
             BlockItem item = cast(BlockItem, newFocus)
             if selection:GetBlockItem() not= item
-                selection:Set(item:GetBlock(), item:GetLineIndex() + (item:GetLineCount() - 1), item)
+                selection:Set(item:GetBlock(), item:GetBlock():GetNavigationIndex() + (item:GetLineCount() - 1), item)
             end
         elseif newFocus is Block
             Block block = cast(Block, newFocus)
             if block is SingleLineBlock
                 // In case this is a single line wrapped around multiple, aim to select its last line, so the selection line is rendered at the bottom
-                selection:Set(block, block:GetEndLine(), undefined)
+                selection:Set(block, block:GetNavigationEndIndex(), undefined)
             else
-                selection:Set(block, block:GetStartLine(), undefined)
+                selection:Set(block, block:GetNavigationIndex(), undefined)
             end
         elseif newFocus:Equals(me)
             // If there's no selection, default to selecting the first block visible on the screen.
@@ -1017,7 +1033,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SelectBlockAtLine(integer line)
-        if line >= rawCode:GetLineCount() or line < 0
+        // If the blocks need to be regenerated or if the indices need to be updated, do that first.
+        if shouldRegenerateBlocks
+            RegenerateBlocks()
+        end
+        if shouldCalculateNavigationIndices
+            RefreshNavigationIndices()
+        end
+
+        if line >= GetLineCount() or line < 0
             return now
         end
 
@@ -1032,7 +1056,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             SelectBlockAtLine(line)
             return now
         end
-        if line >= rawCode:GetLineCount() or line < 0
+        if line >= GetLineCount() or line < 0
             return now
         end
 
@@ -1059,7 +1083,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         integer targetIndex = 0
         if currentLine >= rawCode:GetLineCount() - 1
             targetIndex = rawCode:GetSize()
-        else
+        elseif currentLine >= 0
             // Get the start of the next line, then go back one to reach the end of the current line.
             targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
         end
@@ -1104,19 +1128,29 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Call OffsetIndices on the parent. By passing false for the final parameter,
         we indicate that we'll be inserting a new block, so existing blocks shouldn't
         try to incorporate index changes that fall exactly on their start/end boundaries.
+
+        The exception is if we're inserting at targetIndex = 0, in which case we need to
+        offset the first child of the root block.
         */
-        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1, false)
+        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1, targetIndex = 0)
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
         OnTextChange(event, 0)
 
-        targetIndex = targetIndex + newLine:GetSize()
-
         FreeformBlock newBlock
-        newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
-        newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
+
+        if targetIndex not= 0
+            targetIndex = targetIndex + newLine:GetSize()
+
+            newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
+            newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
+        else
+            newBlock:SetLocalStartLine(0)
+            newBlock:SetLocalStartIndex(0)
+        end
+
         newBlock:SetLocalEndIndex(newBlock:GetLocalStartIndex())
         newBlock:SetScopeDepth(scopeDepth)
 
@@ -1128,7 +1162,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
         newBlock:Resize()
         MoveSelectionDown()
         BlockChangeEvent blockEvent
-        blockEvent:Set(me, targetIndex - newLine:GetSize(), insertIndex, newBlock, parentBlock, newLine, "", blockEvent:ADDED)
+
+        integer eventIndex = targetIndex
+        if targetIndex not= 0
+            eventIndex = eventIndex - newLine:GetSize()
+        end
+
+        blockEvent:Set(me, eventIndex, insertIndex, newBlock, parentBlock, newLine, "", blockEvent:ADDED)
         NotifyBlockChangeListeners(blockEvent)
     end
 
@@ -1263,6 +1303,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                     IfBlock ifParent = cast(IfBlock, parentBlock)
                     
                     targetSelection = block:GetNextNavigableBlock()
+
                     ifParent:RemoveChildBlock(block)
                     RequestViewRefresh()
                     newText = rawCode
@@ -1323,7 +1364,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if deleteContents
                     targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
                     if targetSelection = undefined
-                        targetSelection = block:GetPreviousNavigableBlock()
+                        targetSelection = parentBlock:GetPreviousNavigableBlock()
                     end
 
                     // Delete the entire multi-line block in this case.
@@ -1364,8 +1405,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
             selection:SetToTopOfFile()
         end
 
-        parentBlock:Resize()
-        RequestViewRefresh()
+        if parentBlock is RootBlock and parentBlock:GetChildCount() = 0
+            RegenerateBlocks()
+            SelectBlockAtLine(0)
+        else
+            parentBlock:Resize()
+            RequestViewRefresh()
+        end
     end
 
     action DeleteBlockAndChildren(Block block)
@@ -1559,6 +1605,30 @@ class CodeEditor is ScrollableLineControl, GutterListener
             result = result + tab
         end
         return result
+    end
+
+    /*
+        This on it's own will only affect the raw code underneath but this is usually done with other operations 
+        such as taking a freeform block and converting it into a MultipleLineBlockPart
+    */
+    action SetIndentation(Block block, integer scopeDepth)
+        startIndex = block:GetStartIndex()
+        lineStartIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
+
+        text oldIndentText = rawCode:GetText(lineStartIndex, startIndex)
+        integer oldIndentSize = startIndex - lineStartIndex
+
+        text newIndentText = GetIndentationText(scopeDepth)
+        integer newIndentSize = newIndentText:GetSize()
+
+        integer offset = newIndentSize - oldIndentSize
+        Block parentBlock = block:GetParentBlock()
+        parentBlock:OffsetIndices(lineStartIndex, offset, 0)
+
+        TextChangeEvent event
+        event:Initialize(me, newIndentText, oldIndentText, lineStartIndex)
+        OnTextChange(event, 0)
+        
     end
 
     /*
