@@ -891,6 +891,17 @@ class CodeEditor is ScrollableLineControl, GutterListener
             if lastBlock not= undefined
                 lastBlock:LostSelection()
             end
+
+            /*
+            It's possible that a block losing the selection can result in a new selection occurring.
+            This most likely occurs when a freeform block loses focus, parses, and causes the blocks to
+            regenerate. If the selection has changed by this point, don't finish processing the (now
+            outdated) selection.
+            */ 
+            if selection:GetBlock() not= newBlock
+                return now
+            end
+
             if newBlock not= undefined
                 newBlock:GainedSelection()
             elseif lastBlock:IsFocused()

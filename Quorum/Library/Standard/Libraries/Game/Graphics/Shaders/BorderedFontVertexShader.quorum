@@ -17,11 +17,13 @@ in vec4 " + attributes:COLOR + ";
 in vec2 " + attributes:TEXTURE_COORDINATES + "0;
 in vec4 a_borderColor;
 in float a_borderThickness;
+in float a_fontSize;
 uniform mat4 u_projTrans;
 out vec4 v_color;
 out vec2 v_texCoords;
 out vec4 v_borderColor;
 out float v_borderThickness;
+out float v_fontSize;
 
 void main()
 {
@@ -29,6 +31,7 @@ void main()
     v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
     v_borderColor = a_borderColor;
     v_borderThickness = a_borderThickness;
+    v_fontSize = a_fontSize;
     gl_Position =  u_projTrans * " + attributes:POSITION + ";
 }"
 )
