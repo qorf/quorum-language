@@ -162,7 +162,7 @@ class EditBox is TextBox, EditRegion
         // If the number of characters or lines has changed, update the length of the field and resize the block.
         if change not= 0 or newLines not= 0
             Block block = GetBlock()
-            block:OffsetIndices(event:GetIndex() + GetStartIndex() + GetBlock():GetStartIndex(), change, newLines)
+            block:OffsetIndices(event:GetIndex() + GetStartIndex() + GetBlock():GetStartIndex(), change, newLines, block)
             UpdateLength()
             block:Resize()
 

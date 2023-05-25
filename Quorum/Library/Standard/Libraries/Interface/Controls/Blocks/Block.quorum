@@ -455,7 +455,7 @@ class Block is Control
     they won't be modified.
     */
     action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged)
-        OffsetIndices(changeIndex, textChanged, linesChanged, true)
+        OffsetIndices(changeIndex, textChanged, linesChanged, undefined)
     end
 
     /*
@@ -469,7 +469,7 @@ class Block is Control
     a new block between two blocks (so as not to adjust the contents of the existing
     blocks, since a new block will receive the new content instead).
     */
-    action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, boolean processEndpoints)
+    action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, Block block)
         Block current = me
         repeat until current = undefined
             integer counter = 0
@@ -478,8 +478,8 @@ class Block is Control
                 integer startIndex = child:GetStartIndex()
                 integer endIndex = child:GetEndIndex()
 
-                if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
-                    if changeIndex > startIndex or (processEndpoints = true and changeIndex = startIndex)
+                if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
+                    if changeIndex > startIndex or ((block not= undefined and child = block) and changeIndex = startIndex)
                         child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
                     else
                         child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
@@ -491,10 +491,14 @@ class Block is Control
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
-                    if changeIndex < startIndex or (processEndpoints = true and changeIndex = startIndex)
-                        child:SetLocalStartLine(startLine + linesChanged)
+                    if changeIndex <= startIndex
+                        if changeIndex = startIndex and (block not= undefined and child = block)
+                            // don't modify the start line in this case
+                        else
+                            child:SetLocalStartLine(startLine + linesChanged)
+                        end
                     end
-                    if changeIndex < endIndex or (processEndpoints = true and changeIndex = endIndex)
+                    if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
                         child:SetLocalEndLine(endLine + linesChanged)
                     end
                 end
