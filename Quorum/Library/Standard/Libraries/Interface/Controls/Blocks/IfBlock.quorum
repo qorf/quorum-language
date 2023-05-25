@@ -102,7 +102,7 @@ class IfBlock is MultipleLineBlock
         part:Add(expressionField)
 
         Location expressionLoc = elseifExpression:GetLocation()
-        part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine())
+        part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine() - 1)
         expressionField:Setup("Expression", expressionLoc:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), expressionLoc:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
