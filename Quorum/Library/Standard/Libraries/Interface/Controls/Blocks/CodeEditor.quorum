@@ -1135,8 +1135,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         The exception is if we're inserting at targetIndex = 0, in which case we need to
         offset the first child of the root block.
         */
-        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1, targetIndex = 0)
-
+        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
@@ -1490,7 +1489,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         existing blocks shouldn't try to incorporate index changes that fall exactly
         on their start/end boundaries.
         */
-        parentBlock:OffsetIndices(targetIndex, -textSize, -lines, false)
+        parentBlock:OffsetIndices(targetIndex, -textSize, -lines)
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
@@ -1538,7 +1537,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         existing blocks shouldn't try to incorporate index changes that fall exactly
         on their start/end boundaries.
         */
-        parentBlock:OffsetIndices(targetIndex, -textSize, -lines, false)
+        parentBlock:OffsetIndices(targetIndex, -textSize, -lines)
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event

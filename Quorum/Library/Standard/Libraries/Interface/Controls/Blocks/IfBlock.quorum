@@ -102,7 +102,7 @@ class IfBlock is MultipleLineBlock
         part:Add(expressionField)
 
         Location expressionLoc = elseifExpression:GetLocation()
-        part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine() - 1)
+        part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine())
         expressionField:Setup("Expression", expressionLoc:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), expressionLoc:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
@@ -155,7 +155,7 @@ class IfBlock is MultipleLineBlock
         me:elseifExpressionFields:Add(expressionField)
         part:Add(expressionField)
 
-        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine())
         expressionField:Setup("Expression", 7, 7 + expression:GetSize())
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + 7 + expressionField:GetText():GetSize())
@@ -467,7 +467,7 @@ class IfBlock is MultipleLineBlock
         existing blocks shouldn't try to incorporate index changes that fall exactly
         on their start/end boundaries.
         */
-        OffsetIndices(targetIndex, -textSize, -lines, false)
+        OffsetIndices(targetIndex, -textSize, -lines, undefined)
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
