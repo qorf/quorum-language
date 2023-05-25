@@ -394,7 +394,7 @@ class FreeformBlock is SingleLineBlock
                     current = tokenIterator:Next()
                 end
                 if current:category not= constants:END
-                    code = editRegion:GetText() + newLine + editor:GetIndentationText(1) + "end"
+                    code = editRegion:GetText() + newLine + "end"
                     editRegion:SetText(code)
                 end
             end

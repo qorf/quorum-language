@@ -142,6 +142,11 @@ class FreeformBlockListener is QuorumSourceListener
         end
         if ctx:inherit not= undefined
             OffsetLocation(ctx:inherit:GetLocation())
+            integer i = 0
+            repeat while i <ctx:inherit:statements:GetSize()
+                OffsetLocation(ctx:inherit:statements:Get(i):GetLocation())
+                i = i + 1
+            end
         end
         // FOR NOW we're not offseting the class statements because we assume we're making an empty class
         ClassBlock block
