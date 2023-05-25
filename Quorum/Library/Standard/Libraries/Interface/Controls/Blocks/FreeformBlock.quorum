@@ -387,7 +387,7 @@ class FreeformBlock is SingleLineBlock
     //  class
         elseif current:category = constants:CLASS
             if not tokenIterator:HasNext()
-                code = "class MyClass" + newLine + editor:GetIndentationText(1) + "end"
+                code = "class MyClass" + newLine + "end"
                 editRegion:SetText(code)
             else 
                 repeat until not tokenIterator:HasNext()
@@ -466,7 +466,7 @@ class FreeformBlock is SingleLineBlock
         elseif isClassStatement
             FullClassDeclarationContext context = parser:FullClass()
             if context not= undefined
-                blockListener:EnterFullClassDeclaration(context)
+                context:Traverse(blockListener)
             end
         else
             // If we're not in a class, parse for a standard statement. 
