@@ -128,7 +128,7 @@ class EditBox is TextBox, EditRegion
         text added = event:GetAddedText()
         text deleted = event:GetDeletedText()
         integer change = added:GetSize() - deleted:GetSize()
-
+        
         CodeEditor editor = GetEditor()
         if editor not= undefined
             editor:OnTextChange(event, GetBlock():GetStartIndex() + GetStartIndex())
