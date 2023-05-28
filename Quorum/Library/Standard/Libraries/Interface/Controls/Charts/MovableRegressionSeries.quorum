@@ -39,6 +39,13 @@ class MovableRegressionSeries is Series
             return now
         end
 
+        if chart is ScatterPlot
+            ScatterPlot plot = cast(ScatterPlot, chart)
+            if plot:IsShowingSquaresOfResiduals() = false
+                return now
+            end
+        end
+
         integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent() * chartAreaContainer:GetHeight())
         number containerHeight = chartAreaContainer:GetHeight() - 2 * yAxisPaddingOffset
 
