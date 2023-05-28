@@ -412,6 +412,8 @@ class FormContainerControl is Control
         TextField field
         field:SetName(name)
         field:SetToDefaultFontSize()
+        field:SetTopPadding(3)
+        field:SetBottomPadding(3)
         Add(field)
         return field
     end
