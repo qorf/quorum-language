@@ -10,6 +10,7 @@ class StartButtonGrouping is Grouping
     Button button = undefined
 
     on create
+        SetColumns(1)
         CenterAlignTitle()
         CenterAlignContent()
         SetTitleSizeLarge()
@@ -21,6 +22,14 @@ class StartButtonGrouping is Grouping
         SetTitle(title)
         me:label = AddLabel(title + " Label", label)
         button = AddButton(buttonName)
+
+        me:label:SetPercentageWidth(0.8)
+        button:SetPercentageWidth(0.8)
+
+        // Add an extra "spacer" control just to pad out the bottom.
+        Control spacer
+        spacer:SetToTinyFont()
+        Add(spacer)
     end
 
     action GetLabel returns Label

@@ -139,11 +139,20 @@ class FormRowLayout is Layout
                     integer j = 0
     
                     number groupTitleHeightOffset = 0
-                    integer numberOfRowItems = groupItems:GetSize()
+
+                    // The numberOfRowItems is how many items go into each row.
+                    // The totalItemsInRows is the number of items across all of the rows (i.e. how many items there are other other than the title)
+                    integer numberOfRowItems = group:GetColumns()
+                    integer totalItemsInRows = groupItems:GetSize()
 
                     if group:GetTitle() not= ""
-                        // The title doesn't contribute to the number of elements in a row, because it's on its own row.
-                        numberOfRowItems = numberOfRowItems - 1
+                        // The title doesn't contribute to the number of elements in rows, because it's handled as its own special case.
+                        totalItemsInRows = totalItemsInRows - 1
+                    end
+                    
+                    // If there aren't a set number of columns, everything goes in one row, so the number of row items and total items is the same.
+                    if numberOfRowItems <= 0
+                        numberOfRowItems = totalItemsInRows
                     end
     
                     number rowWidth = defaultRowWidth
@@ -153,59 +162,99 @@ class FormRowLayout is Layout
 
                     number elementWidth = (rowWidth - defaultInRowPadding * (numberOfRowItems - 1)) / numberOfRowItems
 
-                    // Now that the potential title has been handled, handle the content that shares a row.
-                    number rowHeight = defaultRowHeight
-                    if group:GetPixelHeight() not= 0 or group:GetPercentageHeight() not= 0
-                        height = group:GetPixelHeight() + containerHeight * group:GetPercentageHeight()
-                    elseif j >= groupItems:GetSize()
-                        // Don't bother alotting space for a row if the group has a title and no other content
-                        rowHeight = 0
-                    else
-                        // Unfortunately, we have to iterate quickly through the elements to determine the tallest.
-                        integer k = 0
+                    // Groupings can separate elements into multiple rows if there's more elements than columns.
+                    // We'll need to track which elements are in which row, and what the height of each row is.
+                    Array<Array<Item2D>> groupRowItems
+                    Array<number> groupRowHeights
+                    number totalRowHeights = 0
 
-                        // Skip the title, if there is one
-                        if group:GetTitle() not= ""
-                            k = k + 1
-                        end
+                    // Figure out how many rows it takes to store our items. If the division has a remainder, then we have an additional, partially-filled row
+                    integer rowCount = totalItemsInRows / numberOfRowItems
+                    if totalItemsInRows mod numberOfRowItems not= 0
+                        rowCount = rowCount + 1
+                    end
 
-                        rowHeight = 0
-                        repeat while k < groupItems:GetSize()
-                            if groupItems:Get(k) is Control
-                                Control control = cast(Control, groupItems:Get(k))
-                                Font font = control:GetFont()
-                                if font = undefined
-                                    font = containerFont:Copy()
-                                else
-                                    font = font:Copy()
-                                end
-            
-                                font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
-            
-                                number height = font:GetLineHeight()
-            
-                                if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
-                                    height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
-                                end
-            
-                                height = height * control:GetLayoutRows() + control:GetTopPadding() + control:GetBottomPadding()
+                    // Initialize the row arrays.
+                    repeat rowCount times
+                        Array<Item2D> rowItemArray
+                        groupRowItems:Add(rowItemArray)
+                        groupRowHeights:Add(0)
+                    end
 
+                    // Now that the potential title has been handled, handle the content that shares the rows.
+                    // Unfortunately, we have to iterate quickly through the elements to determine the tallest in each row.
+                    integer k = 0
+                    integer titleIndexingOffset = 0
+
+                    // Skip the title, if there is one
+                    if group:GetTitle() not= ""
+                        k = k + 1
+                        titleIndexingOffset = 1
+                    end
+
+                    repeat while k < groupItems:GetSize()
+                        integer rowArrayIndex = (k - titleIndexingOffset) / numberOfRowItems
+                        Array<Item2D> rowItemArray = groupRowItems:Get(rowArrayIndex)
+                        rowItemArray:Add(groupItems:Get(k))
+
+                        if groupItems:Get(k) is Control
+                            Control control = cast(Control, groupItems:Get(k))
+                            Font font = control:GetFont()
+                            if font = undefined
+                                font = containerFont:Copy()
+                            else
+                                font = font:Copy()
+                            end
+        
+                            font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
+        
+                            number height = font:GetLineHeight()
+        
+                            if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
+                                height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+                            end
+        
+                            height = height * control:GetLayoutRows() + control:GetTopPadding() + control:GetBottomPadding()
+
+                            // As a special case, if the grouping contains only 1 item per row, allow controls to set themselves to use a percentage of the width, if they request it.
+                            if numberOfRowItems = 1 and control:GetPercentageWidth() > 0 and control:GetHorizontalLayoutMode() not= control:MAINTAIN_ASPECT_RATIO
+                                control:SetSize(cast(integer, elementWidth * control:GetPercentageWidth()), cast(integer, height))
+                            else
                                 control:SetSize(cast(integer, elementWidth), cast(integer, height))
-
-                                // Set the height to match the Control's actual height.
-                                // This might differ from what we expected if the Control has its own special height calculations, e.g. a multi-line Label.
-                                height = control:GetHeight()
-
-                                if height > rowHeight
-                                    rowHeight = height
-                                end
                             end
 
-                            k = k + 1
+                            // Set the height to match the Control's actual height.
+                            // This might differ from what we expected if the Control has its own special height calculations, e.g. a multi-line Label.
+                            height = control:GetHeight()
+
+                            if height > groupRowHeights:Get(rowArrayIndex)
+                                groupRowHeights:Set(rowArrayIndex, height)
+                            end
                         end
 
-                        if rowHeight <= 0
-                            rowHeight = defaultRowHeight
+                        k = k + 1
+                    end
+
+                    k = 0
+                    repeat while k < groupRowHeights:GetSize()
+                        if groupRowHeights:Get(k) <= 0
+                            groupRowHeights:Set(k, defaultRowHeight)
+                        end
+
+                        totalRowHeights = totalRowHeights + groupRowHeights:Get(k)
+
+                        // If there's more than one row, we need to also include the padding between rows.
+                        if k > 0
+                            totalRowHeights = totalRowHeights + defaultRowVerticalPadding
+                        end
+
+                        k = k + 1
+                    end
+
+                    if group:GetPixelHeight() not= 0 or group:GetPercentageHeight() not= 0
+                        number calcHeight = group:GetPixelHeight() + containerHeight * group:GetPercentageHeight()
+                        if calcHeight > totalRowHeights
+                            totalRowHeights = calcHeight
                         end
                     end
 
@@ -258,7 +307,7 @@ class FormRowLayout is Layout
                         if groupItems:GetSize() = 1
                             control:SetPosition(x, defaultRowVerticalPadding + bannerPadding)
                         else
-                            control:SetPosition(x, rowHeight + defaultRowVerticalPadding + bannerPadding)
+                            control:SetPosition(x, totalRowHeights + defaultRowVerticalPadding + bannerPadding)
                         end
         
                         rowTopY = y - defaultRowVerticalPadding
@@ -292,7 +341,7 @@ class FormRowLayout is Layout
     
                     // If there's no content besides the title, the rowHeight won't contribute to the height
                     // of the group beyond what's already calculated in the groupTitleHeightOffset
-                    number contentRowHeight = rowHeight
+                    number contentRowHeight = totalRowHeights
                     if j = 1 and j = groupItems:GetSize()
                         contentRowHeight = 0
                     end
@@ -309,25 +358,37 @@ class FormRowLayout is Layout
                     end
     
                     rowTopY = rowTopY - contentRowHeight - defaultRowVerticalPadding
-                    number elementX = 0
+  
+                    integer subRowCounter = groupRowItems:GetSize()
+                    number previousRowHeights = 0
+                    repeat while subRowCounter > 0
+                        subRowCounter = subRowCounter - 1
+                        Array<Item2D> currentRowItems = groupRowItems:Get(subRowCounter)
+                        number currentRowHeight = groupRowHeights:Get(subRowCounter)
 
-                    if group is Banner
-                        elementX = (containerWidth - rowWidth) / 2
-                    end
-    
-                    repeat while j < groupItems:GetSize()
-                        if groupItems:Get(j) is Control
-                            Control control = cast(Control, groupItems:Get(j))
-                            if control:GetDefaultLayoutProperties():NeedsRendering()
-                                control:LoadGraphics(control:GetDefaultLayoutProperties())
-                            end
-    
-                            control:SetPosition(cast(integer, elementX + (elementWidth - control:GetWidth()) / 2.0), cast(integer, (rowHeight - control:GetHeight()) / 2.0) + bannerPadding)
+                        number elementX = 0
 
-                            elementX = elementX + elementWidth + defaultInRowPadding
+                        if group is Banner
+                            elementX = (containerWidth - rowWidth) / 2
                         end
+
+                        integer rowItemCounter = 0
+                        repeat while rowItemCounter < currentRowItems:GetSize()
+                            if currentRowItems:Get(rowItemCounter) is Control
+                                Control control = cast(Control, currentRowItems:Get(rowItemCounter))
+                                if control:GetDefaultLayoutProperties():NeedsRendering()
+                                    control:LoadGraphics(control:GetDefaultLayoutProperties())
+                                end
+        
+                                control:SetPosition(cast(integer, elementX + (elementWidth - control:GetWidth()) / 2.0), cast(integer, (currentRowHeight - control:GetHeight()) / 2.0) + bannerPadding + previousRowHeights)
     
-                        j = j + 1
+                                elementX = elementX + elementWidth + defaultInRowPadding
+                            end
+        
+                            rowItemCounter = rowItemCounter + 1
+                        end
+
+                        previousRowHeights = previousRowHeights + currentRowHeight + defaultRowVerticalPadding
                     end
     
                 elseif item is Control
