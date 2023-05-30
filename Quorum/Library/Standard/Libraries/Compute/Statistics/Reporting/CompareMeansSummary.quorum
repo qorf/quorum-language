@@ -790,7 +790,6 @@ class CompareMeansSummary
                     else
                         summary = summary + ", p = " + format:FormatProbabilityValue(pval)
                     end
-                    summary = summary + ", "+statName+" = " + format:FormatTestStatistic(stat)
                     summary = summary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
                 else // ANOVA
                     text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
