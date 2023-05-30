@@ -46,6 +46,9 @@ class CompareMeansResult is StatisticalTestResult
     boolean ranked = false
     boolean equalVariances = false
     boolean normalDistribution = false
+    boolean useWilks = true                 // Multivariate: Default
+    boolean usePillai = false               // Multivariate: Use if assumptions are violated (like when CompareVariances is significant)
+    boolean useHotelling = false
 
     Array<text> factors
     Array<text> columns
@@ -477,6 +480,45 @@ class CompareMeansResult is StatisticalTestResult
 
     action SetPairwiseResults(Array<CompareMeansResult> pairwise)
         me:pairwise = pairwise
+    end
+
+    // Used in multivariate tests
+    action UseWilksStatistic returns boolean
+        return useWilks
+    end
+
+    action UseWilksStatistic(boolean useWilks)
+        me:useWilks = useWilks
+        if useWilks
+            me:usePillai = false
+            me:useHotelling = false
+        end
+    end
+
+    // Used in multivariate tests
+    action UsePillaiStatistic returns boolean
+        return usePillai
+    end
+
+    action UsePillaiStatistic(boolean usePillai)
+        me:usePillai = usePillai
+        if usePillai
+            me:useWilks = false
+            me:useHotelling = false
+        end
+    end
+
+    // Used in multivariate tests
+    action UseHotellingStatistic returns boolean
+        return useHotelling
+    end
+
+    action UseHotellingStatistic(boolean useHotelling)
+        me:useHotelling = useHotelling
+        if useHotelling
+            me:useWilks = false
+            me:usePillai = false
+        end
     end
 
 

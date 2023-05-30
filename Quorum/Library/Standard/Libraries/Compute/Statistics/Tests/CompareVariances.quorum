@@ -16,6 +16,7 @@ use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Transforms.TransformLonger
+use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 
 /*
     This class implements several tests:
@@ -31,12 +32,13 @@ use Libraries.Compute.Statistics.Transforms.TransformLonger
         Check that several groups vary in the same way when there are repeated measures.
         For more information: https://en.wikipedia.org/wiki/Mauchly%27s_sphericity_test
 
-        _________________ is a Bartlett’s Test for Homogeneity of Variances (very sensitive to non-normality)
+        _________________ is a Bartlett’s Test for Homogeneity of Variances (sensitive to non-normality)
         Check that several groups vary in the same way if all are normally distributed 
         For more information: https://en.wikipedia.org/wiki/Bartlett%27s_test
         For more information: https://www.statology.org/bartletts-test/
 
-        _________________ is a Box's M Test for Homogeneity of Covariances Extension Bartlett’s Homogeneity Test (very sensitive to non-normality)
+        CompareSeveralVariances is a Box's M Test for Homogeneity of Covariances Extension of Bartlett’s Homogeneity Test (sensitive to non-normality)
+        >> CompareCovarianceMatrices (private)
         Check that several multivariate groups vary in the same way if all are normally distributed 
         For more information: https://en.wikipedia.org/wiki/Box%27s_M_test
 
@@ -69,7 +71,8 @@ class CompareVariances is StatisticalTest
     private boolean needToProcessData = true        // Flag to let tell this class to process the selected data
 
     /* The distribution used to calculate the p-value.*/
-    ClassificationDistribution x2distribution
+    private ClassificationDistribution x2distribution
+    private VarianceRatioDistribution fdistribution
 
     /* Default uses median as center for calculations */
     boolean useMedianAsCenter = true 
@@ -105,7 +108,6 @@ class CompareVariances is StatisticalTest
 
         if numberOfFactors > 0 and numberOfColumns > 1
             multivariate = true
-            alert("A multivariate CompareVariances test is not supported yet.")
         else
             multivariate = false
         end
@@ -169,7 +171,7 @@ class CompareVariances is StatisticalTest
 
     /* 
         This action tests for variance equality (homogeneity) for 2 or more independent samples. 
-        It is commonly used with a one-way ANOVA in CompareMeans.
+        It is commonly used with an ANOVA in CompareMeans.
 
         It conducts the following tests: 
             Brown-Forsythe Test > CompareVariances:UseMedianAsCenter() or UseTrimmedMeanAsCenter(0.05)
@@ -203,29 +205,158 @@ class CompareVariances is StatisticalTest
             alert("CompareSeveralVariances must have at least two samples.")
         end
         if multivariate
-            alert("A multivariate CompareVariances test is not supported yet. Formal Name: Box's M Test")
-            // We will want to add a CompareCovariances (Box's M) test here.
-        end
-        text center = ""
-        DataFrame uncenteredGroupFrame
-        DataFrame centeredGroupFrame = GetCenteredGroupsFrame(uncenteredGroupFrame)
-        centeredGroupFrame:SelectAllColumns()
+            CompareCovarianceMatrices(frame)
+        else
+            text center = ""
+            DataFrame uncenteredGroupFrame
+            DataFrame centeredGroupFrame = GetCenteredGroupsFrame(uncenteredGroupFrame)
+            centeredGroupFrame:SelectAllColumns()
+        
+            if useMedianAsCenter
+                center = " with median as center"
+            elseif useMeanAsCenter
+                center = " with mean as center"
+            elseif useTrimmedMeanAsCenter
+                center = " with trimmed mean as Center"
+                alert("Trimmed mean not yet implemented")             
+            end
     
-        if useMedianAsCenter
-            center = " with median as center"
-        elseif useMeanAsCenter
-            center = " with mean as center"
-        elseif useTrimmedMeanAsCenter
-            center = " with trimmed mean as Center"
-            alert("Trimmed mean not yet implemented")             
+            // Conduct a one-way ANOVA on the centered groups
+            CompareMeans compare       
+            compare:CompareSeveralMeans(centeredGroupFrame)
+            CompareMeansResult aov = compare:GetResult()
+    
+            // Get anova result
+            CompareVariancesResult result
+            Array<text> sources
+            text source = "Groups"
+            if numberOfFactors > 0
+                i = 0
+                repeat while i < numberOfFactors
+                    if i = 0
+                        source = factorHeaders:Get(i)
+                    else
+                        source = source + ":"+ factorHeaders:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            sources:Add(source)
+            result:SetTestStatistic(source, "F", aov:GetTestStatistic())
+            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValueIterator():Next())
+            result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
+            result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetFormalTestName("Levene's Test for Homogeneity of Variances"+center)
+            result:SetGroupsFrame(uncenteredGroupFrame)
+            result:SetFactors(factorHeaders)
+            result:SetColumns(columnHeaders)
+            result:SetSources(sources)
+            results:Add(result)
+        end
+        needToProcessData = true // Reset processing flag in case user changes selections
+    end
+
+    /* 
+        Box's M Test for variance-covariace equality (homogeneity)  
+        It is commonly used with a MANOVA in CompareMeans.
+        This action is not intended to be accessed directly. 
+        Simply use CompareSeveralVariances, if the design is multivariate it will be redirected here.
+        This expects the data in wide format, meaning each row is a subject or observation and each column is a dependent variable.
+        Note: Each sample should have more subjects or observations than there are variables.
+
+        If the multivariate design is balanced (meaning the same sample size for each group) this test is not really necessary.
+        This test is typically compared to a significance level of 0.001
+        Assumptions:
+            1. Samples are independent
+                If not independent: Use Mauchly's Sphericity Test   > CompareVariances:CompareSeveralRelatedVariances 
+            2. There is more than one dependent variable
+                If only one: Use Levene's Homogeneity Test          > CompareVariances:CompareSeveralVariances 
+
+        Null hypothesis: The variance-covariance matrices are equal across all samples
+        Alternative hypothesis: At least one variance-covariance matrix is not equal to the others.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumnRange(0,2)
+    
+        CompareVariances compare = frame:CompareVariances()
+        output compare:GetFormalSummary()
+    */
+    private action CompareCovarianceMatrices(DataFrame frame)   
+        number dfTotal = 0
+        Matrix pooledCovMatrix
+        Array<Matrix> covMatrices
+        number numberOfSubjects = 0 
+        number numberOfGroups = groups:GetSize()
+        number numberOfVariables = 0
+        number c1Sum = 0
+        number c2Sum = 0
+        number mSum = 0
+
+        // For information on the equations: 
+        // https://www.ipen.br/biblioteca/slr/cel/0241
+        // https://www.sussex.ac.uk/its/pdfs/SPSS_Statistics_Algorithms_22.pdf
+        // https://real-statistics.com/multivariate-statistics/boxs-test/boxs-test-basic-concepts/
+        Array<text> groupsArray = groups:CopyToKeyArray()
+        integer i = 0
+        repeat while i < groupsArray:GetSize()
+            text groupText = groupsArray:Get(i)
+            DataFrame groupFrame = groups:GetValue(groupText)
+            groupFrame:SelectAllColumns()
+            groupSize = groupFrame:GetColumn(0):GetSize() 
+            if groupSize <= groupFrame:GetSize()
+                alert("CompareCovarianceMatrices: "+groupText+" has only "+groupSize+" observations. You need at least "+(groupFrame:GetSize()+1)+", to be more than the number of dependent variables")
+            end
+            Matrix covMatrix = groupFrame:CovarianceMatrix()
+            if i = 0
+                pooledCovMatrix = covMatrix:Multiply(groupSize - 1)
+                numberOfVariables = groupFrame:GetSize()
+            else
+                pooledCovMatrix = pooledCovMatrix:AddElements(covMatrix:Multiply(groupSize - 1))
+            end
+            mSum = mSum + math:NaturalLogarithm(covMatrix:GetDeterminant())*(groupSize - 1)
+            c1Sum = c1Sum + 1.0 / (groupSize - 1)
+            c2Sum = c2Sum + 1.0 / ((groupSize - 1) * (groupSize - 1))
+
+            covMatrices:Add(covMatrix)
+            numberOfSubjects = numberOfSubjects + groupSize
+            dfTotal = dfTotal + (groupSize - 1)
+            i = i + 1     
+        end
+        pooledCovMatrix = pooledCovMatrix:Multiply(1.0 / dfTotal)
+        c1Sum = c1Sum - 1.0 / (numberOfSubjects - numberOfGroups)
+        c2Sum = c2Sum - 1.0 / ((numberOfSubjects - numberOfGroups) * (numberOfSubjects - numberOfGroups))
+   
+        number M = (numberOfSubjects - numberOfGroups) * math:NaturalLogarithm(pooledCovMatrix:GetDeterminant()) - mSum
+        number c1 = ((2 * numberOfVariables * numberOfVariables + 3 * numberOfVariables - 1) / (6.0 * (numberOfVariables + 1.0) * (numberOfGroups - 1))) * c1Sum 
+        number c2 = ((numberOfVariables - 1.0) * (numberOfVariables + 2.0) / (6.0 * (numberOfGroups - 1.0))) * c2Sum
+        number df1 = 0.5 * (numberOfGroups - 1) * numberOfVariables * (numberOfVariables + 1)
+        number df2 = (df1 + 2) / math:AbsoluteValue(c2 - c1*c1)
+        number x2 = M * (1 - c1)
+        number f = 0
+        if c2 > c1*c1
+            a = df1 / (1.0 - c1 - df1 / df2)
+            f = M / a
+        else
+            a = df2 / (1.0 - c1 + 2.0 / df2)
+            f = df2 * M / df1 * (a - M)
         end
 
-        // Conduct a one-way ANOVA on the centered groups
-        CompareMeans compare       
-        compare:CompareSeveralMeans(centeredGroupFrame)
-        CompareMeansResult aov = compare:GetResult()
+        // Chi-Squared Approximation (for large sample sizes)
+        x2distribution:Setup(df1)
+        number pX2 = 1.0 - x2distribution:CumulativeDistribution(x2)
 
-        // Get anova result
+        // F-Test Approximation (for small sample sizes)
+        fdistribution:Setup(df1, df2)
+        number pF = 1.0 - fdistribution:CumulativeDistribution(f)
+
         CompareVariancesResult result
         Array<text> sources
         text source = "Groups"
@@ -241,20 +372,22 @@ class CompareVariances is StatisticalTest
             end
         end
         sources:Add(source)
-        result:SetTestStatistic(source, "F", aov:GetTestStatistic())
-        result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValueIterator():Next())
-        result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
-        result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
+        result:SetTestStatistic(source, "M", M)
+        result:SetTestStatistic(source, "χ2", x2)
+        result:SetTestStatistic(source, "F", f)
+        result:SetDegreesOfFreedom(source+"χ2", source+"χ2", df1)
+        result:SetProbabilityValue(source+"χ2", source+"χ2", pX2)
+        result:SetDegreesOfFreedom(source+"F", "numerator", df1)
+        result:SetDegreesOfFreedom(source+"F", "denominator", df2)
+        result:SetProbabilityValue(source+"F", source+"F", pF)
         result:SetSignificanceLevel(GetSignificanceLevel())
         result:SetFormat(GetStatisticalFormatting())
-        result:SetFormalTestName("Levene's Test for Homogeneity of Variances"+center)
-        result:SetGroupsFrame(uncenteredGroupFrame)
+        result:SetFormalTestName("Box's M-test for Homogeneity of Covariance Matrices")
+        result:SetGroupsTable(groups)
         result:SetFactors(factorHeaders)
         result:SetColumns(columnHeaders)
         result:SetSources(sources)
         results:Add(result)
-
-        needToProcessData = true // Reset processing flag in case user changes selections
     end
 
     /* 
@@ -323,11 +456,11 @@ class CompareVariances is StatisticalTest
             end
 
             // The equations can be found here:
-            // https://pingouin-stats.org/generated/pingouin.sphericity.html#r5b1fac2e46ff-1
+            // https://pingouin-stats.org/build/html/generated/pingouin.sphericity.html
             // https://pingouin-stats.org/generated/pingouin.epsilon.html
     
             // Number of measurements
-            number k = groupFrame:GetColumns():GetSize() 
+            number k = groupFrame:GetColumns():GetSize()
     
             // Number of subjects
             number n = groupFrame:GetColumn(0):GetSize()
@@ -403,12 +536,13 @@ class CompareVariances is StatisticalTest
             result:Repeated(true)
             result:SetTestStatistic(source, "W", w)
             result:SetTestStatistic(source+"W", "χ2", chi_w_squared)
-            result:SetTestStatistic(source, "V", w)
-            result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
             result:SetDegreesOfFreedom(source, "W", df)
-            result:SetDegreesOfFreedom(source, "V", df)
             result:SetProbabilityValue(source, "W", pW)
-            result:SetProbabilityValue(source, "V", pV)
+            //// JNS's V Test Statistic??
+            //  result:SetTestStatistic(source, "V", w)
+            //  result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
+            //  result:SetDegreesOfFreedom(source, "V", df)
+            //  result:SetProbabilityValue(source, "V", pV)
             result:SetInformation(source, "lb", lbCorrectionEpsilon)
             result:SetInformation(source, "gg", ggCorrectionEpsilon)
             result:SetInformation(source, "hf", hfCorrectionEpsilon)

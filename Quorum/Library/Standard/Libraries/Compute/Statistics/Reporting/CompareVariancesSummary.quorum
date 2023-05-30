@@ -70,16 +70,35 @@ class CompareVariancesSummary
                 summary = summary + lf + "Huynh-Feldt Correction (ε): " + math:Round(hf, digits)
                 summary = summary + lf + "Lower-Bound Correction (ε): " + math:Round(lb, digits)
             else
-                text source = result:GetSources():Get(0)
-                text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
-                number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
-                number dfw = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("denominator")
-                number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(source)
-                summary = summary + lf + "Degrees Of Freedom Numerator: " + math:Round(dfb, digits)        
-                summary = summary + lf + "Degrees Of Freedom Denominator: " + math:Round(dfw, digits)
-                summary = summary + lf + "Statistic (F): " + math:Round(stat, digits)
-                summary = summary + lf + "Probability: " + math:Round(pval, digits)
+                if multivariate
+                    text source = result:GetSources():Get(0)
+                    number m = result:GetTestStatisticsTable():GetValue(source):GetValue("M")
+                    number x2 = result:GetTestStatisticsTable():GetValue(source):GetValue("χ2")
+                    number f = result:GetTestStatisticsTable():GetValue(source):GetValue("F")
+                    number dfn = result:GetDegreesOfFreedomTable():GetValue(source+"F"):GetValue("numerator")
+                    number dfd = result:GetDegreesOfFreedomTable():GetValue(source+"F"):GetValue("denominator")
+                    number fpval = result:GetProbabilityValuesTable():GetValue(source+"F"):GetValue(source+"F")
+                    number x2pval = result:GetProbabilityValuesTable():GetValue(source+"χ2"):GetValue(source+"χ2")
+                    summary = summary + lf + "Statistic (M): " + math:Round(m, digits)
+                    summary = summary + lf + "Statistic (Approximate F): " + math:Round(f, digits)
+                    summary = summary + lf + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)        
+                    summary = summary + lf + "Degrees Of Freedom Denominator: " + math:Round(dfd, digits)
+                    summary = summary + lf + "Probability (F): " + math:Round(fpval, digits)
+                    summary = summary + lf + "Statistic (Approximate χ2): " + math:Round(x2, digits)
+                    summary = summary + lf + "Degrees Of Freedom: " + math:Round(dfn, digits)
+                    summary = summary + lf + "Probability (χ2): " + math:Round(x2pval, digits)
+                else
+                    text source = result:GetSources():Get(0)
+                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                    number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
+                    number dfw = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("denominator")
+                    number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(source)
+                    summary = summary + lf + "Degrees Of Freedom Numerator: " + math:Round(dfb, digits)        
+                    summary = summary + lf + "Degrees Of Freedom Denominator: " + math:Round(dfw, digits)
+                    summary = summary + lf + "Statistic (F): " + math:Round(stat, digits)
+                    summary = summary + lf + "Probability: " + math:Round(pval, digits)
+                end
             end
             return summary
         end
@@ -106,12 +125,30 @@ class CompareVariancesSummary
                 summary = summary + "A " + result:GetFormalTestName() + " was conducted on " + factors + " across " + numberOfSamples + " " + dependence + " samples. "
             end
     
-            if result:IsSignificant()
-                //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
-                summary = summary + lf + "There was a statistically significant difference in the variances"
+            if multivariate
+                boolean significant = false
+                if result:UseFApproximation()
+                    text statSource = result:GetSources():Get(0)+"F"
+                    significant = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource) < 0.001
+                elseif result:UseX2Approximation()
+                    text statSource = result:GetSources():Get(0)+"χ2"
+                    significant = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource) < 0.001
+                end
+                if significant
+                    //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
+                    summary = summary + lf + "There was a statistically significant difference in the covariance matrices"
+                else
+                    //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
+                    summary = summary + lf + "There was not a statistically significant difference in the covariance matrices"
+                end
             else
-                //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
-                summary = summary + lf + "There was not a statistically significant difference in the variances"
+                if result:IsSignificant()
+                    //P-value ≤ α: The differences between some of the means are statistically significant (Reject H0)
+                    summary = summary + lf + "There was a statistically significant difference in the variances"
+                else
+                    //P-value > α: The differences between the means are not statistically significant (Fail to reject H0)
+                    summary = summary + lf + "There was not a statistically significant difference in the variances"
+                end
             end
    
             summary = summary + ", " + GetFormalNumericalResult() + "."
@@ -132,25 +169,59 @@ class CompareVariancesSummary
                 number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
                 number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
 
-                summary = summary + approxStat+"("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(stat)
+                summary = summary + "Mauchly's W = " + format:FormatTestStatistic(result:GetTestStatisticsTable():GetValue(source):GetValue("W"))
+                summary = summary + ", "+approxStat+"("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(stat)
                 if pval < format:PRECISION_LIMIT
                     summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                 else
                     summary = summary + ", p = " + format:FormatProbabilityValue(pval)
                 end
             else
-                text source = result:GetSources():Get(0)
-                text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
-                number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
-                number dfw = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("denominator")
-                number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(source)
-
-                summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
-                if pval < format:PRECISION_LIMIT
-                    summary = summary + ", p < " + format:FormatProbabilityValue(pval)
+                if multivariate
+                    if result:UseFApproximation()
+                        text source = result:GetSources():Get(0)
+                        text statName = "F"
+                        number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                        number dfb = result:GetDegreesOfFreedomTable():GetValue(source+statName):GetValue("numerator")
+                        number dfw = result:GetDegreesOfFreedomTable():GetValue(source+statName):GetValue("denominator")
+                        number pval = result:GetProbabilityValuesTable():GetValue(source+statName):GetValue(source+statName)
+        
+                        summary = summary + "Box's M = " + format:FormatTestStatistic(result:GetTestStatisticsTable():GetValue(source):GetValue("M"))
+                        summary = summary + ", " + statName + "(" + format:FormatDegreesOfFreedom(dfb) + ", " + format:FormatDegreesOfFreedom(dfw)+") = " + format:FormatTestStatistic(stat)
+                        if pval < format:PRECISION_LIMIT
+                            summary = summary + ", p < " + format:FormatProbabilityValue(pval)
+                        else
+                            summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+                        end  
+                    elseif result:UseX2Approximation()
+                        text source = result:GetSources():Get(0)
+                        text statName = "χ2"
+                        number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                        number df = result:GetDegreesOfFreedomTable():GetValue(source+statName):GetValue(source+statName)
+                        number pval = result:GetProbabilityValuesTable():GetValue(source+statName):GetValue(source+statName)
+        
+                        summary = summary + "Box's M = " + format:FormatTestStatistic(result:GetTestStatisticsTable():GetValue(source):GetValue("M"))
+                        summary = summary + ", " + statName + "(" + format:FormatDegreesOfFreedom(df) + ") = " + format:FormatTestStatistic(stat)
+                        if pval < format:PRECISION_LIMIT
+                            summary = summary + ", p < " + format:FormatProbabilityValue(pval)
+                        else
+                            summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+                        end
+                    end                
                 else
-                    summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+                    text source = result:GetSources():Get(0)
+                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                    number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
+                    number dfw = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("denominator")
+                    number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(source)
+    
+                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                    if pval < format:PRECISION_LIMIT
+                        summary = summary + ", p < " + format:FormatProbabilityValue(pval)
+                    else
+                        summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+                    end
                 end
             end
             return summary
@@ -163,7 +234,11 @@ class CompareVariancesSummary
             if result:IsRepeated()
                 return DependentSummaryDataFrame()
             else
-                return IndependentSummaryDataFrame()
+                if multivariate
+                    return MultivariateSummaryDataFrame()
+                else
+                    return IndependentSummaryDataFrame()
+                end
             end
         end
         alert("There is no CompareVariancesResult defined to summarize. Try using SetResult()")
@@ -205,6 +280,69 @@ class CompareVariancesSummary
         table:AddColumn(df1)
         table:AddColumn(df2)
         table:AddColumn(p)
+        return table
+    end
+
+    private action MultivariateSummaryDataFrame returns DataFrame
+        number nan = 0
+        integer digits = format:GetSignificantDigits()
+        text source = result:GetSources():Get(0)
+        text statName = "M"
+        number mStat = result:GetTestStatisticsTable():GetValue(source):GetValue("M")
+        number x2Stat = result:GetTestStatisticsTable():GetValue(source):GetValue("χ2")
+        number fStat = result:GetTestStatisticsTable():GetValue(source):GetValue("F")
+        number dfn = result:GetDegreesOfFreedomTable():GetValue(source+"F"):GetValue("numerator")
+        number dfd = result:GetDegreesOfFreedomTable():GetValue(source+"F"):GetValue("denominator")
+        number x2p = result:GetProbabilityValuesTable():GetValue(source+"χ2"):GetValue(source+"χ2")
+        number fp = result:GetProbabilityValuesTable():GetValue(source+"F"):GetValue(source+"F")
+        
+
+        TextColumn name
+        name:SetHeader("Box's M-Test Of Homogeneity")
+        name:Add(source)
+
+        NumberColumn m
+        m:SetHeader("Statistic (M)")
+        m:Add(math:Round(mStat, digits))
+
+        NumberColumn f
+        f:SetHeader("Approximate F")
+        f:Add(math:Round(fStat, digits))
+
+        NumberColumn df1
+        df1:SetHeader("Degrees Of Freedom (DF1)")
+        df1:Add(math:Round(dfn, digits))
+
+        NumberColumn df2
+        df2:SetHeader("Degrees Of Freedom (DF2)")
+        df2:Add(math:Round(dfd, digits))
+
+        NumberColumn p1
+        p1:SetHeader("F Probability (P)")
+        p1:Add(math:Round(fp, digits))
+
+        NumberColumn x2
+        x2:SetHeader("Approximate χ2")
+        x2:Add(math:Round(x2Stat, digits))
+
+        NumberColumn df
+        df:SetHeader("Degrees Of Freedom (DF)")
+        df:Add(math:Round(dfn, digits))
+
+        NumberColumn p2
+        p2:SetHeader("χ2 Probability (P)")
+        p2:Add(math:Round(x2p, digits))
+
+        DataFrame table
+        table:AddColumn(name)
+        table:AddColumn(m)
+        table:AddColumn(f)
+        table:AddColumn(df1)
+        table:AddColumn(df2)
+        table:AddColumn(p1)
+        table:AddColumn(x2)
+        table:AddColumn(df)
+        table:AddColumn(p2)
         return table
     end
 
