@@ -118,7 +118,7 @@ class ClassBlock is MultipleLineBlock
         EditField inheritsField
         me:inheritField = inheritsField
         part:Add(inheritsField)
-
+        part:SetLocalEndIndex(lastInherit:GetIndexEnd() + 1 - GetStartIndex())
         inheritsField:Setup("Inherits", firstInherit:GetIndex() - GetStartIndex(), lastInherit:GetIndexEnd() + 1 - GetStartIndex())
         inheritsField:SetLeftPadding(0)
         inheritsField:SetRightPadding(spacing * 0.5)

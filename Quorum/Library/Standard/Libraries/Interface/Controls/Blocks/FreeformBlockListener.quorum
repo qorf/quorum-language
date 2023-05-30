@@ -135,6 +135,20 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitParentFieldAccess(ParentFieldAccessContext context) end
 
     action EnterFullClassDeclaration(FullClassDeclarationContext ctx)
+        OffsetLocation(ctx:GetLocation())
+        OffsetLocation(ctx:classNameLocation)
+        if ctx:generic not= undefined
+            OffsetLocation(ctx:generic:GetLocation())
+        end
+        if ctx:inherit not= undefined
+            OffsetLocation(ctx:inherit:GetLocation())
+            integer i = 0
+            repeat while i <ctx:inherit:statements:GetSize()
+                OffsetLocation(ctx:inherit:statements:Get(i):GetLocation())
+                i = i + 1
+            end
+        end
+        // FOR NOW we're not offseting the class statements because we assume we're making an empty class
         ClassBlock block
         block:SetEditor(dummyRoot:GetEditor())
         block:SetFullClass(ctx)

@@ -38,6 +38,17 @@ class RootBlock is Block
     end
 
     action EmptyChildBlocks
+        /*
+        Remove the direct children's parent reference to this RootBlock. This ensures anything in the old tree will return false from IsValid().
+        We don't need to remove more than the first generation's references, because any item in the tree has to look up the root by traversing
+        the (now broken) hierarchy.
+        */
+        integer i = 0
+        repeat while i < childBlocks:GetSize()
+            childBlocks:Get(i):SetParentBlock(undefined)
+            i = i + 1
+        end
+
         childBlocks:Empty()
     end
 

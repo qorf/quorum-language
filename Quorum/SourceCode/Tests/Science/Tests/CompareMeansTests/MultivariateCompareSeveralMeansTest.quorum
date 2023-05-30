@@ -33,13 +33,13 @@ class MultivariateCompareSeveralMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        text stat = result:GetTestStatisticsTable():GetValue("factor1"):GetKeyIterator():Next()
+        text stat = "Wilks Lambda"
         Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("factor1"), 1.0)
-        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValueIterator():Next(), 0.0467435942460233)
+        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValue(stat), 0.0467435942460233)
         Check(result:GetTestStatisticsTable():GetValue("factor1"+stat):GetValueIterator():Next(), 20.39330567385872)
-        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("numerator"), 4.0)
-        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("denominator"), 4.0)
-        Check(result:GetProbabilityValuesTable():GetValue("factor1"):GetValueIterator():Next(), 0.006350624704905217)
-        Check(result:GetEffectSizesTable():GetValue("factor1"):GetValue("partial-eta-squared"), 0.9532564057539767)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("denominator"), 4.0)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1"+stat):GetValueIterator():Next(), 0.006350624704905217)
+        Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.9532564057539767)
     end
 end

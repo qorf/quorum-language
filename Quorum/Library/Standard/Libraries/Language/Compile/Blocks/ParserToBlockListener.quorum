@@ -265,7 +265,7 @@ class ParserToBlockListener is QuorumSourceListener
     
             // Now that all parts have been added, call Setup on the block.
             actionBlock:Setup()
-    
+
             // Go back to the parent of the action block.
             currentBlock = actionBlock:GetParentBlock()
             scopeDepth = scopeDepth - 1

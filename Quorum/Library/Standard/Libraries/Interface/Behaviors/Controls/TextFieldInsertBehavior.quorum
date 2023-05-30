@@ -14,7 +14,7 @@ class TextFieldInsertBehavior is Behavior
         end
 
         TextInputEvent inputEvent = event:GetTextInputEvent()
-        if inputEvent = undefined
+        if inputEvent = undefined or inputEvent:WasKeyUsed()
             return now
         end
 
