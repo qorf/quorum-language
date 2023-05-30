@@ -1761,4 +1761,148 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
     end
+
+    private action GetEnclosingActionBlock returns Block
+        if selection = undefined or selection:GetBlock() = undefined
+            return undefined
+        end
+
+        Block actionBlock = undefined
+        Block block = selection:GetBlock()
+        if block not= undefined and IsActionOrConstructor(block)
+            return block
+        else 
+            Block possibleAction = block:GetParentBlock()
+            repeat while possibleAction not= undefined
+                if IsActionOrConstructor(possibleAction)
+                    actionBlock = possibleAction
+                    possibleAction = undefined
+                else
+                    possibleAction = possibleAction:GetParentBlock()
+                end
+            end
+        end
+
+        return actionBlock
+    end
+
+    private action GetEnclosingClass returns ClassBlock
+        RootBlock root = GetRootBlock()
+        if root = undefined
+            return undefined
+        end
+        i = 0
+        repeat while i < root:GetChildCount()
+            Block child = root:GetChild(i)
+            if child is ClassBlock
+                ClassBlock classBlock = cast(ClassBlock, child)
+                return classBlock
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+
+    private action IsActionOrConstructor(Block block) returns boolean
+        if block is ActionBlock or block is ConstructorBlock
+            return true
+        else
+            return false
+        end
+    end
+
+    action SmartNavigateUp
+        if selection = undefined or selection:GetBlock() = undefined
+            return now
+        end
+
+        Block block = selection:GetBlock()
+
+        //first get a class and action. Neither might exist in an implicit class
+        //but if both are null, smart navigation does not do anything, so just return
+        ClassBlock theClass = GetEnclosingClass()
+        Block theAction = GetEnclosingActionBlock()
+        //first check if it's a block not enclosed, so just get the first action
+        if theClass = undefined and theAction = undefined
+            return now
+        elseif theClass not= undefined and theAction = undefined
+            Block firstChild = theClass:GetChild(0)
+            if firstChild = undefined
+                return now
+            end
+
+            //get the first action and move on.
+            i = firstChild:GetChildCount() - 1
+            repeat while i >= 0
+                Block child = firstChild:GetChild(i)
+                if child not= undefined and IsActionOrConstructor(child)
+                    child:Focus()
+                    return now
+                end
+                i = i - 1
+            end
+        elseif theClass not= undefined and theAction not= undefined
+            //find the action before this one, or the last one
+            //this is a class block and all the children are stored in the first child
+            Block firstChild = theClass:GetChild(0)
+            if firstChild = undefined
+                return now
+            end
+
+            Block candidateAction = undefined
+            //first find the action
+            integer index = 0
+            //first find the block
+            i = 0
+            repeat while i < firstChild:GetChildCount()
+                Block child = firstChild:GetChild(i)
+                if child:GetHashCode() = theAction:GetHashCode()
+                    index = i
+                    i = firstChild:GetChildCount()
+                elseif child:GetHashCode() not= theAction:GetHashCode() and IsActionOrConstructor(child)
+                    candidateAction = child
+                end
+                i = i + 1
+            end
+
+
+            if candidateAction not= undefined
+                candidateAction:Focus()
+                return now
+            end
+
+            //loop back around up to the index, because we didn't check there.
+            i = firstChild:GetChildCount() - 1
+            repeat while i > index
+                Block child = firstChild:GetChild(i)
+                if IsActionOrConstructor(child)
+                    child:Focus()
+                    return now
+                end //this is the one
+                i = i - 1
+            end
+
+            //nothing was found, so just do the action block
+            theAction:Focus()
+        end
+    end
+
+    
+
+    action SmartNavigateDown
+//        ActionBlock actionBlock = GetEnclosingActionBlock()
+//        if actionBlock = undefined
+//            return now
+//        end
+//
+//        output "Found action with name: " + actionBlock:GetName()
+    end
+
+    action SmartNavigateLeft
+
+    end
+
+    action SmartNavigateRight
+
+    end
 end
