@@ -1831,7 +1831,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 return now
             end
 
-            //get the first action and move on.
+            //get the last action and move on.
             i = firstChild:GetChildCount() - 1
             repeat while i >= 0
                 Block child = firstChild:GetChild(i)
@@ -1890,19 +1890,146 @@ class CodeEditor is ScrollableLineControl, GutterListener
     
 
     action SmartNavigateDown
-//        ActionBlock actionBlock = GetEnclosingActionBlock()
-//        if actionBlock = undefined
-//            return now
-//        end
-//
-//        output "Found action with name: " + actionBlock:GetName()
+        if selection = undefined or selection:GetBlock() = undefined
+            return now
+        end
+
+        Block block = selection:GetBlock()
+
+        //first get a class and action. Neither might exist in an implicit class
+        //but if both are null, smart navigation does not do anything, so just return
+        ClassBlock theClass = GetEnclosingClass()
+        Block theAction = GetEnclosingActionBlock()
+        //first check if it's a block not enclosed, so just get the first action
+        if theClass = undefined and theAction = undefined
+            return now
+        elseif theClass not= undefined and theAction = undefined
+            Block firstChild = theClass:GetChild(0)
+            if firstChild = undefined
+                return now
+            end
+
+            //get the first action and move on.
+            i = 0
+            repeat while i < firstChild:GetChildCount()
+                Block child = firstChild:GetChild(i)
+                if child not= undefined and IsActionOrConstructor(child)
+                    child:Focus()
+                    return now
+                end
+                i = i + 1
+            end
+        elseif theClass not= undefined and theAction not= undefined
+            //find the action after this one
+            //this is a class block and all the children are stored in the first child
+            Block firstChild = theClass:GetChild(0)
+            if firstChild = undefined
+                return now
+            end
+
+            //the candidate action here would be the first 
+            //one round the horn, so only do this once for down
+            Block candidateAction = undefined
+            //first find the action
+            integer index = 0
+            //first find the block
+            i = 0
+            repeat while i < firstChild:GetChildCount()
+                Block child = firstChild:GetChild(i)
+                if child:GetHashCode() = theAction:GetHashCode()
+                    index = i
+                    i = firstChild:GetChildCount()
+                elseif child:GetHashCode() not= theAction:GetHashCode() 
+                    and IsActionOrConstructor(child)
+                    and candidateAction = undefined //only the first round the horn
+
+                    candidateAction = child
+                end
+                i = i + 1
+            end
+
+
+
+            //loop back around up to the index, because we didn't check there.
+            i = index + 1
+            repeat while i < firstChild:GetChildCount()
+                Block child = firstChild:GetChild(i)
+                if IsActionOrConstructor(child)
+                    child:Focus()
+                    return now
+                end //this is the one
+                i = i + 1
+            end
+
+            //if we didn't find one previously, choose the first round the horn
+            if candidateAction not= undefined
+                candidateAction:Focus()
+                return now
+            end
+
+            //nothing was found, so just do the action block
+            theAction:Focus()
+        end
+    end
+
+    action IsControlStructureBlock(Block block) returns boolean
+        if  block is RepeatBlock or
+            block is CheckBlock or
+            block is ActionBlock or
+            block is ConstructorBlock or
+            block is ClassBlock or
+            block is IfBlock
+            return true
+        else
+            return false
+        end
+    end
+
+    action TraverseBackward(Block block) returns Block
+        Block candidate = block:GetPreviousNavigableBlock()
+        repeat until candidate = undefined
+            if candidate is MultipleLineBlockPart
+                return candidate
+            end
+            candidate = candidate:GetPreviousNavigableBlock()
+        end
+        return candidate
+    end
+
+    action TraverseForward(Block block) returns Block
+        Block candidate = block:GetNextNavigableBlock()
+        repeat until candidate = undefined
+            if candidate is MultipleLineBlockPart
+                return candidate
+            end
+            candidate = candidate:GetNextNavigableBlock()
+        end
+        return candidate
     end
 
     action SmartNavigateLeft
+        if selection = undefined or selection:GetBlock() = undefined
+            return now
+        end
 
+        Block block = selection:GetBlock()
+        Block found = TraverseBackward(block)
+        if found not= undefined
+            found:Focus()
+            return now
+        end
     end
 
     action SmartNavigateRight
+        if selection = undefined or selection:GetBlock() = undefined
+            return now
+        end
 
+        Block block = selection:GetBlock()
+        Block found = TraverseForward(block)
+        if found not= undefined
+            found:Focus()
+            return now
+        end
     end
 end
