@@ -169,9 +169,12 @@ class FormRowLayout is Layout
                     number totalRowHeights = 0
 
                     // Figure out how many rows it takes to store our items. If the division has a remainder, then we have an additional, partially-filled row
-                    integer rowCount = totalItemsInRows / numberOfRowItems
-                    if totalItemsInRows mod numberOfRowItems not= 0
-                        rowCount = rowCount + 1
+                    integer rowCount = 0
+                    if numberOfRowItems > 0
+                        rowCount = totalItemsInRows / numberOfRowItems
+                        if totalItemsInRows mod numberOfRowItems not= 0
+                            rowCount = rowCount + 1
+                        end
                     end
 
                     // Initialize the row arrays.
