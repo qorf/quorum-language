@@ -55,6 +55,7 @@ use Science.Tests.MultivariateCompareSeveralMeansTest
 use Science.Tests.MultivariateFactorialCompareSeveralMeansTest
 use Science.Tests.FactorialCompareVariancesTest
 use Science.Tests.RegressionPredictionTest
+use Science.Tests.MultivariateCompareVariancesTest
 
 class ScienceTester
     Tester tester = undefined
@@ -153,6 +154,9 @@ class ScienceTester
 
         FactorialCompareVariancesTest test3
         tester:Run(test3)
+
+        MultivariateCompareVariancesTest test4
+        tester:Run(test4)
     end
 
     action TestCompareDistributions

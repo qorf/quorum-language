@@ -8,11 +8,34 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Math
 
 /*
-    This class represents data that comes back from a CompareVariances calculation (levene's or mauchly's test).
+    This class represents data that comes back from a CompareVariances calculation.
 
     Attribute: Author Hannah Williams
 */
 class CompareVariancesResult is CompareMeansResult
+    private boolean useFApproximation = false        
+    private boolean useX2Approximation = true
+
+    // Used in multivariate tests
+    action UseFApproximation returns boolean
+        return useFApproximation
+    end
+
+    action UseFApproximation(boolean useFApproximation)
+        me:useFApproximation = useFApproximation
+        me:useX2Approximation = not useFApproximation
+    end
+
+    // Used in multivariate tests
+    action UseX2Approximation returns boolean
+        return useX2Approximation
+    end
+
+    action UseX2Approximation(boolean useX2Approximation)
+        me:useX2Approximation = useX2Approximation
+        me:useFApproximation = not useX2Approximation
+    end
+
     action GetLowerBoundCorrection returns number
         if GetSources():GetSize() > 0
             if GetInformation():GetValue(GetSources():Get(0)):HasKey("lb")
