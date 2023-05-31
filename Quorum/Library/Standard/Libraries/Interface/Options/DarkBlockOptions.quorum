@@ -30,10 +30,10 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
 
     action SetStartingOptions
-        SetBackgroundColor(constants:ASSIGNMENT_KEY, assignmentBlock)
-        SetBackgroundColor(constants:OUTPUT_KEY, sayBlock)
-        SetBackgroundColor(constants:SAY_KEY, sayBlock)
-        SetBackgroundColor(constants:RETURN_KEY, returnBlock)
+        SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:OUTPUT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:SAY_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
         SetBackgroundColor(constants:USE_KEY, defaultStatementColor)
         SetBackgroundColor(constants:PACKAGE_KEY, packageBlock)
         SetBackgroundColor(constants:ALERT_KEY, alertBlock)
@@ -42,7 +42,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetBackgroundColor(constants:REPEAT_KEY, repeatBlock)
         SetBackgroundColor(constants:ACTION_KEY, actionBlock)
         SetBackgroundColor(constants:CONSTRUCTOR_KEY, constructorBlock)
-        SetBackgroundColor(constants:CLASS_KEY, classBlock)
+        SetBackgroundColor(constants:CLASS_KEY, packageBlock)
         SetBackgroundColor(constants:IF_KEY, ifBlock)
         SetBackgroundColor(constants:FREEFORM_KEY, freeformBlock)
         SetBackgroundColor(constants:COMMENT_KEY, freeformBlock)
@@ -52,7 +52,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetEditFontColor(color:White())
         SetStaticFontColor(color:White())
         SetStaticFontOutlineColor(color:Black())
-        SetStaticFontOutlineThickness(1.0)
+        SetStaticFontOutlineThickness(1.2)
     end
 
     action SetDefaultBlockOptions(text key)
