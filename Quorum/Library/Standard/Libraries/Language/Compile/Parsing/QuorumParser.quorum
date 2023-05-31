@@ -3117,7 +3117,11 @@ class QuorumParser
 
             context:left = left
             ParseContext right = And()
-            context:right = right
+            if right not= undefined
+                context:right = right
+            else
+                return undefined
+            end
 
             context2:SetFirstToken(left:GetFirstToken())
             if right not= undefined
@@ -3153,7 +3157,11 @@ class QuorumParser
             context:isAnd = true
             context:left = left
             ParseContext right = Equals()
-            context:right = right
+            if right not= undefined
+                context:right = right
+            else
+                return undefined
+            end
 
             context2:SetFirstToken(left:GetFirstToken())
             if right not= undefined
@@ -3198,6 +3206,8 @@ class QuorumParser
             ParseContext right = Inherits()
             if right not= undefined
                 context:SetLastToken(right:GetLastToken())
+            else
+                return undefined
             end
             SetLocation(context)
             context:right = right
