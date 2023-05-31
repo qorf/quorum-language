@@ -254,6 +254,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         integer lineHeight = font:GetLineHeight()
         integer maxDescent = font:GetMaximumDescent()
 
+        number bottomPadding = GetBottomPadding()
+
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
         repeat size times
@@ -289,7 +291,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             end
 
             if draw not= undefined
-                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent)
+                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent + bottomPadding)
                 lineCharacters:Add(draw)
                 background:Add(draw)
 
@@ -348,7 +350,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             counter = counter + 1
         end
 
-        caret:SetPosition(x + leftCharacterPadding, 0)
+        caret:SetPosition(x + leftCharacterPadding, GetBottomPadding())
         return x + leftCharacterPadding
     end
 
