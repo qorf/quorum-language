@@ -252,9 +252,8 @@ class CodeEditorRenderer is Control
         Block lastNavigableBlock = undefined
 
         CodeEditor editor = GetEditor()
-
         repeat until currentBlock = undefined
-            if currentBlock:GetStartLine() <= lastLine and currentBlock:GetEndLine() >= firstLine
+            if currentBlock:GetNavigationIndex() <= lastLine and (currentBlock:GetNavigationIndex() + currentBlock:GetTotalNavigationSize()) >= firstLine
                 if currentBlock:GetDefaultLayoutProperties():NeedsRendering()
                     currentBlock:LoadGraphics(currentBlock:GetDefaultLayoutProperties())
                 end

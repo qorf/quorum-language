@@ -300,6 +300,21 @@ class BlockShaderMapping is BatchingShaderMapping2D
 
             topX = block:GetTopNotchPosition() + (topWidth / 2.0)
             bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+
+            if block:HasImportantHints()
+                ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
+                if hintColor not= undefined
+                    borderColor = hintColor
+                end
+
+                if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
+                    number thickness = editor:GetNumberProperty("HintBorderThickness")
+                    leftBorder = thickness
+                    rightBorder = thickness
+                    topBorder = thickness
+                    bottomBorder = thickness
+                end
+            end
         end
         /*
         Counter-intuitively, we actually divide by the height, not the width, to get the proportional

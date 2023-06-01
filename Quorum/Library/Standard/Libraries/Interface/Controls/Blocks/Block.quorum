@@ -6,6 +6,7 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Selections.CodeEditorSelection
 use Libraries.Language.Compile.Context.ParseContext
@@ -62,6 +63,9 @@ class Block is Control
     List<Hint> hints
     List<CompilerError> errors
 
+    // Used to identify when the rendering needs to be refreshed due to Hints changing.
+    boolean renderingImportantHints = false
+
     on create
         SetName("Block")
 
@@ -70,7 +74,40 @@ class Block is Control
     end
 
     private action UpdateHintsAndErrorsVisuals
+        boolean changed = false
 
+        if errors:IsEmpty() = false
+            if GetView2D() is BlockErrorShaderView = false
+                BlockErrorShaderView view
+                view:Initialize()
+                SetView2D(view)
+
+                changed = true
+            end
+        else
+            if GetView2D() is SingleLineBlockView = false
+                SingleLineBlockView view
+                view:Initialize()
+                SetView2D(view)
+
+                changed = true
+            end
+        end
+
+        boolean hasImportantHints = HasImportantHints()
+        if renderingImportantHints not= hasImportantHints
+            // The shader mapping will handle the actual change in this case, but it's important we tell the mapping to update the vertices.
+            renderingImportantHints = hasImportantHints
+            changed = true
+        end
+        
+        if changed
+            RequestVerticesUpdate()
+        end
+    end
+
+    action HasImportantHints returns boolean
+        return hints:IsEmpty() = false
     end
 
     action Add(Hint hint)

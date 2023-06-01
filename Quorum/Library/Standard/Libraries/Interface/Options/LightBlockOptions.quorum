@@ -51,6 +51,11 @@ class LightBlockOptions is LightModeOptions, BlockOptions
         SetStaticFontColor(color:White())
         SetStaticFontOutlineColor(color:Black())
         SetStaticFontOutlineThickness(1.2)
+
+        SetPrimaryErrorColor("CodeEditor", color:CustomColor(1, 0.25, 0.25, 1))
+        SetSecondaryErrorColor("CodeEditor", color:CustomColor(0.75, 0.25, 0.25, 1))
+        SetHintBorderColor("CodeEditor", color:Orange())
+        SetHintBorderThickness("CodeEditor", 3)
     end
 
     action SetDefaultBlockOptions(text key)
