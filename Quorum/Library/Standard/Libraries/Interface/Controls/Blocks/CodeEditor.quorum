@@ -1759,6 +1759,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action SetFile(File file)
         me:file = file
+        lineGutter:SetFile(file)
     end
 
     action GetBreakpointManager returns BreakpointManager
@@ -1767,6 +1768,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
+        lineGutter:SetBreakpointManager(breakpoints)
     end
 
     private action GetEnclosingActionBlock returns Block

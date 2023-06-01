@@ -4,11 +4,54 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Language.Debug.BreakpointManager
+use Libraries.Language.Debug.BreakpointListener
+use Libraries.System.File
+use Libraries.Language.Debug.BreakpointEvent
+use Libraries.Language.Debug.Breakpoint
 
-class LineNumberGutter is Gutter
-   
+class LineNumberGutter is Gutter, BreakpointListener
     Array<Label> labels
     boolean positionOnBaseLine = true
+    BreakpointManager breakpoints = undefined
+    File file = undefined
+
+    action GetBreakpointManager returns BreakpointManager
+        return breakpoints
+    end
+
+    action SetBreakpointManager(BreakpointManager breakpoints)
+        me:breakpoints = breakpoints
+        breakpoints:Add(me)
+    end
+
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+    end
+
+    action ToggledBreakpoint(BreakpointEvent event)
+        Breakpoint breakpoint = event:GetBreakpoint()
+        File breakFile = breakpoint:GetFile()
+        text breakPath = breakFile:GetAbsolutePath()
+        text path = ""
+        if file not= undefined
+            path = file:GetAbsolutePath()
+        end
+
+        //lines are 0 indexed, so add 1
+        //added tells us whether the breakpoint was added to the system or removed
+        boolean added = event:IsAdded() //otherwise removed
+        if breakPath = path
+            //Example for how you get the information you need
+            //output statement should be removed.
+            output "Added(" + added + ") breakpoint at: " 
+                + path + " " + (breakpoint:GetLine() + 1)
+        end
+    end
 
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
