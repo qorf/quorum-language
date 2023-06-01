@@ -1053,6 +1053,20 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
+    /*
+        This action selects the line and informs
+        the system that the debugger is stopped at this particular
+        block.
+    */
+    action SelectDebuggerLine(integer line)
+        SelectBlockAtLine(line)
+        lineGutter:SetDebuggerLine(line)
+    end
+
+    action ClearDebuggerLine
+        lineGutter:SetDebuggerLine(-1)
+    end
+
     action SelectBlockAtLine(integer line)
         // If the blocks need to be regenerated or if the indices need to be updated, do that first.
         if shouldRegenerateBlocks

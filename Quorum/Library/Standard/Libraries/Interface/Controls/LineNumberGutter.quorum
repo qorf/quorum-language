@@ -9,12 +9,19 @@ use Libraries.Language.Debug.BreakpointListener
 use Libraries.System.File
 use Libraries.Language.Debug.BreakpointEvent
 use Libraries.Language.Debug.Breakpoint
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Iterator
 
 class LineNumberGutter is Gutter, BreakpointListener
     Array<Label> labels
+    Array<Drawable> drawables
+    Color color
     boolean positionOnBaseLine = true
     BreakpointManager breakpoints = undefined
     File file = undefined
+    integer previousStartLine = 0
+    integer debuggerLine = -1 //-1 means not active
 
     action GetBreakpointManager returns BreakpointManager
         return breakpoints
@@ -42,14 +49,8 @@ class LineNumberGutter is Gutter, BreakpointListener
             path = file:GetAbsolutePath()
         end
 
-        //lines are 0 indexed, so add 1
-        //added tells us whether the breakpoint was added to the system or removed
-        boolean added = event:IsAdded() //otherwise removed
         if breakPath = path
-            //Example for how you get the information you need
-            //output statement should be removed.
-            output "Added(" + added + ") breakpoint at: " 
-                + path + " " + (breakpoint:GetLine() + 1)
+            UpdateVisuals(previousStartLine)
         end
     end
 
@@ -84,6 +85,7 @@ class LineNumberGutter is Gutter, BreakpointListener
 
     action UpdateVisuals(integer startLine)
         Empty()
+        previousStartLine = startLine
 
         ScrollableLineControl control = GetControl()
         integer fontSize = control:GetFontSize()
@@ -107,6 +109,7 @@ class LineNumberGutter is Gutter, BreakpointListener
         this is only an approximation, which may require some extra space via
         padding in order to look correct.
         */
+        number leftMargin = properties:GetLeftMargin()
         number rightMargin = properties:GetRightMargin()
         number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftMargin() + rightMargin
         integer totalLines = control:GetLineCount()
@@ -135,10 +138,40 @@ class LineNumberGutter is Gutter, BreakpointListener
                 label:SetFont(font)
             end
 
+            Color color
+            
             label:SetSize(fontSize)
             label:SetText("" + (currentLine + 1))
             label:SetPosition(width - label:GetWidth() - rightMargin, y + height / 2.0 - label:GetHeight() / 2.0)
             label:SetColor(GetFontColor())
+
+            //this is a bit wasteful of memory, but might be ok.
+            boolean fillBackground = false
+            Drawable background = GetBackground(counter)
+            if file not= undefined and breakpoints not= undefined
+                integer myWidth = cast(integer, width - rightMargin - leftMargin)
+                integer myHeight = cast(integer, height)
+                integer descent = font:GetMaximumDescent()
+                background:SetSize(myWidth, myHeight)
+                
+                background:SetPosition(width - background:GetWidth() - rightMargin, y + myHeight)
+
+                Breakpoint point = breakpoints:GetBreakpoint(file:GetAbsolutePath(), counter - 1)
+                if (point not= undefined) or (counter - 1 = debuggerLine and debuggerLine not= -1)
+                    if counter - 1 = debuggerLine
+                        background:SetColor(GetSelectionColor())
+                    else
+                        background:SetColor(GetAccentColor())
+                    end
+                    //label:SetColor(GetFocusFontColor())
+                    //label:SetShadowColor(GetFontOutlineColor())
+                    fillBackground = true
+                end
+            end
+
+            if fillBackground
+                Add(background)
+            end
             Add(label)
 
             currentLine = currentLine + 1
@@ -157,6 +190,19 @@ class LineNumberGutter is Gutter, BreakpointListener
         end
     end
 
+    private action GetBackground(integer index) returns Drawable
+        if drawables:GetSize() <= index or drawables:Get(index) = undefined
+            Drawable drawable
+            
+            color = color:White()
+            drawable:LoadFilledRectangle(1,1, color)
+            drawables:Add(index, drawable)
+            return drawable
+        else
+            return drawables:Get(index)
+        end
+    end
+
     action IsPositioningOnBaseLine returns boolean
         return positionOnBaseLine
     end
@@ -171,6 +217,23 @@ class LineNumberGutter is Gutter, BreakpointListener
         end
 
         me:positionOnBaseLine = positionOnBaseLine
+    end
+
+    /*
+        A debugger line of -1 means not active. All other values
+        indicate the line of code where the debugger is active.
+    */
+    action GetDebuggerLine returns integer
+        return debuggerLine
+    end
+
+    /*
+        A debugger line of -1 means not active. All other values
+        indicate the line of code where the debugger is active.
+    */
+    action SetDebuggerLine(integer debuggerLine)
+        me:debuggerLine = debuggerLine
+        UpdateVisuals(previousStartLine)
     end
 
 end
