@@ -933,14 +933,16 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action GetDefaultFontName returns text
         text name = undefined
         Font font
+        
+        
         if font:IsFontAvailable("Courier New Bold")
             name = "Courier New Bold"
-        elseif font:IsFontAvailable("Lato")
-            name = "Lato"
         elseif font:IsFontAvailable("FiraCode-Retina")
             name = "FiraCode-Retina"
         elseif font:IsFontAvailable("FiraCode-Regular")
             name = "FiraCode-Regular"
+        elseif font:IsFontAvailable("Lato")
+            name = "Lato"
         elseif font:IsFontAvailable("Courier")
             name = "Courier"
         elseif font:IsFontAvailable("Courier New")
