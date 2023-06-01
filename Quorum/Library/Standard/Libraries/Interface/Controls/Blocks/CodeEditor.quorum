@@ -88,6 +88,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     File file = undefined
     Class clazz = undefined
     BreakpointManager breakpoints = undefined
+    LineNumberGutter lineGutter
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -119,14 +120,18 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         SetFocusable(true)
 
-        LineNumberGutter gutter
-        gutter:SetPositionOnBaseLine(false)
-        gutter:AddGutterListener(me)
-        Add(cast(Gutter, gutter))
+        
+        lineGutter:SetPositionOnBaseLine(false)
+        lineGutter:AddGutterListener(me)
+        Add(cast(Gutter, lineGutter))
 
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
+    end
+
+    action GetLineNumberGutter returns LineNumberGutter
+        return lineGutter
     end
 
     action GetClass returns Class
