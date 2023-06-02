@@ -2203,11 +2203,14 @@ shared class DefaultInputSets
         rightClickSetCodeEditor:SetMouseInput(mouse:RIGHT)
         table:Add(rightClickSetCodeEditor, codeEditorOpenPopupMenuBehavior)
 
-        InputSet controlDelete
-        controlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
-        controlDelete:AddModifier(controlDelete:CONTROL)
+        InputSet deleteSet
+        deleteSet:SetKeyboardInput(keys:FORWARD_DELETE)
         CodeEditorDeleteBlockBehavior deleteBehavior
-        table:Add(controlDelete, deleteBehavior)
+        table:Add(deleteSet, deleteBehavior)
+        
+        InputSet backspaceSet
+        backspaceSet:SetKeyboardInput(keys:BACKSPACE)
+        table:Add(backspaceSet,deleteBehavior)
         
         CodeEditorFreeformEditingBehavior freeformBehavior
 

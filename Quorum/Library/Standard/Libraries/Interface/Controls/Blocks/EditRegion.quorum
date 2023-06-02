@@ -33,9 +33,10 @@ class EditRegion is BlockItem
         text name = undefined
         Font font
         
-        
         if font:IsFontAvailable("Courier New Bold")
             name = "Courier New Bold"
+        elseif font:IsFontAvailable("courbd")
+            name = "courbd"
         elseif font:IsFontAvailable("FiraCode-Retina")
             name = "FiraCode-Retina"
         elseif font:IsFontAvailable("FiraCode-Regular")
@@ -71,6 +72,7 @@ class EditRegion is BlockItem
                 name = file:GetPath()
             end
         end
+
         return name
     end
 
