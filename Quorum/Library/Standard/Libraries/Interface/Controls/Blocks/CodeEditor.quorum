@@ -175,8 +175,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
         
         return name
-	end
-	
+    end
+
     action GetLineNumberGutter returns LineNumberGutter
         return lineGutter
     end
@@ -420,6 +420,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SetCode(text code)
         rawCode:Initialize(code)
         failState = not GenerateStartContextFromCode(code)
+        if failState
+            blockListener:SetStartContext(undefined)
+        end
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -430,6 +433,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SetCode(MultipleLineText code)
         rawCode = code
         failState = not GenerateStartContextFromCode(code:GetText())
+        if failState
+            blockListener:SetStartContext(undefined)
+        end
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -462,6 +468,24 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
         blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
+        return true
+    end
+
+    action HasValidParse returns boolean
+        CompilerErrorManager manager
+        QuorumLexer lexer
+        lexer:SetCompilerErrorManager(manager)
+        lexer:Read(GetText())
+        if not manager:IsCompilationErrorFree()
+            return false
+        end
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if not manager:IsCompilationErrorFree()
+            return false
+        end
         return true
     end
 
@@ -794,7 +818,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action RegenerateBlocks
         // Attempt to generate a new start context from the code.
         failState = not GenerateStartContextFromCode(GetText())
-
+        if failState
+            blockListener:SetStartContext(undefined)
+        end
         // When regenerating the blocks, we must assume that the sizing information we held previously might become invalid.
         shouldCalculateWidth = true
         shouldCalculateHeight = true
