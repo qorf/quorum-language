@@ -88,6 +88,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     File file = undefined
     Class clazz = undefined
     BreakpointManager breakpoints = undefined
+    LineNumberGutter lineGutter
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -119,10 +120,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         SetFocusable(true)
 
-        LineNumberGutter gutter
-        gutter:SetPositionOnBaseLine(false)
-        gutter:AddGutterListener(me)
-        Add(cast(Gutter, gutter))
+        
+        lineGutter:SetPositionOnBaseLine(false)
+        lineGutter:AddGutterListener(me)
+        Add(cast(Gutter, lineGutter))
 
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
@@ -174,6 +175,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
         
         return name
+	end
+	
+    action GetLineNumberGutter returns LineNumberGutter
+        return lineGutter
     end
 
     action GetClass returns Class
@@ -1050,6 +1055,20 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
+    /*
+        This action selects the line and informs
+        the system that the debugger is stopped at this particular
+        block.
+    */
+    action SelectDebuggerLine(integer line)
+        SelectBlockAtLine(line)
+        lineGutter:SetDebuggerLine(line)
+    end
+
+    action ClearDebuggerLine
+        lineGutter:SetDebuggerLine(-1)
+    end
+
     action SelectBlockAtLine(integer line)
         // If the blocks need to be regenerated or if the indices need to be updated, do that first.
         if shouldRegenerateBlocks
@@ -1756,6 +1775,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action SetFile(File file)
         me:file = file
+        lineGutter:SetFile(file)
     end
 
     action GetBreakpointManager returns BreakpointManager
@@ -1764,6 +1784,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
+        lineGutter:SetBreakpointManager(breakpoints)
     end
 
     private action GetEnclosingActionBlock returns Block
