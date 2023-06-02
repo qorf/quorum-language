@@ -28,12 +28,14 @@ use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Views.BlockErrorShaderView
+use Libraries.Interface.Options.BlockOptionConstants
 
 class BlockErrorShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
     NumberUtilities utility
+    BlockOptionConstants constants
 
     constant integer BATCH_SIZE = 200
 
@@ -48,6 +50,7 @@ class BlockErrorShaderMapping is BatchingShaderMapping2D
     VertexAttribute antiAliasAttribute = undefined
     VertexAttribute notchSizeAttribute = undefined
     VertexAttribute notchPositionAttribute = undefined
+    VertexAttribute secondaryColorAttribute = undefined
 
     // Fetched during vertex mapping, and set just before rendering occurs as a uniform value.
     number notchHeight = 0
@@ -70,6 +73,7 @@ class BlockErrorShaderMapping is BatchingShaderMapping2D
         antiAliasAttribute = dummy:CustomNumberAttribute("a_antiAlias")
         notchSizeAttribute = dummy:CustomVectorAttribute("a_notchSize", 3)
         notchPositionAttribute = dummy:CustomVectorAttribute("a_notchPositions", 2)
+        secondaryColorAttribute = dummy:CustomColorAttribute("a_secondaryColor")
         extraAttributes:Add(borderColorAttribute)
         extraAttributes:Add(roundingAttribute)
         extraAttributes:Add(leftBorderAttribute)
@@ -80,6 +84,7 @@ class BlockErrorShaderMapping is BatchingShaderMapping2D
         extraAttributes:Add(antiAliasAttribute)
         extraAttributes:Add(notchSizeAttribute)
         extraAttributes:Add(notchPositionAttribute)
+        extraAttributes:Add(secondaryColorAttribute)
         attributes:SetAttributes(extraAttributes)
         
         /*
@@ -264,6 +269,66 @@ class BlockErrorShaderMapping is BatchingShaderMapping2D
             end
         end
 
+        number topWidth = 20
+        number bottomWidth = 10
+        number topX = 10
+        number bottomX = 10
+        if drawable is BlockErrorShaderView
+            BlockErrorShaderView blockView = cast(BlockErrorShaderView, drawable)
+            Block block = cast(Block, blockView:GetItem())
+            CodeEditor editor = block:GetEditor()
+
+            topWidth = editor:GetBlockNotchTopWidth()
+            bottomWidth = editor:GetBlockNotchBottomWidth()
+            notchHeight = editor:GetBlockNotchHeight()
+
+            topX = block:GetTopNotchPosition() + (topWidth / 2.0)
+            bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+
+            ColorGroup primaryColor = editor:GetColorProperty(constants:PRIMARY_ERROR_COLOR)
+            ColorGroup secondaryColor = editor:GetColorProperty(constants:SECONDARY_ERROR_COLOR)
+
+            if primaryColor not= undefined
+                backgroundColor = primaryColor
+            end
+
+            if secondaryColor not= undefined
+                if secondaryColor is Color
+                    Color secondary = cast(Color, borderColor)
+                    shape:SetDataForAllVertices(secondaryColorAttribute:offset / 4, secondary:EncodeColorAsNumber())
+                else
+                    Color bottomRight = secondaryColor:GetBottomRight()
+                    Color bottomLeft = secondaryColor:GetBottomLeft()
+                    Color topRight = secondaryColor:GetTopRight()
+                    Color topLeft = secondaryColor:GetTopLeft()
+                    shape:SetVertexData(secondaryColorAttribute:offset / 4, bottomRight:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+                end
+            else
+                Color secondary
+                secondary:SetColor(0.5, 0.25, 0.25, 1)
+                shape:SetDataForAllVertices(secondaryColorAttribute:offset / 4, secondary:EncodeColorAsNumber())
+            end
+
+            if block:HasImportantHints()
+                ColorGroup hintColor = editor:GetColorProperty(constants:HINT_BORDER_COLOR)
+                if hintColor not= undefined
+                    borderColor = hintColor
+                end
+
+                if editor:GetDefaultLayoutProperties():HasNumberProperty(constants:HINT_BORDER_THICKNESS)
+                    number thickness = (1.0 / height) * (editor:GetNumberProperty(constants:HINT_BORDER_THICKNESS) * editor:GetInterfaceScale())
+
+                    leftBorder = thickness
+                    rightBorder = thickness
+                    topBorder = thickness
+                    bottomBorder = thickness
+                end
+            end
+        end
+
         if backgroundColor not= undefined
             drawable:GetDrawableShape():SetColor(backgroundColor)
         end
@@ -286,22 +351,6 @@ class BlockErrorShaderMapping is BatchingShaderMapping2D
             shape:SetDataForAllVertices(borderColorAttribute:offset / 4, 0)
         end
 
-        number topWidth = 20
-        number bottomWidth = 10
-        number topX = 10
-        number bottomX = 10
-        if drawable is BlockErrorShaderView
-            BlockErrorShaderView blockView = cast(BlockErrorShaderView, drawable)
-            Block block = cast(Block, blockView:GetItem())
-            CodeEditor editor = block:GetEditor()
-
-            topWidth = editor:GetBlockNotchTopWidth()
-            bottomWidth = editor:GetBlockNotchBottomWidth()
-            notchHeight = editor:GetBlockNotchHeight()
-
-            topX = block:GetTopNotchPosition() + (topWidth / 2.0)
-            bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
-        end
         /*
         Counter-intuitively, we actually divide by the height, not the width, to get the proportional
         trapezoid width values. This is because we'll already be offsetting the width in the shader via

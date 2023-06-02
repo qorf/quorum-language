@@ -859,7 +859,7 @@ class CompareMeans is StatisticalTest
                 number fBetweenGroup = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError        
                 fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
                 number pBetweenGroup = 1.0 - fDistribution:CumulativeDistribution(fBetweenGroup)
-                number etaBetweenGroup = sumOfSquaresBetweenGroup / allSumOfSquares
+                number etaBetweenGroup = sumOfSquaresBetweenGroup / (sumOfSquaresBetweenGroup + sumOfSquaresWithinGroup)
 
                 Array<text> sources
                 text source = ""
@@ -887,6 +887,35 @@ class CompareMeans is StatisticalTest
                 result:SetProbabilityValue(source, "F", pBetweenGroup)
                 result:SetInformation(source,"ss", sumOfSquaresBetweenGroup)
                 result:SetInformation(source,"meanss", meanSumOfSquaresBetweenGroup)
+    
+                if testDistributionAssumption   
+                    // Check normality using a Shapiro-Wilk's CompareDistributions Test
+                    CompareDistributions compare
+                    compare:SetSignificanceLevel(GetSignificanceLevel())
+                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                    groupFrame:SelectAllColumns()
+                    compare:CompareDistributionToNormal(groupFrame)
+                    result:SetDistributionResults(compare:GetResults())
+                end
+                if testVarianceAssumption or pBetweenGroup <= GetSignificanceLevel()
+                    // Check for sphericity using a Mauchly's CompareVariances test 
+                    // This test is only necessary if the rm anova is significant with standard f
+                    CompareVariances compare
+                    compare:SetSignificanceLevel(GetSignificanceLevel())
+                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                    groupFrame:SelectAllColumns()
+                    compare:RepeatedMeasures(true)
+                    compare:Calculate(groupFrame)
+                    result:SetVarianceResult(compare:GetResult())
+                    if compare:GetResult():GetCorrectionName() not= ""
+                        number correction = compare:GetResult():GetCorrection()
+                        number newDFn = correction*degreesFreedomBetweenGroup
+                        number newDFd = correction*degreesFreedomError
+                        fDistribution:Setup(newDFn, newDFd)
+                        number p = 1.0 - fDistribution:CumulativeDistribution(fBetweenGroup)
+                        result:SetInformation(source,"corrected p", p)
+                    end
+                end
 
                 // Within Measures
                 source = "Within Measures"
@@ -912,27 +941,7 @@ class CompareMeans is StatisticalTest
                 result:SetInformation(source,"ss", sumOfSquaresError)
                 result:SetInformation(source,"meanss", meanSumOfSquaresError)
                 result:SetSources(sources)
-    
-                if testDistributionAssumption   
-                    // Check normality using a Shapiro-Wilk's CompareDistributions Test
-                    CompareDistributions compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    groupFrame:SelectAllColumns()
-                    compare:CompareDistributionToNormal(groupFrame)
-                    result:SetDistributionResults(compare:GetResults())
-                end
-                if testVarianceAssumption or pBetweenGroup <= GetSignificanceLevel()
-                    // Check for sphericity using a Mauchly's CompareVariances test 
-                    // This test is only necessary if the rm anova is significant with standard f
-                    CompareVariances compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    groupFrame:SelectAllColumns()
-                    compare:RepeatedMeasures(true)
-                    compare:Calculate(groupFrame)
-                    result:SetVarianceResult(compare:GetResult())
-                end
+
                 if userRequestedPairwise or pBetweenGroup <= GetSignificanceLevel()
                     // Pairwise tests are only necessary if the rm anova is significant
                     CompareMeansPairwise compare
@@ -1333,10 +1342,10 @@ class CompareMeans is StatisticalTest
                     result:SetTestStatistic(source, "F", f)
                     if factorial
                         result:SetEffectSize(source, "partial-eta-squared", part_eta)
-                        result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
+                        //result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
                     else
                         result:SetEffectSize(source, "eta-squared", part_eta)
-                        result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
+                        //result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
                     end
                     result:SetDegreesOfFreedom(source, "F", dfFactor)
                     result:SetProbabilityValue(source, "F", p)
@@ -1393,19 +1402,28 @@ class CompareMeans is StatisticalTest
             end
             if testVarianceAssumption
                 if multivariate
-                    alert("Testing for homogeniety of variance on multiple dependent variables is not supported yet")
+                    // Check for homogeneity using a Box's CompareCovarianceMatrices test
+                    CompareVariances compare
+                    compare:SetSignificanceLevel(GetSignificanceLevel())
+                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                    compare:Calculate(frame) // Keep the same selection as this test
+                    result:SetVarianceResult(compare:GetResult())
+                    if compare:GetResult():IsSignificant()
+                        result:UsePillaiStatistic(true)
+                    end
+                else
+                    // Check for homogeneity using a Levene's CompareVariances test
+                    CompareVariances compare
+                    compare:SetSignificanceLevel(GetSignificanceLevel())
+                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                    result:GetGroupsFrame():SelectAllColumns()
+                    compare:Calculate(result:GetGroupsFrame())
+                    result:SetVarianceResult(compare:GetResult())
                 end
-                // Check for sphericity using a Levene's CompareVariances test
-                CompareVariances compare
-                compare:SetSignificanceLevel(GetSignificanceLevel())
-                compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                result:GetGroupsFrame():SelectAllColumns()
-                compare:Calculate(result:GetGroupsFrame())
-                result:SetVarianceResult(compare:GetResult())
             end
             if userRequestedPairwise or significant
                 if userRequestedPairwise and multivariate
-                    alert("Post hoc testing for multiple dependent variables is not supported yet")
+                    alert("Post hoc testing for multivariate designs is not supported yet")
                 end
                 if userRequestedPairwise and factorial
                     alert("Post hoc testing for factorial designs is not supported yet")
@@ -2888,7 +2906,7 @@ class CompareMeans is StatisticalTest
     end
 
     private action AddInteractionsToDesignMatrix(DataFrame frame, Matrix designMatrix, integer start, integer next, integer stop, integer current)
-        if current = designMatrix:GetColumns() - 1
+        if current = designMatrix:GetColumns() - 1 or next > current
             // See if next is already associated with start
             if AlreadyAssociated(next, start)
                 // Move next and try again
@@ -2909,21 +2927,35 @@ class CompareMeans is StatisticalTest
             AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
 
         elseif next = stop
-            // Associate next and start to current
-            AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-            designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-            current = current + 1
-
-            // Move start, reset next and try again
-            start = start + 1
-            next = start + 1
-
-            // Keep going
-            AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-          
-        else
-            // See if next is already associated with start
             if AlreadyAssociated(next, start)
+                // Move next and try again
+                next = next + 1
+                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
+            else
+                // Associate next and start to current
+                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
+                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
+                current = current + 1
+    
+                // Move start, reset next and try again
+                start = start + 1
+                next = start + 1
+    
+                // Keep going
+                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
+            end
+        else
+            // See if next is at current
+            if next = current
+                // Move start, reset next and try again
+                start = start + 1
+                next = start + 1
+    
+                // Keep going
+                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
+            
+            // See if next is already associated with start
+            elseif AlreadyAssociated(next, start)
                 // Move next and try again
                 next = next + 1
                 AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
@@ -2940,22 +2972,37 @@ class CompareMeans is StatisticalTest
         end
     end
 
+    private action AlreadyAssociated(integer nextAssociation, integer currAssociation) returns boolean
+        Matrix nextFactors = factorsAssociatedWithColumn:GetValue(nextAssociation)
+        Matrix currFactors = factorsAssociatedWithColumn:GetValue(currAssociation)
+
+        if nextFactors not= undefined and currFactors not= undefined
+            i = 0
+            repeat while i < currFactors:GetColumns()
+                if currFactors:Get(0, i) = 1 and nextFactors:Get(0, i) = 1
+                    return true
+                end
+                i = i + 1
+            end
+        end
+        return false
+    end
+
     private action AssociateFactorsOfOldColumnToNewColumn(integer firstIndex, integer secondIndex, integer newIndex)
         Matrix factors1 = factorsAssociatedWithColumn:GetValue(firstIndex)
-        Matrix factors2 = factorsAssociatedWithColumn:GetValue(secondIndex)    
-        i = 0
-        repeat while i < factors1:GetSize()
-            factorsAssociatedWithColumn:Set(newIndex, factors1:AddElements(factors2))
-            i = i + 1
-        end
+        Matrix factors2 = factorsAssociatedWithColumn:GetValue(secondIndex)  
 
-        text factorHeader = GetTextFromEncoding(factors1)+":"+GetTextFromEncoding(factors2)
-        if not columnsAssociatedWithFactor:HasKey(factorHeader)
-            Array<integer> arr
-            arr:Add(newIndex)
-            columnsAssociatedWithFactor:Add(factorHeader, arr)
-        else
-            columnsAssociatedWithFactor:GetValue(factorHeader):Add(newIndex)
+        if factors1 not= undefined and factors2 not= undefined  
+            factorsAssociatedWithColumn:Set(newIndex, factors1:AddElements(factors2))
+
+            text factorHeader = GetTextFromEncoding(factors1)+":"+GetTextFromEncoding(factors2)
+            if not columnsAssociatedWithFactor:HasKey(factorHeader)
+                Array<integer> arr
+                arr:Add(newIndex)
+                columnsAssociatedWithFactor:Add(factorHeader, arr)
+            else
+                columnsAssociatedWithFactor:GetValue(factorHeader):Add(newIndex)
+            end
         end
     end
 
@@ -2988,20 +3035,6 @@ class CompareMeans is StatisticalTest
             j = j + 1
         end
         return degreesOfFreedom
-    end
-
-    private action AlreadyAssociated(integer nextAssociation, integer currAssociation) returns boolean
-        Matrix nextFactors = factorsAssociatedWithColumn:GetValue(nextAssociation)
-        Matrix currFactors = factorsAssociatedWithColumn:GetValue(currAssociation)
-
-        i = 0
-        repeat while i < currFactors:GetColumns()
-            if currFactors:Get(0, i) = 1 and nextFactors:Get(0, i) = 1
-                return true
-            end
-            i = i + 1
-        end
-        return false
     end
 
     private action ComputeSumOfSquares(Matrix x, Matrix y) returns number

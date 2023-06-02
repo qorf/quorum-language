@@ -4,7 +4,7 @@ class BlockErrorShaderProgram is ShaderProgram
 
     public constant text DEFAULT_NAME = "Block Error Shader Program"
     constant text FRAGMENT_NAME = "Block Error Fragment Shader"
-    constant text VERTEX_NAME = "Block Vertex Shader"
+    constant text VERTEX_NAME = "Block Error Vertex Shader"
 
     on create
         SetName(DEFAULT_NAME)
@@ -14,7 +14,7 @@ class BlockErrorShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            BlockVertexShader vertex
+            BlockErrorVertexShader vertex
             Add(vertex)
         end
 

@@ -240,7 +240,14 @@ class CompareMeansSummary
                 text source = result:GetSources():Get(i)
                 if result:GetTestStatisticsTable():HasKey(source)
                     summary = summary + lf + "Source: " + source
-                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    text statName = ""
+                    if result:UseWilksStatistic()
+                        statName = "Wilks Lambda"
+                    elseif result:UsePillaiStatistic()
+                        statName = "Pillai Trace"
+                    elseif result:UseHotellingStatistic()
+                        statName = "Hotelling Trace"
+                    end
                     text statSource = source+statName
                     text effName = result:GetEffectSizesTable():GetValue(statSource):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
@@ -281,6 +288,14 @@ class CompareMeansSummary
                         summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
                         summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
                         summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
+                        if result:IsRepeated() and result:GetVarianceResult() not= undefined
+                            text correctionName = result:GetVarianceResult():GetCorrectionName()
+                            if correctionName not= ""
+                                number adjp = result:GetInformation():GetValue(source):GetValue("corrected p")
+                                summary = summary + lf + tab + correctionName + " (ε): " + math:Round(result:GetVarianceResult():GetCorrection(), digits)
+                                summary = summary + lf + tab + "Corrected Probability: " + math:Round(adjp, digits)
+                            end
+                        end
                         summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)
                     else
                         number dfn = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
@@ -290,6 +305,14 @@ class CompareMeansSummary
                         summary = summary + lf + tab + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)
                         summary = summary + lf + tab + "Degrees Of Freedom Denominator: " + math:Round(dfd, digits)
                         summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
+                        if result:IsRepeated() and result:GetVarianceResult() not= undefined
+                            text correctionName = result:GetVarianceResult():GetCorrectionName()
+                            if correctionName not= ""
+                                number adjp = result:GetInformation():GetValue(source):GetValue("corrected p")
+                                summary = summary + lf + tab + correctionName + " (ε): " + math:Round(result:GetVarianceResult():GetCorrection(), digits)
+                                summary = summary + lf + tab + "Corrected Probability: " + math:Round(adjp, digits)
+                            end
+                        end
                         summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)
                     end
                 else 
@@ -488,11 +511,61 @@ class CompareMeansSummary
         if result:IsRepeated()
             if result:GetVarianceResult() not= undefined and result:GetVarianceResult():GetCorrection() not= 1
                 summary = summary  + lf + result:GetVarianceResult():GetFormalTestName() + " indicated that the assumption of sphericity had been violated, " 
-                + result:GetVarianceResult():GetFormalNumericalResult() + ", therefore the degrees of freedom were corrected using Greenhouse-Geisser estimates of sphericity "
-                + "(ε ="+format:FormatWithoutLeadingZero(result:GetVarianceResult():GetCorrection(), 2)+"). "
+                + result:GetVarianceResult():GetFormalNumericalResult() 
+
+                text correctionName = result:GetVarianceResult():GetCorrectionName()
+                number correction = result:GetVarianceResult():GetCorrection()
+                summary = summary  + lf + "The degrees of freedom were corrected using the "+correctionName+ " procedure "
+                + "(ε = "+format:FormatWithoutLeadingZero(correction, 2)+"). "
+
+                // Corrected Formal Numerical Result
+                text list = ""
+                boolean significant = false
+                i = 0
+                repeat while i < result:GetSources():GetSize()
+                    text source = result:GetSources():Get(i)
+                    if result:GetTestStatisticsTable():HasKey(source)
+                        text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                        text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
+                        number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                        number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)*correction
+                        number dfw = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")*correction
+                        number pval = result:GetInformation():GetValue(source):GetValue("corrected p")
+                        number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
+    
+                        text equation = statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                        if pval < format:PRECISION_LIMIT
+                            equation = equation + ", p < " + format:FormatProbabilityValue(pval)
+                        else
+                            equation = equation + ", p = " + format:FormatProbabilityValue(pval)
+                        end
+                        equation = equation + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
+    
+                        if equation not= ""
+                            if result:GetTestStatisticsTable():GetSize() = 1
+                                list = equation
+                            else
+                                list = list + source + ": "+ equation + list:GetLineFeed()
+                            end
+                        end
+                        if pval < result:GetSignificanceLevel()
+                            significant = true
+                        end
+                    end
+                    i = i + 1
+                end
+
+                if significant
+                    summary = summary + lf + "The corrected result indicated that there was a statistically significant difference between the samples"
+                else
+                    summary = summary + lf + "The corrected result indicated that there was not a statistically significant difference between the samples"
+                end
+
+                summary = summary + ", " + list + "."
+
+                return summary
             end
         end
-
         if result:IsSignificant()
             summary = summary + lf + "The result indicated that there was a statistically significant difference between the samples"
         else
@@ -692,7 +765,14 @@ class CompareMeansSummary
                     end
                     summary = summary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
                 elseif multivariate // MANOVA
-                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    text statName = ""
+                    if result:UseWilksStatistic()
+                        statName = "Wilks Lambda"
+                    elseif result:UsePillaiStatistic()
+                        statName = "Pillai Trace"
+                    elseif result:UseHotellingStatistic()
+                        statName = "Hotelling Trace"
+                    end
                     text statSource = source+statName
                     text effName = result:GetEffectSizesTable():GetValue(statSource):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
@@ -703,13 +783,13 @@ class CompareMeansSummary
                     number dfd = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("denominator")
                     number pval = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
             
-                    summary = summary + "F("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(f)
+                    summary = summary + statName + " = "+format:FormatWithoutLeadingZero(stat,2)
+                    summary = summary + ", F("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(f)
                     if pval < format:PRECISION_LIMIT
                         summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                     else
                         summary = summary + ", p = " + format:FormatProbabilityValue(pval)
                     end
-                    summary = summary + ", "+statName+" = " + format:FormatTestStatistic(stat)
                     summary = summary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
                 else // ANOVA
                     text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()

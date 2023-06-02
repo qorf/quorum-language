@@ -7,9 +7,7 @@ class SingleLineBlock is Block
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
-            SingleLineBlockView view
-            view:Initialize()
-            SetView2D(view)
+            UpdateHintsAndErrorsVisuals()
         end
 
         parent:Control:LoadGraphics(properties)

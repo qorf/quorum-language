@@ -45,6 +45,7 @@ class Main is NetworkExchangeListener
     HashTable<text, Array<text>> flagValues
     Library sharedLibrary = undefined
     DateTime time
+
     action Main
         ProcessConsoleFlags()
         //CompileTest()
@@ -217,7 +218,8 @@ class Main is NetworkExchangeListener
         compilerRootFolder:SetPath("SourceCode")
 
         File main
-        main:SetAbsolutePath("/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Actions/Fail/VoidReturnWrong.quorum")
+        main:SetAbsolutePath(
+    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Expressions/Fail/BadAndTest.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
