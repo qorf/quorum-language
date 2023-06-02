@@ -83,6 +83,7 @@ class FlowchartWriter is ChartWriter
             image:SetHref(encoder:EncodeImageAsDataURI(texture:GetSource()))
             image:SetAriaHidden("true")
             canvas:Add(image)
+            chart:SetBackgroundColor(transparent)
         end
 
         Group chartContent
