@@ -40,6 +40,7 @@ use Libraries.Interface.Events.GutterEvent
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Debug.BreakpointManager
 use Libraries.Interface.Behaviors.Blocks.all
+use Libraries.Interface.Controls.AnnotationLineGutter
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -89,6 +90,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     Class clazz = undefined
     BreakpointManager breakpoints = undefined
     LineNumberGutter lineGutter
+    AnnotationLineGutter annotationGutter
 
     /* 
     Cached, raw y-positions of lines in the text (e.g. the y-position of each line
@@ -124,6 +126,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         lineGutter:SetPositionOnBaseLine(false)
         lineGutter:AddGutterListener(me)
         Add(cast(Gutter, lineGutter))
+        Add(cast(Gutter, annotationGutter))
 
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
@@ -175,10 +178,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
         
         return name
-	end
-	
+    end
+
     action GetLineNumberGutter returns LineNumberGutter
         return lineGutter
+    end
+
+    action GetAnnotationLineGutter returns AnnotationLineGutter
+        return annotationGutter
     end
 
     action GetClass returns Class
