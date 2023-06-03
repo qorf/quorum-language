@@ -17,6 +17,8 @@ use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 class CodeEditorFreeformEditingBehavior is Behavior
 
     GameStateManager manager
+    
+    boolean forceEditing = false
 
     action Run(BehaviorEvent event)
         CodeEditor editor = undefined
@@ -37,6 +39,11 @@ class CodeEditorFreeformEditingBehavior is Behavior
         FreeformBlock freeform = undefined
 
         Block block = editor:GetSelection():GetBlock()
+        
+        if block:IsFastEditable() = false and forceEditing = false
+            return now
+        end
+        
         if block is FreeformBlock
             // Process the event specifically for the Freeform block
             freeform = cast(FreeformBlock, block)
@@ -57,6 +64,14 @@ class CodeEditorFreeformEditingBehavior is Behavior
         
         // Reset the event to hold the original item before sending it back, to ensure the Input system treats it properly.
         event:SetItem(originalItem)
+    end
+    
+    action SetForceEditing(boolean force)
+        forceEditing = force
+    end
+    
+    action GetForceEditing returns boolean
+        return forceEditing
     end
 
 end

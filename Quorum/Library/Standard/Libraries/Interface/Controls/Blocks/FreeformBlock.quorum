@@ -43,6 +43,10 @@ class FreeformBlock is SingleLineBlock
 
         SetName("Freeform Block")
     end
+    
+    action IsFastEditable returns boolean
+        return true
+    end
 
     action SetupElements
         CodeEditor editor = GetEditor()
@@ -73,7 +77,7 @@ class FreeformBlock is SingleLineBlock
 
     action LostSelection
         ParseToBlock()
-        parent:Control:LostSelection()
+        parent:Block:LostSelection()
     end
 
     action GetName returns text

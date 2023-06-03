@@ -2315,8 +2315,6 @@ shared class DefaultInputSets
 
 
         table:Add(typingSet, freeformBehavior)
-        table:Add(leftSet, freeformBehavior)
-        table:Add(rightSet, freeformBehavior)
         table:Add(shiftLeftSet, freeformBehavior)
         table:Add(shiftRightSet, freeformBehavior)
         table:Add(controlLeftSet, freeformBehavior)
@@ -2328,6 +2326,12 @@ shared class DefaultInputSets
         table:Add(shiftHomeSet, freeformBehavior)
         table:Add(shiftEndSet, freeformBehavior)
 
+        CodeEditorFreeformEditingBehavior forceFreeformBehavior
+        forceFreeformBehavior:SetForceEditing(true)
+        
+        table:Add(leftSet, forceFreeformBehavior)
+        table:Add(rightSet, forceFreeformBehavior)
+        
         gameInput:AddInputTable(table)
 
 

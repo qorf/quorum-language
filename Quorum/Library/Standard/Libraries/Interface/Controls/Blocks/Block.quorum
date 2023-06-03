@@ -806,9 +806,51 @@ class Block is Control
                 UpdateName(line)
                 Focus()
             end
+            
+            if IsFastEditable()
+                EditRegion region = GetStartingEditRegion()
+                if region not= undefined
+                    region:ShowCaret()
+                end
+            end
         end
 
         parent:Control:GainedSelection()
+    end
+    
+    action LostSelection
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            if selection:GetBlock() not= me and IsFastEditable()
+                EditRegion region = GetStartingEditRegion()
+                if region not= undefined
+                    region:HideCaret()
+                end
+            end
+        end
+
+        parent:Control:LostSelection()
+    end
+    
+    private action GetStartingEditRegion returns EditRegion
+        BlockItem firstItem = undefined
+        Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while firstItem = undefined and i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is BlockItem
+                firstItem = cast(BlockItem, item)
+            end
+            i = i + 1
+        end
+        
+        if firstItem is EditRegion
+            EditRegion region = cast(EditRegion, firstItem)
+            return region
+        end
+        
+        return undefined
     end
 
     action SetContext(ParseContext context)
@@ -933,5 +975,9 @@ class Block is Control
         end
 
         return cast(RootBlock, candidate)
+    end
+    
+    action IsFastEditable returns boolean
+        return false
     end
 end
