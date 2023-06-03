@@ -404,7 +404,7 @@ class FormRowLayout is Layout
                     if control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
                         width = control:GetPixelWidth() + containerWidth * control:GetPercentageWidth()
                     end
-    
+
                     Font font = control:GetFont()
                     if font = undefined
                         font = containerFont:Copy()
@@ -465,7 +465,7 @@ class FormRowLayout is Layout
                     number y = rowTopY - height
     
                     control:SetPosition(x, y)
-    
+
                     rowTopY = y - defaultRowVerticalPadding
                 end
     
@@ -534,6 +534,14 @@ class FormRowLayout is Layout
             i = i + 1
         end
 
+    end
+
+    private action DebugLog(Control control, text log)
+        if control is Libraries.Interface.Controls.Icon
+            Libraries.Interface.Controls.Icon icon = cast(Libraries.Interface.Controls.Icon, control)
+            output log
+            output "    " + icon:GetName() + ", position = " + icon:GetX() + ", " + icon:GetY() + " (" + icon:GetGlobalX() + ", " + icon:GetGlobalY() + ") -- " + icon:GetWidth() + "x" + icon:GetHeight() + " -- loaded = " + icon:IsLoaded()
+        end
     end
 
 end

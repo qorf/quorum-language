@@ -153,29 +153,81 @@ class RegressionLine is ChartDrawable, LinePath
         number yMax = GetMappedTop() - verticalMapPadding
 
         // Starting position for line
-        number xVal = xMin
-        number yVal = CalculateDependentValue(xVal)
-        if (yVal < yMin)
-            xVal = CalculateIndependentValue(yMin)
-            yVal = CalculateDependentValue(xVal)
-        elseif yVal > yMax
-            xVal = CalculateIndependentValue(yMax)
-            yVal = CalculateDependentValue(xVal)
+        if not IsHorizontalOrientation() and (series is MovableRegressionSeries = false)
+            number yVal = yMin
+            number xVal = CalculateDependentValue(yVal)
+            if (xVal < xMin)
+                yVal = CalculateIndependentValue(xMin)
+                xVal = CalculateDependentValue(yVal)
+            elseif xVal > xMax
+                yVal = CalculateIndependentValue(xMax)
+                xVal = CalculateDependentValue(yVal)
+            end
+            SetPoint1(xVal, yVal)
+        else
+            number xVal = xMin
+            number yVal = CalculateDependentValue(xVal)
+            if (yVal < yMin)
+                xVal = CalculateIndependentValue(yMin)
+                yVal = CalculateDependentValue(xVal)
+            elseif yVal > yMax
+                xVal = CalculateIndependentValue(yMax)
+                yVal = CalculateDependentValue(xVal)
+            end
+            SetPoint1(xVal, yVal)
         end
-        SetPoint1(xVal, yVal)
 
         // Ending position for line
-        xVal = xMax
-        yVal = CalculateDependentValue(xVal)
-        if (yVal > yMax)
-            xVal = CalculateIndependentValue(yMax)
-            yVal = CalculateDependentValue(xVal)
+        if not IsHorizontalOrientation() and (series is MovableRegressionSeries = false)
+            number yVal = yMax
+            number xVal = CalculateDependentValue(yVal)
+            if (xVal > xMax)
+                yVal = CalculateIndependentValue(xMax)
+                xVal = CalculateDependentValue(yVal)
+            end
+            if (xVal < xMin)
+                yVal = CalculateIndependentValue(xMin)
+                xVal = CalculateDependentValue(yVal)
+            end
+            SetPoint2(xVal, yVal)
+        else
+            number xVal = xMax
+            number yVal = CalculateDependentValue(xVal)
+            if (yVal > yMax)
+                xVal = CalculateIndependentValue(yMax)
+                yVal = CalculateDependentValue(xVal)
+            end
+            if (yVal < yMin)
+                xVal = CalculateIndependentValue(yMin)
+                yVal = CalculateDependentValue(xVal)
+            end
+            SetPoint2(xVal, yVal)
         end
-        if (yVal < yMin)
-            xVal = CalculateIndependentValue(yMin)
-            yVal = CalculateDependentValue(xVal)
-        end
-        SetPoint2(xVal, yVal)
+
+//        // Starting position for line
+//        number xVal = xMin
+//        number yVal = CalculateDependentValue(xVal)
+//        if (yVal < yMin)
+//            xVal = CalculateIndependentValue(yMin)
+//            yVal = CalculateDependentValue(xVal)
+//        elseif yVal > yMax
+//            xVal = CalculateIndependentValue(yMax)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        SetPoint1(xVal, yVal)
+//
+//        // Ending position for line
+//        xVal = xMax
+//        yVal = CalculateDependentValue(xVal)
+//        if (yVal > yMax)
+//            xVal = CalculateIndependentValue(yMax)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        if (yVal < yMin)
+//            xVal = CalculateIndependentValue(yMin)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        SetPoint2(xVal, yVal)
 
         UpdateMarkerPositions()
         UpdateMarkerDescriptions()
