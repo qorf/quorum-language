@@ -217,11 +217,13 @@ class CodeEditorRenderer is Control
 
         integer i = 0
         repeat while i < rawCode:GetLineCount()
+            MultipleLineText line = rawCode:GetLine(i)
             integer indexStart = rawCode:CharacterIndexFromLineIndex(i)
-            integer indexEnd = rawCode:CharacterIndexFromLineIndex(i+1) - rawCode:GetDefaultLineSeparator():GetSize()
-            if indexEnd < indexStart
-                indexEnd = indexStart
+            integer indexEnd = indexStart + line:GetSize()
+            if line:GetText():EndsWith(line:GetLineSeparator())
+                indexEnd = indexEnd - line:GetLineSeparator():GetSize()
             end
+
             FreeformBlock newBlock
             newBlock:SetLocalStartLine(i)
             newBlock:SetLocalEndLine(i)

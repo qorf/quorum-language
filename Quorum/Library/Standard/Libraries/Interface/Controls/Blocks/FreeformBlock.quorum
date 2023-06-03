@@ -519,6 +519,10 @@ class FreeformBlock is SingleLineBlock
             if statement not= undefined
                 blockListener:EnterClassStatements(statement)
             end
+            if blockListener:GetBlock() = undefined
+                blockListener:SetQuorumLexer(lexer)
+                blockListener:FillComment()
+            end
         elseif isPackageStatement
             PackageContext context = parser:Package()
             if context not= undefined
