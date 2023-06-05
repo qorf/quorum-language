@@ -283,7 +283,12 @@ class LayoutProperties
     end
 
     action SetPercentageWidth(number width)
-        widthPercentage = width
+        if width < 0 or width:IsNotANumber()
+            widthPercentage = 0
+        else
+            widthPercentage = width
+        end
+
         setWidth = true
     end
 
@@ -292,7 +297,12 @@ class LayoutProperties
     end
 
     action SetPercentageHeight(number height)
-        heightPercentage = height
+        if height < 0 or height:IsNotANumber()
+            heightPercentage = 0
+        else
+            heightPercentage = height
+        end
+
         setHeight = true
     end
 

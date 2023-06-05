@@ -229,7 +229,7 @@ class Texture is Disposable
 
             // If the drawable had a size set before, reset it back to those values after loading.
             // If one of the values is NaN, then most likely division by zero occurred due to an expected value not being loaded yet, so the dimensions are invalid.
-            if (width not= 0 or height not= 0) and (width:IsNotANumber() = false and height:IsNotANumber() = false)
+            if (width not= 0 and height not= 0) and (width:IsNotANumber() = false and height:IsNotANumber() = false)
                 drawable:SetSize(width, height)
             end
 
