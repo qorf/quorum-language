@@ -833,7 +833,7 @@ class Block is Control
         parent:Control:LostSelection()
     end
     
-    private action GetStartingEditRegion returns EditRegion
+    action GetStartingEditRegion returns EditRegion
         BlockItem firstItem = undefined
         Array<Item2D> children = GetChildren()
         integer i = 0

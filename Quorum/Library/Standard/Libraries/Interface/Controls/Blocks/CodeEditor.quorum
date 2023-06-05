@@ -534,6 +534,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         //Now get the block item and cast it
         BlockItem item = blockSelection:GetBlockItem()
+        if item = undefined and block:IsFastEditable()
+            item = block:GetStartingEditRegion()
+        end
         if item is EditBox
             EditBox edit = cast(EditBox, item)
             return edit:GetCaretGlobalX()
@@ -558,6 +561,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         //Now get the block item and cast it
         BlockItem item = blockSelection:GetBlockItem()
+        if item = undefined and block:IsFastEditable()
+            item = block:GetStartingEditRegion()
+        end
         if item is EditBox
             EditBox edit = cast(EditBox, item)
             return edit:GetCaretGlobalY()
