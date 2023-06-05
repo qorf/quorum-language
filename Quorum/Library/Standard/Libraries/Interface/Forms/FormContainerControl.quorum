@@ -235,10 +235,18 @@ class FormContainerControl is Control
                             item:SetPreviousFocus(previous)
                         end
 
-                        item = interface:GetLastFocusableItem()
-                        if item not= undefined and item:IsFocusable()
-                            previous = item
+
+                        //if it's a group of radio buttons, it may not have focusable items
+                        //because it's the group itself that gets the focus.
+                        if interface is ButtonGroup and item = undefined
+                            previous:SetNextFocus(interface)
+                        else
+                            item = interface:GetLastFocusableItem()
+                            if item not= undefined and item:IsFocusable()
+                                previous = item
+                            end
                         end
+                        
                     else //else just set next and previous
                         previous:SetNextFocus(control)
                         control:SetPreviousFocus(previous)
@@ -271,6 +279,10 @@ class FormContainerControl is Control
             i = i + 1
         end
 
+        FormContainerControl this = me
+        if me is ButtonGroup
+            return me
+        end
         return undefined
     end
 
@@ -301,6 +313,10 @@ class FormContainerControl is Control
             i = i - 1
         end
 
+        FormContainerControl this = me
+        if me is ButtonGroup
+            return me
+        end
         return undefined
     end
 
