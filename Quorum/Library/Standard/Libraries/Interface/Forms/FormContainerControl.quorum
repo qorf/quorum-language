@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.ToggleButton
 
 class FormContainerControl is Control
     boolean hasDefaultFocusOrdering = false
+    boolean skipLabelsInFocus = false
     FormLabel titleLabel = undefined
 
     FormConstants constants
@@ -210,12 +211,12 @@ class FormContainerControl is Control
                     FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                     interface:CalculateDefaultFocusOrdering()
                     Item2D item = interface:GetFirstFocusableItem()
-                    if item not= undefined
+                    if item not= undefined and item:IsFocusable()
                         first = item
                     end
 
                     item = interface:GetLastFocusableItem()
-                    if item not= undefined
+                    if item not= undefined and item:IsFocusable()
                         previous = item
                     end
                 elseif control not= undefined and control:IsFocusable()
@@ -229,15 +230,23 @@ class FormContainerControl is Control
                         FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                         interface:CalculateDefaultFocusOrdering()
                         Item2D item = interface:GetFirstFocusableItem()
-                        if item not= undefined
+                        if item not= undefined and item:IsFocusable()
                             previous:SetNextFocus(item)
                             item:SetPreviousFocus(previous)
                         end
 
-                        item = interface:GetLastFocusableItem()
-                        if item not= undefined
-                            previous = item
+
+                        //if it's a group of radio buttons, it may not have focusable items
+                        //because it's the group itself that gets the focus.
+                        if interface is ButtonGroup and item = undefined
+                            previous:SetNextFocus(interface)
+                        else
+                            item = interface:GetLastFocusableItem()
+                            if item not= undefined and item:IsFocusable()
+                                previous = item
+                            end
                         end
+                        
                     else //else just set next and previous
                         previous:SetNextFocus(control)
                         control:SetPreviousFocus(previous)
@@ -264,12 +273,16 @@ class FormContainerControl is Control
         repeat while i < children:GetSize()
             Item2D control = children:Get(i)
             Item2D item = GetFocusedItem(control)
-            if item not= undefined
+            if item not= undefined and item:IsFocusable()
                 return item
             end
             i = i + 1
         end
 
+        FormContainerControl this = me
+        if me is ButtonGroup
+            return me
+        end
         return undefined
     end
 
@@ -278,7 +291,7 @@ class FormContainerControl is Control
             if control is FormContainerControl
                 FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
                 Item2D item = interface:GetFirstFocusableItem()
-                if item not= undefined
+                if item not= undefined and item:IsFocusable()
                     return item
                 end
             elseif control:IsFocusable()
@@ -294,12 +307,16 @@ class FormContainerControl is Control
         repeat while i >= 0
             Item2D control = children:Get(i)
             Item2D item = GetFocusedItem(control)
-            if item not= undefined
+            if item not= undefined and item:IsFocusable()
                 return item
             end
             i = i - 1
         end
 
+        FormContainerControl this = me
+        if me is ButtonGroup
+            return me
+        end
         return undefined
     end
 
@@ -311,7 +328,11 @@ class FormContainerControl is Control
         FormLabel label
         label:SetName(name)
         label:SetText(value)
-        label:SetFocusable(true)
+
+        Item2D value1 = GetParent()
+        if not skipLabelsInFocus
+            label:SetFocusable(true)
+        end
         label:SetDescription(value)
         label:SetAccessibilityCode(label:parent:Item:CUSTOM)
         label:SetDescendingLines(false)
@@ -644,4 +665,12 @@ class FormContainerControl is Control
     end
 
     blueprint action GetFormChildren returns Array<Item2D>
+
+    action GetSkipLabelsInFocus returns boolean
+        return skipLabelsInFocus
+    end
+
+    action SetSkipLabelsInFocus(boolean skipLabelsInFocus)
+        me:skipLabelsInFocus = skipLabelsInFocus
+    end
 end
