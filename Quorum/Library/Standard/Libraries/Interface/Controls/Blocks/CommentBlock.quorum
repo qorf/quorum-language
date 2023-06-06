@@ -104,13 +104,17 @@ class CommentBlock is SingleLineBlock
     private action InitializeLocalIndices
         // Check if we have a valid context and parent block, but the start index hasn't been set yet.
         if token not= undefined and GetParentBlock() not= undefined and GetLocalStartIndex() < 0
+            text endOfLine = ""
+            endOfLine = GetEditor():GetCode():GetDefaultLineSeparator()
             // Set our starting local values using the context and parent.
             SetLocalStartIndex(token:startIndex - GetParentBlock():GetStartIndex())
-            SetLocalEndIndex(token:endIndex + 1 - GetParentBlock():GetStartIndex())
+            if token:value:EndsWith(endOfLine)
+                SetLocalEndIndex(token:endIndex + 1 - endOfLine:GetSize() - GetParentBlock():GetStartIndex())
+            else
+                SetLocalEndIndex(token:endIndex + 1 - GetParentBlock():GetStartIndex())
+            end
             SetLocalStartLine(token:startLine - 1 - GetParentBlock():GetStartLine())
             if not isMultiLineComment
-                text endOfLine = ""
-                endOfLine = GetEditor():GetCode():GetDefaultLineSeparator()
                 if token:value:EndsWith(endOfLine)
                     SetLocalEndLine(token:endLine - 2 - GetParentBlock():GetStartLine())
                 else
