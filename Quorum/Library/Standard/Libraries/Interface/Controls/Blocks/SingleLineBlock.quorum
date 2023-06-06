@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Blocks
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.Hints.Hint
 
 class SingleLineBlock is Block
 
@@ -65,7 +66,12 @@ class SingleLineBlock is Block
         end
 
         if not hints
-            result = result + ", hint. Press alt + enter to use the hint or the context menu to get a list"
+            result = result + ", hint. "
+            Hint hint = GetFirstHint()
+            if hint not= undefined
+                result = result + hint:GetDisplayName()
+            end
+            result = result + " Press alt + enter to use the hint or the context menu to get a list"
         end
         return result
     end
