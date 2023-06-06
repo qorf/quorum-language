@@ -1151,6 +1151,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         integer currentLine = selection:GetLine()
         integer targetIndex = 0
+
+        if selection:GetBlock() not= undefined
+            currentLine = selection:GetBlock():GetEndLine()
+        end
+
         if currentLine >= rawCode:GetLineCount() - 1
             targetIndex = rawCode:GetSize()
         elseif currentLine >= 0
