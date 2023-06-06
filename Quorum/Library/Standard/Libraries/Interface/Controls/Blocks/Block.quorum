@@ -500,11 +500,10 @@ class Block is Control
     that are attached to it. If the change index is located after a Block's indices,
     they won't be modified.
 
-    If the "processEndpoints" value is true, blocks will incorporate changes made at
-    the beginning and end indices. For typical use, this should be true when handling
-    edits made to the beginning or end of a block. This should be false when inserting
-    a new block between two blocks (so as not to adjust the contents of the existing
-    blocks, since a new block will receive the new content instead).
+    The Block value represents the block that created the event that is causing the offset. This is used in certain cases such as when the offset comes
+    from an EditRegion within a block. The reason this is used is because endpoints need to be handled differently depending on if it should affect a block
+    or not. If a change comes from an EditRegion outside of a block then it should always process endpoints but a block can't alter it's own start index 
+    through an EditRegion.
     */
     action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, Block block)
         Block current = me
@@ -515,8 +514,8 @@ class Block is Control
                 integer startIndex = child:GetStartIndex()
                 integer endIndex = child:GetEndIndex()
 
-                if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
-                    if changeIndex > startIndex or ((block not= undefined and child = block) and changeIndex = startIndex)
+                if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
+                    if changeIndex > startIndex or (IsOffendingBlock(child, block) and changeIndex = startIndex)
                         child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
                     else
                         child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
@@ -529,13 +528,13 @@ class Block is Control
                     integer endLine = child:GetLocalEndLine()
 
                     if changeIndex <= startIndex
-                        if changeIndex = startIndex and (block not= undefined and child = block)
+                        if changeIndex = startIndex and IsOffendingBlock(child, block)
                             // don't modify the start line in this case
                         else
                             child:SetLocalStartLine(startLine + linesChanged)
                         end
                     end
-                    if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
+                    if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
                         child:SetLocalEndLine(endLine + linesChanged)
                     end
                 end
@@ -557,6 +556,23 @@ class Block is Control
 
             current = parentBlock
         end
+    end
+
+
+    /* 
+        Used by OffsetIndices to check if a block is the block causing the change. This result is used to process endpoints correctly.
+        If a block is the same block as the offender it returns true but it also returns true if the offending block is a block part
+        of the given block.
+    */
+    private action IsOffendingBlock(Block block, Block offender) returns boolean
+        if offender = undefined
+            return false
+        elseif block = offender
+            return true
+        elseif offender is MultipleLineBlockPart and block = offender:GetParentBlock()
+            return true
+        end
+        return false
     end
 
     /*
