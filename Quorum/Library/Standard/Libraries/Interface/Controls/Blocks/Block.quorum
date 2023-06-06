@@ -173,7 +173,7 @@ class Block is Control
         return value
     end
 
-    action GetErrorIterator returns Iterator<Hint>
+    action GetErrorIterator returns Iterator<CompilerError>
         return errors:GetIterator()
     end
 
