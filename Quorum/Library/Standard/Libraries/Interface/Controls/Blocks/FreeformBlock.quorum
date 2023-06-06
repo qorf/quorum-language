@@ -104,6 +104,43 @@ class FreeformBlock is SingleLineBlock
         return parser:Expression()
     end
 
+    private action AllTokensOnSingleLine returns boolean
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            text code = editor:GetText()
+            CompilerErrorManager manager
+            QuorumLexer lexer = LexerForText(code, manager)
+            if manager:IsCompilationErrorFree()
+                TokenIterator<Token> tokenIterator = lexer:GetIterator()
+                Token current = undefined
+                integer currentLine = -1
+                if tokenIterator:HasNext()
+                    current = tokenIterator:Next()
+                    currentLine = current:startLine
+                    if currentLine not= current:endLine
+                        return false
+                    end
+                    if tokenIterator:HasNext()
+                        current = tokenIterator:Next()
+                    else
+                        return true
+                    end
+                end
+                repeat while current not= undefined
+                    integer nextLine = current:startLine
+                    if currentLine not= nextLine or nextLine not= current:endLine
+                        return false
+                    end
+                    current = tokenIterator:Next()
+                end
+                return false
+            else
+                return false
+            end
+        end
+        return false
+    end
+
     /*
     This action attempts to parse the content of the FreeformBlock and convert it into a suitable block.
     If a suitable block is found, it will replace this FreeformBlock in the editor.
@@ -122,7 +159,7 @@ class FreeformBlock is SingleLineBlock
         end
 
         CodeEditor editor = GetEditor()
-
+        boolean failState = editor:GetFailState()
         /*
         First check special cases where the user has typed a short-cut.
         If so, insert extra code to make it valid before we parse it.
@@ -138,7 +175,6 @@ class FreeformBlock is SingleLineBlock
             SetView2D(view)
             return now
         end
-    // output
         TokenIterator<Token> tokenIterator
         tokenIterator:SetLexer(shortcutLexer)
         Token current
@@ -155,11 +191,11 @@ class FreeformBlock is SingleLineBlock
         else
             isEmpty = true
         end
+    // output
         if current:category = constants:OUTPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("output " + dq + dq)
             code = editRegion:GetText()
-
     //  input
         elseif current:category = constants:INPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
@@ -211,9 +247,16 @@ class FreeformBlock is SingleLineBlock
         elseif current:category = constants:IF
             if not tokenIterator:HasNext()
                 editRegion:SetCaretPosition(editRegion:GetSize())
-                text value = "if true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                text value = "if true"
+                code = value
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(value)
-                code = editRegion:GetText()
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
             else
                 // check for an expression
                 current = tokenIterator:Next()
@@ -225,7 +268,15 @@ class FreeformBlock is SingleLineBlock
                         current = tokenIterator:Next()
                     end
                     if current:category not= constants:END
-                        code = "if " + expression + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                        text value = "if " + expression
+                        code = value
+                        text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
                         editRegion:SetText(code)
                     end
                 else
@@ -237,7 +288,7 @@ class FreeformBlock is SingleLineBlock
             end
     //  elseif
     //  elseif (condition)
-        elseif current:category = constants:ELSE_IF
+        elseif current:category = constants:ELSE_IF and not failState
             text expression = ""
             
             Block grandparent = GetParentBlock():GetParentBlock()
@@ -273,7 +324,7 @@ class FreeformBlock is SingleLineBlock
                 return now
             end
     //  else
-        elseif current:category = constants:ELSE and not tokenIterator:HasNext()
+        elseif current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("else")
             Block grandparent = GetParentBlock():GetParentBlock()
@@ -298,10 +349,18 @@ class FreeformBlock is SingleLineBlock
     //  repeat until
     //  repeat until (some expression)
         elseif current:category = constants:REPEAT
+            text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
             if not tokenIterator:HasNext()
                 editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("repeat 1 times" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-                code = editRegion:GetText()
+                text value = "repeat 1 times"
+                code = value
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
             else
                 current = tokenIterator:Next()
                 boolean hasExpression = true
@@ -311,8 +370,15 @@ class FreeformBlock is SingleLineBlock
                     whileType = true
                     if not tokenIterator:HasNext()
                         editRegion:SetCaretPosition(editRegion:GetSize())
-                        editRegion:SetText("repeat while false" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-                        code = editRegion:GetText()
+                        text value = "repeat while false"
+                        code = value
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
+                        editRegion:SetText(code)
                         hasExpression = false
                     end
                     tokenIterator:Next()
@@ -320,8 +386,15 @@ class FreeformBlock is SingleLineBlock
                     untilType = false
                     if not tokenIterator:HasNext()
                         editRegion:SetCaretPosition(editRegion:GetSize())
-                        editRegion:SetText("repeat until true" + newLine + editor:GetIndentationText(GetScopeDepth()) + "end")
-                        code = editRegion:GetText()
+                        text value = "repeat until true"
+                        code = value
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
+                        editRegion:SetText(code)
                         hasExpression = false
                     end
                     tokenIterator:Next()
@@ -337,11 +410,17 @@ class FreeformBlock is SingleLineBlock
                         end
                         if current:category not= constants:END
                             if whileType
-                                code = "repeat while " + expression + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                                code = "repeat while " + expression 
                             elseif untilType
-                                code = "repeat until " + expression + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                                code = "repeat until " + expression
                             else
-                                code = "repeat " + expression + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                                code = "repeat " + expression
+                            end
+                            editRegion:SetText(code)
+                            if failState and AllTokensOnSingleLine()
+                                code = code + endText
+                            elseif not failState
+                                code = code + endText
                             end
                             editRegion:SetText(code)
                         end
@@ -354,13 +433,13 @@ class FreeformBlock is SingleLineBlock
                 end
             end
     //  check
-        elseif current:category = constants:CHECK
+        elseif current:category = constants:CHECK and not failState
             editRegion:SetCaretPosition(editRegion:GetSize())
             text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
             editRegion:SetText(value)
             code = editRegion:GetText()
     //  detect
-        elseif current:category = constants:DETECT
+        elseif current:category = constants:DETECT and not failState
             Block grandparent = GetParentBlock():GetParentBlock()
             if grandparent not= undefined and grandparent is CheckBlock
                 if not tokenIterator:HasNext()
@@ -392,7 +471,7 @@ class FreeformBlock is SingleLineBlock
                 return now
             end
     //  always
-        elseif current:category = constants:ALWAYS
+        elseif current:category = constants:ALWAYS and not failState
             Block grandparent = GetParentBlock():GetParentBlock()
             if grandparent not= undefined and grandparent is CheckBlock
                 if tokenIterator:HasNext()
@@ -435,12 +514,25 @@ class FreeformBlock is SingleLineBlock
                     current = tokenIterator:Next()
                 end
                 if current:category not= constants:END
-                    code = editRegion:GetText() + newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                    code = editRegion:GetText()
+                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                    if failState and AllTokensOnSingleLine()
+                        code = code + endText
+                    elseif not failState
+                        code = code + endText
+                    end
                     editRegion:SetText(code)
                 end
             else
-                code = "action MyAction" + newLine + editor:GetIndentationText(1) + "end"
-            editRegion:SetText(code)
+                code = "action MyAction"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
+                editRegion:SetText(code)
             end
     //  blueprint
         elseif current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
@@ -453,22 +545,42 @@ class FreeformBlock is SingleLineBlock
     //  class
         elseif current:category = constants:CLASS
             if not tokenIterator:HasNext()
-                code = "class MyClass" + newLine + "end"
+                code = "class MyClass"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
                 editRegion:SetText(code)
             else 
                 repeat until not tokenIterator:HasNext()
                     current = tokenIterator:Next()
                 end
                 if current:category not= constants:END
-                    code = editRegion:GetText() + newLine + "end"
+                    code = editRegion:GetText()
+                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                    if failState and AllTokensOnSingleLine()
+                        code = code + endText
+                    elseif not failState
+                        code = code + endText
+                    end
                     editRegion:SetText(code)
                 end
             end
             isClassStatement = true
     //  shared
-        elseif current:category = constants:STATIC
+        elseif current:category = constants:STATIC and not failState
             if not tokenIterator:HasNext()
-                code = "shared class MySharedClass" + newLine + editor:GetIndentationText(1) + "end"
+                code = "shared class MySharedClass"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
                 editRegion:SetText(code)
             end
             isClassStatement = true
