@@ -1334,7 +1334,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         Iterator<CompilerError> errorator = oldBlock:GetErrorIterator()
-        repeat while errorator not= undefined and hinterator:HasNext()
+        repeat while errorator not= undefined and errorator:HasNext()
             CompilerError error = errorator:Next()
             newBlock:Add(error)
         end
