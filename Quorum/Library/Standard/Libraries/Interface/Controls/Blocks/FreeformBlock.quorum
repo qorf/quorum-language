@@ -192,6 +192,14 @@ class FreeformBlock is SingleLineBlock
             isEmpty = true
         end
     // output
+        if isEmpty and not failState
+            text trimmedText = code:Trim()
+            if trimmedText:StartsWith("/*") and not trimmedText:EndsWith("*/")
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                editRegion:Insert("*/")
+                code = editRegion:GetText()
+            end
+        end
         if current:category = constants:OUTPUT and not tokenIterator:HasNext()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("output " + dq + dq)
