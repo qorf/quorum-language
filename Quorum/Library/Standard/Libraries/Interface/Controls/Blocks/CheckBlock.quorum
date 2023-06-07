@@ -375,6 +375,7 @@ class CheckBlock is MultipleLineBlock
         if detectParts:GetSize() > 1
             RemoveMiddleBlockPart(block, block:GetPreviousSibling())
         else
+            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
         end
         MultipleLineBlockPart detectPart = cast(MultipleLineBlockPart, block)
         detectParts:Remove(detectPart)

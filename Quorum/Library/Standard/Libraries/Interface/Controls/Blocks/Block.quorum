@@ -15,6 +15,8 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.Iterator
 use Libraries.Containers.List
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Accessibility
 
 class Block is Control
     integer scopeDepth = 0
@@ -173,7 +175,7 @@ class Block is Control
         return value
     end
 
-    action GetErrorIterator returns Iterator<Hint>
+    action GetErrorIterator returns Iterator<CompilerError>
         return errors:GetIterator()
     end
 
@@ -924,6 +926,22 @@ class Block is Control
     */
     action IsDirectlyRenderable returns boolean
         return true
+    end
+
+    /*
+        Special operations need to be taken for the system here
+        because the description needs to be changed before getting the focus.
+
+    */ 
+    action Focus
+        GameStateManager manager
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:NameChanged(me)
+            access:DescriptionChanged(me)
+        end
+        //now finally set the focus
+        manager:GetGame():SetFocus(me)
     end
 
     action GainedFocus(FocusEvent event)

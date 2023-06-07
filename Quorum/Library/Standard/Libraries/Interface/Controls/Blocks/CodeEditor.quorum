@@ -41,6 +41,9 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Debug.BreakpointManager
 use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Controls.AnnotationLineGutter
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Language.Compile.CompilerError
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -132,7 +135,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
     end
-
+    
+action SelectAll
+        //Not yet implemented.
+    end
+    
     action GetDefaultFontName returns text
         text name = undefined
         Font font
@@ -1352,6 +1359,19 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         newBlock:Setup()
+
+        //if the told block had a hint condition, copy it over
+        Iterator<Hint> hinterator = oldBlock:GetHintIterator()
+        repeat while hinterator not= undefined and hinterator:HasNext()
+            Hint hint = hinterator:Next()
+            newBlock:Add(hint)
+        end
+
+        Iterator<CompilerError> errorator = oldBlock:GetErrorIterator()
+        repeat while errorator not= undefined and errorator:HasNext()
+            CompilerError error = errorator:Next()
+            newBlock:Add(error)
+        end
 
         if wasSelected
             if newBlock is MultipleLineBlock
