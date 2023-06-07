@@ -1021,6 +1021,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         return renderer:IsBlockFullyVisible(block)
     end
 
+    action GetBlockAtNavigationIndex(integer index) returns Block
+        output "NYI"
+        return undefined
+    end
+    
     action MoveSelectionDown
         if selection:GetBlock() not= undefined
             SelectBlockOrItem(selection:GetBlock():GetNextNavigableBlock())
@@ -1031,6 +1036,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
+    action MoveMultipleSelectionDown
+        Block target = selection:GetBlock():GetNextNavigableBlock()
+        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
+    end
+    
     action MoveSelectionUp
         if selection:GetBlock() not= undefined
             Block next = selection:GetBlock():GetPreviousNavigableBlock()
@@ -1046,6 +1056,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
+    action MoveMultipleSelectionUp
+        Block target = selection:GetBlock():GetPreviousNavigableBlock()
+        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
+    end
+	
     action SelectNext
         BlockItem item = selection:GetBlockItem()
         Block block = selection:GetBlock()
@@ -1091,6 +1106,20 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SelectBlockOrItem(Item target)
         if target not= undefined
             target:Focus()
+        end
+    end
+    
+    action SelectBlockRange(Block firstBlock, Block secondBlock, boolean selectionAtEnd)
+        if firstBlock:GetNavigationIndex() < secondBlock:GetNavigationIndex()
+        end
+            Block temp = firstBlock
+            firstBlock = secondBlock
+            secondBlock = temp
+        
+        if selectionAtEnd
+            selection:Set(firstBlock, firstBlock:GetNavigationIndex(), secondBlock:GetNavigationIndex(), undefined)
+        else
+            selection:Set(secondBlock, secondBlock:GetNavigationIndex(), firstBlock:GetNavigationIndex(), undefined)
         end
     end
 
@@ -1148,6 +1177,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
     
     action CreateNewLineBlock
+        Block current = renderer:GetRootBlock()
+        
         // If the selected block is a FreeformBlock, try to parse it before making a new one.
         if selection:GetBlock() is FreeformBlock
             // Note that if the selected block is replaced, the new one will be selected before we continue.
@@ -1157,7 +1188,6 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         integer currentLine = selection:GetLine()
         integer targetIndex = 0
-
         if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end

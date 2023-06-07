@@ -9,25 +9,35 @@ class CodeEditorSelection is Selection
 
     // Note that line -1 represents the top of the file above the first block. Values that are less than -1 are an empty selection.
     integer selectedLine = -2
+    //The selectionEndLine represents the second index of a multiple selection.
+    // If this value is the same as the selectedLine, this is a single selection, not a multiple selection.
+    integer selectionEndLine = selectedLine
+    
     Block selectedBlock = undefined
     BlockItem selectedItem = undefined
 
     action Set(Block block, integer line, BlockItem item)
+        Set(block, line, line, item)
+    end
+    
+    action Set(Block block, integer line, integer secondLine, BlockItem item)
         Block oldBlock = selectedBlock
         BlockItem oldItem = selectedItem
-        integer oldLine = line
-
+        integer oldLine = selectedLine
+integer oldSecondLine = selectionEndLine
+        
         selectedBlock = block
         selectedLine = line
+        selectedSecondLine = secondLine
         selectedItem = item
         if item not= undefined
-            UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine)
+            UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine, oldSecondLine)
         elseif block not= undefined
-            UpdateSelection(block:GetName(), oldBlock, oldItem, oldLine)
+            UpdateSelection(block:GetName(), oldBlock, oldItem, oldLine, oldSecondLine)
         elseif line >= 0
-            UpdateSelection("Line " + line, oldBlock, oldItem, oldLine)
+            UpdateSelection("Line " + line, oldBlock, oldItem, oldLine, oldSecondLine)
         else
-            UpdateSelection("No selection",  oldBlock, oldItem, oldLine)
+            UpdateSelection("No selection",  oldBlock, oldItem, oldLine, oldSecondLine)
         end
     end
 
@@ -35,7 +45,7 @@ class CodeEditorSelection is Selection
         Set(undefined, -1, undefined)
     end
 
-    private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine)
+    private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine, integer oldSecondLine)
         CodeEditor editor = GetEditor()
         if editor not= undefined
             editor:OnSelectionChange(oldBlock, oldItem, oldLine)
@@ -48,6 +58,10 @@ class CodeEditorSelection is Selection
         return selectedLine
     end
 
+    action GetRangeEndLine returns integer
+		return selectionEndLine
+    end
+    
     action GetBlock returns Block
         return selectedBlock
     end
@@ -64,6 +78,14 @@ class CodeEditorSelection is Selection
         Set(undefined, -2, undefined)
     end
 
+    action IsMultipleSelection returns boolean
+        return selectionEndLine not= selectedLine
+    end
+    
+    action IsCursorAtEndOfSelection returns boolean
+        return selectedLine > selectionEndLine
+    end
+    
     action GetEditor returns CodeEditor
         return cast(CodeEditor, GetItem())
     end
