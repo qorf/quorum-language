@@ -156,11 +156,11 @@ class LineNumberGutter is Gutter, BreakpointListener
                 
                 background:SetPosition(width - background:GetWidth() - rightMargin, y + myHeight)
 
-                Breakpoint point = breakpoints:GetBreakpoint(file:GetAbsolutePath(), counter - 1)
-                if (point not= undefined) or (counter - 1 = debuggerLine and debuggerLine not= -1)
-                    if counter - 1 = debuggerLine
+                Breakpoint point = breakpoints:GetBreakpoint(file:GetAbsolutePath(), currentLine - 1)
+                if (point not= undefined) or (currentLine - 1 = debuggerLine and debuggerLine not= -1)
+                    if currentLine - 1 = debuggerLine
                         background:SetColor(GetSelectionColor())
-                    else
+                    elseif point not= undefined and point:GetLine() = currentLine - 1
                         background:SetColor(GetAccentColor())
                     end
                     //label:SetColor(GetFocusFontColor())
