@@ -54,8 +54,13 @@ class SingleLineBlock is Block
 
     action GetDescription returns text
         text result = ""
+        integer scope = GetScopeDepth()
+        if scope > 1 //not the class or an action, which have the same scope every time
+            result = ", level + " + (scope - 1)
+        end
+
         if GetChildCount() not= 0
-            result = ", " + GetChildCount() + " blocks"
+            result = result + ", " + GetChildCount() + " blocks"
         end
         
         boolean hints = IsHintsEmpty()
