@@ -1,0 +1,481 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.TextBoxRenderer
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Interface.Controls.Blocks.AssignmentBlock
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Controls.Blocks.ActionBlock
+use Libraries.Interface.Controls.Blocks.ClassBlock
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Controls.Blocks.MultipleLineBlock
+use Libraries.Containers.Queue
+use Libraries.Interface.Controls.Blocks.RootBlock
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.MultipleLineText
+
+class CodeEditorRenderer is Control
+
+    RootBlock rootBlock = undefined
+    Array<Block> drawnBlocks
+    Control cursor
+
+    /*
+    A queue containing the multiple line blocks being rendered on this frame.
+    Emptied and refilled each frame during rendering.
+    */
+    Queue<MultipleLineBlock> currentMultiBlocks
+
+    on create
+        SetCustomDrawing(true)
+        SetChildrenProcessingMouseEvents(true)
+        SetClipping(true)
+
+        SetPercentageWidth(1)
+        SetPercentageHeight(1)
+        SetPercentageX(0)
+        SetPercentageY(0)
+
+        Add(cursor)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        CodeEditor editor = GetEditor()
+        if cursor:GetView2D() = undefined and editor not= undefined
+            cursor:SetBackgroundColor(editor:GetSelectionColor())
+
+            // TO-DO: Change this. Temporary debug values.
+            cursor:SetSize(30, 5)
+
+            ControlShaderView view
+            view:Initialize()
+            cursor:SetView2D(view)
+        end
+    end
+
+    /*
+    This action empties the most common drawables that would need to be cleared
+    from the TextBox: the text, selection drawables, and highlighting.
+
+    This DOES NOT remove the Gutters or Caret!
+    */
+    action Empty
+        repeat until drawnBlocks:IsEmpty()
+            Block block = drawnBlocks:RemoveFromEnd()
+            Remove(block)
+            RecycleBlock(block)
+        end
+    end
+
+    action IsEmpty returns boolean
+        return drawnBlocks:IsEmpty()
+    end
+
+    action RecycleBlock(Block block)
+        if block = undefined
+            return now
+        end
+
+        // TO-DO: Keep around elements in a Pool for reuse?
+    end
+
+    action AddBlock(Block block)
+        Add(block)
+        drawnBlocks:Add(block)
+    end
+
+    action RemoveBlock(Block block)
+        drawnBlocks:Remove(block)
+        Remove(block)
+        RecycleBlock(block)
+    end
+
+    action Draw(Painter2D painter)
+        if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+
+        integer counter = 0
+        repeat while counter < drawnBlocks:GetSize()
+            Block block = drawnBlocks:Get(counter)
+            if block is MultipleLineBlock
+                MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+                multiBlock:DrawParts(painter)
+                currentMultiBlocks:Add(multiBlock)
+            else
+                block:Draw(painter)
+            end
+            counter = counter + 1
+        end
+
+        repeat until currentMultiBlocks:IsEmpty()
+            currentMultiBlocks:RemoveFromFront():DrawConnectors(painter)
+        end
+
+        if cursor:IsShowing() and cursor:GetView2D() not= undefined
+            cursor:GetView2D():Draw(painter)
+        end
+    end
+
+    action RegenerateBlocks(RootBlock block)
+        Empty()
+        CodeEditor editor = GetEditor()
+        rootBlock = block
+        if editor:GetFailState() or rootBlock:GetStartContext() = undefined
+            FillWithFreeform()
+        else
+            FillWhiteSpace()
+        end
+
+        RefreshBlockView(editor:GetFirstVisibleLine(), editor:GetLastVisibleLine())
+    end
+
+    // Iterates over the entire block structure, inserting empty FreeformBlocks into lines without existing blocks.
+    private action FillWhiteSpace
+        CodeEditor editor = GetEditor()
+
+        integer expected = 0
+        Block current = rootBlock:GetNextNavigableBlock()
+        repeat until current = undefined
+            integer lineIndex = current:GetStartLine()
+            if lineIndex > expected
+                integer parentIndex = current:GetParentIndex()
+
+                /*
+                If the current block is exiting a scope, then our whitespace that's being placed above it needs to be 1 scope level higher.
+                */
+                integer scopeLevel = current:GetScopeDepth()
+                if current:IsExitingScope()
+                    scopeLevel = scopeLevel + 1
+                end
+
+                /*
+                Determine where whitespace will be attached to. If the block is a MultipleLineBlockPart, we need the previous sibling if there
+                is one, or the grandparent otherwise (because the parent of a part is the MultipleLineBlock, which is responsible for exclusively
+                the parts that are attached to it).
+
+                For other single line blocks, just grab whatever that block is attached to.
+                */
+                Block parentBlock = undefined
+                if current is MultipleLineBlockPart
+                    Block sibling = current:GetPreviousSibling()
+                    if sibling not= undefined
+                        parentBlock = sibling
+                    else
+                        parentBlock = current:GetParentBlock():GetParentBlock()
+                    end
+                else
+                    parentBlock = current:GetParentBlock()
+                end
+
+                integer i = 0
+                repeat until expected = lineIndex
+                    integer lineStart = editor:GetIndexOfLineStart(expected) + 4 * scopeLevel
+                    integer lineEnd = editor:GetIndexOfLineEnd(expected)
+
+                    // Double check that the indented line start doesn't go past the line end in case indentation is wrong or missing
+                    if lineStart > lineEnd
+                        lineStart = lineEnd
+                    end
+
+                    FreeformBlock newBlock
+                    newBlock:SetLocalStartLine(expected - parentBlock:GetStartLine())
+                    newBlock:SetLocalEndLine(newBlock:GetLocalStartLine())
+                    newBlock:SetLocalStartIndex(lineStart - parentBlock:GetStartIndex())
+                    newBlock:SetLocalEndIndex(lineEnd - parentBlock:GetStartIndex())
+                    newBlock:SetScopeDepth(scopeLevel)
+
+                    parentBlock:InsertAtLine(newBlock, expected)
+                    expected = expected + 1
+                    i = i + 1
+
+                    newBlock:Setup()
+                end
+            end
+
+            // Increment the line index by the number of lines the current block took up
+            expected = lineIndex + (current:GetLocalEndLine() - current:GetLocalStartLine() + 1)
+            current = current:GetNextNavigableBlock()
+        end
+    end
+
+    action FillWithFreeform
+        CodeEditor editor = GetEditor()
+        rootBlock:EmptyChildBlocks()
+        MultipleLineText rawCode = editor:GetCode()
+
+        integer i = 0
+        repeat while i < rawCode:GetLineCount()
+            integer indexStart = rawCode:CharacterIndexFromLineIndex(i)
+            integer indexEnd = rawCode:CharacterIndexFromLineIndex(i+1) - rawCode:GetDefaultLineSeparator():GetSize()
+            if indexEnd < indexStart
+                indexEnd = indexStart
+            end
+            FreeformBlock newBlock
+            newBlock:SetLocalStartLine(i)
+            newBlock:SetLocalEndLine(i)
+            newBlock:SetLocalStartIndex(indexStart)
+            newBlock:SetLocalEndIndex(indexEnd)
+            newBlock:SetScopeDepth(0)
+
+            rootBlock:Add(cast(Block,newBlock))
+
+            newBlock:Setup()
+            i = i + 1
+        end
+
+    end
+
+    action RefreshBlockView
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            RefreshBlockView(editor:GetFirstVisibleLine(), editor:GetLastVisibleLine())
+        end
+    end
+
+    action RefreshBlockView(integer firstLine, integer lastLine)
+        // TO-DO: This can be further optimized to use the tree structure to narrowly fetch the needed blocks instead of iterating over all of them.
+        Empty()
+
+        Block currentBlock = rootBlock
+        Block lastNavigableBlock = undefined
+
+        CodeEditor editor = GetEditor()
+
+        repeat until currentBlock = undefined
+            if currentBlock:GetStartLine() <= lastLine and currentBlock:GetEndLine() >= firstLine
+                if currentBlock:GetDefaultLayoutProperties():NeedsRendering()
+                    currentBlock:LoadGraphics(currentBlock:GetDefaultLayoutProperties())
+                end
+
+                if currentBlock:IsDirectlyRenderable()
+                    AddBlock(currentBlock)
+                end
+
+                if currentBlock:IsNavigable()
+                    if lastNavigableBlock not= undefined
+                        BlockItem item = lastNavigableBlock:GetLastBlockItem()
+                        if item = undefined
+                            lastNavigableBlock:SetNextFocus(currentBlock)
+                            currentBlock:SetPreviousFocus(lastNavigableBlock)
+                        else
+                            item:SetNextFocus(currentBlock)
+                            currentBlock:SetPreviousFocus(item)
+                        end
+                    end
+    
+                    lastNavigableBlock = currentBlock
+                end
+    
+                PositionBlock(currentBlock)
+            end
+
+            currentBlock = currentBlock:GetNextBlock()
+        end
+
+        UpdateSelectionCursor(editor:GetSelection())
+    end
+
+    private action PositionBlock(Block block)
+        CodeEditor editor = GetEditor()
+
+        integer navigationSize = block:GetNavigationSize()
+        if block is MultipleLineBlock
+            navigationSize = block:GetTotalNavigationSize()
+        end
+
+        if navigationSize <= 0
+            navigationSize = 1
+        end
+
+        integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
+
+        block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
+    end
+
+    action RefreshNavigationIndices
+        Block currentBlock = rootBlock
+        integer index = 0
+        repeat until currentBlock = undefined
+            currentBlock:SetNavigationIndex(index)
+            index = index + currentBlock:GetNavigationSize()
+            currentBlock = currentBlock:GetNextBlock()
+        end
+    end
+
+    action UpdateSelectionCursor(CodeEditorSelection selection)
+        CodeEditor editor = GetEditor()
+        number x = 0
+        number y = 0
+
+        integer selectionLine = selection:GetLine()
+        if selectionLine >= editor:GetLineCount() and editor:GetFirstVisibleLine() not= selectionLine
+            // In case of an illegal selection line, force the selection to the first visible block, as an emergency failsafe.
+            editor:SelectBlockAtLine(editor:GetFirstVisibleLine())
+        end
+
+        if selectionLine < 0
+            y = GetHeight() - cursor:GetHeight()
+        else
+            y = editor:GetLineY(selection:GetLine())
+        end
+
+        if selectionLine < 0
+            Block firstBlock = rootBlock:GetNextNavigableBlock()
+            if firstBlock not= undefined
+                x = firstBlock:GetGlobalX() - GetGlobalX()
+                cursor:SetWidth(firstBlock:GetWidth())
+            end
+        elseif selection:GetBlockItem() not= undefined
+            BlockItem item = selection:GetBlockItem()
+            x = item:GetGlobalX() - GetGlobalX()
+            cursor:SetWidth(item:GetWidth())
+        elseif selection:GetBlock() not= undefined
+            Block block = selection:GetBlock()
+            x = block:GetGlobalX() - GetGlobalX()
+            cursor:SetWidth(block:GetWidth())
+        elseif selection:IsEmpty() = false
+            cursor:SetWidth(GetWidth())
+        end
+
+        cursor:SetPosition(x, y)
+    end
+
+    private action GetEditor returns CodeEditor
+        Item2D result = GetParent()
+        repeat until result is CodeEditor or result = undefined
+            result = result:GetParent()
+        end
+        return cast(CodeEditor, result)
+    end
+
+    action GetFirstVisibleLine returns integer
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            return editor:GetFirstVisibleLine()
+        end
+        return 0
+    end
+
+    action GetLastVisibleLine returns integer
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            return editor:GetLastVisibleLine()
+        end
+        return 0
+    end
+
+    action GetBlockAtLine(integer line) returns Block
+        if rootBlock = undefined
+            return undefined
+        end
+
+        return GetBlockAtLine(rootBlock, line)
+    end
+
+    private action GetBlockAtLine(Block block, integer line) returns Block
+        /*
+        TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
+        */
+
+        Block candidate = block
+        repeat until candidate = undefined or candidate:GetNavigationIndex() = line
+            Block nextCandidate = candidate:GetNextNavigableBlock()
+
+            /*
+            If we ever find a block with a navigation index that's too large, go back one step.
+            Most likely the previous block was our best choice, but had a size greater than 1,
+            meaning we found a "gap" in the mostly linear sequence of navigation indices.
+            */
+            if nextCandidate not= undefined and nextCandidate:GetNavigationIndex() > line
+                return candidate
+            end
+
+            candidate = nextCandidate
+        end
+
+        return candidate
+    end
+
+    // This action was formerly "GetBlockAtLine" before that action changed to be based on navigation index instead of lines of text
+    private action GetBlockAtTextLine(Block block, integer line) returns Block
+        integer i = 0
+        repeat while i < block:GetChildCount()
+            Block candidate = block:GetChild(i)
+            if candidate:GetStartLine() <= line and candidate:GetEndLine() >= line
+                return GetBlockAtTextLine(candidate, line)
+            end
+
+            i = i + 1
+        end
+
+        return block
+    end
+
+    action GetNavigableBlockAtLine(integer line) returns Block
+        /*
+        TO-DO: This was quickly adapted to match the previous array iteration approach,
+        but since we have a tree now, we should actually use it to find the block more quickly.
+        */
+
+        Block candidate = undefined
+        Block current = rootBlock:GetNextNavigableBlock()
+
+        integer i = 0
+        repeat until current = undefined
+            integer endLine = current:GetNavigationEndIndex()
+
+            if current:GetNavigationIndex() <= line
+                // The first block we find that ends on this line, return it.
+                if endLine = line
+                    return current
+                elseif endLine > line
+                    // This block contains the requested line. It's a candidate if we don't find a more exact match.
+                    candidate = current
+                end
+            end
+
+            current = current:GetNextNavigableBlock()
+        end
+
+        return candidate
+    end
+
+    action GetRootBlock returns RootBlock
+        return rootBlock
+    end
+
+    action IsBlockFullyVisible(Block block) returns boolean
+        boolean drawn = false
+        if block:IsDirectlyRenderable()
+            drawn = (drawnBlocks:GetFirstLocation(block) >= 0)
+        else
+            // If the block isn't directly renderable (e.g. it's a MultipleLineBlockPart) see if it's being rendered by a parent
+            Block parentBlock = block:GetParentBlock()
+            repeat until parentBlock = undefined or parentBlock:IsDirectlyRenderable()
+                parentBlock = parentBlock:GetParentBlock()
+            end
+
+            // By the rules of the loop above, if the block is defined, it must be directly renderable.
+            drawn = (parentBlock not= undefined)
+        end
+
+        if drawn = false
+            return false
+        end
+
+        // Make sure the bottom of the block is above the bottom of the renderer, and the top of the block is below the top of the renderer.
+        return block:GetGlobalY() >= GetGlobalY() and (block:GetGlobalY() + block:GetHeight() <= GetGlobalY() + GetHeight())
+    end
+end

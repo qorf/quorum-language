@@ -132,6 +132,8 @@ class DefaultTreeItemContent is TreeItemContent
                     DefaultTreeMenuView content
                     content:Initialize(height, height * 2)
                     buttonView = content
+
+                    expandButton:SetView2D(buttonView)
                 else
                     buttonView = currentView
                 end
@@ -143,9 +145,9 @@ class DefaultTreeItemContent is TreeItemContent
             buttonProperties:SetHorizontalLayoutMode(buttonProperties:MAINTAIN_ASPECT_RATIO)
             buttonProperties:SetPercentageHeight(1.0)
             buttonProperties:SetPercentageWidth(1.0)
-            buttonProperties:SetTopPadding(4)
-            buttonProperties:SetBottomPadding(4)
-            buttonProperties:SetLeftPadding(4)
+            buttonProperties:SetTopMargin(4)
+            buttonProperties:SetBottomMargin(4)
+            buttonProperties:SetLeftMargin(4)
             buttonProperties:SetLabelText("")
             buttonProperties:SetFont(undefined)
     
@@ -203,8 +205,8 @@ class DefaultTreeItemContent is TreeItemContent
             iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
             iconProperties:SetPercentageHeight(1.0)
             iconProperties:SetPercentageWidth(aspectRatio)
-            iconProperties:SetLeftPadding(5)
-            iconProperties:SetRightPadding(5)
+            iconProperties:SetLeftMargin(5)
+            iconProperties:SetRightMargin(5)
         end
 
         icon:SetColor(iconColor)

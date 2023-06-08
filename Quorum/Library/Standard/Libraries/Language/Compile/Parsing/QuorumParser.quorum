@@ -1781,8 +1781,8 @@ class QuorumParser
         next = tokenIterator:GetCurrent()
         if next:category = constants:TIMES
             //we don't need to check this one, just advance it, because block will manage it.
-            next = tokenIterator:Next()
             context:timesToken = next
+            next = tokenIterator:Next()
             context:isTimes = true
         end
 
@@ -3417,14 +3417,16 @@ class QuorumParser
         Token current = tokenIterator:GetCurrent()
 
         if current:category = constants:INPUT
-            current = tokenIterator:Next()
             context:SetFirstToken(current)
+            current = tokenIterator:Next()
         end
 
         //check if it's left and right paren or if it has an expression
         if current not= undefined and current:category = constants:LEFT_PAREN
             Token next = tokenIterator:Next() //if this is a right paren, there is no expression
             if next not= undefined and next:category = constants:RIGHT_PAREN
+                context:SetLastToken(next)
+                SetLocation(context)
                 tokenIterator:Next()
                 return context
             else //it's not a right paren, so try and parse an expression, then check for the right paren
@@ -3625,10 +3627,11 @@ class QuorumParser
     */
     action Me returns MeContext
         MeContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
         context:SetFirstToken(current)
         context:SetLastToken(current)
         SetLocation(context)
+        tokenIterator:Next()
         return context
     end
 
@@ -3716,7 +3719,18 @@ class QuorumParser
 
         boolean done = false
         repeat while not done
-            if not IsValid() return context end
+            if not IsValid()
+                if contexts not= undefined and not contexts:IsEmpty()   
+                    if contexts:Get(0) not= undefined
+                        context:SetFirstToken(contexts:Get(0):GetFirstToken())
+                    end
+                    if contexts:Get(contexts:GetSize() - 1) not= undefined
+                        context:SetLastToken(contexts:Get(contexts:GetSize() - 1):GetLastToken())
+                    end
+                    SetLocation(context)
+                end
+                return context
+            end
             Token next = tokenIterator:GetCurrent()
             if next:category = constants:COMMA
                 next = tokenIterator:Next()
@@ -3755,8 +3769,18 @@ class QuorumParser
         actions:Add(act)
         context:calls = actions
 
-        //if there's no more tokens, return now
-        if not tokenIterator:IsValid() return context end
+        //if there's no more tokens, set location and return now
+        if not tokenIterator:IsValid()
+            if actions not= undefined and not actions:IsEmpty()
+                if actions:Get(0) not= undefined
+                    context:SetFirstToken(actions:Get(0):GetFirstToken())
+                    context:SetLastToken(actions:Get(0):GetLastToken())
+                    SetLocationToToken(context:objectLocation, actions:Get(0):GetFirstToken())
+                end
+                SetLocation(context)
+            end
+            return context
+        end
         Token current = tokenIterator:GetCurrent()
         boolean done = false
         repeat while not done and current not= undefined and current:category = constants:COLON

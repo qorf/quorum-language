@@ -17,20 +17,17 @@ class CompareDependentVariancesTest is Test
     action Run
         ColumnCalculationTest framer
         DataFrame frame = framer:GetDefaultDataFrame()
+        frame:SelectAllColumns()
 
         CompareVariances compare
         compare:RepeatedMeasures(true)
-        compare:AddColumn(0)
-        compare:AddColumn(1)
-        compare:AddColumn(2)
-        compare:AddColumn(3)
         frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 0.00930567715078534)
-        Check(result:GetDegreesOfFreedom(), 5.0)
-        Check(result:GetProbabilityValue(), 0.003785502714980238)
-        Check(result:GetGreenhouseGeisserCorrection(), 0.4723101080615547)
-        Check(result:GetHuynhFeldtCorrection(), 0.6048428241098917)
+        Check(result:GetTestStatisticsTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 0.009305677150793432)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 5.0)
+        Check(result:GetProbabilityValuesTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 0.003785502714985345)
+        Check(result:GetGreenhouseGeisserCorrection(), 0.4723101080615549)
+        Check(result:GetHuynhFeldtCorrection(), 0.604842824109892)
     end
 end

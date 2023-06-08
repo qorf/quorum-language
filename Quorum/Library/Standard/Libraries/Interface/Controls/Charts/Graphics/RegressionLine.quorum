@@ -20,6 +20,7 @@ class RegressionLine is ChartDrawable, LinePath
     private Icon icon 
     private ChartLabel equation
     private ChartLabel rsquared
+    private ChartLabel sumOfSquaresLabel
     private text equationText = ""
     private text rsquaredText = ""
     private text dependentVariable = ""
@@ -259,16 +260,28 @@ class RegressionLine is ChartDrawable, LinePath
         return icon
     end
 
-    action GetLabel() returns ChartLabel
+    action GetLabel returns ChartLabel
         return equation
     end
 
-    action GetEquationLabel() returns ChartLabel
+    action GetEquationLabel returns ChartLabel
         return equation
     end
 
-    action GetRSquaredLabel() returns ChartLabel
+    action GetRSquaredLabel returns ChartLabel
+        check
+            if rsquared:GetText():Contains("= ?")
+                alert("Label was " + rsquared:GetText() + ", GetParent defined = " + (GetParent() not= undefined))
+            end
+        detect e
+            e:OutputStackTrace()
+        end
+
         return rsquared
+    end
+
+    action GetSumOfSquaresLabel returns ChartLabel
+        return sumOfSquaresLabel
     end
 
     action GetSeries returns Series
@@ -372,7 +385,13 @@ class RegressionLine is ChartDrawable, LinePath
                 equationText = equationText + " + " + math:Round(constantValue, 2)
             end
         end
-        rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
+
+        if regression not= undefined
+            rsquaredText = "R^2 = " + (math:Round(regression:GetEffectSize(),4))
+        else
+            // TO-DO: This case shouldn't occur naturally, but there should still be better edge-case handling here anyway
+            rsquaredText = "R^2 = ?"
+        end
 
         equation:SetText(equationText)
         equation:SetName(equationText)
@@ -634,7 +653,7 @@ class RegressionLine is ChartDrawable, LinePath
         constantValue = GetMidpointY() - slope * GetMidpointX()
 
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     private action UpdateMarkerDescriptions
@@ -668,16 +687,21 @@ class RegressionLine is ChartDrawable, LinePath
 
         if GetParentChart() is TwoVariableChart
             TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
-            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
-            
-            integer i = 0
-            repeat while i < points:GetSize()
-                ChartPoint point = points:Get(i)
-                number residual = point:GetValueY() - CalculateDependentValue(point:GetValueX())
-                result = result + residual * residual
-                i = i + 1
+            if series not= undefined
+                Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+                integer i = 0
+                repeat while i < points:GetSize()
+                    ChartPoint point = points:Get(i)
+                    number residual = point:GetValueY() - CalculateDependentValue(point:GetValueX())
+                    result = result + residual * residual
+                    i = i + 1
+                end
+            else
+                output "WARNING: Couldn't use CalculateResidualSumOfSquares for the regression line because it doesn't belong to a series."
             end
         end
+
+        sumOfSquaresLabel:SetText("Sum of Squares = " + math:Round(result, 2))
 
         return result
     end
@@ -709,6 +733,9 @@ class RegressionLine is ChartDrawable, LinePath
         Remove(startMarker)
         Add(extraMarker)
         
+        extraMarker:SetContainer(GetContainer())
+        extraMarker:LoadGraphics(extraMarker:GetDefaultLayoutProperties())
+
         RegressionLinePointMarker result = extraMarker
 
         pointMarkers:Set(startMarker:GetPointIndex(), extraMarker)
@@ -722,7 +749,7 @@ class RegressionLine is ChartDrawable, LinePath
         if chart:GetSelection():GetChartItem():Equals(startMarker)
             chart:Select(result)
         end
-        chart:RequestLayout()
+        UpdateMarkerPositions()
 
         return result
     end
@@ -749,7 +776,7 @@ class RegressionLine is ChartDrawable, LinePath
         // b = y - mx
         constantValue = point:GetY() - slope * point:GetX()
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     /*
@@ -782,14 +809,18 @@ class RegressionLine is ChartDrawable, LinePath
         constantValue = point1:GetY() - slope * point1:GetX()
 
         RefreshPoints()
-        GetParentChart():RequestLayout()
+        RefreshResidualSquares()
     end
 
     private action UpdatePointDescriptions
         if GetParentChart() is TwoVariableChart
             TwoVariableChart chart = cast(TwoVariableChart, GetParentChart())
-            Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
-            chart:UpdatePointDescriptions(points)
+            if series not= undefined
+                Array<ChartPoint> points = chart:CastToPoints(series:GetChartAreaItems())
+                chart:UpdatePointDescriptions(points)
+            else
+                output "WARNING: Used UpdatePointDescriptions with no series, but this isn't finished yet: TODO"
+            end
         end
     end
 
@@ -813,5 +844,24 @@ class RegressionLine is ChartDrawable, LinePath
 
     action GetYIntercept returns number
         return constantValue
+    end
+
+    /*
+    This action directly sets the slope and intercept of the line.
+    This should primarily be used for initialization, as it doesn't
+    check against limiting factors like a locked y-intercept. 
+    */
+    action SetSlopeAndIntercept(number slope, number intercept)
+        me:slope = slope
+        constantValue = intercept
+
+        RefreshPoints()
+    end
+
+    private action RefreshResidualSquares
+        if series is MovableRegressionSeries
+            MovableRegressionSeries movable = cast(MovableRegressionSeries, series)
+            movable:RefreshResidualSquares()
+        end
     end
 end

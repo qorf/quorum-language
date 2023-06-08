@@ -1,0 +1,117 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Layouts.MultipleLineBlockLayout
+use Libraries.Containers.Array
+
+class RepeatBlock is MultipleLineBlock
+    BlockLabel repeatLabel = undefined
+    EditField expressionField = undefined
+    BlockLabel loopLabel = undefined
+
+    LoopContext loopContext = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:REPEAT_KEY)
+
+        MultipleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Repeat Block")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+    end
+
+    action AddStartLine returns MultipleLineBlockPart
+        MultipleLineBlockPart part
+        Add(part)
+        part:UseEnterScopeStyling()
+
+        // The start line is always the beginning of the multi-block, so it always starts at local index 0.
+        part:SetLocalStartIndex(0)
+
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+
+        BlockLabel repeatLabel
+        me:repeatLabel = repeatLabel
+        repeatLabel:SetFont(GetEditor():GetFont())
+        repeatLabel:SetFontSize(GetEditor():GetFontSize())
+        repeatLabel:SetText("repeat")
+        repeatLabel:SetRightPadding(spacing)
+        part:Add(repeatLabel)
+
+        if loopContext:isUntil
+            BlockLabel loopLabel
+            me:loopLabel = loopLabel
+            loopLabel:SetFont(GetEditor():GetFont())
+            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetText("until")
+            loopLabel:SetRightPadding(spacing)
+            part:Add(loopLabel)
+        elseif loopContext:isWhile
+            BlockLabel loopLabel
+            me:loopLabel = loopLabel
+            loopLabel:SetFont(GetEditor():GetFont())
+            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetText("while")
+            loopLabel:SetRightPadding(spacing)
+            part:Add(loopLabel)
+        end
+
+        EditField expressionField
+        me:expressionField = expressionField
+        part:Add(expressionField)
+
+        Location expressionLoc = loopContext:expression:GetLocation()
+        expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
+        expressionField:SetRightPadding(spacing * 0.5)
+
+        integer localEnd = expressionLoc:GetIndexEnd() - GetStartIndex() + 1
+        if loopContext:isTimes
+            BlockLabel loopLabel
+            me:loopLabel = loopLabel
+            loopLabel:SetFont(GetEditor():GetFont())
+            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetText("times")
+            loopLabel:SetLeftPadding(spacing * 0.5)
+            loopLabel:SetRightPadding(spacing * 0.5)
+            part:Add(loopLabel)
+
+            localEnd = loopContext:timesToken:endIndex - GetStartIndex() + 1
+        end
+
+        part:SetLocalEndIndex(localEnd)
+
+        return part
+    end
+
+    action UpdateName(integer selectedLine)
+//        if selectedLine = endLabel:GetRelativeLineIndex()
+//            SetName("end")
+//        else
+//            //SetName("class " + nameField:GetText())
+//        end
+    end
+
+    action GetLoopContext returns LoopContext
+        return loopContext
+    end
+
+    action SetContext(LoopContext context)
+        me:loopContext = context
+        SetContext(cast(ParseContext, context))
+    end
+
+end

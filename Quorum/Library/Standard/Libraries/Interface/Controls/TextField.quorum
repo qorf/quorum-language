@@ -983,6 +983,22 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         return caretCharacter
     end
 
+    action GetCaretX returns number
+        return caret:GetX()
+    end
+
+    action GetCaretY returns number
+        return caret:GetY()
+    end
+
+    action GetCaretGlobalX returns number
+        return caret:GetGlobalX()
+    end
+
+    action GetCaretGlobalY returns number
+        return caret:GetGlobalY()
+    end
+
     action GetText returns text
         return textValue
     end
@@ -1387,7 +1403,11 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
                             tokenIsDone = true 
 
                         else
-                            nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            if (currentIndex + 1) < textValue:GetSize()
+                                nextCharacter = textValue:GetCharacter(currentIndex + 1)
+                            else
+                                tokenIsDone = true
+                            end
                         end                    
                     else
                         tokenIsDone = true

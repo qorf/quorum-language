@@ -21,6 +21,7 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Controls.RadioButton
+use Libraries.Sound.Audio
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -120,6 +121,14 @@ class Form is Game, FormPrimitiveContainer
 
         FormDelayedAssetLoader delayedLoader
         delayedLoader:LoadAssets()
+
+        if not currentPage:HasDefaultFocusOrdering()
+            currentPage:CalculateDefaultFocusOrdering()
+        end
+        Item2D item = currentPage:GetFirstFocusableItem()
+        if item not= undefined
+            item:Focus()
+        end
     end
 
     /*  This action creates a default Game object for displaying charts and sets this chart
@@ -146,5 +155,11 @@ class Form is Game, FormPrimitiveContainer
 
     action GetCurrentPage returns Page
         return currentPage
+    end
+
+    action PlaySound(text name)
+        Audio audio
+        audio:Load(name)
+        audio:Play()
     end
 end

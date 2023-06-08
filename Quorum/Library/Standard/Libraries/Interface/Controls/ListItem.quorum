@@ -47,8 +47,9 @@ class ListItem is Control
         Add(icon)
         Add(label)
 
-        label:SetLeftPadding(4)
-        icon:SetLeftPadding(4)
+        label:SetPositionOnBaseLine(false)
+        label:SetLeftMargin(4)
+        icon:SetLeftMargin(4)
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
         icon:SetVerticalLayoutMode(icon:parent:Control:STANDARD)
         icon:SetPercentageWidth(1.0)
@@ -146,6 +147,13 @@ class ListItem is Control
         end
     end
 
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        if label not= undefined
+            label:SetFontSize(size)
+        end
+    end
+
     /*
     This action returns the List that this ListItem has been added to, if such a
     List is present. If this ListItem's parent isn't a List, or if it has no
@@ -154,11 +162,13 @@ class ListItem is Control
     Attribute: Returns The parent List containing this ListItem.
     */
     action GetList returns List
-        if GetParent() is List
-            return cast(List, GetParent())
-        else
-            return undefined
+        Item2D candidate = GetParent()
+
+        repeat until candidate is List or candidate = undefined
+            candidate = candidate:GetParent()
         end
+
+        return cast(List, candidate)
     end
 
     action GetActivationBehavior returns Behavior

@@ -63,7 +63,7 @@ class ScatterPlot is TwoVariableChart
 
         SetInputGroup("Chart")
         SetFocusable(true)
-        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityCode(parent:Item:CHART)
 
         // Default settings specific to scatter plot
         RegressionCapable(true)
@@ -304,7 +304,7 @@ class ScatterPlot is TwoVariableChart
     chart:SetSubtitle("Two Columns - One Factor")
     chart:ShowLinearRegression(true)
     chart:ShowSquaresOfResiduals(true)
-    chart:SetMovableRegressionLines(true)
+    chart:ShowMovableRegressionLine(true)
     chart:SetResidualSquareThickness(2)
     chart:LockRegressionYIntercept(0)
     chart:Display(1200, 1200)
@@ -355,7 +355,7 @@ class ScatterPlot is TwoVariableChart
     chart:SetSubtitle("Two Columns - One Factor")
     chart:ShowLinearRegression(true)
     chart:ShowSquaresOfResiduals(true)
-    chart:SetMovableRegressionLines(true)
+    chart:ShowMovableRegressionLine(true)
     chart:SetResidualSquareThickness(2)
     chart:LockRegressionYIntercept(0)
     chart:Display(1200, 1200)

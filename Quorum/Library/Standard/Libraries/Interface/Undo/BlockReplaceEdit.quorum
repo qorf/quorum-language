@@ -1,0 +1,64 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Controls.Blocks.AssignmentBlock
+
+
+class BlockReplaceEdit is Edit
+    text originalText = ""
+    text newText = ""
+    CodeEditor editor = undefined
+    integer characterIndex = -1
+
+    action GetBlockEditor returns CodeEditor
+        return editor
+    end
+
+    action SetBlockEditor(CodeEditor editor)
+        me:editor = editor
+    end
+
+    action SetCharacterIndex(integer index)
+        me:characterIndex = index
+    end
+
+    action GetCharacterIndex returns integer
+        return characterIndex
+    end
+
+    action SetOriginalText(text deletedText)
+        me:originalText = deletedText
+    end
+
+    action GetOriginalText returns text
+        return originalText
+    end
+
+    action SetNewText(text deletedText)
+        me:newText = deletedText
+    end
+
+    action GetNewText returns text
+        return newText
+    end
+
+    action Undo
+        TextChangeEvent event
+        event:Initialize(editor, originalText,newText, characterIndex)
+        editor:OnTextChange(event, 0)
+
+        editor:SetCode(editor:GetCode())
+    end
+
+    action Redo
+        TextChangeEvent event
+        event:Initialize(editor, originalText,newText, characterIndex)
+        editor:OnTextChange(event, 0)
+
+        editor:SetCode(editor:GetCode())
+    end
+
+end

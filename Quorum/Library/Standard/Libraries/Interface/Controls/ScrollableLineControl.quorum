@@ -25,13 +25,13 @@ class ScrollableLineControl is ScrollableControl
         properties:SetPercentageWidth(0)
         properties:SetPercentageHeight(1)
 
-        Add(gutterRegion)
+        parent:Control:Add(gutterRegion)
     end
 
     action Add(Gutter gutter)
         gutters:Add(gutter)
         gutter:SetControl(me)
-        parent:Control:Add(gutter)
+        gutterRegion:Add(gutter)
     end
 
     action Remove(Gutter gutter)
@@ -40,7 +40,7 @@ class ScrollableLineControl is ScrollableControl
             gutter:SetControl(undefined)
         end
 
-        parent:Control:Remove(gutter)
+        gutterRegion:Remove(gutter)
     end
 
     action GetGutters returns Array<Gutter>

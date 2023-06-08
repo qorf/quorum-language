@@ -80,6 +80,7 @@ public class AndroidApplication
     public static View viewRoot = null;
     public static final Map<Integer, Item_> quorumItems = new HashMap<Integer, Item_>();;
     public static int screenHeight;
+    public static int screenWidth;
 
     public void SetupNative(Game_ game, ApplicationConfiguration_ configuration)
     {
@@ -161,6 +162,7 @@ public class AndroidApplication
         DisplayMetrics displayMetrics = new DisplayMetrics();
         androidActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
+        screenWidth = displayMetrics.widthPixels;
         accessibilityNodeProvider = new AccessibilityNodeProvider() {
             @Override
             public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {

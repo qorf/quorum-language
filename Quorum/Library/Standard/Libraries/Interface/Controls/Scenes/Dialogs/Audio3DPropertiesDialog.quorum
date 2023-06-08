@@ -57,7 +57,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         Label basicPropertiesLabel
         basicPropertiesLabel:SetSize(18)
         basicPropertiesLabel:SetText("Basic Properties")
-        basicPropertiesLabel:SetLeftPadding(20)
+        basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
 
         FlowLayout nameLayout
@@ -65,13 +65,13 @@ class Audio3DPropertiesDialog is PropertiesDialog
         nameContainer:SetLayout(nameLayout)
         nameContainer:SetPercentageWidth(1.0)
         nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
-        nameContainer:SetLeftPadding(20)
-        nameContainer:SetTopPadding(10)
-        nameContainer:SetRightPadding(30)
-        nameContainer:SetBottomPadding(10)
+        nameContainer:SetLeftMargin(20)
+        nameContainer:SetTopMargin(10)
+        nameContainer:SetRightMargin(30)
+        nameContainer:SetBottomMargin(10)
 
         nameLabel:SetText("Name:")
-        nameLabel:SetRightPadding(10)
+        nameLabel:SetRightMargin(10)
         nameContainer:Add(nameLabel)
         
         nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
@@ -92,13 +92,13 @@ class Audio3DPropertiesDialog is PropertiesDialog
         sourceContainer:SetLayout(sourceLayout)
         sourceContainer:SetPercentageWidth(1.0)
         sourceContainer:SetVerticalLayoutMode(sourceContainer:FIT_CONTENTS)
-        sourceContainer:SetLeftPadding(20)
-        sourceContainer:SetTopPadding(10)
-        sourceContainer:SetRightPadding(30)
-        sourceContainer:SetBottomPadding(10)
+        sourceContainer:SetLeftMargin(20)
+        sourceContainer:SetTopMargin(10)
+        sourceContainer:SetRightMargin(30)
+        sourceContainer:SetBottomMargin(10)
 
         sourceLabel:SetText("Source:")
-        sourceLabel:SetRightPadding(10)
+        sourceLabel:SetRightMargin(10)
         sourceContainer:Add(sourceLabel)
         
         Button sourceButton
@@ -108,8 +108,8 @@ class Audio3DPropertiesDialog is PropertiesDialog
         Color color
         folderIcon:LoadFilledRectangle(100,100, color:Pink())
         sourceButton:LoadImage(folderIcon)
-        sourceButton:SetLeftPadding(5)
-        sourceButton:SetRightPadding(5)
+        sourceButton:SetLeftMargin(5)
+        sourceButton:SetRightMargin(5)
         sourceButton:SetName("Choose File")
         sourceButton:SetDescription("Open a file browser to select the audio source file")
         sourceButton:SetPixelWidth(24)
@@ -147,13 +147,13 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionContainer:SetLayout(positionLayout)
         positionContainer:SetPercentageWidth(1.0)
         positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftPadding(20)
-        positionContainer:SetTopPadding(10)
-        positionContainer:SetRightPadding(30)
-        positionContainer:SetBottomPadding(10)
+        positionContainer:SetLeftMargin(20)
+        positionContainer:SetTopMargin(10)
+        positionContainer:SetRightMargin(30)
+        positionContainer:SetBottomMargin(10)
 
         positionLabel:SetText("Position:")
-        positionLabel:SetRightPadding(10)
+        positionLabel:SetRightMargin(10)
         positionContainer:Add(positionLabel)
         
         FlowLayout positionFieldLayout
@@ -166,7 +166,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionXField:SetText("")
         positionXField:SetFocusable(true)
         positionXField:AddTextChangeListener(me)
-        positionXField:SetRightPadding(8)
+        positionXField:SetRightMargin(8)
         positionXField:SetPercentageWidth(0.33)
         positionXField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionXField)
@@ -175,7 +175,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionYField:SetText("")
         positionYField:SetFocusable(true)
         positionYField:AddTextChangeListener(me)
-        positionYField:SetRightPadding(8)
+        positionYField:SetRightMargin(8)
         positionYField:SetPercentageWidth(0.33)
         positionYField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionYField)
@@ -184,7 +184,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionZField:SetText("")
         positionZField:SetFocusable(true)
         positionZField:AddTextChangeListener(me)
-        positionZField:SetRightPadding(8)
+        positionZField:SetRightMargin(8)
         positionZField:SetPercentageWidth(0.33)
         positionZField:SetPixelWidth(-8)
         positionFieldContainer:Add(positionZField)
@@ -201,14 +201,14 @@ class Audio3DPropertiesDialog is PropertiesDialog
         volumeContainer:SetLayout(volumeLayout)
         volumeContainer:SetPercentageWidth(1.0)
         volumeContainer:SetVerticalLayoutMode(volumeContainer:FIT_CONTENTS)
-        volumeContainer:SetLeftPadding(20)
-        volumeContainer:SetTopPadding(10)
-        volumeContainer:SetRightPadding(30)
-        volumeContainer:SetBottomPadding(10)
+        volumeContainer:SetLeftMargin(20)
+        volumeContainer:SetTopMargin(10)
+        volumeContainer:SetRightMargin(30)
+        volumeContainer:SetBottomMargin(10)
 
         Label volumeLabel
         volumeLabel:SetText("Volume:")
-        volumeLabel:SetRightPadding(10)
+        volumeLabel:SetRightMargin(10)
         volumeContainer:Add(volumeLabel)
 
         TextField volumeField
@@ -217,7 +217,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         volumeField:SetText("")
         volumeField:SetFocusable(true)
         volumeField:AddTextChangeListener(me)
-        volumeField:SetRightPadding(8)
+        volumeField:SetRightMargin(8)
         volumeField:SetHorizontalLayoutMode(volumeContainer:FILL)
         volumeContainer:Add(volumeField)
 
@@ -229,14 +229,14 @@ class Audio3DPropertiesDialog is PropertiesDialog
         pitchContainer:SetLayout(pitchLayout)
         pitchContainer:SetPercentageWidth(1.0)
         pitchContainer:SetVerticalLayoutMode(pitchContainer:FIT_CONTENTS)
-        pitchContainer:SetLeftPadding(20)
-        pitchContainer:SetTopPadding(10)
-        pitchContainer:SetRightPadding(30)
-        pitchContainer:SetBottomPadding(10)
+        pitchContainer:SetLeftMargin(20)
+        pitchContainer:SetTopMargin(10)
+        pitchContainer:SetRightMargin(30)
+        pitchContainer:SetBottomMargin(10)
 
         Label pitchLabel
         pitchLabel:SetText("Pitch:")
-        pitchLabel:SetRightPadding(10)
+        pitchLabel:SetRightMargin(10)
         pitchContainer:Add(pitchLabel)
 
         TextField pitchField
@@ -245,7 +245,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         pitchField:SetText("")
         pitchField:SetFocusable(true)
         pitchField:AddTextChangeListener(me)
-        pitchField:SetRightPadding(8)
+        pitchField:SetRightMargin(8)
         pitchField:SetHorizontalLayoutMode(pitchContainer:FILL)
         pitchContainer:Add(pitchField)
 
@@ -255,7 +255,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         Label advancedPropertiesLabel
         advancedPropertiesLabel:SetSize(18)
         advancedPropertiesLabel:SetText("Advanced Properties")
-        advancedPropertiesLabel:SetLeftPadding(20)
+        advancedPropertiesLabel:SetLeftMargin(20)
         panel:Add(advancedPropertiesLabel)
 
         FlowLayout maxDistanceLayout
@@ -263,14 +263,14 @@ class Audio3DPropertiesDialog is PropertiesDialog
         maxDistanceContainer:SetLayout(maxDistanceLayout)
         maxDistanceContainer:SetPercentageWidth(1.0)
         maxDistanceContainer:SetVerticalLayoutMode(maxDistanceContainer:FIT_CONTENTS)
-        maxDistanceContainer:SetLeftPadding(20)
-        maxDistanceContainer:SetTopPadding(10)
-        maxDistanceContainer:SetRightPadding(30)
-        maxDistanceContainer:SetBottomPadding(10)
+        maxDistanceContainer:SetLeftMargin(20)
+        maxDistanceContainer:SetTopMargin(10)
+        maxDistanceContainer:SetRightMargin(30)
+        maxDistanceContainer:SetBottomMargin(10)
 
         Label maxDistanceLabel
         maxDistanceLabel:SetText("Max Volume Distance:")
-        maxDistanceLabel:SetRightPadding(10)
+        maxDistanceLabel:SetRightMargin(10)
         maxDistanceContainer:Add(maxDistanceLabel)
 
         TextField maxDistanceField
@@ -279,7 +279,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         maxDistanceField:SetText("")
         maxDistanceField:SetFocusable(true)
         maxDistanceField:AddTextChangeListener(me)
-        maxDistanceField:SetRightPadding(8)
+        maxDistanceField:SetRightMargin(8)
         maxDistanceField:SetHorizontalLayoutMode(maxDistanceContainer:FILL)
         maxDistanceContainer:Add(maxDistanceField)
 
@@ -291,14 +291,14 @@ class Audio3DPropertiesDialog is PropertiesDialog
         rolloffContainer:SetLayout(rolloffLayout)
         rolloffContainer:SetPercentageWidth(1.0)
         rolloffContainer:SetVerticalLayoutMode(rolloffContainer:FIT_CONTENTS)
-        rolloffContainer:SetLeftPadding(20)
-        rolloffContainer:SetTopPadding(10)
-        rolloffContainer:SetRightPadding(30)
-        rolloffContainer:SetBottomPadding(10)
+        rolloffContainer:SetLeftMargin(20)
+        rolloffContainer:SetTopMargin(10)
+        rolloffContainer:SetRightMargin(30)
+        rolloffContainer:SetBottomMargin(10)
 
         Label rolloffLabel
         rolloffLabel:SetText("Rolloff Rate:")
-        rolloffLabel:SetRightPadding(10)
+        rolloffLabel:SetRightMargin(10)
         rolloffContainer:Add(rolloffLabel)
 
         TextField rolloffField
@@ -307,7 +307,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         rolloffField:SetText("")
         rolloffField:SetFocusable(true)
         rolloffField:AddTextChangeListener(me)
-        rolloffField:SetRightPadding(8)
+        rolloffField:SetRightMargin(8)
         rolloffField:SetHorizontalLayoutMode(rolloffContainer:FILL)
         rolloffContainer:Add(rolloffField)
 
@@ -319,18 +319,18 @@ class Audio3DPropertiesDialog is PropertiesDialog
         playOnLoadContainer:SetLayout(playOnLoadLayout)
         playOnLoadContainer:SetPercentageWidth(1.0)
         playOnLoadContainer:SetVerticalLayoutMode(playOnLoadContainer:FIT_CONTENTS)
-        playOnLoadContainer:SetLeftPadding(20)
-        playOnLoadContainer:SetTopPadding(10)
-        playOnLoadContainer:SetRightPadding(30)
-        playOnLoadContainer:SetBottomPadding(10)
+        playOnLoadContainer:SetLeftMargin(20)
+        playOnLoadContainer:SetTopMargin(10)
+        playOnLoadContainer:SetRightMargin(30)
+        playOnLoadContainer:SetBottomMargin(10)
 
         Checkbox playOnLoadCheckbox
         me:playOnLoadCheckbox = playOnLoadCheckbox
         
         playOnLoadCheckbox:SetName("Play on Load")
         playOnLoadContainer:Add(playOnLoadCheckbox)
-        playOnLoadContainer:SetTopPadding(10)
-        playOnLoadContainer:SetBottomPadding(10)
+        playOnLoadContainer:SetTopMargin(10)
+        playOnLoadContainer:SetBottomMargin(10)
         panel:Add(playOnLoadContainer)
 
         PropertiesSetPlayOnLoadBehavior propertiesPlayOnLoadBehavior
@@ -344,18 +344,18 @@ class Audio3DPropertiesDialog is PropertiesDialog
         loopingContainer:SetLayout(loopingLayout)
         loopingContainer:SetPercentageWidth(1.0)
         loopingContainer:SetVerticalLayoutMode(loopingContainer:FIT_CONTENTS)
-        loopingContainer:SetLeftPadding(20)
-        loopingContainer:SetTopPadding(10)
-        loopingContainer:SetRightPadding(30)
-        loopingContainer:SetBottomPadding(10)
+        loopingContainer:SetLeftMargin(20)
+        loopingContainer:SetTopMargin(10)
+        loopingContainer:SetRightMargin(30)
+        loopingContainer:SetBottomMargin(10)
 
         Checkbox loopingCheckbox
         me:loopingCheckbox = loopingCheckbox
         
         loopingCheckbox:SetName("Looping")
         loopingContainer:Add(loopingCheckbox)
-        loopingContainer:SetTopPadding(10)
-        loopingContainer:SetBottomPadding(10)
+        loopingContainer:SetTopMargin(10)
+        loopingContainer:SetBottomMargin(10)
         panel:Add(loopingContainer)
 
         PropertiesSetLoopingBehavior propertiesSetLoopingBehavior
@@ -369,18 +369,18 @@ class Audio3DPropertiesDialog is PropertiesDialog
         dopplerContainer:SetLayout(dopplerLayout)
         dopplerContainer:SetPercentageWidth(1.0)
         dopplerContainer:SetVerticalLayoutMode(dopplerContainer:FIT_CONTENTS)
-        dopplerContainer:SetLeftPadding(20)
-        dopplerContainer:SetTopPadding(10)
-        dopplerContainer:SetRightPadding(30)
-        dopplerContainer:SetBottomPadding(10)
+        dopplerContainer:SetLeftMargin(20)
+        dopplerContainer:SetTopMargin(10)
+        dopplerContainer:SetRightMargin(30)
+        dopplerContainer:SetBottomMargin(10)
 
         Checkbox dopplerCheckbox
         me:dopplerCheckbox = dopplerCheckbox
         
         dopplerCheckbox:SetName("Doppler")
         dopplerContainer:Add(dopplerCheckbox)
-        dopplerContainer:SetTopPadding(10)
-        dopplerContainer:SetBottomPadding(10)
+        dopplerContainer:SetTopMargin(10)
+        dopplerContainer:SetBottomMargin(10)
         panel:Add(dopplerContainer)
 
         PropertiesSetDopplerBehavior propertiesSetDopplerBehavior

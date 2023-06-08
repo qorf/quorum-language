@@ -79,13 +79,13 @@ class SceneEditorFindDialog is Dialog, TextChangeListener
         findContainer:SetLayout(findContainerLayout)
         findContainer:SetPercentageWidth(1.0)
         findContainer:SetVerticalLayoutMode(findContainer:FIT_CONTENTS)
-        findContainer:SetLeftPadding(20)
-        findContainer:SetTopPadding(20)
-        findContainer:SetRightPadding(30)
-        findContainer:SetBottomPadding(20)
+        findContainer:SetLeftMargin(20)
+        findContainer:SetTopMargin(20)
+        findContainer:SetRightMargin(30)
+        findContainer:SetBottomMargin(20)
 
         findLabel:SetText("Find:")
-        findLabel:SetRightPadding(10)
+        findLabel:SetRightMargin(10)
         findContainer:Add(findLabel)
         
         findField:SetHorizontalLayoutMode(findField:parent:Libraries.Interface.Controls.Control:FILL)

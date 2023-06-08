@@ -30,10 +30,10 @@ class SpreadsheetLayout is FlowLayout
                 
                 if column:GetHorizontalLayoutMode() = column:parent:Control:STANDARD
                     number width = column:GetInterfaceScale() * (column:GetPixelWidth() + (2 * column:GetBorderThickness())) + (column:GetPercentageWidth() * containerWidth)
-                    columnX = width + (column:GetLeftPadding() + column:GetRightPadding()) * column:GetInterfaceScale()
+                    columnX = width + (column:GetLeftMargin() + column:GetRightMargin()) * column:GetInterfaceScale()
                     columnWidths:Add(width)
                 elseif column:GetHorizontalLayoutMode() = column:parent:Control:FILL
-                    number width = (containerWidth - columnX) - (column:GetLeftPadding() - column:GetRightPadding()) * column:GetInterfaceScale()
+                    number width = (containerWidth - columnX) - (column:GetLeftMargin() - column:GetRightMargin()) * column:GetInterfaceScale()
                     columnX = containerWidth
                     columnWidths:Add(width)
                 end
@@ -53,9 +53,9 @@ class SpreadsheetLayout is FlowLayout
                 Cell cell = column:GetCell(rowCounter)
                 Label label = cell:GetLabel()
 
-                label:SetMaximumWidth(columnWidths:Get(columnCounter) - column:GetInterfaceScale() * (label:GetLeftPadding() + label:GetRightPadding()))
+                label:SetMaximumWidth(columnWidths:Get(columnCounter) - column:GetInterfaceScale() * (label:GetLeftMargin() + label:GetRightMargin()))
 
-                number height = label:GetHeight() + (label:GetTopPadding() + label:GetBottomPadding()) * column:GetInterfaceScale()
+                number height = label:GetHeight() + (label:GetTopMargin() + label:GetBottomMargin()) * column:GetInterfaceScale()
                 if height > rowCellHeight
                     rowCellHeight = height
                 end
@@ -71,8 +71,8 @@ class SpreadsheetLayout is FlowLayout
                 cell:SetPixelHeight(rowCellHeight)
 
                 Label label = cell:GetLabel()
-                label:SetPixelX(label:GetLeftPadding() * column:GetInterfaceScale())
-                label:SetPixelY(rowCellHeight - (label:GetTopPadding() * column:GetInterfaceScale()) - label:GetLineHeight())
+                label:SetPixelX(label:GetLeftMargin() * column:GetInterfaceScale())
+                label:SetPixelY(rowCellHeight - (label:GetTopMargin() * column:GetInterfaceScale()) - label:GetLineHeight())
 
                 columnCounter = columnCounter + 1
             end
@@ -90,12 +90,12 @@ class SpreadsheetLayout is FlowLayout
         repeat while i < columns:GetSize()
             Column column = columns:Get(i)
             LayoutProperties properties = column:GetDefaultLayoutProperties()
-            x = x + column:GetLeftPadding() * column:GetInterfaceScale()
+            x = x + column:GetLeftMargin() * column:GetInterfaceScale()
 
             column:SetPosition(x, parent:FlowLayout:containerHeight - totalHeight)
             column:SetSize(columnWidths:Get(i), totalHeight)
 
-            x = x + columnWidths:Get(i) + column:GetRightPadding() * column:GetInterfaceScale()
+            x = x + columnWidths:Get(i) + column:GetRightMargin() * column:GetInterfaceScale()
             i = i + 1
         end
     end

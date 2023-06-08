@@ -59,6 +59,7 @@ class Array <Type>
             SetNative(location, value)
         else
             InvalidLocationError error
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         end
     end
@@ -84,6 +85,7 @@ class Array <Type>
             return GetNative(location)
         else
             InvalidLocationError error
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         end
     end
@@ -201,6 +203,7 @@ class Array <Type>
             AddNative(location, value)
         else
             InvalidLocationError error
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         end
     end
@@ -571,6 +574,7 @@ class Array <Type>
             return RemoveAtNative(location)
         else
             InvalidLocationError error
+            error:RegenerateMessageWithIndexAndSize(location, size)
             alert(error)
         end
     end

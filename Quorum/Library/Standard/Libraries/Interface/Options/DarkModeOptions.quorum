@@ -53,6 +53,30 @@ class DarkModeOptions is InterfaceOptions
         SetButtonFocusFontColor(darkFont)
         SetButtonFocusBorderColor(acceptBlue)
 
+        // ToggleButton properties.
+        SetToggleButtonBorderThickness(1)
+        SetToggleButtonBackgroundColor(controlBackground)
+        SetToggleButtonFontColor(lightFont)
+        SetToggleButtonTopLeftRounding(defaultButtonRounding)
+        SetToggleButtonTopRightRounding(defaultButtonRounding)
+        SetToggleButtonBottomLeftRounding(defaultButtonRounding)
+        SetToggleButtonBottomRightRounding(defaultButtonRounding)
+        SetToggleButtonMouseOverColor(hoverBlue)
+
+        // The color when the button is focused but not selected.
+        SetToggleButtonFocusColor(color:CustomColor(78.0 / MAX, 139.0 / MAX, 205.0 / MAX, 1))
+        SetToggleButtonFocusFontColor(lightFont)
+        SetToggleButtonFocusBorderColor(acceptBlue)
+
+        // The color when the button is selected but not focused.
+        SetToggleButtonUnfocusedSelectionColor(acceptBlue)
+        SetToggleButtonUnfocusedSelectionFontColor(lightFont)
+
+        // The color when the button is focused and selected.
+        SetToggleButtonSelectionColor(color:CustomColor(141.0/MAX, 196.0/MAX, 237.0/MAX, 1))
+
+
+
         // Cell specific colors.
         SetCellBackgroundColor(darkGray)
 
@@ -145,6 +169,13 @@ class DarkModeOptions is InterfaceOptions
         SetTextFieldFontColor(commonFontColor)
         SetTextFieldIconColor(GetTextBoxFontColor())
 
+        // CodeEditor specific options.
+        SetCodeEditorBackgroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetCodeEditorFontColor(commonFontColor)
+        SetCodeEditorForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))
+        SetCodeEditorAccentColor(color:CustomColor(154.0 / MAX, 155.0 / MAX, 157.0 / MAX, 1))
+        SetCodeEditorIconColor(GetTextBoxFontColor())
+
         // TreeTableCell specific colors.
         SetTreeTableCellSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
         SetTreeTableCellFontColor(commonFontColor)
@@ -159,6 +190,9 @@ class DarkModeOptions is InterfaceOptions
 
         // List specific colors.
         SetListBackgroundColor(GetTextBoxBackgroundColor())
+        SetListForegroundColor(GetTextBoxForegroundColor())
+        SetListAccentColor(GetTextBoxAccentColor())
+        SetListSelectionColor(GetTextBoxSelectionColor())
 
         // ListItem specific colors.
         SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
@@ -214,5 +248,23 @@ class DarkModeOptions is InterfaceOptions
         SetFlowchartArrowBackgroundColor(commonFontColor)
         SetFlowchartArrowIconColor(commonFontColor)
         SetFlowchartArrowSelectionColor(defaultSelectionColor)
+
+        // Grouping specific values.
+        SetGroupingBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetGroupingBorderThickness(0)
+
+        // Banner specific values.
+        SetBannerBackgroundColor(color:CustomColor(1 / MAX, 115 / MAX, 163 / MAX, 1))
+        SetBannerFontColor(color:CustomColor(246 / MAX, 246 / MAX, 247 / MAX, 1))
+        SetBannerBorderThickness(0)
+
+        // StartButtonGrouping specific values.
+        SetStartButtonGroupingBackgroundColor(color:CustomColor(0.92, 0.92, 0.92, 1.0))
+        SetStartButtonGroupingBorderColor(color:White())
+        SetStartButtonGroupingBorderThickness(1)
+        SetStartButtonGroupingTopLeftRounding(0.2)
+        SetStartButtonGroupingTopRightRounding(0.2)
+        SetStartButtonGroupingBottomLeftRounding(0.2)
+        SetStartButtonGroupingBottomRightRounding(0.2)
     end
 end

@@ -85,7 +85,10 @@ public class AccessibilityManager
         DIALOG,
         POPUP_MENU,
         PROGRESS_BAR,
-        GROUP
+        GROUP,
+        CHART,
+        CHART_ITEM,
+        CHART_SECTION
     }
             
     enum MenuChanges {
@@ -142,7 +145,10 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__POPUP_MENU_(), AccessibilityCodes.POPUP_MENU);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__PROGRESS_BAR_(), AccessibilityCodes.PROGRESS_BAR);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__GROUP_(), AccessibilityCodes.GROUP);
-        
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_(), AccessibilityCodes.CHART);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_ITEM_(), AccessibilityCodes.CHART_ITEM);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_SECTION_(), AccessibilityCodes.CHART_SECTION);
+
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
         TREECHANGES_MAP.put(TREECHANGECODES.Get_Libraries_Interface_Events_TreeChangeEvent__OPENED_(), TreeChanges.EXPANDED);
@@ -275,6 +281,18 @@ public class AccessibilityManager
                 nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case CUSTOM:
+                // Not implemented yet. Create as Item for now.
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case CHART:
+                // Not implemented yet. Create as Item for now.
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case CHART_ITEM:
+                // Not implemented yet. Create as Item for now.
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case CHART_SECTION:
                 // Not implemented yet. Create as Item for now.
                 nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
@@ -519,6 +537,7 @@ public class AccessibilityManager
                 break;
             case LIST_ITEM:
                 selected = SelectListItemNative(selectedItem);
+                break;
             case CELL:
             case TREE_TABLE_CELL:
                 selected = SelectCellNative(selectedItem);

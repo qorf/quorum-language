@@ -9,6 +9,8 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.MovableRegressionSeries
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -42,8 +44,14 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
         ScatterPlot scatterPlot = cast(ScatterPlot, chart)
         Array<ResidualSquare> squares = undefined
+        boolean hasMovableResidualSquares = false
+
         if chart:IsShowingLinearRegression() and scatterPlot:IsShowingSquaresOfResiduals()
             squares = scatterPlot:GetResidualSquares()
+
+            if chart:HasMovableRegressionLine()
+                hasMovableResidualSquares = true
+            end
         end
 
         i = 0
@@ -124,6 +132,24 @@ class ScatterPlotLayout is TwoVariableChartLayout
             end
 
             i = i + 1
+        end
+
+        if hasMovableResidualSquares
+            if chart:IsSeparated()
+                integer j = 0
+                repeat while j < chart:GetNumberOfChartAreas()
+                    ChartAreaPanel subArea = chart:GetSubChartAreas():Get(j)
+                    MovableRegressionSeries series = subArea:GetMovableRegressionSeries()
+                    series:RefreshResidualSquares()
+
+                    j = j + 1
+                end
+            else
+                MovableRegressionSeries series = chart:GetChartArea():GetMovableRegressionSeries()
+                Array<ResidualSquare> movableSquares = series:GetResidualSquares()
+                RegressionLine line = series:GetRegressionLine()
+                series:RefreshResidualSquares()
+            end
         end
 
         if chart:IsShowingLinearRegression()

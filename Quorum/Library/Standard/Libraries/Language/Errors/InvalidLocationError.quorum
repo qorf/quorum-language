@@ -31,4 +31,12 @@ class InvalidLocationError is Error
     on create
         SetErrorMessage("Location Invalid: Attempted to reference a location in a data structure that does not exist.")
     end
+
+    action RegenerateMessageWithIndexAndSize(integer index, integer size)
+        SetErrorMessage("Location " + index + " with size " + size + " Invalid: Attempted to reference a location in a data structure that does not exist.")
+    end
+
+    action RegenerateMessageWithIndex(integer index)
+        SetErrorMessage("Location " + index + " Invalid: Attempted to reference a location in a data structure that does not exist.")
+    end
 end

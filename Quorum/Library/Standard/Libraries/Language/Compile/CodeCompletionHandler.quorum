@@ -186,7 +186,7 @@ class CodeCompletionHandler
             AddFieldRegion(request, result)
         //if there is ever a case where the block is undefined and the method isn't, that's a compiler
         //bug. The method "has" a block, so it shouldn't happen ever.
-        elseif block not= undefined and method not= undefined
+        elseif block not= undefined and (method not= undefined or (clazz not= undefined and clazz:IsImplicitClass()))
             AddActionRegion(request, result)
         end
     end
@@ -248,9 +248,16 @@ class CodeCompletionHandler
         integer actionIndex = -1
         integer blockIndex = 0
         integer candidateBlock = -1
+        Stack<Block> blockStack
         Array<Action> actions = GetSortedActions(clazz)
         Array<Block> blocks = undefined
-        Stack<Block> blockStack
+        if clazz not= undefined and clazz:IsImplicitClass()
+            Action main = actions:Get(0) //must be one
+            blocks = GetSortedBlocks(main)
+            request:block = main:GetBlock()
+            blockStack:Push(request:block)
+        end
+
         boolean inClass = false
         boolean inAction = false
         repeat while iterator:HasNext() 
@@ -548,6 +555,23 @@ class CodeCompletionHandler
             //if wasn't a raw variable. Next check 
             boolean emptyFilter = false
             //it's not a simple case. Perhaps it is a colon delimited set of interactions?
+            
+
+            //or perhaps it is a case where we have empty white space. Check that first.
+            if request:unmodifiedLine not= undefined and not request:unmodifiedLine:IsEmpty()
+                text char = request:unmodifiedLine:GetCharacter(request:unmodifiedLine:GetSize() - 1)
+                if char = " "
+                    result:filter = ""//set the filter to nothing, so the system doesn't block any valid thing out
+                    listener:SetCanCodeComplete(true)
+                    AddClassVariables(request, result)
+                    AddParentVariables(request, result)
+        
+                    AddActions(request, result)
+                    AddBlockVariables(request, result)
+                    return now
+                end
+            end
+        
             //we need to detect the case where there is an empty filter, which is if the line
             //has a colon at the end
             if request:line not= undefined and not request:line:IsEmpty()
@@ -558,6 +582,15 @@ class CodeCompletionHandler
             end
 
             text newLine = StripAndTrimRightHandSide(value)
+
+            //first split by whitespace and grab only the rightmost value. Then split again.
+            Array<text> spaceSplit = newLine:Split(" ", true)
+            if spaceSplit = undefined or spaceSplit:IsEmpty()
+                return now
+            else
+                newLine = spaceSplit:Get(spaceSplit:GetSize() - 1)
+            end
+
             Array<text> values = newLine:Split(":", true)
             if values = undefined
                 return now

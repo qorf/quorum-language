@@ -2,6 +2,8 @@ package Libraries.Interface.Forms
 
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Events.FocusEvent
 
 class Banner is Grouping
 
@@ -12,10 +14,7 @@ class Banner is Grouping
         CenterAlignContent()
         SetTitleSizeLarge()
         
-        // These colors shouldn't be hardcoded in the long run, but this works as temporary values for testing.
-        Color color
-        color:SetColor(172.0 / 255.0, 209.0 / 255.0, 223.0 / 255.0, 1.0)
-        SetBackgroundColor(color)
+        SetInterfaceOptionsKey("Banner")
     end
 
     action Initialize(text title)
@@ -29,8 +28,26 @@ class Banner is Grouping
         end
     end
 
+
+    action SetSubtitle(text value)
+        Label label = GetLabel()
+        if label not= undefined label:SetText(value) end
+    end
+
+    action GetSubtitle returns text
+        Label label = GetTitleLabel()
+        if label not= undefined return label:GetText() end
+        return undefined
+    end
+
     action GetLabel returns Label
         return label
     end
 
+    action GainedFocus(FocusEvent event)
+        Label title = GetTitleLabel()
+        if title not= undefined
+            title:Focus()
+        end
+    end
 end

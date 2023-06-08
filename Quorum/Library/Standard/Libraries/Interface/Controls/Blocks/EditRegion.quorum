@@ -1,0 +1,142 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+
+class EditRegion is BlockItem
+
+    // The start and end indices of an EditRegion are relative to the Block they're attached to.
+    integer startIndex = 0
+    integer endIndex = 0
+
+    // Used to query for edit-specific properties from the options.
+    BlockOptionConstants constants
+
+    on create
+        SetCornerRounding(0.5, 0.5, 0.5, 0.5)
+    end
+
+    blueprint action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)
+
+    action GetStartIndex returns integer
+        return startIndex
+    end
+
+    action SetStartIndex(integer startIndex)
+        me:startIndex = startIndex
+    end
+
+    action SetIndices(integer startIndex, integer endIndex)
+        SetStartIndex(startIndex)
+        SetEndIndex(endIndex)
+    end
+
+    action GetEndIndex returns integer
+        return endIndex
+    end
+
+    action SetEndIndex(integer endIndex)
+        me:endIndex = endIndex
+    end
+
+    action GetRelativeLineIndex returns integer
+        Block block = GetBlock()
+        return GetLineIndex() - block:GetStartLine()
+    end
+
+    action GetLineIndex returns integer
+        Block block = GetBlock()
+        return GetEditor():GetLineIndex(block:GetStartIndex() + startIndex)
+    end
+
+    blueprint action UpdateLength
+
+    /*
+    This action returns the distance from the left edge of this region to the
+    right edge of the block, minus the block's right padding.
+    In other words, this is the hypothetical distance it would take to make
+    the EditRegion "fill" horizontally within the block.
+
+    This can be used by UpdateLength or by block layouts when placing the last
+    EditRegion in a block.
+    */
+    action GetBlockFillLength returns number
+        Block block = GetBlock()
+        if block not= undefined
+            return (block:GetWidth() - GetX() - block:GetRightPadding())
+        end
+
+        return 0
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_BACKGROUND_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_BACKGROUND_COLOR)
+        end
+    end
+
+    action GetBorderColor returns ColorGroup
+        if HasColorPropertyOverride("borderColor")
+            return parent:Control:GetBorderColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_BORDER_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_BORDER_COLOR)
+        end
+    end
+
+    action GetFontColor returns ColorGroup
+        if HasColorPropertyOverride("fontColor")
+            return parent:Control:GetFontColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_FONT_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_FONT_COLOR)
+        end
+    end
+
+    action GetBorderThickness returns number
+        if HasNumberPropertyOverride("borderThickness")
+            return parent:Control:GetBorderThickness()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetNumberProperty(constants:EDIT_BORDER_THICKNESS)
+        else
+            return parent:Control:GetNumberProperty(constants:EDIT_BORDER_THICKNESS)
+        end
+    end
+
+    action GetBlock returns Block
+        Item2D item = GetParent()
+        repeat until item is Block or item = undefined
+            item = item:GetParent()
+        end
+        return cast(Block, item)
+    end
+
+    blueprint action ShowCaret
+
+end

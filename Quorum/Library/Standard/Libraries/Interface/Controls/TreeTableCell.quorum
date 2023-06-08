@@ -115,7 +115,7 @@ class TreeTableCell is Control
             label:SetColor(GetFontColor())
         end
 
-        label:SetLeftPadding(DEFAULT_PADDING)
+        label:SetLeftMargin(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
         label:SetInterfaceScale(properties:GetInterfaceScale())
@@ -191,7 +191,7 @@ class TreeTableCell is Control
             end
 
             LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
-            expandButton:SetLeftPadding(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
+            expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
         end
     end
 

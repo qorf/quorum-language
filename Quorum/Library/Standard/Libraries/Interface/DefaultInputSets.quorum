@@ -13,8 +13,10 @@ use Libraries.Interface.Behaviors.Scenes.Controls.all
 use Libraries.Interface.Behaviors.Scenes.Grid.all
 use Libraries.Interface.Behaviors.Scenes.Palette.all
 use Libraries.Interface.Behaviors.Scenes.Properties.all
+use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Behaviors.Controls.all
+use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
@@ -576,6 +578,22 @@ shared class DefaultInputSets
 
         FirstLetterNavigateBehavior firstLetterNavigateBehavior
         listInputTable:Add(GetTextInputSet(), firstLetterNavigateBehavior)
+
+        ListHomeBehavior homeBehavior
+        ListEndBehavior endBehavior
+
+        InputSet homeKey
+        homeKey:SetKeyboardInput(keys:HOME)
+        InputSet endKey
+        endKey:SetKeyboardInput(keys:END)
+
+        listInputTable:Add(homeKey, homeBehavior)
+        listInputTable:Add(endKey, endBehavior)
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        listInputTable:Add(mouseScrollSet, scrollBehavior)
 
         gameInput:AddInputTable(listInputTable)
 
@@ -2112,6 +2130,224 @@ shared class DefaultInputSets
         gameInput:AddInputTable(regressionLineTable)
     end
 
+
+    // This needs builds off the textbox and text field input tables so make sure those are added before this one
+    action SetupBlockEditorInput(GameInput gameInput)
+        InputTable table
+        table:SetIdentifier("CodeEditor")
+        
+        KeyboardEvent keys
+
+        GameStateManager manager
+
+
+        InputSet downSet
+        downSet:SetKeyboardInput(keys:DOWN)
+        CodeEditorSelectionDownBehavior downBehavior
+        table:Add(downSet, downBehavior)
+
+        InputSet upSet
+        upSet:SetKeyboardInput(keys:UP)
+        CodeEditorSelectionUpBehavior upBehavior
+        table:Add(upSet, upBehavior)
+
+        InputSet tabSet
+        tabSet:SetKeyboardInput(keys:TAB)
+        CodeEditorSelectNextBehavior nextBehavior
+        table:Add(tabSet, nextBehavior)
+
+        InputSet shiftTabSet
+        shiftTabSet:SetKeyboardInput(keys:TAB)
+        shiftTabSet:AddModifier(tabSet:SHIFT)
+        CodeEditorSelectPreviousBehavior previousBehavior
+        table:Add(shiftTabSet, previousBehavior)
+
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        CodeEditorEscapeBehavior escapeBehavior
+        table:Add(escapeSet, escapeBehavior)
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        table:Add(mouseScrollSet, scrollBehavior)
+
+        InputSet enterSet
+        enterSet:SetKeyboardInput(keys:ENTER)
+        InputSet numpadEnterSet
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        CodeEditorNewLineBehavior newLineBehavior
+        table:Add(enterSet, newLineBehavior)
+        table:Add(numpadEnterSet, newLineBehavior)
+
+        //Editor Hint Application
+        InputSet altEnterSet
+        altEnterSet:SetKeyboardInput(keys:ENTER)
+        altEnterSet:AddModifier(altEnterSet:ALT)
+
+        InputSet altNumpadEnterSet
+        altNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        altNumpadEnterSet:AddModifier(altEnterSet:ALT)
+
+        CodeEditorHintBehavior codeEditorHintBehavior
+        table:Add(altEnterSet, codeEditorHintBehavior)
+        table:Add(altNumpadEnterSet, codeEditorHintBehavior)
+
+        InputSet shiftF10SetCodeEditor
+        shiftF10SetCodeEditor:SetKeyboardInput(keys:F10)
+        shiftF10SetCodeEditor:AddModifier(shiftF10SetCodeEditor:SHIFT)
+        CodeEditorOpenPopupMenuBehavior codeEditorOpenPopupMenuBehavior
+        table:Add(shiftF10SetCodeEditor, codeEditorOpenPopupMenuBehavior)
+
+        InputSet rightClickSetCodeEditor
+        rightClickSetCodeEditor:SetMouseInput(mouse:RIGHT)
+        table:Add(rightClickSetCodeEditor, codeEditorOpenPopupMenuBehavior)
+
+        InputSet controlDelete
+        controlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+        controlDelete:AddModifier(controlDelete:CONTROL)
+        CodeEditorDeleteBlockBehavior deleteBehavior
+        table:Add(controlDelete, deleteBehavior)
+        
+        CodeEditorFreeformEditingBehavior freeformBehavior
+
+        InputSet typingSet
+        typingSet:SetInputType(typingSet:TEXT_INPUT)
+
+        InputSet leftSet
+        leftSet:SetKeyboardInput(keys:LEFT)
+        InputSet rightSet
+        rightSet:SetKeyboardInput(keys:RIGHT)
+
+        InputSet shiftLeftSet = leftSet:Copy()
+        shiftLeftSet:AddModifier(shiftLeftSet:SHIFT)
+        InputSet shiftRightSet = rightSet:Copy()
+        shiftRightSet:AddModifier(shiftRightSet:SHIFT)
+
+        InputSet controlLeftSet = leftSet:Copy()
+        controlLeftSet:AddModifier(shiftLeftSet:CONTROL)
+        InputSet controlRightSet = rightSet:Copy()
+        controlRightSet:AddModifier(shiftRightSet:CONTROL)
+
+        InputSet controlShiftLeftSet = shiftLeftSet:Copy()
+        controlShiftLeftSet:AddModifier(shiftLeftSet:CONTROL)
+        InputSet controlShiftRightSet = shiftRightSet:Copy()
+        controlShiftRightSet:AddModifier(shiftRightSet:CONTROL)
+
+        InputSet homeSet
+        homeSet:SetKeyboardInput(keys:HOME)
+        InputSet endSet
+        endSet:SetKeyboardInput(keys:END)
+        
+        InputSet shiftHomeSet = homeSet:Copy()
+        shiftHomeSet:AddModifier(homeSet:SHIFT)
+        InputSet shiftEndSet = endSet:Copy()
+        shiftEndSet:AddModifier(endSet:SHIFT)
+
+        if manager:GetOperatingSystem():Contains("OS X")
+            // cut copy paste
+            InputSet blockControlC
+            blockControlC:SetKeyboardInput(keys:C)
+            blockControlC:AddModifier(blockControlC:META)
+//            TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
+//            textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet blockControlX
+            blockControlX:SetKeyboardInput(keys:X)
+            blockControlX:AddModifier(blockControlX:META)
+//            TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
+//            textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
+
+            InputSet blockControlV
+            blockControlV:SetKeyboardInput(keys:V)
+            blockControlV:AddModifier(blockControlV:META)
+//            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
+//            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+
+            //undo/redo
+            InputSet blockControlZ
+            blockControlZ:SetKeyboardInput(keys:Z)
+            blockControlZ:AddModifier(blockControlZ:META)
+            CodeEditorUndoBehavior codeEditorUndoBehavior
+            table:Add(blockControlZ, codeEditorUndoBehavior)
+
+            InputSet blockControlY
+            blockControlY:SetKeyboardInput(keys:Y)
+            blockControlY:AddModifier(blockControlY:META)
+            CodeEditorRedoBehavior codeEditorRedoBehavior
+            table:Add(blockControlY, codeEditorRedoBehavior)
+        else
+            // cut copy paste
+            InputSet blockControlC
+            blockControlC:SetKeyboardInput(keys:C)
+            blockControlC:AddModifier(blockControlC:CONTROL)
+//            TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
+//            textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+
+            InputSet blockControlX
+            blockControlX:SetKeyboardInput(keys:X)
+            blockControlX:AddModifier(blockControlX:CONTROL)
+//            TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
+//            textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
+
+            InputSet blockControlV
+            blockControlV:SetKeyboardInput(keys:V)
+            blockControlV:AddModifier(blockControlV:CONTROL)
+//            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
+//            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+
+            //undo/redo
+            InputSet blockControlZ
+            blockControlZ:SetKeyboardInput(keys:Z)
+            blockControlZ:AddModifier(blockControlZ:CONTROL)
+            CodeEditorUndoBehavior codeEditorUndoBehavior
+            table:Add(blockControlZ, codeEditorUndoBehavior)
+
+            InputSet blockControlY
+            blockControlY:SetKeyboardInput(keys:Y)
+            blockControlY:AddModifier(blockControlY:CONTROL)
+            CodeEditorRedoBehavior codeEditorRedoBehavior
+            table:Add(blockControlY, codeEditorRedoBehavior)
+        end
+
+
+        table:Add(typingSet, freeformBehavior)
+        table:Add(leftSet, freeformBehavior)
+        table:Add(rightSet, freeformBehavior)
+        table:Add(shiftLeftSet, freeformBehavior)
+        table:Add(shiftRightSet, freeformBehavior)
+        table:Add(controlLeftSet, freeformBehavior)
+        table:Add(controlRightSet, freeformBehavior)
+        table:Add(controlShiftLeftSet, freeformBehavior)
+        table:Add(controlShiftRightSet, freeformBehavior)
+        table:Add(homeSet, freeformBehavior)
+        table:Add(endSet, freeformBehavior)
+        table:Add(shiftHomeSet, freeformBehavior)
+        table:Add(shiftEndSet, freeformBehavior)
+
+        gameInput:AddInputTable(table)
+
+
+        InputTable editFieldTable = gameInput:GetInputTable("TextField"):Copy()
+        editFieldTable:SetIdentifier("EditField")
+        editFieldTable:RemoveKey(downSet)
+        editFieldTable:RemoveKey(upSet)
+        editFieldTable:Add(downSet, downBehavior)
+        editFieldTable:Add(upSet, upBehavior)
+        gameInput:AddInputTable(editFieldTable)
+
+        
+        InputTable editBoxTable = gameInput:GetInputTable("TextBox"):Copy()
+        editBoxTable:SetIdentifier("EditBox")
+        editBoxTable:RemoveKey(downSet)
+        editBoxTable:RemoveKey(upSet)
+        editBoxTable:RemoveKey(enterSet)
+        editBoxTable:RemoveKey(mouseScrollSet)
+        editBoxTable:Add(downSet, downBehavior)
+        editBoxTable:Add(upSet, upBehavior)
+        gameInput:AddInputTable(editBoxTable)
+    end
+
     action SetupScrollBarControlInput(GameInput gameInput)
         InputTable scrollBarTable
         scrollBarTable:SetIdentifier("ScrollBarControl")
@@ -2139,6 +2375,18 @@ shared class DefaultInputSets
         scrollBarTable:Add(leftClickSet, emptyBehavior)
 
         gameInput:AddInputTable(scrollBarTable)
+    end
+
+    action SetupScrollPaneInput(GameInput gameInput)
+        InputTable scrollPaneTable
+        scrollPaneTable:SetIdentifier("ScrollPane")
+
+        InputSet mouseScrollSet
+        mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        scrollPaneTable:Add(mouseScrollSet, scrollBehavior)
+
+        gameInput:AddInputTable(scrollPaneTable)
     end
 
 end

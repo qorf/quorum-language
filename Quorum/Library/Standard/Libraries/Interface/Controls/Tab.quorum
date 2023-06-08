@@ -67,9 +67,9 @@ class Tab is Button
         iconLayoutProperties:SetVerticalLayoutMode(iconLayoutProperties:STANDARD)
         iconLayoutProperties:SetPercentageWidth(1.0)
         iconLayoutProperties:SetPercentageHeight(1.0)
-        iconLayoutProperties:SetTopPadding(4)
-        iconLayoutProperties:SetBottomPadding(4)
-        iconLayoutProperties:SetLeftPadding(4)
+        iconLayoutProperties:SetTopMargin(4)
+        iconLayoutProperties:SetBottomMargin(4)
+        iconLayoutProperties:SetLeftMargin(4)
         
         defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
@@ -94,16 +94,16 @@ class Tab is Button
         closeButton:SetBehavior(behavior)
 
         labelLayoutProperties:SetHorizontalLayoutMode(labelLayoutProperties:FIT_CONTENTS)
-        labelLayoutProperties:SetLeftPadding(7)
-        labelLayoutProperties:SetRightPadding(7)
+        labelLayoutProperties:SetLeftMargin(7)
+        labelLayoutProperties:SetRightMargin(7)
 
         buttonLayoutProperties:SetHorizontalLayoutMode(buttonLayoutProperties:MAINTAIN_ASPECT_RATIO)
         buttonLayoutProperties:SetVerticalLayoutMode(buttonLayoutProperties:STANDARD)
         buttonLayoutProperties:SetPercentageWidth(1.0)
         buttonLayoutProperties:SetPercentageHeight(1.0)
-        buttonLayoutProperties:SetTopPadding(4)
-        buttonLayoutProperties:SetBottomPadding(4)
-        buttonLayoutProperties:SetRightPadding(4)
+        buttonLayoutProperties:SetTopMargin(4)
+        buttonLayoutProperties:SetBottomMargin(4)
+        buttonLayoutProperties:SetRightMargin(4)
 
         icon:Hide()
 

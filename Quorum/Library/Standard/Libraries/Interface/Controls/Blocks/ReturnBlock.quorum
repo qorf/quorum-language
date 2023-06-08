@@ -1,0 +1,83 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Controls.Blocks.BlockLabel
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Language.Compile.Context.all
+use Libraries.Language.Compile.Location
+use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
+use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
+
+class ReturnBlock is SingleLineBlock
+
+    BlockLabel returnLabel = undefined
+    BlockLabel nowLabel = undefined
+    ReturnContext returnContext = undefined
+    EditField expressionField = undefined
+
+    on create
+        BlockOptionConstants constants
+        SetInterfaceOptionsKey(constants:RETURN_KEY)
+
+        SingleLineBlockLayout layout
+        SetLayout(layout)
+
+        SetName("Return Block")
+    end
+
+    action UpdateName(integer selectedLine)
+        // TO-DO: NYI
+        // This should be the entire text read by the screen reader when focused, not just the "output" portion
+        SetName("return")
+    end
+
+    action SetupElements
+        CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+
+        BlockLabel bl
+        me:returnLabel = bl
+        returnLabel:SetFont(GetEditor():GetFont())
+        returnLabel:SetFontSize(GetEditor():GetFontSize())
+        returnLabel:SetText("return")
+        returnLabel:SetRightPadding(spacing)
+        Add(returnLabel)
+
+        if returnContext:isReturnNow
+            BlockLabel nowLabel
+            me:nowLabel = nowLabel
+            nowLabel:SetFont(GetEditor():GetFont())
+            nowLabel:SetFontSize(GetEditor():GetFontSize())
+            nowLabel:SetText("now")
+            nowLabel:SetRightPadding(spacing)
+            Add(nowLabel)
+        end
+
+        ParseContext expression = returnContext:expression
+        // if it was a return now there will be no expression so the block ends here
+        if expression = undefined
+            return now
+        end
+
+        Location location = expression:GetLocation()
+        
+
+        EditField expressionField
+        me:expressionField = expressionField
+        Add(expressionField)
+
+        expressionField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+
+    action GetReturnContext returns ReturnContext
+        return returnContext
+    end
+
+    action SetContext(ReturnContext context)
+        me:returnContext = context
+        SetContext(cast(ParseContext,context))
+    end
+
+end
