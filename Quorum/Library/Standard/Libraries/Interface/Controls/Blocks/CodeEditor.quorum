@@ -137,8 +137,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
     
 action SelectAll
+        output "Select All Triggered. Remove me before release"
         //Not yet implemented.
     end
+    
     
     action GetDefaultFontName returns text
         text name = undefined
@@ -981,7 +983,9 @@ action SelectAll
         end
     end
 
-    // This action triggers automatically when the selection changes (via its SetDisplayName action, done just before listeners are alerted).
+    /*  This action triggers automatically when the selection changes (via its SetDisplayName action, 
+        done just before listeners are alerted).
+    */
     action OnSelectionChange(Block lastBlock, BlockItem lastItem, integer lastLine)
         Block newBlock = selection:GetBlock()
 

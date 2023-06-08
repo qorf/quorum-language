@@ -2261,6 +2261,11 @@ shared class DefaultInputSets
             blockControlV:SetKeyboardInput(keys:V)
             blockControlV:AddModifier(blockControlV:META)
 
+            InputSet blockControlA
+            blockControlA:SetKeyboardInput(keys:A)
+            blockControlA:AddModifier(blockControlA:META)
+            CodeEditorSelectAllBehavior codeEditorSelectAllBehavior
+            table:Add(blockControlA,codeEditorSelectAllBehavior)
             //undo/redo
             InputSet blockControlZ
             blockControlZ:SetKeyboardInput(keys:Z)
