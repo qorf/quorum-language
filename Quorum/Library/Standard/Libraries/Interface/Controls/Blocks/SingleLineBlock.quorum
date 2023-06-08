@@ -81,7 +81,10 @@ class SingleLineBlock is Block
             Block mom = GetParentBlock()
             if mom not= undefined
                 text name = mom:GetName()
-                result = result + " to " + name + ", level " + (scope - 1)
+                result = result + " to " + name
+                if scope > 1 //inside the action only
+                    result = result + ", level " + (scope - 1)
+                end
             end
         end
         

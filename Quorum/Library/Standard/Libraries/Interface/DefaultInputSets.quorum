@@ -2261,11 +2261,13 @@ shared class DefaultInputSets
             blockControlV:SetKeyboardInput(keys:V)
             blockControlV:AddModifier(blockControlV:META)
 
+            //select all
             InputSet blockControlA
             blockControlA:SetKeyboardInput(keys:A)
             blockControlA:AddModifier(blockControlA:META)
             CodeEditorSelectAllBehavior codeEditorSelectAllBehavior
             table:Add(blockControlA,codeEditorSelectAllBehavior)
+
             //undo/redo
             InputSet blockControlZ
             blockControlZ:SetKeyboardInput(keys:Z)
@@ -2297,6 +2299,12 @@ shared class DefaultInputSets
             blockControlV:AddModifier(blockControlV:CONTROL)
 //            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
 //            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+
+            InputSet blockControlA
+            blockControlA:SetKeyboardInput(keys:A)
+            blockControlA:AddModifier(blockControlA:CONTROL)
+            CodeEditorSelectAllBehavior codeEditorSelectAllBehavior
+            table:Add(blockControlA,codeEditorSelectAllBehavior)
 
             //undo/redo
             InputSet blockControlZ
