@@ -819,7 +819,11 @@ class TwoVariableChart is Chart
                     chartAreaItems:Sort(comparison)
                     AddGroupPanelInstructions(GetSeriesList():Get(0),GetSeriesList():Get(0):GetDescription())
                     Array<ChartPoint> firstSeriesPoints = CastToPoints(chartAreaItems)
-                    AddPoints(summary, firstSeries, firstSeriesPoints)
+                    if GetSeriesList():GetSize() = 1
+                        AddPoints(summary, summary, firstSeriesPoints)
+                    else
+                        AddPoints(summary, firstSeries, firstSeriesPoints)
+                    end
 
                     integer i = 1
                     ChartItem previousSeries = firstSeries
@@ -1366,9 +1370,15 @@ class TwoVariableChart is Chart
                     outlierText = ", outlier"
                 end
 
-                firstPoint:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName() + ".")
+                firstPoint:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, 1 of " + points:GetSize() + " points")
             else
-                firstPoint:SetDescription(lineSegmentChange + ", 1 of " + points:GetSize() + " points in " + firstPoint:GetSeries():GetName() + ".")
+                firstPoint:SetDescription(lineSegmentChange + ", 1 of " + points:GetSize() + " points")
+            end
+
+            if GetSeriesList():GetSize() = 1
+                firstPoint:SetDescription(firstPoint:GetDescription() + ".")
+            else
+                firstPoint:SetDescription(firstPoint:GetDescription() + " in " + firstPoint:GetSeries():GetName() + ".")
             end
 
             AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
@@ -1430,9 +1440,15 @@ class TwoVariableChart is Chart
                         outlierText = ", outlier"
                     end
 
-                    point:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName() + ".")
+                    point:SetDescription(lineSegmentChange + outlierText + ", " + math:AbsoluteValue(math:Round(difference,2)) + " units " + direction + " the trendline, " + (i+1) + " of " + points:GetSize() + " points")
                 else
-                    point:SetDescription(lineSegmentChange + ", " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName() + ".")
+                    point:SetDescription(lineSegmentChange + ", " + (i+1) + " of " + points:GetSize() + " points")
+                end
+                
+                if GetSeriesList():GetSize() = 1
+                    point:SetDescription(point:GetDescription() + ".")
+                else
+                    point:SetDescription(point:GetDescription() + " in " + point:GetSeries():GetName() + ".")
                 end
 
                 pointItem:SetEscapeItem(parentItem)
@@ -1498,7 +1514,10 @@ class TwoVariableChart is Chart
         integer i = 0
         repeat while i < points:GetSize()
             ChartPoint point = sortLRPoints:Get(i)
-            point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
+            point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points")
+            if GetSeriesList():GetSize() > 1
+                point:SetDescription(point:GetDescription() + " in " + point:GetSeries():GetName())
+            end
 
             // Add the residual to the beginning of the description if this is a scatter plot.
             if me is ScatterPlot

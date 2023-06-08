@@ -345,6 +345,12 @@ class Chart is ChartItem
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
             Add(legend)
+        elseif legend:GetSeriesList():GetSize() > 0
+            integer i = 0
+            repeat while i < legend:GetSeriesList():GetSize()
+                Add(legend:GetSeriesList():Get(i))
+                i = i + 1
+            end
         end
 
         Add(chartArea)
