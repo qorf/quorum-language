@@ -54,6 +54,10 @@ class SingleLineBlock is Block
 
     action GetDescription returns text
         text result = ""
+        if GetChildCount() not= 0
+            result = ", " + GetChildCount() + " blocks"
+        end
+        
         boolean hints = IsHintsEmpty()
         boolean errors = IsErrorsEmpty()
 
@@ -61,12 +65,16 @@ class SingleLineBlock is Block
         if not errors
             CompilerError error = GetFirstError()
             if error not= undefined
-                result = ", error. " + error:GetErrorMessage()
+                if not hints //there's a hint and an error
+                    result = ", ERROR. " + error:GetErrorMessage()
+                else
+                    result = ", ERROR + HINT. " + error:GetErrorMessage()
+                end
             end
         end
 
         if not hints
-            result = result + ", hint. "
+            result = result + ", HINT. "
             Hint hint = GetFirstHint()
             if hint not= undefined
                 result = result + hint:GetDisplayName()
