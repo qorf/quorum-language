@@ -52,15 +52,28 @@ class SingleLineBlock is Block
         alert("I could not get a child node from the block " + GetName() + " because single line blocks cannot have children blocks.")
     end
 
+    /*
+        The broad design philophy here is to make it feel like a text editor, but to have tree-like mechanisms
+        as clues when traversing. Broadly, if we land only on a scoped item, it will give you the level
+        count and the number of children at the same level. You can then use hotkeys to traverse those points.
+        The level is only given if IsEnteringScope is true, which means the top of an if statement or
+        other scoped construct.
+    */
     action GetDescription returns text
         text result = ""
         integer scope = GetScopeDepth()
-        if scope > 1 //not the class or an action, which have the same scope every time
-            result = ", level + " + (scope - 1)
+        integer kids = GetChildCount()
+        //only for scoped items, otherwise it tends to feel subjectively annoying in a screen reader.
+        if scope > 1 and IsEnteringScope()
+            result = ", level " + (scope - 1)
         end
-
-        if GetChildCount() not= 0
+        
+        if kids = 1
+            result = result + ", " + GetChildCount() + " block"
+        elseif kids > 1
             result = result + ", " + GetChildCount() + " blocks"
+        elseif kids = 0 and IsEnteringScope()
+            result = result + ", 0 blocks"
         end
         
         boolean hints = IsHintsEmpty()
