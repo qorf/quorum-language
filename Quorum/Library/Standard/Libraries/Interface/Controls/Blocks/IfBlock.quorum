@@ -258,7 +258,7 @@ class IfBlock is MultipleLineBlock
         elseLabel:SetRightPadding(spacing)
         part:Add(elseLabel)
 
-        part:SetLocalStartLine(block:GetStartLine() - GetStartLine() - 1)
+        part:SetLocalStartLine(block:GetStartLine() - GetStartLine())
         part:SetLocalEndIndex(part:GetLocalStartIndex() + elseLabel:GetText():GetSize())
 
         // with the indicies correct add the new children
