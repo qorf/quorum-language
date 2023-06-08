@@ -75,6 +75,15 @@ class SingleLineBlock is Block
         elseif kids = 0 and IsEnteringScope()
             result = result + ", 0 blocks"
         end
+
+        //if it's an end, try to determine what it's an end too
+        if IsExitingScope()
+            Block mom = GetParentBlock()
+            if mom not= undefined
+                text name = mom:GetName()
+                result = result + " to " + name + ", level " + (scope - 1)
+            end
+        end
         
         boolean hints = IsHintsEmpty()
         boolean errors = IsErrorsEmpty()
