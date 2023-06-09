@@ -2256,13 +2256,15 @@ shared class DefaultInputSets
         shiftHomeSet:AddModifier(homeSet:SHIFT)
         InputSet shiftEndSet = endSet:Copy()
         shiftEndSet:AddModifier(endSet:SHIFT)
-
+//Behaviors for copy/cut/paste
+        CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
         if manager:GetOperatingSystem():Contains("OS X")
             // cut copy paste
             InputSet blockControlC
             blockControlC:SetKeyboardInput(keys:C)
             blockControlC:AddModifier(blockControlC:META)
-
+            table:Add(blockControlC, copyToClipboardBehavior)
+            
             InputSet blockControlX
             blockControlX:SetKeyboardInput(keys:X)
             blockControlX:AddModifier(blockControlX:META)
@@ -2295,8 +2297,7 @@ shared class DefaultInputSets
             InputSet blockControlC
             blockControlC:SetKeyboardInput(keys:C)
             blockControlC:AddModifier(blockControlC:CONTROL)
-//            TextBoxCopyToClipboardBehavior textBoxCopyToClipboardBehavior
-//            textBoxTable:Add(textBoxControlC, textBoxCopyToClipboardBehavior)
+            table:Add(blockControlC, copyToClipboardBehavior)
 
             InputSet blockControlX
             blockControlX:SetKeyboardInput(keys:X)

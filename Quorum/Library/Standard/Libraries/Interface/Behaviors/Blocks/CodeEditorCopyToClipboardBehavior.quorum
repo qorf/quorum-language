@@ -12,6 +12,10 @@ action Run(BehaviorEvent event)
         if not (item is CodeEditor)
             return now
         end
-        
+        CodeEditor editor = cast(CodeEditor, item)
+        text copy = editor:GetSelectedText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(copy)
     end
 end
