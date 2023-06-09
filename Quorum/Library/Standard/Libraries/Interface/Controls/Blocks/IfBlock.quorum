@@ -26,6 +26,7 @@ class IfBlock is MultipleLineBlock
     MultipleLineBlockPart endPart = undefined
 
     IfContext ifContext
+    boolean removingBlock = false
 
     on create
         BlockOptionConstants constants
@@ -427,7 +428,8 @@ class IfBlock is MultipleLineBlock
             preservedChildren:Add(block:GetChild(i))
             i = i + 1
         end
-
+        Block nextBlock = block:GetNextNavigableBlock()
+        Block previousBlock = block:GetPreviousNavigableBlock()
         // We'll have to correct the local indices and line numbers to match up with the new parent
         integer offset = block:GetStartIndex() - newParent:GetStartIndex()
         integer lineOffset = block:GetStartLine() - newParent:GetStartLine()
@@ -453,14 +455,19 @@ class IfBlock is MultipleLineBlock
         integer index = block:GetParentIndex()
 
         i = GetChildCount() - 1
-        repeat while i >= index
+        repeat while i > index
             Block child = GetChild(i)
-            child:SetParentIndex(i)
+            child:SetParentIndex(i - 1)
             i = i - 1
         end
+
         block:SetParentIndex(-1)
         block:SetParentBlock(undefined)
         block:SetEditor(undefined)
+
+        MultipleLineBlockPart part = cast(MultipleLineBlockPart, block)
+        GetBlockParts():Remove(part)
+        part:SetParentBlock(undefined)
 
         /*
         Call OffsetIndices on the parent. By passing false for the final parameter,
@@ -492,6 +499,15 @@ class IfBlock is MultipleLineBlock
             
             i = i + 1
         end
+        GetEditor():RefreshNavigationIndices()
+        if cast(Block, block) = GetEditor():GetSelection():GetBlock()
+            if nextBlock not= undefined
+                GetEditor():SelectBlockOrItem(nextBlock)
+            else
+                GetEditor():SelectBlockOrItem(previousBlock)
+            end
+        end
+        GetEditor():RequestNavigationIndicesUpdate()
     end
 
     private action RemoveEndPart(Block block)
