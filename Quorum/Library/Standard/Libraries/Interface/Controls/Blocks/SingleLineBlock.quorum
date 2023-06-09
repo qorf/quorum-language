@@ -4,6 +4,8 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
+use Libraries.Interface.Selections.CodeEditorSelectionuse Libraries.Containers.Array
+
 
 class SingleLineBlock is Block
 
@@ -61,6 +63,36 @@ class SingleLineBlock is Block
     */
     action GetDescription returns text
         text result = ""
+        if GetEditor() not= undefined and GetEditor():GetSelection() not= undefined
+            CodeEditor editor = GetEditor()
+            CodeEditorSelection selection = editor:GetSelection()
+            if selection:IsMultipleSelection()
+                Array<Block> blocks = editor:GetSelectedBlocks()
+                //Just in case of some whacky case
+                if blocks not= undefined
+                    Block start = blocks:GetFromFront()
+                    Block last = blocks:GetFromEnd()
+                    integer startLine = start:GetStartLine()
+                    integer lastLine = last:GetEndLine()
+                    result = ", Selected range from blocks at line " + startLine + " to " + lastLine + "."
+                    i = 0 
+                    integer errors = 0
+                    integer hints = 0
+                    repeat while i < blocks:GetSize()
+                        Block block = blocks:Get(i)
+                        errors = errors + block:GetErrorsSize()
+                        hints = hints + block:GetHintsSize()
+                    end
+                    if errors = 0 and hints = 0
+                        result = result + " No errors or hints in range."
+                    else
+                        result = result + " " + errors + " errors and " + hints + " hints in range."
+                    end
+                    return result
+                end
+            end
+        end
+            
         integer scope = GetScopeDepth()
         integer kids = GetChildCount()
         //only for scoped items, otherwise it tends to feel subjectively annoying in a screen reader.
