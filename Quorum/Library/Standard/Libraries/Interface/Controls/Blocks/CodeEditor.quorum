@@ -968,13 +968,6 @@ action SelectAll
             Block block = cast(Block, newFocus)
             // Don't adjust selection if the Block was already selected. Done to avoid problems with multiple selection.
             if block = selection:GetBlock()
-                Array<Block> blocksInRange = GetNavigableBlocksInIndexRange(selection:GetLine(), selection:GetRangeEndLine())
-                integer i = 0
-                output "Checking, size is " + blocksInRange:GetSize()
-                repeat while i < blocksInRange:GetSize()
-                    output blocksInRange:Get(i):GetName()
-                i = i + 1
-                end
                 return now
             end
 
