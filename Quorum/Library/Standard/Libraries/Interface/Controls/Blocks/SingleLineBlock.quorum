@@ -72,8 +72,8 @@ class SingleLineBlock is Block
                 if blocks not= undefined
                     Block start = blocks:GetFromFront()
                     Block last = blocks:GetFromEnd()
-                    integer startLine = start:GetStartLine()
-                    integer lastLine = last:GetEndLine()
+                    integer startLine = start:GetStartLine() + 1
+                    integer lastLine = last:GetEndLine() + 1
                     result = ", Selected range from blocks at line " + startLine + " to " + lastLine + "."
                     i = 0 
                     integer errors = 0
