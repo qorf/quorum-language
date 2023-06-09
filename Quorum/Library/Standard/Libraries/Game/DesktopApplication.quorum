@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Accessibility
 use Libraries.Interface.AccessibilityManager
 use Libraries.Interface.Accessibility.MacAccessibility
+use Libraries.System.Properties
 
 /*
 This is an internal class used by the Game class to manage several resources
@@ -28,12 +29,12 @@ class DesktopApplication is Application
         parent:Application:Setup(game)
 
         game:InitializeLayers()
-
+        Properties properties
         GameStateManager manager
-        if manager:GetOperatingSystem():Contains("Windows 10") and game:GetDesktopConfiguration():enableAccessibility
+        if properties:IsWindows() and game:GetDesktopConfiguration():enableAccessibility
             AccessibilityManager accessibility
             game:SetAccessibility(accessibility)
-        elseif manager:GetOperatingSystem():Contains("Mac OS X") and game:GetDesktopConfiguration():enableAccessibility
+        elseif properties:IsMac() and game:GetDesktopConfiguration():enableAccessibility
             //turned off for 9.0, as it is blank. Should be enabled again
             //once the implementation is complete.
             MacAccessibility mac

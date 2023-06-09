@@ -52,8 +52,42 @@ class SingleLineBlock is Block
         alert("I could not get a child node from the block " + GetName() + " because single line blocks cannot have children blocks.")
     end
 
+    /*
+        The broad design philophy here is to make it feel like a text editor, but to have tree-like mechanisms
+        as clues when traversing. Broadly, if we land only on a scoped item, it will give you the level
+        count and the number of children at the same level. You can then use hotkeys to traverse those points.
+        The level is only given if IsEnteringScope is true, which means the top of an if statement or
+        other scoped construct.
+    */
     action GetDescription returns text
         text result = ""
+        integer scope = GetScopeDepth()
+        integer kids = GetChildCount()
+        //only for scoped items, otherwise it tends to feel subjectively annoying in a screen reader.
+        if scope > 1 and IsEnteringScope()
+            result = ", level " + (scope - 1)
+        end
+        
+        if kids = 1
+            result = result + ", " + GetChildCount() + " block"
+        elseif kids > 1
+            result = result + ", " + GetChildCount() + " blocks"
+        elseif kids = 0 and IsEnteringScope()
+            result = result + ", 0 blocks"
+        end
+
+        //if it's an end, try to determine what it's an end too
+        if IsExitingScope()
+            Block mom = GetParentBlock()
+            if mom not= undefined
+                text name = mom:GetName()
+                result = result + " to " + name
+                if scope > 1 //inside the action only
+                    result = result + ", level " + (scope - 1)
+                end
+            end
+        end
+        
         boolean hints = IsHintsEmpty()
         boolean errors = IsErrorsEmpty()
 
@@ -61,12 +95,16 @@ class SingleLineBlock is Block
         if not errors
             CompilerError error = GetFirstError()
             if error not= undefined
-                result = ", error. " + error:GetErrorMessage()
+                if not hints //there's a hint and an error
+                    result = ", ERROR. " + error:GetErrorMessage()
+                else
+                    result = ", ERROR + HINT. " + error:GetErrorMessage()
+                end
             end
         end
 
         if not hints
-            result = result + ", hint. "
+            result = result + ", HINT. "
             Hint hint = GetFirstHint()
             if hint not= undefined
                 result = result + hint:GetDisplayName()
