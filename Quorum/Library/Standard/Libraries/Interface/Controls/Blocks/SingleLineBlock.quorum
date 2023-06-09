@@ -82,6 +82,7 @@ class SingleLineBlock is Block
                         Block block = blocks:Get(i)
                         errors = errors + block:GetErrorsSize()
                         hints = hints + block:GetHintsSize()
+                        i = i + 1
                     end
                     if errors = 0 and hints = 0
                         result = result + " No errors or hints in range."
