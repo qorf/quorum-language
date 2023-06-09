@@ -87,4 +87,9 @@ class SingleLineBlock is Block
         end
         return parent:Item:GetName()
     end
+    
+    // An override of the implementation in Control. Used to make sure the block still shows selection colors during multiple selection.
+    action IsRenderingSelection returns boolean
+        return IsSelected()
+    end
 end

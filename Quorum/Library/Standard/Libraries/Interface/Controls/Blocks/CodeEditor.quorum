@@ -964,6 +964,18 @@ action SelectAll
             end
         elseif newFocus is Block
             Block block = cast(Block, newFocus)
+            // Don't adjust selection if the Block was already selected. Done to avoid problems with multiple selection.
+            if block = selection:GetBlock()
+                Array<Block> blocksInRange = GetNavigableBlocksInIndexRange(selection:GetLine(), selection:GetRangeEndLine())
+                integer i = 0
+                output "Checking, size is " + blocksInRange:GetSize()
+                repeat while i < blocksInRange:GetSize()
+                    output blocksInRange:Get(i):GetName()
+                i = i + 1
+                end
+                return now
+            end
+
             if block is SingleLineBlock
                 // In case this is a single line wrapped around multiple, aim to select its last line, so the selection line is rendered at the bottom
                 selection:Set(block, block:GetNavigationEndIndex(), undefined)
@@ -984,7 +996,6 @@ action SelectAll
     // This action triggers automatically when the selection changes (via its SetDisplayName action, done just before listeners are alerted).
     action OnSelectionChange(Block lastBlock, BlockItem lastItem, integer lastLine)
         Block newBlock = selection:GetBlock()
-
         if newBlock not= lastBlock
             if lastBlock not= undefined
                 lastBlock:LostSelection()
@@ -1028,8 +1039,20 @@ action SelectAll
         return renderer:IsBlockFullyVisible(block)
     end
 
-    action GetBlockAtNavigationIndex(integer index) returns Block
-        output "NYI"
+    action GetSelectedText returns text
+        if selection:GetBlockItem() not= undefined
+            if selection:GetBlockItem() is EditRegion
+                EditRegion region = cast(EditRegion, selection:GetBlockItem())
+                return region:GetSelectedText()
+            end
+        elseif selection:IsMultipleSelection()
+        Array<Block> selectedBlocks = GetSelectedBlocks()
+            integer startIndex = selectedBlocks:GetFromFront():GetStartIndex()
+            integer endIndex = selectedBlocks:GetFromEnd():GetEndIndex()
+            return rawCode:GetText(startIndex, endIndex)
+        elseif selection:GetBlock() not= undefined
+            return selection:GetBlock():GetText()
+        end
         return undefined
     end
     
@@ -1045,6 +1068,9 @@ action SelectAll
 
     action MoveMultipleSelectionDown
         Block target = selection:GetBlock():GetNextNavigableBlock()
+        if target = undefined
+            return now
+        end
         selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
     
@@ -1065,9 +1091,12 @@ action SelectAll
 
     action MoveMultipleSelectionUp
         Block target = selection:GetBlock():GetPreviousNavigableBlock()
+        if target = undefined
+            return now
+        end
         selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
-	
+    
     action SelectNext
         BlockItem item = selection:GetBlockItem()
         Block block = selection:GetBlock()
@@ -1184,7 +1213,6 @@ action SelectAll
     end
     
     action CreateNewLineBlock
-        Block current = renderer:GetRootBlock()
         
         // If the selected block is a FreeformBlock, try to parse it before making a new one.
         if selection:GetBlock() is FreeformBlock
@@ -1243,14 +1271,12 @@ action SelectAll
 " + GetIndentationText(scopeDepth)
 
         /*
-        Call OffsetIndices on the parent. By passing false for the final parameter,
-        we indicate that we'll be inserting a new block, so existing blocks shouldn't
-        try to incorporate index changes that fall exactly on their start/end boundaries.
-
-        The exception is if we're inserting at targetIndex = 0, in which case we need to
-        offset the first child of the root block.
+        Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
+        text and line indices are correct.
         */
         parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
+
+
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
@@ -2150,5 +2176,63 @@ action SelectAll
             found:Focus()
             return now
         end
+    end
+
+    action GetNavigableBlocksInIndexRange(integer rangeStart, integer rangeEnd) returns Array<Block>
+        Array<Block> result
+
+        Block root = renderer:GetRootBlock()
+        if root not= undefined
+            GetBlocksInNavigationIndexRange(result, root, rangeStart, rangeEnd)
+        end
+
+        return result
+    end
+
+    private action GetBlocksInNavigationIndexRange(Array<Block> array, Block block, integer rangeStart, integer rangeEnd)
+        if rangeStart > rangeEnd
+            integer temp = rangeStart
+            rangeStart = rangeEnd
+            rangeEnd = temp
+        end
+        
+        integer i = block:GetChildCount()
+        // If we find a block with a navigation index less than our start, it might have eligible children,
+        // But any elements attached to earlier tree nodes must have a lower index, so we don't have to look at those.
+        boolean lastSubTree = false
+        repeat while i > 0
+        i = i - 1
+            Block current = block:GetChild(i)
+            integer currentIndex = current:GetNavigationIndex()
+            integer currentEndIndex = current:GetNavigationEndIndex()
+            if currentIndex > rangeEnd
+                // Do nothing. This subtree can't have any elements in the range we need.
+            elseif currentEndIndex < rangeStart
+                if lastSubTree 
+                    i = 0
+                else
+                    lastSubTree = true
+                    GetBlocksInNavigationIndexRange(array, current, rangeStart, rangeEnd)
+                end
+            else
+                GetBlocksInNavigationIndexRange(array, current, rangeStart, rangeEnd)
+            end
+        end
+
+        if block:IsNavigable() and (block:GetNavigationIndex() <= rangeEnd and block:GetNavigationEndIndex() >= rangeStart)
+            array:AddToFront(block)
+        end
+    end
+    
+    action GetSelectedBlocks returns Array<Block>
+        if selection:IsMultipleSelection()
+            return GetNavigableBlocksInIndexRange(selection:GetLine(), selection:GetRangeEndLine())
+        end
+        if selection:IsEmpty()
+            return undefined
+        end
+        Array<Block> value
+        value:Add(selection:GetBlock())
+        return value
     end
 end

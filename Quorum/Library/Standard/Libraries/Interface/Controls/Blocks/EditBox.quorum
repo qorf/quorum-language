@@ -11,6 +11,7 @@ use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Selections.TextBoxSelection
 
 class EditBox is TextBox, EditRegion
 
@@ -182,4 +183,11 @@ class EditBox is TextBox, EditRegion
         parent:TextBox:NotifyTextChangeListeners(event)
     end
 
+    action GetSelectedText returns text
+        TextBoxSelection selection = GetSelection()
+        if selection:IsEmpty()
+            return ""
+        end
+        return GetText(selection:GetStartIndex(), selection:GetEndIndex())
+    end
 end

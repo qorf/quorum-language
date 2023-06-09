@@ -24,11 +24,11 @@ class CodeEditorSelection is Selection
         Block oldBlock = selectedBlock
         BlockItem oldItem = selectedItem
         integer oldLine = selectedLine
-integer oldSecondLine = selectionEndLine
+        integer oldSecondLine = selectionEndLine
         
         selectedBlock = block
         selectedLine = line
-        selectedSecondLine = secondLine
+        selectionEndLine = secondLine
         selectedItem = item
         if item not= undefined
             UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine, oldSecondLine)
@@ -59,7 +59,7 @@ integer oldSecondLine = selectionEndLine
     end
 
     action GetRangeEndLine returns integer
-		return selectionEndLine
+        return selectionEndLine
     end
     
     action GetBlock returns Block

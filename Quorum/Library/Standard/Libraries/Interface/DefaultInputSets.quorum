@@ -2151,6 +2151,16 @@ shared class DefaultInputSets
         CodeEditorSelectionUpBehavior upBehavior
         table:Add(upSet, upBehavior)
 
+        InputSet shiftDownSet = downSet:Copy()
+        shiftDownSet:AddModifier(shiftDownSet:SHIFT)
+        CodeEditorMultipleSelectionDownBehavior shiftDownBehavior
+        table:Add(shiftDownSet,shiftDownBehavior)
+        
+        InputSet shiftUpSet = upSet:Copy()
+        shiftUpSet:AddModifier(shiftUpSet:SHIFT)
+        CodeEditorMultipleSelectionUpBehavior shiftUpBehavior
+        table:Add(shiftUpSet, shiftUpBehavior)
+        
         InputSet tabSet
         tabSet:SetKeyboardInput(keys:TAB)
         CodeEditorSelectNextBehavior nextBehavior
