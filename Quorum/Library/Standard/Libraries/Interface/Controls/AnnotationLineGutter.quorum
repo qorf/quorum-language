@@ -102,6 +102,7 @@ class AnnotationLineGutter is Gutter
         boolean last = false
 
         integer counter = 0
+        integer currentLine = startLine
         number y = control:GetHeight()
         repeat while counter + startLine < totalLines and last = false
             if y < 0
@@ -117,7 +118,7 @@ class AnnotationLineGutter is Gutter
             
             drawable:SetPosition(width - drawable:GetWidth() - rightMargin, y + descent + 1)
 
-            GutterAnnotation annotation = annotations:GetValue(counter)
+            GutterAnnotation annotation = annotations:GetValue(currentLine)
             if annotation not= undefined
                 if annotation:GetColor() not= undefined
                     drawable:SetColor(annotation:GetColor())
@@ -125,6 +126,7 @@ class AnnotationLineGutter is Gutter
                 Add(drawable)
             end
             y = y - lineHeight
+            currentLine = currentLine + 1
             counter = counter + 1
         end
 
