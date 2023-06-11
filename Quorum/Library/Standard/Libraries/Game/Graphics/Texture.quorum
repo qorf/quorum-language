@@ -238,10 +238,11 @@ class Texture is Disposable
                 // Also make sure that if it has a bad aspect ratio value, we give it a reasonable default.
                 Control control = cast(Control, cast(Object, drawable))
                 if control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and (control:GetPercentageWidth() = 0 or control:GetPercentageWidth():IsNotANumber())
-                    control:SetPercentageWidth(control:GetWidth() / control:GetHeight())
+                    control:SetPercentageWidth(cast(number, GetWidth()) / GetHeight())
                 elseif control:GetVerticalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and (control:GetPercentageHeight() = 0 or control:GetPercentageHeight():IsNotANumber())
-                    control:SetPercentageHeight(control:GetHeight() / control:GetWidth())
+                    control:SetPercentageHeight(cast(number, GetHeight()) / GetWidth())
                 end
+
 
                 control:RequestLayout()
             end
