@@ -592,6 +592,7 @@ class ChartWriter
             if chart:GetSubtitle() not= "Subtitle"
                 chartTitle = chartTitle + ", " + chart:GetSubtitle()
             end
+            chart:GenerateSummary()
             //background:SetAriaLabel(chartTitle + chart:GenerateSummary())
             background:SetAriaHidden("true")
         end
@@ -684,8 +685,8 @@ class ChartWriter
                     horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                     horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     horizontalPanel:SetRole("graphics-object")
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
-                    //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription() + " " + horizontalAxisPanel:GetTitleLabel():GetText())
+                    //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
+                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetXAxisMinimum() +  " to " + chart:GetXAxisMaximum())
                     horizontalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(horizontalPanel)
@@ -801,8 +802,8 @@ class ChartWriter
                     verticalPanel:SetID(canvas:GetID() + "_" + verticalAxisPanel:GetHashCode())
                     verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     verticalPanel:SetRole("graphics-object")
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
-                    //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription() + " " + verticalAxisPanel:GetTitleLabel():GetText())
+                    //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
+                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() +  " and ranges from " + chart:GetYAxisMinimum() +  " to " + chart:GetYAxisMaximum())
                     verticalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(verticalPanel)
@@ -1530,7 +1531,7 @@ class ChartWriter
         transparent:SetColor(0,0,0,0)
 
         Legend legend = chart:GetLegend()
-
+        text svgElementSeries = ""
         Rectangle svgElementLegend
         
         svgElementLegend:SetWidth(legend:GetWidth())
@@ -1544,7 +1545,6 @@ class ChartWriter
             svgElementLegend:SetID(canvas:GetID() + "_" + legend:GetHashCode())
             svgElementLegend:SetStyleClass("quorum-chart-element quorum-chart-information-list")
             svgElementLegend:SetRole("graphics-object")
-            svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription())
             //svgElementLegend:SetAriaLabel(legend:GetName() + legend:GetDescription() + " " + chart:GetLegendTitle())
             svgElementLegend:SetAriaHidden("false")
         end
@@ -1589,6 +1589,13 @@ class ChartWriter
                     entryGroupSVG:SetTabIndex(-1)
                     entryGroupSVG:SetAriaLabel(seriesList:Get(i):GetName() + seriesList:Get(i):GetDescription())
                     entryGroupSVG:SetAriaHidden("true")
+                    if i = 0
+                        svgElementSeries = svgElementSeries + " " + seriesList:Get(i):GetName()
+                    elseif i = seriesList:GetSize() - 1
+                        svgElementSeries = svgElementSeries + ", and " + seriesList:Get(i):GetName()
+                    else
+                        svgElementSeries = svgElementSeries + ", " + seriesList:Get(i):GetName()
+                    end
                 end
                 canvas:Add(entryGroupSVG)
 
@@ -1713,6 +1720,14 @@ class ChartWriter
                 end
             end
             i = i + 1
+        end
+        // Generate the svgElementLegend after traversing the series list to get the full list
+        if HasAccessibility()
+           if legendTitle:GetDescription() not= ""
+                svgElementLegend:SetAriaLabel(legend:GetName() + " shows " + legendTitle:GetDescription() + " and has values" + svgElementSeries)
+            else
+                svgElementLegend:SetAriaLabel(legend:GetName() + " has values" + svgElementSeries)
+           end
         end
     end
 

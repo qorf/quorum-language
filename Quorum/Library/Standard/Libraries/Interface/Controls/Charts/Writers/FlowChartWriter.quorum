@@ -108,7 +108,7 @@ class FlowchartWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
-            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the FlowChart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
+            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the flowchart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
             chartContent:SetAriaHidden("false")
             chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
