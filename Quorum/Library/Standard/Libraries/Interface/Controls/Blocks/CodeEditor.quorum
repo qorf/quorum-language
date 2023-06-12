@@ -136,9 +136,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetPopupMenu(popup)
     end
     
-action SelectAll
-        output "Select All Triggered. Remove me before release"
-        //Not yet implemented.
+    action SelectAll
+        selection:Set(renderer:GetRootBlock():GetNextNavigableBlock(), 0, GetLineCount() - 1, undefined)
     end
     
     
