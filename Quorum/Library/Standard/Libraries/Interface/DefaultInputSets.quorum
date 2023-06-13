@@ -2258,6 +2258,8 @@ shared class DefaultInputSets
         shiftEndSet:AddModifier(endSet:SHIFT)
 //Behaviors for copy/cut/paste
         CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
+        CodeEditorCutToClipboardBehavior cutToClipboardBehavior
+        CodeEditorPasteFromClipboardBehavior pasteFromClipboardBehavior
         if manager:GetOperatingSystem():Contains("OS X")
             // cut copy paste
             InputSet blockControlC
@@ -2268,10 +2270,12 @@ shared class DefaultInputSets
             InputSet blockControlX
             blockControlX:SetKeyboardInput(keys:X)
             blockControlX:AddModifier(blockControlX:META)
+            table:Add(blockControlX, cutToClipboardBehavior)
 
             InputSet blockControlV
             blockControlV:SetKeyboardInput(keys:V)
             blockControlV:AddModifier(blockControlV:META)
+            table:Add(blockControlV, pasteFromClipboardBehavior)
 
             //select all
             InputSet blockControlA
@@ -2302,14 +2306,12 @@ shared class DefaultInputSets
             InputSet blockControlX
             blockControlX:SetKeyboardInput(keys:X)
             blockControlX:AddModifier(blockControlX:CONTROL)
-//            TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
-//            textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
+            table:Add(blockControlX, cutToClipboardBehavior)
 
             InputSet blockControlV
             blockControlV:SetKeyboardInput(keys:V)
             blockControlV:AddModifier(blockControlV:CONTROL)
-//            TextBoxPasteFromClipboardBehavior textBoxPasteFromClipboardBehavior
-//            textBoxTable:Add(textBoxControlV, textBoxPasteFromClipboardBehavior)
+            table:Add(blockControlV, pasteFromClipboardBehavior)
 
             InputSet blockControlA
             blockControlA:SetKeyboardInput(keys:A)

@@ -1,4 +1,5 @@
 package Libraries.Interface.Behaviors.Blocks
+
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Item
 use Libraries.Interface.Events.BehaviorEvent
@@ -6,7 +7,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Game
 use Libraries.Interface.Controls.Blocks.CodeEditor
 
-class CodeEditorCopyToClipboardBehavior is Behavior
+class CodeEditorCutToClipboardBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is CodeEditor)
@@ -20,5 +21,6 @@ class CodeEditorCopyToClipboardBehavior is Behavior
         GameStateManager manager
         Game game = manager:GetGame()
         game:SetClipboard(copy)
+        editor:DeleteSelectedBlock(false)
     end
 end
