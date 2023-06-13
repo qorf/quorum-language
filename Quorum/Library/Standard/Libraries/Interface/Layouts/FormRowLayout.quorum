@@ -222,6 +222,15 @@ class FormRowLayout is Layout
                             // As a special case, if the grouping contains only 1 item per row, allow controls to set themselves to use a percentage of the width, if they request it.
                             if numberOfRowItems = 1 and control:GetPercentageWidth() > 0 and control:GetHorizontalLayoutMode() not= control:MAINTAIN_ASPECT_RATIO
                                 control:SetSize(cast(integer, elementWidth * control:GetPercentageWidth()), cast(integer, height))
+
+                            // If the control is trying to maintain an aspect ratio, do our best to respect that.
+                            elseif control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and control:GetPercentageWidth() > 0
+                                number idealWidth = height * control:GetPercentageWidth()
+                                if idealWidth <= elementWidth
+                                    control:SetSize(cast(integer, idealWidth), cast(integer, height))
+                                else
+                                    control:SetSize(cast(integer, elementWidth), cast(integer, height / control:GetPercentageWidth()))
+                                end
                             else
                                 control:SetSize(cast(integer, elementWidth), cast(integer, height))
                             end

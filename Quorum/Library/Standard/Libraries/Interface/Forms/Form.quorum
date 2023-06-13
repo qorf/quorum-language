@@ -44,6 +44,7 @@ class Form is Game, FormPrimitiveContainer
     Page mainPage = undefined
     constant text DEFAULT_PAGE_NAME = "Main"
     InterfaceOptions options = undefined
+    text media = ""
 
     on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
@@ -52,6 +53,7 @@ class Form is Game, FormPrimitiveContainer
         web:framesPerSecondLimit = 10
         
         StackedRowPage page
+        page:SetForm(me)
         page:SetName(DEFAULT_PAGE_NAME)
         pages:Add(DEFAULT_PAGE_NAME, page)
         currentPage = page
@@ -77,11 +79,13 @@ class Form is Game, FormPrimitiveContainer
     action AddPage(text name) returns Page
         StackedRowPage page
         page:SetName(name)
+        page:SetForm(me)
         pages:Add(name, page)
         return page
     end
 
     action AddPage(Page page)
+        page:SetForm(me)
         pages:Add(page:GetName(), page)
     end
 
@@ -166,5 +170,13 @@ class Form is Game, FormPrimitiveContainer
         Audio audio
         audio:Load(name)
         audio:Play()
+    end
+    
+    action GetMediaLocation returns text
+        return media
+    end
+    
+    action SetMediaLocation(text media)
+        me:media = media
     end
 end
