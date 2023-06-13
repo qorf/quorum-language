@@ -241,7 +241,7 @@ class FlowchartWriter is ChartWriter
                         flowArrowSVG:SetTabIndex(-1)
                         if HasAccessibility()
                             flowArrowSVG:SetRole("application")  
-                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to move to follow the arrow")
+                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to follow the arrow")
                             flowArrowSVG:SetAriaHidden("false")
                         end
                         arrowGraphics:Add(flowArrowSVG)   
