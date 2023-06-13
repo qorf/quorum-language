@@ -2066,6 +2066,7 @@ class QuorumParser
         if next:category = constants:ELSE
             Location elseLoc
             SetLocationToToken(elseLoc, next)
+            context:elseToken = next
             context:elseLocation = elseLoc
             next = tokenIterator:Next()
             BlockContext block = Block()
