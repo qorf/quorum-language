@@ -911,6 +911,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
             adjustedEvent:Initialize(event:GetControl(), event:GetAddedText(), event:GetDeletedText(), index)
             NotifyTextChangeListeners(adjustedEvent)
         end
+        
+        if renderer:IsCursorActive()
+            renderer:ShowCursor()
+        end
     end
 
     private action NotifyTextChangeListeners(TextChangeEvent event)
@@ -946,14 +950,24 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action GainedFocus(FocusEvent event)
         OnFocusChange(event)
     end
+    
+    action LostFocus(FocusEvent event)
+        OnFocusLoss(event)
+    end
 
+    action OnFocusLoss(FocusEvent event)
+        if ContainsFocus() = false
+            renderer:HideCursor()
+        end
+    end
+    
     /*
     This action is called when a Block or BlockItem in the editor receives focus, or if the Editor is focused directly.
     This is primarily responsible for updating the selection to match the focused element.
     */
     action OnFocusChange(FocusEvent event)
         Item newFocus = event:GetNewFocus()
-
+        
         if shouldCalculateNavigationIndices
             RefreshNavigationIndices()
         end

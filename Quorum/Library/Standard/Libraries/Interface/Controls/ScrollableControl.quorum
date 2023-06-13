@@ -239,7 +239,6 @@ class ScrollableControl is Control
         boolean horizontalVisible = (horizontalViewRatio < 1.0 and horizontalMode = VISIBLE_IF_NEEDED) or horizontalMode = ALWAYS_VISIBLE
         number barHeight = height
         number barWidth = width
-
         /*
         If both bars are visible, we need to offset the total size of the bars so they can't overlap
         in the bottom right corner. Otherwise, if only one is visible, they're allowed to use the whole
@@ -314,10 +313,9 @@ class ScrollableControl is Control
         scrollPercentageX = percentX
         scrollPercentageY = percentY
 
-        RefreshScrollableRegion()
-
         parent:Control:Resize()
 
+        RefreshScrollableRegion()
         RefreshGutterRegion()
     end
 

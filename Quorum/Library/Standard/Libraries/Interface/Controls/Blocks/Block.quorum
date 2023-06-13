@@ -953,6 +953,13 @@ class Block is Control
             editor:OnFocusChange(event)
         end
     end
+    
+    action LostFocus(FocusEvent event)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnFocusLoss(event)
+        end
+    end
 
     action GetText returns text
         check
