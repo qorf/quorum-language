@@ -981,7 +981,7 @@ class Block is Control
             if GetBottomNotchPosition() > minimumWidth
                 minimumWidth = GetBottomNotchPosition()
             end
-            minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth() + GetRightPadding()
+            minimumWidth = minimumWidth + (editor:GetBlockNotchTopWidth() + GetRightPadding()) * GetInterfaceScale()
             return minimumWidth
         end
 

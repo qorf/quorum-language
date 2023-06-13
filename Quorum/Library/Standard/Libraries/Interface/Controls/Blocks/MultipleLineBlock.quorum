@@ -12,6 +12,10 @@ class MultipleLineBlock is Block
     Array<MultipleLineBlockPart> blockParts
     Array<Control> blockConnectors
 
+    on create
+        SetFocusable(false)
+    end
+    
     action Add(MultipleLineBlockPart part)
         if part:GetParentBlock() not= undefined
             alert("I couldn't add the block part " + part:GetName() + " to the multiple line block " + GetName() + " because the part is already attached to " + part:GetParentBlock():GetName())
