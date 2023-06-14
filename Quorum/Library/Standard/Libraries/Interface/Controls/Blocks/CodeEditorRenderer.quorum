@@ -62,7 +62,9 @@ class CodeEditorRenderer is Control
         CodeEditor editor = GetEditor()
         if cursor:GetView2D() = undefined and editor not= undefined
             cursor:SetBackgroundColor(editor:GetSelectionColor())
-
+cursor:SetBorderColor(editor:GetSelectionBorderColor())
+            cursor:SetBorderThickness(editor:GetBorderThickness())
+            
             // TO-DO: Change this. Temporary debug values.
             cursor:SetSize(30, 5)
 
