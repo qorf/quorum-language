@@ -1421,6 +1421,40 @@ class CodeEditor is ScrollableLineControl, GutterListener
         renderer:RefreshBlockView()
     end
 
+    action InsertTextAfterLine(text value)
+        integer currentLine = selection:GetLine()
+        integer targetIndex = 0
+        if selection:GetBlock() not= undefined
+            currentLine = selection:GetBlock():GetEndLine()
+        end
+
+        if currentLine >= rawCode:GetLineCount() - 1
+            targetIndex = rawCode:GetSize()
+        elseif currentLine >= 0
+            // Get the start of the next line, then go back one to reach the end of the current line.
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+        end
+
+        text newLine = rawCode:GetLineSeparator() + value
+
+        MultipleLineText oldCode = GetCode()
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, newLine, "", targetIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, oldCode, GetCode())
+
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
     /*
     This action deletes the currently selected block. If the passed boolean is true, all blocks
     nested inside the block will be deleted as well. If the boolean is false, they'll instead be

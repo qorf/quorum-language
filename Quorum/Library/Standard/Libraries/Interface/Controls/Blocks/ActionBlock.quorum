@@ -162,7 +162,7 @@ class ActionBlock is MultipleLineBlock
 
             EditField returnField
             me:returnField = returnField
-            Location returnLocation = actionContext:returnLocation
+            Location returnLocation = actionContext:returnsStatement:GetLocation()
             part:Add(returnField)
 
             returnField:Setup("Returns", returnLocation:GetIndex() - GetStartIndex(), returnLocation:GetIndexEnd() + 1 - GetStartIndex())
