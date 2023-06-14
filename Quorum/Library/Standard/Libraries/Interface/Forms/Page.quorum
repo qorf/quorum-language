@@ -17,6 +17,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     action AddGrouping(text name) returns Grouping
         Grouping grouping
+        grouping:SetForm(GetForm())
         grouping:SetName(name)
 
         Add(grouping)
