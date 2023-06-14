@@ -3611,9 +3611,10 @@ class QuorumParser
     */
     action Parenthesis returns ParenthesisContext
         ParenthesisContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
         context:SetFirstToken(current)
-        
+        tokenIterator:Next()
+
         ParseContext expression = Expression()
         if expression = undefined //the expression will handle the error
             return undefined
