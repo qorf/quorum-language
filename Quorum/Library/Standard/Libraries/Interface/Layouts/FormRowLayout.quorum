@@ -226,10 +226,11 @@ class FormRowLayout is Layout
                             // If the control is trying to maintain an aspect ratio, do our best to respect that.
                             elseif control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and control:GetPercentageWidth() > 0
                                 number idealWidth = height * control:GetPercentageWidth()
+
                                 if idealWidth <= elementWidth
                                     control:SetSize(cast(integer, idealWidth), cast(integer, height))
                                 else
-                                    control:SetSize(cast(integer, elementWidth), cast(integer, height / control:GetPercentageWidth()))
+                                    control:SetSize(cast(integer, elementWidth), cast(integer, elementWidth / control:GetPercentageWidth()))
                                 end
                             else
                                 control:SetSize(cast(integer, elementWidth), cast(integer, height))
