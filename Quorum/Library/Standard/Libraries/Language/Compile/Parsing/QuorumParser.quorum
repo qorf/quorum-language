@@ -823,16 +823,20 @@ class QuorumParser
         context:type = type
         if next:category = constants:INTEGER_KEYWORD
             type:SetToInteger()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:NUMBER_KEYWORD
             type:SetToNumber()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:TEXT
             type:SetToText()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:BOOLEAN_KEYWORD
             type:SetToBoolean()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         else //it isn't one of these, so it has to be a qualified name
             QualifiedNameContext nameContext = QualifiedName() //cannot be undefined
             if nameContext = undefined //this is an error
@@ -1563,6 +1567,12 @@ class QuorumParser
         call:traverseAsInitialParent = true //say it's a parent call.
         calls:Add(call)
         context:calls = calls
+        if not IsValid()
+            ActionCallContext last = calls:Get(calls:GetSize() - 1)
+            context:SetLastToken(last:GetLastToken())
+            SetLocation(context)
+            return context
+        end
         next = tokenIterator:GetCurrent()
         //if it's a colon, keep processing actions.
         repeat while next:category = constants:COLON 
