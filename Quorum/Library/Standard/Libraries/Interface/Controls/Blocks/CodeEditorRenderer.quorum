@@ -126,6 +126,18 @@ class CodeEditorRenderer is Control
             end
             counter = counter + 1
         end
+        
+        counter = 0
+repeat while counter < drawnBlocks:GetSize()
+            Block block = drawnBlocks:Get(counter)
+            if block is MultipleLineBlock
+                MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+                multiBlock:DrawContents(painter)
+            else
+                block:DrawContents(painter)
+            end
+            counter = counter + 1
+        end
 
         repeat until currentMultiBlocks:IsEmpty()
             currentMultiBlocks:RemoveFromFront():DrawConnectors(painter)

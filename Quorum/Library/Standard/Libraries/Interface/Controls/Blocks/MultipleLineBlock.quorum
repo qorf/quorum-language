@@ -176,6 +176,19 @@ class MultipleLineBlock is Block
             counter = counter + 1
         end
     end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+repeat while counter < blockParts:GetSize()
+            Block block = blockParts:Get(counter)
+            block:DrawContents(painter)
+            counter = counter + 1
+        end
+    end
 
     action DrawConnectors(Painter2D painter)
         integer counter = 0

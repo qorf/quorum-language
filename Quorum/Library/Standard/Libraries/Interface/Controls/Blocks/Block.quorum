@@ -17,6 +17,7 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.List
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
+use Libraries.Game.Graphics.Painter2D
 
 class Block is Control
     integer scopeDepth = 0
@@ -1054,5 +1055,28 @@ class Block is Control
         end
         
         return false
+    end
+    
+action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if parent:Item2D:visualView not= undefined
+            parent:Item2D:visualView:Draw(painter)
+        end
+    end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+        Array<Item2D> children = GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
     end
 end

@@ -44,6 +44,7 @@ use Libraries.Interface.Controls.AnnotationLineGutter
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
+use Libraries.Interface.Controls.CodeEditorLineNumberGutter
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -92,7 +93,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     File file = undefined
     Class clazz = undefined
     BreakpointManager breakpoints = undefined
-    LineNumberGutter lineGutter
+    CodeEditorLineNumberGutter lineGutter
     AnnotationLineGutter annotationGutter
 
     /* 
@@ -2278,5 +2279,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Array<Block> value
         value:Add(selection:GetBlock())
         return value
+    end
+    
+    action GetBlockAtNavigationIndex(integer index) returns Block
+        return renderer:GetBlockAtLine(index)
     end
 end
