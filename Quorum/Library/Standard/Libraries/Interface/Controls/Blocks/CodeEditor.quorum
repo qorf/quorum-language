@@ -981,7 +981,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         elseif newFocus is Block
             Block block = cast(Block, newFocus)
             // Don't adjust selection if the Block was already selected. Done to avoid problems with multiple selection.
-            if block = selection:GetBlock()
+            if block = selection:GetBlock() and selection:GetBlockItem() = undefined
                 return now
             end
 
@@ -2283,5 +2283,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
     
     action GetBlockAtNavigationIndex(integer index) returns Block
         return renderer:GetBlockAtLine(index)
+    end
+    
+    action ExpandSelectionToBlock(Block block)
+        integer endIndex = selection:GetRangeEndLine()
+        if endIndex < 0
+            endIndex = 0
+        end
+        
+        selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
     end
 end

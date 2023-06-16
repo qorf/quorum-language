@@ -21,6 +21,8 @@ use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
 
+
+
 shared class DefaultInputSets
 
     GameStateManager manager
@@ -2213,6 +2215,12 @@ shared class DefaultInputSets
         rightClickSetCodeEditor:SetMouseInput(mouse:RIGHT)
         table:Add(rightClickSetCodeEditor, codeEditorOpenPopupMenuBehavior)
 
+        InputSet shiftClick
+        shiftClick:SetMouseInput(mouse:LEFT)
+        shiftClick:AddModifier(shiftClick:SHIFT)
+        BlockShiftClickBehavior shiftClickBehavior
+        table:Add(shiftClick,shiftClickBehavior)
+        
         InputSet deleteSet
         deleteSet:SetKeyboardInput(keys:FORWARD_DELETE)
         CodeEditorDeleteBlockBehavior deleteBehavior

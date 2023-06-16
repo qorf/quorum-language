@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Itemuse Libraries.Interface.Controls.Blocks.Blockuse Libraries.Interface.Controls.Blocks.CodeEditor
+
+class BlockShiftClickBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        Block block = undefined
+        if cast(Object, item) is Block
+            block = cast(Block, cast(Object, item))
+        elseif event:GetMouseEvent() not= undefined
+            if event:GetMouseEvent():GetSource() is Block
+                block = cast(Block, event:GetMouseEvent():GetSource())
+            end
+        end
+        
+        
+if block = undefined
+            return now
+        end
+        CodeEditor editor = block:GetEditor()
+        editor:ExpandSelectionToBlock(block)
+    end
+end
