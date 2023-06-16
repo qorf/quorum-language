@@ -166,6 +166,13 @@ class ScatterPlotWriter is ChartWriter
                     if HasAccessibility()
                         RegressionLine line = currentSeries:GetRegressionLine()
                         if line not= undefined
+                            if line:GetSlope() > 0
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Rising" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            elseif line:GetSlope() < 0
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Falling" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            else
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Flat" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            end
                             seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
                             seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
                         end
