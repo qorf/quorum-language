@@ -629,7 +629,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     itemName = "Radio Group"
                 break;
             case 26:
-                role="document graphics-document";
+                role="application";
                 break;
             case 27:
                 role="graphics-object group";
