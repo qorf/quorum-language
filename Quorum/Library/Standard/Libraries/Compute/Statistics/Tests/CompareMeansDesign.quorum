@@ -1,0 +1,502 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Transforms.TransformLonger
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Containers.Iterator
+
+class CompareMeansDesign
+    boolean repeatedMeasures = false
+
+    integer numberOfFactors = 0
+    integer numberOfColumns = 0
+    integer numberOfSubjects = 0
+    integer numberOfObservations = 0
+
+    text subjectIdentifierHeader = ""  
+    Array<text> dependentVariableHeaders
+    Array<text> betweenSubjectsFactorHeaders
+    Array<text> withinSubjectsFactorHeaders
+    HashTable<text, text> dependentVariableHeadersWide
+    HashTable<text, text> betweenSubjectsFactorHeadersWide
+    HashTable<text, text> withinSubjectsFactorHeadersWide
+
+    DataFrame orginalFrame = undefined
+    DataFrame designFrame = undefined
+
+    action Transform(DataFrame frame)
+        orginalFrame = frame
+        designFrame = VerifySelectionAndLengthenFrame(frame)
+    end
+
+    action GetSubjectIdentifier returns text
+        return subjectIdentifierHeader
+    end
+
+    action GetBetweenSubjectsFactors returns Array<text>
+        return betweenSubjectsFactorHeaders
+    end
+
+    action GetWithinSubjectsFactors returns Array<text>
+        return withinSubjectsFactorHeaders
+    end
+
+    action GetDependentVariables returns Array<text>
+        return dependentVariableHeaders
+    end
+
+    action GetDesignFrame returns DataFrame
+        return designFrame
+    end
+
+    action GetOriginalFrame returns DataFrame
+        return orginalFrame
+    end
+
+    action GetNumberOfSubjects returns integer
+        return numberOfSubjects
+    end
+
+    action GetNumberOfObservations returns integer
+        return numberOfObservations
+    end
+
+    action RepeatedMeasures returns boolean
+        return repeatedMeasures
+    end
+
+    action RepeatedMeasures(boolean repeated)
+        repeatedMeasures = repeated
+    end
+
+    // For long or wide data.
+    action AddSubjectIdentifier(text header)
+        subjectIdentifierHeader = header
+    end
+
+    // For long or wide data.
+    action AddBetweenSubjectsFactor(text header)
+        betweenSubjectsFactorHeaders:Add(header)
+    end
+
+    // For long data.
+    action AddWithinSubjectsFactor(text header)
+        withinSubjectsFactorHeaders:Add(header)
+    end
+
+    // For long data.
+    action AddDependentVariable(text header)
+        dependentVariableHeaders:Add(header)
+    end
+
+    // For wide data in between design.
+    action AddBetweenSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
+        if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
+            betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
+            dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+        else
+            if not dependentVariableHeadersWide:HasKey(variableHeader)
+                dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+            else
+                alert("A between subjects factor called "+factorHeader+" and a dependent variable called "+variableHeader+" have already been specified.")
+            end
+        end
+    end
+
+    // For wide data in between design.
+    action AddBetweenSubjectsFactor(text factorHeader, text columnHeaders)
+        if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
+            betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
+            dependentVariableHeadersWide:Add(factorHeader+"_value", columnHeaders)
+        else
+            alert("A between subjects factor called "+factorHeader+" has already been specified.")
+        end
+    end
+
+    // For wide data in within design or mixed design.
+    action AddWithinSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
+        if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
+            withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
+            dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+        else
+            if not dependentVariableHeadersWide:HasKey(variableHeader)
+                dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+            else
+                alert("A within subjects factor called "+factorHeader+" and a dependent variable called "+variableHeader+" have already been specified.")
+            end
+        end
+    end
+
+    // For wide data in within design or mixed design.
+    action AddWithinSubjectsFactor(text factorHeader, text columnHeaders)
+        if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
+            withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
+            dependentVariableHeadersWide:Add(factorHeader+"_value", columnHeaders)
+        else
+            alert("A within subjects factor called "+factorHeader+" has already been specified.")
+        end
+    end
+
+    // For wide data with multiple variables in between design or within design. 
+    // This is private because you'd expect a factor to be included in this specification, otherwise just use the above actions.
+    // This is really only useful in wide multivariate situations.
+    private action AddDependentVariable(text variableHeader, text columnHeaders)
+        if not dependentVariableHeadersWide:HasKey(variableHeader)
+            dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+        else
+            alert("A dependent variable factor called "+variableHeader+" has already been specified.")
+        end
+    end
+
+    private action VerifySelectionAndLengthenFrame(DataFrame frame) returns DataFrame
+        boolean variablesLong = not dependentVariableHeaders:IsEmpty()
+        boolean variablesWide = not dependentVariableHeadersWide:IsEmpty() 
+        boolean betweenLong = not betweenSubjectsFactorHeaders:IsEmpty()
+        boolean betweenWide = not betweenSubjectsFactorHeadersWide:IsEmpty()
+        boolean withinLong = not withinSubjectsFactorHeaders:IsEmpty()
+        boolean withinWide = not withinSubjectsFactorHeadersWide:IsEmpty()
+
+        boolean noFactorsSelected = frame:GetSelectedFactorSize() = 0
+        boolean noFactorsSpecified = not (betweenWide or betweenLong or withinWide or withinLong)
+
+        if withinSubjectsFactorHeadersWide:GetSize() > 1
+            alert("Having more than one within factor generated from wide data in this way doesn't make sense. Try getting your data into long format.")
+        end
+        if betweenSubjectsFactorHeadersWide:GetSize() > 1
+            alert("Having more than one between factor generated from wide data in this way doesn't make sense. Try getting your data into long format.")
+        end
+        if betweenWide and withinWide
+            alert("Having both a between factor and a within factor generated from wide data in this way doesn't make sense. Try getting your data into long format.")
+        end
+
+        DataFrame longFrame
+        if betweenWide
+            // There should be no within factors used when using a wide between factor
+            if withinLong
+                alert("Having a within factor in addition to a wide data between factor in this way doesn't make sense. Try getting your data into long format.")
+            end
+            // 1. Lengthen the wide between factor
+            // 2. Deal with any additional between factors
+            // 3. Lengthen any wide dependent variables
+            // 4. Deal with any additional variables. Should we allow any??
+
+            DataFrame tempFrame = frame:Copy()
+
+            // Lengthen Between Factor
+            TransformLonger lengthen
+            text betweenFactor = betweenSubjectsFactorHeadersWide:GetKeyIterator():Next()
+            DataFrame factorFrame = tempFrame:Copy()
+            factorFrame:AddSelectedColumns(betweenSubjectsFactorHeadersWide:GetValue(betweenFactor))
+
+            longFrame = factorFrame:Transform(lengthen)   
+            longFrame:GetColumn("Names"):SetHeader(betweenFactor)   
+            j = 0
+            repeat while j < betweenSubjectsFactorHeaders:GetSize()
+                longFrame:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(j))
+                j = j + 1
+            end 
+            // Subjects for between design
+            if not repeatedMeasures
+                numberOfSubjects = longFrame:GetColumn(0):GetSize()
+                if subjectIdentifierHeader = ""
+                    NumberColumn id
+                    i = 0
+                    repeat while i < numberOfSubjects
+                        id:Add(i+1)
+                        i = i + 1
+                    end
+                    subjectIdentifierHeader = "subject_id"
+                    id:SetHeader(subjectIdentifierHeader)
+                    longFrame:AddColumn(id)
+                end
+            end
+            longFrame:AddSelectedFactors(betweenFactor) 
+            betweenSubjectsFactorHeaders:Add(betweenFactor) 
+
+            // Lengthen Dependent Variables
+            dependentVariableHeaders:Empty()
+            Array<text> variables = dependentVariableHeadersWide:CopyToKeyArray()
+            i = 0
+            repeat while i < variables:GetSize()
+                factorFrame = tempFrame:Copy()
+                factorFrame:AddSelectedColumns(dependentVariableHeadersWide:GetValue(variables:Get(i)))
+
+                DataFrame longFactorFrame = factorFrame:Transform(lengthen)   
+                longFactorFrame:GetColumn("Values"):SetHeader(variables:Get(i))  
+                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))
+                longFrame:AddSelectedColumns(variables:Get(i))      
+                dependentVariableHeaders:Add(variables:Get(i)) 
+                i = i + 1
+            end
+        
+        elseif withinWide
+            // There should be no additional within factors used when using a wide within factor
+            if withinLong
+                alert("Having an additional within factor with a wide data within factor in this way doesn't make sense. Try getting your data into long format.")
+            end
+            // 1. Lengthen the wide within factor
+            // 2. Deal with any additional between factors
+            // 3. Lengthen any wide dependent variables
+            // 4. Deal with any additional variables. Should we allow any?? 
+
+            DataFrame tempFrame = frame:Copy()
+            // Subjects for within design
+            if repeatedMeasures 
+                numberOfSubjects = tempFrame:GetColumn(0):GetSize()
+                if subjectIdentifierHeader = ""
+                    NumberColumn id
+                    i = 0
+                    repeat while i < numberOfSubjects
+                        id:Add(i+1)
+                        i = i + 1
+                    end
+                    subjectIdentifierHeader = "subject_id"
+                    id:SetHeader(subjectIdentifierHeader)
+                    tempFrame:AddColumn(id)
+                end
+            end
+
+            // Lengthen Within Factor
+            withinSubjectsFactorHeaders:Empty()
+            TransformLonger lengthen
+            text withinFactor = withinSubjectsFactorHeadersWide:GetKeyIterator():Next()
+            DataFrame factorFrame = tempFrame:Copy()
+            factorFrame:AddSelectedColumns(withinSubjectsFactorHeadersWide:GetValue(withinFactor))
+
+            longFrame = factorFrame:Transform(lengthen)   
+            longFrame:GetColumn("Names"):SetHeader(withinFactor)   
+            longFrame:AddSelectedFactors(withinFactor) 
+            longFrame:AddSelectedFactors(subjectIdentifierHeader)
+            j = 0
+            repeat while j < betweenSubjectsFactorHeaders:GetSize()
+                longFrame:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(j))
+                j = j + 1
+            end 
+            withinSubjectsFactorHeaders:Add(withinFactor) 
+
+            // Lengthen Dependent Variables
+            dependentVariableHeaders:Empty()
+            Array<text> variables = dependentVariableHeadersWide:CopyToKeyArray()
+            i = 0
+            repeat while i < variables:GetSize()
+                factorFrame = tempFrame:Copy()
+                factorFrame:AddSelectedColumns(dependentVariableHeadersWide:GetValue(variables:Get(i)))
+
+                DataFrame longFactorFrame = factorFrame:Transform(lengthen)   
+                longFactorFrame:GetColumn("Values"):SetHeader(variables:Get(i))  
+                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))
+                longFrame:AddSelectedColumns(variables:Get(i))      
+                dependentVariableHeaders:Add(variables:Get(i)) 
+                i = i + 1
+            end
+
+        elseif noFactorsSelected and noFactorsSpecified
+            // 1. Lengthen the wide variables or columns
+
+            DataFrame tempFrame = frame:Copy()
+            // Subjects for within design
+            if repeatedMeasures 
+                numberOfSubjects = tempFrame:GetColumn(0):GetSize()
+                if subjectIdentifierHeader = ""
+                    NumberColumn id
+                    i = 0
+                    repeat while i < numberOfSubjects
+                        id:Add(i+1)
+                        i = i + 1
+                    end
+                    subjectIdentifierHeader = "subject_id"
+                    id:SetHeader(subjectIdentifierHeader)
+                    tempFrame:AddColumn(id)
+                end
+            end
+
+            // Select the specified variables
+            i = 0
+            repeat while i < dependentVariableHeaders:GetSize()
+                if tempFrame:HasColumn(dependentVariableHeaders:Get(i))
+                    tempFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                else
+                    alert("Could not find key "+dependentVariableHeaders:Get(i)+" in the DataFrame. Are you sure it exists?")
+                end
+                i = i + 1
+            end 
+            dependentVariableHeaders:Empty()
+
+            // Select the column selection for additional variables
+            i = 0
+            repeat while i < frame:GetSelectedColumnSize()
+                tempFrame:AddSelectedColumn(frame:GetSelection():GetColumn(i))                    
+                i = i + 1
+            end 
+
+            if tempFrame:GetSelectedColumnSize() > 1
+                TransformLonger lengthen
+                longFrame = tempFrame:Transform(lengthen) 
+                if repeatedMeasures
+                    longFrame:GetColumn("Names"):SetHeader("Measures")
+                    withinSubjectsFactorHeaders:Add("Measures")
+                else
+                    longFrame:GetColumn("Names"):SetHeader("Groups")
+                    betweenSubjectsFactorHeaders:Add("Groups")
+                end
+                dependentVariableHeaders:Add("Values")
+            else
+                longFrame = tempFrame
+            end
+
+            // Subjects for between design
+            if not repeatedMeasures
+                numberOfSubjects = longFrame:GetColumn(0):GetSize()
+                if subjectIdentifierHeader = ""
+                    NumberColumn id
+                    i = 0
+                    repeat while i < numberOfSubjects
+                        id:Add(i+1)
+                        i = i + 1
+                    end
+                    subjectIdentifierHeader = "subject_id"
+                    id:SetHeader(subjectIdentifierHeader)
+                    longFrame:AddColumn(id)
+                end
+            end
+        else
+            // Copy frame
+            longFrame = frame:Copy()
+
+            // Copy selection
+            i = 0
+            repeat while i < frame:GetSelectedFactorSize()
+                longFrame:AddSelectedFactor(frame:GetSelection():GetFactor(i))
+                i = i + 1
+            end  
+    
+            i = 0
+            repeat while i < frame:GetSelectedColumnSize()
+                longFrame:AddSelectedColumn(frame:GetSelection():GetColumn(i))
+                i = i + 1
+            end
+        end
+
+        DataFrame newFrame
+        /*  
+            For long data:
+            1. Add the subject column to frame (within design only)
+            2. Add the specified between factors to frame
+            3. Add the specified within factors to frame
+            4. Add the specified dependent variables to frame 
+            5. Add any additional selected factors as between factors 
+            6. Add any additional selected columns as dependent variables 
+        */
+        if withinSubjectsFactorHeaders:IsEmpty()
+            repeatedMeasures = false
+        else
+            repeatedMeasures = true
+        end
+                
+        // 1. Add the subject column to frame 
+        if subjectIdentifierHeader not= "" and repeatedMeasures
+            newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
+            newFrame:AddSelectedFactors(subjectIdentifierHeader)
+        else
+            if repeatedMeasures
+                alert("Since your data is in long format for repeated measures, please specify the subject identification column using AddSubjectIdentifier().")
+            end
+        end
+
+        // 2. Add the between factors to frame
+        i = 0
+        repeat while i < betweenSubjectsFactorHeaders:GetSize()
+            if longFrame:HasColumn(betweenSubjectsFactorHeaders:Get(i))
+                newFrame:AddColumn(longFrame:GetColumn(betweenSubjectsFactorHeaders:Get(i)))
+                newFrame:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(i))
+            else
+                alert("Could not find key "+betweenSubjectsFactorHeaders:Get(i)+" in the DataFrame. Are you sure it exists?")
+            end
+            i = i + 1
+        end
+
+        // 3. Add the within factors to frame
+        i = 0
+        repeat while i < withinSubjectsFactorHeaders:GetSize()
+            if longFrame:HasColumn(withinSubjectsFactorHeaders:Get(i))
+                newFrame:AddColumn(longFrame:GetColumn(withinSubjectsFactorHeaders:Get(i)))
+                newFrame:AddSelectedFactors(withinSubjectsFactorHeaders:Get(i))
+            else
+                alert("Could not find key "+withinSubjectsFactorHeaders:Get(i)+" in the DataFrame. Are you sure it exists?")
+            end
+            i = i + 1
+        end
+
+        // 4. Add the dependent variables to frame
+        i = 0
+        repeat while i < dependentVariableHeaders:GetSize()
+            if longFrame:HasColumn(dependentVariableHeaders:Get(i))
+                newFrame:AddColumn(longFrame:GetColumn(dependentVariableHeaders:Get(i)))
+                newFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+            else
+                alert("Could not find key "+dependentVariableHeaders:Get(i)+" in the DataFrame. Are you sure it exists?")
+            end
+            i = i + 1
+        end
+
+        // 5. Add any additional selected factors as between factors
+        i = 0
+        repeat while i < longFrame:GetSelectedFactorSize()
+            DataFrameColumn factor = longFrame:GetColumn(longFrame:GetSelection():GetFactor(i))
+            if not newFrame:HasColumn(factor:GetHeader())
+                betweenSubjectsFactorHeaders:Add(factor:GetHeader())
+                newFrame:AddColumn(factor)
+                newFrame:AddSelectedFactors(factor:GetHeader())
+            end
+            i = i + 1
+        end  
+
+        // 6. Add any additional selected columns as dependent variables
+        i = 0
+        repeat while i < longFrame:GetSelectedColumnSize()
+            DataFrameColumn column = longFrame:GetColumn(longFrame:GetSelection():GetColumn(i))
+            if not newFrame:HasColumn(column:GetHeader())
+                dependentVariableHeaders:Add(column:GetHeader())
+                newFrame:AddColumn(column)
+                newFrame:AddSelectedColumns(column:GetHeader())
+            end
+            i = i + 1
+        end   
+
+        if subjectIdentifierHeader not= "" and repeatedMeasures
+            // Verify subject measurement counts are equal
+            integer count = 0
+            if newFrame:HasColumn(subjectIdentifierHeader)
+                count = VerifyMeasurementCountPerSubject(newFrame:GetColumn(subjectIdentifierHeader))
+            else
+                alert("Could not find key "+subjectIdentifierHeader+" in the DataFrame. Are you sure it exists?")
+            end
+            
+            /* 
+            // Verify each combination of within-subject factors uses all subjects:
+            if count not= within factor levels
+                alert("Every combination of within-subject must have a measurement for each subject.")
+            end
+            */
+        end
+       
+        return newFrame
+    end
+
+    // For a repeated measures design each subject should have the same number of measurements.
+    private action VerifyMeasurementCountPerSubject(DataFrameColumn column) returns integer
+        HashTable<text,integer> counts = column:CalculateValueCountAsText()
+        Iterator<integer> i = counts:GetValueIterator()
+        integer count = i:Next()
+        repeat while i:HasNext()
+            if count not= i:Next()
+                alert("Each subject must have the same number of measurements.")
+            end
+        end
+        numberOfSubjects = counts:GetSize()
+        return count
+    end
+end

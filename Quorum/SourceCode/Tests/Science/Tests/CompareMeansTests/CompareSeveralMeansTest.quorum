@@ -24,11 +24,11 @@ class CompareSeveralMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 14.723411484879374)
-        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValueIterator():Next(), 3.0)
-        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(1)):GetValueIterator():Next(), 20.0)
+        Check(result:GetTestStatistic(), 14.723411484879373)
+        Check(result:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next(), 3.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValueIterator():Next(), 20.0)
         Check(result:GetProbabilityValue(), 2.7087573816753086e-5)
-        Check(result:GetEffectSizesTable():GetValue(result:GetSources():Get(0)):GetValue("eta-squared"), 0.6883290178075011)
+        Check(result:GetEffectSize(), 0.6883290178075011)
 
         // Welch anova (unequal variances)
         CompareMeans compare2
@@ -37,8 +37,8 @@ class CompareSeveralMeansTest is Test
         
         CompareMeansResult result2 = compare2:GetResult()
         Check(result2:GetTestStatistic(), 10.384111013447587)
-        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
-        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 10.97965657839445)
+        Check(result2:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValue("numerator"), 3.0)
+        Check(result2:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValue("denominator"), 10.97965657839445)
         Check(result2:GetProbabilityValue(), 0.0015482743926348297)
         Check(result2:GetEffectSize(), 0.5398096575768787)
     end

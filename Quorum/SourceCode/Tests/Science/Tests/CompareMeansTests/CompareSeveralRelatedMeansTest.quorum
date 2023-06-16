@@ -25,9 +25,9 @@ class CompareSeveralRelatedMeansTest is Test
 
         CompareMeansResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 13.240542687771192)
-        Check(result:GetDegreesOfFreedomTable():GetValue("Between Measures"):GetValueIterator():Next(), 3.0)
-        Check(result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValueIterator():Next(), 15.0)
+        Check(result:GetInformation():GetValue("Measures"):GetValue("df"), 3.0)
+        Check(result:GetInformation():GetValue("Measures"):GetValue("error df"), 15.0)
         Check(result:GetProbabilityValue(), 1.7181881658023812e-4)
-        Check(result:GetEffectSize(), 0.6883290178075011)
+        Check(result:GetEffectSize(), 0.7258853486112506)
     end
 end
