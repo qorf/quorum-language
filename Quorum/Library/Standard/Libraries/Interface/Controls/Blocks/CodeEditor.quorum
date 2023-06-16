@@ -2051,7 +2051,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i >= 0
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i - 1
@@ -2082,7 +2082,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
 
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
@@ -2098,10 +2098,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
+    private action NavigateToBlock(Block block)
+        SelectBlockRange(block, block, true)
+        GoToBlock(block)
+        block:Focus()
+    end
     
 
     action SmartNavigateDown
@@ -2129,7 +2134,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i + 1
@@ -2170,7 +2175,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i + 1
@@ -2178,12 +2183,12 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
             //if we didn't find one previously, choose the first round the horn
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
@@ -2230,7 +2235,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Block block = selection:GetBlock()
         Block found = TraverseBackward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
@@ -2243,7 +2248,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Block block = selection:GetBlock()
         Block found = TraverseForward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
