@@ -21,6 +21,8 @@ use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
 
+
+
 shared class DefaultInputSets
 
     GameStateManager manager
@@ -1240,6 +1242,19 @@ shared class DefaultInputSets
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
 
+            // undo/redo
+            InputSet textFieldControlZ
+            textFieldControlZ:SetKeyboardInput(keys:Z)
+            textFieldControlZ:AddModifier(textFieldControlZ:META)
+            TextFieldUndoBehavior textFieldUndoBehavior
+            textFieldTable:Add(textFieldControlZ, textFieldUndoBehavior)
+
+            InputSet textFieldControlY
+            textFieldControlY:SetKeyboardInput(keys:Y)
+            textFieldControlY:AddModifier(textFieldControlY:META)
+            TextFieldRedoBehavior textFieldRedoBehavior
+            textFieldTable:Add(textFieldControlY, textFieldRedoBehavior)
+
             //Selection
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
@@ -1289,6 +1304,19 @@ shared class DefaultInputSets
             textFieldControlV:AddModifier(textFieldControlV:CONTROL)
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
+
+            // undo/redo
+            InputSet textFieldControlZ
+            textFieldControlZ:SetKeyboardInput(keys:Z)
+            textFieldControlZ:AddModifier(textFieldControlZ:CONTROL)
+            TextFieldUndoBehavior textFieldUndoBehavior
+            textFieldTable:Add(textFieldControlZ, textFieldUndoBehavior)
+
+            InputSet textFieldControlY
+            textFieldControlY:SetKeyboardInput(keys:Y)
+            textFieldControlY:AddModifier(textFieldControlY:CONTROL)
+            TextFieldRedoBehavior textFieldRedoBehavior
+            textFieldTable:Add(textFieldControlY, textFieldRedoBehavior)
 
             //Selection
             InputSet textFieldControlA
@@ -2213,6 +2241,12 @@ shared class DefaultInputSets
         rightClickSetCodeEditor:SetMouseInput(mouse:RIGHT)
         table:Add(rightClickSetCodeEditor, codeEditorOpenPopupMenuBehavior)
 
+        InputSet shiftClick
+        shiftClick:SetMouseInput(mouse:LEFT)
+        shiftClick:AddModifier(shiftClick:SHIFT)
+        BlockShiftClickBehavior shiftClickBehavior
+        table:Add(shiftClick,shiftClickBehavior)
+        
         InputSet deleteSet
         deleteSet:SetKeyboardInput(keys:FORWARD_DELETE)
         CodeEditorDeleteBlockBehavior deleteBehavior

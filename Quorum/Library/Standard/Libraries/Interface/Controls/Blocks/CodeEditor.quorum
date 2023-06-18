@@ -981,7 +981,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         elseif newFocus is Block
             Block block = cast(Block, newFocus)
             // Don't adjust selection if the Block was already selected. Done to avoid problems with multiple selection.
-            if block = selection:GetBlock()
+            if block = selection:GetBlock() and selection:GetBlockItem() = undefined
                 return now
             end
 
@@ -1462,9 +1462,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
     preserved and reattached into the tree to the parent of the deleted block.
     */
     action DeleteSelectedBlock(boolean deleteContents)
-        Block block = selection:GetBlock()
-        if block not= undefined
-            Delete(block, deleteContents)
+        if selection:GetSelectedBlocks():GetSize() = 1
+            Block block = selection:GetBlock()
+            if block not= undefined
+                Delete(block, deleteContents)
+            end
+        elseif selection:GetSelectedBlocks():GetSize() > 1
+            integer startIndex = selection:GetSelectedBlocks():Get(0):GetStartIndex()
+            Delete(startIndex, GetSelectedText():GetSize())
         end
     end
 
@@ -1475,6 +1480,26 @@ class CodeEditor is ScrollableLineControl, GutterListener
     */
     action Delete(Block block, boolean deleteContents)
         Delete(block, deleteContents, true)
+    end
+
+
+    action Delete(integer index, integer size)
+        MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(index, index+size)
+
+        TextChangeEvent event
+        event:Initialize(me, "", deletedText, index)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
     end
 
     /*
@@ -2026,7 +2051,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i >= 0
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i - 1
@@ -2057,7 +2082,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
 
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
@@ -2073,10 +2098,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
+    private action NavigateToBlock(Block block)
+        SelectBlockRange(block, block, true)
+        GoToBlock(block)
+        block:Focus()
+    end
     
 
     action SmartNavigateDown
@@ -2104,7 +2134,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i + 1
@@ -2145,7 +2175,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i + 1
@@ -2153,12 +2183,12 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
             //if we didn't find one previously, choose the first round the horn
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
@@ -2205,7 +2235,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Block block = selection:GetBlock()
         Block found = TraverseBackward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
@@ -2218,7 +2248,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Block block = selection:GetBlock()
         Block found = TraverseForward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
@@ -2283,5 +2313,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
     
     action GetBlockAtNavigationIndex(integer index) returns Block
         return renderer:GetBlockAtLine(index)
+    end
+    
+    action ExpandSelectionToBlock(Block block)
+        integer endIndex = selection:GetRangeEndLine()
+        if endIndex < 0
+            endIndex = 0
+        end
+        
+        selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
     end
 end
