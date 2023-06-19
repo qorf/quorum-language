@@ -323,7 +323,7 @@ repeat while counter < drawnBlocks:GetSize()
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-
+        output "Placing block " + block:GetName()+ " at " + editor:GetLineY(lineIndex) + " for line " + lineIndex + " and lineHeight = " + editor:GetLineHeight(lineIndex)
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
     end
 
