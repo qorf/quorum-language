@@ -62,7 +62,7 @@ class CodeEditorRenderer is Control
         CodeEditor editor = GetEditor()
         if cursor:GetView2D() = undefined and editor not= undefined
             cursor:SetBackgroundColor(editor:GetSelectionColor())
-cursor:SetBorderColor(editor:GetSelectionBorderColor())
+            cursor:SetBorderColor(editor:GetSelectionBorderColor())
             cursor:SetBorderThickness(editor:GetBorderThickness())
             
             // TO-DO: Change this. Temporary debug values.
@@ -130,7 +130,7 @@ cursor:SetBorderColor(editor:GetSelectionBorderColor())
         end
         
         counter = 0
-repeat while counter < drawnBlocks:GetSize()
+        repeat while counter < drawnBlocks:GetSize()
             Block block = drawnBlocks:Get(counter)
             if block is MultipleLineBlock
                 MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
@@ -323,7 +323,8 @@ repeat while counter < drawnBlocks:GetSize()
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-        output "Placing block " + block:GetName()+ " at " + editor:GetLineY(lineIndex) + " for line " + lineIndex + " and lineHeight = " + editor:GetLineHeight(lineIndex)
+        // TO-DO: REMOVE THIS
+//        output "Placing block " + block:GetName()+ " at " + editor:GetLineY(lineIndex) + " for line " + lineIndex + " and lineHeight = " + editor:GetLineHeight(lineIndex)
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
     end
 
