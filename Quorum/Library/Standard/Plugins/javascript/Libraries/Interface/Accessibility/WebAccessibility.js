@@ -10,6 +10,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     let root = null;
     let focusButton = null;
     let blurDelayedCall = null;
+    let removedFocusedElement = false;
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -118,6 +119,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         } else {
             element = root;
         }
+        if (!element)
+            return;
+
         root.hidden = false;
         element.focus();
         focusButton.hidden = true;
@@ -310,6 +314,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //console.log("Tried to focus nothing");
             return;
         }
+
         // if not accessible focus the parent
         // if no accessible parent then ignore event
         if (item.GetAccessibilityCode() == -1) {
@@ -326,7 +331,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() || removedFocusedElement) {
+            removedFocusedElement = false;
             let element = document.getElementById(id);
             element.focus();
         }
@@ -735,6 +741,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
         let element = document.getElementById(id);
         if (element != null) { //if the parent was removed then this would come up null
+            if (element === document.activeElement)
+            {
+                removedFocusedElement = true;
+            }
+
             element.remove();
         }
         //console.log(elementList[id], " has been removed.");
