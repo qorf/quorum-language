@@ -294,12 +294,27 @@ class BlockShaderMapping is BatchingShaderMapping2D
             Block block = cast(Block, blockView:GetItem())
             CodeEditor editor = block:GetEditor()
 
-            topWidth = editor:GetBlockNotchTopWidth()
-            bottomWidth = editor:GetBlockNotchBottomWidth()
-            notchHeight = editor:GetBlockNotchHeight()
+            topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
+            bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()
+            notchHeight = editor:GetBlockNotchHeight() * block:GetInterfaceScale()
 
             topX = block:GetTopNotchPosition() + (topWidth / 2.0)
             bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+
+            if block:HasImportantHints()
+                ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
+                if hintColor not= undefined
+                    borderColor = hintColor
+                end
+
+                if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
+                    number thickness = editor:GetNumberProperty("HintBorderThickness")
+                    leftBorder = thickness
+                    rightBorder = thickness
+                    topBorder = thickness
+                    bottomBorder = thickness
+                end
+            end
         end
         /*
         Counter-intuitively, we actually divide by the height, not the width, to get the proportional

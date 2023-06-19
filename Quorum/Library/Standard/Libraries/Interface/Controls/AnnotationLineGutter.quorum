@@ -1,0 +1,159 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Gutter
+use Libraries.Interface.Controls.TextBox
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Glyph
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.ScrollableLineControl
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Controls.Support.GutterAnnotation
+
+class AnnotationLineGutter is Gutter
+    integer previousLine = -1
+    Color color
+    on create
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetLeftMargin(12)
+        properties:SetRightMargin(8)
+        properties:SetBorderThickness(0)
+    end
+
+    HashTable<integer, GutterAnnotation> annotations
+    Array<Drawable> drawables
+
+    action GetGutterThickness returns number
+        ScrollableLineControl control = GetControl()
+
+        integer fontSize = control:GetFontSize()
+        Font font = control:GetFont()
+        LayoutProperties properties = GetCurrentLayoutProperties()
+        if properties = undefined
+            properties = GetDefaultLayoutProperties()
+        end
+
+        integer glyphsRequired = 2
+        /*
+        We assume the space required for the "0" glyph is a good predictor of
+        the space used for each glyph in the font. For monospaced fonts this
+        will be accurate and the choice of glyph is arbitrary. For other fonts,
+        this is only an approximation, which may require some extra space via
+        padding in order to look correct.
+        */
+        number rightMargin = properties:GetRightMargin()
+        number leftMargin = properties:GetLeftMargin()
+        Glyph glyph = font:GetGlyph("0")
+        return glyph:horizontalAdvance * 1.5 + properties:GetLeftMargin() + rightMargin
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        // The StatusLineGutter attempts to use the parent control's background color, if it's available.
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if properties:HasColorPropertyOverride("backgroundColor")
+            return properties:GetBackgroundColor()
+        end
+
+        Control control = GetControl()
+        if control not= undefined
+            return control:GetBackgroundColor()
+        end
+
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action UpdateVisuals(integer startLine)
+        Empty()
+        previousLine = startLine
+        
+        ScrollableLineControl control = GetControl()
+        integer fontSize = control:GetFontSize()
+        Font font = control:GetFont()
+        LayoutProperties properties = GetCurrentLayoutProperties()
+        if properties = undefined
+            properties = GetDefaultLayoutProperties()
+        end
+
+        if annotations = undefined return now end
+
+        text linesInText = "" + control:GetLineCount()
+        integer glyphsRequired = 2
+        /*
+        We assume the space required for the "0" glyph is a good predictor of
+        the space used for each glyph in the font. For monospaced fonts this
+        will be accurate and the choice of glyph is arbitrary. For other fonts,
+        this is only an approximation, which may require some extra space via
+        padding in order to look correct.
+        */
+        Drawable firstLabel = GetDrawable(0)
+        number rightMargin = properties:GetRightMargin()
+        number leftMargin = properties:GetLeftMargin()
+        Glyph glyph = font:GetGlyph("0")
+        number width = glyph:horizontalAdvance * 1.5 + properties:GetLeftMargin() + rightMargin
+        integer descent = font:GetMaximumDescent()
+        
+        integer totalLines = control:GetLineCount()
+        boolean last = false
+
+        integer counter = 0
+        integer currentLine = startLine
+        number y = control:GetHeight()
+        repeat while counter + startLine < totalLines and last = false
+            if y < 0
+                last = true
+            end
+
+            number lineHeight = control:GetLineHeight(counter + startLine)
+
+            Drawable drawable = GetDrawable(counter)
+            integer myWidth = cast(integer, width - rightMargin - leftMargin)
+            integer myHeight = cast(integer, lineHeight - 2)
+            drawable:SetSize(myWidth, myHeight)
+            
+            drawable:SetPosition(width - drawable:GetWidth() - rightMargin, y + descent + 1)
+
+            GutterAnnotation annotation = annotations:GetValue(currentLine)
+            if annotation not= undefined
+                if annotation:GetColor() not= undefined
+                    drawable:SetColor(annotation:GetColor())
+                end
+                Add(drawable)
+            end
+            y = y - lineHeight
+            currentLine = currentLine + 1
+            counter = counter + 1
+        end
+
+    end
+ 
+    private action GetDrawable(integer index) returns Drawable
+        if drawables:GetSize() <= index or drawables:Get(index) = undefined
+            Drawable drawable
+            
+            color = color:White()
+            drawable:LoadFilledRectangle(1,1, color)
+            drawables:Add(index, drawable)
+            return drawable
+        else
+            return drawables:Get(index)
+        end
+    end
+
+    action GetAnnotations returns HashTable<integer, GutterAnnotation>
+        return annotations
+    end
+
+    action SetAnnotations(HashTable<integer, GutterAnnotation> annotations)
+        me:annotations = annotations
+
+        if previousLine not= -1
+            UpdateVisuals(previousLine)
+        end
+    end
+end

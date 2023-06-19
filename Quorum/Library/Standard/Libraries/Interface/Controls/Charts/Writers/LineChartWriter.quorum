@@ -80,7 +80,7 @@ class LineChartWriter is ChartWriter
         lineChart = cast(LineChart, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -130,7 +130,11 @@ class LineChartWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            if chart:GetTitle() not= ""
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")
             //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")

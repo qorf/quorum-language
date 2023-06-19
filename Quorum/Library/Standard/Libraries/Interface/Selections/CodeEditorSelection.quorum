@@ -4,30 +4,71 @@ use Libraries.Interface.Selections.Selection
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Containers.Array
 
 class CodeEditorSelection is Selection
 
     // Note that line -1 represents the top of the file above the first block. Values that are less than -1 are an empty selection.
     integer selectedLine = -2
+    //The selectionEndLine represents the second index of a multiple selection.
+    // If this value is the same as the selectedLine, this is a single selection, not a multiple selection.
+    integer selectionEndLine = selectedLine
+    
     Block selectedBlock = undefined
     BlockItem selectedItem = undefined
 
     action Set(Block block, integer line, BlockItem item)
+        Set(block, line, line, item)
+    end
+    
+    action Set(Block block, integer line, integer secondLine, BlockItem item)
+        Array<Block> oldBlocks = undefined
+        if IsMultipleSelection()
+            oldBlocks = GetSelectedBlocks()
+        end
+        
         Block oldBlock = selectedBlock
         BlockItem oldItem = selectedItem
-        integer oldLine = line
-
+        integer oldLine = selectedLine
+        integer oldSecondLine = selectionEndLine
+        
         selectedBlock = block
         selectedLine = line
+        selectionEndLine = secondLine
         selectedItem = item
         if item not= undefined
-            UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine)
+            UpdateSelection(item:GetName(), oldBlock, oldItem, oldLine, oldSecondLine)
         elseif block not= undefined
-            UpdateSelection(block:GetName(), oldBlock, oldItem, oldLine)
+            UpdateSelection(block:GetName(), oldBlock, oldItem, oldLine, oldSecondLine)
         elseif line >= 0
-            UpdateSelection("Line " + line, oldBlock, oldItem, oldLine)
+            UpdateSelection("Line " + line, oldBlock, oldItem, oldLine, oldSecondLine)
         else
-            UpdateSelection("No selection",  oldBlock, oldItem, oldLine)
+            UpdateSelection("No selection",  oldBlock, oldItem, oldLine, oldSecondLine)
+        end
+        
+        Array<Block> newBlocks = undefined
+        if IsMultipleSelection()
+            newBlocks = GetSelectedBlocks()
+        end
+        
+        // Request vertices updates on blocks that have their multiple selection state change.
+        // Needed to have proper selection colors for multiple selections.
+        // TO-DO: Optimize this for cases where oldBlocks and newBlocks overlap, which is common.
+        if oldBlocks not= undefined
+            integer i = 0
+            repeat while i < oldBlocks:GetSize()
+            Block current = oldBlocks:Get(i)
+                current:RequestVerticesUpdate()
+                i = i + 1
+            end
+        end
+        if newBlocks not= undefined
+            integer i = 0
+            repeat while i < newBlocks:GetSize()
+            Block current = newBlocks:Get(i)
+                current:RequestVerticesUpdate()
+                i = i + 1
+            end
         end
     end
 
@@ -35,7 +76,7 @@ class CodeEditorSelection is Selection
         Set(undefined, -1, undefined)
     end
 
-    private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine)
+    private action UpdateSelection(text name, Block oldBlock, BlockItem oldItem, integer oldLine, integer oldSecondLine)
         CodeEditor editor = GetEditor()
         if editor not= undefined
             editor:OnSelectionChange(oldBlock, oldItem, oldLine)
@@ -48,6 +89,10 @@ class CodeEditorSelection is Selection
         return selectedLine
     end
 
+    action GetRangeEndLine returns integer
+        return selectionEndLine
+    end
+    
     action GetBlock returns Block
         return selectedBlock
     end
@@ -64,7 +109,19 @@ class CodeEditorSelection is Selection
         Set(undefined, -2, undefined)
     end
 
+    action IsMultipleSelection returns boolean
+        return selectionEndLine not= selectedLine
+    end
+    
+    action IsCursorAtEndOfSelection returns boolean
+        return selectedLine > selectionEndLine
+    end
+    
     action GetEditor returns CodeEditor
         return cast(CodeEditor, GetItem())
+    end
+    
+    action GetSelectedBlocks returns Array<Block>
+        return GetEditor():GetSelectedBlocks()
     end
 end

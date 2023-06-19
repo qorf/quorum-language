@@ -1,0 +1,24 @@
+package Libraries.Interface.Behaviors.Blocks
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+use Libraries.Interface.Controls.Blocks.CodeEditor
+
+class CodeEditorCopyToClipboardBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is CodeEditor)
+            return now
+        end
+        CodeEditor editor = cast(CodeEditor, item)
+        if editor:GetSelectedText() = undefined
+            return now
+        end
+        text copy = editor:GetSelectedText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(copy)
+    end
+end

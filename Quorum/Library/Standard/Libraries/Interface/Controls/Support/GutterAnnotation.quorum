@@ -1,0 +1,41 @@
+package Libraries.Interface.Controls.Support
+use Libraries.Game.Graphics.Color
+
+class GutterAnnotation
+    Color color = undefined
+    integer line = -1
+    text name = ""
+    text description = ""
+
+    action GetColor returns Color
+        return color
+    end
+
+    action SetColor(Color color)
+        me:color = color
+    end
+
+    action GetLine returns integer
+        return line
+    end
+
+    action SetLine(integer line)
+        me:line = line
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetDescription returns text
+        return description
+    end
+
+    action SetDescription(text description)
+        me:description = description
+    end
+end

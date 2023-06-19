@@ -173,7 +173,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-label", item.GetName() + item.GetDescription());
+            if (item.GetAccessibilityCode() == 29) { //labels
+                element.setAttribute("aria-label", item.GetText());
+            } else {
+                element.setAttribute("aria-label", item.GetName());
+            }
+            
         }
         //console.log("Name Changed");
     };
@@ -184,7 +189,11 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-label", item.GetName() + item.GetDescription());
+            if (item.GetAccessibilityCode() == 29) { //labels
+                element.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
+            } else {
+                element.setAttribute("aria-description", item.GetDescription());
+            }
         }
         //console.log("Description Changed");
     };
@@ -629,13 +638,20 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     itemName = "Radio Group"
                 break;
             case 26:
-                role="document graphics-document";
+                role="application";
                 break;
             case 27:
                 role="graphics-object group";
                 break;
             case 28:
                 role="graphics-symbol img";
+                break;
+            case 29: //label
+                if (item.IsFocusable() ) {
+                    role = "img";
+                    itemName = item.GetText();
+                    para.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
+                }
                 break;
             default:
                 // do nothing?
@@ -657,8 +673,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (roleDescription != null) {
             para.setAttribute("aria-roledescription", roleDescription);
         }
+        
+        //process labels differently
         if (itemName != null) {
-            para.setAttribute("aria-label", itemName + item.GetDescription());
+            para.setAttribute("aria-label", itemName);
         }
         // para.setAttribute("aria-label", para.getAttribute("aria-label") + " " + item.GetDescription())
 

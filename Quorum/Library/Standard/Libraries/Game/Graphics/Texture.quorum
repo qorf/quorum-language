@@ -14,6 +14,7 @@ use Libraries.Language.Errors.Error
 use Libraries.Containers.Array
 use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
+use Libraries.Interface.Controls.Control
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -227,8 +228,23 @@ class Texture is Disposable
             end
 
             // If the drawable had a size set before, reset it back to those values after loading.
-            if width not= 0 or height not= 0
+            // If one of the values is NaN, then most likely division by zero occurred due to an expected value not being loaded yet, so the dimensions are invalid.
+            if (width not= 0 and height not= 0) and (width:IsNotANumber() = false and height:IsNotANumber() = false)
                 drawable:SetSize(width, height)
+            end
+
+            if drawable is Control
+                // If the drawable is also a Control (e.g. it's an Icon) then make sure it gets laid out again.
+                // Also make sure that if it has a bad aspect ratio value, we give it a reasonable default.
+                Control control = cast(Control, cast(Object, drawable))
+                if control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and (control:GetPercentageWidth() = 0 or control:GetPercentageWidth():IsNotANumber())
+                    control:SetPercentageWidth(cast(number, GetWidth()) / GetHeight())
+                elseif control:GetVerticalLayoutMode() = control:MAINTAIN_ASPECT_RATIO and (control:GetPercentageHeight() = 0 or control:GetPercentageHeight():IsNotANumber())
+                    control:SetPercentageHeight(cast(number, GetHeight()) / GetWidth())
+                end
+
+
+                control:RequestLayout()
             end
 
             drawable:OnTextureLoad(event)

@@ -1,0 +1,18 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Undo.TextFieldEditManager
+
+class TextFieldUndoBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is Control
+            TextField box = cast(TextField, event:GetItem())
+            TextFieldEditManager editor = box:GetTextFieldEditManager()
+            editor:Undo()
+        end
+    end
+end

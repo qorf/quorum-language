@@ -83,6 +83,7 @@ class FlowchartWriter is ChartWriter
             image:SetHref(encoder:EncodeImageAsDataURI(texture:GetSource()))
             image:SetAriaHidden("true")
             canvas:Add(image)
+            chart:SetBackgroundColor(transparent)
         end
 
         Group chartContent
@@ -107,7 +108,7 @@ class FlowchartWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
-            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the FlowChart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
+            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetChartArea():GetDescription() + " press Enter to navigate the flowchart, use the Arrow keys to navigate a node, and press Enter or Shift+Enter to move forward and back in the flowchart")
             chartContent:SetAriaHidden("false")
             chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
@@ -240,7 +241,7 @@ class FlowchartWriter is ChartWriter
                         flowArrowSVG:SetTabIndex(-1)
                         if HasAccessibility()
                             flowArrowSVG:SetRole("application")  
-                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to move to the " + destination + " node " + flowchartArrow:GetDescription())
+                            flowArrowSVG:SetAriaLabel(arrowName + " pointing to " + destination + " press enter to follow the arrow")
                             flowArrowSVG:SetAriaHidden("false")
                         end
                         arrowGraphics:Add(flowArrowSVG)   

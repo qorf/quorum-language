@@ -80,7 +80,7 @@ class ScatterPlotWriter is ChartWriter
         scatterplot = cast(ScatterPlot, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -129,7 +129,11 @@ class ScatterPlotWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            if chart:GetTitle() not= ""
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")
             //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
@@ -162,6 +166,13 @@ class ScatterPlotWriter is ChartWriter
                     if HasAccessibility()
                         RegressionLine line = currentSeries:GetRegressionLine()
                         if line not= undefined
+                            if line:GetSlope() > 0
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Rising" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            elseif line:GetSlope() < 0
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Falling" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            else
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Flat" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                            end
                             seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
                             seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
                         end
@@ -232,7 +243,7 @@ class ScatterPlotWriter is ChartWriter
                                         labelSVG:SetStyleClass("quorum-chart-text")
                                         labelSVG:SetTabIndex(-1)
                                         labelSVG:SetAriaHidden("true")
-                                        pointSVG:SetAriaDescription(label:GetText())
+                                        //pointSVG:SetAriaDescription(label:GetText())
                                         //pointFocus = pointFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                         //pointBlur = pointBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                     end

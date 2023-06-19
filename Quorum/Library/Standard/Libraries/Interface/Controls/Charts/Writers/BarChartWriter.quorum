@@ -79,7 +79,7 @@ class BarChartWriter is ChartWriter
         barChart = cast(BarChart, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -127,7 +127,11 @@ class BarChartWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetStyleClass("quorum-chart-area")
-            chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            if chart:GetTitle() not= ""
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")
         end
         chartContent:Add(chartContentBoundingBox)

@@ -10,6 +10,7 @@ use Libraries.Interface.Options.BlockOptionConstants
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Selections.TextFieldSelection
 
 class EditField is TextField, EditRegion
 
@@ -85,6 +86,10 @@ class EditField is TextField, EditRegion
         parent:TextField:ShowCaret()
     end
 
+    action HideCaret
+        parent:TextField:HideCaret()
+    end
+
     action LostFocus(FocusEvent event)
         parent:TextField:LostFocus(event)
         parent:Control:LostFocus(event)
@@ -150,4 +155,11 @@ class EditField is TextField, EditRegion
         parent:TextField:NotifyTextChangeListeners(event)
     end
 
+    action GetSelectedText returns text
+        TextFieldSelection selection = GetSelection()
+        if selection:IsEmpty()
+            return ""
+        end
+        return GetText(selection:GetStartIndex(), selection:GetEndIndex())
+    end
 end

@@ -93,7 +93,7 @@ class CheckBlock is MultipleLineBlock
         me:detectNameFields:Add(nameField)
         part:Add(nameField)
 
-        nameField:Setup("Name", detectContext:nameLocation:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), detectContext:nameLocation:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
+        nameField:Setup("Name", detectContext:nameLocation:GetIndex() - part:GetStartIndex(), detectContext:nameLocation:GetIndexEnd() + 1 - part:GetStartIndex())
         nameField:SetRightPadding(spacing)
 
 
@@ -118,13 +118,13 @@ class CheckBlock is MultipleLineBlock
             Location expressionLoc = detectContext:GetLocation()
             part:Add(expressionField)
 
-            expressionField:Setup("Expression", firstName:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), lastName:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
+            expressionField:Setup("Expression", firstName:GetIndex() - part:GetStartIndex(), lastName:GetIndexEnd() + 1 - part:GetStartIndex())
         end
         
         if finalName not= undefined
-            part:SetLocalEndIndex(finalName:GetIndexEnd() - GetStartIndex())
+            part:SetLocalEndIndex(part:GetLocalStartIndex() + finalName:GetIndexEnd() + 1 - part:GetStartIndex())
         else
-            part:SetLocalEndIndex((detectContext:nameLocation:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex())) - GetStartIndex())
+            part:SetLocalEndIndex(part:GetLocalStartIndex() + detectContext:nameLocation:GetIndexEnd() + 1 - part:GetStartIndex())
         end
         me:detectParts:Add(part)
         return part
@@ -375,6 +375,7 @@ class CheckBlock is MultipleLineBlock
         if detectParts:GetSize() > 1
             RemoveMiddleBlockPart(block, block:GetPreviousSibling())
         else
+            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
         end
         MultipleLineBlockPart detectPart = cast(MultipleLineBlockPart, block)
         detectParts:Remove(detectPart)

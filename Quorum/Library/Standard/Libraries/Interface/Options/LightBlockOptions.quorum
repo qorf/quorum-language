@@ -19,7 +19,7 @@ class LightBlockOptions is LightModeOptions, BlockOptions
 
     Color alertBlock = color:CustomColor(246.0 / MAX, 184.0 / MAX, 193.0 / MAX, 1)
 
-    Color packageBlock = color:CustomColor(176.0 / MAX, 144.0 / MAX, 176.0 / MAX, 1)
+    Color packageBlock = color:CustomColor(229.0 / MAX, 187.0 / MAX, 229.0 / MAX, 1)
     Color constructorBlock = color:CustomColor(186.0 / MAX, 223.0 / MAX, 179.0 / MAX, 1)
     Color sayBlock = color:CustomColor(176.0 / MAX, 203.0 / MAX, 251.0 / MAX, 1)
     Color useBlock = color:CustomColor(176.0 / MAX, 203.0 / MAX, 251.0 / MAX, 1)
@@ -27,30 +27,36 @@ class LightBlockOptions is LightModeOptions, BlockOptions
     Color freeformBlock = color:CustomColor(248.0 / MAX, 248.0 / MAX, 248.0 / MAX, 1)
     
     Color returnBlock = color:CustomColor(183.0 / MAX, 222.0 / MAX, 241.0 / MAX, 1)
+    Color selectionColor = color:CustomColor(0.75, 0.75, 0.75, 1)
 
     action SetStartingOptions
-        SetBackgroundColor(constants:ASSIGNMENT_KEY, assignmentBlock)
-        SetBackgroundColor(constants:OUTPUT_KEY, sayBlock)
-        SetBackgroundColor(constants:SAY_KEY, sayBlock)
-        SetBackgroundColor(constants:RETURN_KEY, returnBlock)
-        SetBackgroundColor(constants:USE_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:OUTPUT_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:SAY_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
+        SetBackgroundColor(constants:USE_KEY, returnBlock)
         SetBackgroundColor(constants:PACKAGE_KEY, packageBlock)
-        SetBackgroundColor(constants:ALERT_KEY, alertBlock)
+        SetBackgroundColor(constants:ALERT_KEY, defaultStatementColor)
         SetBackgroundColor(constants:CHECK_KEY, checkBlock)
         SetBackgroundColor(constants:ACTION_CALL_KEY, defaultStatementColor)
-        SetBackgroundColor(constants:REPEAT_KEY, repeatBlock)
+        SetBackgroundColor(constants:REPEAT_KEY, ifBlock)
         SetBackgroundColor(constants:ACTION_KEY, actionBlock)
         SetBackgroundColor(constants:CONSTRUCTOR_KEY, constructorBlock)
-        SetBackgroundColor(constants:CLASS_KEY, classBlock)
+        SetBackgroundColor(constants:CLASS_KEY, packageBlock)
         SetBackgroundColor(constants:IF_KEY, ifBlock)
         SetBackgroundColor(constants:FREEFORM_KEY, freeformBlock)
         SetBackgroundColor(constants:COMMENT_KEY, freeformBlock)
 
         SetEditBorderThickness(1)
         SetEditFontColor(color:Black())
-        SetStaticFontColor(color:White())
-        SetStaticFontOutlineColor(color:Black())
-        SetStaticFontOutlineThickness(1.2)
+        SetStaticFontColor(color:Black())
+        SetStaticFontOutlineColor(color:White())
+        SetStaticFontOutlineThickness(0)
+
+        SetPrimaryErrorColor("CodeEditor", color:CustomColor(1, 0.25, 0.25, 1))
+        SetSecondaryErrorColor("CodeEditor", color:CustomColor(0.75, 0.25, 0.25, 1))
+        SetHintBorderColor("CodeEditor", color:Orange())
+        SetHintBorderThickness("CodeEditor", 3)
     end
 
     action SetDefaultBlockOptions(text key)
@@ -63,7 +69,7 @@ class LightBlockOptions is LightModeOptions, BlockOptions
             color:SetColor(color:GetRed() * 0.7, color:GetGreen() * 0.7, color:GetBlue() * 0.7, color:GetAlpha())
             SetBorderColor(key, color)
 
-            SetSelectionColor(key, color:CustomColor(0.5, 0.75, 0.59, 1))
+            SetSelectionColor(key, selectionColor)
 
             Color editColor
             editColor:CopyColor(color)

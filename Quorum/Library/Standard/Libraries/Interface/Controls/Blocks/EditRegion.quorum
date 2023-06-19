@@ -10,6 +10,9 @@ use Libraries.Interface.Options.BlockOptionConstants
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Game.Graphics.Font
 
 class EditRegion is BlockItem
 
@@ -25,6 +28,53 @@ class EditRegion is BlockItem
     end
 
     blueprint action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)
+
+    action GetDefaultFontName returns text
+        text name = undefined
+        Font font
+        
+        if font:IsFontAvailable("Courier New Bold")
+            name = "Courier New Bold"
+        elseif font:IsFontAvailable("courbd")
+            name = "courbd"
+        elseif font:IsFontAvailable("FiraCode-Retina")
+            name = "FiraCode-Retina"
+        elseif font:IsFontAvailable("FiraCode-Regular")
+            name = "FiraCode-Regular"
+        elseif font:IsFontAvailable("Lato")
+            name = "Lato"
+        elseif font:IsFontAvailable("Courier")
+            name = "Courier"
+        elseif font:IsFontAvailable("Courier New")
+            name = "Courier New"
+        elseif font:IsFontAvailable("cour")
+            name = "cour"
+        elseif font:IsFontAvailable("Roboto-Black")
+            name = "Roboto-Black"
+        elseif font:IsFontAvailable("Arial")
+            name = "Arial"
+        elseif font:IsFontAvailable("Arial Unicode")
+            font:LoadFont("Arial Unicode")
+            SetFont(font)
+        elseif font:IsFontAvailable("Helvetica")
+            font:LoadFont("Helvetica")
+            SetFont(font)
+        elseif font:IsFontAvailable("Georgia")
+            font:LoadFont("Georgia")
+            SetFont(font)
+        elseif font:IsFontAvailable("Times New Roman")
+            font:LoadFont("Times New Roman")
+            SetFont(font)
+        else
+            Array<File> availableFontFiles = font:GetAvailableFonts()
+            if availableFontFiles:GetSize() > 0
+                File file = availableFontFiles:Get(0)
+                name = file:GetPath()
+            end
+        end
+
+        return name
+    end
 
     action GetStartIndex returns integer
         return startIndex
@@ -139,4 +189,7 @@ class EditRegion is BlockItem
 
     blueprint action ShowCaret
 
+    blueprint action HideCaret
+
+    blueprint action GetSelectedText returns text
 end

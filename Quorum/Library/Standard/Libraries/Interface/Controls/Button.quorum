@@ -347,6 +347,13 @@ class Button is Control, TextureLoadListener
                 properties:SetPixelHeight(content:GetHeight())
             end
 
+            // If the Button has a bad value for MAINTAIN_ASPECT_RATIO, give it a reasonable default. Important for the web where this can happen due to delayed asset loading.
+            if GetHorizontalLayoutMode() = parent:Control:MAINTAIN_ASPECT_RATIO and (GetPercentageWidth() = 0 or GetPercentageWidth():IsNotANumber())
+                SetPercentageWidth(content:GetWidth() / content:GetHeight())
+            elseif GetVerticalLayoutMode() = parent:Control:MAINTAIN_ASPECT_RATIO and (GetPercentageHeight() = 0 or GetPercentageHeight():IsNotANumber())
+                SetPercentageHeight(content:GetHeight() / content:GetWidth())
+            end
+
             ColorGroup iconColor = properties:GetIconColor()
             if iconColor = undefined
                 iconColor = color:White()
@@ -410,6 +417,7 @@ class Button is Control, TextureLoadListener
     action OnTextureLoad(TextureLoadEvent event)
         // If a texture we were listening to has loaded, refresh the visuals.
         LoadGraphics(GetDefaultLayoutProperties())
+        RequestLayout()
     end
 
     action SetFontSize(integer size)

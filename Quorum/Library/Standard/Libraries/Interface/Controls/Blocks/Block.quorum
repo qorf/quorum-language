@@ -6,6 +6,7 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Selections.CodeEditorSelection
 use Libraries.Language.Compile.Context.ParseContext
@@ -14,6 +15,9 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
 use Libraries.Containers.Iterator
 use Libraries.Containers.List
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Accessibility
+use Libraries.Game.Graphics.Painter2D
 
 class Block is Control
     integer scopeDepth = 0
@@ -62,6 +66,9 @@ class Block is Control
     List<Hint> hints
     List<CompilerError> errors
 
+    // Used to identify when the rendering needs to be refreshed due to Hints changing.
+    boolean renderingImportantHints = false
+
     on create
         SetName("Block")
 
@@ -70,7 +77,40 @@ class Block is Control
     end
 
     private action UpdateHintsAndErrorsVisuals
+        boolean changed = false
 
+        if errors:IsEmpty() = false
+            if GetView2D() is BlockErrorShaderView = false
+                BlockErrorShaderView view
+                view:Initialize()
+                SetView2D(view)
+
+                changed = true
+            end
+        else
+            if GetView2D() is SingleLineBlockView = false
+                SingleLineBlockView view
+                view:Initialize()
+                SetView2D(view)
+
+                changed = true
+            end
+        end
+
+        boolean hasImportantHints = HasImportantHints()
+        if renderingImportantHints not= hasImportantHints
+            // The shader mapping will handle the actual change in this case, but it's important we tell the mapping to update the vertices.
+            renderingImportantHints = hasImportantHints
+            changed = true
+        end
+        
+        if changed
+            RequestVerticesUpdate()
+        end
+    end
+
+    action HasImportantHints returns boolean
+        return hints:IsEmpty() = false
     end
 
     action Add(Hint hint)
@@ -136,7 +176,7 @@ class Block is Control
         return value
     end
 
-    action GetErrorIterator returns Iterator<Hint>
+    action GetErrorIterator returns Iterator<CompilerError>
         return errors:GetIterator()
     end
 
@@ -463,11 +503,10 @@ class Block is Control
     that are attached to it. If the change index is located after a Block's indices,
     they won't be modified.
 
-    If the "processEndpoints" value is true, blocks will incorporate changes made at
-    the beginning and end indices. For typical use, this should be true when handling
-    edits made to the beginning or end of a block. This should be false when inserting
-    a new block between two blocks (so as not to adjust the contents of the existing
-    blocks, since a new block will receive the new content instead).
+    The Block value represents the block that created the event that is causing the offset. This is used in certain cases such as when the offset comes
+    from an EditRegion within a block. The reason this is used is because endpoints need to be handled differently depending on if it should affect a block
+    or not. If a change comes from an EditRegion outside of a block then it should always process endpoints but a block can't alter it's own start index 
+    through an EditRegion.
     */
     action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, Block block)
         Block current = me
@@ -478,8 +517,8 @@ class Block is Control
                 integer startIndex = child:GetStartIndex()
                 integer endIndex = child:GetEndIndex()
 
-                if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
-                    if changeIndex > startIndex or ((block not= undefined and child = block) and changeIndex = startIndex)
+                if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
+                    if changeIndex > startIndex or (IsOffendingBlock(child, block) and changeIndex = startIndex)
                         child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
                     else
                         child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
@@ -487,18 +526,21 @@ class Block is Control
                     child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
                 end
 
-                if linesChanged not= 0 
+                // Only process line indices if the number of lines changed.
+                // Also, don't do it if there's no offending block and our start/end indices are identical.
+                // This resolves an edge case when adding a new line to the end of an empty freeform block.
+                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and startIndex = endIndex)
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
                     if changeIndex <= startIndex
-                        if changeIndex = startIndex and (block not= undefined and child = block)
+                        if changeIndex = startIndex and IsOffendingBlock(child, block)
                             // don't modify the start line in this case
                         else
                             child:SetLocalStartLine(startLine + linesChanged)
                         end
                     end
-                    if changeIndex < endIndex or ((block not= undefined and child = block) and changeIndex = endIndex)
+                    if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
                         child:SetLocalEndLine(endLine + linesChanged)
                     end
                 end
@@ -520,6 +562,23 @@ class Block is Control
 
             current = parentBlock
         end
+    end
+
+
+    /* 
+        Used by OffsetIndices to check if a block is the block causing the change. This result is used to process endpoints correctly.
+        If a block is the same block as the offender it returns true but it also returns true if the offending block is a block part
+        of the given block.
+    */
+    private action IsOffendingBlock(Block block, Block offender) returns boolean
+        if offender = undefined
+            return false
+        elseif block = offender
+            return true
+        elseif offender is MultipleLineBlockPart and block = offender:GetParentBlock()
+            return true
+        end
+        return false
     end
 
     /*
@@ -769,9 +828,51 @@ class Block is Control
                 UpdateName(line)
                 Focus()
             end
+            
+            if IsFastEditable()
+                EditRegion region = GetStartingEditRegion()
+                if region not= undefined
+                    region:ShowCaret()
+                end
+            end
         end
 
         parent:Control:GainedSelection()
+    end
+    
+    action LostSelection
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            if selection:GetBlock() not= me and IsFastEditable()
+                EditRegion region = GetStartingEditRegion()
+                if region not= undefined
+                    region:HideCaret()
+                end
+            end
+        end
+
+        parent:Control:LostSelection()
+    end
+    
+    action GetStartingEditRegion returns EditRegion
+        BlockItem firstItem = undefined
+        Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while firstItem = undefined and i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is BlockItem
+                firstItem = cast(BlockItem, item)
+            end
+            i = i + 1
+        end
+        
+        if firstItem is EditRegion
+            EditRegion region = cast(EditRegion, firstItem)
+            return region
+        end
+        
+        return undefined
     end
 
     action SetContext(ParseContext context)
@@ -831,10 +932,33 @@ class Block is Control
         return true
     end
 
+    /*
+        Special operations need to be taken for the system here
+        because the description needs to be changed before getting the focus.
+
+    */ 
+    action Focus
+        GameStateManager manager
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:NameChanged(me)
+            access:DescriptionChanged(me)
+        end
+        //now finally set the focus
+        manager:GetGame():SetFocus(me)
+    end
+
     action GainedFocus(FocusEvent event)
         CodeEditor editor = GetEditor()
         if editor not= undefined
             editor:OnFocusChange(event)
+        end
+    end
+    
+    action LostFocus(FocusEvent event)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnFocusLoss(event)
         end
     end
 
@@ -858,7 +982,7 @@ class Block is Control
             if GetBottomNotchPosition() > minimumWidth
                 minimumWidth = GetBottomNotchPosition()
             end
-            minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth() + GetRightPadding()
+            minimumWidth = minimumWidth + (editor:GetBlockNotchTopWidth() + GetRightPadding()) * GetInterfaceScale()
             return minimumWidth
         end
 
@@ -896,5 +1020,63 @@ class Block is Control
         end
 
         return cast(RootBlock, candidate)
+    end
+    
+    action IsFastEditable returns boolean
+        return false
+    end
+    
+    action IsSelected returns boolean
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            integer startIndex = selection:GetLine()
+            integer endIndex = selection:GetRangeEndLine()
+            if startIndex > endIndex
+                integer temp = startIndex
+                startIndex = endIndex
+                endIndex = temp
+            end
+            // Only navigable blocks can be selected. Use that plus navigation indices to check for selection.
+            return IsNavigable() and GetNavigationIndex() <= endIndex and GetNavigationEndIndex() >= startIndex
+
+        end
+        
+        return false
+    end
+    
+    // This action returns true if this Block is both selected and where the cursor is located.
+    // This doesn't necessarily imply that there isn't a BlockItem within the block that's also selected, though.
+    action IsCursorSelected returns boolean
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            return selection:GetBlock() = me
+        end
+        
+        return false
+    end
+    
+action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if parent:Item2D:visualView not= undefined
+            parent:Item2D:visualView:Draw(painter)
+        end
+    end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+        Array<Item2D> children = GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
     end
 end

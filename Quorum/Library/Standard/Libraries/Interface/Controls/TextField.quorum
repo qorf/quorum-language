@@ -27,6 +27,8 @@ use Libraries.System.File
 use Libraries.Compute.Math
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Undo.TextFieldEditManager
+use Libraries.Interface.Undo.TextFieldEditState
 
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -89,7 +91,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     number caretX = 0
 
     TextFieldSelection selection
-
+    TextFieldEditManager editManager
     /*
     The texture used for the selection higlight. Initialized as a 1x1 white texture.
     */
@@ -137,6 +139,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         selection:Initialize(me, "")
         SetAccessibilityCode(parent:Item:TEXT_FIELD)
+
+        AddTextChangeListener(editManager)
+        editManager:SetTextField(me)
 
         ManualLayout layout
         SetLayout(layout)
@@ -254,6 +259,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         integer lineHeight = font:GetLineHeight()
         integer maxDescent = font:GetMaximumDescent()
 
+        number bottomPadding = GetBottomPadding()
+
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
         repeat size times
@@ -289,7 +296,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             end
 
             if draw not= undefined
-                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent)
+                draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent + bottomPadding)
                 lineCharacters:Add(draw)
                 background:Add(draw)
 
@@ -348,7 +355,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             counter = counter + 1
         end
 
-        caret:SetPosition(x + leftCharacterPadding, 0)
+        caret:SetPosition(x + leftCharacterPadding, GetBottomPadding())
         return x + leftCharacterPadding
     end
 
@@ -1101,6 +1108,31 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
         GameStateManager manager
         manager:GetInput():NotifyTextChangeListeners(event)
+    end
+
+    action GetCurrentEditState returns TextFieldEditState
+        TextFieldEditState state
+        state:Set(GetText(), GetCaretPosition(), GetSelection())
+        return state
+    end
+
+    action SetFromEditState(TextFieldEditState state)
+        textValue = state:GetText()
+        SetCaretToIndex(state:GetCaretPosition())
+
+        Resize()
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ResetCaretBlinkTimer()
+
+        Select(state:GetStartIndex(), state:GetEndIndex(), state:IsCaretAtEnd())
+        
+    end
+
+    action GetTextFieldEditManager returns TextFieldEditManager
+        return editManager
     end
 
     action GetTokenStartIndex returns integer
