@@ -189,7 +189,11 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-description", item.GetDescription());
+            if (item.GetAccessibilityCode() == 29) { //labels
+                element.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
+            } else {
+                element.setAttribute("aria-description", item.GetDescription());
+            }
         }
         //console.log("Description Changed");
     };
@@ -645,9 +649,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             case 29: //label
                 if (item.IsFocusable() ) {
                     role = "img";
-                    para.setAttribute("aria-roledescription",roleDescription);
-                    para.setAttribute('aria-label', item.GetName());
-                    para.setAttribute('aria-description', item.GetDescription());
+                    itemName = item.GetText();
+                    para.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
                 }
                 break;
             default:
@@ -672,7 +675,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
         
         //process labels differently
-        if (itemName != null && item.GetAccessibilityCode() != 29) {
+        if (itemName != null) {
             para.setAttribute("aria-label", itemName);
         }
         // para.setAttribute("aria-label", para.getAttribute("aria-label") + " " + item.GetDescription())
