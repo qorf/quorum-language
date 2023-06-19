@@ -243,7 +243,7 @@ class CompareVariances is StatisticalTest
             end
             sources:Add(source)
             result:SetTestStatistic(source, "F", aov:GetTestStatistic())
-            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValueIterator():Next())
+            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next())
             result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
             result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
             result:SetSignificanceLevel(GetSignificanceLevel())
@@ -416,143 +416,179 @@ class CompareVariances is StatisticalTest
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
-        if groups:GetSize() < 2
-            alert("CompareSeveralRelatedVariances must have at least two samples.")
+        if factorial
+            alert("A factorial repeated measures CompareVariances test is not supported yet. Formal Test Name: Mauchly's Sphericity")
         end
         if multivariate
-            alert("A multivariate repeated measures CompareVariances test is not supported yet.")
-        elseif factorial
-            alert("A factorial repeated measures CompareVariances test is not supported yet.")
-        else
-            DataFrame groupFrame = GetGroupsFrame()
-            groupFrame:SelectAllColumns()
-    
-            // Get covariance matrix from frame
-            // By default the sample covariance will be calculated.
-            Matrix sampleCovarMatrix = groupFrame:CovarianceMatrix()
-    
-            // Since a sample covariance matrix was calculated, it must first be estimated 
-            // to a population matrix for the later calculations, achieved by double centering it.
-            Matrix populationCovarMatrix = sampleCovarMatrix:DoubleCenter()        
-    
-            // Get eigenvalues of population covariance matrix
-            EigenDecomposition eig
-            eig:Symmetric(true) //Force it to be recognized as symmetric for eigen calculations
-            eig:Calculate(populationCovarMatrix)
-        
-            number productOfEvals = 1
-            number sumOfEvals = 0
-            number sumOfSquaredEvals = 0
-            Vector evals = eig:GetEigenvalues()
-            i = 0
-            repeat while i < evals:GetSize()
-                eval = evals:Get(i)
-                if eval >= 0 // Eigen values cannot be negative
-                    productOfEvals = productOfEvals * eval
-                    sumOfEvals = sumOfEvals + eval
-                    sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
-                end
-                i = i + 1 
-            end
+            alert("A multivariate repeated measures CompareVariances test is not supported yet. Formal Test Name: Mauchly's Sphericity")
+        end
 
-            // The equations can be found here:
-            // https://pingouin-stats.org/build/html/generated/pingouin.sphericity.html
-            // https://pingouin-stats.org/generated/pingouin.epsilon.html
-    
-            // Number of measurements
-            number k = groupFrame:GetColumns():GetSize()
-    
-            // Number of subjects
-            number n = groupFrame:GetColumn(0):GetSize()
-    
-            // Mauchly's W test statistic
-            number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
-    
-            // Chi-Squared W Test Statistic
-            number f = (2 * (k-1) * (k-1) + k + 1) / (6 * (k-1) * (n-1))
-            number chi_w_squared = (f-1) * (n-1) * math:NaturalLogarithm(w)
-    
-            // JNS's V Test Statistic
-            number v = math:RaiseToPower(sumOfEvals, 2) / (sumOfSquaredEvals)
-    
-            // Chi-Squared V Test Statistic
-            number chi_v_squared = 0.5 * n * math:RaiseToPower(k-1, 2) * (v - 1.0/(k-1))
-    
-            // Degrees of Freedom
-            number df = 0.5 * k * (k-1) - 1
-    
-            // Lower-bound epsilon
-            number lbCorrectionEpsilon = 1.0/(k-1)
-    
-            // Greenhouse-Geisser epsilon
-            number covMean = populationCovarMatrix:GetMean()
-            number covSumOfSquares = 0
-            number covSumOfRowMeanSquares = 0
-            number covSumOfDiagonal = 0
-            i = 0
-            repeat while i < populationCovarMatrix:GetRows()
-                j = 0
-                repeat while j < populationCovarMatrix:GetColumns()
-                    number value = populationCovarMatrix:Get(i,j)
-                    covSumOfSquares = covSumOfSquares + value * value
-                    j = j + 1
+        if groups:GetSize() < 3
+            if groups:GetSize() = 2
+                DataFrame groupFrame = GetGroupsFrame()
+                Array<text> sources
+                text source = "Measures"
+                if numberOfFactors > 0
+                    i = 0
+                    repeat while i < numberOfFactors
+                        if i = 0
+                            source = factorHeaders:Get(i)
+                        else
+                            source = source + ":"+ factorHeaders:Get(i)
+                        end
+                        i = i + 1
+                    end
                 end
-                covSumOfDiagonal = covSumOfDiagonal + populationCovarMatrix:Get(i,i)
-                number rowMean = populationCovarMatrix:GetRow(i):GetMean()
-                covSumOfSqauredRowMeans = covSumOfRowMeanSquares + rowMean * rowMean
+                sources:Add(source)
+                CompareVariancesResult result
+                result:SetSignificanceLevel(GetSignificanceLevel())
+                result:SetFormat(GetStatisticalFormatting())
+                result:Repeated(true)
+                result:SetTestStatistic(source, "W", 1.0)
+                result:SetTestStatistic(source+"W", "χ2", 0)
+                result:SetDegreesOfFreedom(source, "W", 0)
+                result:SetProbabilityValue(source, "W", 1.0)
+                result:SetFormalTestName("Mauchly's Test of Sphericity")
+                result:SetGroupsFrame(groupFrame)
+                result:SetFactors(factorHeaders)
+                result:SetColumns(columnHeaders)
+                result:SetSources(sources)
+                results:Add(result)
+
+                //alert("Sphericity is always satistified when using only 2 samples or measures.")
+            else
+                alert("CompareSeveralRelatedVariances must have at least 3 samples.")
+            end
+        end
+
+        DataFrame groupFrame = GetGroupsFrame()
+        groupFrame:SelectAllColumns()
+
+        // Get covariance matrix from frame
+        // By default the sample covariance will be calculated.
+        Matrix sampleCovarMatrix = groupFrame:CovarianceMatrix()
+
+        // Since a sample covariance matrix was calculated, it must first be estimated 
+        // to a population matrix for the later calculations, achieved by double centering it.
+        Matrix populationCovarMatrix = sampleCovarMatrix:DoubleCenter()        
+
+        // Get eigenvalues of population covariance matrix
+        EigenDecomposition eig
+        eig:Symmetric(true) //Force it to be recognized as symmetric for eigen calculations
+        eig:Calculate(populationCovarMatrix)
+    
+        number productOfEvals = 1
+        number sumOfEvals = 0
+        number sumOfSquaredEvals = 0
+        Vector evals = eig:GetEigenvalues()
+        i = 0
+        repeat while i < evals:GetSize()
+            eval = evals:Get(i)
+            if eval > 0 // Eigen values cannot be negative
+                productOfEvals = productOfEvals * eval
+                sumOfEvals = sumOfEvals + eval
+                sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
+            end
+            i = i + 1 
+        end
+
+        // The equations can be found here:
+        // https://pingouin-stats.org/build/html/generated/pingouin.sphericity.html
+        // https://pingouin-stats.org/generated/pingouin.epsilon.html
+
+        // Number of measurements
+        number k = groupFrame:GetColumns():GetSize()
+
+        // Number of subjects
+        number n = groupFrame:GetColumn(0):GetSize()
+
+        // Mauchly's W test statistic
+        number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
+
+        // Chi-Squared W Test Statistic
+        number f = (2 * (k-1) * (k-1) + k + 1) / (6 * (k-1) * (n-1))
+        number chi_w_squared = (f-1) * (n-1) * math:NaturalLogarithm(w)
+
+        // JNS's V Test Statistic
+        number v = math:RaiseToPower(sumOfEvals, 2) / (sumOfSquaredEvals)
+
+        // Chi-Squared V Test Statistic
+        number chi_v_squared = 0.5 * n * math:RaiseToPower(k-1, 2) * (v - 1.0/(k-1))
+
+        // Degrees of Freedom
+        number df = 0.5 * k * (k-1) - 1
+
+        // Lower-bound epsilon
+        number lbCorrectionEpsilon = 1.0/(k-1)
+
+        // Greenhouse-Geisser epsilon
+        number covMean = populationCovarMatrix:GetMean()
+        number covSumOfSquares = 0
+        number covSumOfRowMeanSquares = 0
+        number covSumOfDiagonal = 0
+        i = 0
+        repeat while i < populationCovarMatrix:GetRows()
+            j = 0
+            repeat while j < populationCovarMatrix:GetColumns()
+                number value = populationCovarMatrix:Get(i,j)
+                covSumOfSquares = covSumOfSquares + value * value
+                j = j + 1
+            end
+            covSumOfDiagonal = covSumOfDiagonal + populationCovarMatrix:Get(i,i)
+            number rowMean = populationCovarMatrix:GetRow(i):GetMean()
+            covSumOfSqauredRowMeans = covSumOfRowMeanSquares + rowMean * rowMean
+            i = i + 1
+        end
+        number covDiagonalMean = covSumOfDiagonal/k
+
+        number top = k * k * (covDiagonalMean-covMean) * (covDiagonalMean-covMean)
+        number bottom = (k-1) * (covSumOfSquares - (2 * k * covSumOfRowMeanSquares + (k * k * covMean * covMean)))
+        number ggCorrectionEpsilon = top / bottom
+
+        // Huynh-Feldt epsilon
+        number hfCorrectionEpsilon = (n * (k-1) * ggCorrectionEpsilon - 2) / ((k-1) * ((n-1) - ggCorrectionEpsilon * (k-1)))
+        
+        // Probability
+        x2distribution:Setup(df)
+        number pW = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
+        number pV = 1.0 - x2distribution:CumulativeDistribution(chi_v_squared)
+
+        Array<text> sources
+        text source = "Measures"
+        if numberOfFactors > 0
+            i = 0
+            repeat while i < numberOfFactors
+                if i = 0
+                    source = factorHeaders:Get(i)
+                else
+                    source = source + ":"+ factorHeaders:Get(i)
+                end
                 i = i + 1
             end
-            number covDiagonalMean = covSumOfDiagonal/k
-    
-            number top = k * k * (covDiagonalMean-covMean) * (covDiagonalMean-covMean)
-            number bottom = (k-1) * (covSumOfSquares - (2 * k * covSumOfRowMeanSquares + (k * k * covMean * covMean)))
-            number ggCorrectionEpsilon = top / bottom
-    
-            // Huynh-Feldt epsilon
-            number hfCorrectionEpsilon = (n * (k-1) * ggCorrectionEpsilon - 2) / ((k-1) * ((n-1) - ggCorrectionEpsilon * (k-1)))
-            
-            // Probability
-            x2distribution:Setup(df)
-            number pW = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
-            number pV = 1.0 - x2distribution:CumulativeDistribution(chi_v_squared)
-    
-            Array<text> sources
-            text source = "Measures"
-            if numberOfFactors > 0
-                i = 0
-                repeat while i < numberOfFactors
-                    if i = 0
-                        source = factorHeaders:Get(i)
-                    else
-                        source = source + ":"+ factorHeaders:Get(i)
-                    end
-                    i = i + 1
-                end
-            end
-            sources:Add(source)
-            CompareVariancesResult result
-            result:SetSignificanceLevel(GetSignificanceLevel())
-            result:SetFormat(GetStatisticalFormatting())
-            result:Repeated(true)
-            result:SetTestStatistic(source, "W", w)
-            result:SetTestStatistic(source+"W", "χ2", chi_w_squared)
-            result:SetDegreesOfFreedom(source, "W", df)
-            result:SetProbabilityValue(source, "W", pW)
-            //// JNS's V Test Statistic??
-            //  result:SetTestStatistic(source, "V", w)
-            //  result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
-            //  result:SetDegreesOfFreedom(source, "V", df)
-            //  result:SetProbabilityValue(source, "V", pV)
-            result:SetInformation(source, "lb", lbCorrectionEpsilon)
-            result:SetInformation(source, "gg", ggCorrectionEpsilon)
-            result:SetInformation(source, "hf", hfCorrectionEpsilon)
-            result:SetFormalTestName("Mauchly's Test of Sphericity")
-            result:SetGroupsFrame(groupFrame)
-            result:SetFactors(factorHeaders)
-            result:SetColumns(columnHeaders)
-            result:SetSources(sources)
-            results:Add(result)
         end
+        sources:Add(source)
+        CompareVariancesResult result
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:Repeated(true)
+        result:SetTestStatistic(source, "W", w)
+        result:SetTestStatistic(source+"W", "χ2", chi_w_squared)
+        result:SetDegreesOfFreedom(source, "W", df)
+        result:SetProbabilityValue(source, "W", pW)
+        //// JNS's V Test Statistic??
+        //  result:SetTestStatistic(source, "V", w)
+        //  result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
+        //  result:SetDegreesOfFreedom(source, "V", df)
+        //  result:SetProbabilityValue(source, "V", pV)
+        result:SetInformation(source, "lb", lbCorrectionEpsilon)
+        result:SetInformation(source, "gg", ggCorrectionEpsilon)
+        result:SetInformation(source, "hf", hfCorrectionEpsilon)
+        result:SetFormalTestName("Mauchly's Test of Sphericity")
+        result:SetGroupsFrame(groupFrame)
+        result:SetFactors(factorHeaders)
+        result:SetColumns(columnHeaders)
+        result:SetSources(sources)
+        results:Add(result)
     end
 
     /* Used in independent-sample tests */

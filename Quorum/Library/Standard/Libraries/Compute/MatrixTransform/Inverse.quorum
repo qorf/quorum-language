@@ -70,9 +70,13 @@ class Inverse is MatrixTransform
                 i = i + 1
             end
         else
-            OrthonormalTriangularDecomposition decomp
-            decomp:Calculate(matrix)
-            newMatrix = decomp:Solve(matrix:Identity())
+            // OrthonormalTriangularDecomposition qrdecomp
+            // qrdecomp:Calculate(matrix)
+            // newMatrix = qrdecomp:GetInverse()
+
+            LowerUpperDecomposition ludecomp
+            ludecomp:Calculate(matrix)
+            newMatrix = ludecomp:GetInverse()
         end
         return newMatrix
     end
