@@ -685,8 +685,12 @@ class ChartWriter
                     horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                     horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     horizontalPanel:SetRole("graphics-object")
-                    //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetXAxisMinimum() +  " to " + chart:GetXAxisMaximum())
+                    Array<ChartLabel> xTextLabels = horizontalAxisPanel:GetLabels()
+                    if xTextLabels:GetSize() not= 0
+                        horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + xTextLabels:Get(0):GetText() +  " to " + xTextLabels:Get(xTextLabels:GetSize()-1):GetText())       
+                    else
+                        horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetXAxisMinimum() +  " to " + chart:GetXAxisMaximum())       
+                    end
                     horizontalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(horizontalPanel)
@@ -803,7 +807,12 @@ class ChartWriter
                     verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     verticalPanel:SetRole("graphics-object")
                     //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() +  " and ranges from " + chart:GetYAxisMinimum() +  " to " + chart:GetYAxisMaximum())
+                    Array<ChartLabel> yTextLabels = verticalAxisPanel:GetLabels()
+                    if yTextLabels:GetSize() not= 0
+                        verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + yTextLabels:Get(0):GetText() +  " to " + yTextLabels:Get(yTextLabels:GetSize()-1):GetText())       
+                    else
+                        verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetYAxisMinimum() +  " to " + chart:GetYAxisMaximum())       
+                    end
                     verticalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(verticalPanel)
