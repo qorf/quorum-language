@@ -1242,6 +1242,19 @@ shared class DefaultInputSets
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
 
+            // undo/redo
+            InputSet textFieldControlZ
+            textFieldControlZ:SetKeyboardInput(keys:Z)
+            textFieldControlZ:AddModifier(textFieldControlZ:META)
+            TextFieldUndoBehavior textFieldUndoBehavior
+            textFieldTable:Add(textFieldControlZ, textFieldUndoBehavior)
+
+            InputSet textFieldControlY
+            textFieldControlY:SetKeyboardInput(keys:Y)
+            textFieldControlY:AddModifier(textFieldControlY:META)
+            TextFieldRedoBehavior textFieldRedoBehavior
+            textFieldTable:Add(textFieldControlY, textFieldRedoBehavior)
+
             //Selection
             InputSet textFieldControlA
             textFieldControlA:SetKeyboardInput(keys:A)
@@ -1291,6 +1304,19 @@ shared class DefaultInputSets
             textFieldControlV:AddModifier(textFieldControlV:CONTROL)
             TextFieldPasteFromClipboardBehavior textFieldPasteFromClipboardBehavior
             textFieldTable:Add(textFieldControlV, textFieldPasteFromClipboardBehavior)
+
+            // undo/redo
+            InputSet textFieldControlZ
+            textFieldControlZ:SetKeyboardInput(keys:Z)
+            textFieldControlZ:AddModifier(textFieldControlZ:CONTROL)
+            TextFieldUndoBehavior textFieldUndoBehavior
+            textFieldTable:Add(textFieldControlZ, textFieldUndoBehavior)
+
+            InputSet textFieldControlY
+            textFieldControlY:SetKeyboardInput(keys:Y)
+            textFieldControlY:AddModifier(textFieldControlY:CONTROL)
+            TextFieldRedoBehavior textFieldRedoBehavior
+            textFieldTable:Add(textFieldControlY, textFieldRedoBehavior)
 
             //Selection
             InputSet textFieldControlA

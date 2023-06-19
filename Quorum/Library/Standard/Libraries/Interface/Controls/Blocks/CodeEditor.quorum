@@ -2070,7 +2070,7 @@ if DEBUG
             repeat while i >= 0
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i - 1
@@ -2101,7 +2101,7 @@ if DEBUG
 
 
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
@@ -2117,10 +2117,15 @@ if DEBUG
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
+    private action NavigateToBlock(Block block)
+        SelectBlockRange(block, block, true)
+        GoToBlock(block)
+        block:Focus()
+    end
     
 
     action SmartNavigateDown
@@ -2148,7 +2153,7 @@ if DEBUG
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i + 1
@@ -2189,7 +2194,7 @@ if DEBUG
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i + 1
@@ -2197,12 +2202,12 @@ if DEBUG
 
             //if we didn't find one previously, choose the first round the horn
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
@@ -2249,7 +2254,7 @@ if DEBUG
         Block block = selection:GetBlock()
         Block found = TraverseBackward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
@@ -2262,7 +2267,7 @@ if DEBUG
         Block block = selection:GetBlock()
         Block found = TraverseForward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
