@@ -510,4 +510,14 @@ class OrthonormalTriangularDecomposition
         end
         return x
     end
+
+    /*
+        This action calls solve using the identity matrix as a parameter, with the size given by the transpose. 
+    */
+    action GetInverse returns Matrix
+        Matrix matrix
+        matrix:SetSize(transpose:GetRows(),transpose:GetRows())
+        matrix = matrix:Identity()
+        return Solve(matrix)
+    end
 end
