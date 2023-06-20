@@ -103,7 +103,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
             if not column:IsUndefined()
                 if not column:CanConvertToVector()
-                    alert("Could not convert non-numerical column '" + column:GetHeader() + "' to a vector.")
+                    alert("Could not convert nonnumerical column '" + column:GetHeader() + "' to a vector.")
                 end
                 
                 NumberColumn newColumn
@@ -328,7 +328,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
     private action CreateChartWithTwoFactors(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BoxPlot
         BoxPlot chart
         if not column:IsNumberColumn()
-            alert("BoxPlotCreator does not support non-numerical columns.")
+            alert("BoxPlotCreator does not support nonnumerical columns.")
             return undefined
         end
         
