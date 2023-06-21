@@ -66,12 +66,14 @@ class CodeEditorLineNumberGutter is LineNumberGutter, BreakpointListener
 
         integer counter = 0
         integer blockSubLine = 0
-        integer blockStartLine = block:GetStartLine()
+        integer blockStartLine = 0
         integer currentLine = startLine
         boolean last = false
         
         if block = undefined
             last = true
+        else
+            blockStartLine = block:GetStartLine()
         end
         
         repeat while currentLine < totalLines and last = false

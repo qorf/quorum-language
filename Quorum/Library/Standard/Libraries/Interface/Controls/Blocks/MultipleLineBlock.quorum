@@ -165,10 +165,6 @@ class MultipleLineBlock is Block
     end
 
     action DrawParts(Painter2D painter)
-        if GetView2D() not= undefined
-            GetView2D():Draw(painter)
-        end
-
         integer counter = 0
         repeat while counter < blockParts:GetSize()
             Block block = blockParts:Get(counter)

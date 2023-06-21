@@ -2341,4 +2341,41 @@ if DEBUG
         
         selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
     end
+    
+    action SelectFirstBlock
+Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockOrItem(firstBlock)
+        end
+    end
+    
+    action SelectLastBlock
+        Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockOrItem(lastBlock)
+        end
+    end
+    
+    action SelectRangeToFirstBlock
+        Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockRange(firstBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    action SelectRangeToLastBlock
+Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockRange(lastBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    private action GetLastBlock returns Block
+    Block current = renderer:GetRootBlock()
+        repeat until current:GetChildCount() = 0
+            current = current:GetChild(current:GetChildCount() - 1)
+        end
+        
+        return current
+    end
 end
