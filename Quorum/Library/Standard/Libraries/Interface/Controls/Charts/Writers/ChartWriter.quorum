@@ -182,16 +182,12 @@ class ChartWriter
         if chart:IsShowingSubtitle()
             AddChartSubtitle(chartCanvas, chart)
         end
+        AddChartContent(chartCanvas, chart)
+
         if chart:IsShowingLegend()
             AddLegend(chartCanvas, chart)
         end
-        if chart:IsShowingLinearRegression()
-            AddRegressionLines(chartCanvas, chart)
-        end        
 
-        chartCanvas:Add(chartInformation)
-
-        AddChartContent(chartCanvas, chart)
         //add the rest of the chart information after the chart content has been populated
         if chart:IsShowingXAxis()
             chartInformation:Add(horizontalPanel)
@@ -202,6 +198,7 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
+        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -283,13 +280,8 @@ class ChartWriter
         if chart:IsShowingSubtitle()
             AddChartSubtitle(chartCanvas, chart)
         end
-        if chart:IsShowingLinearRegression()
-            AddRegressionLines(chartCanvas, chart)
-        end        
-
-        chartCanvas:Add(chartInformation)
-
         AddChartContent(chartCanvas, chart)
+
         //add the rest of the chart information after the chart content has been populated
         if chart:IsShowingXAxis()
             chartInformation:Add(horizontalPanel)
@@ -300,6 +292,7 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
+        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
