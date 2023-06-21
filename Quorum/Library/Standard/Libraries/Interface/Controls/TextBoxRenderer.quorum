@@ -528,4 +528,76 @@ class TextBoxRenderer is Control
         number value = GetBottomRightRounding()
         return value:IsNotANumber() = false
     end
+    
+action GetTopLeftPixelRounding returns number
+        if HasNumberPropertyOverride("topLeftPixelRounding")
+            return parent:Control:GetTopLeftPixelRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetTopLeftPixelRounding()
+        else
+            return parent:Control:GetTopLeftPixelRounding()
+        end
+    end
+
+    action HasTopLeftPixelRounding returns boolean
+        number value = GetTopLeftPixelRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetTopRightPixelRounding returns number
+        if HasNumberPropertyOverride("topRightPixelRounding")
+            return parent:Control:GetTopRightPixelRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetTopRightPixelRounding()
+        else
+            return parent:Control:GetTopRightPixelRounding()
+        end
+    end
+
+    action HasTopRightPixelRounding returns boolean
+        number value = GetTopRightPixelRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        if HasNumberPropertyOverride("bottomLeftPixelRounding")
+            return parent:Control:GetBottomLeftPixelRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBottomLeftPixelRounding()
+        else
+            return parent:Control:GetBottomLeftPixelRounding()
+        end
+    end
+
+    action HasBottomLeftPixelRounding returns boolean
+        number value = GetBottomLeftPixelRounding()
+        return value:IsNotANumber() = false
+    end
+
+    action GetBottomRightPixelRounding returns number
+        if HasNumberPropertyOverride("bottomRightPixelRounding")
+            return parent:Control:GetBottomRightPixelRounding()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetBottomRightPixelRounding()
+        else
+            return parent:Control:GetBottomRightPixelRounding()
+        end
+    end
+
+    action HasBottomRightPixelRounding returns boolean
+        number value = GetBottomRightPixelRounding()
+        return value:IsNotANumber() = false
+    end
 end

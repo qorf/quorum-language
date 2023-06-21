@@ -93,7 +93,7 @@ class MultipleLineBlock is Block
         LayoutProperties properties = connector:GetDefaultLayoutProperties()
         connector:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         connector:SetBorderStyle(properties:LEFT + properties:RIGHT)
-        connector:SetCornerRounding(0, 0, 0, 0)
+        connector:SetCornerPixelRounding(0, 0, 0, 0)
 
         ControlShaderView view
         view:Initialize()

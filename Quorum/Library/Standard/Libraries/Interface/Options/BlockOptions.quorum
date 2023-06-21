@@ -8,7 +8,7 @@ class BlockOptions is InterfaceOptions
     BlockOptionConstants constants
 
     constant number DEFAULT_BORDER_THICKNESS = 1
-    constant number DEFAULT_CORNER_ROUNDING = 0.2
+    constant number DEFAULT_CORNER_ROUNDING = 4
 
     on create
         SetStartingOptions()
@@ -21,10 +21,10 @@ class BlockOptions is InterfaceOptions
 
     action SetDefaultBlockOptions(text key)
         SetBorderThickness(key, DEFAULT_BORDER_THICKNESS)
-        SetTopLeftRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetTopRightRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetBottomLeftRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetBottomRightRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetTopLeftPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetTopRightPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetBottomLeftPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetBottomRightPixelRounding(key, DEFAULT_CORNER_ROUNDING)
     end
 
     /*

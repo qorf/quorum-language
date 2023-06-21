@@ -607,21 +607,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
             integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
                 if line = startLine or line = endLine
-                    if DEBUG
-output "A. Block at line " + line + " is " + block:GetName() + ", indices = " + startLine + " / " + endLine + ", result = " + (GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0)
-                    end
                     return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
                 else
-                    if DEBUG
-output "B. Block at line " + line + " is " + block:GetName() + ", indices = " + startLine + " / " + endLine + ", result = " + GetDefaultUnpaddedLineHeight()
-                    end
                     return GetDefaultUnpaddedLineHeight()
                 end
             end
-        end
-
-if DEBUG
-            output "C. Block at line " + line + " is " + block:GetName() + ", indices = " + block:GetNavigationIndex() + " / " + block:GetNavigationEndIndex() + ", result = " + GetDefaultLineHeight()
         end
         
         return GetDefaultLineHeight()
@@ -656,7 +646,6 @@ if DEBUG
         return GetPercentageLineHeightPadding()
     end
 
-    boolean DEBUG = false
     action GetTotalContentHeight returns number
         if shouldCalculateHeight
             shouldCalculateHeight = false
@@ -668,18 +657,14 @@ if DEBUG
             integer counter = 0
             integer lines = GetLineCount()
             number total = 0
-//            DEBUG = true
             repeat while counter < lines
                 number currentHeight = GetLineHeight(counter)
                 currentY = currentY - currentHeight
-                if DEBUG
-                    output counter + ": y = " + currentY + ", currentHeight = " + currentHeight
-                end
+                
                 cachedLinePositions:Add(currentY)
                 total = total + currentHeight
                 counter = counter + 1
             end
-            DEBUG = false
 
             totalContentHeight = total
         end
