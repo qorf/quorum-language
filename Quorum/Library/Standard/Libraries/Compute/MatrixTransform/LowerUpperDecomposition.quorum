@@ -138,11 +138,11 @@ class LowerUpperDecomposition
                 row = row + 1
             end
 
-            //Apache Commons is clear as mud as to what this is, but I am 
-            //guessing it is a threshold value that tells us whether a solution can be found.
-            if math:AbsoluteValue(lu:Get(max, column)) < DEFAULT_TOO_SMALL
-                singular = true
-            end
+//            //Apache Commons is clear as mud as to what this is, but I am 
+//            //guessing it is a threshold value that tells us whether a solution can be found.
+//            if math:AbsoluteValue(lu:Get(max, column)) < DEFAULT_TOO_SMALL
+//                singular = true
+//            end
 
             if max not= column
                 number temp = 0

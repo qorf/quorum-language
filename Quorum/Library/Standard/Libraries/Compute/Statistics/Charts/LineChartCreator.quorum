@@ -174,7 +174,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
             if not column:IsNumberColumn() 
-                alert("LineChartCreator does not support non-numerical columns.")
+                alert("LineChartCreator does not support nonnumerical columns.")
                 return undefined
             end
 

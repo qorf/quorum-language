@@ -17,6 +17,12 @@ class CodeEditorSelection is Selection
     Block selectedBlock = undefined
     BlockItem selectedItem = undefined
 
+    // Old values are stored so previous selections can be restored if intermediate steps would overwrite info we need.
+    integer previousSelectedLine = selectedLine
+    integer previousSelectionEndLine = selectionEndLine
+    Block previousSelectedBlock = selectedBlock
+    BlockItem previousSelectedItem = selectedItem
+    
     action Set(Block block, integer line, BlockItem item)
         Set(block, line, line, item)
     end
@@ -27,10 +33,15 @@ class CodeEditorSelection is Selection
             oldBlocks = GetSelectedBlocks()
         end
         
-        Block oldBlock = selectedBlock
-        BlockItem oldItem = selectedItem
-        integer oldLine = selectedLine
-        integer oldSecondLine = selectionEndLine
+        previousSelectedBlock = selectedBlock
+        previousSelectedItem = selectedItem
+        previousSelectedLine = selectedLine
+        previousSelectionEndLine = selectionEndLine
+        
+        Block oldBlock = previousSelectedBlock
+        BlockItem oldItem = previousSelectedItem
+        integer oldLine = previousSelectedLine
+        integer oldSecondLine = previousSelectionEndLine
         
         selectedBlock = block
         selectedLine = line
@@ -99,6 +110,26 @@ class CodeEditorSelection is Selection
 
     action GetBlockItem returns BlockItem
         return selectedItem
+    end
+
+    // Returns the selection line of the previous selection, before the most recent selection update.
+    action GetPreviousLine returns integer
+        return previousSelectedLine
+    end
+
+    // Returns the end line of the multiple selection range of the previous selection, before the most recent selection update.
+    action GetPreviousRangeEndLine returns integer
+        return previousSelectionEndLine
+    end
+
+    // Returns the Block of the previous selection, before the most recent selection update.
+    action GetPreviousBlock returns Block
+        return previousSelectedBlock
+    end
+
+    // Returns the BlockItem of the previous selection, before the most recent selection update.
+    action GetPreviousItem returns BlockItem
+        return previousSelectedItem
     end
 
     action IsEmpty returns boolean
