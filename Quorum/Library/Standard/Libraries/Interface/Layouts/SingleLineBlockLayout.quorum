@@ -52,7 +52,7 @@ class SingleLineBlockLayout is Layout
                     control:Resize()
                 end
 
-                control:SetPosition(x, y - control:GetHeight() / 2.0)
+                control:SetPosition(cast(integer, x), cast(integer, y - control:GetHeight() / 2.0))
                 x = x + control:GetWidth() + control:GetRightPadding()
             end
             i = i + 1

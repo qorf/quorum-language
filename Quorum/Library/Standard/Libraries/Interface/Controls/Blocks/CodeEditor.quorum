@@ -121,7 +121,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetFont(GetDefaultFont())
 
         selection:Initialize(me, "")
-        editManager:SetBlockEditor(me)
+        editManager:SetEditor(me)
+        AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
         SetFocusable(true)
@@ -606,21 +607,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
             integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
                 if line = startLine or line = endLine
-                    if DEBUG
-output "A. Block at line " + line + " is " + block:GetName() + ", indices = " + startLine + " / " + endLine + ", result = " + (GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0)
-                    end
                     return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
                 else
-                    if DEBUG
-output "B. Block at line " + line + " is " + block:GetName() + ", indices = " + startLine + " / " + endLine + ", result = " + GetDefaultUnpaddedLineHeight()
-                    end
                     return GetDefaultUnpaddedLineHeight()
                 end
             end
-        end
-
-if DEBUG
-            output "C. Block at line " + line + " is " + block:GetName() + ", indices = " + block:GetNavigationIndex() + " / " + block:GetNavigationEndIndex() + ", result = " + GetDefaultLineHeight()
         end
         
         return GetDefaultLineHeight()
@@ -655,7 +646,6 @@ if DEBUG
         return GetPercentageLineHeightPadding()
     end
 
-    boolean DEBUG = false
     action GetTotalContentHeight returns number
         if shouldCalculateHeight
             shouldCalculateHeight = false
@@ -667,18 +657,14 @@ if DEBUG
             integer counter = 0
             integer lines = GetLineCount()
             number total = 0
-//            DEBUG = true
             repeat while counter < lines
                 number currentHeight = GetLineHeight(counter)
                 currentY = currentY - currentHeight
-                if DEBUG
-                    output counter + ": y = " + currentY + ", currentHeight = " + currentHeight
-                end
+                
                 cachedLinePositions:Add(currentY)
                 total = total + currentHeight
                 counter = counter + 1
             end
-            DEBUG = false
 
             totalContentHeight = total
         end
@@ -1528,7 +1514,7 @@ if DEBUG
     */
     action Delete(Block block, boolean deleteContents, boolean triggerEvent)
         shouldCalculateNavigationIndices = true
-
+        editManager:SetSpecialAction(true)
         // After deleting the block, we'll jump to the target selection.
         Block targetSelection = undefined
         Block parentBlock = block:GetParentBlock()
@@ -1594,6 +1580,8 @@ if DEBUG
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1611,6 +1599,7 @@ if DEBUG
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
                         return now
                     else
                         DeleteBlockAndChildren(actionParent)
@@ -1620,6 +1609,7 @@ if DEBUG
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
                         return now
                     end
                     
@@ -1639,6 +1629,7 @@ if DEBUG
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1663,6 +1654,7 @@ if DEBUG
                     end
                     
                     // Return early so we don't refresh the block view -- it'll be regenerated on the next frame due to the delete call happening
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1680,6 +1672,8 @@ if DEBUG
             NotifyBlockChangeListeners(event)
         end
 
+        editManager:SetSpecialAction(false)
+
         if targetSelection not= undefined
             SelectBlockOrItem(targetSelection)
         else
@@ -1693,6 +1687,7 @@ if DEBUG
             parentBlock:Resize()
             RequestViewRefresh()
         end
+
     end
 
     action DeleteBlockAndChildren(Block block)
@@ -2340,5 +2335,42 @@ if DEBUG
         end
         
         selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
+    end
+    
+    action SelectFirstBlock
+Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockOrItem(firstBlock)
+        end
+    end
+    
+    action SelectLastBlock
+        Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockOrItem(lastBlock)
+        end
+    end
+    
+    action SelectRangeToFirstBlock
+        Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockRange(firstBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    action SelectRangeToLastBlock
+Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockRange(lastBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    private action GetLastBlock returns Block
+    Block current = renderer:GetRootBlock()
+        repeat until current:GetChildCount() = 0
+            current = current:GetChild(current:GetChildCount() - 1)
+        end
+        
+        return current
     end
 end

@@ -167,10 +167,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 halfSize = height / 2.0
             end
 
-            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() / halfSize
-            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() / halfSize
-            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() / halfSize
-            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() / halfSize
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * properties:GetInterfaceScale() / halfSize
 
             // Clamp the values between 0 and 1.
             if bottomLeftRounding > 1.0
@@ -255,10 +255,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 halfSize = height / 2.0
             end
 
-            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() / halfSize
-            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() / halfSize
-            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() / halfSize
-            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() / halfSize
+            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * control:GetInterfaceScale() / halfSize
 
             // Clamp the values between 0 and 1.
             if bottomLeftRounding > 1.0

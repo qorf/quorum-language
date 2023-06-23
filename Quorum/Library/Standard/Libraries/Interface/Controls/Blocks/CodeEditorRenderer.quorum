@@ -323,8 +323,6 @@ class CodeEditorRenderer is Control
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-        // TO-DO: REMOVE THIS
-//        output "Placing block " + block:GetName()+ " at " + editor:GetLineY(lineIndex) + " for line " + lineIndex + " and lineHeight = " + editor:GetLineHeight(lineIndex)
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
     end
 

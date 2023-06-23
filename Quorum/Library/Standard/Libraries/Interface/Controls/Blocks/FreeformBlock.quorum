@@ -389,7 +389,7 @@ class FreeformBlock is SingleLineBlock
                         editRegion:SetText(code)
                         hasExpression = false
                     end
-                    tokenIterator:Next()
+                    current = tokenIterator:Next()
                 elseif current:category = constants:UNTIL
                     untilType = false
                     if not tokenIterator:HasNext()
@@ -405,7 +405,7 @@ class FreeformBlock is SingleLineBlock
                         editRegion:SetText(code)
                         hasExpression = false
                     end
-                    tokenIterator:Next()
+                    current = tokenIterator:Next()
                 end
                 // there is an expression here
                 if hasExpression
@@ -422,7 +422,11 @@ class FreeformBlock is SingleLineBlock
                             elseif untilType
                                 code = "repeat until " + expression
                             else
-                                code = "repeat " + expression
+                                if current:category = constants:TIMES
+                                    code = "repeat " + expression
+                                else
+                                    code = "repeat " + expression + " times"
+                                end
                             end
                             editRegion:SetText(code)
                             if failState and AllTokensOnSingleLine()

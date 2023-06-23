@@ -419,10 +419,16 @@ class Item3DPropertiesDialog is PropertiesDialog
         unmovableButton:SetName("Unmovable")
         unmovableButton:SetHorizontalLayoutMode(physicsEnabledContainer:FILL)
         
-        responsivenessGroup:Add(unmovableButton)
+        responsivenessGroup:AddToGrouping(unmovableButton)
+        responsivenessGroup:AddToGrouping(nonResponsiveButton)
+        responsivenessGroup:AddToGrouping(responsiveButton)
+responsivenessGroup:Add(unmovableButton)
         responsivenessGroup:Add(nonResponsiveButton)
         responsivenessGroup:Add(responsiveButton)
         responsivenessGroup:AddSelectionListener(me)
+        
+FlowLayout responseGroupLayout
+        responsivenessGroup:SetLayout(responseGroupLayout)
 
         responsivenessPanel:Add(responsivenessGroup)
         panel:Add(responsivenessPanel)

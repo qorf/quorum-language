@@ -20,7 +20,6 @@ class EditField is TextField, EditRegion
     boolean initialized = false
 
     on create
-        SetCornerRounding(0.5, 0.5, 0.5, 0.5)
         SetInputGroup("EditField")
         SetAutomaticViewMovement(false)
     end
@@ -74,7 +73,7 @@ class EditField is TextField, EditRegion
             length = minimumLength
         end
 
-        SetSize(length, height)
+        SetSize(cast(integer, length + 0.5), cast(integer, height + 0.5))
     end
 
     action GainedFocus(FocusEvent event)

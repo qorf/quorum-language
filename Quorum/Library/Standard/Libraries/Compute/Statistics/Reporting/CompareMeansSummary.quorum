@@ -803,12 +803,14 @@ class CompareMeansSummary
                     text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                     text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                    number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-                    number dfw = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")
+//                    number dfn = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
+//                    number dfd = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")
+                    number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                    number dfd = result:GetInformation():GetValue(source):GetValue("error df")
                     number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
                     number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
             
-                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(stat)
                     if pval < format:PRECISION_LIMIT
                         summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                     else
