@@ -596,6 +596,30 @@ class FreeformBlock is SingleLineBlock
                 editRegion:SetText(code)
             end
             isClassStatement = true
+    //  on create
+        elseif current:category = constants:ON
+            boolean hasCreate = false
+            if not tokenIterator:HasNext()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                text value = "on create"
+                code = value
+                hasCreate = true
+            else
+                current = tokenIterator:Next()
+                hasCreate = (current:category = constants:CREATE)
+            end
+
+            if not tokenIterator:HasNext() and hasCreate
+                text value = "on create"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
+            end
     // other
         elseif current:category = constants:PACKAGE_NAME
             isPackageStatement = true
