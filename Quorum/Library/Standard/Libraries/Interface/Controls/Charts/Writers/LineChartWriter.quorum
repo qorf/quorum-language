@@ -130,16 +130,10 @@ class LineChartWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
-            text chartTitle = ""
             if chart:IsShowingTitle()
-                chartTitle = chart:GetTitle()
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
-                chartTitle = chart:GetName()
-            end
-            if chart:IsShowingSubtitle()
-                chartContent:SetAriaLabel(chartTitle + ", " + chart:GetSubtitle() + " " + chart:GetDescription())
-            else
-                chartContent:SetAriaLabel(chartTitle + ", " + chart:GetDescription())
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
             end
             chartContent:SetAriaHidden("false")
             //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
