@@ -92,9 +92,9 @@ class ScatterPlotWriter is ChartWriter
         ScatterPlot scatterplot
         scatterplot = cast(ScatterPlot, chart)
         AddPoints(canvas, scatterplot)
-        if chart:IsShowingLinearRegression()
-            AddRegressionLines(canvas, chart)
-        end
+//        if chart:IsShowingLinearRegression()
+//            AddRegressionLines(canvas, chart)
+//        end
     end
 
     /*
@@ -129,7 +129,7 @@ class ScatterPlotWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
                 chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
