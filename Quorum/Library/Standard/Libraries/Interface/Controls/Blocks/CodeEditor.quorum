@@ -1083,11 +1083,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action MoveMultipleSelectionDown
-        Block target = selection:GetBlock():GetNextNavigableBlock()
-        if target = undefined
-            return now
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetNextNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
         end
-        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
     
     action MoveSelectionUp
@@ -1106,11 +1108,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action MoveMultipleSelectionUp
-        Block target = selection:GetBlock():GetPreviousNavigableBlock()
-        if target = undefined
-            return now
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetPreviousNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
         end
-        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
     
     action SelectNext
