@@ -5,30 +5,19 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import org.robovm.apple.foundation.*;
+import org.robovm.apple.uikit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 import quorum.Libraries.Game.Game_;
-import quorum.Libraries.Game.Graphics.GraphicsManager;
 import quorum.Libraries.Game.IOSConfiguration_;
-import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.Painter2D;
 
 import org.robovm.apple.coregraphics.CGRect;
-import org.robovm.apple.foundation.Foundation;
-import org.robovm.apple.foundation.NSBundle;
-import org.robovm.apple.foundation.NSString;
-import org.robovm.apple.uikit.UIApplication;
-import org.robovm.apple.uikit.UIApplicationLaunchOptions;
-import org.robovm.apple.uikit.UIWindow;
-import org.robovm.apple.uikit.UIScreen;
-import org.robovm.apple.uikit.UIDevice;
-import org.robovm.apple.uikit.UIUserInterfaceIdiom;
-import org.robovm.apple.uikit.UIViewController;
-import org.robovm.apple.uikit.UIInterfaceOrientation;
 
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -66,6 +55,7 @@ public class IOSApplication
 
     // Reference to the delegate -- may not be necessary.
     IOSDelegate delegate;
+    private IOSAccessibility iosAccessibility;
 
     private CGRect lastScreenBounds = null;
 
@@ -106,9 +96,11 @@ public class IOSApplication
             plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
             qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
         }
+        System.out.println("IOSApplication: SetupNative: NSBundle.getMainBundle().getBundlePath() = " + NSBundle.getMainBundle().getBundlePath());
 
         delegate = new IOSDelegate();
         delegate.Begin(this);
+        System.out.println("IOSApplication: SetupNative: delegate.Begin(this) called.");
     }
 
     final boolean DidFinishLaunching(UIApplication uiApp, UIApplicationLaunchOptions options)
@@ -173,7 +165,19 @@ public class IOSApplication
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
 
+        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.");
         return true;
+    }
+
+    public void initializeAccessibility() {
+        iosAccessibility = new IOSAccessibility();
+        iosAccessibility.setAccessibilityIdentifier("Quorum Game");
+        iosAccessibility.setFrame(this.GetUIWindow().getFrame());
+        this.GetUIViewController().getView().addSubview(iosAccessibility);
+    }
+
+    public IOSAccessibility getIOSAccessibility() {
+        return iosAccessibility;
     }
 
     private int GetIOSVersion()

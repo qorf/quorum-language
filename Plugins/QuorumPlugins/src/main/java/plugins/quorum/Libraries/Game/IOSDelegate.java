@@ -9,6 +9,7 @@ import org.robovm.apple.foundation.NSAutoreleasePool;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationDelegateAdapter;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 
 /**
  *
@@ -18,16 +19,24 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
 {
     // This is static to ensure that only app can exist and all delegates 
     // (if there are multiple) have access to the same one.
-    private static IOSApplication app;
+    public static IOSApplication app;
+    public static IOSAccessibility accessibility;
+
     
     public void Begin(IOSApplication application)
     {
+        System.out.println("application: " + application);
         app = application;
-        
+        System.out.println("IOSDelegate Begin1");
         // Making the (possibly incorrect) assumption that it is safe to pass an empty array of Strings for args.
         String[] args = new String[0];
         NSAutoreleasePool pool = new NSAutoreleasePool();
+        System.out.println("UIApplication shared instance: " + UIApplication.getSharedApplication());
+        System.out.println("IOSDelegate class: " + IOSDelegate.class);
+        System.out.println("IOSDelegate Begin2 " + app);
+        System.out.println("IOSDelegate Begin2 " + accessibility);
         UIApplication.main(args, null, IOSDelegate.class);
+        System.out.println("IOSDelegate Begin");
         pool.close();
     }
     
@@ -35,7 +44,10 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
     public boolean didFinishLaunching(UIApplication application, UIApplicationLaunchOptions launchOptions)
     {
         //application.addStrongRef(this);
-        return app.DidFinishLaunching(application, launchOptions);
+        boolean didFinishLaunching = app.DidFinishLaunching(application, launchOptions);
+        app.initializeAccessibility();
+        accessibility = app.getIOSAccessibility();
+        return didFinishLaunching;
     }
     
     @Override
