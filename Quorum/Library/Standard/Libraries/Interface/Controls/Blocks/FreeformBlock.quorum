@@ -389,7 +389,7 @@ class FreeformBlock is SingleLineBlock
                         editRegion:SetText(code)
                         hasExpression = false
                     end
-                    tokenIterator:Next()
+                    current = tokenIterator:Next()
                 elseif current:category = constants:UNTIL
                     untilType = false
                     if not tokenIterator:HasNext()
@@ -405,7 +405,7 @@ class FreeformBlock is SingleLineBlock
                         editRegion:SetText(code)
                         hasExpression = false
                     end
-                    tokenIterator:Next()
+                    current = tokenIterator:Next()
                 end
                 // there is an expression here
                 if hasExpression
@@ -422,7 +422,11 @@ class FreeformBlock is SingleLineBlock
                             elseif untilType
                                 code = "repeat until " + expression
                             else
-                                code = "repeat " + expression
+                                if current:category = constants:TIMES
+                                    code = "repeat " + expression
+                                else
+                                    code = "repeat " + expression + " times"
+                                end
                             end
                             editRegion:SetText(code)
                             if failState and AllTokensOnSingleLine()
@@ -592,6 +596,30 @@ class FreeformBlock is SingleLineBlock
                 editRegion:SetText(code)
             end
             isClassStatement = true
+    //  on create
+        elseif current:category = constants:ON
+            boolean hasCreate = false
+            if not tokenIterator:HasNext()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                text value = "on create"
+                code = value
+                hasCreate = true
+            else
+                current = tokenIterator:Next()
+                hasCreate = (current:category = constants:CREATE)
+            end
+
+            if not tokenIterator:HasNext() and hasCreate
+                text value = "on create"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
+            end
     // other
         elseif current:category = constants:PACKAGE_NAME
             isPackageStatement = true

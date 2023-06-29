@@ -327,7 +327,7 @@ class ViolinPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInpu
     private action CreateChartWithTwoFactors(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns ViolinPlot
         ViolinPlot chart
         if not column:IsNumberColumn()
-            alert("ViolinPlotCreator does not support non-numerical columns.")
+            alert("ViolinPlotCreator does not support nonnumerical columns.")
             return undefined
         end
         

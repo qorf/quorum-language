@@ -17,6 +17,7 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.List
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
+use Libraries.Game.Graphics.Painter2D
 
 class Block is Control
     integer scopeDepth = 0
@@ -525,7 +526,10 @@ class Block is Control
                     child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
                 end
 
-                if linesChanged not= 0 
+                // Only process line indices if the number of lines changed.
+                // Also, don't do it if there's no offending block and our start/end indices are identical.
+                // This resolves an edge case when adding a new line to the end of an empty freeform block.
+                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and startIndex = endIndex)
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
@@ -631,20 +635,20 @@ class Block is Control
     action UseEnterScopeStyling
         topNotchPositionFactor = 1
         bottomNotchPositionFactor = 2
-        SetBottomLeftRounding(0)
+        SetBottomLeftPixelRounding(0)
     end
 
     action UseExitScopeStyling
         topNotchPositionFactor = 2
         bottomNotchPositionFactor = 1
-        SetTopLeftRounding(0)
+        SetTopLeftPixelRounding(0)
     end
 
     action UseEnterAndExitScopeStyling
         topNotchPositionFactor = 2
         bottomNotchPositionFactor = 2
-        SetTopLeftRounding(0)
-        SetBottomLeftRounding(0)
+        SetTopLeftPixelRounding(0)
+        SetBottomLeftPixelRounding(0)
     end
 
     action UseNeutralScopeStyling
@@ -950,6 +954,13 @@ class Block is Control
             editor:OnFocusChange(event)
         end
     end
+    
+    action LostFocus(FocusEvent event)
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            editor:OnFocusLoss(event)
+        end
+    end
 
     action GetText returns text
         check
@@ -971,7 +982,7 @@ class Block is Control
             if GetBottomNotchPosition() > minimumWidth
                 minimumWidth = GetBottomNotchPosition()
             end
-            minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth() + GetRightPadding()
+            minimumWidth = minimumWidth + (editor:GetBlockNotchTopWidth() + GetRightPadding()) * GetInterfaceScale()
             return minimumWidth
         end
 
@@ -1013,5 +1024,59 @@ class Block is Control
     
     action IsFastEditable returns boolean
         return false
+    end
+    
+    action IsSelected returns boolean
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            integer startIndex = selection:GetLine()
+            integer endIndex = selection:GetRangeEndLine()
+            if startIndex > endIndex
+                integer temp = startIndex
+                startIndex = endIndex
+                endIndex = temp
+            end
+            // Only navigable blocks can be selected. Use that plus navigation indices to check for selection.
+            return IsNavigable() and GetNavigationIndex() <= endIndex and GetNavigationEndIndex() >= startIndex
+
+        end
+        
+        return false
+    end
+    
+    // This action returns true if this Block is both selected and where the cursor is located.
+    // This doesn't necessarily imply that there isn't a BlockItem within the block that's also selected, though.
+    action IsCursorSelected returns boolean
+        CodeEditor editor = GetEditor()
+        if editor not= undefined
+            CodeEditorSelection selection = editor:GetSelection()
+            return selection:GetBlock() = me
+        end
+        
+        return false
+    end
+    
+action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if parent:Item2D:visualView not= undefined
+            parent:Item2D:visualView:Draw(painter)
+        end
+    end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+        Array<Item2D> children = GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
     end
 end

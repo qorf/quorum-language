@@ -254,10 +254,12 @@ class CompareMeansSummary
                     number f = result:GetTestStatisticsTable():GetValue(statSource):GetValue("F")
                     number eff = result:GetEffectSizesTable():GetValue(statSource):GetValue(effName)
                     number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(source)
+                    number errordf = result:GetInformation():GetValue(source):GetValue("error df")
                     number dfn = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("numerator")
                     number dfd = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("denominator")
                     number pval = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
                     summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                    summary = summary + lf + tab + "Error Degrees Of Freedom: " + math:Round(errordf, digits)
                     summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
                     summary = summary + lf + tab + "Statistic (Approximate F): " + math:Round(f, digits)
                     summary = summary + lf + tab + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)
@@ -278,7 +280,29 @@ class CompareMeansSummary
                     text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
                     number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
-                    if result:HasEqualVariances() or result:IsRanked()
+                    if result:IsRepeated() and not result:IsRanked()
+                        number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
+                        number ss = result:GetInformation():GetValue(source):GetValue("ss")
+                        number df = result:GetInformation():GetValue(source):GetValue("df")
+                        number errorss = result:GetInformation():GetValue(source):GetValue("error ss")
+                        number errordf = result:GetInformation():GetValue(source):GetValue("error df")
+                        summary = summary + lf + tab + "Sum Of Squares: " + math:Round(ss, digits)
+                        summary = summary + lf + tab + "Error Sum Of Squares: " + math:Round(errorss, digits)
+                        summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                        summary = summary + lf + tab + "Error Degrees Of Freedom: " + math:Round(errordf, digits)
+                        summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
+                        summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
+                        if result:GetVarianceResult() not= undefined
+                            text correctionName = result:GetVarianceResult():GetCorrectionName()
+                            if correctionName not= ""
+                                number adjp = result:GetInformation():GetValue(source):GetValue("corrected p")
+                                summary = summary + lf + tab + correctionName + " (ε): " + math:Round(result:GetVarianceResult():GetCorrection(), digits)
+                                summary = summary + lf + tab + "Corrected Probability: " + math:Round(adjp, digits)
+                            end
+                        end
+                        summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)                   
+
+                    elseif result:HasEqualVariances() or result:IsRanked()
                         number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
                         number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
                         if not result:IsRanked() 
@@ -288,14 +312,6 @@ class CompareMeansSummary
                         summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
                         summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
                         summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
-                        if result:IsRepeated() and result:GetVarianceResult() not= undefined
-                            text correctionName = result:GetVarianceResult():GetCorrectionName()
-                            if correctionName not= ""
-                                number adjp = result:GetInformation():GetValue(source):GetValue("corrected p")
-                                summary = summary + lf + tab + correctionName + " (ε): " + math:Round(result:GetVarianceResult():GetCorrection(), digits)
-                                summary = summary + lf + tab + "Corrected Probability: " + math:Round(adjp, digits)
-                            end
-                        end
                         summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)
                     else
                         number dfn = result:GetDegreesOfFreedomTable():GetValue(source):GetValue("numerator")
@@ -305,14 +321,6 @@ class CompareMeansSummary
                         summary = summary + lf + tab + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)
                         summary = summary + lf + tab + "Degrees Of Freedom Denominator: " + math:Round(dfd, digits)
                         summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
-                        if result:IsRepeated() and result:GetVarianceResult() not= undefined
-                            text correctionName = result:GetVarianceResult():GetCorrectionName()
-                            if correctionName not= ""
-                                number adjp = result:GetInformation():GetValue(source):GetValue("corrected p")
-                                summary = summary + lf + tab + correctionName + " (ε): " + math:Round(result:GetVarianceResult():GetCorrection(), digits)
-                                summary = summary + lf + tab + "Corrected Probability: " + math:Round(adjp, digits)
-                            end
-                        end
                         summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)
                     end
                 else 
@@ -795,12 +803,14 @@ class CompareMeansSummary
                     text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                     text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                    number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-                    number dfw = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")
+//                    number dfn = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
+//                    number dfd = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")
+                    number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                    number dfd = result:GetInformation():GetValue(source):GetValue("error df")
                     number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
                     number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
             
-                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(stat)
                     if pval < format:PRECISION_LIMIT
                         summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                     else

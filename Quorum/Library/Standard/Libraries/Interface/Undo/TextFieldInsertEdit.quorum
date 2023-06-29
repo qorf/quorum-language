@@ -1,0 +1,71 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.TextField
+
+class TextFieldInsertEdit is Edit
+    integer caretStartPosition = 0
+    integer caretEndPosition = 0
+    text value = ""
+    text deleted = ""
+    TextField box = undefined
+
+    action GetTextField returns TextField
+        return box
+    end
+
+    action SetTextField(TextField box)
+        me:box = box
+    end
+
+    action GetCaretStartPosition returns integer
+        return caretStartPosition
+    end
+
+    action SetCaretStartPosition(integer position)
+        caretStartPosition = position 
+    end
+
+    action GetCaretEndPosition returns integer
+        return caretEndPosition
+    end
+
+    action SetCaretEndPosition(integer position)
+        caretEndPosition = position 
+    end
+
+    action IsModify returns boolean
+        if deleted = ""
+            return false
+        end
+        return true
+    end
+    
+    action SetDeletedText(text deleted)
+        me:deleted = deleted
+    end
+
+    action GetText returns text
+        return value
+    end
+
+    action SetText(text value)
+        me:value = value
+    end
+
+    action Undo
+        box:SetCaretPosition(caretStartPosition)
+        box:Delete(caretStartPosition, caretEndPosition)
+        if IsModify()
+            box:Insert(caretStartPosition, deleted)
+            box:Select(caretStartPosition, caretStartPosition + deleted:GetSize())
+        end
+    end
+
+    action Redo
+        box:SetCaretPosition(caretStartPosition)
+        if IsModify()
+            box:Select(caretStartPosition, caretStartPosition + deleted:GetSize())
+        end
+        box:Insert(caretStartPosition, value)
+    end
+end

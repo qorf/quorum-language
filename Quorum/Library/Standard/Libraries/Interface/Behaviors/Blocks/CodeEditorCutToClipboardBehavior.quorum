@@ -1,0 +1,34 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Item
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.MenuItem
+
+class CodeEditorCutToClipboardBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if item is MenuItem
+            MenuItem menu = cast(MenuItem, item)
+            if menu:GetMenuRoot() is CodeEditorPopupMenu
+                CodeEditorPopupMenu menuRoot = cast(CodeEditorPopupMenu, menu:GetMenuRoot())
+                item = menuRoot:GetCodeEditor()
+            end
+        end
+        if not (item is CodeEditor)
+            return now
+        end
+        CodeEditor editor = cast(CodeEditor, item)
+        if editor:GetSelectedText() = undefined
+            return now
+        end
+        text copy = editor:GetSelectedText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(copy)
+        editor:DeleteSelectedBlock(false)
+    end
+end

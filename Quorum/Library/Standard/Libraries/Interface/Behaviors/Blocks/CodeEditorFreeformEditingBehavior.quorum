@@ -40,7 +40,7 @@ class CodeEditorFreeformEditingBehavior is Behavior
 
         Block block = editor:GetSelection():GetBlock()
         
-        if block:IsFastEditable() = false and forceEditing = false
+        if (block = undefined) or (block:IsFastEditable() = false and forceEditing = false)
             return now
         end
         

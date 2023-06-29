@@ -31,6 +31,14 @@ class CodeEditorRenderer is Control
     */
     Queue<MultipleLineBlock> currentMultiBlocks
 
+    // Values used for the blinking cursor.
+    number cursorIdleTime = 1.0
+    number cursorBlinkTime = 0.35
+    number cursorMoveDelay = 0.35
+    number cursorMoveTime = 0.0325
+    number cursorTimer = 0
+    boolean cursorActive = false
+    
     on create
         SetCustomDrawing(true)
         SetChildrenProcessingMouseEvents(true)
@@ -54,7 +62,9 @@ class CodeEditorRenderer is Control
         CodeEditor editor = GetEditor()
         if cursor:GetView2D() = undefined and editor not= undefined
             cursor:SetBackgroundColor(editor:GetSelectionColor())
-
+            cursor:SetBorderColor(editor:GetSelectionBorderColor())
+            cursor:SetBorderThickness(editor:GetBorderThickness())
+            
             // TO-DO: Change this. Temporary debug values.
             cursor:SetSize(30, 5)
 
@@ -115,6 +125,18 @@ class CodeEditorRenderer is Control
                 currentMultiBlocks:Add(multiBlock)
             else
                 block:Draw(painter)
+            end
+            counter = counter + 1
+        end
+        
+        counter = 0
+        repeat while counter < drawnBlocks:GetSize()
+            Block block = drawnBlocks:Get(counter)
+            if block is MultipleLineBlock
+                MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+                multiBlock:DrawContents(painter)
+            else
+                block:DrawContents(painter)
             end
             counter = counter + 1
         end
@@ -301,7 +323,6 @@ class CodeEditorRenderer is Control
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
     end
 
@@ -351,6 +372,7 @@ class CodeEditorRenderer is Control
         end
 
         cursor:SetPosition(x, y)
+        ShowCursor()
     end
 
     private action GetEditor returns CodeEditor
@@ -478,5 +500,40 @@ class CodeEditorRenderer is Control
 
         // Make sure the bottom of the block is above the bottom of the renderer, and the top of the block is below the top of the renderer.
         return block:GetGlobalY() >= GetGlobalY() and (block:GetGlobalY() + block:GetHeight() <= GetGlobalY() + GetHeight())
+    end
+    
+    action ShowCursor
+        cursorActive = true
+        ResetCursorBlinkTimer()
+    end
+    
+    private action ResetCursorBlinkTimer
+    if cursorActive
+            cursorTimer = cursorIdleTime
+            cursor:Show()
+        end
+    end
+    
+    action HideCursor
+        cursor:Hide()
+        cursorActive = false
+    end
+    
+    action IsCursorActive returns boolean
+        return cursorActive
+    end
+    
+    action Update(number seconds)
+        if cursorActive
+            cursorTimer = cursorTimer - seconds
+            if cursorTimer <= 0
+                if cursor:IsShowing()
+                    cursor:Hide()
+                else
+                    cursor:Show()
+                end
+                cursorTimer = cursorBlinkTime
+            end
+        end
     end
 end

@@ -24,7 +24,7 @@ class EditRegion is BlockItem
     BlockOptionConstants constants
 
     on create
-        SetCornerRounding(0.5, 0.5, 0.5, 0.5)
+        SetCornerPixelRounding(4, 4, 4, 4)
     end
 
     blueprint action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)
@@ -191,4 +191,5 @@ class EditRegion is BlockItem
 
     blueprint action HideCaret
 
+    blueprint action GetSelectedText returns text
 end

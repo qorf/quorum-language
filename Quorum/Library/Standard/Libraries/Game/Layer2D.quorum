@@ -2342,13 +2342,24 @@ class Layer2D is Layer
         i = 0
         repeat items:GetSize() times
             Item2D item = items:Get(i)
-            if item:IsCollidable() or item:IsPhysicsEnabled()
-                item:SynchronizeNodes()
-            end 
+            SynchronizeAllNodes(item)
             i = i + 1
         end
 
         collisionManager:FindNewCollisions()
+    end
+
+    private action SynchronizeAllNodes(Item2D item)
+        if item:IsCollidable() or item:IsPhysicsEnabled()
+            item:SynchronizeNodes()
+        end
+            
+        integer i = 0
+        Array<Item2D> children = item:GetChildren()
+        repeat while i < children:GetSize()
+            SynchronizeAllNodes(children:Get(i))
+            i = i + 1
+        end
     end
 
     private action SetUpdateTransforms(boolean flag) 

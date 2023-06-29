@@ -80,7 +80,7 @@ class LineNumberGutter is Gutter, BreakpointListener
         text linesInText = "" + control:GetLineCount()
         integer glyphsRequired = linesInText:GetSize()
         
-        return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + GetLeftMargin() + GetRightMargin()
+        return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + (GetLeftMargin() + GetRightMargin()) * GetInterfaceScale()
     end
 
     action UpdateVisuals(integer startLine)
@@ -109,9 +109,9 @@ class LineNumberGutter is Gutter, BreakpointListener
         this is only an approximation, which may require some extra space via
         padding in order to look correct.
         */
-        number leftMargin = properties:GetLeftMargin()
-        number rightMargin = properties:GetRightMargin()
-        number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + properties:GetLeftMargin() + rightMargin
+        number leftMargin = properties:GetLeftMargin() * GetInterfaceScale()
+        number rightMargin = properties:GetRightMargin() * GetInterfaceScale()
+        number width = font:GetGlyph("0"):horizontalAdvance * glyphsRequired + leftMargin + rightMargin
         integer totalLines = control:GetLineCount()
 
         // If the horizontal scroll bar is visible, the rendering area will be slightly shorter than the gutter is.

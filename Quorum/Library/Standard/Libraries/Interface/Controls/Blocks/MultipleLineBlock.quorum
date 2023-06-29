@@ -12,6 +12,10 @@ class MultipleLineBlock is Block
     Array<MultipleLineBlockPart> blockParts
     Array<Control> blockConnectors
 
+    on create
+        SetFocusable(false)
+    end
+    
     action Add(MultipleLineBlockPart part)
         if part:GetParentBlock() not= undefined
             alert("I couldn't add the block part " + part:GetName() + " to the multiple line block " + GetName() + " because the part is already attached to " + part:GetParentBlock():GetName())
@@ -89,7 +93,7 @@ class MultipleLineBlock is Block
         LayoutProperties properties = connector:GetDefaultLayoutProperties()
         connector:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         connector:SetBorderStyle(properties:LEFT + properties:RIGHT)
-        connector:SetCornerRounding(0, 0, 0, 0)
+        connector:SetCornerPixelRounding(0, 0, 0, 0)
 
         ControlShaderView view
         view:Initialize()
@@ -161,14 +165,23 @@ class MultipleLineBlock is Block
     end
 
     action DrawParts(Painter2D painter)
-        if GetView2D() not= undefined
-            GetView2D():Draw(painter)
-        end
-
         integer counter = 0
         repeat while counter < blockParts:GetSize()
             Block block = blockParts:Get(counter)
             block:Draw(painter)
+            counter = counter + 1
+        end
+    end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+repeat while counter < blockParts:GetSize()
+            Block block = blockParts:Get(counter)
+            block:DrawContents(painter)
             counter = counter + 1
         end
     end

@@ -44,6 +44,7 @@ use Libraries.Interface.Controls.AnnotationLineGutter
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
+use Libraries.Interface.Controls.CodeEditorLineNumberGutter
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -92,7 +93,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     File file = undefined
     Class clazz = undefined
     BreakpointManager breakpoints = undefined
-    LineNumberGutter lineGutter
+    CodeEditorLineNumberGutter lineGutter
     AnnotationLineGutter annotationGutter
 
     /* 
@@ -120,7 +121,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetFont(GetDefaultFont())
 
         selection:Initialize(me, "")
-        editManager:SetBlockEditor(me)
+        editManager:SetEditor(me)
+        AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
         SetFocusable(true)
@@ -136,9 +138,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetPopupMenu(popup)
     end
     
-action SelectAll
-        output "Select All Triggered. Remove me before release"
-        //Not yet implemented.
+    action SelectAll
+        selection:Set(renderer:GetRootBlock():GetNextNavigableBlock(), 0, GetLineCount() - 1, undefined)
     end
     
     
@@ -601,7 +602,6 @@ action SelectAll
 
     action GetLineHeight(integer line) returns number
         Block block = renderer:GetBlockAtLine(line)
-
         if block is SingleLineBlock
             integer startLine = block:GetNavigationIndex()
             integer endLine = block:GetNavigationEndIndex()
@@ -613,7 +613,7 @@ action SelectAll
                 end
             end
         end
-
+        
         return GetDefaultLineHeight()
     end
 
@@ -660,6 +660,7 @@ action SelectAll
             repeat while counter < lines
                 number currentHeight = GetLineHeight(counter)
                 currentY = currentY - currentHeight
+                
                 cachedLinePositions:Add(currentY)
                 total = total + currentHeight
                 counter = counter + 1
@@ -751,6 +752,10 @@ action SelectAll
             GetTotalContentHeight()
         end
 
+        if line >= cachedLinePositions:GetSize()
+            return 0
+        end
+        
         return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
     end
 
@@ -912,6 +917,10 @@ action SelectAll
             adjustedEvent:Initialize(event:GetControl(), event:GetAddedText(), event:GetDeletedText(), index)
             NotifyTextChangeListeners(adjustedEvent)
         end
+        
+        if renderer:IsCursorActive()
+            renderer:ShowCursor()
+        end
     end
 
     private action NotifyTextChangeListeners(TextChangeEvent event)
@@ -947,14 +956,24 @@ action SelectAll
     action GainedFocus(FocusEvent event)
         OnFocusChange(event)
     end
+    
+    action LostFocus(FocusEvent event)
+        OnFocusLoss(event)
+    end
 
+    action OnFocusLoss(FocusEvent event)
+        if ContainsFocus() = false
+            renderer:HideCursor()
+        end
+    end
+    
     /*
     This action is called when a Block or BlockItem in the editor receives focus, or if the Editor is focused directly.
     This is primarily responsible for updating the selection to match the focused element.
     */
     action OnFocusChange(FocusEvent event)
         Item newFocus = event:GetNewFocus()
-
+        
         if shouldCalculateNavigationIndices
             RefreshNavigationIndices()
         end
@@ -966,6 +985,11 @@ action SelectAll
             end
         elseif newFocus is Block
             Block block = cast(Block, newFocus)
+            // Don't adjust selection if the Block was already selected. Done to avoid problems with multiple selection.
+            if block = selection:GetBlock() and selection:GetBlockItem() = undefined
+                return now
+            end
+            
             if block is SingleLineBlock
                 // In case this is a single line wrapped around multiple, aim to select its last line, so the selection line is rendered at the bottom
                 selection:Set(block, block:GetNavigationEndIndex(), undefined)
@@ -988,7 +1012,6 @@ action SelectAll
     */
     action OnSelectionChange(Block lastBlock, BlockItem lastItem, integer lastLine)
         Block newBlock = selection:GetBlock()
-
         if newBlock not= lastBlock
             if lastBlock not= undefined
                 lastBlock:LostSelection()
@@ -1032,6 +1055,23 @@ action SelectAll
         return renderer:IsBlockFullyVisible(block)
     end
 
+    action GetSelectedText returns text
+        if selection:GetBlockItem() not= undefined
+            if selection:GetBlockItem() is EditRegion
+                EditRegion region = cast(EditRegion, selection:GetBlockItem())
+                return region:GetSelectedText()
+            end
+        elseif selection:IsMultipleSelection()
+        Array<Block> selectedBlocks = GetSelectedBlocks()
+            integer startIndex = selectedBlocks:GetFromFront():GetStartIndex()
+            integer endIndex = selectedBlocks:GetFromEnd():GetEndIndex()
+            return rawCode:GetText(startIndex, endIndex)
+        elseif selection:GetBlock() not= undefined
+            return selection:GetBlock():GetText()
+        end
+        return undefined
+    end
+    
     action MoveSelectionDown
         if selection:GetBlock() not= undefined
             SelectBlockOrItem(selection:GetBlock():GetNextNavigableBlock())
@@ -1042,6 +1082,16 @@ action SelectAll
         end
     end
 
+    action MoveMultipleSelectionDown
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetNextNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
+        end
+    end
+    
     action MoveSelectionUp
         if selection:GetBlock() not= undefined
             Block next = selection:GetBlock():GetPreviousNavigableBlock()
@@ -1057,6 +1107,16 @@ action SelectAll
         end
     end
 
+    action MoveMultipleSelectionUp
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetPreviousNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
+        end
+    end
+    
     action SelectNext
         BlockItem item = selection:GetBlockItem()
         Block block = selection:GetBlock()
@@ -1102,6 +1162,20 @@ action SelectAll
     action SelectBlockOrItem(Item target)
         if target not= undefined
             target:Focus()
+        end
+    end
+    
+    action SelectBlockRange(Block firstBlock, Block secondBlock, boolean selectionAtEnd)
+        if firstBlock:GetNavigationIndex() < secondBlock:GetNavigationIndex()
+        end
+            Block temp = firstBlock
+            firstBlock = secondBlock
+            secondBlock = temp
+        
+        if selectionAtEnd
+            selection:Set(firstBlock, firstBlock:GetNavigationIndex(), secondBlock:GetNavigationIndex(), undefined)
+        else
+            selection:Set(secondBlock, secondBlock:GetNavigationIndex(), firstBlock:GetNavigationIndex(), undefined)
         end
     end
 
@@ -1159,6 +1233,7 @@ action SelectAll
     end
     
     action CreateNewLineBlock
+        
         // If the selected block is a FreeformBlock, try to parse it before making a new one.
         if selection:GetBlock() is FreeformBlock
             // Note that if the selected block is replaced, the new one will be selected before we continue.
@@ -1168,7 +1243,6 @@ action SelectAll
 
         integer currentLine = selection:GetLine()
         integer targetIndex = 0
-
         if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
@@ -1217,14 +1291,12 @@ action SelectAll
 " + GetIndentationText(scopeDepth)
 
         /*
-        Call OffsetIndices on the parent. By passing false for the final parameter,
-        we indicate that we'll be inserting a new block, so existing blocks shouldn't
-        try to incorporate index changes that fall exactly on their start/end boundaries.
-
-        The exception is if we're inserting at targetIndex = 0, in which case we need to
-        offset the first child of the root block.
+        Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
+        text and line indices are correct.
         */
         parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
+
+
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
@@ -1359,15 +1431,54 @@ action SelectAll
         renderer:RefreshBlockView()
     end
 
+    action InsertTextAfterLine(text value)
+        integer currentLine = selection:GetLine()
+        integer targetIndex = 0
+        if selection:GetBlock() not= undefined
+            currentLine = selection:GetBlock():GetEndLine()
+        end
+
+        if currentLine >= rawCode:GetLineCount() - 1
+            targetIndex = rawCode:GetSize()
+        elseif currentLine >= 0
+            // Get the start of the next line, then go back one to reach the end of the current line.
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+        end
+
+        text newLine = rawCode:GetLineSeparator() + value
+
+        MultipleLineText oldCode = GetCode()
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, newLine, "", targetIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, oldCode, GetCode())
+
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
     /*
     This action deletes the currently selected block. If the passed boolean is true, all blocks
     nested inside the block will be deleted as well. If the boolean is false, they'll instead be
     preserved and reattached into the tree to the parent of the deleted block.
     */
     action DeleteSelectedBlock(boolean deleteContents)
-        Block block = selection:GetBlock()
-        if block not= undefined
-            Delete(block, deleteContents)
+        if selection:GetSelectedBlocks():GetSize() = 1
+            Block block = selection:GetBlock()
+            if block not= undefined
+                Delete(block, deleteContents)
+            end
+        elseif selection:GetSelectedBlocks():GetSize() > 1
+            integer startIndex = selection:GetSelectedBlocks():Get(0):GetStartIndex()
+            Delete(startIndex, GetSelectedText():GetSize())
         end
     end
 
@@ -1380,6 +1491,26 @@ action SelectAll
         Delete(block, deleteContents, true)
     end
 
+
+    action Delete(integer index, integer size)
+        MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(index, index+size)
+
+        TextChangeEvent event
+        event:Initialize(me, "", deletedText, index)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
     /*
     This action deletes the given block. If the passed boolean is true, all blocks
     nested inside the block will be deleted as well. If the boolean is false, they'll instead be
@@ -1387,7 +1518,7 @@ action SelectAll
     */
     action Delete(Block block, boolean deleteContents, boolean triggerEvent)
         shouldCalculateNavigationIndices = true
-
+        editManager:SetSpecialAction(true)
         // After deleting the block, we'll jump to the target selection.
         Block targetSelection = undefined
         Block parentBlock = block:GetParentBlock()
@@ -1453,6 +1584,8 @@ action SelectAll
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1470,6 +1603,7 @@ action SelectAll
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
                         return now
                     else
                         DeleteBlockAndChildren(actionParent)
@@ -1479,6 +1613,7 @@ action SelectAll
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
                         return now
                     end
                     
@@ -1498,6 +1633,7 @@ action SelectAll
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1522,6 +1658,7 @@ action SelectAll
                     end
                     
                     // Return early so we don't refresh the block view -- it'll be regenerated on the next frame due to the delete call happening
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1539,6 +1676,8 @@ action SelectAll
             NotifyBlockChangeListeners(event)
         end
 
+        editManager:SetSpecialAction(false)
+
         if targetSelection not= undefined
             SelectBlockOrItem(targetSelection)
         else
@@ -1552,6 +1691,7 @@ action SelectAll
             parentBlock:Resize()
             RequestViewRefresh()
         end
+
     end
 
     action DeleteBlockAndChildren(Block block)
@@ -1929,7 +2069,7 @@ action SelectAll
             repeat while i >= 0
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i - 1
@@ -1960,7 +2100,7 @@ action SelectAll
 
 
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
@@ -1976,10 +2116,15 @@ action SelectAll
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
+    private action NavigateToBlock(Block block)
+        SelectBlockRange(block, block, true)
+        GoToBlock(block)
+        block:Focus()
+    end
     
 
     action SmartNavigateDown
@@ -2007,7 +2152,7 @@ action SelectAll
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if child not= undefined and IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end
                 i = i + 1
@@ -2048,7 +2193,7 @@ action SelectAll
             repeat while i < firstChild:GetChildCount()
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i + 1
@@ -2056,12 +2201,12 @@ action SelectAll
 
             //if we didn't find one previously, choose the first round the horn
             if candidateAction not= undefined
-                candidateAction:Focus()
+                NavigateToBlock(candidateAction)
                 return now
             end
 
             //nothing was found, so just do the action block
-            theAction:Focus()
+            NavigateToBlock(theAction)
         end
     end
 
@@ -2108,7 +2253,7 @@ action SelectAll
         Block block = selection:GetBlock()
         Block found = TraverseBackward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
     end
@@ -2121,8 +2266,115 @@ action SelectAll
         Block block = selection:GetBlock()
         Block found = TraverseForward(block)
         if found not= undefined
-            found:Focus()
+            NavigateToBlock(found)
             return now
         end
+    end
+
+    action GetNavigableBlocksInIndexRange(integer rangeStart, integer rangeEnd) returns Array<Block>
+        Array<Block> result
+
+        Block root = renderer:GetRootBlock()
+        if root not= undefined
+            GetBlocksInNavigationIndexRange(result, root, rangeStart, rangeEnd)
+        end
+
+        return result
+    end
+
+    private action GetBlocksInNavigationIndexRange(Array<Block> array, Block block, integer rangeStart, integer rangeEnd)
+        if rangeStart > rangeEnd
+            integer temp = rangeStart
+            rangeStart = rangeEnd
+            rangeEnd = temp
+        end
+        
+        integer i = block:GetChildCount()
+        // If we find a block with a navigation index less than our start, it might have eligible children,
+        // But any elements attached to earlier tree nodes must have a lower index, so we don't have to look at those.
+        boolean lastSubTree = false
+        repeat while i > 0
+        i = i - 1
+            Block current = block:GetChild(i)
+            integer currentIndex = current:GetNavigationIndex()
+            integer currentEndIndex = current:GetNavigationEndIndex()
+            if currentIndex > rangeEnd
+                // Do nothing. This subtree can't have any elements in the range we need.
+            elseif currentEndIndex < rangeStart
+                if lastSubTree 
+                    i = 0
+                else
+                    lastSubTree = true
+                    GetBlocksInNavigationIndexRange(array, current, rangeStart, rangeEnd)
+                end
+            else
+                GetBlocksInNavigationIndexRange(array, current, rangeStart, rangeEnd)
+            end
+        end
+
+        if block:IsNavigable() and (block:GetNavigationIndex() <= rangeEnd and block:GetNavigationEndIndex() >= rangeStart)
+            array:AddToFront(block)
+        end
+    end
+    
+    action GetSelectedBlocks returns Array<Block>
+        if selection:IsMultipleSelection()
+            return GetNavigableBlocksInIndexRange(selection:GetLine(), selection:GetRangeEndLine())
+        end
+        if selection:IsEmpty()
+            return undefined
+        end
+        Array<Block> value
+        value:Add(selection:GetBlock())
+        return value
+    end
+    
+    action GetBlockAtNavigationIndex(integer index) returns Block
+        return renderer:GetBlockAtLine(index)
+    end
+    
+    action SelectBlockRange(Block block, integer endIndex)
+        if endIndex < 0
+            endIndex = 0
+        end
+        
+        selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
+    end
+    
+    action SelectFirstBlock
+Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockOrItem(firstBlock)
+        end
+    end
+    
+    action SelectLastBlock
+        Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockOrItem(lastBlock)
+        end
+    end
+    
+    action SelectRangeToFirstBlock
+        Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockRange(firstBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    action SelectRangeToLastBlock
+Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockRange(lastBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    private action GetLastBlock returns Block
+    Block current = renderer:GetRootBlock()
+        repeat until current:GetChildCount() = 0
+            current = current:GetChild(current:GetChildCount() - 1)
+        end
+        
+        return current
     end
 end

@@ -88,7 +88,7 @@ class HistogramWriter is ChartWriter
         histogram = cast(Histogram, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -136,7 +136,11 @@ class HistogramWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            if chart:IsShowingTitle()
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")     
         end
 

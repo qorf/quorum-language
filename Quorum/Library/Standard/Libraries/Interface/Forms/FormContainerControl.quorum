@@ -14,12 +14,14 @@ use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.ToggleButton
+use Libraries.System.File
 
 class FormContainerControl is Control
     boolean hasDefaultFocusOrdering = false
     boolean skipLabelsInFocus = false
     FormLabel titleLabel = undefined
-
+    Form form = undefined
+    
     FormConstants constants
     integer titleSize = constants:DEFAULT_FONT_SIZE
 
@@ -135,11 +137,23 @@ class FormContainerControl is Control
 
     action ChangeButtonIcon(text name, text fileName)
         Button button = GetButton(name)
+        File file = undefined
+        if form not= undefined and form:GetMediaLocation() not= undefined
+            File file2
+            file = file2
+            file:SetWorkingDirectory(form:GetMediaLocation())
+            file:SetPath(fileName)
+        end
+
         if button = undefined
             alert("I couldn't find a Button named " + name + ". Are you looking for the right item?")
         else
             Drawable drawable
-            drawable:Load(fileName)
+            if file not= undefined
+                drawable:Load(file)
+            else
+                drawable:Load(fileName)
+            end
             button:SetIcon(drawable)
             button:RequestLayout()
         end
@@ -148,9 +162,21 @@ class FormContainerControl is Control
     action AddButton(text name, text fileName) returns Button
         Button button = AddButton(name)
 
+        File file = undefined
+        if form not= undefined and form:GetMediaLocation()not= undefined
+            File file2
+            file = file2
+            file:SetWorkingDirectory(form:GetMediaLocation())
+            file:SetPath(fileName)
+        end
+
         if delayedLoader:IsGameAvailable()
             Drawable drawable
-            drawable:Load(fileName)
+            if file not= undefined
+                drawable:Load(file)
+            else
+                drawable:Load(fileName)
+            end
             button:SetIcon(drawable)
 
             button:SetPixelWidth(0)
@@ -159,7 +185,7 @@ class FormContainerControl is Control
             button:SetHorizontalLayoutMode(button:parent:Control:MAINTAIN_ASPECT_RATIO)
             button:SetPercentageWidth(drawable:GetWidth() / drawable:GetHeight())
         else
-            delayedLoader:AddRequest(button, fileName, undefined)
+            delayedLoader:AddRequest(button, fileName, file)
         end
 
 
@@ -333,8 +359,7 @@ class FormContainerControl is Control
         if not skipLabelsInFocus
             label:SetFocusable(true)
         end
-        label:SetDescription(value)
-        label:SetAccessibilityCode(label:parent:Item:CUSTOM)
+        label:SetDescription("")
         label:SetDescendingLines(false)
         label:SetToDefaultFontSize()
 
@@ -377,11 +402,23 @@ class FormContainerControl is Control
         icon:SetFocusable(true)
         icon:SetAccessibilityCode(icon:parent:Item:CUSTOM)
 
+        File file = undefined
+        if form not= undefined and form:GetMediaLocation() not= undefined
+            File file2
+            file = file2
+            file:SetWorkingDirectory(form:GetMediaLocation())
+            file:SetPath(fileName)
+        end
+
         if delayedLoader:IsGameAvailable()
-            icon:Load(fileName)
+            if file not= undefined
+                icon:Load(file)
+            else
+                icon:Load(fileName)
+            end
             icon:SetPercentageWidth(icon:GetWidth() / icon:GetHeight())
         else
-            delayedLoader:AddRequest(icon, fileName, undefined)
+            delayedLoader:AddRequest(icon, fileName, file)
         end
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
@@ -402,10 +439,22 @@ class FormContainerControl is Control
 
     action ChangeIcon(text name, text fileName)
         Icon icon = GetIcon(name)
+        File file = undefined
+        if form not= undefined and form:GetMediaLocation()not= undefined
+            File file2
+            file = file2
+            file:SetWorkingDirectory(form:GetMediaLocation())
+            file:SetPath(fileName)
+        end
+
         if icon = undefined
             alert("I couldn't find an Icon named " + name + ". Are you looking for the right item?")
         else
-            icon:Load(fileName)
+            if file not= undefined
+                icon:Load(file)
+            else
+                icon:Load(fileName)
+            end
         end
     end
 
@@ -672,5 +721,13 @@ class FormContainerControl is Control
 
     action SetSkipLabelsInFocus(boolean skipLabelsInFocus)
         me:skipLabelsInFocus = skipLabelsInFocus
+    end
+    
+    action GetForm returns Form
+        return form
+    end
+    
+    action SetForm(Form form)
+        me:form = form
     end
 end

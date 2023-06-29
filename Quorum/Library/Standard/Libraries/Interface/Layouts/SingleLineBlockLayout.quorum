@@ -12,7 +12,16 @@ class SingleLineBlockLayout is Layout
 
     action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         Block block = cast(Block, container)
+        
+        if block = undefined
+            return now
+        end
+
         CodeEditor editor = block:GetEditor()
+        
+        if editor = undefined
+            return now
+        end
 
         number height = editor:GetLineHeight(block:GetStartLine())
         integer i = block:GetStartLine() + 1
@@ -43,7 +52,7 @@ class SingleLineBlockLayout is Layout
                     control:Resize()
                 end
 
-                control:SetPosition(x, y - control:GetHeight() / 2.0)
+                control:SetPosition(cast(integer, x), cast(integer, y - control:GetHeight() / 2.0))
                 x = x + control:GetWidth() + control:GetRightPadding()
             end
             i = i + 1

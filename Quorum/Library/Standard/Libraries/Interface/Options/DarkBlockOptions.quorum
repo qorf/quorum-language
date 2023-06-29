@@ -28,7 +28,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     
     Color returnBlock = color:CustomColor(92.0 / MAX, 177.0 / MAX, 214.0 / MAX, 1)
     Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
-    Color selectionColor = color:CustomColor(0.5, 0.75, 0.59, 1)
+    Color selectionColor = color:CustomColor(0.5, 0.5, 0.5, 1)
 
     action SetStartingOptions
         SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
@@ -37,7 +37,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetBackgroundColor(constants:RETURN_KEY, defaultStatementColor)
         SetBackgroundColor(constants:USE_KEY, returnBlock)
         SetBackgroundColor(constants:PACKAGE_KEY, packageBlock)
-        SetBackgroundColor(constants:ALERT_KEY, alertBlock)
+        SetBackgroundColor(constants:ALERT_KEY, defaultStatementColor)
         SetBackgroundColor(constants:CHECK_KEY, checkBlock)
         SetBackgroundColor(constants:ACTION_CALL_KEY, defaultStatementColor)
         SetBackgroundColor(constants:REPEAT_KEY, repeatBlock)
