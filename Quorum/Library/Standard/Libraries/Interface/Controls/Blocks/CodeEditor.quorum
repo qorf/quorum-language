@@ -1298,6 +1298,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
         text and line indices are correct.
         */
+        newLine = SanitizeNewLines(newLine)
         parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
 
 
@@ -1438,6 +1439,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action InsertTextAfterLine(text value)
         integer currentLine = selection:GetLine()
         integer targetIndex = 0
+        value = SanitizeNewLines(value)
         if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
