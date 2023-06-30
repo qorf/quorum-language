@@ -18,6 +18,8 @@ class ChartPoint is ChartDrawable
     text name = ""
     text letterCode = ""
     Series series = undefined
+    text xNameOverride = undefined
+    text yNameOverride = undefined
     
     ChartDrawable parentRegion = undefined
     Icon icon
@@ -151,16 +153,30 @@ class ChartPoint is ChartDrawable
         text convert = "A"
         me:letterCode = convert:GetUnicodeValue((iteration mod 26) + 65)
     end
-
     
     action GetSelectionColor returns ColorGroup
-
         Chart chart = GetParentChart()
         if chart not= undefined
             return chart:GetSelectionColor()
         end
 
         return undefined
+    end
+
+    action GetXNameOverride returns text
+        return xNameOverride
+    end
+
+    action SetXNameOverride(text xNameOverride)
+        me:xNameOverride = xNameOverride
+    end
+
+    action GetYNameOverride returns text
+        return yNameOverride
+    end
+
+    action SetYNameOverride(text yNameOverride)
+        me:yNameOverride = yNameOverride
     end
 
 end

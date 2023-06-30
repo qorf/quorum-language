@@ -237,6 +237,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if dateForText:HasKey(groupKeyArray:Get(i)) and xdateMin not= undefined
                             number x = dateForText:GetValue(groupKeyArray:Get(i)):GetDayDifference(xdateMin)
                             point:SetValueX(x)
+                            //this should be the actual date label
+                            point:SetXNameOverride(groupKeyArray:Get(i))
                         end
                         j = j + 1
                     end

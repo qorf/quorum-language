@@ -1044,6 +1044,15 @@ class TwoVariableChart is Chart
                 pointY = GetVerticalPanel():GetTextLabels():Get(cast(integer, point:GetValueY()))
             end
         end
+            
+        if point:GetXNameOverride() not= undefined
+            pointX = point:GetXNameOverride()
+        end
+
+        if point:GetYNameOverride() not= undefined
+            pointY = point:GetYNameOverride()
+        end
+        
         point:SetName("(" + pointX + ", " + pointY + ")")
         point:SetDescription(" " + point:GetSeries():GetName() + " point.")
     end
