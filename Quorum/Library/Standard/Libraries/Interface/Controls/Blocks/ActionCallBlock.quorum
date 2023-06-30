@@ -10,7 +10,7 @@ use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
 
 class ActionCallBlock is SingleLineBlock
 
-    EditField actionCallField = undefined
+    EditBox actionCallBox = undefined
 
     VariableFunctionCallContext variableActionCall = undefined
     ParentVariableFunctionCallContext parentActionCall = undefined
@@ -44,11 +44,11 @@ class ActionCallBlock is SingleLineBlock
             location = parentActionCall:GetLocation()
         end
 
-        EditField actionCallField
-        me:actionCallField = actionCallField
-        Add(actionCallField)
+        EditBox actionCallBox
+        me:actionCallBox = actionCallBox
+        Add(actionCallBox)
 
-        actionCallField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        actionCallBox:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
     end
 
     action GetVariableFunctionCallContext returns VariableFunctionCallContext

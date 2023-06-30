@@ -34,7 +34,7 @@ class FormLabel is Label
     end
 
     action GetFontOutlineThickness returns number
-        if HasColorPropertyOverride("fontOutlineThickness")
+        if HasNumberPropertyOverride("fontOutlineThickness")
             return parent:Control:GetFontOutlineThickness()
         end
 
