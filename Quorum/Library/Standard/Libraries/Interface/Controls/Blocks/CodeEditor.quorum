@@ -435,6 +435,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SetCode(text code)
+        code = SanitizeNewLines(code)
         rawCode:Initialize(code)
         failState = not GenerateStartContextFromCode(code)
         if failState
@@ -448,7 +449,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SetCode(MultipleLineText code)
-        rawCode = code
+        MultipleLineText sanitized
+        sanitized:Initialize(SanitizeNewLines(code:GetText()))
+        rawCode = sanitized
         failState = not GenerateStartContextFromCode(code:GetText())
         if failState
             blockListener:SetStartContext(undefined)
@@ -901,6 +904,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             rawCode = rawCode:Delete(index, index + deleted:GetSize())
         end
         if added:IsEmpty() = false
+            SanitizeNewLines(added)
             rawCode = rawCode:Insert(index, added)
         end
 
@@ -914,7 +918,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             NotifyTextChangeListeners(event)
         else
             TextChangeEvent adjustedEvent
-            adjustedEvent:Initialize(event:GetControl(), event:GetAddedText(), event:GetDeletedText(), index)
+            adjustedEvent:Initialize(event:GetControl(), SanitizeNewLines(event:GetAddedText()), event:GetDeletedText(), index)
             NotifyTextChangeListeners(adjustedEvent)
         end
         
@@ -1993,6 +1997,59 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
         lineGutter:SetBreakpointManager(breakpoints)
+    end
+
+    /* 
+    This action checks if the given text is using either Windows or UNIX style
+    new line separators, and if it's using a different new line style than the
+    current OS's style, swaps the new lines to the system's style.
+    */
+    private action SanitizeNewLines(text inputText) returns text
+        if inputText:IsEmpty()
+            return inputText
+        end
+
+        text separator = rawCode:GetLineSeparator()
+        text outputText = inputText
+
+        text carriageReturn = separator:GetCarriageReturn()
+        text lineFeed = separator:GetLineFeed()
+
+        // If we're using Windows style separators.
+        if separator = (carriageReturn + lineFeed)
+            //QS now uses only linefeeds so this wont be needed
+            //This also doesn't check for the only carriage return case
+            integer readIndex = 0
+            integer index = outputText:IndexOf(lineFeed, readIndex)
+            repeat while index >= 0
+                if index > 0 and outputText:GetCharacter(index - 1) = carriageReturn
+                    readIndex = index + 1
+                else
+                    if index = 0
+                        outputText = carriageReturn + outputText
+                    else
+                        text preText = outputText:GetSubtext(0, index) + carriageReturn
+                        text postText = outputText:GetSubtext(index)
+                        outputText = preText + postText
+                    end
+
+                    readIndex = index + 2
+                end
+
+                if readIndex >= outputText:GetSize()
+                    index = -1
+                else
+                    index = outputText:IndexOf(lineFeed, readIndex)
+                end
+            end
+
+        // If we're using Unix style separators.
+        elseif separator = lineFeed
+            outputText = outputText:Replace(carriageReturn + lineFeed, lineFeed)
+            outputText = outputText:Replace(carriageReturn, lineFeed)
+        end
+
+        return outputText
     end
 
     private action GetEnclosingActionBlock returns Block
