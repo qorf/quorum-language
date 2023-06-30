@@ -125,7 +125,7 @@ class BoxPlotWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
             chartContentBoundingBox:SetAriaHidden("true")
             chartContentBoundingBox:SetTabIndex(-1)
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
                 chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())

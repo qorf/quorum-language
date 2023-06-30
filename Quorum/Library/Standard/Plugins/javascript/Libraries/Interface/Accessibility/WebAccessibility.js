@@ -170,39 +170,45 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             }
         }
     };
-    
-//    system action NameChanged(Item item)
 
+    //The label needs the description as well, because not all browsers support this tag
     this.NameChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
             if (item.GetAccessibilityCode() == 29) { //labels
-                element.setAttribute("aria-label", item.GetText());
+                var itemName = item.GetText()
+                var itemDescription =item.GetDescription();
+                var result = itemName;
+                if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
+                    result = result + ", " + item.GetDescription()
+                }
+                element.setAttribute("aria-label", result);
             } else {
-                element.setAttribute("aria-label", item.GetName());
+                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
             }
-            
         }
-        //console.log("Name Changed");
     };
 
-//    system action DescriptionChanged(Item item)
-
+    //descriptions are not supported on all browsers, so shove everything into the label
+    //https://a11ysupport.io/tech/aria/aria-description_attribute
     this.DescriptionChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
             if (item.GetAccessibilityCode() == 29) { //labels
-                element.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
+                var itemName = item.GetText()
+                var itemDescription =item.GetDescription();
+                var result = itemName;
+                if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
+                    result = result + ", " + item.GetDescription()
+                }
+                element.setAttribute("aria-label", result);
             } else {
-                element.setAttribute("aria-description", item.GetDescription());
+                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
             }
         }
-        //console.log("Description Changed");
     };
-    
-//    system action BoundsChanged(Item item)
 
     this.BoundsChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
@@ -210,11 +216,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             var element = document.getElementById(id);
             setBounds(element, item);
         }
-        //console.log("Bounds Changed");
     };
     
-//    system action TextFieldUpdatePassword(TextField field)
-
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
         //console.log("Text field updated Changed");
     };
@@ -352,6 +355,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         var itemName = item.GetName();
+        var itemDescription = item.GetDescription();
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
         //default role
@@ -656,7 +660,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 if (item.IsFocusable() ) {
                     role = "img";
                     itemName = item.GetText();
-                    para.setAttribute("aria-description", item.GetName() + ", " + item.GetDescription());
+                    if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription)==0) {
+                        itemDescription = null;
+                    }
                 }
                 break;
             default:
@@ -680,11 +686,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             para.setAttribute("aria-roledescription", roleDescription);
         }
         
-        //process labels differently
         if (itemName != null) {
-            para.setAttribute("aria-label", itemName);
+            var result = itemName;
+            if(itemDescription != null) {
+                result = result + ", " + itemDescription;
+            }
+            para.setAttribute("aria-label", result);
         }
-        // para.setAttribute("aria-label", para.getAttribute("aria-label") + " " + item.GetDescription())
 
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");

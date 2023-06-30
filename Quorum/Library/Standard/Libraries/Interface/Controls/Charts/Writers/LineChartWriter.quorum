@@ -92,9 +92,9 @@ class LineChartWriter is ChartWriter
         LineChart lineChart
         lineChart = cast(LineChart, chart)
         AddPointsAndLines(canvas, lineChart)
-        if chart:IsShowingLinearRegression()
-            AddRegressionLines(canvas, chart)
-        end
+//        if chart:IsShowingLinearRegression()
+//            AddRegressionLines(canvas, chart)
+//        end
     end
 
     /*
@@ -130,7 +130,7 @@ class LineChartWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
                 chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
@@ -208,46 +208,6 @@ class LineChartWriter is ChartWriter
                         ChartPoint currentPoint = currentLine:GetPoints():Get(j)
                         number radius = currentPoint:GetHeight()/2
 
-                        Group pointSVG
-                        pointSVG:SetFill(currentPoint:GetColor())
-                        pointSVG:SetFillOpacity(currentPoint:GetColor())
-                        if HasAccessibility()
-                            pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
-                            pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
-                            pointSVG:SetTabIndex(-1)
-                            pointSVG:SetRole("graphics-symbol")  
-                            pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
-                            pointSVG:SetAriaHidden("false")
-                        end
-                        if chart:GetSeriesList():GetSize() > 0
-                            seriesSVG:Add(pointSVG)
-                        else
-                            chartContent:Add(pointSVG)
-                        end
-
-                        text pointFocus = ""
-                        text pointBlur = ""
-
-                        if currentLine:GetPointsFlag()
-                            Circle point
-                            point:SetRadius(radius)
-                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
-                            point:SetFill(currentPoint:GetColor())
-                            point:SetFillOpacity(currentPoint:GetColor())
-                            point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
-                            point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
-                            point:SetStrokeWidth(currentPoint:GetBorderThickness())
-                            if HasAccessibility()
-                                point:SetID(pointSVG:GetID() + "_point")
-                                point:SetStyleClass("quorum-chart-circle")
-                                point:SetTabIndex(-1)
-                                point:SetAriaHidden("true")
-                                pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
-                                pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
-                            end
-                            pointSVG:Add(point)
-                        end
-
                         // Add line segment
                         if j < currentLine:GetLines():GetSize() 
                             LineSegment currentSegment = currentLine:GetLines():Get(j)
@@ -271,9 +231,49 @@ class LineChartWriter is ChartWriter
                                 seriesFocus = seriesFocus + "gainFocus('" + segment:GetID() + "'); "
                                 seriesBlur = seriesBlur + "loseFocus('" + segment:GetID() + "'); "
                             end
-                            canvas:Add(segment)
+                            seriesSVG:Add(segment)
                         end
-                
+
+                        text pointFocus = ""
+                        text pointBlur = ""
+
+                        Group pointSVG
+                        pointSVG:SetFill(currentPoint:GetColor())
+                        pointSVG:SetFillOpacity(currentPoint:GetColor())
+                        if HasAccessibility()
+                            pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
+                            pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                            pointSVG:SetTabIndex(-1)
+                            pointSVG:SetRole("graphics-symbol")  
+                            pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
+                            pointSVG:SetAriaHidden("false")
+                        end
+                        if chart:GetSeriesList():GetSize() > 0
+                            seriesSVG:Add(pointSVG)
+                        else
+                            chartContent:Add(pointSVG)
+                        end
+
+                      if currentLine:GetPointsFlag()
+                            Circle point
+                            point:SetRadius(radius)
+                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                            point:SetFill(currentPoint:GetColor())
+                            point:SetFillOpacity(currentPoint:GetColor())
+                            point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
+                            point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
+                            point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                            if HasAccessibility()
+                                point:SetID(pointSVG:GetID() + "_point")
+                                point:SetStyleClass("quorum-chart-circle")
+                                point:SetTabIndex(-1)
+                                point:SetAriaHidden("true")
+                                pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                            end
+                            pointSVG:Add(point)
+                        end
+                        
                         if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
                             ChartLabel label = currentPoint:GetAnnotation()
                             if label not= undefined
