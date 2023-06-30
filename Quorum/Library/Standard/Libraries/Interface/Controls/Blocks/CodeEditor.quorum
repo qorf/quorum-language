@@ -1598,9 +1598,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if parentBlock is ActionBlock
                     ActionBlock actionParent = cast(ActionBlock, parentBlock)
                     if actionParent:IsSystemAction() or actionParent:IsBlueprintAction()
-                        targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                        targetSelection = block:GetPreviousNavigableBlock()
                         if targetSelection = undefined
-                            targetSelection = block:GetPreviousNavigableBlock()
+                            targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
                         end
                         DeleteBlockAndChildren(block)
                         RequestViewRefresh()
@@ -1610,8 +1610,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
                             NotifyBlockChangeListeners(event)
                         end
                         editManager:SetSpecialAction(false)
+                        SelectBlockOrItem(targetSelection)
                         return now
                     else
+                        targetSelection = block:GetPreviousNavigableBlock()
+                        if targetSelection = undefined
+                            targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                        end
                         DeleteBlockAndChildren(actionParent)
                         RequestViewRefresh()
                         if triggerEvent
@@ -1620,6 +1625,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                             NotifyBlockChangeListeners(event)
                         end
                         editManager:SetSpecialAction(false)
+                        SelectBlockOrItem(targetSelection)
                         return now
                     end
                     
