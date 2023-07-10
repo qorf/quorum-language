@@ -15,6 +15,24 @@ use Libraries.Compute.Matrix
     a CompareMeans calculation.
 
     Attribute: Author Hannah Stabler
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CompareMeans
+    use Libraries.Compute.Statistics.Tests.CompareMeansResult
+
+    DataFrame frame
+    frame:Load("data.csv")
+    frame:AddSelectedColumns(0)
+    frame:AddSelectedColumns(1)
+    frame:AddSelectedColumns(2)
+
+    CompareMeans compare = frame:CompareMeans()
+    CompareMeansResult result = compare:GetResult()
+    result:GetFormat():SetSignificantDigits(5)
+    result:UsePartialEtaSquared(true)
+    output result:GetSummary()
 */
 class CompareMeansResult is StatisticalTestResult
     Math math
@@ -46,13 +64,25 @@ class CompareMeansResult is StatisticalTestResult
     boolean ranked = false
     boolean equalVariances = false
     boolean normalDistribution = false
-    boolean useWilks = true                 // Multivariate: Default
-    boolean usePillai = false               // Multivariate: Use if assumptions are violated (like when CompareVariances is significant)
-    boolean useHotelling = false
 
-    Array<text> factors
-    Array<text> columns
-    Array<text> sources
+    // Select which multivariate test statistic (if applicable)
+    boolean useWilks = true                     // For use in multivariate parametric tests (default)
+    boolean usePillai = false                   // For use in multivariate parametric tests (conservative: if assumptions are violated)
+    boolean useHotelling = false                // For use in multivariate parametric tests (liberal: DVs are NOT strongly correlated)
+    boolean useRoysLargestRoot = false          // ** NOT YET IMPLEMENTED ** For use in multivariate parametric tests (liberal: DVs are strongly correlated)
+
+    // Select which effect size (if applicable)
+    boolean cohensD = true                      // For use in 1 and 2-sample parametric tests
+    boolean useEtaSquared = false               // For use in 2 and N-sample parametric tests
+    boolean useOmegaSquared = false             // For use in 2 and N-sample parametric tests
+    boolean usePartialEtaSquared = false        // For use in N-sample parametric tests
+    boolean usePartialOmegaSquared = false      // For use in N-sample parametric tests
+    boolean useGeneralizedEtaSquared = false    // For use in N-sample parametric tests
+    boolean useGeneralizedOmegaSquared = false  // For use in N-sample parametric tests
+
+    Array<text> factors     // List of factor headers from original frame
+    Array<text> columns     // List of column headers from original frame
+    Array<text> sources     // List of factors/effects from test
                               
     action GetFactors returns Array<text>
         return factors

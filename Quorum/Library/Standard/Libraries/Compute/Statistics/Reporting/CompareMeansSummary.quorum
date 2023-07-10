@@ -12,6 +12,7 @@ class CompareMeansSummary
     CompareMeansResult result = undefined
     StatisticsFormatting format = undefined
     integer numberOfSamples = 0
+    boolean nSampleOverride = false // If N-sample test was used on only 2 samples
     boolean multivariate = false
     boolean fatcorial = false
     Math math
@@ -28,6 +29,15 @@ class CompareMeansSummary
             if result:GetFactors():GetSize() > 1 
                 factorial = true
             end
+            if numberOfSamples = 2 and result:GetSources():GetSize() > 0
+                // Check if an n-sample test was run on 2 samples only.
+                if not result:IsRanked()
+                    // Parametric: We can easily check this by seeing if a sum of squares was saved which would indicate an anova was used
+                    nSampleOverride = result:GetInformation():GetValue(result:GetSources():Get(0)):HasKey("ss")
+                else
+                    // Look for chi-square stat??
+                end
+            end
         end
     end
 
@@ -36,7 +46,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetSummaryOne()
 
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetSummaryTwo()
 
             else //numberOfSamples >= 2
@@ -51,7 +61,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetFormalSummaryOne()
     
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetFormalSummaryTwo()
     
             else //numberOfSamples >= 2
@@ -66,7 +76,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetFormalNumericalResultOne()
     
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetFormalNumericalResultTwo()
     
             else //numberOfSamples >= 2
@@ -94,7 +104,7 @@ class CompareMeansSummary
         if result not= undefined
             if numberOfSamples = 1
                 return GetSummaryDataFrameOne()
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetSummaryDataFrameTwo()
             else //numberOfSamples >= 2
                 return GetSummaryDataFrameSeveral()
