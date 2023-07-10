@@ -93,7 +93,7 @@ class MultipleLineBlock is Block
         LayoutProperties properties = connector:GetDefaultLayoutProperties()
         connector:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         connector:SetBorderStyle(properties:LEFT + properties:RIGHT)
-        connector:SetCornerRounding(0, 0, 0, 0)
+        connector:SetCornerPixelRounding(0, 0, 0, 0)
 
         ControlShaderView view
         view:Initialize()
@@ -165,10 +165,6 @@ class MultipleLineBlock is Block
     end
 
     action DrawParts(Painter2D painter)
-        if GetView2D() not= undefined
-            GetView2D():Draw(painter)
-        end
-
         integer counter = 0
         repeat while counter < blockParts:GetSize()
             Block block = blockParts:Get(counter)

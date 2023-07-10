@@ -123,7 +123,7 @@ class IfBlock is MultipleLineBlock
             MultipleLineBlockPart elseifPart = elseifParts:Get(0)
             repeat while insertIndex < elseifParts:GetSize() and elseifPart:GetStartLine() < block:GetStartLine()
                 elseifPart = elseifParts:Get(insertIndex)
-                i = insertIndex + 1
+                insertIndex = insertIndex + 1
             end
         end
 

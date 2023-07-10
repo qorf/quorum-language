@@ -21,7 +21,6 @@ class EditBox is TextBox, EditRegion
     boolean initialized = false
 
     on create
-        SetCornerRounding(0.5, 0.5, 0.5, 0.5)
         SetInputGroup("EditBox")
         SetPositionOnBaseLine(false)
 
@@ -93,7 +92,7 @@ class EditBox is TextBox, EditRegion
             length = minimumLength
         end
 
-        SetSize(length, height)
+        SetSize(cast(integer, length + 0.5), cast(integer, height + 0.5))
     end
 
     action GetLineCount returns integer

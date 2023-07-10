@@ -31,11 +31,11 @@ class BlockEdit is Edit
         return undoState
     end
 
-    action SetCodeEditor(CodeEditor editor)
+    action SetEditor(CodeEditor editor)
         blocks = editor
     end
 
-    action GetBlockEditor returns CodeEditor
+    action GetEditor returns CodeEditor
         return blocks
     end
 

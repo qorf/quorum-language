@@ -1295,7 +1295,7 @@ class Item2D is Item
         boolean success = children:Remove(removed)
         removed:SetOffset(0, 0)
         CollisionEdge2D edge = removed:collisionList
-        repeat while edge not= undefined
+        repeat while edge not= undefined and layer not= undefined
             CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             layer:GetCollisionManager():Destroy(edge0:GetCollision())

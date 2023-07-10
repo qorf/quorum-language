@@ -5,6 +5,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.MenuItem
 
 class CodeEditorDeleteBlockBehavior is Behavior
 
@@ -18,6 +19,14 @@ class CodeEditorDeleteBlockBehavior is Behavior
         elseif event:GetItem() is BlockItem
             BlockItem item = cast(BlockItem, event:GetItem())
             editor = item:GetEditor()
+        elseif event:GetItem() is MenuItem
+            MenuItem menu = cast(MenuItem, event:GetItem())
+            if menu:GetMenuRoot() is CodeEditorPopupMenu
+                CodeEditorPopupMenu menuRoot = cast(CodeEditorPopupMenu, menu:GetMenuRoot())
+                editor = menuRoot:GetCodeEditor()
+            else
+                return now
+            end
         else
             // If we can't find the editor, abort.
             return now

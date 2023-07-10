@@ -12,11 +12,11 @@ class BlockDeleteEdit is Edit
     CodeEditor editor = undefined
     integer characterIndex = -1
 
-    action GetBlockEditor returns CodeEditor
+    action GetEditor returns CodeEditor
         return editor
     end
 
-    action SetBlockEditor(CodeEditor editor)
+    action SetEditor(CodeEditor editor)
         me:editor = editor
     end
 

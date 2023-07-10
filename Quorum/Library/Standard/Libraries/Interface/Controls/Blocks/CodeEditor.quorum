@@ -121,7 +121,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetFont(GetDefaultFont())
 
         selection:Initialize(me, "")
-        editManager:SetBlockEditor(me)
+        editManager:SetEditor(me)
+        AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
         SetFocusable(true)
@@ -434,6 +435,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SetCode(text code)
+        code = SanitizeNewLines(code)
         rawCode:Initialize(code)
         failState = not GenerateStartContextFromCode(code)
         if failState
@@ -447,7 +449,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action SetCode(MultipleLineText code)
-        rawCode = code
+        MultipleLineText sanitized
+        sanitized:Initialize(SanitizeNewLines(code:GetText()))
+        rawCode = sanitized
         failState = not GenerateStartContextFromCode(code:GetText())
         if failState
             blockListener:SetStartContext(undefined)
@@ -601,7 +605,6 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action GetLineHeight(integer line) returns number
         Block block = renderer:GetBlockAtLine(line)
-
         if block is SingleLineBlock
             integer startLine = block:GetNavigationIndex()
             integer endLine = block:GetNavigationEndIndex()
@@ -613,7 +616,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 end
             end
         end
-
+        
         return GetDefaultLineHeight()
     end
 
@@ -660,6 +663,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while counter < lines
                 number currentHeight = GetLineHeight(counter)
                 currentY = currentY - currentHeight
+                
                 cachedLinePositions:Add(currentY)
                 total = total + currentHeight
                 counter = counter + 1
@@ -751,6 +755,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
             GetTotalContentHeight()
         end
 
+        if line >= cachedLinePositions:GetSize()
+            return 0
+        end
+        
         return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
     end
 
@@ -896,6 +904,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             rawCode = rawCode:Delete(index, index + deleted:GetSize())
         end
         if added:IsEmpty() = false
+            SanitizeNewLines(added)
             rawCode = rawCode:Insert(index, added)
         end
 
@@ -909,7 +918,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             NotifyTextChangeListeners(event)
         else
             TextChangeEvent adjustedEvent
-            adjustedEvent:Initialize(event:GetControl(), event:GetAddedText(), event:GetDeletedText(), index)
+            adjustedEvent:Initialize(event:GetControl(), SanitizeNewLines(event:GetAddedText()), event:GetDeletedText(), index)
             NotifyTextChangeListeners(adjustedEvent)
         end
         
@@ -984,7 +993,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             if block = selection:GetBlock() and selection:GetBlockItem() = undefined
                 return now
             end
-
+            
             if block is SingleLineBlock
                 // In case this is a single line wrapped around multiple, aim to select its last line, so the selection line is rendered at the bottom
                 selection:Set(block, block:GetNavigationEndIndex(), undefined)
@@ -1078,11 +1087,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action MoveMultipleSelectionDown
-        Block target = selection:GetBlock():GetNextNavigableBlock()
-        if target = undefined
-            return now
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetNextNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
         end
-        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
     
     action MoveSelectionUp
@@ -1101,11 +1112,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action MoveMultipleSelectionUp
-        Block target = selection:GetBlock():GetPreviousNavigableBlock()
-        if target = undefined
-            return now
+        if selection:GetBlock() not= undefined
+            Block target = selection:GetBlock():GetPreviousNavigableBlock()
+            if target = undefined
+                return now
+            end
+            selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
         end
-        selection:Set(target, target:GetNavigationIndex(), selection:GetRangeEndLine(), undefined)
     end
     
     action SelectNext
@@ -1285,6 +1298,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
         text and line indices are correct.
         */
+        newLine = SanitizeNewLines(newLine)
         parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
 
 
@@ -1425,6 +1439,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action InsertTextAfterLine(text value)
         integer currentLine = selection:GetLine()
         integer targetIndex = 0
+        value = SanitizeNewLines(value)
         if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
@@ -1509,7 +1524,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     */
     action Delete(Block block, boolean deleteContents, boolean triggerEvent)
         shouldCalculateNavigationIndices = true
-
+        editManager:SetSpecialAction(true)
         // After deleting the block, we'll jump to the target selection.
         Block targetSelection = undefined
         Block parentBlock = block:GetParentBlock()
@@ -1575,15 +1590,17 @@ class CodeEditor is ScrollableLineControl, GutterListener
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
                 if parentBlock is ActionBlock
                     ActionBlock actionParent = cast(ActionBlock, parentBlock)
                     if actionParent:IsSystemAction() or actionParent:IsBlueprintAction()
-                        targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                        targetSelection = block:GetPreviousNavigableBlock()
                         if targetSelection = undefined
-                            targetSelection = block:GetPreviousNavigableBlock()
+                            targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
                         end
                         DeleteBlockAndChildren(block)
                         RequestViewRefresh()
@@ -1592,8 +1609,14 @@ class CodeEditor is ScrollableLineControl, GutterListener
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
+                        SelectBlockOrItem(targetSelection)
                         return now
                     else
+                        targetSelection = block:GetPreviousNavigableBlock()
+                        if targetSelection = undefined
+                            targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
+                        end
                         DeleteBlockAndChildren(actionParent)
                         RequestViewRefresh()
                         if triggerEvent
@@ -1601,6 +1624,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
                             event:Set(me,index, blockIndex, block, parentBlock, "", deletedText, event:DELETED)
                             NotifyBlockChangeListeners(event)
                         end
+                        editManager:SetSpecialAction(false)
+                        SelectBlockOrItem(targetSelection)
                         return now
                     end
                     
@@ -1620,6 +1645,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                         
                         NotifyBlockChangeListeners(event)
                     end
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1644,6 +1670,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
                     end
                     
                     // Return early so we don't refresh the block view -- it'll be regenerated on the next frame due to the delete call happening
+                    editManager:SetSpecialAction(false)
                     return now
                 end
 
@@ -1661,6 +1688,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
             NotifyBlockChangeListeners(event)
         end
 
+        editManager:SetSpecialAction(false)
+
         if targetSelection not= undefined
             SelectBlockOrItem(targetSelection)
         else
@@ -1674,6 +1703,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             parentBlock:Resize()
             RequestViewRefresh()
         end
+
     end
 
     action DeleteBlockAndChildren(Block block)
@@ -1975,6 +2005,59 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
         lineGutter:SetBreakpointManager(breakpoints)
+    end
+
+    /* 
+    This action checks if the given text is using either Windows or UNIX style
+    new line separators, and if it's using a different new line style than the
+    current OS's style, swaps the new lines to the system's style.
+    */
+    private action SanitizeNewLines(text inputText) returns text
+        if inputText:IsEmpty()
+            return inputText
+        end
+
+        text separator = rawCode:GetLineSeparator()
+        text outputText = inputText
+
+        text carriageReturn = separator:GetCarriageReturn()
+        text lineFeed = separator:GetLineFeed()
+
+        // If we're using Windows style separators.
+        if separator = (carriageReturn + lineFeed)
+            //QS now uses only linefeeds so this wont be needed
+            //This also doesn't check for the only carriage return case
+            integer readIndex = 0
+            integer index = outputText:IndexOf(lineFeed, readIndex)
+            repeat while index >= 0
+                if index > 0 and outputText:GetCharacter(index - 1) = carriageReturn
+                    readIndex = index + 1
+                else
+                    if index = 0
+                        outputText = carriageReturn + outputText
+                    else
+                        text preText = outputText:GetSubtext(0, index) + carriageReturn
+                        text postText = outputText:GetSubtext(index)
+                        outputText = preText + postText
+                    end
+
+                    readIndex = index + 2
+                end
+
+                if readIndex >= outputText:GetSize()
+                    index = -1
+                else
+                    index = outputText:IndexOf(lineFeed, readIndex)
+                end
+            end
+
+        // If we're using Unix style separators.
+        elseif separator = lineFeed
+            outputText = outputText:Replace(carriageReturn + lineFeed, lineFeed)
+            outputText = outputText:Replace(carriageReturn, lineFeed)
+        end
+
+        return outputText
     end
 
     private action GetEnclosingActionBlock returns Block
@@ -2315,12 +2398,48 @@ class CodeEditor is ScrollableLineControl, GutterListener
         return renderer:GetBlockAtLine(index)
     end
     
-    action ExpandSelectionToBlock(Block block)
-        integer endIndex = selection:GetRangeEndLine()
+    action SelectBlockRange(Block block, integer endIndex)
         if endIndex < 0
             endIndex = 0
         end
         
         selection:Set(block, block:GetNavigationIndex(), endIndex, undefined)
+    end
+    
+    action SelectFirstBlock
+Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockOrItem(firstBlock)
+        end
+    end
+    
+    action SelectLastBlock
+        Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockOrItem(lastBlock)
+        end
+    end
+    
+    action SelectRangeToFirstBlock
+        Block firstBlock = renderer:GetRootBlock():GetNextNavigableBlock()
+        if firstBlock not= undefined
+            SelectBlockRange(firstBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    action SelectRangeToLastBlock
+Block lastBlock = GetLastBlock()
+        if lastBlock not= undefined
+            SelectBlockRange(lastBlock, selection:GetRangeEndLine())
+        end
+    end
+    
+    private action GetLastBlock returns Block
+    Block current = renderer:GetRootBlock()
+        repeat until current:GetChildCount() = 0
+            current = current:GetChild(current:GetChildCount() - 1)
+        end
+        
+        return current
     end
 end

@@ -2290,11 +2290,22 @@ shared class DefaultInputSets
         shiftHomeSet:AddModifier(homeSet:SHIFT)
         InputSet shiftEndSet = endSet:Copy()
         shiftEndSet:AddModifier(endSet:SHIFT)
+        
+        InputSet controlHomeSet = homeSet:Copy()
+        InputSet controlEndSet = endSet:Copy()
+        InputSet controlShiftHomeSet = shiftHomeSet:Copy()
+        InputSet controlShiftEndSet = shiftEndSet:Copy()
+        
 //Behaviors for copy/cut/paste
         CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
         CodeEditorCutToClipboardBehavior cutToClipboardBehavior
         CodeEditorPasteFromClipboardBehavior pasteFromClipboardBehavior
         if manager:GetOperatingSystem():Contains("OS X")
+            controlHomeSet:AddModifier(controlHomeSet:META)
+            controlEndSet:AddModifier(controlEndSet:META)
+controlShiftHomeSet:AddModifier(controlHomeSet:META)
+            controlShiftEndSet:AddModifier(controlEndSet:META)
+            
             // cut copy paste
             InputSet blockControlC
             blockControlC:SetKeyboardInput(keys:C)
@@ -2331,6 +2342,11 @@ shared class DefaultInputSets
             CodeEditorRedoBehavior codeEditorRedoBehavior
             table:Add(blockControlY, codeEditorRedoBehavior)
         else
+controlHomeSet:AddModifier(controlHomeSet:CONTROL)
+            controlEndSet:AddModifier(controlEndSet:CONTROL)
+controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
+            controlShiftEndSet:AddModifier(controlEndSet:CONTROL)
+            
             // cut copy paste
             InputSet blockControlC
             blockControlC:SetKeyboardInput(keys:C)
@@ -2386,6 +2402,15 @@ shared class DefaultInputSets
         table:Add(leftSet, forceFreeformBehavior)
         table:Add(rightSet, forceFreeformBehavior)
         
+        CodeEditorNavigateToStartBehavior navigateToStart
+        CodeEditorNavigateToEndBehavior navigateToEnd
+        CodeEditorSelectToStartBehavior selectToStart
+        CodeEditorSelectToEndBehavior selectToEnd
+        table:Add(controlHomeSet, navigateToStart)
+        table:Add(controlEndSet,navigateToEnd)
+        table:Add(controlShiftHomeSet,selectToStart)
+        table:Add(controlShiftEndSet, selectToEnd)
+        
         gameInput:AddInputTable(table)
 
 
@@ -2403,6 +2428,7 @@ shared class DefaultInputSets
         editBoxTable:RemoveKey(downSet)
         editBoxTable:RemoveKey(upSet)
         editBoxTable:RemoveKey(enterSet)
+        editBoxTable:RemoveKey(numpadEnterSet)
         editBoxTable:RemoveKey(mouseScrollSet)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
