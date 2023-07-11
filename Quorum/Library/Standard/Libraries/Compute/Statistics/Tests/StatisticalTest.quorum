@@ -211,9 +211,9 @@ class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
                                     end
                                 else
                                     if k = 0
-                                        groupText = factor:GetHeader()+"_"+factor:GetAsText(j)
+                                        groupText = factor:GetAsText(j)
                                     else
-                                        groupText = groupText + ":" +factor:GetHeader()+"_"+factor:GetAsText(j)
+                                        groupText = groupText + ":"+ factor:GetAsText(j)
                                     end
                                 end
                             else
