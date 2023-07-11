@@ -2089,13 +2089,13 @@ class DataFrame
             i = i + 1
         end
 
-        Iterator<text> keys = splitHash:GetKeyIterator()
-        repeat while keys:HasNext()
-            text key = keys:Next()
-            integer value = splitHash:GetValue(key)
-            columns:Add(value)
+        // keep columns in the same order they were given for selection
+        i = 0
+        repeat while i < split:GetSize()
+            integer value = splitHash:GetValue(split:Get(i))
+            columns:Add(value)           
+            i = i + 1
         end
-        columns:Sort()
         return columns
     end
 

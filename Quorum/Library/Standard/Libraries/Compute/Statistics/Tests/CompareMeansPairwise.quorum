@@ -111,9 +111,6 @@ class CompareMeansPairwise is CompareMeans
         if result:GetGroupsTable():GetSize() > 0
             alert("Multivariate post hoc tests are not available yet.")
         end
-        if result:GetFactors():GetSize() > 1
-            alert("Factorial post hoc tests are not available yet.")
-        end
         if result:GetGroupsFrame():GetSize() < 3
             alert("Prior test result must be from an N-sample test.")
         end
