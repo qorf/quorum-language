@@ -323,7 +323,7 @@ class ParserToBlockListener is QuorumSourceListener
     action EnterElseIfStatement(IfContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
         IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
-        FillPreviousCommentBlocks(context:elseIfTokens:Get(elseifCounter), context:GetLastToken())
+        FillPreviousCommentBlocks(context:elseIfTokens:Get(ifBlock:GetChildCount() - 1), context:GetLastToken())
         elseifCounter = elseifCounter + 1
         MultipleLineBlockPart newPart = ifBlock:AddElseifLine(ifBlock:GetChildCount() - 1)
 
