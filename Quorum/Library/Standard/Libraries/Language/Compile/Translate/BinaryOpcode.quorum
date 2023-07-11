@@ -127,9 +127,6 @@ class BinaryOpcode is QuorumOpcode
             elseif opcodes:GetIntegerAdd() = opcode
                 result:integerValue = left:integerValue + right:integerValue
                 type:SetToInteger()
-            elseif left:type:IsText()
-                result:textValue = left:textValue + right:textValue
-                type:SetToText()
             end
         elseif current = op:MINUS
             if opcodes:GetDoubleSubtract() = opcode
