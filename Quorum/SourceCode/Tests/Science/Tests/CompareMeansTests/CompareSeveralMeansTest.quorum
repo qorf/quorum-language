@@ -28,7 +28,12 @@ class CompareSeveralMeansTest is Test
         Check(result:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next(), 3.0)
         Check(result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValueIterator():Next(), 20.0)
         Check(result:GetProbabilityValue(), 2.7087573816753086e-5)
-        Check(result:GetEffectSize(), 0.6883290178075011)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("eta-squared"), 0.6883290178075011)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("partial-eta-squared"), 0.6883290178075011)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("generalized-eta-squared"), 0.6883290178075011)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("omega-squared"), 0.6317337170743915)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("partial-omega-squared"), 0.6317337170743915)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("generalized-omega-squared"), 0.6317337170743915)
 
         // Welch anova (unequal variances)
         CompareMeans compare2

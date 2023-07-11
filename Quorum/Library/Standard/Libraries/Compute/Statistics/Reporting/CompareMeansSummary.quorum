@@ -35,7 +35,8 @@ class CompareMeansSummary
                     // Parametric: We can easily check this by seeing if a sum of squares was saved which would indicate an anova was used
                     nSampleOverride = result:GetInformation():GetValue(result:GetSources():Get(0)):HasKey("ss")
                 else
-                    // Look for chi-square stat??
+                    // Nonparametric: See if an N-sample test was conducted on 2 samples.
+                    nSampleOverride = (result:GetFormalTestName() = "Friedman Test" or result:GetFormalTestName() = "Kruskal-Wallis Test")
                 end
             end
         end

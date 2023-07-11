@@ -146,7 +146,6 @@ class CompareMeans is StatisticalTest
     private boolean needToProcessData = true        // Flag to let tell this class to process the selected data
     private integer numberOfFactors = 0             // Number of factors selected
     private integer numberOfColumns = 0             // Number of columns selected
-    private integer numberOfSubjects = 0            // Number of individuals
     private integer totalObservations = 0           // Total observations (total sample size)
     private CompareMeansDesign design               // Object to hold and process various selections and data formats
 
@@ -894,12 +893,10 @@ class CompareMeans is StatisticalTest
 
                 // Compute the total sum of squares and total variance (error)
                 Array<text> errors = ssErrors:CopyToKeyArray()
-                number ssSubjects = withinResult:GetInformation():GetValue(design:GetSubjectIdentifier()):GetValue("ss") 
-                number dfSubjects = withinResult:GetInformation():GetValue(design:GetSubjectIdentifier()):GetValue("df") 
+                number ssSubjects = 0 
+                number dfSubjects = 0
                 number ssTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("ss") 
-                number dfTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("df") 
-//                number ssTotalError = ssSubjects 
-//                number dfTotalError = dfSubjects    
+                number dfTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("df")     
                 number ssTotal = ssTotalError 
                 number dfTotal = dfTotalError  
                 i = 0 
@@ -907,43 +904,28 @@ class CompareMeans is StatisticalTest
                     text source = withinSources:Get(i)
                     HashTable<text, number> info = withinResult:GetInformation():GetValue(source)
                     if info:HasKey("error ss") and not dfFactors:HasKey(source)
-                        number ssFactor = info:GetValue("ss")
-                        number dfFactor = info:GetValue("df")
-                        number ssError = ssErrors:GetValue(source)
-                        number dfError = dfErrors:GetValue(source)
-
-                        ssTotal = ssTotal + ssFactor// + ssError
-                        dfTotal = dfTotal + dfFactor// + dfError
-
-                        //ssTotalError = ssTotalError + ssError
-                        //dfTotalError = dfTotalError + dfError
+                        ssTotal = ssTotal + info:GetValue("ss")
+                        dfTotal = dfTotal + info:GetValue("df")
                     end
                     i = i + 1
                 end    
+
                 i = 0 
                 repeat while i < betweenSources:GetSize()
                     text source = betweenSources:Get(i)
-                    HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
-                    if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
-                        number ssFactor = info:GetValue("ss")
-                        number dfFactor = info:GetValue("df")
-
-                        ssTotal = ssTotal + ssFactor
-                        dfTotal = dfTotal + dfFactor
+                    if not withinResult:GetInformation():HasKey(source)
+                        HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
+                        if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
+                            if i = 0
+                                ssSubjects = ssErrors:GetValue(factorToError:GetValue(source))
+                                dfSubjects = dfErrors:GetValue(factorToError:GetValue(source))
+                            end
+                            ssTotal = ssTotal + info:GetValue("ss")
+                            dfTotal = dfTotal + info:GetValue("df")
+                        end
                     end
                     i = i + 1
-                end    
-
-//                output "ssSubject: "+ssSubjects  
-//                output "dfSubject: "+dfSubjects
-//                output "ssTotal: "+ssTotal  
-//                output "dfTotal: "+dfTotal    
-//                output "ssTotalError: "+ssTotalError  
-//                output "dfTotalError: "+dfTotalError
-//                output ""  
-           
-            
-                number allMeanSSResiduals = ssTotalError / dfTotalError                            
+                end                              
 
                 number numberOfObservations = design:GetNumberOfObservations()
                 CompareMeansResult result
@@ -971,26 +953,10 @@ class CompareMeans is StatisticalTest
                         number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
                         number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
 
+                        // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
                         number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
-                        number partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * meanSSResiduals)
-                        number generalized_omega_squared = (ssFactor - dfFactor * allMeanSSResiduals) / (ssFactor + (numberOfObservations - dfFactor) * allMeanSSResiduals)
-
-//                        number eta_squared = ssFactor / ssTotal
-//                        number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
-//                        number generalized_eta_squared = ssFactor / (d * ssFactor + ssMeasured + ssSubjects)
-//                        number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
-//                        number partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * (ssSubjects / dfSubjects))
-//                        number generalized_omega_squared = factorVariation / (d * factorVariation + measuredVariation + numberOfObservations * (ssSubjects / dfSubjects))
-
-//                        output "mixed"
-//                        output "factor: "+source
-//                        output "es: "+eta_squared
-//                        output "pes: "+partial_eta_squared
-//                        output "ges: "+generalized_eta_squared
-//                        output "os: "+omega_squared
-//                        output "pos: "+partial_omega_squared
-//                        output "gos: "+generalized_omega_squared
-//                        output ""
+                        number partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects))
+                        number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
 
                         sources:Add(source)
                         result:SetTestStatistic(source, "F", f)
@@ -1003,19 +969,18 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "meanss", meanSSFactor)
                         result:SetInformation(source, "error ss", ssResiduals)
                         result:SetInformation(source, "error df", dfResiduals)
+                        result:SetInformation(source, "eta-squared", eta_squared)
+                        result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
+                        result:SetInformation(source, "omega-squared", omega_squared)
+                        result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                        result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+
                         if factorial
-                            result:SetEffectSize(source, "partial-eta-squared", eta_squared)
-                            result:SetInformation(source, "partial-eta-squared", eta_squared)
-                            result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
-                            result:SetInformation(source, "partial-omega-squared", omega_squared)
-                            result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+                            result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
                         else
                             result:SetEffectSize(source, "eta-squared", eta_squared)
-                            result:SetInformation(source, "eta-squared", eta_squared)
-                            result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
-                            result:SetInformation(source, "omega-squared", omega_squared)
-                            result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
-                        end         
+                        end      
                     end
                     i = i + 1
                 end
@@ -1023,68 +988,55 @@ class CompareMeans is StatisticalTest
                 i = 0 
                 repeat while i < betweenSources:GetSize()
                     text source = betweenSources:Get(i)
-                    HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
-                    if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
-                        number ssFactor = info:GetValue("ss")
-                        number dfFactor = info:GetValue("df")
-                        ssResiduals = ssErrors:GetValue(factorToError:GetValue(source))
-                        dfResiduals = dfErrors:GetValue(factorToError:GetValue(source)) 
+                    if not withinResult:GetInformation():HasKey(source)
+                        HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
+                        if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
+                            number ssFactor = info:GetValue("ss")
+                            number dfFactor = info:GetValue("df")
+                            ssResiduals = ssErrors:GetValue(factorToError:GetValue(source))
+                            dfResiduals = dfErrors:GetValue(factorToError:GetValue(source)) 
     
-                        number meanSSFactor = ssFactor / dfFactor
-                        number meanSSResiduals = ssResiduals / dfResiduals
-                        fDistribution:Setup(dfFactor, dfResiduals)
-                        number f = meanSSFactor / meanSSResiduals
-                        number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                            number meanSSFactor = ssFactor / dfFactor
+                            number meanSSResiduals = ssResiduals / dfResiduals
+                            fDistribution:Setup(dfFactor, dfResiduals)
+                            number f = meanSSFactor / meanSSResiduals
+                            number p = 1.0 - fDistribution:CumulativeDistribution(f)
                         
-                        number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
-                        // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
-                        number eta_squared = ssFactor / ssTotal
-                        number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
-                        number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
+                            number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
+                            // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            number eta_squared = ssFactor / ssTotal
+                            number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
+                            number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
+    
+                            // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                            number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
+                            number partial_omega_squared = factorVariation / (ssFactor + ssSubjects + (ssSubjects / dfSubjects))
+                            number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
 
-                        number omega_squared = factorVariation / (ssTotal + (ssTotalError / dfTotalError))
-                        number partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * meanSSResiduals)
-                        number generalized_omega_squared = (ssFactor - dfFactor * allMeanSSResiduals) / (ssFactor + (numberOfObservations - dfFactor) * allMeanSSResiduals)
-
-//                        number eta_squared = ssFactor / (ssFactor + ssResiduals)
-//                        number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
-//                        number omega_squared = (ssFactor - dfFactor * meanSSResiduals) / (ssFactor + (numberOfSubjects - dfFactor) * meanSSResiduals)
-//                        number generalized_omega_squared = (ssFactor - dfFactor * allMeanSSResiduals) / (ssFactor + (numberOfSubjects - dfFactor) * allMeanSSResiduals)
-
-//                        output "mixed"
-//                        output "factor: "+source
-//                        output "es: "+eta_squared
-//                        output "pes: "+partial_eta_squared
-//                        output "ges: "+generalized_eta_squared
-//                        output "os: "+omega_squared
-//                        output "pos: "+partial_omega_squared
-//                        output "gos: "+generalized_omega_squared
-//                        output ""
-
-                        sources:Add(source)
-                        result:SetTestStatistic(source, "F", f)
-                        result:SetDegreesOfFreedom(source, "F", dfFactor)
-                        result:SetProbabilityValue(source, "F", p)
-                        result:SetInformation(source, "F", f)
-                        result:SetInformation(source, "p", p)
-                        result:SetInformation(source, "ss", ssFactor)
-                        result:SetInformation(source, "df", dfFactor)
-                        result:SetInformation(source, "meanss", meanSSFactor)
-                        result:SetInformation(source, "error ss", ssResiduals)
-                        result:SetInformation(source, "error df", dfResiduals)
-                        if factorial
-                            result:SetEffectSize(source, "partial-eta-squared", eta_squared)
-                            result:SetInformation(source, "partial-eta-squared", eta_squared)
-                            result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
-                            result:SetInformation(source, "partial-omega-squared", omega_squared)
-                            result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
-                        else
-                            result:SetEffectSize(source, "eta-squared", eta_squared)
+                            sources:Add(source)
+                            result:SetTestStatistic(source, "F", f)
+                            result:SetDegreesOfFreedom(source, "F", dfFactor)
+                            result:SetProbabilityValue(source, "F", p)
+                            result:SetInformation(source, "F", f)
+                            result:SetInformation(source, "p", p)
+                            result:SetInformation(source, "ss", ssFactor)
+                            result:SetInformation(source, "df", dfFactor)
+                            result:SetInformation(source, "meanss", meanSSFactor)
+                            result:SetInformation(source, "error ss", ssResiduals)
+                            result:SetInformation(source, "error df", dfResiduals)
                             result:SetInformation(source, "eta-squared", eta_squared)
+                            result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
                             result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
                             result:SetInformation(source, "omega-squared", omega_squared)
+                            result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
                             result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
-                        end               
+    
+                            if factorial
+                                result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                            else
+                                result:SetEffectSize(source, "eta-squared", eta_squared)
+                            end               
+                        end
                     end
                     i = i + 1
                 end
@@ -1506,12 +1458,6 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "wilks pes", partial_eta_squared)
                         result:SetInformation(source, "wilks pos", partial_omega_squared)
 
-//                        output "wilks factor: "+factor
-//                        output "wilks "+wilksLambda
-//                        output "pes: "+partial_eta_squared
-//                        output "pos: "+partial_omega_squared
-//                        output ""
-
                         // Hotelling-Lawley Trace Test
                         number hotellingTrace = sscpFactor:Multiply(sscpResiduals:Inverse()):GetTrace()
                         number m = (math:AbsoluteValue(numberOfVariables - dfFactor) - 1.0) / 2.0
@@ -1541,12 +1487,6 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "hotelling pes", partial_eta_squared)
                         result:SetInformation(source, "hotelling pos", partial_omega_squared)
 
-//                        output "hotelling factor: "+factor
-//                        output "hotelling "+hotellingTrace
-//                        output "pes: "+partial_eta_squared
-//                        output "pos: "+partial_omega_squared
-//                        output ""
-
                         // Pillai-Barlett Trace Test 
                         number pillaiTrace = sscpFactor:Multiply(sscpFactor:AddElements(sscpResiduals):Inverse()):GetTrace()
                         df1 = s * (2.0 * m + s + 1.0)
@@ -1574,12 +1514,6 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "pillai p", pvalue)
                         result:SetInformation(source, "pillai pes", partial_eta_squared)
                         result:SetInformation(source, "pillai pos", partial_omega_squared)
-
-//                        output "pillai factor: "+factor
-//                        output "pillai "+pillaiTrace
-//                        output "pes: "+partial_eta_squared
-//                        output "pos: "+partial_omega_squared
-//                        output ""
 
                         result:SetInformation(source, "df", dfFactor)
                         result:SetInformation(source, "error df", dfResiduals)
@@ -1643,8 +1577,10 @@ class CompareMeans is StatisticalTest
 
                             // See page 1: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
                             omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
+                            // See: https://www.aggieerin.com/shiny-server/tests/omegaprmss.html
+                            // partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * (ssResiduals / dfResiduals))
                             // See page 1: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
-                            partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * (ssSubjects / dfSubjects))
+                            partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects))
                             // See page 441 & 443: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
                             generalized_omega_squared = factorVariation / (d * factorVariation /* + measured is always zero in rm */ + numberOfObservations * (ssTotalError / dfTotalError))
                         else
@@ -1662,15 +1598,6 @@ class CompareMeans is StatisticalTest
                             // See page 441: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
                             generalized_omega_squared = factorVariation / (d * factorVariation + measuredVariation + numberOfObservations * meanSSResiduals)
                         end
-
-//                        output "factor: "+factor
-//                        output "es: "+eta_squared
-//                        output "pes: "+partial_eta_squared
-//                        output "ges: "+generalized_eta_squared
-//                        output "os: "+omega_squared
-//                        output "pos: "+partial_omega_squared
-//                        output "gos: "+generalized_omega_squared
-//                        output ""
                         
                         text source = "Between Groups"
                         if repeated 

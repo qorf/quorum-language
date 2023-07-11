@@ -28,11 +28,11 @@ class CompareSeveralRelatedMeansTest is Test
         Check(result:GetInformation():GetValue("Measures"):GetValue("df"), 3.0)
         Check(result:GetInformation():GetValue("Measures"):GetValue("error df"), 15.0)
         Check(result:GetProbabilityValue(), 1.7181881658023812e-4)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("eta-squared"), 0.688329017807501)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-eta-squared"), 0.7258853486112506)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-eta-squared"), 0.688329017807501)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("omega-squared"), 0.6298252896117127)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-omega-squared"), 0.7026507444255783)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-omega-squared"), 0.39159455538654636) //unsure on correctness
+        Check(result:GetInformation():GetValue("Measures"):GetValue("eta-squared"), 0.688329017807501)                  // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-eta-squared"), 0.7258853486112506)         // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-eta-squared"), 0.688329017807501)      // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("omega-squared"), 0.6298252896117127)               // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-omega-squared"), 0.6298252896117127)       // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-omega-squared"), 0.6298252896117127)   // matches (Olejnik 2003)
     end
 end
