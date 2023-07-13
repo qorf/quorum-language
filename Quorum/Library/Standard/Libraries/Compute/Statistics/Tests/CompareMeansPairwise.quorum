@@ -139,10 +139,7 @@ class CompareMeansPairwise is CompareMeans
     private action CalculatePairwise()
         integer k = testResult:GetGroupsFrame():GetSize()
 
-        number numberOfTestsPerformed = 0
-        if UsingStrictCorrection() //bonferroni
-            numberOfTestsPerformed = math:Factorial(k) / (2 * math:Factorial(k-2)) // #samples choose 2
-        end
+        number numberOfTestsPerformed = (k * (k-1)) / 2 // k choose 2
 
         if RepeatedMeasures() or Paired() or Ranked() or not AssumeNormalDistribution()
             i = 0
