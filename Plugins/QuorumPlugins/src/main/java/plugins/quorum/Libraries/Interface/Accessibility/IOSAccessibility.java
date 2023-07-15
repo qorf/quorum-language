@@ -83,9 +83,27 @@ public class IOSAccessibility {
             width = (int) (rectangle.GetWidth());
             height = (int)(rectangle.GetY() + rectangle.GetHeight());
         }
+        else
+        {
+            return;
+        }
 
 
+        if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing())
+            return;
 
+        if (width == 0)
+            width = 30;
+        if (height == 0)
+            height = 30;
+        System.out.println("Adding accessibility element" + x + " " + y + " " + width + " " + height);
+
+        System.out.println("Adding accessibility element" + " " + item.GetName() + " " + item.GetDescription());
+
+        if (item instanceof Item2D_)
+        {
+            System.out.println("Adding accessibility element 2d" + " " + ((Item2D_) item).GetScreenX() + " " + ((Item2D_) item).GetScreenY() + " " + ((Item2D_) item).GetWidth() + " " + ((Item2D_) item).GetHeight());
+        }
 
         UIAccessibilityElement accessibilityElement = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
 
@@ -99,14 +117,12 @@ public class IOSAccessibility {
         else
             accessibilityElement.setAccessibilityHint("Default Description");
 
-        if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_())
-            accessibilityElement.setAccessibilityElement(true);
-        else
-            accessibilityElement.setAccessibilityElement(true);
 
-        accessibilityElement.setAccessibilityValue("Default Value");
+        accessibilityElement.setAccessibilityElement(true);
 
-        accessibilityElement.setAccessibilityIdentifier("Default Identifier");
+        accessibilityElement.setAccessibilityValue(item.GetDescription());
+
+        accessibilityElement.setAccessibilityIdentifier(item.GetAccessibilityType());
 
         accessibilityElement.setAccessibilityFrame(new CGRect(x, y, width, height));
 

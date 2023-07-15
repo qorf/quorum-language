@@ -26,7 +26,7 @@ public class IOSApplication
     public class IOSAccessibilityContainer extends UIView implements UIAccessibilityContainer
     {
         private NSArray<UIAccessibilityElement> accessibilityElements = new NSArray<>();
-        private UIAccessibilityContainerType accessibilityContainerType = UIAccessibilityContainerType.None;
+        private UIAccessibilityContainerType accessibilityContainerType = UIAccessibilityContainerType.SemanticGroup;
 
         @Override
         public NSArray<UIAccessibilityElement> getAccessibilityElements() {
