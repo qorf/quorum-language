@@ -6,10 +6,11 @@
 package plugins.quorum.Libraries.Game;
 
 import org.robovm.apple.foundation.NSAutoreleasePool;
+import org.robovm.apple.uikit.UIAccessibilityTraits;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationDelegateAdapter;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
-import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
+import org.robovm.objc.ObjCRuntime;
 
 /**
  *
@@ -20,7 +21,6 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
     // This is static to ensure that only app can exist and all delegates 
     // (if there are multiple) have access to the same one.
     public static IOSApplication app;
-    public static IOSAccessibility accessibility;
 
     
     public void Begin(IOSApplication application)
@@ -33,8 +33,7 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
         NSAutoreleasePool pool = new NSAutoreleasePool();
         System.out.println("UIApplication shared instance: " + UIApplication.getSharedApplication());
         System.out.println("IOSDelegate class: " + IOSDelegate.class);
-        System.out.println("IOSDelegate Begin2 " + app);
-        System.out.println("IOSDelegate Begin2 " + accessibility);
+        System.out.println("IOSDelegate Begin3 " + app);
         UIApplication.main(args, null, IOSDelegate.class);
         System.out.println("IOSDelegate Begin");
         pool.close();
@@ -45,8 +44,7 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
     {
         //application.addStrongRef(this);
         boolean didFinishLaunching = app.DidFinishLaunching(application, launchOptions);
-        app.initializeAccessibility();
-        accessibility = app.getIOSAccessibility();
+        ObjCRuntime.bind(UIAccessibilityTraits.class);
         return didFinishLaunching;
     }
     

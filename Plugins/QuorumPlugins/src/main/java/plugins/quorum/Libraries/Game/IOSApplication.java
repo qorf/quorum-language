@@ -7,7 +7,6 @@ package plugins.quorum.Libraries.Game;
 
 import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
-import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSDisplay_;
@@ -16,15 +15,54 @@ import quorum.Libraries.Game.Graphics.IOSGraphics;
 
 import org.robovm.apple.coregraphics.CGRect;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author alleew
  */
+
+
 public class IOSApplication
 {
+    public class IOSAccessibilityContainer extends UIView implements UIAccessibilityContainer
+    {
+        private NSArray<UIAccessibilityElement> accessibilityElements = new NSArray<>();
+        private UIAccessibilityContainerType accessibilityContainerType = UIAccessibilityContainerType.None;
+
+        @Override
+        public NSArray<UIAccessibilityElement> getAccessibilityElements() {
+            return accessibilityElements;
+        }
+
+        @Override
+        public void setAccessibilityElements(NSArray<UIAccessibilityElement> v) {
+            accessibilityElements = v;
+        }
+
+        @Override
+        public UIAccessibilityContainerType getAccessibilityContainerType() {
+            return accessibilityContainerType;
+        }
+
+        @Override
+        public void setAccessibilityContainerType(UIAccessibilityContainerType v) {
+            accessibilityContainerType = v;
+        }
+
+        @Override
+        public long getAccessibilityElementCount() {
+            return accessibilityElements.size();
+        }
+
+        @Override
+        public UIAccessibilityElement getAccessibilityElement(long index) {
+            return accessibilityElements.get((int)index);
+        }
+
+        @Override
+        public long indexOfAccessibilityElement(UIAccessibilityElement element) {
+            return accessibilityElements.indexOf(element);
+        }
+    }
     static final String SIMULATOR_SEARCH = "CoreSimulator";
     static final String SIMULATOR_PROPERTY = "IOS-Simulator";
     static {
@@ -45,6 +83,7 @@ public class IOSApplication
     //IOSViewControllerListener viewControllerListener;
     IOSConfiguration_ config;
     IOSDisplay_ display;
+    public static IOSAccessibilityContainer accessibilityContainer;
     //IOSFiles files;
     //IOSInput input;
     //IOSNet net;
@@ -55,7 +94,6 @@ public class IOSApplication
 
     // Reference to the delegate -- may not be necessary.
     IOSDelegate delegate;
-    private IOSAccessibility iosAccessibility;
 
     private CGRect lastScreenBounds = null;
 
@@ -164,20 +202,15 @@ public class IOSApplication
         this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
+        accessibilityContainer = new IOSAccessibilityContainer();
+        accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
+        accessibilityContainer.setHidden(false);
+        accessibilityContainer.setAccessibilityIdentifier("accessibilityContainer");
 
-        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.");
+        this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
+
+        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.32323");
         return true;
-    }
-
-    public void initializeAccessibility() {
-        iosAccessibility = new IOSAccessibility();
-        iosAccessibility.setAccessibilityIdentifier("Quorum Game");
-        iosAccessibility.setFrame(this.GetUIWindow().getFrame());
-        this.GetUIViewController().getView().addSubview(iosAccessibility);
-    }
-
-    public IOSAccessibility getIOSAccessibility() {
-        return iosAccessibility;
     }
 
     private int GetIOSVersion()

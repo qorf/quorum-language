@@ -4,8 +4,6 @@ import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
-import plugins.quorum.Libraries.Game.IOSDelegate;
-import plugins.quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
@@ -15,49 +13,8 @@ import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class IOSAccessibility extends UIView implements UIAccessibilityContainer {
+public class IOSAccessibility {
     public Object me_ = null;
-    private NSMutableArray<UIAccessibilityElement> accessibilityElements = new NSMutableArray<>();
-
-    @Override
-    public NSArray<UIAccessibilityElement> getAccessibilityElements() {
-        return accessibilityElements;
-    }
-
-    @Override
-    public void setAccessibilityElements(NSArray<UIAccessibilityElement> nsArray) {
-        accessibilityElements = (NSMutableArray<UIAccessibilityElement>) nsArray.mutableCopy();
-    }
-
-    @Override
-    public UIAccessibilityContainerType getAccessibilityContainerType() {
-        return null;
-    }
-
-    @Override
-    public void setAccessibilityContainerType(UIAccessibilityContainerType uiAccessibilityContainerType) {
-        return;
-    }
-
-    @Override
-    public long getAccessibilityElementCount() {
-        return accessibilityElements.size();
-    }
-
-    @Override
-    public UIAccessibilityElement getAccessibilityElement(long l) {
-        return accessibilityElements.get((int)l);
-    }
-
-    @Override
-    public long indexOfAccessibilityElement(UIAccessibilityElement uiAccessibilityElement) {
-        return accessibilityElements.indexOf(uiAccessibilityElement);
-    }
-
-
 
     public void  NameChanged(Item_ item) {}
 
@@ -129,12 +86,8 @@ public class IOSAccessibility extends UIView implements UIAccessibilityContainer
 
 
 
-        IOSApplication iosApplication = IOSDelegate.app;
-        IOSAccessibility iosAccessibility = iosApplication.getIOSAccessibility();
 
-        UIAccessibilityElement accessibilityElement = new UIAccessibilityElement(iosAccessibility);
-
-        accessibilityElement.setAccessibilityFrame(new CGRect(x, y, width, height));
+        UIAccessibilityElement accessibilityElement = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
 
         if (item.GetName() != null)
             accessibilityElement.setAccessibilityLabel(item.GetName());
@@ -147,16 +100,29 @@ public class IOSAccessibility extends UIView implements UIAccessibilityContainer
             accessibilityElement.setAccessibilityHint("Default Description");
 
         if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_())
-            accessibilityElement.setAccessibilityElement(false);
+            accessibilityElement.setAccessibilityElement(true);
         else
             accessibilityElement.setAccessibilityElement(true);
 
+        accessibilityElement.setAccessibilityValue("Default Value");
+
+        accessibilityElement.setAccessibilityIdentifier("Default Identifier");
+
+        accessibilityElement.setAccessibilityFrame(new CGRect(x, y, width, height));
+
+        accessibilityElement.setAccessibilityFrameInContainerSpace(new CGRect(x, y, width, height));
+
+        UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
+        accessibilityElement.setAccessibilityTraits(traits);
 
         // Add the accessibility element to the list
-        accessibilityElements.add(accessibilityElement);
+        NSMutableArray<UIAccessibilityElement> nsArray = (NSMutableArray<UIAccessibilityElement>) IOSApplication.accessibilityContainer.getAccessibilityElements().mutableCopy();
+        nsArray.add(accessibilityElement);
+        IOSApplication.accessibilityContainer.setAccessibilityElements(nsArray);
 
         // Inform iOS that the accessibility elements have changed
-        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, accessibilityElement);
+        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, accessibilityElement);
+        System.out.println("Added accessibility element" + IOSApplication.accessibilityContainer.getAccessibilityElementCount());
     }
 
     private class HiddenView extends UIView {
