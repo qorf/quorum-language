@@ -1189,12 +1189,19 @@ class CodeEditor is ScrollableLineControl, GutterListener
         block.
     */
     action SelectDebuggerLine(integer line)
-        SelectBlockAtLine(line)
-        lineGutter:SetDebuggerLine(line)
+        Block block = SelectBlockAtTextLine(line)
+        lineGutter:SetDebuggerLine(block:GetNavigationIndex())
     end
 
     action ClearDebuggerLine
         lineGutter:SetDebuggerLine(-1)
+    end
+
+    action SelectBlockAtTextLine(integer line) returns Block
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+
+        SelectBlockOrItem(block)
+        return block
     end
 
     action SelectBlockAtLine(integer line)
