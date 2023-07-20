@@ -1197,6 +1197,12 @@ class CodeEditor is ScrollableLineControl, GutterListener
         lineGutter:SetDebuggerLine(-1)
     end
 
+    action SelectBlockAtTextLine(integer line)
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+
+        SelectBlockOrItem(block)
+    end
+
     action SelectBlockAtLine(integer line)
         // If the blocks need to be regenerated or if the indices need to be updated, do that first.
         if shouldRegenerateBlocks
