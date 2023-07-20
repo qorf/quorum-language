@@ -449,11 +449,10 @@ class CodeEditorRenderer is Control
     action GetNavigableBlockAtTextLine(integer line) returns Block
         Block candidate = undefined
         Block current = rootBlock:GetNextNavigableBlock()
-
         integer i = 0
         repeat until current = undefined
             integer endLine = current:GetEndLine()
-
+            
             if current:GetStartLine() <= line
                 // The first block we find that ends on this line, return it.
                 if endLine = line
@@ -466,7 +465,6 @@ class CodeEditorRenderer is Control
 
             current = current:GetNextNavigableBlock()
         end
-
         return candidate
     end
 
