@@ -1191,7 +1191,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     action SelectDebuggerLine(integer line)
         Block block = SelectBlockAtTextLine(line)
         if block not= undefined
-lineGutter:SetDebuggerLine(block:GetNavigationIndex())
+            lineGutter:SetDebuggerLine(block:GetNavigationIndex())
         end
     end
 
