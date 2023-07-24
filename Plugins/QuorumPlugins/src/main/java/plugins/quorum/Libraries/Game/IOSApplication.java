@@ -91,6 +91,10 @@ public class IOSApplication
 
     // The display scale factor (1.0f for normal, 2.0f to use retina coordinates/dimensions.
     float displayScaleFactor;
+    public CGRect screenBounds;
+    public static CGRect accessibilityContainerBounds;
+    public static int containerScaleFactorWidth;
+    public static int containerScaleFactorHeight;
 
     // Reference to the delegate -- may not be necessary.
     IOSDelegate delegate;
@@ -203,6 +207,10 @@ public class IOSApplication
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
         accessibilityContainer = new IOSAccessibilityContainer();
+        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
+        screenBounds = GetBounds();
+        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
+        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
         accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
         accessibilityContainer.setHidden(false);
         accessibilityContainer.setAccessibilityIdentifier("accessibilityContainer");
