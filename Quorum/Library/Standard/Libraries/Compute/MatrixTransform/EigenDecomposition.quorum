@@ -5,6 +5,7 @@ use Libraries.Compute.Vector
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Compute.BitwiseOperations
+use Libraries.Compute.ComplexNumber
 
 /*
     An Eigen decomposition is a matrix decomposition of a matrix A into 
@@ -66,9 +67,10 @@ class EigenDecomposition
     boolean symmetricOverride = false
 
     on create
-        BitwiseOperations ops
-        integer p = ops:ShiftLeft(1023-53, 52)
-        precisionEpsilon = 1.0*math:RaiseToPower(10, -p)
+//        BitwiseOperations ops
+//        integer p = ops:ShiftLeft(1023-53, 52)
+//        precisionEpsilon = 1.0*math:RaiseToPower(10, -p)
+        precisionEpsilon = 2.0e-52
     end
 
     action Calculate(Matrix matrix)
@@ -88,10 +90,9 @@ class EigenDecomposition
             decomposition:Calculate(matrix)
             CalculateEigenVectorsFromTridiagonalDecomposition(decomposition)
         else
-            alert("EigenDecomposition is not set up for asymmetric matrices yet.")
-            //SchurDecomposition decomposition
-            //decomposition:Calculate(matrix)
-            //CalculateEigenVectorsFromSchurDecomposition(decomposition)        
+            SchurDecomposition decomposition
+            decomposition:Calculate(matrix)
+            CalculateEigenVectorsFromSchurDecomposition(decomposition)        
         end
     end
 
@@ -319,7 +320,8 @@ class EigenDecomposition
                 realEigenvalues:Set(i, x + p)
                 imaginaryEigenvalues:Set(i, z)
                 realEigenvalues:Set(i+1, x + p)
-                imaginaryEigenvalues:Set(i+1, -z)                
+                imaginaryEigenvalues:Set(i+1, -z)    
+                i = i + 1            
             end
             i = i + 1
         end
@@ -410,17 +412,13 @@ class EigenDecomposition
                     matT:Set(index-1, index-1, q / matT:Get(index, index-1))
                     matT:Set(index-1, index, -(matT:Get(index, index) - p) / matT:Get(index, index-1))
                 else
-//                    ComplexNumber top
-//                    top:SetValues(0, -matT:Get(index -1, index))
-//                    ComplexNumber bottom
-//                    bottom:SetValues(matT:Get(index-1, index-1) - p, q)
-//                    ComplexNumber result = top.divide(bottom)
-//                    matT:Set(index-1, index-1, result:GetReal())
-//                    matT:Set(index-1, index, result:GetImaginary())
-
-                    //REMOVE AFTER COMPLEX NUMBERS
-                    matT:Set(index-1, index-1, 0 / (matT:Get(index-1, index-1) - p))
-                    matT:Set(index-1, index, (-matT:Get(index -1, index)) / q)
+                    ComplexNumber top
+                    top:SetValue(0, -matT:Get(index -1, index))
+                    ComplexNumber bottom
+                    bottom:SetValue(matT:Get(index-1, index-1) - p, q)
+                    ComplexNumber result = top:Divide(bottom)
+                    matT:Set(index-1, index-1, result:GetReal())
+                    matT:Set(index-1, index, result:GetImaginary())
                 end       
                 matT:Set(index, index-1, 0)  
                 matT:Set(index, index, 1)  
@@ -443,18 +441,13 @@ class EigenDecomposition
                     else
                         l = i
                         if PrecisionEquals(imaginaryEigenvalues:Get(i), 0, precisionEpsilon)
-//                            ComplexNumber top
-//                            top:SetValues(-ra, -sa)
-//                            ComplexNumber bottom
-//                            bottom:SetValues(w, q)
-//                            ComplexNumber result = top.divide(bottom)
-//                            matT:Set(i, index-1, result:GetReal())
-//                            matT:Set(i, index, result:GetImaginary())
-
-
-                            //REMOVE AFTER COMPLEX NUMBERS
-                            matT:Set(i, index-1, -ra / w)
-                            matT:Set(i, index, -sa / q)
+                            ComplexNumber top
+                            top:SetValue(-ra, -sa)
+                            ComplexNumber bottom
+                            bottom:SetValue(w, q)
+                            ComplexNumber result = top:Divide(bottom)
+                            matT:Set(i, index-1, result:GetReal())
+                            matT:Set(i, index, result:GetImaginary())
                         else
                             // Solve complex equations
                             number x = matT:Get(i, i+1)
@@ -464,34 +457,25 @@ class EigenDecomposition
                             if PrecisionEquals(vr, 0, precisionEpsilon) and PrecisionEquals(vi, 0, precisionEpsilon)
                                 vr = precisionEpsilon * norm * (math:AbsoluteValue(w) + math:AbsoluteValue(q) + math:AbsoluteValue(x) + math:AbsoluteValue(y) + math:AbsoluteValue(z))
                             end
-//                            ComplexNumber top
-//                            top:SetValues(x * r - z * ra + q * sa, x * s - z * sa - q * ra)
-//                            ComplexNumber bottom
-//                            bottom:SetValues(vr, vi)
-//                            ComplexNumber result = top.divide(bottom)
-//                            matT:Set(i, index-1, result:GetReal())
-//                            matT:Set(i, index, result:GetImaginary())   
-
-                            //REMOVE AFTER COMPLEX NUMBERS
-                            matT:Set(i, index-1, (x * r - z * ra + q * sa) / vr)
-                            matT:Set(i, index, (x * s - z * sa - q * ra) / vi)  
+                            ComplexNumber top
+                            top:SetValue(x * r - z * ra + q * sa, x * s - z * sa - q * ra)
+                            ComplexNumber bottom
+                            bottom:SetValue(vr, vi)
+                            ComplexNumber result = top:Divide(bottom)
+                            matT:Set(i, index-1, result:GetReal())
+                            matT:Set(i, index, result:GetImaginary())    
 
                             if math:AbsoluteValue(x) > (math:AbsoluteValue(z) + math:AbsoluteValue(q))      
                                 matT:Set(i+1, index-1, (-ra - w * matT:Get(i, index-1) + q * matT:Get(i, index)) / x)
                                 matT:Set(i+1, index, (-sa - w * matT:Get(i, index) - q * matT:Get(i, index-1)) / x)
                             else
-//                            ComplexNumber top
-//                            top:SetValues(-r - y * matT:Get(i,index-1), -s - y * matT:Get(i,index))
-//                            ComplexNumber bottom
-//                            bottom:SetValues(z, q)
-//                            ComplexNumber result2 = top.divide(bottom)
-//                            matT:Set(i+1, index-1, result2:GetReal())
-//                            matT:Set(i+1, index, result2:GetImaginary())  
-
-                                //REMOVE AFTER COMPLEX NUMBERS
-                                matT:Set(i+1, index-1, (-r - y * matT:Get(i,index-1)) / z)
-                                matT:Set(i+1, index, (-s - y * matT:Get(i,index)) / q)  
-
+                                ComplexNumber numerator
+                                numerator:SetValue(-r - y * matT:Get(i,index-1), -s - y * matT:Get(i,index))
+                                ComplexNumber denominator
+                                denominator:SetValue(z, q)
+                                ComplexNumber result2 = numerator:Divide(denominator)
+                                matT:Set(i+1, index-1, result2:GetReal())
+                                matT:Set(i+1, index, result2:GetImaginary())  
                             end     
                         end
 
