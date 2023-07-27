@@ -59,7 +59,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     MultipleLineText rawCode
     CodeEditorSelection selection
 
-    number percentageLineHeightPadding = 1
+    number percentageLineHeightPadding = 1.0
 
     CodeEditorRenderer renderer
     ParserToBlockListener blockListener = undefined
@@ -76,7 +76,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     number blockNotchTopWidth = 50
     number blockNotchBottomWidth = 25
-    number blockNotchHeight = 100.25
+    number blockNotchHeight = 0.3
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
@@ -1982,11 +1982,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
         me:blockNotchBottomWidth = blockNotchBottomWidth
     end
 
-    action GetBlockNotchHeight returns number
-        return blockNotchHeight
+    action GetBlockNotchPixelHeight returns number
+        return blockNotchHeight * (GetDefaultUnpaddedLineHeight() * percentageLineHeightPadding)
     end
 
-    action SetBlockNotchHeight(number blockNotchHeight)
+action GetBlockNotchPercentageHeight returns number
+        return blockNotchHeight
+    end
+    
+    action SetBlockNotchPercentageHeight(number blockNotchHeight)
         me:blockNotchHeight = blockNotchHeight
     end
 

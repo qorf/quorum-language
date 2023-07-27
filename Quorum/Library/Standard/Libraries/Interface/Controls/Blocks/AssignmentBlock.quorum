@@ -17,7 +17,7 @@ class AssignmentBlock is SingleLineBlock
 
     EditField typeField = undefined
     EditField nameField = undefined
-    EditField valueField = undefined
+    EditBox valueField = undefined
     BlockLabel accessModifierLabel = undefined
     BlockLabel constantLabel = undefined
     BlockLabel equalsLabel = undefined
@@ -125,7 +125,7 @@ class AssignmentBlock is SingleLineBlock
             label:SetRightPadding(spacing)
             Add(label)
 
-            EditField region
+            EditBox region
             valueField = region
             Add(valueField)
 
