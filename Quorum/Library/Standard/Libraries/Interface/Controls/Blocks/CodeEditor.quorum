@@ -1007,7 +1007,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if block not= undefined and block:GetNextNavigableBlock() not= undefined
                     SelectBlockAtLine(GetFirstVisibleLine())
                 end
+            elseif selection:GetBlockItem() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
+            elseif selection:GetBlock() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
             end
+        end
+        
+        if ContainsFocus()
+            UpdateSelectionCursor()
         end
     end
 

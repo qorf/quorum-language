@@ -107,7 +107,7 @@ class EditBox is TextBox, EditRegion
 
     action LostFocus(FocusEvent event)
         parent:TextBox:LostFocus(event)
-        parent:Control:LostFocus(event)
+        parent:BlockItem:LostFocus(event)
     end
 
     action ShowCaret
