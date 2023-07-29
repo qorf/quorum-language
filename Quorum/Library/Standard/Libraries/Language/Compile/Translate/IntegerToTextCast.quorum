@@ -1,6 +1,8 @@
 package Libraries.Language.Compile.Translate
 
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Interpreter.Runtime
+use Libraries.Language.Compile.Interpreter.Result
 
 class IntegerToTextCast is ExplicitCastOpcode
     JavaBytecodeOpcodes opcodes
@@ -25,6 +27,24 @@ class IntegerToTextCast is ExplicitCastOpcode
             result = result + opcodeToCast:WriteJavaScript() + " + " + DQ + DQ
         end
         return result
+    end
+
+    action Evaluate(Runtime runtime)
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            Result left = runtime:PopFromStack()
+
+            Result result
+            Type type
+            
+            result:type = type
+            type:SetToText()
+
+            if left not= undefined
+                result:textValue = "" + left:integerValue
+                runtime:PushToStack(result)
+            end
+        end
     end
 
     action GetTemplateCopy returns QuorumOpcode

@@ -400,9 +400,13 @@ class CompareMeansDesign
         if subjectIdentifierHeader not= "" and repeatedMeasures
             newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
             newFrame:AddSelectedFactors(subjectIdentifierHeader)
+            numberOfObservations = longFrame:GetColumn(subjectIdentifierHeader):GetSize()
         else
             if repeatedMeasures
                 alert("Since your data is in long format for repeated measures, please specify the subject identification column using AddSubjectIdentifier().")
+            else
+                numberOfSubjects = longFrame:GetColumn(0):GetSize()
+                numberOfObservations = longFrame:GetColumn(0):GetSize()
             end
         end
 

@@ -56,6 +56,7 @@ use Science.Tests.MultivariateFactorialCompareSeveralMeansTest
 use Science.Tests.FactorialCompareVariancesTest
 use Science.Tests.RegressionPredictionTest
 use Science.Tests.MultivariateCompareVariancesTest
+use Science.Tests.FactorialCompareSeveralRelatedMeansTest
 
 class ScienceTester
     Tester tester = undefined
@@ -132,6 +133,18 @@ class ScienceTester
 
         MultivariateFactorialCompareSeveralMeansTest test13
         tester:Run(test13)
+
+        FactorialCompareSeveralRelatedMeansTest test14
+        tester:Run(test14)
+
+//        MultivariateCompareSeveralRelatedMeansTest test15
+//        tester:Run(test15)
+//
+//        MultivariateFactorialCompareSeveralRelatedMeansTest test16
+//        tester:Run(test16)
+//
+//        MixedDesignCompareSeveralMeansTest test17
+//        tester:Run(test17)
     end
 
     action TestCompareMeansPairwise

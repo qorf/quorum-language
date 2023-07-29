@@ -74,7 +74,9 @@ class ScrollableLineControl is ScrollableControl
         end
         
         // Make sure the gutter region is set to fit the known with of its contents.
-        gutterRegion:SetPixelWidth(result)
+        // Note that we have to offset for interface scale, because the layout will apply it, but we've also already measured it
+        // in the widths of the individual gutters we already summed up. (In other words, without this division, the scale is applied twice)
+        gutterRegion:SetPixelWidth(result / GetInterfaceScale())
 
         return result
     end

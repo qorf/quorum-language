@@ -14,11 +14,11 @@ use Libraries.Containers.MultipleLineText
 
 class IfBlock is MultipleLineBlock
     BlockLabel ifLabel = undefined
-    EditField expressionField = undefined
+    EditBox expressionField = undefined
     BlockLabel elseLabel = undefined
 
     Array<BlockLabel> elseifLabels
-    Array<EditField> elseifExpressionFields
+    Array<EditBox> elseifExpressionFields
 
     MultipleLineBlockPart ifPart = undefined
     Array<MultipleLineBlockPart> elseifParts
@@ -64,7 +64,7 @@ class IfBlock is MultipleLineBlock
         ifLabel:SetRightPadding(spacing)
         part:Add(ifLabel)
 
-        EditField expressionField
+        EditBox expressionField
         me:expressionField = expressionField
         part:Add(expressionField)
 
@@ -72,6 +72,7 @@ class IfBlock is MultipleLineBlock
         expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
 
         part:SetLocalEndIndex(expressionField:GetEndIndex())
+        part:SetLocalEndLine(expressionLoc:GetLineNumberEnd() - expressionLoc:GetLineNumber())
 
         ifPart = part
         return part
@@ -98,12 +99,13 @@ class IfBlock is MultipleLineBlock
         elseifLabel:SetRightPadding(spacing)
         part:Add(elseifLabel)
 
-        EditField expressionField
+        EditBox expressionField
         me:elseifExpressionFields:Add(expressionField)
         part:Add(expressionField)
 
         Location expressionLoc = elseifExpression:GetLocation()
         part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine() - 1)
+        part:SetLocalEndLine(part:GetLocalStartLine() + (expressionLoc:GetLineNumberEnd() - expressionLoc:GetLineNumber()))
         expressionField:Setup("Expression", expressionLoc:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), expressionLoc:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
@@ -152,12 +154,14 @@ class IfBlock is MultipleLineBlock
         elseifLabel:SetRightPadding(spacing)
         part:Add(elseifLabel)
 
-        EditField expressionField
+        EditBox expressionField
         me:elseifExpressionFields:Add(expressionField)
         part:Add(expressionField)
 
         part:SetLocalStartLine(block:GetStartLine() - GetStartLine())
         expressionField:Setup("Expression", 7, 7 + expression:GetSize())
+        
+        part:SetLocalEndLine(part:GetLocalStartLine() + (expressionField:GetLineCount() - 1))
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + 7 + expressionField:GetText():GetSize())
 

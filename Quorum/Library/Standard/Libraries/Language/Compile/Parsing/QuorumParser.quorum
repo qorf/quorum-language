@@ -3457,7 +3457,8 @@ class QuorumParser
                 if not tokenIterator:IsValid() return undefined end
                 next = tokenIterator:GetCurrent()
                 if next not= undefined and next:category = constants:RIGHT_PAREN
-                    context:SetLastToken(tokenIterator:Next())
+                    context:SetLastToken(next)
+                    tokenIterator:Next()
                     SetLocation(context)
                     return context
                 else //this is an error. There needs to be a paren at the end of the expression

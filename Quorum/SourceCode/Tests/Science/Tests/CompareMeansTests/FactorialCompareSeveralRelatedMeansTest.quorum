@@ -1,0 +1,88 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a factorial repeated measures anova
+*/
+class FactorialCompareSeveralRelatedMeansTest is Test
+
+    on create
+        SetName("Calculate FactorialCompareSeveralRelatedMeansTest")
+    end
+
+    action Run
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("id,factor1,factor2,values
+        1,y,a,1
+        2,y,a,2
+        3,y,a,3
+        1,y,b,6
+        2,y,b,9
+        3,y,b,15
+        1,x1,a,3
+        2,x1,a,4
+        3,x1,a,4
+        1,x1,b,7
+        2,x1,b,8
+        3,x1,b,17
+        1,x2,a,-4
+        2,x2,a,-9
+        3,x2,a,-18
+        1,x2,b,-19
+        2,x2,b,-16
+        3,x2,b,-2
+        1,x3,a,4
+        2,x3,a,9
+        3,x3,a,18
+        1,x3,b,19
+        2,x3,b,16
+        3,x3,b,2")
+
+        CompareMeans compare
+        compare:AddSubjectIdentifier("id")
+        compare:AddWithinSubjectsFactor("factor1")
+        compare:AddWithinSubjectsFactor("factor2")
+        compare:AddDependentVariable("values")
+        compare:RepeatedMeasures(true)
+        frame:Calculate(compare)
+
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatisticsTable("factor1"):GetValue("F"), 79.07116788321136)
+        Check(result:GetTestStatisticsTable("factor2"):GetValue("F"), 8.881578947368475)
+        Check(result:GetTestStatisticsTable("factor1:factor2"):GetValue("F"), 0.3603896103896099)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("df"), 3.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("error df"), 6.0)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("df"), 1.0)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("error df"), 2.0)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("df"), 3.0)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("error df"), 6.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("p"), 3.253734622998827e-5)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("p"), 0.09656038171132197)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("p"), 0.7842023459003473)
+
+        Check(result:GetInformation():GetValue("factor1"):GetValue("partial-eta-squared"), 0.975330317149481)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("partial-eta-squared"), 0.8162031438935922)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-eta-squared"), 0.15268225584594206)
+
+        Check(result:GetInformation():GetValue("factor1"):GetValue("generalized-eta-squared"), 0.7394999573342436)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("generalized-eta-squared"), 0.11712649661634564)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("generalized-eta-squared"), 0.1324808184143221)
+
+//        Check(result:GetInformation():GetValue("factor1"):GetValue("partial-omega-squared"), 3.253734622998827e-5)
+//        Check(result:GetInformation():GetValue("factor2"):GetValue("partial-omega-squared"), 0.09656038171132197)
+//        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-omega-squared"), 0.7842023459003473)
+//
+//        Check(result:GetInformation():GetValue("factor1"):GetValue("generalized-omega-squared"), 3.253734622998827e-5)
+//        Check(result:GetInformation():GetValue("factor2"):GetValue("generalized-omega-squared"), 0.09656038171132197)
+//        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("generalized-omega-squared"), 0.7842023459003473)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

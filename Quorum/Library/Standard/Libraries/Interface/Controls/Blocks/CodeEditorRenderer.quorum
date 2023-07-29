@@ -432,7 +432,7 @@ class CodeEditorRenderer is Control
     end
 
     // This action was formerly "GetBlockAtLine" before that action changed to be based on navigation index instead of lines of text
-    private action GetBlockAtTextLine(Block block, integer line) returns Block
+    action GetBlockAtTextLine(Block block, integer line) returns Block
         integer i = 0
         repeat while i < block:GetChildCount()
             Block candidate = block:GetChild(i)
@@ -444,6 +444,28 @@ class CodeEditorRenderer is Control
         end
 
         return block
+    end
+
+    action GetNavigableBlockAtTextLine(integer line) returns Block
+        Block candidate = undefined
+        Block current = rootBlock:GetNextNavigableBlock()
+        integer i = 0
+        repeat until current = undefined
+            integer endLine = current:GetEndLine()
+            
+            if current:GetStartLine() <= line
+                // The first block we find that ends on this line, return it.
+                if endLine = line
+                    return current
+                elseif endLine > line
+                    // This block contains the requested line. It's a candidate if we don't find a more exact match.
+                    candidate = current
+                end
+            end
+
+            current = current:GetNextNavigableBlock()
+        end
+        return candidate
     end
 
     action GetNavigableBlockAtLine(integer line) returns Block

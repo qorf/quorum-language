@@ -59,7 +59,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     MultipleLineText rawCode
     CodeEditorSelection selection
 
-    number percentageLineHeightPadding = 1
+    number percentageLineHeightPadding = 1.0
 
     CodeEditorRenderer renderer
     ParserToBlockListener blockListener = undefined
@@ -76,7 +76,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     number blockNotchTopWidth = 50
     number blockNotchBottomWidth = 25
-    number blockNotchHeight = 10
+    number blockNotchHeight = 0.3
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
@@ -1007,7 +1007,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if block not= undefined and block:GetNextNavigableBlock() not= undefined
                     SelectBlockAtLine(GetFirstVisibleLine())
                 end
+            elseif selection:GetBlockItem() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
+            elseif selection:GetBlock() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
             end
+        end
+        
+        if ContainsFocus()
+            UpdateSelectionCursor()
         end
     end
 
@@ -1189,12 +1197,21 @@ class CodeEditor is ScrollableLineControl, GutterListener
         block.
     */
     action SelectDebuggerLine(integer line)
-        SelectBlockAtLine(line)
-        lineGutter:SetDebuggerLine(line)
+        Block block = SelectBlockAtTextLine(line)
+        if block not= undefined
+            lineGutter:SetDebuggerLine(block:GetNavigationIndex())
+        end
     end
 
     action ClearDebuggerLine
         lineGutter:SetDebuggerLine(-1)
+    end
+
+    action SelectBlockAtTextLine(integer line) returns Block
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+
+        SelectBlockOrItem(block)
+        return block
     end
 
     action SelectBlockAtLine(integer line)
@@ -1973,11 +1990,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
         me:blockNotchBottomWidth = blockNotchBottomWidth
     end
 
-    action GetBlockNotchHeight returns number
-        return blockNotchHeight
+    action GetBlockNotchPixelHeight returns number
+        return blockNotchHeight * (GetDefaultUnpaddedLineHeight() * percentageLineHeightPadding)
     end
 
-    action SetBlockNotchHeight(number blockNotchHeight)
+action GetBlockNotchPercentageHeight returns number
+        return blockNotchHeight
+    end
+    
+    action SetBlockNotchPercentageHeight(number blockNotchHeight)
         me:blockNotchHeight = blockNotchHeight
     end
 

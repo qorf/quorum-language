@@ -47,6 +47,8 @@ class BlockItem is Control
         if editor not= undefined
             editor:OnFocusChange(event)
         end
+        
+        parent:Control:GainedFocus(event)
     end
     
     action LostFocus(FocusEvent event)
@@ -54,6 +56,8 @@ class BlockItem is Control
         if editor not= undefined
             editor:OnFocusLoss(event)
         end
+        
+        parent:Control:LostFocus(event)
     end
 
     action IsSelected returns boolean
