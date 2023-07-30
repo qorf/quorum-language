@@ -25,6 +25,7 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Containers.Array
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.WebApplication
 
 class ControlShaderMapping is BatchingShaderMapping2D
 
@@ -357,6 +358,16 @@ class ControlShaderMapping is BatchingShaderMapping2D
             end
         else
             shape:SetDataForAllVertices(borderColorAttribute:offset / 4, 0)
+        end
+
+        if manager:GetApplication() is WebApplication
+            // On some web browsers (such as Firefox) having all four values at 1.0 causes abberant rendering, because the packed value will become a malformed NaN value.
+            if bottomRightRounding = 1.0 and topRightRounding = 1.0 and bottomLeftRounding = 1.0 and topLeftRounding = 1.0
+                bottomRightRounding = 0.995
+                topLeftRounding = 0.995
+                bottomLeftRounding = 0.995
+                topRightRounding = 0.995
+            end
         end
 
         shape:SetDataForAllVertices(roundingAttribute:offset / 4, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
