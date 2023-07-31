@@ -122,23 +122,23 @@ public class AndroidAccessibility{
         sendAccessibilityEventForVirtualView(temp, AccessibilityEvent.TYPE_ANNOUNCEMENT);
     }
 
-    public void  NativeAdd(Item_ item) throws Exception {
+    public boolean NativeAdd(Item_ item) throws Exception {
 
         AccessibilityManager accessibilityManager = AndroidApplication.accessibilityManager;
         if(accessibilityManager == null) {
-            return;
+            return false;
         }
         View view = AndroidApplication.viewRoot;
         if(view == null) {
-            return;
+            return false;
         }
         AccessibilityNodeProvider accessibilityNodeProvider = AndroidApplication.accessibilityNodeProvider;
         if(accessibilityNodeProvider == null) {
-            return;
+            return false;
         }
 
         if(item.GetAccessibilityType().equals("NOT_ACCESSIBLE"))
-            return;
+            return false;
 
         int id = item.GetHashCode();
 
@@ -153,20 +153,20 @@ public class AndroidAccessibility{
 
         }
         */
+        return true;
     }
 
-    public void  NativeRemove(Item_ item) {
+    public boolean NativeRemove(Item_ item) {
         if(item == null) {
-            return;
+            return false;
         }
 
         int id = item.GetHashCode();
         Item_ temp = AndroidApplication.quorumItems.get(id);
         if(temp == null)
-            return;
+            return false;
         else
-            AndroidApplication.quorumItems.remove(id);
-
+            return (AndroidApplication.quorumItems.remove(id) != null);
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
