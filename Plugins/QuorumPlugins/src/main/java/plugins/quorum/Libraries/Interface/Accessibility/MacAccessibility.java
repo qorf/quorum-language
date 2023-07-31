@@ -80,9 +80,15 @@ public class MacAccessibility {
 
     public void  FocusChanged(FocusEvent_ event) {}
 
-    public void  Add(Item_ item) {}
+    public boolean NativeAdd(Item_ item)
+    {
+        return false;
+    }
 
-    public void  Remove(Item_ item) {}
+    public boolean NativeRemove(Item_ item)
+    {
+        return false;
+    }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
 
