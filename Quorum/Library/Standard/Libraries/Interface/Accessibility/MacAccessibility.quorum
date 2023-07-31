@@ -15,8 +15,15 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Accessibility
+use Libraries.Game.GameStateManager
 
 class MacAccessibility is Accessibility
+    GameStateManager manager
+
+    // The last item that Accessibility sent a focus event to native accessibility for.
+    // Used to determine if a new focus was selected during the last frame of animation.
+    Item lastFocused = undefined
+
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)
@@ -25,7 +32,16 @@ class MacAccessibility is Accessibility
 
     system action TextFieldUpdatePassword(TextField field)
 
-    system action Update
+    action Update
+        Item focus = manager:GetFocus()
+        if focus not= lastFocused
+            FocusEvent event
+            event:Initialize(lastFocused, focus)
+            FocusChanged(event)
+            
+            lastFocused = focus
+        end
+    end
 
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
