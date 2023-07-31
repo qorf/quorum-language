@@ -77,6 +77,7 @@ public class IOSApplication
 
     // Reference to the game so we can call its actions.
     public Game_ game;
+    public static String name = "";
 
     UIApplication uiApp;
     UIWindow uiWindow;
@@ -131,6 +132,7 @@ public class IOSApplication
     public void SetupNative(Game_ game)
     {
         this.game = game;
+        name = game.GetGameName();
 
         // Make the default working directory more useful if we're not on a simulator.
         if (IsSimulator())
@@ -213,7 +215,8 @@ public class IOSApplication
         containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
         accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
         accessibilityContainer.setHidden(false);
-        accessibilityContainer.setAccessibilityIdentifier("accessibilityContainer");
+
+        accessibilityContainer.setAccessibilityIdentifier(name);
 
         this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
 

@@ -26,12 +26,57 @@ public class IOSAccessibility {
 
     public void  DescriptionChanged(Item_ item) {}
 
-    public void  BoundsChanged(Item_ item) {}
+    public void  BoundsChanged(Item_ item) {
+        UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
+        if(element == null) {
+            return;
+        }
+        int x = 0;
+        int y = 0;
+        int width = 0;
+        int height = 0;
+
+        if (item instanceof Item2D_)
+        {
+            double itemX = ((Item2D_)item).GetScreenX();
+            double itemY = (((Item2D_) item).GetScreenY());
+            if (itemX == Double.NaN) {
+                itemX = 0;
+            }
+
+            if (itemY == Double.NaN) {
+                itemY = 0;
+            }
+
+            width = (int) (((Item2D_) item).GetWidth() / IOSApplication.containerScaleFactorWidth);
+            height = (int) (((Item2D_) item).GetHeight() / IOSApplication.containerScaleFactorHeight);
+            x = (int)(itemX / IOSApplication.containerScaleFactorWidth);
+            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (itemY / IOSApplication.containerScaleFactorHeight)));
+        }
+        else if (item instanceof Item3D_)
+        {
+            // This is only a place holder, to place a small box roughly at the
+            // center of a 3D object in the screen. To calculate this correctly,
+            // check how we calculate mouse input detection for 3D objects.
+            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+
+            width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
+            height = (int)(rectangle.GetY() + rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
+            x = (int)(rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
+            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
+        }
+        else
+        {
+            return;
+        }
+
+        element.setAccessibilityFrame(new CGRect(x, y, width, height));
+    }
 
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
     public void  Update() {
-        // Update the accessibility elements
+//        // Update the accessibility elements
 //        Iterator it = mapAccessibilityElements.entrySet().iterator();
 //        int screenHeight =  (int) IOSDelegate.app.GetUIViewController().getView().getBounds().getHeight();
 //
@@ -110,7 +155,7 @@ public class IOSAccessibility {
     }
 
     public void Add(Item_ item) {
-        boolean debug = false;
+        boolean debug = true;
         int x = 0;
         int y = 0;
         int width = 0;
@@ -164,49 +209,60 @@ public class IOSAccessibility {
             }
         }
 
+
+
+
+
+
+
+        UIAccessibilityElement element = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
+
+
         //Get the accessibility code and do custom controls.
         int code = item.GetAccessibilityCode();
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
             return;
+        } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         }
-
-
-
-
-
-        UIAccessibilityElement accessibilityElement = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
 
         if (item.GetName() != null) {
-            accessibilityElement.setAccessibilityLabel(item.GetName());
+            element.setAccessibilityIdentifier(item.GetName() + " ID");
+            element.setAccessibilityValue(item.GetName() + " Value");
+            element.setAccessibilityLabel(item.GetName());
         }
         else {
-            accessibilityElement.setAccessibilityLabel("Name");
+            element.setAccessibilityLabel("Name");
         }
 
         if (item.GetDescription() != null) {
-            accessibilityElement.setAccessibilityHint(item.GetDescription());
+            element.setAccessibilityHint(item.GetDescription());
         }
         else {
-            accessibilityElement.setAccessibilityHint("Description");
+            element.setAccessibilityHint("Description");
         }
 
 
-        accessibilityElement.setAccessibilityElement(true);
-        accessibilityElement.setAccessibilityValue(item.GetDescription());
-        accessibilityElement.setAccessibilityIdentifier(item.GetAccessibilityType());
-        accessibilityElement.setAccessibilityFrame(new CGRect(x, y, width, height));
+        element.setAccessibilityElement(true);
+        for (UIAccessibilityTraits trait : element.getAccessibilityTraits()) {
+            System.out.println(trait.toString());
+        }
 
-        UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
-        accessibilityElement.setAccessibilityTraits(traits);
+        //accessibilityElement.setAccessibilityValue(item.GetDescription());
+        //accessibilityElement.setAccessibilityIdentifier(item.GetAccessibilityType());
+        element.setAccessibilityFrame(new CGRect(x, y, width, height));
+
+       // UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
+       // accessibilityElement.setAccessibilityTraits(traits);
 
         // Add the accessibility element to the list
         NSMutableArray<UIAccessibilityElement> nsArray = (NSMutableArray<UIAccessibilityElement>) IOSApplication.accessibilityContainer.getAccessibilityElements().mutableCopy();
-        nsArray.add(accessibilityElement);
-        mapAccessibilityElements.put(accessibilityElement, item);
+        nsArray.add(element);
+        mapAccessibilityElements.put(element, item);
         IOSApplication.accessibilityContainer.setAccessibilityElements(nsArray);
 
         // Inform iOS that the accessibility elements have changed
-        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, accessibilityElement);
+        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, element);
 
         if(debug){
             System.out.println("The bounds are" + IOSApplication.accessibilityContainer.getFrame().getX() + " " + IOSApplication.accessibilityContainer.getFrame().getY() + " " + IOSApplication.accessibilityContainer.getFrame().getWidth() + " " + IOSApplication.accessibilityContainer.getFrame().getHeight());
