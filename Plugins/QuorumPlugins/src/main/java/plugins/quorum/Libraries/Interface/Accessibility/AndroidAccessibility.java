@@ -13,6 +13,8 @@ import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 /**
  *
@@ -178,6 +180,21 @@ public class AndroidAccessibility{
     public void  ControlActivated(ControlActivationEvent_ event) {}
 
     public void  TextChanged(TextChangeEvent_ event) {}
+
+    public void TextSelectionChanged(TextBoxSelection_ selection)
+    {
+
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+
+    }
+
+    public boolean Select(Item_ item)
+    {
+        return false;
+    }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
 
