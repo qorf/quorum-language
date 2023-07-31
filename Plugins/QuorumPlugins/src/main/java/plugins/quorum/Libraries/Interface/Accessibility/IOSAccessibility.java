@@ -92,12 +92,12 @@ public class IOSAccessibility {
         Item_ item = event.GetNewFocus();
         System.out.println("Focus Changed to " + item.GetName());
         UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
-        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, element);
+        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
 
     }
 
     public boolean NativeAdd(Item_ item) {
-        boolean debug = true;
+        boolean debug = false;
         int x = 0;
         int y = 0;
         int width = 0;
