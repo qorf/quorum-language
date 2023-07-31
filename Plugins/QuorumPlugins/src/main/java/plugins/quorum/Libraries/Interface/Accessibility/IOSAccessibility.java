@@ -8,6 +8,8 @@ import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 import java.util.List;
 
@@ -104,6 +106,21 @@ public class IOSAccessibility {
     }
 
     public boolean NativeRemove(Item_ item) {
+        return false;
+    }
+
+    public void TextSelectionChanged(TextBoxSelection_ selection)
+    {
+
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+
+    }
+
+    public boolean Select(Item_ item)
+    {
         return false;
     }
 
