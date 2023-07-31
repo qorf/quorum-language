@@ -20,12 +20,6 @@ use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Selections.TextFieldSelection
 
 class MacAccessibility is Accessibility
-    GameStateManager manager
-
-    // The last item that Accessibility sent a focus event to native accessibility for.
-    // Used to determine if a new focus was selected during the last frame of animation.
-    Item lastFocused = undefined
-
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)
@@ -43,17 +37,6 @@ class MacAccessibility is Accessibility
     system action NativeAdd(Item item) returns boolean
 
     system action NativeRemove(Item item) returns boolean
-
-//    action Update
-//        Item focus = manager:GetFocus()
-//        if focus not= lastFocused
-//            FocusEvent event
-//            event:Initialize(lastFocused, focus)
-//            FocusChanged(event)
-//            
-//            lastFocused = focus
-//        end
-//    end
 
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
