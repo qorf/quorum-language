@@ -163,14 +163,11 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
-            if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() && plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
                 event.stopPropagation();
                 event.preventDefault();
-            }
 
-            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
-            {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }
@@ -193,8 +190,15 @@ function plugins_quorum_Libraries_Game_WebInput_()
         document.addEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
         document.addEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
         document.addEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
-        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, false);
         document.addEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu, false);
+
+        /*
+        NOTE: The wheel listener requires the "passive: false" parameter, or else it can't prevent event propagation.
+        This is because Chrome automatically treats document-level mousewheel listeners as "passive" (and therefore
+        unable to stop the events) for performance reasons. This technically means a minor performance penalty, but
+        if we don't do this, the whole web page will scroll at the same time as our application.
+        */
+        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, {passive: false});
     
         plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent = function(event, pressed)
         {
