@@ -82,11 +82,11 @@ public class IOSAccessibility {
 
     public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {}
 
-    public void  SelectionChanged(SelectionEvent_ event) {}
+    public void SelectionChanged(SelectionEvent_ event) {}
 
-    public void  ButtonActivated(Button_ button) {}
+    public void ButtonActivated(Button_ button) {}
 
-    public void  ToggleButtonToggled(ToggleButton_ button) {}
+    public void ToggleButtonToggled(ToggleButton_ button) {}
 
     public void  FocusChanged(FocusEvent_ event) throws Exception {
         Item_ item = event.GetNewFocus();
@@ -96,7 +96,7 @@ public class IOSAccessibility {
 
     }
 
-    public void NativeAdd(Item_ item) {
+    public boolean NativeAdd(Item_ item) {
         boolean debug = true;
         int x = 0;
         int y = 0;
@@ -104,7 +104,7 @@ public class IOSAccessibility {
         int height = 0;
 
         if(item == null) {
-            return;
+            return false;
         }
 
         if (item instanceof Item2D_)
@@ -138,7 +138,7 @@ public class IOSAccessibility {
         }
         else
         {
-            return;
+            return false;
         }
 
         if(debug) {
@@ -157,7 +157,7 @@ public class IOSAccessibility {
         //Get the accessibility code and do custom controls.
         int code = item.GetAccessibilityCode();
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
-            return;
+            return false;
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         }
@@ -203,6 +203,7 @@ public class IOSAccessibility {
         if(debug){
             System.out.println("The bounds are" + IOSApplication.accessibilityContainer.getFrame().getX() + " " + IOSApplication.accessibilityContainer.getFrame().getY() + " " + IOSApplication.accessibilityContainer.getFrame().getWidth() + " " + IOSApplication.accessibilityContainer.getFrame().getHeight());
         }
+        return true;
     }
 
     public void TextSelectionChanged(TextBoxSelection_ selection)
@@ -248,7 +249,8 @@ public class IOSAccessibility {
         }
     }
 
-    public void  NativeRemove(Item_ item) {
+    public boolean NativeRemove(Item_ item) {
+        return false;
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
