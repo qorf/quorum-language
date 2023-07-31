@@ -155,10 +155,28 @@ public class IOSAccessibility {
 
 
         //Get the accessibility code and do custom controls.
+        //Many of the traits and properties here are incorrect, but the structure is there which can get us started
         int code = item.GetAccessibilityCode();
+        if(code != -1) {
+            System.out.println("Name: " + item.GetName() + " Code: " + code);
+        }
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
             return false;
+        } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+        } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+        } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+            //element.setAccessibilityTraits(UIAccessibilityTraits.);
+        } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+        } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
+            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         }
 
@@ -185,11 +203,8 @@ public class IOSAccessibility {
         }
 
         //accessibilityElement.setAccessibilityValue(item.GetDescription());
-        //accessibilityElement.setAccessibilityIdentifier(item.GetAccessibilityType());
+        element.setAccessibilityIdentifier("" + item.GetHashCode());
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
-
-        // UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
-        // accessibilityElement.setAccessibilityTraits(traits);
 
         // Add the accessibility element to the list
         NSMutableArray<UIAccessibilityElement> nsArray = (NSMutableArray<UIAccessibilityElement>) IOSApplication.accessibilityContainer.getAccessibilityElements().mutableCopy();
