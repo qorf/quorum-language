@@ -59,11 +59,15 @@ class AccessibilityManager is Accessibility
 
     private system action Deselect(Item item) returns boolean
 
-    // NativeAdd: Adds an Item to the accessibility hierarchy so the screen 
-    //            readers can access information about it.
+    /*
+        Adds an Item to the accessibility hierarchy so the screen 
+        readers can access information about it.
+    */
     private system action NativeAdd(Item item) returns boolean
     
-    // NativeRemove: Removes an Item from the native accessibility tree so that it is no longer available to screen readers.
+    /*  Removes an Item from the native accessibility tree so that it is no longer available to 
+        screen readers.
+    */
     private system action NativeRemove(Item item) returns boolean
 
     // ===== actions for Buttons

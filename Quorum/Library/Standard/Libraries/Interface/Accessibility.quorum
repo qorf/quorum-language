@@ -14,6 +14,24 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Interface.Selections.TreeTableSelection
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.ListItem
+use Libraries.Interface.Selections.ListSelection
+use Libraries.Interface.Selections.SpreadsheetSelection
+use Libraries.Interface.Controls.Cell
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Selections.TreeSelection
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Interface.Selections.MenuSelection
+use Libraries.Interface.Selections.Selection
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Selections.TextFieldSelection
+use Libraries.Interface.Selections.TabPaneSelection
 
 /*
     Accessibility is a class designed to encapsulate accessibility concepts across all operating systems, 
@@ -25,6 +43,8 @@ use Libraries.Interface.Events.ProgressBarValueChangedEvent
 
 */
 class Accessibility
+    GameStateManager manager
+    Item lastFocused = undefined
 
     /*
         This action indicates that an item had its name changed.
@@ -57,7 +77,16 @@ class Accessibility
     /*
         In some implementations, this triggers a focus change event. 
     */
-    blueprint action Update
+    action Update
+        Item focus = manager:GetFocus()
+        if focus not= lastFocused
+            FocusEvent event
+            event:Initialize(lastFocused, focus)
+            FocusChanged(event)
+            
+            lastFocused = focus
+        end
+    end
 
     /*
         This action indicates that a progress bar has had its value changed.
@@ -66,12 +95,88 @@ class Accessibility
     */
     blueprint action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
+    blueprint action TextSelectionChanged(TextBoxSelection selection)
+
+    blueprint action TextSelectionChanged(TextFieldSelection selection)
+
+    blueprint action Select(Item item) returns boolean
+
     /*
         This action indicates that the selection has changed for a particular item.
 
         Attribute: Parameter event this provides more information about how the selection was changed.
     */
-    blueprint action SelectionChanged(SelectionEvent event)
+    action SelectionChanged(SelectionEvent event)
+        Selection selection = event:GetSelection()
+        if selection is TextBoxSelection
+            TextBoxSelection textSelection = cast(TextBoxSelection, selection)
+            TextSelectionChanged(textSelection)
+        elseif selection is TextFieldSelection
+            TextFieldSelection textSelection = cast(TextFieldSelection, selection)
+            TextSelectionChanged(textSelection)
+
+        elseif selection is TabPaneSelection
+            // Do TabPane things
+        elseif selection is MenuSelection
+            
+            MenuSelection menuSelection = cast(MenuSelection, selection)
+
+            if not menuSelection:IsEmpty()
+                Array<MenuItem> path = menuSelection:GetPath()
+
+                Item selectedMenuItem = path:Get(path:GetSize()-1)
+                
+
+                Select(selectedMenuItem)
+            else
+                // TODO: Deselect any native selection
+                //Deselect(currentSelection)
+            end
+
+        elseif selection is TreeSelection
+
+            TreeSelection treeSelection = cast(TreeSelection, selection)
+
+            if not treeSelection:IsEmpty()
+                Array<TreeItem> path = treeSelection:GetPath()
+
+                Item selectedTreeItem = path:Get(path:GetSize()-1)
+
+                Select(selectedTreeItem)
+            end
+
+        elseif selection is SpreadsheetSelection
+            SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
+            if not tableSelection:IsEmpty()
+                Cell cell = tableSelection:Get()
+
+                Select(cell)
+            end
+        elseif selection is ListSelection
+            ListSelection listSelection = cast(ListSelection, selection)
+            if not listSelection:IsEmpty()
+                ListItem listItem = listSelection:GetListItem()
+
+                Select(listItem)
+            end
+        elseif selection is TreeTableSelection
+            TreeTableSelection treeTableSelection = cast(TreeTableSelection, selection)
+            if not treeTableSelection:IsEmpty()
+                TreeTableCell cell = treeTableSelection:Get()
+
+                Select(cell)
+            end
+        elseif selection is ButtonGroupSelection
+            ButtonGroupSelection groupSelection = cast(ButtonGroupSelection, selection)
+            if not groupSelection:IsEmpty()
+                ToggleButton button = groupSelection:GetButton()
+
+                Select(button)
+            end
+        else
+            // Do generic things
+        end
+    end
 
     /*
         This action indicates that a button has been activated, which can be done either through a click, 
@@ -97,18 +202,86 @@ class Accessibility
     blueprint action FocusChanged(FocusEvent event)
 
     /*
+        This action adds on a per platform basis any item that needs to raw to go the native system.
+
+        Attribute: Parameter Item the item to be added
+    */
+    blueprint action NativeAdd(Item item) returns boolean
+
+    /*
+        This action indicates that an item should be explicitly removed from the native accessibility system. 
+
+        Attribute: Parameter Item the item to be removed
+    */
+    blueprint action NativeRemove(Item item) returns boolean
+
+    /*
         This action indicates that an item should be explicitly added to the accessibility system. 
 
         Attribute: Parameter Item the item to be added
     */
-    blueprint action Add(Item item)
+    action Add(Item item)
+        //this is the same code from AccessibilityManager.quorum
+        NativeAdd(item)
+        // Add the children
+        if item is Item2D
+            Item2D temp = cast(Item2D, item)
+            Array<Item2D> children = temp:GetChildren()
+            
+            integer counter = 0
+
+            repeat while counter < children:GetSize()
+                Add(children:Get(counter))
+                counter = counter + 1
+            end
+
+        elseif item is Item3D
+            Item3D temp = cast(Item3D, item)
+            Iterator<Item3D> children = temp:GetItems()
+
+            Item3D child = undefined
+
+            repeat while children:HasNext()
+                child = children:Next()
+                Add(child)
+            end
+        end
+    end
 
     /*
         This action indicates that an item should be explicitly removed from the accessibility system. 
 
         Attribute: Parameter Item the item to be removed
     */
-    blueprint action Remove(Item item)
+    action Remove(Item item)
+        //this is the same code from AccessibilityManager.quorum
+        // If the item being removed has children then remove them first.
+        //Is this necessary or does the native layer figure this out?
+        if item is Item2D
+            Item2D temp = cast(Item2D, item)
+            Array<Item2D> children = temp:GetChildren()
+            
+            integer counter = 0
+
+            repeat while counter < children:GetSize()
+                Remove(children:Get(counter))
+                counter = counter + 1
+            end
+
+        elseif item is Item3D
+            Item3D temp = cast(Item3D, item)
+            Iterator<Item3D> children = temp:GetItems()
+            
+            Item child = undefined
+
+            repeat while children:HasNext()
+                child = children:Next()
+                Remove(child)
+            end
+        end
+
+        NativeRemove(item)
+    end
 
     /*
         This action indicates a menu was changed and the accessibility system should be informed.

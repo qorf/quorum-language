@@ -13,6 +13,8 @@ import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,66 +78,6 @@ public class IOSAccessibility {
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
     public void  Update() {
-//        // Update the accessibility elements
-//        Iterator it = mapAccessibilityElements.entrySet().iterator();
-//        int screenHeight =  (int) IOSDelegate.app.GetUIViewController().getView().getBounds().getHeight();
-//
-//        while (it.hasNext()) {
-//            Map.Entry pair = (Map.Entry)it.next();
-//            UIAccessibilityElement element = (UIAccessibilityElement) pair.getKey();
-//            Item_ item = (Item_) pair.getValue();
-//            int x = 0;
-//            int y = 0;
-//            int width = 0;
-//            int height = 0;
-//
-//            if (item instanceof Item2D_)
-//            {
-//                double itemX = ((Item2D_)item).GetScreenX();
-//                double itemY = (((Item2D_) item).GetScreenY());
-//
-//                if (itemX == Double.NaN)
-//                    itemX = 0;
-//
-//                if (itemY == Double.NaN)
-//                    itemY = 0;
-//                width = (int) (((Item2D_) item).GetWidth() / IOSApplication.containerScaleFactorWidth);
-//                height = (int) (((Item2D_) item).GetHeight() / IOSApplication.containerScaleFactorHeight);
-//                x = (int)(itemX / IOSApplication.containerScaleFactorWidth);
-//                y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (itemY / IOSApplication.containerScaleFactorHeight)));
-//            }
-//            else if (item instanceof Item3D_)
-//            {
-//                // This is only a place holder, to place a small box roughly at the
-//                // center of a 3D object in the screen. To calculate this correctly,
-//                // check how we calculate mouse input detection for 3D objects.
-//
-//                Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-//
-//                width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
-//                height = (int)(rectangle.GetY() + rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
-//                x = (int)(rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
-//                y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
-//            }
-//            else
-//            {
-//                return;
-//            }
-//            CGRect rect = new CGRect(x, y, width, height);
-//            if (element.getAccessibilityFrame().equals(rect))
-//                continue;
-//            element.setAccessibilityFrame(rect);
-//            System.out.println("Setting accessibility element" + rect.getX() + " " + rect.getY() + " " + rect.getWidth() + " " + rect.getHeight());
-//            System.out.println("Setting accessibility element" + element.getAccessibilityFrame().getX() + " "
-//                            + element.getAccessibilityFrame().getY() + " " + element.getAccessibilityFrame().getWidth()
-//                            + " " + element.getAccessibilityFrame().getHeight());
-//
-//            System.out.println("Setting accessibility element" + " " + item.GetName() + " " + item.GetDescription());
-//
-//            // Inform iOS that the accessibility elements have changed
-//            UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
-//        }
-
     }
 
     public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {}
@@ -154,7 +96,7 @@ public class IOSAccessibility {
 
     }
 
-    public void Add(Item_ item) {
+    public void NativeAdd(Item_ item) {
         boolean debug = true;
         int x = 0;
         int y = 0;
@@ -209,12 +151,6 @@ public class IOSAccessibility {
             }
         }
 
-
-
-
-
-
-
         UIAccessibilityElement element = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
 
 
@@ -252,8 +188,8 @@ public class IOSAccessibility {
         //accessibilityElement.setAccessibilityIdentifier(item.GetAccessibilityType());
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
 
-       // UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
-       // accessibilityElement.setAccessibilityTraits(traits);
+        // UIAccessibilityTraits traits = UIAccessibilityTraits.AllowsDirectInteraction;
+        // accessibilityElement.setAccessibilityTraits(traits);
 
         // Add the accessibility element to the list
         NSMutableArray<UIAccessibilityElement> nsArray = (NSMutableArray<UIAccessibilityElement>) IOSApplication.accessibilityContainer.getAccessibilityElements().mutableCopy();
@@ -267,6 +203,19 @@ public class IOSAccessibility {
         if(debug){
             System.out.println("The bounds are" + IOSApplication.accessibilityContainer.getFrame().getX() + " " + IOSApplication.accessibilityContainer.getFrame().getY() + " " + IOSApplication.accessibilityContainer.getFrame().getWidth() + " " + IOSApplication.accessibilityContainer.getFrame().getHeight());
         }
+    }
+
+    public void TextSelectionChanged(TextBoxSelection_ selection)
+    {
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+    }
+
+    public boolean Select(Item_ item)
+    {
+        return false;
     }
 
     private class HiddenView extends UIView {
@@ -299,7 +248,7 @@ public class IOSAccessibility {
         }
     }
 
-    public void  Remove(Item_ item) {
+    public void  NativeRemove(Item_ item) {
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}

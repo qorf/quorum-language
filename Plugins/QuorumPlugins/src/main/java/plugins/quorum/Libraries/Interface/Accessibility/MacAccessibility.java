@@ -19,6 +19,8 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 /**
  *
@@ -74,15 +76,36 @@ public class MacAccessibility {
 
     public void  SelectionChanged(SelectionEvent_ event) {}
 
+    public void TextSelectionChanged(TextBoxSelection_ selection)
+    {
+
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+
+    }
+
+    public boolean Select(Item_ item)
+    {
+        return false;
+    }
+
     public void  ButtonActivated(Button_ button) {}
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
     public void  FocusChanged(FocusEvent_ event) {}
 
-    public void  Add(Item_ item) {}
+    public boolean NativeAdd(Item_ item)
+    {
+        return false;
+    }
 
-    public void  Remove(Item_ item) {}
+    public boolean NativeRemove(Item_ item)
+    {
+        return false;
+    }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}
 
