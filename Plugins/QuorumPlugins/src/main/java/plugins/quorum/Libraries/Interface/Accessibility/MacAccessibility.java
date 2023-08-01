@@ -34,7 +34,6 @@ public class MacAccessibility {
     static {
         try
         {
-            System.out.println("Started prepping natives.");
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
             String nativeFile;
@@ -43,7 +42,6 @@ public class MacAccessibility {
             //either architecture
             nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
             System.load(nativeFile);
-            System.out.println("Loaded the library");
         }
         catch (URISyntaxException ex)
         {
@@ -90,20 +88,54 @@ public class MacAccessibility {
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
     public void  FocusChanged(FocusEvent_ event) {
-        System.out.println("Changed the focus");
     }
 
     public boolean NativeAdd(Item_ item)
     {
-        System.out.println("Native Add from Mac");
+        int code = item.GetAccessibilityCode();
+        if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
+            return false;
+        } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__MENU_ITEM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__PANE_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TREE_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TREE_ITEM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TOOLBAR_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TAB_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TAB_PANE_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TABLE_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CELL_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__LIST_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__DIALOG_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__POPUP_MENU_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__PROGRESS_BAR_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_CELL_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__GROUP_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CHART_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CHART_SECTION_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__CHART_ITEM_()) {
+        } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
+        }
+
+
         TreeUpdate tree = new TreeUpdate();
+
         tree.drop();
         return false;
     }
 
     public boolean NativeRemove(Item_ item)
     {
-        System.out.println("Native Removed from Mac");
         return false;
     }
 
