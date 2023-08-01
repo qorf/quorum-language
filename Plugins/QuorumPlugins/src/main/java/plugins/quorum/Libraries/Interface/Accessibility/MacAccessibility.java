@@ -3,6 +3,8 @@ package plugins.quorum.Libraries.Interface.Accessibility;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import dev.accesskit.TreeUpdate;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
@@ -28,40 +30,32 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  */
 public class MacAccessibility {
     public java.lang.Object me_ = null;
-    
-//    static {
-//        try
-//        {
-//            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-//            String runLocation = file.getParentFile().getAbsolutePath();
-//            String nativeFile;
-//
-//
-//            //new M1 macs use 'aarch64'
-//            if (System.getProperty("os.arch").contains("x86_64")) {
-//                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
-//            }
-//            else { //this won't work, but is a start
-//                nativeFile = runLocation + "/jni/Mac/Mac.dylib";
-//            }
-//            System.load(nativeFile);
-//            long handle = org.lwjgl.glfw.GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-//
-//            String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
-//            InitializeAccessibilityNative(handle, windowTitle);
-////            DesktopDisplay.ForceWindowVisible();
-//        }
-//        catch (URISyntaxException ex)
-//        {
-//            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        //this is the NSWindow handle on Mac, I think?
-//
-//
-//    }
-    
+
+    static {
+        try
+        {
+            System.out.println("Started prepping natives.");
+            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            String runLocation = file.getParentFile().getAbsolutePath();
+            String nativeFile;
+
+
+            //either architecture
+            nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
+            System.load(nativeFile);
+            System.out.println("Loaded the library");
+        }
+        catch (URISyntaxException ex)
+        {
+            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //this is the NSWindow handle on Mac, I think?
+
+
+    }
+
     private static native void InitializeAccessibilityNative(long GLFW_WindowHandle, String windowName);
-    
+
     public void  NameChanged(Item_ item) {}
 
     public void  DescriptionChanged(Item_ item) {}
@@ -95,15 +89,21 @@ public class MacAccessibility {
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
-    public void  FocusChanged(FocusEvent_ event) {}
+    public void  FocusChanged(FocusEvent_ event) {
+        System.out.println("Changed the focus");
+    }
 
     public boolean NativeAdd(Item_ item)
     {
+        System.out.println("Native Add from Mac");
+        TreeUpdate tree = new TreeUpdate();
+        tree.drop();
         return false;
     }
 
     public boolean NativeRemove(Item_ item)
     {
+        System.out.println("Native Removed from Mac");
         return false;
     }
 
