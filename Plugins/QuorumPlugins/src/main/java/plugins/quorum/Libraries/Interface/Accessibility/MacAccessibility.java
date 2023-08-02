@@ -56,7 +56,10 @@ public class MacAccessibility {
 
     public void  DescriptionChanged(Item_ item) {}
 
-    public void  BoundsChanged(Item_ item) {}
+    public void  BoundsChanged(Item_ item) {
+
+
+    }
 
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
@@ -81,7 +84,12 @@ public class MacAccessibility {
         return false;
     }
 
-    public void  ButtonActivated(Button_ button) {}
+    public void  ButtonActivated(Button_ button) {
+        if(button == null) {
+            return;
+        }
+        items.get(button.GetHashCode());
+    }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
