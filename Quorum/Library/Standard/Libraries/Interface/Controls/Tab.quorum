@@ -55,6 +55,8 @@ class Tab is Button
     Item lastKnownFocus = undefined
 
     on create
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         SetInterfaceOptionsKey("Tab")
 
         FlowLayout flow

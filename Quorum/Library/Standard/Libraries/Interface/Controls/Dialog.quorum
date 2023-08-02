@@ -95,6 +95,7 @@ class Dialog is Control
             bar:SetView2D(barView)
 
             Label nameLabel
+nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             Font font = properties:GetFont()
             if font = undefined
                 font = nameLabel:GetFont()
