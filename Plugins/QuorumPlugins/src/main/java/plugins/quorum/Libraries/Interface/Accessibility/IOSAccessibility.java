@@ -29,53 +29,7 @@ public class IOSAccessibility {
 
     public void  DescriptionChanged(Item_ item) {}
 
-    public void  BoundsChanged(Item_ item) {
-        UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
-        if(element == null) {
-            return;
-        }
-        int x = 0;
-        int y = 0;
-        int width = 0;
-        int height = 0;
-
-        if (item instanceof Item2D_)
-        {
-            double itemX = ((Item2D_)item).GetScreenX();
-            double itemY = (((Item2D_) item).GetScreenY());
-            if (itemX == Double.NaN) {
-                itemX = 0;
-            }
-
-            if (itemY == Double.NaN) {
-                itemY = 0;
-            }
-
-            width = (int) (((Item2D_) item).GetWidth() / IOSApplication.containerScaleFactorWidth);
-            height = (int) (((Item2D_) item).GetHeight() / IOSApplication.containerScaleFactorHeight);
-            x = (int)(itemX / IOSApplication.containerScaleFactorWidth);
-            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (itemY / IOSApplication.containerScaleFactorHeight)));
-        }
-        else if (item instanceof Item3D_)
-        {
-            // This is only a place holder, to place a small box roughly at the
-            // center of a 3D object in the screen. To calculate this correctly,
-            // check how we calculate mouse input detection for 3D objects.
-            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-
-            width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
-            height = (int)(rectangle.GetY() + rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
-            x = (int)(rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
-            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
-        }
-        else
-        {
-            return;
-        }
-
-        element.setAccessibilityFrame(new CGRect(x, y, width, height));
-        //element.accessibility
-    }
+    public void  BoundsChanged(Item_ item) {}
 
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
@@ -109,52 +63,7 @@ public class IOSAccessibility {
             return false;
         }
 
-        if (item instanceof Item2D_)
-        {
-            double itemX = ((Item2D_)item).GetScreenX();
-            double itemY = (((Item2D_) item).GetScreenY());
-            if (itemX == Double.NaN) {
-                itemX = 0;
-            }
-
-            if (itemY == Double.NaN) {
-                itemY = 0;
-            }
-
-            width = (int) (((Item2D_) item).GetWidth() / IOSApplication.containerScaleFactorWidth);
-            height = (int) (((Item2D_) item).GetHeight() / IOSApplication.containerScaleFactorHeight);
-            x = (int)(itemX / IOSApplication.containerScaleFactorWidth);
-            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (itemY / IOSApplication.containerScaleFactorHeight)));
-        }
-        else if (item instanceof Item3D_)
-        {
-            // This is only a place holder, to place a small box roughly at the
-            // center of a 3D object in the screen. To calculate this correctly,
-            // check how we calculate mouse input detection for 3D objects.
-            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-
-            width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
-            height = (int)(rectangle.GetY() + rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
-            x = (int)(rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
-            y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
-        }
-        else
-        {
-            return false;
-        }
-
-        if(debug) {
-            System.out.println("Adding accessibility element" + x + " " + y + " " + width + " " + height);
-            System.out.println("Adding accessibility element" + " " + item.GetName() + " " + item.GetDescription());
-
-            if (item instanceof Item2D_)
-            {
-                System.out.println("Adding accessibility element 2d" + " " + ((Item2D_) item).GetScreenX() + " " + ((Item2D_) item).GetScreenY() + " " + ((Item2D_) item).GetWidth() + " " + ((Item2D_) item).GetHeight());
-            }
-        }
-
         UIAccessibilityElement element = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
-
 
         //Get the accessibility code and do custom controls.
         //Many of the traits and properties here are incorrect, but the structure is there which can get us started
@@ -175,13 +84,9 @@ public class IOSAccessibility {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
-            System.out.println("Added a Button");
             ButtonIOS button = new ButtonIOS(IOSApplication.accessibilityContainer);
             button.Initialize((Button_)item);
             element = button;
-//            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
-//            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
-
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
