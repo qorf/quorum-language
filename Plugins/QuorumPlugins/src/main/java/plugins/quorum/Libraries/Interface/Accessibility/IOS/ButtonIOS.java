@@ -9,7 +9,9 @@ import plugins.quorum.Libraries.Robots.Lego.Button;
 import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Interface.Controls.Button_;
 
-public class ButtonIOS extends UIAccessibilityElement implements UIAccessibilityAction {
+import java.util.Set;
+
+public class ButtonIOS extends UIAccessibilityElement implements UIAccessibilityAction, UIAccessibilityFocus{
     @Override
     public boolean isAccessibilityElement() {
         return true;
@@ -83,5 +85,25 @@ public class ButtonIOS extends UIAccessibilityElement implements UIAccessibility
     @Override
     public boolean performMagicTap() {
         return false;
+    }
+
+    @Override
+    public void didBecomeFocused() {
+
+    }
+
+    @Override
+    public void didLoseFocus() {
+
+    }
+
+    @Override
+    public boolean isFocused() {
+        return false;
+    }
+
+    @Override
+    public Set<String> getAssistiveTechnologyFocusedIdentifiers() {
+        return null;
     }
 }
