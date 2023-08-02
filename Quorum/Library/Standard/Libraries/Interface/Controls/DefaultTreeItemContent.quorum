@@ -214,6 +214,7 @@ class DefaultTreeItemContent is TreeItemContent
         if label = undefined
             ControlLabel newLabel
             label = newLabel
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
             label:SetHorizontalMargins(4)
 
