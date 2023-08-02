@@ -311,6 +311,8 @@ class Button is Control, TextureLoadListener
             if label = undefined
                 Label newLabel
                 label = newLabel
+                //ignore the internal label.
+                label:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
                 LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
                 labelProperties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
                 labelProperties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
