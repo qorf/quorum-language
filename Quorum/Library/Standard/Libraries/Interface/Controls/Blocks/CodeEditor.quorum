@@ -77,6 +77,10 @@ class CodeEditor is ScrollableLineControl, GutterListener
     number blockNotchTopWidth = 50
     number blockNotchBottomWidth = 25
     number blockNotchHeight = 0.3
+    
+    // Scope width is measured as multiples of "default indentation", where default indentation is the width of 4 characters in the font.
+    // In other words, scoped areas are four characters wide times the scopeBarWidth.
+    number scopeBarWidth = 1.0
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
@@ -813,8 +817,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action GetScopeIndentationWidth returns number
-        // Currently, assume that indentation is equal to 4 characters worth (e.g., a tab producing 4 spaces)
-        return GetDefaultGlyphWidth() * 4
+        // Calculate the indentation width as a multiple of the default glyph width for this font.
+        return GetDefaultGlyphWidth() * 4 * scopeBarWidth
     end
 
     /*
@@ -2462,5 +2466,23 @@ Block lastBlock = GetLastBlock()
         end
         
         return current
+    end
+    
+    /*
+This action sets the width of the scope bars, as a multiple of "default indentation widths".
+A single default indentation is four characters wide in the editor's font. For example, passing
+a value of 2 would make the scoped bars take up 8 characters of space horizontally.
+*/
+    action SetScopeBarWidth(number width)
+        scopeBarWidth = width
+    end
+    
+/*
+This action returns the width of the scope bars, as a multiple of "default indentation widths".
+A single default indentation is four characters wide in the editor's font. For example,
+a value of 2 indicates that the scoped bars take up 8 characters of space horizontally.
+*/
+    action GetScopeBarWidth returns number
+        return scopeBarWidth
     end
 end
