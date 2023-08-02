@@ -1,25 +1,18 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import org.robovm.apple.coregraphics.CGRect;
-import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
-import plugins.quorum.Libraries.Game.IOSDelegate;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
-import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
-import quorum.Libraries.Interface.Item2D_;
-import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 public class IOSAccessibility {
     public Object me_ = null;
@@ -121,8 +114,7 @@ public class IOSAccessibility {
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
 
         // Add the accessibility element to the list
-        NSMutableArray array = IOSApplication.accessibilityContainer.getAccessibilityElements();
-        array.add(element);
+        IOSApplication.accessibilityContainer.getAccessibilityElements().add(element);
         mapAccessibilityElements.put(element, item);
 
         // Inform iOS that the accessibility elements have changed

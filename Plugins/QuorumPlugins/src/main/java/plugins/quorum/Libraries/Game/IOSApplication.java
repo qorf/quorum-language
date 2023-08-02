@@ -34,8 +34,10 @@ public class IOSApplication
         }
 
         @Override
+        //WARNING: Do not actually set to NSArray<UIAccessibilityElement> as it will crash the program.
+        // it has to be NSMutableArray<UIAccessibilityElement>
         public void setAccessibilityElements(NSArray<UIAccessibilityElement> v) {
-            accessibilityElements = (NSMutableArray<UIAccessibilityElement>) v.mutableCopy();
+            accessibilityElements = (NSMutableArray<UIAccessibilityElement>) v;
         }
 
         @Override
