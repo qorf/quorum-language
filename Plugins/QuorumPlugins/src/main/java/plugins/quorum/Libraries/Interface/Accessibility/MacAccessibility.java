@@ -9,8 +9,7 @@ import dev.accesskit.Role;
 import dev.accesskit.TreeUpdate;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
-import plugins.quorum.Libraries.Interface.Accessibility.accesskit.ButtonKit;
-import plugins.quorum.Libraries.Interface.Accessibility.accesskit.ItemKit;
+import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
@@ -104,15 +103,33 @@ public class MacAccessibility {
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
             return false;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
+            itemKit = new ItemKit();
+            itemKit.SetItem(item);
+            items.put(item.GetHashCode(), itemKit);
         } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
+            itemKit = new ItemKit();
+            itemKit.SetItem(item);
+            items.put(item.GetHashCode(), itemKit);
         } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
+            CheckboxKit kit = new CheckboxKit();
+            kit.SetItem(item);
+            items.put(item.GetHashCode(), kit);
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
+            RadioButtonKit kit = new RadioButtonKit();
+            kit.SetItem(item);
+            items.put(item.GetHashCode(), kit);
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
             ButtonKit kit = new ButtonKit();
             kit.SetItem(item);
             items.put(item.GetHashCode(), kit);
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
+            ToggleButtonKit kit = new ToggleButtonKit();
+            kit.SetItem(item);
+            items.put(item.GetHashCode(), kit);
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
         } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()) {
         } else if (code == item.Get_Libraries_Interface_Item__MENU_ITEM_()) {
