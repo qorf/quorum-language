@@ -104,58 +104,98 @@ public class MacAccessibility {
             return false;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
             itemKit = new ItemKit();
-            itemKit.SetItem(item);
-            items.put(item.GetHashCode(), itemKit);
         } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
             itemKit = new ItemKit();
-            itemKit.SetItem(item);
-            items.put(item.GetHashCode(), itemKit);
         } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
             CheckboxKit kit = new CheckboxKit();
-            kit.SetItem(item);
-            items.put(item.GetHashCode(), kit);
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
             RadioButtonKit kit = new RadioButtonKit();
-            kit.SetItem(item);
-            items.put(item.GetHashCode(), kit);
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
             ButtonKit kit = new ButtonKit();
-            kit.SetItem(item);
-            items.put(item.GetHashCode(), kit);
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
             ToggleButtonKit kit = new ToggleButtonKit();
-            kit.SetItem(item);
-            items.put(item.GetHashCode(), kit);
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
+            TextboxKit kit = new TextboxKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()) {
+            MenuBarKit kit = new MenuBarKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__MENU_ITEM_()) {
+            MenuItemKit kit = new MenuItemKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__PANE_()) {
+            PaneKit kit = new PaneKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_()) {
+            TreeKit kit = new TreeKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_ITEM_()) {
+            TreeItemKit kit = new TreeItemKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TOOLBAR_()) {
+            ToolbarKit kit = new ToolbarKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_()) {
+            ToggleButtonKit kit = new ToggleButtonKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_PANE_()) {
+            TabPaneKit kit = new TabPaneKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TABLE_()) {
+            TableKit kit = new TableKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__CELL_()) {
+            CellKit kit = new CellKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
+            TextFieldKit kit = new TextFieldKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_()) {
+            ListKit kit = new ListKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_()) {
+            ListItemKit kit = new ListItemKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_()) {
+            TreeTableKit kit = new TreeTableKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__DIALOG_()) {
+            DialogKit kit = new DialogKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__POPUP_MENU_()) {
+            PopupMenuKit kit = new PopupMenuKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__PROGRESS_BAR_()) {
+            ProgressBarKit kit = new ProgressBarKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_CELL_()) {
+            TreeTableKit kit = new TreeTableKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__GROUP_()) {
+            GroupKit kit = new GroupKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__CHART_()) {
+            ChartKit kit = new ChartKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__CHART_SECTION_()) {
+            ChartSectionKit kit = new ChartSectionKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__CHART_ITEM_()) {
+            ChartItemKit kit = new ChartItemKit();
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
+            LabelKit kit = new LabelKit();
+            itemKit = kit;
         }
 
+        if(itemKit != null) {
+            itemKit.SetItem(item);
+            items.put(item.GetHashCode(), itemKit);
+        }
         //no idea what this does, but something I presume
         //itemKit is the new thing to be added to the system
         TreeUpdate tree = new TreeUpdate();

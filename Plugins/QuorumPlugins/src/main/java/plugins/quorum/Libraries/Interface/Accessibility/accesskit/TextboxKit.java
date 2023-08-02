@@ -4,6 +4,6 @@ import dev.accesskit.Role;
 
 public class TextboxKit extends ItemKit{
     public TextboxKit() {
-        SetRole(Role.INLINE_TEXT_BOX);
+        SetRole(Role.TEXT_FIELD);
     }
 }
