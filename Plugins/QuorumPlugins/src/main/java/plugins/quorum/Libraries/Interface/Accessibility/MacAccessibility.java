@@ -40,21 +40,16 @@ public class MacAccessibility {
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile;
-
-
-            //either architecture
-            nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
+            String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
             System.load(nativeFile);
         }
         catch (URISyntaxException ex)
         {
             Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-        //this is the NSWindow handle on Mac, I think?
-
-
     }
+
+    HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
 
     private static native void InitializeAccessibilityNative(long GLFW_WindowHandle, String windowName);
 
@@ -92,13 +87,20 @@ public class MacAccessibility {
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
     public void  FocusChanged(FocusEvent_ event) {
+        Item_ item = event.GetNewFocus();
+        if(item != null) {
+            ItemKit kit = items.get((item.GetHashCode()));
+            if(kit != null) { //somehow send this to access kit.
+
+            }
+        }
     }
 
-    HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
     public boolean NativeAdd(Item_ item)
     {
         int code = item.GetAccessibilityCode();
         Role role = null;
+        ItemKit itemKit = null;
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
             return false;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
@@ -109,6 +111,7 @@ public class MacAccessibility {
             ButtonKit kit = new ButtonKit();
             kit.SetItem(item);
             items.put(item.GetHashCode(), kit);
+            itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
         } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()) {
@@ -136,15 +139,21 @@ public class MacAccessibility {
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
         }
 
-
+        //no idea what this does, but something I presume
+        //itemKit is the new thing to be added to the system
         TreeUpdate tree = new TreeUpdate();
 
-        tree.drop();
         return false;
     }
 
     public boolean NativeRemove(Item_ item)
     {
+        if(item != null) {
+            ItemKit kit = items.get((item.GetHashCode()));
+            if(kit != null) { //somehow remove this from the system
+
+            }
+        }
         return false;
     }
 
