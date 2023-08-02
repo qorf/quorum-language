@@ -25,17 +25,17 @@ public class IOSApplication
 {
     public class IOSAccessibilityContainer extends UIView implements UIAccessibilityContainer
     {
-        private NSArray<UIAccessibilityElement> accessibilityElements = new NSArray<>();
+        private NSMutableArray<UIAccessibilityElement> accessibilityElements = new NSMutableArray<>();
         private UIAccessibilityContainerType accessibilityContainerType = UIAccessibilityContainerType.SemanticGroup;
 
         @Override
-        public NSArray<UIAccessibilityElement> getAccessibilityElements() {
+        public NSMutableArray<UIAccessibilityElement> getAccessibilityElements() {
             return accessibilityElements;
         }
 
         @Override
         public void setAccessibilityElements(NSArray<UIAccessibilityElement> v) {
-            accessibilityElements = v;
+            accessibilityElements = (NSMutableArray<UIAccessibilityElement>) v.mutableCopy();
         }
 
         @Override

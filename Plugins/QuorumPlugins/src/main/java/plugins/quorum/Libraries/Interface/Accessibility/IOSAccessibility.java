@@ -121,10 +121,9 @@ public class IOSAccessibility {
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
 
         // Add the accessibility element to the list
-        NSMutableArray<UIAccessibilityElement> nsArray = (NSMutableArray<UIAccessibilityElement>) IOSApplication.accessibilityContainer.getAccessibilityElements().mutableCopy();
-        nsArray.add(element);
+        NSMutableArray array = IOSApplication.accessibilityContainer.getAccessibilityElements();
+        array.add(element);
         mapAccessibilityElements.put(element, item);
-        IOSApplication.accessibilityContainer.setAccessibilityElements(nsArray);
 
         // Inform iOS that the accessibility elements have changed
         UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, element);
