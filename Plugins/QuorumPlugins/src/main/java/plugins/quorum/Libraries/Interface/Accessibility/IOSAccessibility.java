@@ -5,6 +5,7 @@ import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Game.IOSDelegate;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
@@ -73,6 +74,7 @@ public class IOSAccessibility {
         }
 
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
+        //element.accessibility
     }
 
     public void  TextFieldUpdatePassword(TextField_ field) {}
@@ -173,11 +175,18 @@ public class IOSAccessibility {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
-            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
-            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+            System.out.println("Added a Button");
+            ButtonIOS button = new ButtonIOS(IOSApplication.accessibilityContainer);
+            button.Initialize((Button_)item);
+            element = button;
+//            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
+//            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+        } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
+            return false;
         }
 
         if (item.GetName() != null) {
