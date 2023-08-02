@@ -1,12 +1,16 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dev.accesskit.Role;
 import dev.accesskit.TreeUpdate;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Interface.Accessibility.accesskit.ButtonKit;
+import plugins.quorum.Libraries.Interface.Accessibility.accesskit.ItemKit;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
@@ -90,9 +94,11 @@ public class MacAccessibility {
     public void  FocusChanged(FocusEvent_ event) {
     }
 
+    HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
     public boolean NativeAdd(Item_ item)
     {
         int code = item.GetAccessibilityCode();
+        Role role = null;
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
             return false;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
@@ -100,6 +106,9 @@ public class MacAccessibility {
         } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
+            ButtonKit kit = new ButtonKit();
+            kit.SetItem(item);
+            items.put(item.GetHashCode(), kit);
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
         } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()) {
