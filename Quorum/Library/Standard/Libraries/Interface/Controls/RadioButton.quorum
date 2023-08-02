@@ -22,6 +22,8 @@ class RadioButton is ToggleButton
     Label label
 
     on create
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         // The layout should already be present, courtesy of our inheritance of Button.
         SetFocusable(false)
 

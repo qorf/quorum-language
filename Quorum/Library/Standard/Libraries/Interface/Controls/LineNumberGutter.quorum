@@ -182,6 +182,7 @@ class LineNumberGutter is Gutter, BreakpointListener
     private action GetLabel(integer index) returns Label
         if labels:GetSize() <= index or labels:Get(index) = undefined
             Label label
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetPositionOnBaseLine(positionOnBaseLine)
             labels:Add(index, label)
             return label
